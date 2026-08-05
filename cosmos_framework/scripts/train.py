@@ -228,7 +228,7 @@ def launch(config: Config, args: argparse.Namespace) -> None:
         raise
 
 
-if __name__ == "__main__":
+def main() -> int:
     parser = argparse.ArgumentParser(description="SFT training (structured TOML)")
     parser.add_argument(
         "--sft-toml",
@@ -282,21 +282,32 @@ if __name__ == "__main__":
     if args.deterministic:
         _setup_deterministic_env_and_backends()
 
-    config = load_experiment_from_toml(args.sft_toml, extra_overrides=args.opts)
+    try:
+        config = load_experiment_from_toml(args.sft_toml, extra_overrides=args.opts)
 
     # log_reproducible_setup reads args.config for telemetry; this entrypoint
     # only takes --sft-toml, so alias it so the launch info records the TOML.
-    args.config = args.sft_toml
+        args.config = args.sft_toml
 
-    if args.dryrun:
-        logging.info("Config:\n" + config.pretty_print(use_color=True))
-        os.makedirs(config.job.path_local, exist_ok=True)
-        try:
-            to_yaml(config, f"{config.job.path_local}/config.yaml")
-        except Exception:
-            logging.error("to_yaml failed, falling back to LazyConfig.save_yaml:")
-            logging.error(f"Traceback: {traceback.format_exc()}")
-            LazyConfig.save_yaml(config, f"{config.job.path_local}/config.yaml")
-        print(f"{config.job.path_local}/config.yaml")
-    else:
-        launch(config, args)
+        if args.dryrun:
+            logging.info("Config:\n" + config.pretty_print(use_color=True))
+            os.makedirs(config.job.path_local, exist_ok=True)
+            try:
+                to_yaml(config, f"{config.job.path_local}/config.yaml")
+            except Exception:
+                logging.error("to_yaml failed, falling back to LazyConfig.save_yaml:")
+                logging.error(f"Traceback: {traceback.format_exc()}")
+                LazyConfig.save_yaml(config, f"{config.job.path_local}/config.yaml")
+            print(f"{config.job.path_local}/config.yaml")
+        else:
+            launch(config, args)
+    except BaseException as error:
+        from cosmos_framework.callbacks.tao_status import write_early_failure
+
+        write_early_failure(error)
+        raise
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
