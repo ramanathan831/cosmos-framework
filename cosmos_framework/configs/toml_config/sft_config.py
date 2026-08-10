@@ -738,6 +738,28 @@ class DataloaderTrainConfig(BaseModel):
     )
 
 
+class PairedImageSplitConfig(BaseModel):
+    """One paired-image manifest wired into an image-edit SFT recipe."""
+
+    model_config = _PYDANTIC_MODEL_CONFIG
+
+    manifest_path: str = Field(default="", description="JSONL source/target/instruction manifest.")
+    width: int = Field(default=848, gt=0, description="Center-cropped image width; must be divisible by 16.")
+    height: int = Field(default=480, gt=0, description="Center-cropped image height; must be divisible by 16.")
+    cfg_dropout_rate: float = Field(default=0.0, ge=0.0, le=1.0)
+    max_caption_tokens: int = Field(default=4096, gt=0)
+    dataset_name: str = Field(default="paired_image_editing")
+
+
+class PairedImageDataConfig(BaseModel):
+    """Train/validation data blocks for generator-tower image editing."""
+
+    model_config = _PYDANTIC_MODEL_CONFIG
+
+    train: PairedImageSplitConfig = Field(default_factory=PairedImageSplitConfig)
+    val: PairedImageSplitConfig = Field(default_factory=PairedImageSplitConfig)
+
+
 # ---------------------------------------------------------------- top
 class SFTExperimentConfig(BaseModel):
     """Top-level structured-TOML schema. Each field corresponds to a
@@ -753,6 +775,7 @@ class SFTExperimentConfig(BaseModel):
     trainer: TrainerConfig = Field(default_factory=TrainerConfig)
     checkpoint: CheckpointConfig = Field(default_factory=CheckpointConfig)
     dataloader_train: DataloaderTrainConfig = Field(default_factory=DataloaderTrainConfig)
+    data: PairedImageDataConfig = Field(default_factory=PairedImageDataConfig)
     custom: dict[str, Any] = Field(
         default_factory=dict,
         description=(

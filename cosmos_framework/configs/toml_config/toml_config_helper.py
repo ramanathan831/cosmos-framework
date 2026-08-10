@@ -18,7 +18,6 @@ from __future__ import annotations
 
 from typing import Any
 
-
 # Maps ``job.task`` to the base Hydra config that ``make_config()`` lives in.
 TASK_TO_BASE_CONFIG: dict[str, str] = {
     "vfm": "cosmos_framework/configs/base/config.py",
@@ -63,6 +62,10 @@ PATH_REMAPS: dict[str, dict[tuple[str, ...], "tuple[str, ...] | None"]] = {
         ("dataloader_train", "max_caption_tokens"): (
             "dataloader_train", "dataloader", "datasets", "video", "dataset", "max_caption_tokens",
         ),
+        # Generator image-edit recipes expose paired JSONL train/val dataset
+        # nodes through a compact [data.train] / [data.val] TOML surface.
+        ("data", "train"): ("dataloader_train", "distributor", "dataset"),
+        ("data", "val"): ("dataloader_val", "distributor", "dataset"),
         ("model",): ("model", "config"),
     },
     # VLM (VLMModelConfig): model.config.{parallelism, compile,
@@ -102,6 +105,7 @@ PATH_REMAPS: dict[str, dict[tuple[str, ...], "tuple[str, ...] | None"]] = {
         ("dataloader_train", "max_samples_per_batch"): ("dataloader_train", "batcher", "max_batch_size"),
         ("dataloader_train", "max_sequence_length"): ("dataloader_train", "batcher", "max_tokens"),
         ("dataloader_train", "max_caption_tokens"): None,                       # VFM-only knob — VLM packer caps via max_sequence_length
+        ("data",): None,                                                         # VFM paired-image recipe only
         # Catch-all for any other model.* sub-keys
         ("model",): ("model", "config"),
     },

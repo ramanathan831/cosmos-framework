@@ -5,12 +5,7 @@
 
 from hydra.core.config_store import ConfigStore
 
-from cosmos_framework.callbacks.manual_gc import ManualGarbageCollection
-from cosmos_framework.utils.lazy_config import PLACEHOLDER
-from cosmos_framework.utils.lazy_config import LazyCall as L
-from cosmos_framework.utils.callback import LowPrecisionCallback, WandBCallback
 from cosmos_framework.callbacks.compile_tokenizer import CompileTokenizer
-
 from cosmos_framework.callbacks.device_monitor import DeviceMonitor
 from cosmos_framework.callbacks.dit_image_sample import DiTImageSampleCallback
 from cosmos_framework.callbacks.every_n_draw_sample import EveryNDrawSample
@@ -19,6 +14,7 @@ from cosmos_framework.callbacks.grad_clip import GradClip
 from cosmos_framework.callbacks.heart_beat import HeartBeat
 from cosmos_framework.callbacks.iter_speed import IterSpeed
 from cosmos_framework.callbacks.load_pretrained import LoadPretrained
+from cosmos_framework.callbacks.manual_gc import ManualGarbageCollection
 from cosmos_framework.callbacks.mfu import MFUCallback
 from cosmos_framework.callbacks.moe_specialization_callback import MoESpecializationCallback
 from cosmos_framework.callbacks.moe_stability_callback import MoEStabilityCallback
@@ -29,10 +25,14 @@ from cosmos_framework.callbacks.sampled_media_recorder import SampledMediaRecord
 from cosmos_framework.callbacks.sequence_packing_padding import SequencePackingPadding
 from cosmos_framework.callbacks.sigma_loss_analysis import SigmaLossAnalysis
 from cosmos_framework.callbacks.skip_nan_step import SkipNaNStep
+from cosmos_framework.callbacks.tao_status import TAOStatusCallback
 from cosmos_framework.callbacks.termination_signal_checkpoint import TerminationSignalCheckpoint
 from cosmos_framework.callbacks.training_stats import TrainingStatsCallback
 from cosmos_framework.callbacks.wandb_log import WandbCallback as WandBCallbackMultiplier
 from cosmos_framework.callbacks.wandb_log_eval import WandbCallback as WandBCallbackEval
+from cosmos_framework.utils.callback import LowPrecisionCallback, WandBCallback
+from cosmos_framework.utils.lazy_config import PLACEHOLDER
+from cosmos_framework.utils.lazy_config import LazyCall as L
 
 BASIC_CALLBACKS = dict(
     iter_speed=L(IterSpeed)(  # does not use model or optimizer
@@ -82,6 +82,13 @@ BASIC_CALLBACKS = dict(
     ),
     mfu=L(MFUCallback)(every_n="${trainer.logging_iter}", grad_accum_iter="${trainer.grad_accum_iter}"),
     ofu=L(OFUCallback)(every_n="${trainer.logging_iter}"),
+    tao=L(TAOStatusCallback)(
+        enabled=False,
+        status_file_path=None,
+        experiment_name="",
+        logging_interval=1,
+        validation_heartbeat_interval=1,
+    ),
 )
 
 # LLM-only subset of BASIC_CALLBACKS.

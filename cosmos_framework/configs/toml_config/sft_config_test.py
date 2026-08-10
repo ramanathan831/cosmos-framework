@@ -147,6 +147,20 @@ class TestSchemaValidation:
         assert "model.config.policy.lora_bias=lora_only" in overrides
         assert "model.config.policy.qwen3_vl_patch_embed=auto" in overrides
 
+    def test_paired_image_data_fields_validate(self) -> None:
+        cfg = SFTExperimentConfig.model_validate(
+            {
+                "job": {"task": "vfm", "experiment": "image_edit_sft_edge"},
+                "data": {
+                    "train": {"manifest_path": "/data/train.jsonl", "cfg_dropout_rate": 0.1},
+                    "val": {"manifest_path": "/data/val.jsonl"},
+                },
+            }
+        )
+        assert cfg.data.train.width == 848
+        assert cfg.data.train.cfg_dropout_rate == 0.1
+        assert cfg.data.val.manifest_path == "/data/val.jsonl"
+
 
 # --------------------------------------------------------------------------- #
 # 2. build_hydra_overrides must NOT emit [custom] as per-leaf overrides        #
@@ -171,6 +185,19 @@ class TestBuildHydraOverrides:
         overrides = build_hydra_overrides(raw)
         assert "experiment=vision_sft_nano" in overrides
         assert any(o.startswith("optimizer.lr=") for o in overrides), overrides
+
+    def test_paired_image_data_routes_to_train_and_val_datasets(self) -> None:
+        overrides = build_hydra_overrides(
+            {
+                "job": {"task": "vfm", "experiment": "image_edit_sft_edge"},
+                "data": {
+                    "train": {"manifest_path": "/data/train.jsonl", "width": 848},
+                    "val": {"manifest_path": "/data/val.jsonl", "width": 848},
+                },
+            }
+        )
+        assert "dataloader_train.distributor.dataset.manifest_path=/data/train.jsonl" in overrides
+        assert "dataloader_val.distributor.dataset.manifest_path=/data/val.jsonl" in overrides
 
 
 # --------------------------------------------------------------------------- #

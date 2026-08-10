@@ -18,18 +18,19 @@ from einops import rearrange
 from torch.distributed._composable.fsdp import FSDPModule
 from torch.nn.modules.module import _IncompatibleKeys
 
-from cosmos_framework.utils.flags import DEVICE, TRAINING, Device
-from cosmos_framework.utils.lazy_config import LazyDict
-from cosmos_framework.utils.lazy_config import instantiate as lazy_instantiate
-from cosmos_framework.model._base import ImaginaireModel
-from cosmos_framework.utils import log, misc
-from cosmos_framework.utils.count_params import count_params
-from cosmos_framework.utils.timer import Timer
-from cosmos_framework.model.generator.algorithm.loss.flow_matching import compute_flow_matching_loss
-from cosmos_framework.model.generator.algorithm.loss.load_balancing import compute_load_balancing_loss
 from cosmos_framework.configs.base.defaults.model_config import OmniMoTModelConfig
 from cosmos_framework.data.generator.action.action_processing import ActionProcessor, get_action_processing_records
+from cosmos_framework.data.generator.sequence_packing import (
+    PackedSequence,
+    SequencePlan,
+    build_sequence_plans_from_data_batch,
+    pack_input_sequence,
+)
+from cosmos_framework.data.generator.sequence_packing.modality import add_special_tokens
 from cosmos_framework.data.generator.utils import IMAGE_RES_SIZE_INFO, VIDEO_RES_SIZE_INFO
+from cosmos_framework.model._base import ImaginaireModel
+from cosmos_framework.model.generator.algorithm.loss.flow_matching import compute_flow_matching_loss
+from cosmos_framework.model.generator.algorithm.loss.load_balancing import compute_load_balancing_loss
 from cosmos_framework.model.generator.diffusion.rectified_flow import RectifiedFlow
 from cosmos_framework.model.generator.diffusion.samplers.edm import EDMSampler
 from cosmos_framework.model.generator.diffusion.samplers.fixed_step import FixedStepSampler
@@ -49,6 +50,8 @@ from cosmos_framework.model.generator.mot.inference_text_kv_memory import (
 from cosmos_framework.model.generator.mot.modeling_utils import has_noisy_tokens
 from cosmos_framework.model.generator.mot.parallelize_vfm_network import parallelize_vfm_network
 from cosmos_framework.model.generator.reasoner.qwen3_vl.utils import tokenize_caption
+from cosmos_framework.model.generator.tokenizers.interface import VideoTokenizerInterface
+from cosmos_framework.model.generator.upsampler.prompts import build_messages, clean_response
 from cosmos_framework.model.generator.utils.data_and_condition import (
     GenerationDataClean,
     GenerationDataNoised,
@@ -68,19 +71,16 @@ from cosmos_framework.model.generator.utils.moe_utils import (
 from cosmos_framework.model.generator.utils.safetensors_loader import (
     load_language_model as load_language_model_safetensors,
 )
-from cosmos_framework.data.generator.sequence_packing import (
-    PackedSequence,
-    SequencePlan,
-    build_sequence_plans_from_data_batch,
-    pack_input_sequence,
-)
-from cosmos_framework.data.generator.sequence_packing.modality import add_special_tokens
-from cosmos_framework.model.generator.tokenizers.interface import VideoTokenizerInterface
-from cosmos_framework.model.generator.upsampler.prompts import build_messages, clean_response
+from cosmos_framework.utils import log, misc
+from cosmos_framework.utils.count_params import count_params
+from cosmos_framework.utils.flags import DEVICE, TRAINING, Device
 from cosmos_framework.utils.generator.data_utils import get_vision_data_resolution, read_positive_int_metadata
 from cosmos_framework.utils.generator.dtensor_helper import DTensorFastEmaModelUpdater
 from cosmos_framework.utils.generator.model_weights_stats import WeightTrainingStat
 from cosmos_framework.utils.generator.parallelism import ParallelDims
+from cosmos_framework.utils.lazy_config import LazyDict
+from cosmos_framework.utils.lazy_config import instantiate as lazy_instantiate
+from cosmos_framework.utils.timer import Timer
 
 
 class OmniMoTModel(ImaginaireModel):
@@ -97,6 +97,13 @@ class OmniMoTModel(ImaginaireModel):
         # Current owner rank in the CP data window; advances modulo CP size after
         # each successful training step and returns to 0 for the next window.
         self._cp_window_slot: int = 0
+        # Validation reuses the generator objective, but must not consume the
+        # in-flight context-parallel training window.  Keep a distinct window
+        # that is reset at the start of every validation pass.
+        self._cp_validation_payload: dict[str, Any] | None = None
+        self._cp_validation_window_slot: int = 0
+        self._validation_state_iteration: int | None = None
+        self._validation_batch_index: int = 0
         self.config = config
         log.info(f"OmniMoTModel: config {self.config}")
 
@@ -1229,6 +1236,15 @@ class OmniMoTModel(ImaginaireModel):
             "sound_token_length": _sound_tokens,
             "is_image_batch": gen_data_clean.is_image_batch,
             "batch_size": gen_data_clean.batch_size,
+            # TAO consumes numerator/denominator pairs to aggregate packed
+            # batches without giving small final batches excess weight.  The
+            # generator objective is a per-sample mean, so these are exact.
+            "loss_numerator": loss.detach() * gen_data_clean.batch_size,
+            "loss_denominator": torch.tensor(
+                gen_data_clean.batch_size,
+                device=loss.device,
+                dtype=torch.long,
+            ),
             "split_lens": packed_sequence.split_lens,
             "attn_modes": packed_sequence.attn_modes,
             "vae_pixel_shapes": vae_pixel_shapes,
@@ -3401,7 +3417,45 @@ class OmniMoTModel(ImaginaireModel):
 
     @torch.no_grad()
     def validation_step(self, data_batch: dict[str, torch.Tensor], iteration: int):
-        pass
+        """Evaluate the same flow-matching objective without mutating training state.
+
+        Rectified-flow loss depends on sampled noise.  Each validation pass uses
+        the same deterministic per-batch seed sequence so losses are comparable
+        across checkpoints.  Context-parallel payload/window state and training
+        sample counters are isolated and restored around the call.
+        """
+        if self._validation_state_iteration != iteration:
+            self._validation_state_iteration = iteration
+            self._validation_batch_index = 0
+            self._cp_validation_payload = None
+            self._cp_validation_window_slot = 0
+
+        training_payload = self._cp_local_training_payload
+        training_window_slot = self._cp_window_slot
+        self._cp_local_training_payload = self._cp_validation_payload
+        self._cp_window_slot = self._cp_validation_window_slot
+
+        counter_state: dict[str, Any] = {}
+        if isinstance(self.net, WeightTrainingStat):
+            for name in ("accum_image_sample_counter", "accum_video_sample_counter"):
+                value = getattr(self.net, name)
+                counter_state[name] = value.clone() if isinstance(value, torch.Tensor) else value
+
+        cuda_devices = [torch.cuda.current_device()] if torch.cuda.is_available() else []
+        validation_seed = 3403 + self._validation_batch_index
+        try:
+            with torch.random.fork_rng(devices=cuda_devices):
+                torch.manual_seed(validation_seed)
+                output_batch, loss = self.training_step(data_batch, iteration)
+            self._cp_validation_payload = self._cp_local_training_payload
+            self._cp_validation_window_slot = self._cp_window_slot
+            self._validation_batch_index += 1
+            return output_batch, loss
+        finally:
+            self._cp_local_training_payload = training_payload
+            self._cp_window_slot = training_window_slot
+            for name, value in counter_state.items():
+                setattr(self.net, name, value)
 
     @torch.no_grad()
     def forward(self, xt, t):
