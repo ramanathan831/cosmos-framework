@@ -86,7 +86,11 @@ def _make_image_edit_recipe(base_recipe, model_name: str):
         "val",
         shuffle=False,
         cfg_dropout_rate=0.0,
-        num_workers=2,
+        # MapDistributor assigns one stream per DP-rank/worker pair. The UC3
+        # validation split has 12 records, so two workers on eight GPUs create
+        # 16 streams and leave ranks 6-7 empty while the others enter FSDP
+        # collectives. Validation is small enough to decode synchronously.
+        num_workers=0,
     )
     return recipe
 

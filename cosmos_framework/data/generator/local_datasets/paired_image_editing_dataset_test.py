@@ -78,3 +78,11 @@ def test_paired_image_editing_dataset_rejects_bad_resolution(tmp_path):
         assert "multiples of 16" in str(error)
     else:
         raise AssertionError("invalid resolution was accepted")
+
+
+def test_image_edit_validation_uses_one_stream_per_rank():
+    from cosmos_framework.configs.base.experiment.sft.image_edit_sft import image_edit_sft_edge
+
+    assert image_edit_sft_edge.dataloader_val.num_workers == 0
+    assert image_edit_sft_edge.dataloader_val.persistent_workers is False
+    assert image_edit_sft_edge.dataloader_val.prefetch_factor is None
