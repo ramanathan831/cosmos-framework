@@ -40,8 +40,8 @@ def init_flash_attn_meta(deterministic: bool = False) -> None:
         import torch
 
         torch.backends.cudnn.deterministic = True
-        torch.use_deterministic_algorithms(True, warn_only=True)
-        # Required for deterministic CuBLAS on CUDA >= 10.2
+        torch.backends.cuda.enable_cudnn_sdp(False)
+        torch.use_deterministic_algorithms(True, warn_only=False)
         os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
         # FlashAttention-2 is a separate CUDA extension whose backward uses
         # atomics, so torch.use_deterministic_algorithms cannot police it -- it

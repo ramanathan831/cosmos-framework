@@ -197,6 +197,7 @@ class SoundUnderstandingConfig:
     audio_start_token: str = "<audio_start>"
     audio_pad_token: str = "<audio_pad>"
     audio_end_token: str = "<audio_end>"
+    audio_encoder_type: str = "parakeet"
     projection_hidden_size: int = 4096
     # Virtual video FPS used only to synthesize timestamp anchors for audio-only
     # samples. This is neither the waveform sample rate nor the audio-token rate.
@@ -221,6 +222,10 @@ def validate_sound_understanding_config(config: Any, *, sound_und: bool) -> None
     """Validate the optional standalone Reasoner audio configuration."""
     if not isinstance(sound_und, bool):
         raise TypeError(f"sound_und must be a bool, got {type(sound_und).__name__}")
+    if sound_und:
+        from cosmos_framework.model.generator.reasoner.audio.registry import get_audio_encoder_backend
+
+        get_audio_encoder_backend(config.audio_encoder_type)
     audio_tokens = (config.audio_start_token, config.audio_pad_token, config.audio_end_token)
     if sound_und and any(not isinstance(token, str) or not token for token in audio_tokens):
         raise ValueError("Audio start, pad, and end tokens must be non-empty strings")
@@ -390,6 +395,58 @@ Qwen3VLMoT_VLM_235b_a22b_Instruct_GCP_Config: VLMConfig = VLMConfig(
     layer_module="Qwen3VLMoeTextMoTDecoderLayer",
     pretrained_weights=PretrainedWeightsConfig(
         backbone_path="s3://bucket0/cosmos3/pretrained/huggingface/Qwen/Qwen3-VL-235B-A22B-Instruct/",
+        credentials_path="credentials/gcp_checkpoint.secret",
+        enable_gcs_patch_in_boto3=True,
+    ),
+)
+
+
+# Cosmos3.5 Super Reasoner (Qwen3-VL 30B-A3B backbone)
+Cosmos3p5SuperReasoner_VLM_GCP_Config: VLMConfig = VLMConfig(
+    model_name="nvidia/Cosmos3.5-Super-Reasoner",
+    model_instance=L(Qwen3VLMoeTextForCausalLM)(
+        config=L(create_vlm_config)(
+            base_config=L(Qwen3VLMoeMoTConfig.from_json_file)(
+                json_file="cosmos_framework/model/generator/reasoner/qwen3_vl_moe/configs/Qwen3-VL-30B-A3B-Instruct.json"
+            ),
+            layer_module="Qwen3VLMoeTextMoTDecoderLayer",
+            qk_norm_for_text=True,
+            qk_norm_for_diffusion=True,
+        ),
+    ),
+    tokenizer=L(build_processor_lazy)(
+        tokenizer_type="Qwen/Qwen3-VL-30B-A3B-Instruct",
+        config_variant="gcp",
+    ),
+    layer_module="Qwen3VLMoeTextMoTDecoderLayer",
+    pretrained_weights=PretrainedWeightsConfig(
+        backbone_path="s3://bucket0/cosmos3/pretrained/huggingface/Cosmos-Reason/Cosmos3.5-Super-Reasoner/",
+        credentials_path="credentials/gcp_checkpoint.secret",
+        enable_gcs_patch_in_boto3=True,
+    ),
+)
+
+
+# Cosmos3.5 Ultra Reasoner (Qwen3-VL 235B-A22B backbone)
+Cosmos3p5UltraReasoner_VLM_GCP_Config: VLMConfig = VLMConfig(
+    model_name="nvidia/Cosmos3.5-Ultra-Reasoner",
+    model_instance=L(Qwen3VLMoeTextForCausalLM)(
+        config=L(create_vlm_config)(
+            base_config=L(Qwen3VLMoeMoTConfig.from_json_file)(
+                json_file="cosmos_framework/model/generator/reasoner/qwen3_vl_moe/configs/Qwen3-VL-235B-A22B-Instruct.json"
+            ),
+            layer_module="Qwen3VLMoeTextMoTDecoderLayer",
+            qk_norm_for_text=True,
+            qk_norm_for_diffusion=True,
+        ),
+    ),
+    tokenizer=L(build_processor_lazy)(
+        tokenizer_type="Qwen/Qwen3-VL-235B-A22B-Instruct",
+        config_variant="gcp",
+    ),
+    layer_module="Qwen3VLMoeTextMoTDecoderLayer",
+    pretrained_weights=PretrainedWeightsConfig(
+        backbone_path="s3://bucket0/cosmos3/pretrained/huggingface/Cosmos-Reason/Cosmos3.5-Ultra-Reasoner/",
         credentials_path="credentials/gcp_checkpoint.secret",
         enable_gcs_patch_in_boto3=True,
     ),
@@ -967,6 +1024,18 @@ def register_vlm():
     cs.store(
         group="vlm_config",
         package="model.config.vlm_config",
+        name="cosmos3p5_super_reasoner_vlm_gcp",
+        node=Cosmos3p5SuperReasoner_VLM_GCP_Config,
+    )
+    cs.store(
+        group="vlm_config",
+        package="model.config.vlm_config",
+        name="cosmos3p5_ultra_reasoner_vlm_gcp",
+        node=Cosmos3p5UltraReasoner_VLM_GCP_Config,
+    )
+    cs.store(
+        group="vlm_config",
+        package="model.config.vlm_config",
         name="qwen3_vl_mot_vlm_2b_instruct",
         node=Qwen3VLMoT_VLM_2b_Instruct_Config,
     )
@@ -1121,6 +1190,20 @@ def register_sound_understanding() -> None:
             encoder_checkpoint_path=(
                 "s3://bucket0/cosmos3/pretrained/huggingface/"
                 "Nemotron/Nemotron-3-Nano-Omni-Parakeet-Encoder-BF16/"
+            ),
+            encoder_checkpoint_credentials_path="credentials/gcp_checkpoint.secret",
+        ),
+    )
+    ConfigStore.instance().store(
+        group="sound_und_config",
+        package="model.config.sound_und_config",
+        name="qwen3_omni_30b_a3b_thinking_audio_encoder_gcp",
+        node=SoundUnderstandingConfig(
+            audio_encoder_type="qwen3_omni_thinking",
+            encoder_checkpoint_enabled=True,
+            encoder_checkpoint_path=(
+                "s3://bucket0/cosmos3/pretrained/huggingface/"
+                "Qwen/Qwen3-Omni-30B-A3B-Thinking-Audio-Encoder-BF16/"
             ),
             encoder_checkpoint_credentials_path="credentials/gcp_checkpoint.secret",
         ),

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: OpenMDW-1.1
 
-from typing import Any
+from typing import Any, Literal
 
 import attrs
 
@@ -9,8 +9,20 @@ from cosmos_framework.utils.lazy_config import LazyDict
 from cosmos_framework.configs.base.defaults.activation_checkpointing import ActivationCheckpointingConfig
 from cosmos_framework.configs.base.defaults.compile import CompileConfig
 from cosmos_framework.configs.base.defaults.ema import EMAConfig
+from cosmos_framework.configs.base.defaults.joint_attention import JointAttnImplementation
+from cosmos_framework.configs.base.defaults.multiview_attention import MultiviewAttentionConfig
 from cosmos_framework.configs.base.defaults.parallelism import ParallelismConfig
+from cosmos_framework.configs.base.defaults.quantization import QuantizationConfig
 from cosmos_framework.configs.base.defaults.reasoner import VLMConfig
+from cosmos_framework.model.generator.mot.action_io_projector import ACTION_IO_PROJECTOR_TYPES
+from cosmos_framework.model.generator.utils.load_balancing_stats import LBLConfig
+
+# Mirrors ``cosmos3.common.args.AttentionIOLayout``. Defined locally on purpose: importing
+# the ``cosmos3`` workspace package at module scope makes the whole cosmos3 config tree
+# unimportable in the released imaginaire4 eval images (v11.2.1 and older ship no
+# ``cosmos3``), which breaks the benchmark-request config-check CI job. Keep in sync with
+# ``packages/cosmos3/cosmos3/common/args.py``.
+AttentionIOLayout = Literal["sequence_sharded", "replicated"]
 
 
 @attrs.define(slots=False)
@@ -19,10 +31,23 @@ class DiffusionExpertConfig:
     timestep_range: float = 1.0
     # Whether to load the generation pathway weights from pretrained LLM/VLM weights.
     load_weights_from_pretrained: bool = True
+    # Whether to add separate learned modality embeddings to image and video generation tokens.
+    # Disabled by default to preserve legacy checkpoints and model behavior.
+    enable_vision_modality_embeddings: bool = False
+    # Whether to add a single shared learned modality embedding to both image and video
+    # generation tokens (``media_modality_embed``). Mutually exclusive with
+    # ``enable_vision_modality_embeddings``. Disabled by default.
+    enable_media_modality_embedding: bool = False
+    # Whether to add a learned modality embedding to action generation tokens.
+    # Enabled by default to preserve legacy checkpoints and model behavior.
+    enable_action_modality_embedding: bool = True
+    # Whether to add a learned modality embedding to sound generation tokens.
+    # Enabled by default
+    enable_sound_modality_embedding: bool = True
 
     patch_spatial: int = 2
     max_vae_latent_side_after_patchify: int = (
-        20  # Max dimension (h or w) of the VAE latent after patchification (320/(8*2))
+        52  # Max h/w of the VAE latent after patchification; 52 -> up to ~1664px square (52*32). Was 20 (=640px).
     )
     # Vision/action/sound position information is always provided through
     # Qwen3VL-style 3D mRoPE attention IDs.
@@ -33,7 +58,7 @@ class DiffusionExpertConfig:
     # sound on the same latent-frame temporal grid as vision/action.
     sound_base_temporal_compression_factor: int | None = None
     # Temporal coordinates used for unified_3d_mrope vision tokens.
-    # - "latent_index": legacy behavior, positions are 0, 1, ..., T_latent-1.
+    # - "latent_index": use latent-frame indexes, optionally shared across camera views.
     # - "uniae_source_right_edge": use UniAE padded-patch right-edge source-frame coordinates.
     vision_temporal_position_mode: str = "latent_index"
     # For unified_3d_mrope: whether spatial (H, W) indices reset to 0 for each vision segment
@@ -43,22 +68,9 @@ class DiffusionExpertConfig:
 
 
 @attrs.define(slots=False)
-class LBLConfig:
-    # For load balancing loss computation.
-    # - "local": Use the fraction of tokens routed to each expert only for the local rank.
-    # - "global": Use the fraction of tokens routed to each expert across all ranks.
-    method: str = "local"
-
-    # Coefficients for the load balancing loss.
-    # - "und": Coefficient for the load balancing loss for the "und" pathway.
-    # - "gen": Coefficient for the load balancing loss for the "gen" pathway.
-    coeff_und: float | None = None
-    coeff_gen: float | None = None
-
-
-@attrs.define(slots=False)
 class RectifiedFlowTrainingConfig:
     shift: Any = 5  # Training time shift. If dict, maps resolution (str) to shift value (int)
+    shift_image: Any | None = None  # Image-specific shift; None inherits shift
     use_dynamic_shift: bool = False  # Whether to use dynamic shifting
     train_time_image_distribution: str = "logitnormal"  # Training time distribution for images
     train_time_video_distribution: str = "logitnormal"  # Training time distribution for videos
@@ -68,6 +80,7 @@ class RectifiedFlowTrainingConfig:
     loss_scale: float = 1.0  # Loss scale
     image_loss_scale: float | None = None  # If set, overrides loss_scale for images
     sound_loss_scale: float | None = None  # If set, overrides loss_scale for sound
+    lidar_loss_scale: float | None = None  # If set, overrides loss_scale for lidar
     use_discrete_rf: bool = False  # Whether to use discrete formulation of rectified flow
 
     # user: please adjust this value according to loss_scale to balance the action loss with the video loss.
@@ -152,14 +165,46 @@ class OmniMoTModelConfig:
 
     Reasoner-only inference disables this to avoid loading the generation VAE.
     """
+
+    lidar_tokenizer: LazyDict | None = None
+    """VAE for the LiDAR range-view stream, alongside the camera VAE in ``tokenizer``.
+
+    When set, a sample's ``lidar`` items are encoded and decoded by this VAE, which lets
+    one sample carry both camera clips and LiDAR range clips. Its ``latent_ch`` is
+    expected to differ from ``state_ch``; LiDAR keeps its own width through its own
+    projections in the network, so ``lidar_state_ch`` must be set to the same value.
+    """
+
+    lidar_state_ch: int | None = None
+    """LiDAR VAE latent channel count, i.e. the width of the network's LiDAR heads."""
+
+    lidar_fps: float | None = None
+    """Sweep rate in Hz of LiDAR items, the counterpart of the camera's per-sample fps.
+
+    With the LiDAR VAE's temporal compression this converts a LiDAR latent index to
+    seconds, which is what puts the two sensors' latents on one mRoPE time axis.
+    """
+
     net: LazyDict = None
     ema: EMAConfig = EMAConfig()
 
     # Parallelism (CP, CFGP, FSDP, DP) and FSDP reduce-dtype configuration.
     parallelism: ParallelismConfig = ParallelismConfig()
 
+    # Tensor layout at the attention boundary when context parallelism is enabled.
+    attention_io_layout: AttentionIOLayout = "sequence_sharded"
+
+    # Opt in to summed CP output gradients; keep legacy scaling for existing optimizer state.
+    correct_cp_gradients: bool = False
+
     # torch.compile knobs (enabled, compiled_region, dynamic, ...).
     compile: CompileConfig = CompileConfig()
+
+    # Post-training quantization + ModelOpt FP8 checkpoint metadata. Mirrored
+    # from Cosmos3OmniConfig.quantization (see ``inference/model.py``) so
+    # ``build_net`` can read modelopt_fp8_checkpoint_path / target_fqns without
+    # reaching outside the model config schema.
+    quantization: QuantizationConfig = QuantizationConfig()
 
     # Activation-checkpointing policy (trade-off between memory and speed).
     activation_checkpointing: ActivationCheckpointingConfig = ActivationCheckpointingConfig()
@@ -201,10 +246,24 @@ class OmniMoTModelConfig:
     resolution: str = "512"
     max_num_tokens_after_packing: int = 13312  # Final num tokens after sequence packing
 
-    # Attention implementation for joint understanding + generation
-    # Note "two_way" and "three_way" disallow and remove "End-of-Vision" or other text token in the generation tower.
-    # "three_way" must only be used when introducing sparsity
-    joint_attn_implementation: str = "two_way"  # "two_way" or "three_way"
+    # Which joint understanding + generation attention pathway a run takes. Note that every
+    # value disallows and removes "End-of-Vision" or other text tokens in the generation tower.
+    #
+    # * "two_way": the ordinary dense within-sample GEN attention.
+    # * "three_way": the split the NATTEN sparsity path needs; use it only for that.
+    # * "multiview": the multiview-aware GEN attention, whose UND pass is shared and whose GEN
+    #   pass runs as ``multiview_attention.backend`` selects -- a masked FlexAttention call or
+    #   the maskless folds. This is what turns multiview attention on; there is no second flag.
+    #
+    # Naming the *pathway* is not the same as naming the pack shape, and the two are read
+    # separately: "multiview" packs exactly as "two_way" does, which ``packing_layout`` below is
+    # what says so. Compare against this field where the pathway is the question, and go through
+    # ``packing_layout`` where the packing or the context-parallel shard is.
+    joint_attn_implementation: JointAttnImplementation = "two_way"
+
+    # Whether the within-sample GEN attention is multiview-aware, which attention it runs as
+    # (the maskless decomposition or a masked FlexAttention call), and under what mask.
+    multiview_attention: MultiviewAttentionConfig = MultiviewAttentionConfig()
 
     # Per-layer NATTEN parameters
     # Must use "three_way" attention if used.
@@ -251,6 +310,7 @@ class OmniMoTModelConfig:
     # Only supports image2video modes (with or without actions).
     # Requires joint_attn_implementation="three_way".
     video_temporal_causal: bool = False
+
     # "none":             standard joint denoising (shared σ, no clean context)
     # "teacher_forcing":  all frames noised with shared σ; clean history via cross-attention
     # "diffusion_forcing": each latent frame gets independent σ ~ Uniform[0,1]
@@ -269,7 +329,13 @@ class OmniMoTModelConfig:
     # action configs
     action_gen: bool = False  # whether to use action related parameters and condition/generate action tokens
     max_action_dim: int = 32  # maximum dimension of the action space, we need to pad the data to this dimension.
-    num_embodiment_domains: int = 32  # number of domains for the domain-aware linear layer
+    num_embodiment_domains: int = 32  # number of action domains/types supported by the I/O projectors
+    # Selects both action2llm and llm2action together so experiments cannot accidentally
+    # compare a hybrid encoder/decoder pair. Legacy configs retain domain-aware behavior.
+    action_io_projector_type: str = attrs.field(
+        default="domain_aware",
+        validator=attrs.validators.in_(ACTION_IO_PROJECTOR_TYPES),
+    )
 
     # sound configs
     sound_gen: bool = False  # whether to use sound related parameters and condition/generate sound tokens
@@ -282,8 +348,6 @@ class OmniMoTModelConfig:
     # the MoE router input and create prompt invariant routing.  This is observed empirically
     # in the 30B-A3B checkpoint.
     enable_input_bias: bool = True
-
-    log_enc_time_every_n: int = 100  # Frequency of logging encoding time to W&B
 
     # When True, ``OmniMoTModel.state_dict`` / ``load_state_dict`` skip the
     # reasoner (und) pathway weights under ``language_model`` — i.e. every key

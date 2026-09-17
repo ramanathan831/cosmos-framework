@@ -9,18 +9,18 @@ from typing import Any
 
 import torch
 
-from cosmos_framework.data.generator.action.action_processing import (
+from cosmos_framework.data.generator.action.utils.action_processing import (
     ActionProcessingRecord,
     make_batched_action_processing_fields,
     pad_action_to_max_dim,
 )
-from cosmos_framework.data.generator.action.domain_utils import (
+from cosmos_framework.data.generator.action.utils.domain_utils import (
     EMBODIMENT_TO_DOMAIN_ID,
     EMBODIMENT_TO_RAW_ACTION_DIM,
     get_domain_id,
 )
-from cosmos_framework.data.generator.action.json_formatter import ActionPromptJsonFormatter
-from cosmos_framework.data.generator.action.transforms import (
+from cosmos_framework.data.generator.action.utils.json_formatter import ActionPromptJsonFormatter
+from cosmos_framework.data.generator.action.utils.transforms import (
     build_sequence_plan_from_mode,
     find_closest_target_size,
     reflection_pad_to_target,
@@ -31,10 +31,11 @@ from cosmos_framework.utils.generator.data_utils import get_vision_data_resoluti
 
 # Domains whose raw action width is chosen per dataset at construction time rather than
 # being a property of the embodiment -- ``hand_pose`` varies with ``keypoint_option`` and
-# ``rotation_format``, ``libero`` with ``rotation_space``. They are absent from
-# ``EMBODIMENT_TO_RAW_ACTION_DIM`` for that reason, so forward dynamics has to take the
-# width from the action file instead of looking it up.
-_PER_DATASET_ACTION_WIDTH = frozenset({"hand_pose", "libero"})
+# ``rotation_format``, ``libero`` with ``rotation_space``, ``robocasa`` with
+# ``use_base_action`` / ``base_encoding`` (10 arm-only, 15 raw base, 20 ego base). They are
+# absent from ``EMBODIMENT_TO_RAW_ACTION_DIM`` for that reason, so forward dynamics has to
+# take the width from the action file instead of looking it up.
+_PER_DATASET_ACTION_WIDTH = frozenset({"hand_pose", "libero", "robocasa"})
 
 
 def _load_actions(

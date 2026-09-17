@@ -43,6 +43,40 @@ def _normalize_public_dependency_path(
     return value
 
 
+def resolve_student_base_model(
+    model_dict: dict[str, Any],
+    *,
+    default_base_model: type,
+) -> tuple[type, type]:
+    """Return the ``(model, config)`` classes a student config should project onto.
+
+    Temporally-causal students (Self-Forcing / teacher-forcing recipes) must
+    project onto the causal base. ``video_temporal_causal`` lives on the base
+    config, but ``teacher_forcing_frames_per_chunk`` and the AR cache settings
+    are declared by ``OmniMoTCausalModelConfig``, so projecting them onto the
+    bidirectional base would silently drop those fields and name a model class
+    that cannot run the autoregressive decode loop.
+
+    The lookup lives here rather than in ``cosmos3.scripts.export_model`` because
+    that package must not import the internal interactive tree. The causal
+    classes are imported lazily so that exporting a non-causal student never
+    pulls in the autoregressive stack.
+    """
+    from cosmos_framework.configs.base.defaults.model_config import OmniMoTModelConfig
+
+    config = model_dict.get("config")
+    is_causal = isinstance(config, dict) and bool(config.get("video_temporal_causal", False))
+    if not is_causal:
+        return default_base_model, OmniMoTModelConfig
+
+    from cosmos_framework.model.generator.omni_mot_causal_model import (
+        OmniMoTCausalModel,
+        OmniMoTCausalModelConfig,
+    )
+
+    return OmniMoTCausalModel, OmniMoTCausalModelConfig
+
+
 def build_student_checkpoint_metadata(*, use_ema_weights: bool) -> dict[str, str | bool]:
     """Build portable metadata without source checkpoint or credential paths."""
     return {
@@ -50,6 +84,57 @@ def build_student_checkpoint_metadata(*, use_ema_weights: bool) -> dict[str, str
         "source_weights": "ema" if use_ema_weights else "regular",
         "student_only": True,
     }
+
+
+def _migrate_legacy_transfer_replay_config(config: dict[str, Any], *, base_config_field_names: set[str]) -> None:
+    """Preserve pre-replay-policy Transfer connectivity when projecting a student."""
+    legacy_key = "transfer_control_attention_mode"
+    if legacy_key not in config:
+        return
+
+    required_fields = {"teacher_forcing_replay_policy", "teacher_forcing_kv_implementation"}
+    if not required_fields <= base_config_field_names:
+        raise ValueError("Legacy Transfer attention requires a causal base config with teacher-forcing replay support.")
+
+    legacy_modes = {
+        "global_control": ("global", False),
+        "causal_control": ("causal", False),
+        "current_only_control": ("current", False),
+        "causal_control_with_rgb_history": ("causal", True),
+        "current_only_control_with_rgb_history": ("current", True),
+    }
+    legacy_mode = config[legacy_key]
+    if not isinstance(legacy_mode, str) or legacy_mode not in legacy_modes:
+        raise ValueError(f"Unsupported legacy {legacy_key}: {legacy_mode!r}.")
+    control_visibility, controls_read_rgb = legacy_modes[legacy_mode]
+    expected_policy = {
+        "control_visibility": control_visibility,
+        "controls_read_strict_past_clean_rgb": controls_read_rgb,
+        "clean_pass_causality": "frame",
+        "multiview_attention_scope": "all_views",
+        "decomposed_temporal_window_seconds": None,
+    }
+    policy = config.get("teacher_forcing_replay_policy", {})
+    if not isinstance(policy, dict):
+        raise TypeError("Expected teacher_forcing_replay_policy to be a dictionary during legacy Transfer migration.")
+    for key, expected in expected_policy.items():
+        if key in policy and policy[key] != expected:
+            raise ValueError(
+                f"Legacy {legacy_key}={legacy_mode!r} conflicts with teacher_forcing_replay_policy.{key}={policy[key]!r}; "
+                f"expected {expected!r}."
+            )
+
+    # The legacy Transfer implementation used three-way single-view attention.
+    # An explicit different implementation must not silently replace that kernel.
+    implementation = config.get("teacher_forcing_kv_implementation", "singleview_threeway_kv")
+    if implementation != "singleview_threeway_kv":
+        raise ValueError(
+            f"Legacy {legacy_key} conflicts with teacher_forcing_kv_implementation={implementation!r}; "
+            "expected 'singleview_threeway_kv'."
+        )
+    config["teacher_forcing_replay_policy"] = {**policy, **expected_policy}
+    config["teacher_forcing_kv_implementation"] = implementation
+    del config[legacy_key]
 
 
 def sanitize_student_model_config(
@@ -63,6 +148,10 @@ def sanitize_student_model_config(
     config = model_dict.get("config")
     if not isinstance(config, dict):
         raise TypeError("Expected model config to be a dictionary.")
+
+    # Migrate before filtering out training-only fields: dropping the legacy
+    # selector first would silently restore global controls without RGB history.
+    _migrate_legacy_transfer_replay_config(config, base_config_field_names=base_config_field_names)
 
     model_dict["_target_"] = base_model_target
     config["_type"] = base_config_type

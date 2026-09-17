@@ -316,11 +316,18 @@ repository = "https://github.com/NVIDIA/cosmos-framework"
 required-version = ">=0.11.3"
 conflicts = [
   [
-    {group = "vllm"},
     {group = "cu128"},
     {group = "cu128-train"},
     {group = "cu130"},
     {group = "cu130-train"},
+    {group = "cu130-torch213"},
+    {group = "cu130-torch213-train"},
+  ],
+  # vllm pins torch==2.10.0, which is satisfied by the cu128/cu130 torch 2.10.0
+  # local builds, so vllm may combine with those. It is incompatible only with
+  # the torch 2.13.0 groups; keep those mutually exclusive with vllm.
+  [
+    {group = "vllm"},
     {group = "cu130-torch213"},
     {group = "cu130-torch213-train"},
   ],
@@ -339,6 +346,16 @@ required-environments = [
   "sys_platform == 'linux' and platform_machine == 'x86_64'",
   "sys_platform == 'linux' and platform_machine == 'aarch64'",
 ]
+
+# These CUDA groups use CPython 3.13-only wheels (NATTEN, FlashAttention,
+# and Transformer Engine). Restrict the groups rather than the base package.
+[tool.uv.dependency-groups]
+cu128 = {requires-python = "==3.13.*"}
+cu128-train = {requires-python = "==3.13.*"}
+cu130 = {requires-python = "==3.13.*"}
+cu130-train = {requires-python = "==3.13.*"}
+cu130-torch213 = {requires-python = "==3.13.*"}
+cu130-torch213-train = {requires-python = "==3.13.*"}
 
 [tool.uv.sources]
 flash-attn = { index = "cosmos"}

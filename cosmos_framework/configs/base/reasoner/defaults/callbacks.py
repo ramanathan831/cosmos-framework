@@ -9,13 +9,14 @@ from hydra.core.config_store import ConfigStore
 
 from cosmos_framework.callbacks.dataloader_state import DataLoaderStateCallback
 from cosmos_framework.callbacks.grad_clip import GradClip
-from cosmos_framework.callbacks.loss_spike_rollback import LossSpikeRollback
 from cosmos_framework.callbacks.hf_export import HFExportCallback
 from cosmos_framework.callbacks.iter_speed import IterSpeed
 from cosmos_framework.callbacks.learning_rate_logger import LearningRateLogger
 from cosmos_framework.callbacks.log_tensor_shape import LogTensorShapeCallback
+from cosmos_framework.callbacks.loss_spike_rollback import LossSpikeRollback
 from cosmos_framework.callbacks.manual_gc import ManualGarbageCollection
 from cosmos_framework.callbacks.param_count import ParamCount
+from cosmos_framework.callbacks.sampled_media_recorder import SampledMediaRecorder
 from cosmos_framework.callbacks.tao_status import TAOStatusCallback
 from cosmos_framework.callbacks.tokens_per_sec import VLMTokensPerSec
 from cosmos_framework.callbacks.wandb_log import WandbCallback as WandBCallbackMultiplier
@@ -62,6 +63,15 @@ def register_callbacks():
             experiment_name="",
             logging_interval=1,
             validation_heartbeat_interval=1,
+        ),
+        sampled_media=L(SampledMediaRecorder)(
+            enabled=False,
+            output_uri=(
+                "${oc.env:IMAGINAIRE_OUTPUT_ROOT,/tmp/imaginaire4-output}/"
+                "${job.project}/${job.group}/${job.name}/sampled_media.lance"
+            ),
+            creds_path=None,
+            flush_every_n_batches=100,
         ),
         # nvtx=L(NVTXCallback)(synchronize=True),
     )
