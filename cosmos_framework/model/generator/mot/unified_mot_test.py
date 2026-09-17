@@ -61,6 +61,9 @@ from cosmos_framework.model.generator.mot.unified_mot import (
     ReasonerKVCache,
     _all_ranks_finished,
     _MoTConfigBase,
+    _pad_packed_tokens_by_sample,
+    _real_token_mask,
+    _run_mlp,
     _sample_next_token,
 )
 from cosmos_framework.model.generator.reasoner.nemotron_3_dense_vl.nemotron_3_dense_vl import (
@@ -81,6 +84,46 @@ from cosmos_framework.utils.generator.parallelism import ParallelDims
 # -----------------------------------------------------------------------------
 # ReasonerKVCache
 # -----------------------------------------------------------------------------
+
+
+@pytest.mark.L0
+@pytest.mark.CPU
+def test_pad_packed_tokens_by_sample_supports_unequal_prompt_lengths() -> None:
+    """Sample-major packed prompts become independent padded cache rows."""
+    tokens = torch.arange(8 * 2 * 3, dtype=torch.float32).reshape(8, 2, 3)  # [S_padded,H,D]
+    sample_ids = torch.tensor([0, 0, 1, 1, 1, 1, 0, 1])  # [S_padded]
+
+    padded, lengths = _pad_packed_tokens_by_sample(
+        tokens,
+        sample_ids,
+        num_real_tokens=6,
+        batch_size=2,
+    )  # [B,S_max,H,D], tuple[B]
+
+    assert lengths == (2, 4)
+    assert padded.shape == (2, 4, 2, 3)
+    torch.testing.assert_close(padded[0, :2], tokens[:2])
+    assert torch.count_nonzero(padded[0, 2:]) == 0
+    torch.testing.assert_close(padded[1], tokens[2:6])
+
+
+@pytest.mark.L0
+@pytest.mark.CPU
+def test_pad_packed_tokens_by_sample_preserves_single_sample_layout() -> None:
+    """B=1 produces the same leading-token tensor as the legacy unsqueeze path."""
+    tokens = torch.arange(7 * 2 * 3, dtype=torch.float32).reshape(7, 2, 3)  # [S_padded,H,D]
+    sample_ids = torch.zeros(7, dtype=torch.long)  # [S_padded]
+
+    padded, lengths = _pad_packed_tokens_by_sample(
+        tokens,
+        sample_ids,
+        num_real_tokens=5,
+        batch_size=1,
+    )  # [1,S_real,H,D], tuple[1]
+    legacy = tokens[:5].unsqueeze(0)  # [1,S_real,H,D]
+
+    assert lengths == (5,)
+    torch.testing.assert_close(padded, legacy)
 
 
 def _kv(batch: int, seqlen: int, num_kv_heads: int = 2, head_dim: int = 4) -> torch.Tensor:
@@ -242,6 +285,49 @@ def test_all_ranks_finished_local_all_true() -> None:
 
 def test_all_ranks_finished_local_some_false() -> None:
     assert _all_ranks_finished(torch.tensor([True, False, True])) is False
+
+
+# -----------------------------------------------------------------------------
+# MLP padding mask
+# -----------------------------------------------------------------------------
+
+
+def test_real_token_mask_marks_the_trailing_padding() -> None:
+    mask = _real_token_mask(num_rows=5, num_real_tokens=3, device=torch.device("cpu"))  # [5]
+
+    assert mask.dtype is torch.bool
+    torch.testing.assert_close(mask, torch.tensor([True, True, True, False, False]))
+
+
+def test_real_token_mask_of_an_unpadded_stream_is_all_real() -> None:
+    mask = _real_token_mask(num_rows=4, num_real_tokens=4, device=torch.device("cpu"))  # [4]
+
+    assert bool(mask.all())
+
+
+def test_real_token_mask_keeps_the_shape_independent_of_the_token_count() -> None:
+    """The point of the mask: the stream's length is what it is, however many rows are real.
+
+    The slicing this replaced made the MLP input's length a function of the count, which is
+    what torch.compile then guarded on and recompiled over.
+    """
+    lengths = {_real_token_mask(8, count, torch.device("cpu")).shape[0] for count in (0, 1, 7, 8)}
+
+    assert lengths == {8}
+
+
+def test_run_mlp_zeroes_padding_rows_before_a_dense_mlp_sees_them() -> None:
+    """A non-finite value left in the padding must not reach the MLP's weight gradients."""
+    mlp = torch.nn.Linear(2, 2, bias=False)
+    hidden_states = torch.tensor([[1.0, 2.0], [torch.inf, torch.nan]])  # [2,2]
+    token_mask = _real_token_mask(num_rows=2, num_real_tokens=1, device=hidden_states.device)  # [2]
+
+    output, lbl_metadata = _run_mlp(mlp, hidden_states, token_mask)
+    output.sum().backward()
+
+    assert lbl_metadata is None
+    assert bool(torch.isfinite(output).all())
+    assert bool(torch.isfinite(mlp.weight.grad).all())
 
 
 # -----------------------------------------------------------------------------

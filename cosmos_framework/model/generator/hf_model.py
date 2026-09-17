@@ -8,8 +8,6 @@ Responsibilities:
     AutoClass (``AutoModelForImageTextToText`` / ``AutoModel`` /
     ``AutoModelForCausalLM`` — see ``HFModel`` for selection rules);
     no weights are loaded.
-  - ``apply_gradient_checkpointing``: wraps HF's standard
-    ``gradient_checkpointing_enable`` API.
   - ``tie_embeddings``: re-establishes the input/output embedding tie after
     FSDP wrapping + meta-materialization.
   - ``load_weights``: dispatches to ``load_vlm_model`` (VLM) or
@@ -18,9 +16,12 @@ Responsibilities:
   - ``forward``: pass-through returning logits.
 
 FSDP wrapping lives in ``vfm/models/parallelize_vlm.py::parallelize()``,
-NOT here.
+NOT here — as does activation checkpointing, which ``parallelize_vlm.apply_ac``
+owns via ``ptd_checkpoint_wrapper`` rather than HF's
+``gradient_checkpointing_enable`` (see that function for why).
 """
 
+import inspect
 import os
 from collections import OrderedDict
 from types import MethodType
@@ -34,6 +35,7 @@ from transformers import AutoConfig, AutoModel, AutoModelForCausalLM, AutoModelF
 import cosmos_framework.model.generator.reasoner.cosmos3_edge  # noqa: F401  registers cosmos3_edge with transformers Auto classes
 from cosmos_framework.model.generator.utils.safetensors_loader import load_language_model, load_vlm_model
 from cosmos_framework.utils import log
+from cosmos_framework.utils.generator.input_probe import maybe_dump_pre_forward
 from cosmos_framework.utils.generator.parallelism import ParallelDims
 
 if TYPE_CHECKING:
@@ -105,9 +107,7 @@ class _ValidationVideoFeatureCache:
                 available[key] = entry
                 call_hits += 1
 
-        any_rank_missing = self._distributed_flag(
-            bool(missing), pixel_values.device, torch.distributed.ReduceOp.MAX
-        )
+        any_rank_missing = self._distributed_flag(bool(missing), pixel_values.device, torch.distributed.ReduceOp.MAX)
         if any_rank_missing and missing:
             miss_indices = list(missing.values())
             miss_pixels = torch.cat([pixel_chunks[index] for index in miss_indices], dim=0)
@@ -119,8 +119,7 @@ class _ValidationVideoFeatureCache:
                 dim=0,
             )
             deepstack_splits = [
-                torch.split(layer, [merged_sizes[index] for index in miss_indices], dim=0)
-                for layer in fresh_deepstack
+                torch.split(layer, [merged_sizes[index] for index in miss_indices], dim=0) for layer in fresh_deepstack
             ]
             for fresh_index, key in enumerate(missing):
                 entry = (
@@ -290,12 +289,11 @@ class HFModel(nn.Module):
             )
 
         if sound_und:
-            from cosmos_framework.data.generator.processors.parakeet_audio_processor import (
-                add_reasoner_audio_special_tokens,
-            )
-            from cosmos_framework.model.generator.reasoner.parakeet.configuration_parakeet import ParakeetAudioConfig
-            from cosmos_framework.model.generator.reasoner.parakeet.parakeet import ParakeetAudioModel
-            from cosmos_framework.model.generator.reasoner.parakeet.utils import patch_reasoner_audio_forward
+            from cosmos_framework.data.generator.processors.audio_utils import add_reasoner_audio_special_tokens
+            from cosmos_framework.model.generator.reasoner.audio.registry import get_audio_encoder_backend
+            from cosmos_framework.model.generator.reasoner.audio.utils import patch_reasoner_audio_forward
+
+            audio_backend = get_audio_encoder_backend(sound_und_config.audio_encoder_type)
 
             input_embeddings = self.model.get_input_embeddings()
             if input_embeddings is None or not hasattr(input_embeddings, "weight"):
@@ -322,12 +320,11 @@ class HFModel(nn.Module):
                     f"{embedding_rows} rows; embedding resize is intentionally unsupported"
                 )
 
-            audio_config = ParakeetAudioConfig(
-                projection_hidden_size=sound_und_config.projection_hidden_size,
-                out_hidden_size=reasoner_hidden_size,
-            )
             with init_on_device("meta", include_buffers=False):
-                self.model.sound_und_model = ParakeetAudioModel(audio_config)
+                self.model.sound_und_model = audio_backend.build_model(
+                    sound_und_config.projection_hidden_size,
+                    reasoner_hidden_size,
+                )
             self.model.sound_und_model.encoder.requires_grad_(False)
             self.model.sound_und_model.encoder.eval()
             if sound_und_config.freeze_projector:
@@ -369,28 +366,57 @@ class HFModel(nn.Module):
         self._tao_validation_video_cache_keys = None
         self._tao_validation_video_cache_active = False
         self._tao_validation_video_feature_cache = None
-        self._configure_validation_video_feature_cache()
 
-        # Patch Qwen3-VL forward for text-only batches (no pixel_values / image_grid_thw).
-        # Required to avoid errors when a batch contains only text: every FSDP rank must
-        # call visual() each step for all-gather sync; the patch runs a lightweight dummy
-        # image and slices the output to [0:0] so it contributes no features.
+        # Patch Qwen3-VL / Qwen3-VL-MoE forward for text-only batches (no pixel_values /
+        # image_grid_thw). Required to avoid errors when a batch contains only text: every
+        # FSDP rank must call visual() each step for all-gather sync; the patch runs a
+        # lightweight dummy image and slices the output to [0:0] so it contributes no features.
+        # Both backbones share the same patch (see patch_qwen3_vl_forward).
         # Must happen BEFORE parallelize() so FSDP captures the patched forward.
-        if hf_config.model_type == "qwen3_vl" and hasattr(self.model, "model"):
+        if hf_config.model_type in ("qwen3_vl", "qwen3_vl_moe") and hasattr(self.model, "model"):
             from cosmos_framework.utils.generator.monkey_patch import patch_qwen3_vl_forward
 
             patch_qwen3_vl_forward(self.model.model)
-            log.info("HFModel: applied patch_qwen3_vl_forward for text-only batch support")
+            log.info(f"HFModel: applied patch_qwen3_vl_forward ({hf_config.model_type}) for text-only batch support")
 
-            # Upstream reserves the vision tower's packed attention path for
-            # FlashAttention-2, which this stack has no aarch64 wheel for, so the
-            # per-chunk fallback is what runs: one attention call per chunk per block.
+        # Swap HF's per-expert Python loop for the fused grouped_mm expert kernel. HF's loop
+        # is never the faster choice on the GPUs this trains on, and the patch reuses the
+        # existing expert parameters as-is, so there is nothing to trade off and no knob:
+        # checkpoint and FSDP layouts are unchanged. Also must precede parallelize().
+        if hf_config.model_type == "qwen3_vl_moe":
+            from cosmos_framework.utils.generator.monkey_patch import patch_qwen3_vl_moe_grouped_mm_experts
+
+            n_moe_blocks = patch_qwen3_vl_moe_grouped_mm_experts(self.model)
+            log.info(f"HFModel: applied grouped_mm experts to {n_moe_blocks} MoE block(s)")
+
+        # Give the vision tower a single varlen attention call per block. HF only does that for
+        # flash_attention_2 and otherwise splits the packed patches per image, which costs a
+        # device-to-host sync (and a graph break) in every block; cosmos_framework.model.attention takes the
+        # packed layout directly. Only the cosmos adapter reaches it, so the other
+        # implementations keep HF's split path. Also must precede parallelize().
+        if hf_config.model_type in ("qwen3_vl", "qwen3_vl_moe") and attn_implementation == "cosmos":
+            from cosmos_framework.utils.generator.monkey_patch import patch_qwen3_vl_vision_varlen_attention
+
+            n_vision_attns = patch_qwen3_vl_vision_varlen_attention(self.model)
+            log.info(f"HFModel: applied varlen attention to {n_vision_attns} vision attention module(s)")
+
+        elif hf_config.model_type == "qwen3_vl" and hasattr(self.model, "model"):
+            # Preserve the parent's batched fallback for sdpa/eager without
+            # replacing the upstream cosmos varlen attention implementation.
             if os.environ.get("TAO_FRAMEWORK_BATCH_VISION_ATTENTION", "1") not in {"0", "false", "no"}:
-                from cosmos_framework.utils.generator.monkey_patch import (
-                    patch_qwen3_vl_vision_attention,
-                )
+                from cosmos_framework.utils.generator.monkey_patch import patch_qwen3_vl_vision_attention
 
                 patch_qwen3_vl_vision_attention(self.model.model)
+
+        if torch.are_deterministic_algorithms_enabled():
+            from cosmos_framework.utils.generator.monkey_patch import patch_siglip2_pos_embed_antialias_off
+
+            for m in self.model.modules():
+                if type(m).__name__ == "Siglip2VisionTransformer":
+                    patch_siglip2_pos_embed_antialias_off(m)
+
+        # Wrap the final visual entrypoint, including the upstream varlen wrapper.
+        self._configure_validation_video_feature_cache()
 
     def _configure_validation_video_feature_cache(self) -> None:
         capacity = int(os.environ.get("TAO_FRAMEWORK_VALIDATION_VIDEO_FEATURE_CACHE_SIZE", "0"))
@@ -459,11 +485,6 @@ class HFModel(nn.Module):
         ``model.net.named_parameters()`` uniformly across model families."""
         return self.model
 
-    def apply_gradient_checkpointing(self) -> None:
-        """Enable gradient checkpointing via HF's standard API."""
-        self.model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
-        log.info("HFModel: gradient checkpointing enabled")
-
     def tie_embeddings(self) -> None:
         """Tie output embedding weight to input embedding, matching post_to_empty_hook behavior.
 
@@ -528,8 +549,8 @@ class HFModel(nn.Module):
 
         Dispatches on model type:
         - VLM (vision_config present): ``load_vlm_model`` (universal
-          suffix-lookup loader inherited from the legacy VLM path; MoE VLMs
-          explicitly blocked — see spec §2.2).
+          suffix-lookup loader inherited from the legacy VLM path; dense and
+          MoE VLMs both supported).
         - LLM (no vision_config): ``load_language_model`` — handles VFM-specific
           per-family key remapping for Qwen3 / Nemotron (unchanged from today).
 
@@ -596,58 +617,107 @@ class HFModel(nn.Module):
         log.info(f"HFModel: weights loaded from {checkpoint_path} ({len(keys_loaded)} keys)")
         return keys_loaded
 
-    # Keys added by the VLM collate_fn (vlm/datasets/collate_fn.py) that are NOT valid
-    # HF model forward arguments. These must be stripped before calling self.model.forward().
-    # A blocklist (not a whitelist) is used so that legitimate kwargs passed via the model's
-    # **kwargs — e.g. second_per_grid_ts for Qwen3-VL temporal encoding, output_router_logits
-    # for MoE load-balancing — are forwarded correctly even when not named in the signature.
-    _COLLATE_NON_MODEL_KEYS: frozenset[str] = frozenset(
+    # Keys the forward signature does not name but the model still consumes out of its
+    # ``**kwargs``, so the signature-derived allowlist below would wrongly drop them:
+    # second_per_grid_ts drives Qwen-VL temporal encoding, output_router_logits switches on
+    # MoE load-balancing bookkeeping. Both arrive as a tensor or a bool, so the guards
+    # torch.compile installs on them are cheap shape/dtype guards rather than the per-sample
+    # value guards that make the stray string keys ruinous (see forward()).
+    _FORWARD_KWARGS_PASSTHROUGHS: frozenset[str] = frozenset(
         {
-            "token_mask",
-            "pad_token_id",
-            "ignore_index",
-            "collated",
-            # content_tokens: non-pad token count emitted by custom_collate for the
-            # VLMTokensPerSec throughput callback; telemetry only, not a forward arg.
-            "content_tokens",
-            # Extended packing telemetry emitted by custom_collate (supervision density,
-            # l_max, attention-quadratic waste) for VLMTokensPerSec; telemetry only.
-            "supervised_tokens",
-            "seq_max_len",
-            "sum_len_sq",
-            # predicted_runtime_ms: the FLOP packer's per-step runtime estimate, surfaced by
-            # custom_collate for the VLMTokensPerSec realized-vs-predicted calibration; telemetry only.
-            "predicted_runtime_ms",
-            "raw_image",
-            "raw_video",
-            # image_sizes is collected by collate_fn but is NOT a Qwen3-VL forward arg
-            # (Qwen3-VL uses image_grid_thw instead). Strip it so strict HF signatures
-            # don't reject it. NOTE: image_sizes IS valid for LLaVA-style models — if
-            # a future Phase extends to those, remove this entry.
-            "image_sizes",
+            "second_per_grid_ts",
+            "output_router_logits",
+            # Standard HF varlen-attention metadata. The monkey-patched Qwen text
+            # forward consumes these from **kwargs and threads them to every decoder layer.
+            "cu_seq_lens_q",
+            "cu_seq_lens_k",
+            "max_length_q",
+            "max_length_k",
         }
     )
+
+    # Both set once and read every step. Class-level defaults rather than __init__
+    # assignments because the test suite builds instances through __new__:
+    #   _forward_keys_cache: derived from the forward signature on first use.
+    #   _logged_dropped_forward_keys: keeps the drop set auditable without a log line per step.
+    _forward_keys_cache: frozenset[str] | None = None
+    _logged_dropped_forward_keys: bool = False
+
+    @property
+    def _forward_keys(self) -> frozenset[str]:
+        """Kwargs that may reach ``self.model.forward``: what it declares, plus the known
+        :attr:`_FORWARD_KWARGS_PASSTHROUGHS`.
+
+        Read off the BOUND method, so ``self`` is already excluded and an instance-level
+        monkey patch is honoured. VAR_POSITIONAL/VAR_KEYWORD entries are skipped: a
+        ``**kwargs`` parameter matches anything, so counting it would admit every key and
+        turn the allowlist back into a pass-through.
+
+        A forward-wrapping patch therefore has to advertise the inputs it adds, or they get
+        dropped here. ``patch_reasoner_audio_forward`` does: it publishes a ``__signature__``
+        listing audio_features and friends as keyword-only (``inspect.signature`` prefers
+        ``__signature__`` over the ``__wrapped__`` chain that ``functools.wraps`` installs,
+        so the audio inputs survive). A future patch that only uses ``@wraps`` and pops its
+        arguments out of ``**kwargs`` would need adding to
+        :attr:`_FORWARD_KWARGS_PASSTHROUGHS`.
+
+        Derived lazily on the first forward, so ``__init__`` has finished patching by then,
+        and memoized rather than re-derived per step.
+        """
+        if self._forward_keys_cache is None:
+            params = inspect.signature(self.model.forward).parameters
+            declared = {
+                name
+                for name, param in params.items()
+                if param.kind not in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD)
+            }
+            self._forward_keys_cache = frozenset(declared | self._FORWARD_KWARGS_PASSTHROUGHS)
+        return self._forward_keys_cache
 
     def forward(self, **kwargs) -> torch.Tensor:
         """Pass-through forward. Returns logits (B, T, V).
 
-        Strips collate-added non-model keys (see ``_COLLATE_NON_MODEL_KEYS``:
-        token_mask, pad_token_id, ignore_index, collated, raw_image, raw_video,
-        image_sizes) before forwarding. Forces use_cache=False for training.
-        All remaining keys (including ``**kwargs`` pass-throughs such as
-        second_per_grid_ts) are forwarded unchanged.
+        Forwards only the keys in :attr:`_forward_keys` and drops the rest, logging the
+        dropped set once per process. What the data batch carries beyond model inputs:
+        collate telemetry for VLMTokensPerSec (content_tokens, supervised_tokens,
+        seq_max_len, sum_len_sq, predicted_runtime_ms), decode leftovers and collate
+        scaffolding (raw_image, raw_video, token_mask, pad_token_id, ignore_index, collated),
+        keys belonging to other architectures (image_sizes is LLaVA-style; Qwen-VL uses
+        image_grid_thw), and per-sample WebDataset bookkeeping (__url__, __key__,
+        dataset_name, dialog_str, sample_index, ...).
 
-        For nemotron_vl: attention_mask is also dropped. NemotronVLModel.get_rope_index
-        strips padding positions when attention_mask is present, returning position_ids
-        shorter than inputs_embeds (padded_len). With right-padding + causal attention,
-        valid tokens never attend to padding tokens regardless, so dropping attention_mask
-        is equivalent and avoids the shape mismatch.
+        An allowlist, not a blocklist, because HF models funnel unrecognized kwargs down
+        into EVERY decoder layer, where torch.compile turns them into guards. ``__url__`` is
+        a fresh string each step, so its equality guard fails every step: Dynamo recompiles
+        until it trips ``recompile_limit`` (8) and then abandons that code object for the
+        rest of the run. Under activation checkpointing all blocks share the single
+        ``CheckpointWrapper.forward`` code object, so one stray string key silently reverts
+        the whole model to eager after eight steps, having paid eight compilations for it.
+        A blocklist reopens that hole the moment the data pipeline grows a field.
+
+        Forces use_cache=False for training, applied after filtering because not every HF
+        forward names use_cache in its signature (Qwen3-VL takes it via ``**kwargs``).
+
+        For Nemotron VL (``nemotron_vl`` or its remote-code name
+        ``nemotron_siglip2``): attention_mask is also dropped.
+        NemotronVLModel.get_rope_index strips padding positions when attention_mask is
+        present, returning position_ids shorter than inputs_embeds (padded_len). With
+        right-padding + causal attention, valid tokens never attend to padding tokens
+        regardless, so dropping attention_mask is equivalent and avoids the shape mismatch.
         """
         cache_keys = kwargs.pop("tao_video_cache_keys", None)
-        filtered = {k: v for k, v in kwargs.items() if k not in self._COLLATE_NON_MODEL_KEYS}
-        if self.hf_config.model_type == "nemotron_vl":
+        probe_step = kwargs.pop("_probe_step", None)
+        probe_tag = kwargs.pop("_probe_tag", None)
+        forward_keys = self._forward_keys
+        filtered = {k: v for k, v in kwargs.items() if k in forward_keys}
+        if not self._logged_dropped_forward_keys and len(filtered) != len(kwargs):
+            dropped = sorted(set(kwargs) - forward_keys)
+            log.info(f"HFModel: dropping non-forward batch keys {dropped} before {type(self.model).__name__}.forward")
+            self._logged_dropped_forward_keys = True
+        if self.hf_config.model_type in {"nemotron_vl", "nemotron_siglip2"}:
             filtered.pop("attention_mask", None)
         filtered["use_cache"] = False
+        maybe_dump_pre_forward(self.model, filtered, probe_step, probe_tag)
         cache = self._tao_validation_video_feature_cache
         self._tao_validation_video_cache_active = (
             cache is not None and not self.training and not torch.is_grad_enabled()

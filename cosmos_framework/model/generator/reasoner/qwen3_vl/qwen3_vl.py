@@ -52,6 +52,7 @@ from cosmos_framework.model.generator.reasoner.qwen3_vl.utils import (
 from cosmos_framework.model.generator.reasoner.qwen3_vl.utils import (
     get_rope_index as _get_rope_index,
 )
+from cosmos_framework.utils.generator.quantization import _ModelOptFloat8Linear
 
 from .configuration_qwen3_vl import Qwen3VLConfig, Qwen3VLTextConfig, Qwen3VLVisionConfig
 
@@ -608,6 +609,11 @@ class Qwen3VLPreTrainedModel(PreTrainedModel):
 
     def _init_weights(self, module: nn.Module, buffer_device: torch.device | None) -> None:
         """Initialize the weights."""
+        # A ModelOpt FP8 linear carries an E4M3 weight that the checkpoint fills
+        # wholesale, and `normal_` has no float8 kernel. Random init would be both
+        # unimplemented and pointless here.
+        if isinstance(module, _ModelOptFloat8Linear):
+            return
         super()._init_weights(module)
 
         if isinstance(
@@ -1216,6 +1222,10 @@ class Qwen3VLCausalLMOutputWithPast(ModelOutput):
     hidden_states: Optional[tuple[torch.FloatTensor]] = None
     attentions: Optional[tuple[torch.FloatTensor]] = None
     rope_deltas: Optional[torch.LongTensor] = None
+    # The final layer's states. This stack collects no PER-LAYER states -- the text model
+    # returns only its last -- so `hidden_states` above stays None and a consumer that needs
+    # the final state, such as a value head, reads it here under the usual HF name.
+    last_hidden_state: Optional[torch.FloatTensor] = None
 
 
 class Qwen3VLForConditionalGeneration(Qwen3VLPreTrainedModel, GenerationMixin):
@@ -1319,6 +1329,7 @@ class Qwen3VLForConditionalGeneration(Qwen3VLPreTrainedModel, GenerationMixin):
             logits=logits,
             past_key_values=outputs.past_key_values,
             rope_deltas=outputs.rope_deltas,
+            last_hidden_state=hidden_states,
         )
 
     def prepare_inputs_for_generation(

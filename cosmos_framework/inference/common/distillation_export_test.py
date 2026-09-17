@@ -3,6 +3,7 @@
 
 import copy
 
+import attrs
 import pytest
 
 from cosmos_framework.inference.common import distillation_export
@@ -72,6 +73,144 @@ def test_build_student_checkpoint_metadata_omits_source_paths() -> None:
     }
 
 
+def _sanitize_causal_student(model_dict: dict) -> None:
+    sanitize_student_model_config(
+        model_dict,
+        base_model_target="omni_mot_causal_model",
+        base_config_type="omni_mot_causal_model_config",
+        base_config_field_names={
+            "video_temporal_causal",
+            "teacher_forcing_replay_policy",
+            "teacher_forcing_kv_implementation",
+            "teacher_forcing_frames_per_chunk",
+            "kv_cache_inference_size",
+            "attention_sink_size",
+        },
+    )
+
+
+@pytest.mark.parametrize(
+    ("legacy_mode", "control_visibility", "controls_read_rgb"),
+    [
+        ("global_control", "global", False),
+        ("causal_control", "causal", False),
+        ("current_only_control", "current", False),
+        ("causal_control_with_rgb_history", "causal", True),
+        ("current_only_control_with_rgb_history", "current", True),
+    ],
+)
+def test_sanitize_student_migrates_legacy_transfer_connectivity(
+    legacy_mode: str, control_visibility: str, controls_read_rgb: bool
+) -> None:
+    model_dict = {
+        "config": {
+            "video_temporal_causal": True,
+            "transfer_control_attention_mode": legacy_mode,
+            "teacher_forcing_frames_per_chunk": 1,
+            "kv_cache_inference_size": 51,
+            "attention_sink_size": 1,
+        }
+    }
+
+    _sanitize_causal_student(model_dict)
+
+    assert model_dict["config"] == {
+        "_type": "omni_mot_causal_model_config",
+        "video_temporal_causal": True,
+        "teacher_forcing_frames_per_chunk": 1,
+        "kv_cache_inference_size": 51,
+        "attention_sink_size": 1,
+        "teacher_forcing_kv_implementation": "singleview_threeway_kv",
+        "teacher_forcing_replay_policy": {
+            "control_visibility": control_visibility,
+            "controls_read_strict_past_clean_rgb": controls_read_rgb,
+            "clean_pass_causality": "frame",
+            "multiview_attention_scope": "all_views",
+            "decomposed_temporal_window_seconds": None,
+        },
+    }
+    migrated = copy.deepcopy(model_dict)
+    _sanitize_causal_student(model_dict)
+    assert model_dict == migrated
+
+
+def test_sanitize_student_merges_compatible_legacy_and_current_replay_settings() -> None:
+    model_dict = {
+        "config": {
+            "transfer_control_attention_mode": "causal_control_with_rgb_history",
+            "teacher_forcing_kv_implementation": "singleview_threeway_kv",
+            "teacher_forcing_replay_policy": {
+                "_type": "teacher_forcing_replay_policy_config",
+                "control_visibility": "causal",
+            },
+        }
+    }
+
+    _sanitize_causal_student(model_dict)
+
+    policy = model_dict["config"]["teacher_forcing_replay_policy"]
+    assert policy["_type"] == "teacher_forcing_replay_policy_config"
+    assert policy["control_visibility"] == "causal"
+    assert policy["controls_read_strict_past_clean_rgb"] is True
+
+
+@pytest.mark.parametrize(
+    "conflicting_policy",
+    [
+        {"control_visibility": "global"},
+        {"controls_read_strict_past_clean_rgb": False},
+        {"clean_pass_causality": "chunk"},
+        {"multiview_attention_scope": "same_view"},
+        {"decomposed_temporal_window_seconds": 0.1},
+    ],
+)
+def test_sanitize_student_rejects_conflicting_legacy_and_current_replay_settings(conflicting_policy: dict) -> None:
+    model_dict = {
+        "config": {
+            "transfer_control_attention_mode": "causal_control_with_rgb_history",
+            "teacher_forcing_replay_policy": conflicting_policy,
+        }
+    }
+    original = copy.deepcopy(model_dict)
+
+    with pytest.raises(ValueError, match="conflicts with teacher_forcing_replay_policy"):
+        _sanitize_causal_student(model_dict)
+
+    assert model_dict == original
+
+
+def test_sanitize_student_rejects_conflicting_legacy_kv_implementation() -> None:
+    model_dict = {
+        "config": {
+            "transfer_control_attention_mode": "causal_control_with_rgb_history",
+            "teacher_forcing_kv_implementation": "multiview_flex_kv",
+        }
+    }
+
+    with pytest.raises(ValueError, match="conflicts with teacher_forcing_kv_implementation"):
+        _sanitize_causal_student(model_dict)
+
+
+@pytest.mark.parametrize("legacy_mode", [None, "future_control", []])
+def test_sanitize_student_rejects_unknown_legacy_transfer_mode(legacy_mode: object) -> None:
+    model_dict = {"config": {"transfer_control_attention_mode": legacy_mode}}
+
+    with pytest.raises(ValueError, match="Unsupported legacy transfer_control_attention_mode"):
+        _sanitize_causal_student(model_dict)
+
+
+def test_sanitize_student_rejects_legacy_transfer_without_causal_base_support() -> None:
+    model_dict = {"config": {"transfer_control_attention_mode": "causal_control_with_rgb_history"}}
+
+    with pytest.raises(ValueError, match="requires a causal base config"):
+        sanitize_student_model_config(
+            model_dict,
+            base_model_target="omni_mot_model",
+            base_config_type="omni_mot_model_config",
+            base_config_field_names={"video_temporal_causal"},
+        )
+
+
 def test_sanitize_student_public_model_config_removes_internal_loaders() -> None:
     model_dict = {
         "config": {
@@ -94,7 +233,7 @@ def test_sanitize_student_public_model_config_removes_internal_loaders() -> None
                 },
                 "tokenizer": {
                     "_target_": (
-                        "projects.cosmos3.interactive.configs.distillation_implementation."
+                        "cosmos_framework.data.generator.sequence_packing.configs.distillation_implementation."
                         "_create_oss_tokenizer_with_internal_download"
                     ),
                     "config_variant": "gcp",
@@ -299,3 +438,42 @@ def test_resolve_vision_checkpoint_path_prefers_local_override() -> None:
 
     assert path == "/local/vision"
     assert fallback_called is False
+
+
+def test_resolve_student_base_model_keeps_default_for_bidirectional_config() -> None:
+    class _DefaultBaseModel:
+        pass
+
+    model_dict = {"config": {"video_temporal_causal": False}}
+
+    model_cls, config_cls = distillation_export.resolve_student_base_model(
+        model_dict, default_base_model=_DefaultBaseModel
+    )
+
+    assert model_cls is _DefaultBaseModel
+    assert config_cls.__name__ == "OmniMoTModelConfig"
+
+
+def test_resolve_student_base_model_selects_causal_base_for_causal_config() -> None:
+    class _DefaultBaseModel:
+        pass
+
+    model_dict = {"config": {"video_temporal_causal": True, "teacher_forcing_frames_per_chunk": 4}}
+
+    model_cls, config_cls = distillation_export.resolve_student_base_model(
+        model_dict, default_base_model=_DefaultBaseModel
+    )
+
+    assert model_cls.__name__ == "OmniMoTCausalModel"
+    assert config_cls.__name__ == "OmniMoTCausalModelConfig"
+    # The causal-only field must survive the projection field filter.
+    assert "teacher_forcing_frames_per_chunk" in {field.name for field in attrs.fields(config_cls)}
+
+
+def test_resolve_student_base_model_tolerates_missing_config() -> None:
+    class _DefaultBaseModel:
+        pass
+
+    model_cls, _ = distillation_export.resolve_student_base_model({}, default_base_model=_DefaultBaseModel)
+
+    assert model_cls is _DefaultBaseModel

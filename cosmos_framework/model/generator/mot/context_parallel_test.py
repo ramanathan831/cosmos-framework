@@ -13,9 +13,11 @@ import torch.distributed as dist
 
 from cosmos_framework.trainer import ContextParallelDataWindow, ImaginaireTrainer
 from cosmos_framework.utils import distributed
+from cosmos_framework.model.generator.algorithm.loss.load_balancing import compute_load_balancing_loss
 from cosmos_framework.data.generator.joint_dataloader import IterativeJointDataLoader
 from cosmos_framework.model.generator.mot.attention import (
     SplitInfo,
+    build_packed_sequence,
     dispatch_attention,
 )
 from cosmos_framework.model.generator.mot.context_parallel_utils import (
@@ -25,6 +27,7 @@ from cosmos_framework.model.generator.mot.context_parallel_utils import (
 )
 
 from cosmos_framework.model.generator.utils.data_and_condition import GenerationDataClean
+from cosmos_framework.model.generator.utils.load_balancing_stats import LBLMetadata, compute_sample_lbl_stats
 from cosmos_framework.data.generator.sequence_packing import (
     PackedSequence,
     build_sequence_plans_from_data_batch,
@@ -34,7 +37,8 @@ from cosmos_framework.data.generator.sequence_packing.runtime import (
     SequencePack,
     from_all_seq,
     from_mode_splits,
-    get_all_seq,
+    get_all_seq_unpadded,
+    get_full_only_seq,
     get_gen_seq,
     get_und_seq,
     sequence_pack_from_packed_sequence,
@@ -168,7 +172,7 @@ def test_broadcast_context_parallel_object_uses_round_robin_owner(monkeypatch: p
         assert payload_box == [None]
         assert src == 17
         assert group is cp_group
-        assert min_tensor_bytes == 0
+        assert min_tensor_bytes == 1024 * 1024
         payload_box[0] = owner_payload
 
     monkeypatch.setattr(distributed, "broadcast_object_list_optimized", _fake_broadcast)
@@ -295,6 +299,7 @@ def get_factored_qkv_data(
     sample_lens,
     packed_und_token_indexes,
     packed_gen_token_indexes,
+    cp_world_size: int = 1,
 ):
     print(f"DEBUG: packed_und_token_indexes length: {packed_und_token_indexes.shape[0]}")
     print(f"DEBUG: split_lens sum causal: {sum(l for l, m in zip(split_lens, attn_modes) if m == 'causal')}")
@@ -306,6 +311,7 @@ def get_factored_qkv_data(
         sample_lens=sample_lens,
         packed_und_token_indexes=packed_und_token_indexes,
         packed_gen_token_indexes=packed_gen_token_indexes,
+        cp_world_size=cp_world_size,
     )
     global_k_pack = from_all_seq(global_packed_sequence_k, global_q_pack)
     global_v_pack = from_all_seq(global_packed_sequence_v, global_q_pack)
@@ -565,12 +571,16 @@ def test_context_parallel_attention_two_way():
         global_packed_data.sample_lens,
         global_packed_data.text_indexes,
         global_packed_data.vision.sequence_indexes,
+        # The pack below is sharded across the CP group, so it has to be built with the CP world
+        # size the way the model path builds it (see build_packed_sequence): the trailing pad
+        # segment is only rounded up to a CP-divisible length when the packer knows about CP.
+        cp_world_size=cp_size,
     )
 
     # Verify global pack has full 32-sample metadata
     if rank == 0:
         print(f"\n=== DEBUG: Global Pack Metadata ===")
-        all_seq = get_all_seq(global_q_pack)
+        all_seq = get_all_seq_unpadded(global_q_pack)
         print(f"global_q_pack all_seq shape: {all_seq.shape}")
         print(f"global_q_pack all_seq first 5: {all_seq[0:5, 0, 0]}")
         print(f"global_q_pack all_seq last 5: {all_seq[-5:, 0, 0]}")
@@ -638,9 +648,9 @@ def test_context_parallel_attention_two_way():
     world_size = torch.distributed.get_world_size(cp_mesh.get_group())
 
     position_ids = global_packed_data.position_ids.to(device)
-    local_q_pack, _ = get_context_parallel_sharded_sequence("two_way", global_q_pack, position_ids, parallel_dims)
-    local_k_pack, _ = get_context_parallel_sharded_sequence("two_way", global_k_pack, position_ids, parallel_dims)
-    local_v_pack, _ = get_context_parallel_sharded_sequence("two_way", global_v_pack, position_ids, parallel_dims)
+    local_q_pack, _ = get_context_parallel_sharded_sequence(global_q_pack, position_ids, parallel_dims)
+    local_k_pack, _ = get_context_parallel_sharded_sequence(global_k_pack, position_ids, parallel_dims)
+    local_v_pack, _ = get_context_parallel_sharded_sequence(global_v_pack, position_ids, parallel_dims)
 
     # Verify local und/gen shapes
     print(
@@ -816,7 +826,7 @@ def simple_packed_test():
         packed_gen_token_indexes=global_packed_data.vision.sequence_indexes,
     )
     print(f"\n=== DEBUG: Global Pack Metadata ===")
-    all_seq = get_all_seq(factored_q_pack)
+    all_seq = get_all_seq_unpadded(factored_q_pack)
     print(f"global_q_pack all_seq shape: {all_seq.shape}")
     print(f"local_pack all_seq first 5: {all_seq[0:5, 0, 0]}")
     print(f"local_pack all_seq last 5: {all_seq[-5:, 0, 0]}")
@@ -845,7 +855,7 @@ def simple_packed_test():
     merged_pack = from_mode_splits(merged_text_seq, merged_gen_seq, factored_q_pack, is_sharded=False)
 
     print(f"\n=== DEBUG: Local Pack Metadata ===")
-    all_seq = get_all_seq(merged_pack)
+    all_seq = get_all_seq_unpadded(merged_pack)
     print(f"local_pack all_seq shape: {all_seq.shape}")
     print(f"local_pack all_seq first 5: {all_seq[0:5, 0, 0]}")
     print(f"local_pack all_seq last 5: {all_seq[-5:, 0, 0]}")
@@ -879,6 +889,8 @@ def _make_factored_pack(
         "_full_indices": torch.arange(S_und_global, S_und_global + S_gen_global, device=device, dtype=torch.int32),
         "_causal_seq_offsets": torch.tensor([0, S_und_global], device=device, dtype=torch.int32),
         "_full_only_seq_offsets": torch.tensor([0, S_gen_global], device=device, dtype=torch.int32),
+        "_causal_sample_ids": torch.zeros(S_und_global, device=device, dtype=torch.int64),
+        "_full_only_sample_ids": torch.zeros(S_gen_global, device=device, dtype=torch.int64),
         "_num_causal_tokens": S_und_global,
         "_num_full_tokens": S_gen_global,
     }
@@ -888,15 +900,13 @@ def _make_factored_pack(
 
 @pytest.mark.L0
 def test_get_context_parallel_sharded_sequence_three_way():
-    """get_context_parallel_sharded_sequence() accepts three_way attn_implementation.
+    """Both streams shard to 1/world_size tokens per rank.
 
-    The causal_8b_480p config uses joint_attn_implementation="three_way" (required by
-    video_temporal_causal=True).  The sharding logic is identical to "two_way" — it
-    operates on the SequencePack (und/gen split), not on the attention pattern —
-    so "three_way" must not be rejected by the assertion.
-
-    Verifies that both und and gen sequences are sharded to 1/world_size tokens per rank,
-    and that the output position_ids are the corresponding local slice.
+    This once pinned that the "three_way" mode causal_8b_480p needs (it comes with
+    video_temporal_causal=True) was not turned away by an ``attn_implementation``
+    assertion. That parameter is gone: the split operates on the SequencePack's und/gen
+    partition and never looked at the attention pattern, so there is nothing left to
+    reject. What remains is the claim the assertion was standing in front of.
     """
     rank, world_size = setup_distributed_environment()
     if world_size < 2:
@@ -917,9 +927,7 @@ def test_get_context_parallel_sharded_sequence_three_way():
 
     input_pack = _make_factored_pack(und_seq, gen_seq, S_und, S_gen, device, is_sharded=False)
 
-    # Must not raise — "three_way" should be accepted just like "two_way"
     local_pack, local_pos_ids = get_context_parallel_sharded_sequence(
-        attn_implementation="three_way",
         input_pack=input_pack,
         position_ids=position_ids,
         parallel_dims=parallel_dims,
@@ -940,6 +948,362 @@ def test_get_context_parallel_sharded_sequence_three_way():
         print("=== test_get_context_parallel_sharded_sequence_three_way passed")
 
 
+@pytest.mark.L1
+@pytest.mark.GPU
+def test_sample_lbl_cp_matches_unsharded_baseline() -> None:
+    """CP+HSDP sample statistics, loss, and router gradients match an unsharded baseline."""
+    rank, world_size = setup_distributed_environment()
+    if world_size < 2:
+        pytest.skip("requires at least 2 GPUs")
+
+    device = torch.device("cuda", rank)
+    parallel_dims = ParallelDims(
+        enable_inference_mode=True,
+        world_size=world_size,
+        dp_shard=world_size,
+        cp=world_size,
+    )
+    parallel_dims.build_meshes("cuda")
+
+    tokens_per_rank = 4
+    padded_num_tokens = world_size * tokens_per_rank
+    num_tokens = padded_num_tokens - 1
+    sample_lens = [tokens_per_rank + 1, num_tokens - tokens_per_rank - 1]
+    packed_sequence = torch.arange(num_tokens, device=device, dtype=torch.float32).unsqueeze(-1)  # [N,1]
+    packed_und_token_indexes = torch.empty(0, device=device, dtype=torch.int64)  # [0]
+    packed_gen_token_indexes = torch.arange(num_tokens, device=device, dtype=torch.int64)  # [N]
+    input_pack = sequence_pack_from_packed_sequence(
+        packed_sequence=packed_sequence,
+        attn_modes=["full", "full"],
+        split_lens=sample_lens,
+        sample_lens=sample_lens,
+        packed_und_token_indexes=packed_und_token_indexes,
+        packed_gen_token_indexes=packed_gen_token_indexes,
+        cp_world_size=world_size,
+    )
+    position_ids = torch.arange(num_tokens, device=device, dtype=torch.int64)  # [N]
+    local_pack, _ = get_context_parallel_sharded_sequence(
+        input_pack=input_pack,
+        position_ids=position_ids,
+        parallel_dims=parallel_dims,
+    )
+
+    probability_expert_0 = torch.linspace(0.1, 0.9, num_tokens, device=device)  # [N]
+    routing_probabilities_base = torch.stack(
+        [probability_expert_0, 1.0 - probability_expert_0],
+        dim=-1,
+    )  # [N,E]
+    expert_indices = (torch.arange(num_tokens, device=device) % 2).unsqueeze(-1)  # [N,K]
+    padded_routing_probabilities = torch.cat(
+        [routing_probabilities_base, routing_probabilities_base.new_tensor([[0.5, 0.5]])],
+        dim=0,
+    )  # [N_padded,E]
+    padded_expert_indices = torch.cat(
+        [expert_indices, expert_indices.new_zeros((1, 1))],
+        dim=0,
+    )  # [N_padded,K]
+    padded_global_sample_ids = input_pack["_full_only_sample_ids"]  # [N_padded]
+    assert padded_global_sample_ids.shape[0] == padded_num_tokens
+    assert bool((padded_global_sample_ids[num_tokens:] == 2).all())
+    global_sample_ids = padded_global_sample_ids[:num_tokens]  # [N]
+
+    baseline_routing_probabilities = routing_probabilities_base.clone().requires_grad_(True)  # [N,E]
+    baseline_counts, baseline_num_tokens, baseline_probability_sums = compute_sample_lbl_stats(
+        baseline_routing_probabilities,
+        expert_indices,
+        global_sample_ids,
+        num_samples=2,
+    )
+    baseline_metadata = LBLMetadata(
+        num_tokens_per_expert=baseline_counts.sum(dim=0, keepdim=True),  # [1,E]
+        num_tokens=torch.tensor([[num_tokens]], device=device, dtype=torch.int64),  # [1,1]
+        mean_router_prob_per_expert=baseline_routing_probabilities.mean(dim=0, keepdim=True),  # [1,E]
+        top_k=torch.tensor([[expert_indices.shape[-1]]], device=device, dtype=torch.int64),  # [1,1]
+        sample_num_tokens_per_expert=baseline_counts.unsqueeze(0),  # [1,B,E]
+        sample_num_tokens=baseline_num_tokens.unsqueeze(0),  # [1,B,1]
+        sample_router_prob_sum_per_expert=baseline_probability_sums.unsqueeze(0),  # [1,B,E]
+    )
+    baseline_loss = compute_load_balancing_loss(
+        baseline_metadata,
+        coeff=1.0,
+        method="sample",
+        device_mesh=None,
+    )
+    assert baseline_loss is not None
+    baseline_loss.backward()
+
+    shard_start = rank * tokens_per_rank
+    local_routing_probabilities = (
+        padded_routing_probabilities.narrow(0, shard_start, tokens_per_rank).clone().requires_grad_(True)
+    )  # [N/CP,E]
+    local_expert_indices = padded_expert_indices.narrow(0, shard_start, tokens_per_rank)  # [N/CP,K]
+    local_sample_ids = local_pack["_full_only_sample_ids"]  # [N/CP]
+    local_counts, local_num_tokens, local_probability_sums = compute_sample_lbl_stats(
+        local_routing_probabilities,
+        local_expert_indices,
+        local_sample_ids,
+        num_samples=2,
+    )
+    local_metadata = LBLMetadata(
+        num_tokens_per_expert=local_counts.sum(dim=0, keepdim=True),  # [1,E]
+        num_tokens=local_num_tokens.sum(dim=0, keepdim=True),  # [1,1]
+        mean_router_prob_per_expert=local_routing_probabilities.mean(dim=0, keepdim=True),  # [1,E]
+        top_k=torch.tensor([[local_expert_indices.shape[-1]]], device=device, dtype=torch.int64),  # [1,1]
+        sample_num_tokens_per_expert=local_counts.unsqueeze(0),  # [1,B,E]
+        sample_num_tokens=local_num_tokens.unsqueeze(0),  # [1,B,1]
+        sample_router_prob_sum_per_expert=local_probability_sums.unsqueeze(0),  # [1,B,E]
+    )
+    cp_loss = compute_load_balancing_loss(
+        local_metadata,
+        coeff=1.0,
+        method="sample",
+        device_mesh=parallel_dims.dp_mesh,
+        context_parallel_mesh=parallel_dims.cp_mesh,
+    )
+    assert cp_loss is not None
+    cp_loss.backward()
+
+    torch.testing.assert_close(cp_loss, baseline_loss)
+    assert baseline_routing_probabilities.grad is not None
+    assert local_routing_probabilities.grad is not None
+    padded_baseline_grad = torch.zeros_like(padded_routing_probabilities)  # [N_padded,E]
+    padded_baseline_grad[:num_tokens] = baseline_routing_probabilities.grad
+    expected_local_grad = padded_baseline_grad.narrow(0, shard_start, tokens_per_rank)  # [N/CP,E]
+    torch.testing.assert_close(local_routing_probabilities.grad, expected_local_grad)
+    dist.barrier()
+
+
+@pytest.mark.L1
+@pytest.mark.GPU
+def test_sample_lbl_hsdp_weighting_matches_global_sample_mean() -> None:
+    """Unequal rank sample counts produce the global-sample gradient after HSDP averaging."""
+    rank, world_size = setup_distributed_environment()
+    if world_size < 2:
+        pytest.skip("requires at least 2 GPUs")
+
+    device = torch.device("cuda", rank)
+    parallel_dims = ParallelDims(enable_inference_mode=True, world_size=world_size, dp_shard=world_size)
+    parallel_dims.build_meshes("cuda")
+
+    local_sample_count = rank + 1
+    router_value = (rank + 1) / (world_size + 1)
+    router_scale = torch.ones((), device=device, requires_grad=True)  # []
+    probability_expert_0 = (
+        torch.full((1, local_sample_count, 1), router_value, device=device) * router_scale
+    )  # [num_layers,num_samples,1]
+    sample_probability_sums = torch.cat(
+        [probability_expert_0, torch.zeros_like(probability_expert_0)],
+        dim=-1,
+    )  # [num_layers,num_samples,num_experts]
+    sample_counts = torch.cat(
+        [
+            torch.ones((1, local_sample_count, 1), device=device, dtype=torch.int64),
+            torch.zeros((1, local_sample_count, 1), device=device, dtype=torch.int64),
+        ],
+        dim=-1,
+    )  # [num_layers,num_samples,num_experts]
+    sample_num_tokens = torch.ones(
+        (1, local_sample_count, 1),
+        device=device,
+        dtype=torch.int64,
+    )  # [num_layers,num_samples,1]
+    metadata = LBLMetadata(
+        num_tokens_per_expert=sample_counts.sum(dim=1),  # [num_layers,num_experts]
+        num_tokens=sample_num_tokens.sum(dim=1),  # [num_layers,1]
+        mean_router_prob_per_expert=sample_probability_sums.mean(dim=1),  # [num_layers,num_experts]
+        top_k=torch.ones((1, 1), device=device, dtype=torch.int64),  # [num_layers,1]
+        sample_num_tokens_per_expert=sample_counts,
+        sample_num_tokens=sample_num_tokens,
+        sample_router_prob_sum_per_expert=sample_probability_sums,
+    )
+
+    loss = compute_load_balancing_loss(
+        metadata,
+        coeff=1.0,
+        method="sample",
+        device_mesh=parallel_dims.dp_mesh,
+    )
+    assert loss is not None
+    loss.backward()
+    assert router_scale.grad is not None
+
+    # Simulate FSDP's mean reduction of parameter gradients.
+    averaged_gradient = router_scale.grad.detach().clone()  # []
+    dist.all_reduce(averaged_gradient, op=dist.ReduceOp.SUM)
+    averaged_gradient /= world_size
+
+    global_loss_derivative_sum = torch.tensor(
+        2.0 * local_sample_count * router_value,
+        device=device,
+    )  # []
+    global_sample_count = torch.tensor(float(local_sample_count), device=device)  # []
+    dist.all_reduce(global_loss_derivative_sum, op=dist.ReduceOp.SUM)
+    dist.all_reduce(global_sample_count, op=dist.ReduceOp.SUM)
+    expected_gradient = global_loss_derivative_sum / global_sample_count  # []
+    torch.testing.assert_close(averaged_gradient, expected_gradient)
+    dist.barrier()
+
+
+def _multiview_maskless_cp_case(
+    samples: list[tuple[int, int, int]],
+    *,
+    items_per_sample: int,
+    per_view_captions: bool,
+    cp_size: int,
+    device: torch.device,
+    parallel_dims: ParallelDims,
+) -> None:
+    """Run one multiview batch through the decomposition at CP=1 and at ``cp_size``, and compare.
+
+    Context parallelism here is Ulysses, not ring: ``context_parallel_attention`` all-to-alls the
+    sharded pack back to the whole sequence over a slice of the heads before calling into
+    attention. The decomposition's folds therefore address the same global token grid they do at
+    CP=1, and the two runs agree exactly rather than to a tolerance -- no partial softmax is
+    recombined across ranks, so there is no reassociation to lose bits to.
+    """
+    from cosmos_framework.model.generator.mot.multiview_maskless_attention import build_multiview_maskless_plan
+
+    q_heads, kv_heads, head_dim, patch_h, patch_w = 8, 4, 128, 2, 2
+    spatial = patch_h * patch_w
+
+    und_lens = [caption_tokens for _, _, caption_tokens in samples]
+    gen_lens = [views * frames * spatial * items_per_sample for views, frames, _ in samples]
+
+    split_lens: list[int] = []
+    und_indexes: list[int] = []
+    gen_indexes: list[int] = []
+    start = 0
+    for und_len, gen_len in zip(und_lens, gen_lens):
+        split_lens.extend((und_len, gen_len))
+        und_indexes.extend(range(start, start + und_len))
+        gen_indexes.extend(range(start + und_len, start + und_len + gen_len))
+        start += und_len + gen_len
+
+    # Per-view captions tile each sample's causal split across its views, which is the layout
+    # ``_build_caption_offsets`` checks; one caption per sample leaves the pass on its per-sample
+    # form. The budget is split rather than grown so both layouts pack the same UND length.
+    caption_lens: list[list[int]] | None = None
+    if per_view_captions:
+        caption_lens = []
+        for (views, _, _), und_len in zip(samples, und_lens):
+            base, extra = divmod(und_len, views)
+            caption_lens.append([base + (1 if index < extra else 0) for index in range(views)])
+
+    torch.manual_seed(1234)  # every rank builds the same global batch
+
+    def _pack(num_heads: int) -> SequencePack:
+        tokens = torch.randn(start, num_heads, head_dim, device=device, dtype=torch.bfloat16)
+        return build_packed_sequence(
+            "two_way",
+            packed_sequence=tokens,
+            attn_modes=["causal", "full"] * len(samples),
+            split_lens=split_lens,
+            sample_lens=[und + gen for und, gen in zip(und_lens, gen_lens)],
+            packed_und_token_indexes=cast(torch.LongTensor, torch.tensor(und_indexes, dtype=torch.long, device=device)),
+            packed_gen_token_indexes=cast(torch.LongTensor, torch.tensor(gen_indexes, dtype=torch.long, device=device)),
+            num_heads=num_heads,
+            head_dim=head_dim,
+            num_layers=1,
+            cp_world_size=cp_size,
+            full_seq_alignment=1,
+            causal_seq_alignment=1,
+            text_caption_lens=caption_lens,
+        )[0]
+
+    packs = [_pack(q_heads), _pack(kv_heads), _pack(kv_heads)]
+    for pack in packs:
+        for getter, setter in ((get_und_seq, set_und_seq), (get_gen_seq, set_gen_seq)):
+            setter(pack, getter(pack).detach().clone().requires_grad_(True))
+
+    plan = build_multiview_maskless_plan(
+        [views for views, _, _ in samples for _ in range(items_per_sample)],
+        [(views * frames, patch_h, patch_w) for views, frames, _ in samples for _ in range(items_per_sample)],
+        device=device,
+        items_per_sample=[items_per_sample] * len(samples),
+        # Within a stream every item but the last conditions the one after it, which is what a
+        # transfer pack's control item is.
+        is_control=[index < items_per_sample - 1 for _ in samples for index in range(items_per_sample)],
+        view_axis=[0] * (items_per_sample * len(samples)),
+        captions=([list(enumerate(sample_lens)) for sample_lens in caption_lens] if caption_lens is not None else None),
+        padded_gen_tokens=int(get_full_only_seq(packs[0])[0].shape[0]),
+    )
+
+    def _mask() -> SplitInfo:
+        info = SplitInfo(
+            split_lens=split_lens,
+            attn_modes=["causal", "full"] * len(samples),
+            sample_lens=[und + gen for und, gen in zip(und_lens, gen_lens)],
+            actual_len=start,
+        )
+        info.multiview_maskless = plan
+        return info
+
+    total_gen = sum(gen_lens)
+    reference_pack, _ = dispatch_attention(*packs, _mask())
+    reference_out = get_gen_seq(reference_pack)[:total_gen]
+
+    position_ids = torch.arange(start, device=device)
+    local_packs = []
+    for pack in packs:
+        local_pack, _ = get_context_parallel_sharded_sequence(pack, position_ids, parallel_dims)
+        for getter, setter in ((get_und_seq, set_und_seq), (get_gen_seq, set_gen_seq)):
+            setter(local_pack, getter(local_pack).detach().clone().requires_grad_(True))
+        local_packs.append(local_pack)
+
+    cp_mesh = parallel_dims.cp_mesh
+    output_pack, _ = context_parallel_attention(cp_mesh, *local_packs, _mask(), attention_function=dispatch_attention)
+    local_gen = get_gen_seq(output_pack)
+    # The shard is a contiguous slice of the GEN stream, so concatenating in rank order rebuilds
+    # it -- the same partition ``get_context_parallel_sharded_sequence`` took it apart on.
+    assert local_gen.shape[0] * cp_size == get_gen_seq(packs[0]).shape[0]
+
+    def _gathered(local: torch.Tensor) -> torch.Tensor:
+        buffer = [torch.empty_like(local) for _ in range(cp_size)]
+        dist.all_gather(buffer, local.contiguous(), group=cp_mesh.get_group())
+        return torch.cat(buffer, dim=0)[:total_gen]
+
+    # Both forwards are compared before either backward runs. ``merge_attentions`` reaches its
+    # branches' saved tensors by data pointer on the way back, and the caching allocator is free
+    # to have recycled one of those addresses into a tensor still in use -- so a value read after
+    # a backward is not necessarily the value the forward produced.
+    torch.testing.assert_close(_gathered(local_gen), reference_out, rtol=0, atol=0)
+
+    reference_out.sum().backward()
+    reference_grads = [get_gen_seq(pack).grad[:total_gen].clone() for pack in packs]
+    local_gen.sum().backward()
+    for local_pack, reference_grad in zip(local_packs, reference_grads):
+        torch.testing.assert_close(_gathered(get_gen_seq(local_pack).grad), reference_grad, rtol=0, atol=0)
+
+
+def test_context_parallel_multiview_maskless():
+    """The decomposition under context parallelism is the decomposition without it.
+
+    Three layouts, because they take different paths through the plan: one sample of one item,
+    a ragged batch whose samples differ in views, frames and caption length, beside a control
+    item, and per-view captions (the caption gather). Each is checked forward and backward.
+
+    The CP degree is whatever the launcher supplied, so ``--nproc_per_node`` chooses it. Worth
+    running at more than 2: the all-to-all divides the query heads by the CP degree, and at 4
+    the local KV head count reaches 1, which is a launch shape 2 does not cover.
+    """
+    rank, world_size = setup_distributed_environment()
+    cp_size = world_size
+    if cp_size < 2:
+        pytest.skip(f"requires at least 2 GPUs, got {world_size}")
+    device = torch.device("cuda", rank)
+    parallel_dims = ParallelDims(enable_inference_mode=False, world_size=world_size, dp_shard=1, cp=cp_size)
+    parallel_dims.build_meshes("cuda")
+
+    case = dict(cp_size=cp_size, device=device, parallel_dims=parallel_dims)
+    _multiview_maskless_cp_case([(3, 4, 16)], items_per_sample=1, per_view_captions=False, **case)
+    _multiview_maskless_cp_case(
+        [(3, 4, 16), (2, 6, 8), (1, 5, 24)], items_per_sample=2, per_view_captions=False, **case
+    )
+    _multiview_maskless_cp_case([(3, 4, 18), (2, 6, 8)], items_per_sample=1, per_view_captions=True, **case)
+    dist.barrier()
+
+
 if __name__ == "__main__":
     test_context_parallel_attention_two_way()
     test_get_context_parallel_sharded_sequence_three_way()
+    test_context_parallel_multiview_maskless()

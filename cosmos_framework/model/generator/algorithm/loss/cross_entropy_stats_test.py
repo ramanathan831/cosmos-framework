@@ -16,7 +16,8 @@ def test_cross_entropy_returns_token_numerator_and_denominator() -> None:
     torch.manual_seed(7)
     logits = torch.randn(2, 4, 5, requires_grad=True)
     labels = torch.tensor([[0, 1, 2, -100], [0, 2, 3, 4]])
-    loss, numerator, denominator = cross_entropy_loss(logits, labels, return_stats=True)
+    loss, stats = cross_entropy_loss(logits, labels, return_stats=True)
+    numerator, denominator = stats.token_ce_sum, stats.valid_token_count
     shifted_logits = logits[:, :-1].reshape(-1, 5)
     shifted_labels = labels[:, 1:].reshape(-1)
     expected = F.cross_entropy(shifted_logits.float(), shifted_labels, ignore_index=-100, reduction="none")
@@ -30,9 +31,8 @@ def test_weighted_objective_keeps_unweighted_token_stats() -> None:
     torch.manual_seed(11)
     logits = torch.randn(2, 4, 5)
     labels = torch.tensor([[0, 1, -100, -100], [0, 2, 3, 4]])
-    objective, numerator, denominator = weighted_cross_entropy_loss(
-        logits, labels, exponent=1.0, return_stats=True
-    )
+    objective, stats = weighted_cross_entropy_loss(logits, labels, exponent=1.0, return_stats=True)
+    numerator, denominator = stats.token_ce_sum, stats.valid_token_count
     assert objective.ndim == 0
     assert denominator.item() == 4
     assert numerator.item() > 0

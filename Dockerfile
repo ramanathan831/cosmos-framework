@@ -41,7 +41,7 @@ RUN --mount=type=cache,target=/var/cache/apt \
 
 # Install uv: https://docs.astral.sh/uv/getting-started/installation/
 # https://github.com/astral-sh/uv-docker-example/blob/main/Dockerfile
-COPY --from=ghcr.io/astral-sh/uv:0.11.28 /uv /uvx /usr/local/bin/
+COPY --from=ghcr.io/astral-sh/uv:0.12.2 /uv /uvx /usr/local/bin/
 # Copy from the cache instead of linking since it's a mounted volume
 ENV UV_LINK_MODE=copy
 # Cache python downloads
@@ -71,8 +71,22 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-install-project --no-editable --all-extras --group=$(cat /root/.cuda-name)-train
 ENV PATH="/workspace/.venv/bin:$PATH"
 
-# Package the exact source state into the image so it can run on managed
-# platforms without a host bind mount.
+# Set to 0 to skip the apex build, which is by far the slowest layer. apex is optional:
+# the only import is in cosmos_framework/callbacks/norm_monitor.py, behind a try/except.
+ARG INSTALL_APEX=1
+
+# install apex (compiled C++/CUDA extensions; needs torch already present), so this line should be after the uv sync command.
+RUN --mount=type=cache,target=/root/.cache/uv \
+    if [ "$INSTALL_APEX" = "1" ]; then \
+        VIRTUAL_ENV=/workspace/.venv APEX_CPP_EXT=1 APEX_CUDA_EXT=1 \
+        uv pip install -v --no-build-isolation --no-deps \
+            git+https://github.com/NVIDIA/apex@9e3568a; \
+    else \
+        echo "INSTALL_APEX=$INSTALL_APEX, skipping apex"; \
+    fi
+
+# Package the exact source state after the expensive dependency layers so source
+# edits do not rebuild apex. Managed platforms do not require a host bind mount.
 COPY . /workspace
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --no-deps .

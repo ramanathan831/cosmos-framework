@@ -29,6 +29,9 @@ class PolicyConfig:
     #   exponent=0 -> per-token loss: every token contributes equally to the global loss
     #   0 < exponent < 1 -> interpolation; e.g. exponent=0.5 gives square-root per-token loss (Qwen3-VL)
     weighted_ce_exponent: float = 1.0
+    # Opt-in objective change: normalize CE once over the full gradient-accumulation window
+    # instead of averaging independently normalized microbatch ratios.
+    normalize_weighted_ce_over_accumulation_window: bool = False
 
     # Parameter-efficient fine-tuning.  These fields intentionally live on
     # the VLM policy instead of reusing the VFM/MoT model config: the two
@@ -78,6 +81,24 @@ class PolicyConfig:
 
 
 @attrs.define(slots=False)
+class LBLConfig:
+    """MoE load-balancing auxiliary loss for the Qwen3-VL-MoE backbone.
+
+    The routing statistics are collected every step regardless (the patched MoE block
+    stashes them either way, see ``monkey_patch.patch_qwen3_vl_moe_grouped_mm_experts``);
+    these knobs only control whether a loss term is built from them.
+    """
+
+    # "local" balances each rank's own token counts; "global" sums the counts across the
+    # DP mesh first, balancing the global batch at the cost of a collective per step.
+    method: str = attrs.field(default="local", validator=attrs.validators.in_({"local", "global"}))
+
+    # Multiplier on the load-balancing loss added to the CE objective. None disables the
+    # term entirely, which is the default so existing recipes are unchanged.
+    coeff: float | None = None
+
+
+@attrs.define(slots=False)
 class VLMModelConfig:
     """Config for VLM model."""
 
@@ -90,7 +111,11 @@ class VLMModelConfig:
     precision: str = "bfloat16"
 
     policy: PolicyConfig = PolicyConfig()
-    # Optional Parakeet inputs for standalone Reasoner CE/SFT, disabled by default.
+
+    # MoE load-balancing auxiliary loss (Qwen3-VL-MoE only), disabled by default.
+    lbl: LBLConfig = LBLConfig()
+
+    # Optional audio inputs for standalone Reasoner CE/SFT, disabled by default.
     sound_und: bool = False
     sound_und_config: SoundUnderstandingConfig = SoundUnderstandingConfig()
     # Applied at model construction, before the optimizer is built.

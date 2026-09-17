@@ -5,14 +5,60 @@
 
 import json
 import random
+from collections.abc import Callable
 from typing import Optional
 
 import torch
 
 from cosmos_framework.data.imaginaire.webdataset.augmentors.augmentor import Augmentor
 from cosmos_framework.utils.lazy_config import instantiate as lazy_instantiate
+from cosmos_framework.utils.generator.data_utils import read_positive_int_metadata
 
 _MAX_NUM_TOKENS = 4096
+TEXT_SYSTEM_PROMPT_KEY = "text_system_prompt"
+
+
+def _tokenize_captions_separately(
+    data_dict: dict,
+    *,
+    input_key: str,
+    token_output_key: str,
+    length_output_key: str,
+    cfg_dropout_rate: float,
+    tokenize: Callable[[str], list[int]],
+) -> dict:
+    """Tokenize one ordered caption payload per view while preserving ragged boundaries."""
+    input_captions = data_dict.get(input_key)
+    if not isinstance(input_captions, list) or not input_captions:
+        raise ValueError(f"Separate text tokenization requires a non-empty caption list at {input_key!r}")
+    sample_n_views = read_positive_int_metadata(data_dict, "sample_n_views", expected_count=1)
+    if sample_n_views is None:
+        raise ValueError("Separate text tokenization requires sample_n_views metadata")
+    if len(input_captions) != sample_n_views[0]:
+        raise ValueError(
+            f"Separate text tokenization requires one caption per view: "
+            f"captions={len(input_captions)}, sample_n_views={sample_n_views[0]}"
+        )
+
+    caption_texts: list[str] = []
+    for caption in input_captions:
+        if isinstance(caption, dict):
+            caption_texts.append(json.dumps(caption))
+        elif isinstance(caption, str):
+            caption_texts.append(caption)
+        else:
+            raise TypeError(f"Separate text tokenization does not support caption type {type(caption).__name__}")
+
+    # CFG remains a sample-level decision: either every view is conditioned or none is.
+    if cfg_dropout_rate > 0 and random.random() < cfg_dropout_rate:
+        caption_texts = [""] * len(caption_texts)
+
+    data_dict[input_key] = caption_texts
+    token_tensors = [torch.tensor(tokenize(caption), dtype=torch.long) for caption in caption_texts]  # [V][N_v]
+    token_lengths = [int(tokens.shape[0]) for tokens in token_tensors]
+    data_dict[token_output_key] = token_tensors
+    data_dict[length_output_key] = token_lengths
+    return data_dict
 
 
 class TextTokenizerTransform(Augmentor):
@@ -22,10 +68,29 @@ class TextTokenizerTransform(Augmentor):
         tokenizer_config = self.args["tokenizer_config"]
         self.cfg_dropout_rate = self.args["cfg_dropout_rate"]
         self.use_system_prompt = self.args.get("use_system_prompt", False)
+        self.tokenize_separately: bool = self.args.get("tokenize_separately", False)
+
+        if self.tokenize_separately and (self.output_keys is None or len(self.output_keys) < 2):
+            raise ValueError("Separate text tokenization requires token and length output keys")
 
         self._processor = lazy_instantiate(tokenizer_config)
 
     def __call__(self, data_dict: dict) -> dict:
+        if self.tokenize_separately:
+            assert self.output_keys is not None
+            return _tokenize_captions_separately(
+                data_dict,
+                input_key=self.input_keys[0],
+                token_output_key=self.output_keys[0],
+                length_output_key=self.output_keys[1],
+                cfg_dropout_rate=self.cfg_dropout_rate,
+                tokenize=lambda caption: self._processor.tokenize_text(
+                    caption,
+                    is_video=False,
+                    use_system_prompt=self.use_system_prompt,
+                )[:_MAX_NUM_TOKENS],
+            )
+
         input_caption = data_dict[self.input_keys[0]]
 
         if isinstance(input_caption, dict):
@@ -52,19 +117,47 @@ class TextTokenizerTransform(Augmentor):
 
 
 _SYSTEM_PROMPT_IMAGE_EDITING = "You are a helpful assistant who will edit images based on the user's instructions."
+_SYSTEM_PROMPT_VIDEO_EDITING = "You are a helpful assistant who will edit videos based on the user's instructions."
 
 _SYSTEM_PROMPT_TRANSFER = "You are a helpful assistant that generates images or videos following the user's instructions and control signals (edge maps, blur, depth, or segmentation)."
+_AV_WSM_CONTROLLED_CATEGORIES: str = (
+    "vehicles (including trucks), cyclists, pedestrians, traffic lights, traffic signs, road markings, "
+    "lane boundaries, and road boundaries"
+)
+_AV_WSM_CONTROL_INSTRUCTION: str = (
+    f"Follow WSM controls for {_AV_WSM_CONTROLLED_CATEGORIES}. "
+    "Do not add objects or road features in these categories that are absent from WSM. "
+    "Use captions for appearance and unconstrained background details; WSM takes precedence in any conflict."
+)
+_SYSTEM_PROMPT_AV_MULTIVIEW_TRANSFER = (
+    "You are a helpful assistant that generates temporally synchronized, geometrically consistent autonomous-driving "
+    "videos from per-camera scene descriptions and World Scenario Map (WSM) control videos depicting the controlled "
+    "objects and road layout. Treat all camera views as simultaneous observations of the same driving scene, "
+    "preserving each camera's viewpoint, shared ego motion, road layout, object identity and motion, weather, "
+    f"lighting, and cross-view consistency.\n\n{_AV_WSM_CONTROL_INSTRUCTION}"
+)
+_SYSTEM_PROMPT_AV_JOINT_CAMERA_LIDAR_TRANSFER = (
+    "You are a helpful assistant that jointly generates temporally synchronized, geometrically consistent "
+    "autonomous-driving camera videos and LiDAR range-view sequences from per-camera scene descriptions and provided "
+    "control signals: per-camera World Scenario Map (WSM) control videos depicting the controlled objects and road "
+    "layout, and an HD-map control for LiDAR. Treat all camera views and LiDAR sweeps as synchronized observations "
+    "of the same driving scene, preserving each camera's viewpoint, shared ego motion, road layout, object identity "
+    f"and motion, weather, lighting, cross-view consistency, and camera-LiDAR alignment.\n\n{_AV_WSM_CONTROL_INSTRUCTION}"
+)
 
 _SYSTEM_PROMPTS = {
     "editing": _SYSTEM_PROMPT_IMAGE_EDITING,
+    "video_editing": _SYSTEM_PROMPT_VIDEO_EDITING,
     "transfer": _SYSTEM_PROMPT_TRANSFER,
+    "av_multiview_transfer": _SYSTEM_PROMPT_AV_MULTIVIEW_TRANSFER,
+    "av_joint_camera_lidar_transfer": _SYSTEM_PROMPT_AV_JOINT_CAMERA_LIDAR_TRANSFER,
 }
 
 
 class TextTokenizerTransformForEditing(Augmentor):
     """Tokenizer augmentor for interleaved tasks: image editing or transfer (control-conditioned generation).
 
-    Uses a task-specific system prompt. Pass args["task"] = "editing" (default) or "transfer".
+    Uses a task-specific system prompt selected from ``_SYSTEM_PROMPTS``.
     """
 
     def __init__(self, input_keys: list, output_keys: Optional[list] = None, args: Optional[dict] = None) -> None:
@@ -72,12 +165,31 @@ class TextTokenizerTransformForEditing(Augmentor):
 
         tokenizer_config = self.args["tokenizer_config"]
         self.cfg_dropout_rate = self.args.get("cfg_dropout_rate", 0.0)
+        self.tokenize_separately: bool = self.args.get("tokenize_separately", False)
+        self.emit_system_prompt: bool = self.args.get("emit_system_prompt", False)
         task = self.args.get("task", "editing")
         self._system_prompt = _SYSTEM_PROMPTS.get(task, _SYSTEM_PROMPTS["editing"])
+
+        if self.tokenize_separately and (self.output_keys is None or len(self.output_keys) < 2):
+            raise ValueError("Separate text tokenization requires token and length output keys")
 
         self._processor = lazy_instantiate(tokenizer_config)
 
     def __call__(self, data_dict: dict) -> dict | None:
+        if self.emit_system_prompt:
+            data_dict[TEXT_SYSTEM_PROMPT_KEY] = self._system_prompt
+
+        if self.tokenize_separately:
+            assert self.output_keys is not None
+            return _tokenize_captions_separately(
+                data_dict,
+                input_key=self.input_keys[0],
+                token_output_key=self.output_keys[0],
+                length_output_key=self.output_keys[1],
+                cfg_dropout_rate=self.cfg_dropout_rate,
+                tokenize=lambda caption: self._processor.tokenize_text(caption, system_prompt=self._system_prompt),
+            )
+
         input_caption = data_dict.get(self.input_keys[0], "")
         if isinstance(input_caption, dict):
             input_caption = json.dumps(input_caption)
@@ -95,5 +207,5 @@ class TextTokenizerTransformForTransfer(TextTokenizerTransformForEditing):
 
     def __init__(self, input_keys: list, output_keys: Optional[list] = None, args: Optional[dict] = None) -> None:
         args = dict(args) if args else {}
-        args["task"] = "transfer"
+        args.setdefault("task", "transfer")
         super().__init__(input_keys, output_keys, args)

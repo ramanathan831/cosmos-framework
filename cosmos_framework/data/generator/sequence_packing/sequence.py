@@ -55,6 +55,7 @@ class PackedSequenceBuilder:
         num_action_tokens_per_supertoken: Number of action tokens prefixing each
             temporal-causal vision supertoken.
         vision: Vision modality construction state, or ``None`` if no vision was appended.
+        lidar: LiDAR modality construction state, or ``None`` if no LiDAR was appended.
         action: Action modality construction state, or ``None`` if no action was appended.
         sound: Sound modality construction state, or ``None`` if no sound was appended.
         vision_item_split_lens: Per-sample per-vision-item token counts for multi-control
@@ -83,6 +84,16 @@ class PackedSequenceBuilder:
     ce_loss_indexes: list[int] = field(default_factory=list)
     ce_loss_weights: list[float] = field(default_factory=list)
 
+    # Caption layout inside each sample's causal split: one entry per sample, holding that
+    # sample's per-caption token counts and the camera view each caption describes. A sample
+    # packing the usual single caption records [split_len] / [-1], the "sample-level caption"
+    # the mask reads as reachable from every view. Per-view captions record one entry per
+    # camera. Consumed by runtime._build_sequence_pack_metadata (which turns the lengths into
+    # the causal stream's varlen boundaries, so no caption attends another) and by
+    # cosmos3_vfm_network.py (which turns the view ids into flex_attention.CaptionMaskItem).
+    text_caption_lens: list[list[int]] = field(default_factory=list)
+    text_caption_view_ids: list[list[int]] = field(default_factory=list)
+
     # Build-time mRoPE tracking (used during packing, not after finalize).
     # position_ids accumulates (3, N) tensors and finalize() produces a
     # (3, total_seq_len) tensor.
@@ -108,6 +119,7 @@ class PackedSequenceBuilder:
 
     # Generation modality construction state
     vision: ModalityDataBuilder | None = None
+    lidar: ModalityDataBuilder | None = None
     action: ModalityDataBuilder | None = None
     sound: ModalityDataBuilder | None = None
 
@@ -120,6 +132,16 @@ class PackedSequenceBuilder:
         if self.vision is None:
             self.vision = ModalityDataBuilder()
         return self.vision
+
+    def ensure_lidar(self) -> ModalityDataBuilder:
+        """Return the LiDAR builder, creating it on first use.
+
+        Returns:
+            LiDAR ``ModalityDataBuilder`` for subsequent append operations.
+        """
+        if self.lidar is None:
+            self.lidar = ModalityDataBuilder()
+        return self.lidar
 
     def ensure_action(self) -> ModalityDataBuilder:
         """Return the action builder, creating it on first use.
@@ -236,6 +258,101 @@ class PackedSequenceBuilder:
 
         self.attn_modes.append("causal")
         self.split_lens.append(split_len)
+        self.text_caption_lens.append([split_len])
+        self.text_caption_view_ids.append([-1])
+
+        return split_len
+
+    def pack_text_tokens_per_view(
+        self,
+        text_ids_per_view: list[list[int]],
+        view_ids: list[int],
+        special_tokens: dict[str, int],
+        has_generation: bool,
+        use_float_positions: bool = False,
+    ) -> int:
+        """Pack one caption per camera view into the sample's single causal split.
+
+        The per-view caption layout (``separate_view_text_tokenization``). Each caption gets
+        the same ``BOS + ids + EOS + start-of-generation`` framing and the same CE-loss
+        bookkeeping :meth:`pack_text_tokens` gives the single sample-level caption, so a
+        caption is structurally what it always was; what changes is that a sample owns several
+        of them, and that each is its own document for the causal attention -- their
+        boundaries ride out on ``text_caption_lens``, which
+        ``runtime._build_sequence_pack_metadata`` turns into the causal stream's varlen
+        offsets. No caption can attend another.
+
+        Only **one** ``attn_modes`` / ``split_lens`` entry is appended, covering all of them.
+        Emitting one causal split per caption would give the same varlen boundaries for free,
+        but the causal and full streams have to keep equal split counts: ``runtime``'s
+        ``pad_segment_supported`` and ``flex_attention.build_multiview_flex_metadata`` both
+        pair them one for one, per sample.
+
+        Every caption starts from the same mRoPE temporal offset (the cursor is rewound
+        between them, the way ``share_vision_temporal_positions`` rewinds across vision
+        items) and the cursor advances once, past the longest. Captions are alternatives
+        describing one instant of one rig rather than a sequence, so laying them end to end
+        on the temporal axis would push the generation stream further along it with every
+        extra camera and make a sample's vision positions depend on its view count.
+
+        Args:
+            text_ids_per_view: One caption's token IDs per camera view, in view order.
+            view_ids: The camera view each caption describes, parallel to
+                ``text_ids_per_view``.
+            special_tokens: Dictionary of special token IDs.
+            has_generation: Whether there's media/action after the text.
+            use_float_positions: If True, generate float position IDs for 3D mRoPE.
+
+        Returns:
+            Total text sample length across every caption, i.e. the causal split's length.
+        """
+        if len(text_ids_per_view) != len(view_ids):
+            raise ValueError(
+                f"Per-view captions and their view ids must correspond: got {len(text_ids_per_view)} "
+                f"captions and {len(view_ids)} view ids."
+            )
+        if not text_ids_per_view:
+            raise ValueError("Per-view text packing needs at least one caption.")
+
+        caption_start_offset = self._mrope_temporal_offset
+        furthest_offset = self._mrope_temporal_offset
+        caption_lens: list[int] = []
+        for text_ids in text_ids_per_view:
+            # Rewind so every caption is laid on the same temporal grid; see the docstring.
+            self._mrope_temporal_offset = caption_start_offset
+            if "bos_token_id" in special_tokens:
+                shifted_text_ids = [special_tokens["bos_token_id"]] + text_ids
+            else:
+                shifted_text_ids = text_ids
+
+            span_token_ids = shifted_text_ids + [special_tokens["eos_token_id"]]
+            if has_generation:
+                span_token_ids.append(special_tokens["start_of_generation"])
+            caption_len = len(span_token_ids)
+
+            position_ids, self._mrope_temporal_offset = get_3d_mrope_ids_text_tokens(
+                num_tokens=caption_len,
+                temporal_offset=self._mrope_temporal_offset,
+                use_float_positions=use_float_positions,
+            )  # position_ids: [3,caption_len]
+            furthest_offset = max(furthest_offset, self._mrope_temporal_offset)
+
+            span_start, _ = self.append_text_span(span_token_ids, position_ids)
+
+            # Same per-caption CE supervision the single-caption path applies.
+            self.ce_loss_indexes.extend(range(span_start, span_start + len(shifted_text_ids)))
+            self.ce_loss_weights.extend([1.0] * len(shifted_text_ids))
+            self.label_ids.extend(text_ids[1:] + [special_tokens["eos_token_id"]])
+            caption_lens.append(caption_len)
+
+        # The generation stream follows the longest caption, not the last one packed.
+        self._mrope_temporal_offset = furthest_offset
+
+        split_len = sum(caption_lens)
+        self.attn_modes.append("causal")
+        self.split_lens.append(split_len)
+        self.text_caption_lens.append(caption_lens)
+        self.text_caption_view_ids.append(list(view_ids))
 
         return split_len
 
@@ -244,12 +361,13 @@ class PackedSequenceBuilder:
         input_vision_tokens: torch.Tensor,
         condition_frame_indexes_vision: list[int],
         input_timestep: float | torch.Tensor,
-        latent_patch_size: int = 1,
-        vision_fps: float | None = None,
-        enable_fps_modulation: bool = False,
-        base_fps: float = 24.0,
-        temporal_compression_factor: int = 4,
-        vision_temporal_positions: torch.Tensor | None = None,
+        latent_patch_size: int,
+        vision_fps: float | None,
+        enable_fps_modulation: bool,
+        base_fps: float,
+        temporal_compression_factor: int,
+        vision_temporal_positions: torch.Tensor | None,
+        temporal_position_period: int | None,
     ) -> int:
         """Pack vision tokens into the sequence.
 
@@ -262,50 +380,144 @@ class PackedSequenceBuilder:
             latent_patch_size: Patch size for latent patchification.
             vision_fps: Frames per second of the video. Used when enable_fps_modulation=True.
             enable_fps_modulation: If True, scale temporal position IDs based on video FPS.
-            base_fps: Base FPS for normalization (default 24.0).
-            temporal_compression_factor: VAE temporal compression factor (default 4).
+            base_fps: Base FPS for normalization.
+            temporal_compression_factor: Temporal compression factor defining the mRoPE time
+                unit for the whole stream, i.e. the camera VAE's. Positions advance at
+                ``base_fps / temporal_compression_factor`` units per second.
             vision_temporal_positions: Optional explicit temporal coordinate per latent
                 frame, shape ``(T,)``. Used by UniAE to account for kept boundary latents.
+            temporal_position_period: Optional period for latent-index temporal coordinates.
 
         Returns:
             Vision split length.
         """
-        vision = self.ensure_vision()
+        return self._pack_grid_tokens(
+            self.ensure_vision(),
+            input_tokens=input_vision_tokens,
+            condition_frame_indexes=condition_frame_indexes_vision,
+            input_timestep=input_timestep,
+            latent_patch_size=latent_patch_size,
+            fps=vision_fps,
+            enable_fps_modulation=enable_fps_modulation,
+            base_fps=base_fps,
+            temporal_compression_factor=temporal_compression_factor,
+            base_temporal_compression_factor=temporal_compression_factor,
+            temporal_positions=vision_temporal_positions,
+            temporal_position_period=temporal_position_period,
+        )
 
+    def pack_lidar_tokens(
+        self,
+        input_lidar_tokens: torch.Tensor,
+        condition_frame_indexes_lidar: list[int],
+        input_timestep: float | torch.Tensor,
+        latent_patch_size: int,
+        lidar_fps: float,
+        enable_fps_modulation: bool,
+        base_fps: float,
+        temporal_compression_factor: int,
+        base_temporal_compression_factor: int,
+    ) -> int:
+        """Pack LiDAR range-view tokens into the sequence.
+
+        A range clip is a grid latent like a video clip, so it is packed by the same routine;
+        what differs is the clock. ``fps`` and ``temporal_compression_factor``
+        describe how much real time one LiDAR latent frame spans, while
+        ``base_temporal_compression_factor`` keeps naming the stream's shared mRoPE unit, so a
+        10 Hz uncompressed sweep and a 30 Hz 4x-compressed camera frame land on one axis.
+
+        Args:
+            input_lidar_tokens: LiDAR latent tokens (C, T, H, W).
+            condition_frame_indexes_lidar: Indexes of conditioning sweeps.
+            input_timestep: Diffusion timestep, as in ``pack_vision_tokens``.
+            latent_patch_size: Patch size for latent patchification.
+            lidar_fps: Sweep rate of the LiDAR data. Used when enable_fps_modulation=True.
+            enable_fps_modulation: If True, scale temporal position IDs based on FPS.
+            base_fps: Base FPS for normalization.
+            temporal_compression_factor: Temporal compression factor of the LiDAR VAE,
+                typically 1.
+            base_temporal_compression_factor: Temporal compression factor defining the mRoPE time
+                unit shared with the vision stream.
+
+        Returns:
+            LiDAR split length.
+        """
+        return self._pack_grid_tokens(
+            self.ensure_lidar(),
+            input_tokens=input_lidar_tokens,
+            condition_frame_indexes=condition_frame_indexes_lidar,
+            input_timestep=input_timestep,
+            latent_patch_size=latent_patch_size,
+            fps=lidar_fps,
+            enable_fps_modulation=enable_fps_modulation,
+            base_fps=base_fps,
+            temporal_compression_factor=temporal_compression_factor,
+            base_temporal_compression_factor=base_temporal_compression_factor,
+            temporal_positions=None,
+            temporal_position_period=None,
+        )
+
+    def _pack_grid_tokens(
+        self,
+        modality: ModalityDataBuilder,
+        *,
+        input_tokens: torch.Tensor,
+        condition_frame_indexes: list[int],
+        input_timestep: float | torch.Tensor,
+        latent_patch_size: int,
+        fps: float | None,
+        enable_fps_modulation: bool,
+        base_fps: float,
+        temporal_compression_factor: int,
+        base_temporal_compression_factor: int,
+        temporal_positions: torch.Tensor | None,
+        temporal_position_period: int | None,
+    ) -> int:
+        """Pack one ``(C, T, H, W)`` latent clip into ``modality``, frame by frame.
+
+        Shared by every stream whose payload is a VAE latent grid, so that a second such
+        stream cannot drift from the first on patchification, conditioning, mRoPE or the
+        order tokens are appended in.
+
+        Returns:
+            Number of tokens appended.
+        """
         # Compute position IDs for image patches
-        _, _, latent_t, latent_h, latent_w = input_vision_tokens.shape
+        _, _, latent_t, latent_h, latent_w = input_tokens.shape
         if latent_patch_size < 1:
             raise ValueError(f"latent_patch_size must be >= 1, got {latent_patch_size}")
         # Use ceil to support latent dims not divisible by patch size (padding handled in network)
         patch_h = math.ceil(latent_h / latent_patch_size)
         patch_w = math.ceil(latent_w / latent_patch_size)
-        vision.token_shapes.append((latent_t, patch_h, patch_w))
-        vision.tokens.append(input_vision_tokens)
-        vision_payload_index = len(vision.tokens) - 1
+        modality.token_shapes.append((latent_t, patch_h, patch_w))
+        modality.tokens.append(input_tokens)
+        payload_index = len(modality.tokens) - 1
 
-        # Supervise vision tokens based on conditioning frames
-        condition_set = {idx for idx in condition_frame_indexes_vision if 0 <= idx < latent_t}
+        # Supervise tokens based on conditioning frames
+        condition_set = {idx for idx in condition_frame_indexes if 0 <= idx < latent_t}
 
-        vision_condition_mask = torch.zeros(
-            (latent_t, 1, 1), device=input_vision_tokens.device, dtype=input_vision_tokens.dtype
-        )  # [T,1,1]
+        condition_mask = torch.zeros((latent_t, 1, 1), device=input_tokens.device, dtype=input_tokens.dtype)  # [T,1,1]
         for frame_idx in condition_set:
-            vision_condition_mask[frame_idx, 0, 0] = 1.0
-        vision.condition_mask.append(vision_condition_mask)
+            condition_mask[frame_idx, 0, 0] = 1.0
+        modality.condition_mask.append(condition_mask)
 
-        vision_noisy_frame_indexes = torch.tensor(
+        noisy_frame_indexes = torch.tensor(
             [idx for idx in range(latent_t) if idx not in condition_set],
-            device=input_vision_tokens.device,
+            device=input_tokens.device,
             dtype=torch.long,
         )  # [N_noisy_frames]
-        vision.noisy_frame_indexes.append(vision_noisy_frame_indexes)
+        modality.noisy_frame_indexes.append(noisy_frame_indexes)
 
         frame_token_stride = patch_h * patch_w
-        effective_fps = vision_fps if enable_fps_modulation else None
-        if vision_temporal_positions is not None:
-            vision_temporal_positions = vision_temporal_positions.to(device="cpu", dtype=torch.float32)  # [T]
+        effective_fps = fps if enable_fps_modulation else None
+        if temporal_positions is not None:
+            temporal_positions = temporal_positions.to(device="cpu", dtype=torch.float32)  # [T]
 
-        vision_mrope_ids, self._mrope_temporal_offset = get_3d_mrope_ids_vae_tokens(
+        # Real-world seconds between two consecutive latent frames of this item, independent
+        # of enable_fps_modulation (which only gates whether mRoPE positions use it).
+        seconds_per_frame = temporal_compression_factor / fps if fps else 1.0
+        modality.seconds_per_frame.append(seconds_per_frame)
+        mrope_ids, self._mrope_temporal_offset = get_3d_mrope_ids_vae_tokens(
             grid_t=latent_t,
             grid_h=patch_h,
             grid_w=patch_w,
@@ -314,33 +526,35 @@ class PackedSequenceBuilder:
             fps=effective_fps,
             base_fps=base_fps,
             temporal_compression_factor=temporal_compression_factor,
-            temporal_positions=vision_temporal_positions,
-            actual_temporal_compression_factor=temporal_compression_factor,
-        )  # vision_mrope_ids: [3,N_vision_tokens]
-        vision_mrope_ids = vision_mrope_ids.reshape(3, latent_t, frame_token_stride)  # [3,T,H*W]
+            base_temporal_compression_factor=base_temporal_compression_factor,
+            temporal_positions=temporal_positions,
+            temporal_position_period=temporal_position_period,
+        )  # mrope_ids: [3,N_tokens]
+        mrope_ids = mrope_ids.reshape(3, latent_t, frame_token_stride)  # [3,T,H*W]
 
-        vision_split_len = 0
+        split_len = 0
         for frame_idx in range(latent_t):
-            position_ids = vision_mrope_ids[:, frame_idx, :]  # [3,H*W]
-            frame_indexes = self.append_vision_span(
+            position_ids = mrope_ids[:, frame_idx, :]  # [3,H*W]
+            frame_indexes = self._append_modality_span(
+                modality,
                 frame_token_stride,
                 position_ids,
-                payload_index=vision_payload_index,
+                payload_index=payload_index,
                 payload_start=frame_idx * frame_token_stride,
                 payload_shape=(1, patch_h, patch_w),
             )
-            vision_split_len += frame_token_stride
+            split_len += frame_token_stride
 
             if frame_idx in condition_set:
                 continue
-            vision.mse_loss_indexes.extend(frame_indexes)
+            modality.mse_loss_indexes.extend(frame_indexes)
             if isinstance(input_timestep, torch.Tensor):
                 frame_ts = input_timestep[frame_idx].item()
             else:
                 frame_ts = input_timestep
-            vision.timesteps.extend([frame_ts] * frame_token_stride)
+            modality.timesteps.extend([frame_ts] * frame_token_stride)
 
-        return vision_split_len
+        return split_len
 
     def pack_action_tokens(
         self,
@@ -746,6 +960,7 @@ class PackedSequenceBuilder:
         *,
         domain_id: list[torch.Tensor] | None = None,
         raw_action_dim: list[torch.Tensor | None] | None = None,
+        action_valid_mask: list[torch.Tensor | None] | None = None,
         include_raw_action_dim: bool = False,
     ) -> ModalityData | None:
         """Finalize one modality builder into model-facing modality data.
@@ -771,11 +986,13 @@ class PackedSequenceBuilder:
             "tokens": modality.tokens,
             "condition_mask": list(modality.condition_mask),
             "noisy_frame_indexes": list(modality.noisy_frame_indexes),
+            "seconds_per_frame": list(modality.seconds_per_frame),
         }
         if domain_id is not None:
             kwargs["domain_id"] = domain_id
         if include_raw_action_dim:
             kwargs["raw_action_dim"] = raw_action_dim
+            kwargs["action_valid_mask"] = action_valid_mask
         return ModalityData(**kwargs)
 
     def finalize(
@@ -808,10 +1025,49 @@ class PackedSequenceBuilder:
         # The condition_mask and noisy_frame_indexes are kept as lists to support variable shapes.
 
         vision = self._finalize_modality(self.vision)
+        lidar = self._finalize_modality(self.lidar)
         action_domain_id = None
         if self.action is not None:
             if gen_data_clean.action_domain_id is not None:
-                action_domain_id = gen_data_clean.action_domain_id
+                if len(gen_data_clean.action_domain_id) != len(self.action.token_shapes):
+                    raise ValueError(
+                        "Action-domain metadata must have one entry per packed action item; "
+                        f"got {len(gen_data_clean.action_domain_id)} domain entries for "
+                        f"{len(self.action.token_shapes)} action items."
+                    )
+                action_domain_id = []
+                for item_index, (domain_ids, token_shape) in enumerate(
+                    zip(gen_data_clean.action_domain_id, self.action.token_shapes)
+                ):
+                    flat_domain_ids = domain_ids.reshape(-1)
+                    packed_token_count = int(token_shape[0])
+                    if flat_domain_ids.numel() == 1:
+                        # A scalar domain applies to the whole action item and is
+                        # expanded per token by the network.
+                        action_domain_id.append(flat_domain_ids)
+                        continue
+
+                    if self.null_action_supertokens:
+                        null_token_count = self.num_action_tokens_per_supertoken
+                        expected_real_count = packed_token_count - null_token_count
+                        if null_token_count < 1 or flat_domain_ids.numel() != expected_real_count:
+                            raise ValueError(
+                                f"Framewise action-domain entry {item_index} must cover the real action rows "
+                                "before the temporal-causal null prefix; "
+                                f"got {flat_domain_ids.numel()} IDs, expected {expected_real_count} for "
+                                f"{packed_token_count} packed tokens ({null_token_count} null)."
+                            )
+                        # Null actions use the first forthcoming real action's
+                        # domain, matching autoregressive inference semantics.
+                        null_domain_ids = flat_domain_ids[:1].expand(null_token_count)
+                        action_domain_id.append(torch.cat([null_domain_ids, flat_domain_ids]).contiguous())
+                    else:
+                        if flat_domain_ids.numel() != packed_token_count:
+                            raise ValueError(
+                                f"Framewise action-domain entry {item_index} must have one ID per packed action "
+                                f"token; got {flat_domain_ids.numel()} IDs for {packed_token_count} tokens."
+                            )
+                        action_domain_id.append(flat_domain_ids)
             else:
                 default_action_domain_id = torch.zeros(1, dtype=torch.long)  # [1]
                 action_domain_id = [default_action_domain_id] * len(self.action.token_shapes)
@@ -819,6 +1075,7 @@ class PackedSequenceBuilder:
             self.action,
             domain_id=action_domain_id,
             raw_action_dim=gen_data_clean.raw_action_dim,
+            action_valid_mask=gen_data_clean.action_valid_mask,
             include_raw_action_dim=True,
         )
         sound = self._finalize_modality(self.sound)
@@ -849,6 +1106,7 @@ class PackedSequenceBuilder:
             ce_loss_weights=ce_loss_weights,
             # Generation modalities
             vision=vision,
+            lidar=lidar,
             action=action,
             sound=sound,
             # Temporal causal
@@ -856,7 +1114,14 @@ class PackedSequenceBuilder:
             num_action_tokens_per_supertoken=self.num_action_tokens_per_supertoken,
             # Multi-control transfer
             vision_item_split_lens=list(self.vision_item_split_lens),
+            text_caption_lens=[list(lens) for lens in self.text_caption_lens],
+            text_caption_view_ids=[list(view_ids) for view_ids in self.text_caption_view_ids],
             control_weights=gen_data_clean.control_weights,
+            # Vision item layout (multi-item samples, multiview cameras)
+            num_vision_items_per_sample=gen_data_clean.num_vision_items_per_sample,
+            num_views_per_vision_item=gen_data_clean.num_views_per_vision_item,
+            # LiDAR item layout
+            num_lidar_items_per_sample=gen_data_clean.num_lidar_items_per_sample,
         )
 
 
@@ -889,11 +1154,18 @@ class PackedSequence:
         num_action_tokens_per_supertoken: Number of action tokens prefixing each
             temporal-causal vision supertoken.
         vision: Finalized vision modality data, or ``None`` if no vision is present.
+        lidar: Finalized LiDAR modality data, or ``None`` if no LiDAR is present.
         action: Finalized action modality data, or ``None`` if no action is present.
         sound: Finalized sound modality data, or ``None`` if no sound is present.
         vision_item_split_lens: Per-sample per-vision-item token counts for multi-control
             transfer.
         control_weights: Per-sample per-control weights for multi-control weighted V-scaling.
+        num_vision_items_per_sample: Number of vision items owned by each sample, or
+            ``None`` when every sample owns exactly one item.
+        num_views_per_vision_item: Number of camera views packed into each flattened
+            vision item, or ``None`` when per-camera VAE encoding is disabled.
+        num_lidar_items_per_sample: Number of LiDAR items owned by each sample, or ``None``
+            when the batch carries no LiDAR.
     """
 
     # Sequence structure
@@ -928,6 +1200,7 @@ class PackedSequence:
 
     # Generation modalities - NAMED FIELDS for type safety
     vision: ModalityData | None = None
+    lidar: ModalityData | None = None
     action: ModalityData | None = None
     sound: ModalityData | None = None
 
@@ -943,6 +1216,29 @@ class PackedSequence:
     # None for non-transfer or standard single-control samples.
     control_weights: list[list[float]] | None = None
 
+    # Caption layout inside each sample's causal split; see PackedSequenceBuilder for what the
+    # two lists hold. Every sample with text records an entry, so a batch packing the usual
+    # single caption per sample carries [[split_len], ...] / [[-1], ...] and behaves exactly
+    # as it did before per-view captions existed.
+    text_caption_lens: list[list[int]] = field(default_factory=list)
+    text_caption_view_ids: list[list[int]] = field(default_factory=list)
+
+    # Vision item layout, carried over from GenerationDataClean so the network can
+    # reconstruct the per-item geometry of the packed GEN stream:
+    # num_vision_items_per_sample groups the flattened vision items by sample (None
+    # when each sample owns one item), and num_views_per_vision_item records how many
+    # camera-major views each item concatenates along its latent temporal axis (None
+    # when per-camera VAE encoding is disabled). Read by cosmos3_vfm_network.py to
+    # build the multiview FlexAttention mask.
+    num_vision_items_per_sample: list[int] | None = None
+    num_views_per_vision_item: list[int] | None = None
+
+    # LiDAR items owned by each sample, grouping the flattened LiDAR items the way
+    # num_vision_items_per_sample groups the vision ones. None when the batch has no LiDAR.
+    # Read by cosmos3_vfm_network.py, which describes a sample to the multiview
+    # FlexAttention mask as its vision items followed by its LiDAR items.
+    num_lidar_items_per_sample: list[int] | None = None
+
     def __post_init__(self) -> None:
         self._sequence_pack_metadata: SequencePackMetadata | None = None
         assert isinstance(self.text_ids, torch.Tensor), "PackedSequence.text_ids must be finalized"
@@ -954,7 +1250,7 @@ class PackedSequence:
             assert isinstance(self.ce_loss_indexes, torch.Tensor), "PackedSequence.ce_loss_indexes must be finalized"
         if self.ce_loss_weights is not None:
             assert isinstance(self.ce_loss_weights, torch.Tensor), "PackedSequence.ce_loss_weights must be finalized"
-        for modality in [self.vision, self.action, self.sound]:
+        for modality in [self.vision, self.lidar, self.action, self.sound]:
             assert modality is None or isinstance(modality, ModalityData), (
                 "PackedSequence modality fields must be finalized ModalityData"
             )
@@ -972,6 +1268,8 @@ class PackedSequence:
             self.ce_loss_weights = self.ce_loss_weights.cuda()
         if self.vision is not None:
             self.vision.to_cuda()
+        if self.lidar is not None:
+            self.lidar.to_cuda()
         if self.action is not None:
             self.action.to_cuda()
         if self.sound is not None:
@@ -986,6 +1284,7 @@ class PackedSequence:
             attn_modes=self.attn_modes,
             packed_und_token_indexes=self.text_indexes,
             device=self.text_indexes.device,
+            text_caption_lens=self.text_caption_lens,
         )
 
     def get_sequence_pack_metadata(self) -> SequencePackMetadata | None:
@@ -1005,17 +1304,41 @@ class SequencePlan:
     Attributes:
         has_text: Whether text/caption tokens are present for this sample.
             Used for text-conditioned generation (e.g., text-to-image/video).
+        text_view_ids: With one caption per camera view (the layout the multiview dataset
+            emits under ``separate_view_text_tokenization``), the camera view each of this
+            sample's captions describes, in the order the captions appear in
+            ``input_text_indexes``. ``None`` (the default) is the single sample-level caption
+            every other batch packs. The list length is the sample's caption count, so the
+            packer consumes that many entries rather than one, and the mask uses the view ids
+            to keep each camera to its own caption -- see
+            ``flex_attention.CaptionMaskItem``. All captions land in the one causal split the
+            sample already owns; only their varlen boundaries differ.
         has_vision: Whether vision input (image or video latents) is present.
             Defaults to False.
         condition_frame_indexes_vision: Indexes of latent vision frames that are clean/conditioning.
             [] means all frames are noised/supervised.
             All frames specified means all frames are clean (no MSE supervision).
+            Indexes are per-view-local (``[0, 1, ...]`` = first K latent frames within each
+            camera). For multiview items whose latents are camera-major concatenated, the
+            packer expands these to every selected camera before building the condition mask.
             For multi-item samples (e.g. image editing where each sample has multiple
             separately-encoded images), this applies to each vision item individually.
             The number of items per sample is tracked by
             ``GenerationDataClean.num_vision_items_per_sample``.
+        condition_view_indexes_vision: Local camera indexes whose complete latent videos are
+            clean/conditioning. Indexes refer to the sampled camera-major view order. This is
+            combined with ``condition_frame_indexes_vision`` by the sequence packer, allowing
+            temporal-prefix conditioning on every view and full-video conditioning on selected
+            views to share the existing vision condition mask.
         share_vision_temporal_positions: Whether all vision items in this sample share
             the same temporal mRoPE grid.
+        vision_temporal_position_groups: Optional integer group ID per vision item. Items
+            with the same integer group ID share a temporal mRoPE grid; ``None`` items
+            remain independent. This supports source-video/reference-image/target-video samples.
+        has_lidar: Whether LiDAR range-view latents are present for this sample.
+        condition_frame_indexes_lidar: Indexes of latent LiDAR sweeps that are clean/conditioning,
+            read the same way as ``condition_frame_indexes_vision`` and applying to each LiDAR
+            item individually.
         has_action: Whether action input is present for robotics/embodied AI tasks.
             Defaults to False.
         condition_frame_indexes_action: Indexes of action steps that are clean/conditioning.
@@ -1030,10 +1353,12 @@ class SequencePlan:
 
     # -- understanding (text conditioning) --
     has_text: bool
+    text_view_ids: list[int] | None = None
 
     # -- vision modality --
     has_vision: bool = False
     condition_frame_indexes_vision: list[int] = field(default_factory=list)
+    condition_view_indexes_vision: list[int] = field(default_factory=list)
     # If True, all vision items in this sample share the same temporal mRoPE grid
     # (controlnet-style transfer: target frame i is spatio-temporally aligned with
     # control frame i). Each item gets the same temporal_offset; spatial reset
@@ -1041,6 +1366,14 @@ class SequencePlan:
     # and equal fps across items. Default False preserves single-clip and
     # image-editing semantics where items represent distinct time states.
     share_vision_temporal_positions: bool = False
+    vision_temporal_position_groups: list[int | None] | None = None
+
+    # -- lidar modality --
+    # Every LiDAR item of a sample starts at the instant its vision items start, the way
+    # action and sound do, so the two sensors share one real-time axis without needing the
+    # vision stream's temporal-group bookkeeping.
+    has_lidar: bool = False
+    condition_frame_indexes_lidar: list[int] = field(default_factory=list)
 
     # -- action modality --
     has_action: bool = False
@@ -1054,13 +1387,18 @@ class SequencePlan:
     def as_dict(self) -> dict:
         return {
             "has_text": self.has_text,
+            "text_view_ids": self.text_view_ids,
             "has_vision": self.has_vision,
+            "has_lidar": self.has_lidar,
             "has_action": self.has_action,
             "has_sound": self.has_sound,
             "condition_frame_indexes_vision": self.condition_frame_indexes_vision,
+            "condition_view_indexes_vision": self.condition_view_indexes_vision,
+            "condition_frame_indexes_lidar": self.condition_frame_indexes_lidar,
             "condition_frame_indexes_action": self.condition_frame_indexes_action,
             "condition_frame_indexes_sound": self.condition_frame_indexes_sound,
             "share_vision_temporal_positions": self.share_vision_temporal_positions,
+            "vision_temporal_position_groups": self.vision_temporal_position_groups,
         }
 
 
@@ -1093,6 +1431,7 @@ def build_sequence_plans_from_data_batch(
 
     assert "action" not in data_batch or data_batch["action"] is None, "Action data SHOULD have sequence_plans!"
     assert "sound" not in data_batch or data_batch["sound"] is None, "Sound data SHOULD have sequence_plans!"
+    assert "lidar" not in data_batch or data_batch["lidar"] is None, "LiDAR data SHOULD have sequence_plans!"
 
     # Determine batch size from available tensors
     batch_size = 0
