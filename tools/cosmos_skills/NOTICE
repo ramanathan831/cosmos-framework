@@ -1,0 +1,10 @@
+Cosmos workflow skills include material ported from NVIDIA-TAO/tao-skill-bank.
+The precise source revision and file provenance are recorded in migration.json.
+Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+The original Apache-2.0 license is preserved in LICENSE. Individual source
+headers and SKILL.md license fields remain authoritative; the Cosmos DEFT AOI
+workflow declares Apache-2.0 AND CC-BY-4.0.
+
+Changes in this repository include Cosmos skill names, relocatable bundle
+discovery, local agent integration, dependency closure, and CPU validation.

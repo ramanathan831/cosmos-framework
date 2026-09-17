@@ -1,0 +1,16 @@
+{
+  "models": {
+    "cosmos3-reasoner": {
+      "actions": [
+        "evaluate",
+        "inference",
+        "quantize",
+        "train"
+      ],
+      "automl_enabled": true,
+      "failures": {},
+      "network_arch": "cosmos-reason"
+    }
+  },
+  "schema_version": 1
+}
