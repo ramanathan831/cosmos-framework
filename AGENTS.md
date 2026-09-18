@@ -77,7 +77,7 @@ For a per-subpackage tour with descriptions, see [`docs/code_structure.md`](./do
 
 Agent skills (codebase navigation, env troubleshooting, inference, post-training, setup) live in [`.agents/skills/`](./.agents/skills) and [`.claude/skills/`](./.claude/skills).
 
-Cosmos workflow skills (reasoner train/evaluate, Embed, Predict, DEFT, AutoML,
+Cosmos workflow skills (reasoner train/evaluate, Embed, Predict, video annotation,
 and platform execution) are maintained in [`tools/cosmos_skills/`](./tools/cosmos_skills/README.md),
 with discovery links in both skill directories. Use this bundled implementation;
 no TAO Skill Bank checkout or plugin is required. Source

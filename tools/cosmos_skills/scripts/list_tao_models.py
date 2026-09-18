@@ -23,8 +23,8 @@ DEFAULT_SKILL_BANK = Path(os.environ.get("COSMOS_SKILLS_ROOT", Path(__file__).re
 SCHEMA_DIR_REL = Path("schemas")
 TRAIN_SCHEMA_REL = SCHEMA_DIR_REL / "train.schema.json"
 SUPPORT_RULE = (
-    "AutoML is enabled at model level; runnable AutoML for an action also "
-    "requires skills/models/<network>/schemas/<action>.schema.json to be packaged "
+    "Runnable AutoML requires a packaged AutoML workflow, model-level enablement, "
+    "and skills/models/<network>/schemas/<action>.schema.json to be packaged "
     "and valid."
 )
 
@@ -357,9 +357,22 @@ def build_automl_support(skill_bank: Path, action_filter: str = "") -> dict[str,
 
     supported: list[dict[str, Any]] = []
     unsupported: list[dict[str, Any]] = []
+    workflow_available = (skill_bank.expanduser() / "skills/applications/cosmos-automl/SKILL.md").is_file()
 
     for model in sorted(model_records):
         record = model_records[model]
+
+        if not workflow_available:
+            unsupported.append(
+                {
+                    "model": model,
+                    "network_arch": record["network_arch"],
+                    "automl_enabled": record["automl_enabled"],
+                    "reason": "AutoML workflow is not packaged in this bundle",
+                    "train_schema_status": record["train_schema_status"],
+                }
+            )
+            continue
 
         if not record["automl_enabled"]:
             unsupported.append(

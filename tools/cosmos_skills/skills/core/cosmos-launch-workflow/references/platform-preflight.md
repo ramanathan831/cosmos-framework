@@ -47,9 +47,8 @@ When a model skill lists annotation-level required fields, pass them with
 content issues fail during preflight rather than inside the first training
 container. Do not add required annotation fields from old failure history; only
 enforce fields documented as required by the current model skill.
-For local JSON/JSONL annotation paths, the helper prints `records=<N>`; use the
-train annotation count as `automl_settings["train_sample_count"]` for
-sample-count-sensitive AutoML runs before recommendations are generated.
+For local JSON/JSONL annotation paths, the helper prints `records=<N>`; include
+the count in the launch review and check that the selected batch size fits.
 If the model skill documents a run-local patch strategy for a missing required
 field, create the patched copy in the current run workspace, update the spec
 paths to that copy, and rerun the content check before launch. Do not ask the

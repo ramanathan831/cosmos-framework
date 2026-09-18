@@ -175,22 +175,6 @@ fix with a compatible image, not as a platform resource incompatibility.
 
 **TAO_API_JOB_ID status logging warnings in direct Docker**: `cosmos-rl-evaluate`, `cosmos-rl-inference`, and `cosmos-rl-quantize` may log a traceback from `tao_status_logger.py` when `TAO_API_JOB_ID` is unset. For direct local-Docker model-skill validation this is nonfatal if the process exits 0 and the action writes its expected result files. Do not hide a real action failure behind this warning, but do not mark an otherwise successful local run failed only because status-file logging was unavailable.
 
-## DEFT Support
-
-Cosmos-RL implements the DEFT workflow contract for video QA tasks. Use the
-packaged model metadata and `workflow/deft/deft.md` for the pipeline overview;
-this skill does not package a `config.json`.
-
-### Gap Analysis (`scripts/analyze_gaps.py`)
-
-Model-specific script that identifies failure cases from cosmos-rl evaluation output.
-
-- **Eval output format:** `results.json` with fields: `video_id`, `response`, `question`, `gt`
-- **Comparison:** exact string match after `.lower().strip()` — requires eval prompts that force short constrained answers (e.g., yes/no)
-- **Output:** parquet with `video_id` (full path), `question`, `ground_truth`
-
-**Limitation:** Brittle exact match. If the model responds with full sentences instead of constrained answers, mismatches will be over-reported. The eval prompt design must account for this.
-
 ## Spec Param / Parent Model Inference
 
 Model-specific inference mappings belong in this MD file. Agents should read this section and apply the mappings before launching a job. This mirrors the old microservices `infer_params.py` flow.

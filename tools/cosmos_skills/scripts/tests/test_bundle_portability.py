@@ -94,6 +94,26 @@ def test_relocated_catalog_contains_only_bundled_models_and_all_platforms(reloca
     for group in ("applications", "data_workflows"):
         for item in result[group]:
             assert (relocated / item["path"]).is_file()
+    assert {item["name"] for item in result["applications"]} == {"cosmos-inference-service"}
+    assert {item["name"] for item in result["data_workflows"]} == {
+        "cosmos-annotate-videos",
+        "cosmos-predict",
+        "cosmos-convert-dataset-format",
+        "cosmos-validate-dataset-format",
+    }
+    assert result["automl"]["supported"] == []
+    assert len(result["automl"]["unsupported"]) == 2
+    assert all("not packaged" in item["reason"] for item in result["automl"]["unsupported"])
+
+
+def test_relocated_automl_query_does_not_advertise_a_missing_runner(relocated):
+    for helper, args in (
+        ("scripts/list_automl_support.py", ()),
+        ("scripts/list_tao_models.py", ("--scope", "automl", "--action", "train")),
+    ):
+        result = json.loads(run_helper(relocated, helper, *args, "--format", "json").stdout)
+        assert result["supported"] == []
+        assert {item["model"] for item in result["unsupported"]} == {"cosmos3-reasoner", "cosmos-embed"}
 
 
 @pytest.mark.parametrize(
@@ -104,14 +124,9 @@ def test_relocated_catalog_contains_only_bundled_models_and_all_platforms(reloca
         "skills/models/cosmos3-reasoner/scripts/cosmos_workflow.py",
         "skills/models/cosmos3-reasoner/scripts/evaluation_workflow.py",
         "skills/models/cosmos3-reasoner/scripts/framework_checkpoint_action.py",
-        "skills/applications/cosmos-deft-aoi/scripts/submit_cfw_train.py",
-        "skills/applications/cosmos-deft-aoi/scripts/submit_cfw_evaluate.py",
-        "skills/applications/cosmos-deft-traffic/scripts/prepare_cosmos_embed_inference.py",
-        "skills/data/cosmos-finetune-anomalygennext/scripts/prepare_finetune_recipe.py",
-        "skills/data/cosmos-prepare-anomalygennext-inputs/scripts/prepare_anomalygennext_inputs.py",
-        "skills/data/cosmos-prepare-anomalygennext-inputs/scripts/run_anomalygennext_amp.py",
-        "skills/data/cosmos-generate-od-defects/scripts/generate_od_defects.py",
-        "skills/data/cosmos-generate-image-embeddings/scripts/verify_image_embeddings_spec.py",
+        "skills/data/cosmos-predict/scripts/prepare_paidf_config.py",
+        "skills/data/cosmos-predict/scripts/write_paidf_handoff.py",
+        "skills/data/cosmos-predict/scripts/verify_vlm_captioning_base_url.py",
     ],
 )
 def test_entrypoints_import_without_framework_or_skill_bank_checkout(relocated, helper):
@@ -150,6 +165,9 @@ def test_provenance_records_only_packaged_files():
     assert len(manifest["source_commit"]) == 40
     destinations = [entry["destination"] for entry in manifest["files"]]
     assert len(destinations) == len(set(destinations))
+    assert set(manifest["skill_names"].values()) == {
+        skill.parent.name for skill in (ROOT / "skills").glob("*/*/SKILL.md")
+    }
     for entry in manifest["files"]:
         assert (ROOT / entry["destination"]).is_file(), entry
         assert len(entry["source_sha256"]) == 64

@@ -256,13 +256,12 @@ def format_capabilities_text(data: dict[str, Any]) -> str:
     all_actions = action_set(models)
     full_flow_models = model_workflows["full_train_eval_infer_export_trt_models"]
     training_models = model_workflows["training_capable_models"]
-    automl_models = [item["model"] for item in automl["supported"]]
 
     lines = [
         "Cosmos Framework workflow bundle",
         "",
-        "Packaged Cosmos workflows for training, AutoML/HPO, evaluation, "
-        "inference, export, retrieval, and data improvement. Native generation "
+        "Packaged Cosmos workflows for training, evaluation, "
+        "inference, export, retrieval, and video data preparation. Native generation "
         "and Ray/Gradio are covered by the repository's existing cosmos3 skills.",
         "",
         "Application workflows I can drive:",
@@ -273,7 +272,7 @@ def format_capabilities_text(data: dict[str, Any]) -> str:
     lines.extend(
         [
             "",
-            "Dataset and data-improvement skills I can use:",
+            "Dataset and video-preparation skills I can use:",
         ]
     )
     for data_skill in data["data_workflows"]:
@@ -299,14 +298,8 @@ def format_capabilities_text(data: dict[str, Any]) -> str:
         [
             "",
             "AutoML/HPO support:",
-            "- Use AutoMLRunner for explicit HPO/prompt-search requests or an "
-            "already selected workflow with automl_policy=on. Ordinary training "
-            "uses the model skill's direct action; model metadata declares "
-            "search capability and does not authorize additional trials.",
-            "- Runnable AutoML still requires a valid packaged schema for the "
-            "selected action. "
-            f"Runnable models: {csv(automl_models)}",
-            f"- Rule: {automl['support_rule']}",
+            "- AutoML/HPO and DEFT orchestration are deferred from this core bundle. "
+            "Schema tuning metadata alone does not provide a runnable workflow.",
         ]
     )
     if automl["unsupported"]:

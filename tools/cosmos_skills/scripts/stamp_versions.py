@@ -11,7 +11,6 @@ site on a release bump and CI can verify nothing drifted:
 
     container_image: nvcr.io/nvidia/tao/tao-toolkit:7.0.1-pyt  # versions-key: images.tao_toolkit.pyt
     export TAO_DS_IMAGE=nvcr.io/nvidia/tao/tao-toolkit:7.0.1-data-services  # versions-key: images.tao_toolkit.data_services
-    python -m pip install "nvidia-tao-sdk[slurm]==7.0.1"  # versions-key: wheels.tao_sdk_slurm
 
 Rules enforced:
   * A line carrying ``# versions-key: <dotted.key>`` must contain exactly the

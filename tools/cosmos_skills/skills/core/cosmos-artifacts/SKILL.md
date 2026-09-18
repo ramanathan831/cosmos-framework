@@ -1,6 +1,6 @@
 ---
 name: cosmos-artifacts
-description: The contract home for TAO's SDK-free execution pipeline — authoritative JSON Schemas for the four typed artifacts (spec-bundle, job-record, results_dir layout, best_rec) plus the fixed job-status vocabulary and the nested-not-dotted spec rule. Use when authoring or validating a spec-bundle before submit, writing or reading a .tao/jobs job-record, resolving where results land, or consuming AutoML's best_rec.json. Trigger phrases include "validate the spec bundle", "job record schema", "status vocabulary", "results_dir layout", "best_rec schema".
+description: The contracts for the SDK-free Cosmos execution pipeline — spec-bundle and job-record JSON Schemas, results_dir layout, fixed job-status vocabulary, and nested spec rules. Use when authoring or validating a spec-bundle before submit, reading or writing a .tao/jobs job-record, or resolving result paths.
 license: Apache-2.0
 metadata:
   author: NVIDIA Corporation
@@ -13,8 +13,8 @@ allowed-tools: Read Bash
 
 # cosmos-artifacts
 
-Four typed artifacts flow through every TAO job. Their schemas live **here and
-nowhere else** — producers (model/data skills) and consumers (platform skills)
+The shared artifacts for Cosmos jobs are defined **here and nowhere else** —
+producers (model/data skills) and consumers (platform skills)
 both validate against this skill's `references/`.
 
 | Artifact | Schema | Produced by → consumed by |
@@ -22,14 +22,13 @@ both validate against this skill's `references/`.
 | **spec-bundle** | `references/spec_bundle.schema.json` | model/data skill → platform skill (at the submit seam) |
 | **job-record** | `references/job_record.schema.json` | `scripts/tao_job_record.py` (the ONLY writer) → any re-attaching agent/poller |
 | **results_dir layout** | `references/results_dir.contract.md` | platform skill at submit → whoever collects outputs |
-| **best_rec** | `references/best_rec.schema.json` | cosmos-automl adapter → DEFT warm-start |
 
 ## Quick Start — validate an artifact
 
 ```bash
 python - <<'PY'
-import json, yaml, jsonschema, pathlib
-ref = pathlib.Path("${COSMOS_SKILLS_ROOT:?}/skills/core/cosmos-artifacts/references")
+import json, os, yaml, jsonschema, pathlib
+ref = pathlib.Path(os.environ["COSMOS_SKILLS_ROOT"]) / "skills/core/cosmos-artifacts/references"
 schema = json.loads((ref / "spec_bundle.schema.json").read_text())
 bundle = yaml.safe_load(open("/path/to/bundle.yaml"))   # or a dict built in-context
 jsonschema.validate(bundle, schema)                      # raises on violation

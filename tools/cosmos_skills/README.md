@@ -1,11 +1,11 @@
 # Cosmos workflow skills
 
-This directory owns 29 Cosmos and supporting skills migrated from TAO Skill Bank. It is
+This directory owns 18 Cosmos and supporting skills migrated from TAO Skill Bank. It is
 self-contained: no Skill Bank checkout, plugin, home-directory installation, or
 source overlay is required. The existing five `cosmos3-*` skills remain the
 entrypoints for native setup, code navigation, debugging, generation, and recipe
 post-training. These additional skills cover managed reasoner training and
-evaluation, retrieval, synthetic data, and iterative improvement workflows.
+evaluation, retrieval, video generation, and training-data preparation.
 
 ## Discovery and routing
 
@@ -21,21 +21,29 @@ the shared scripts, templates, schemas, and `versions.yaml` are part of the bund
 | Reasoner SFT, dense/PEFT, evaluation, checkpoint preparation, or backend comparison | `cosmos3-reasoner` |
 | Video/text embeddings, retrieval, or embedder fine-tuning | `cosmos-embed` |
 | Synthetic video generation with PAIDF | `cosmos-predict` |
-| Cosmos3-based AnomalyGenNext fine-tuning and synthetic defects | `cosmos-finetune-anomalygennext`, `cosmos-prepare-anomalygennext-inputs`, `cosmos-generate-od-defects` |
-| Image embeddings for anomaly preparation or mining | `cosmos-generate-image-embeddings` |
 | DAFT-to-Cosmos dataset conversion and validation | `cosmos-convert-dataset-format`, `cosmos-validate-dataset-format` |
 | Video captioning and reasoning QA annotations | `cosmos-annotate-videos` |
-| Inspection improvement with proxy/benchmark isolation | `cosmos-deft-aoi` |
-| Traffic-video improvement with embedding-based mining | `cosmos-deft-traffic` |
-| Explicit hyperparameter or prompt optimization | `cosmos-automl` |
 | Containerized inference endpoint | `cosmos-inference-service` |
 | Platform selection, lifecycle, and result tracking | `cosmos-launch-workflow` plus `cosmos-run-on-<platform>` |
 
-The supporting data, artifact, host-setup, and platform skills are bundled because
-these workflows invoke them. Unrelated TAO model skills, plugin installers,
-customer-specific evaluation jobs, and marketplace hooks are not included.
-The RT-DETR-specific DEFT application is outside this bundle; its Cosmos3-based
-AnomalyGenNext leaves and their embedding dependency are included independently.
+The supporting artifact, data-I/O, host-setup, and platform skills are bundled
+because these workflows invoke them. Docker, SLURM, Kubernetes, Brev, and
+virtualenv execution remain available; the selected model/action contract still
+determines which platforms fit. Host setup retains the GPU compatibility checks,
+and the inference-service skill supplies the optional annotation endpoint.
+
+## Deferred scope
+
+DEFT AOI/traffic loops, anomaly generation and AnomalyGenNext, image embedding
+and neighbor mining, gap analysis, and AutoML/HPO are not included in this core
+port. Their full migration is preserved on
+[`archive/cosmos-skills-full-migration`](https://github.com/ramanathan831/cosmos-framework/tree/archive/cosmos-skills-full-migration/tools/cosmos_skills)
+for separate, reviewable follow-ups. Do not route tasks to those absent skills
+or infer runnable AutoML support from model schema tuning metadata.
+
+Unrelated TAO model skills, plugin installers, customer-specific evaluation
+jobs, and marketplace hooks are also excluded. The native five skills and the
+parent branch's framework changes are untouched by this scope reduction.
 
 ## Use from a checkout
 
@@ -72,11 +80,11 @@ on the deprecated Skill Bank repository. `migration.json` records the original
 commit, skill-name mapping, source paths, and hashes; it is provenance, not a
 runtime dependency or an integrity seal for the maintained destination files.
 
-Container images and optional AutoML wheels remain pinned in `versions.yaml`.
-The model containers, TAO Data Services, PAIDF/AnomalyGenNext, and the optional
-`nvidia-tao-automl` and `nvidia-tao-daft` packages are still external runtime dependencies. AutoML retains
-its transitive SDK dependency; the ordinary platform execution paths use native
-CLIs. Some inherited images require registry access. This migration does not
+Container images remain pinned in `versions.yaml`. The model containers, TAO
+Data Services, PAIDF, and optional `nvidia-tao-daft` package remain external
+runtime dependencies. Platform execution uses native CLIs; this core bundle
+does not require the TAO SDK or AutoML wheels. Some inherited images require
+registry access. This migration does not
 publish replacement images or change those runtime contracts.
 
 ## CPU validation

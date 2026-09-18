@@ -8,4 +8,6 @@ If a split reference conflicts with `SKILL.md`, `skill_info.yaml`, schemas, or p
 
 - `cosmos-data-specs.md` — dataset requirements, launch intake, spec construction, or train overrides
 - `cosmos-actions-parameters.md` — evaluate, datasets, key parameters, hardware, errors, or parent checkpoint inference
-- `cosmos-automl-deft.md` — AutoML/HPO tuning or DEFT handoff notes
+
+AutoML/HPO and DEFT orchestration are deferred from this core bundle. Model
+schema tuning metadata is retained for compatibility, not as a runnable workflow.

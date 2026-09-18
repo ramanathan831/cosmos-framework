@@ -1,6 +1,6 @@
 ---
 name: cosmos-predict
-description: Prepare and run PAIDF Cosmos Predict video generation for DEFT media samples.
+description: Prepare and run PAIDF Cosmos Predict video generation from a media JSONL, with captioning, deduplicated generation, and per-sample output handoffs.
 license: Apache-2.0
 metadata:
   author: NVIDIA Corporation
@@ -11,7 +11,6 @@ metadata:
   - cosmos-predict
   - video
   - vlm-captioning
-  - deft
   - data-generation
 allowed-tools: Read Bash Write
 ---
@@ -22,7 +21,7 @@ Prepare and run PAIDF Cosmos Predict generation for media samples. The skill emi
 
 ## Purpose
 
-Use this skill when a DEFT workflow already has media samples and needs synthetic/generated videos from PAIDF Cosmos Predict. This skill does not start the VLM captioning service. A reachable OpenAI-compatible base URL for the model used to caption input media must be provided at runtime.
+Use this skill when the user or an upstream workflow has media samples and needs synthetic/generated videos from PAIDF Cosmos Predict. No DEFT workflow is required. This skill does not start the VLM captioning service. A reachable OpenAI-compatible base URL for the model used to caption input media must be provided at runtime.
 
 ## Prerequisites
 

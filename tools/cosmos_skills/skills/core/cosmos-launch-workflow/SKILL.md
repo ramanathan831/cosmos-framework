@@ -1,6 +1,6 @@
 ---
 name: cosmos-launch-workflow
-description: Pre-launch gate and submit/status/logs/cancel contract for the managed Cosmos workflow bundle. Use before launching its model, data, AutoML, or DEFT actions on Docker, SLURM, Kubernetes, Brev, or virtualenv. Covers platform selection, credentials, image and dataset preflight, launch review, job records, monitoring, and retry classification. Not needed for read-only planning, code edits, or unrelated workloads.
+description: Pre-launch gate and submit/status/logs/cancel contract for the managed Cosmos workflow bundle. Use before launching its model or data actions on Docker, SLURM, Kubernetes, Brev, or virtualenv. Covers platform selection, credentials, image and dataset preflight, launch review, job records, monitoring, and retry classification. Not needed for read-only planning, code edits, or unrelated workloads.
 license: Apache-2.0
 metadata:
   author: NVIDIA Corporation
@@ -330,10 +330,8 @@ Before any side-effecting launch, show a concise review:
 - implementation backend and selection rationale when the model exposes more
   than one backend
 
-For AutoML, also show the algorithm, metric/direction, recommendation budget,
-search parameters, ranges, and generated/default recommendation details as
-described in `skills/applications/cosmos-automl/SKILL.md`. Ask for confirmation after
-this review. If the user supplied a time limit, flag any plan that exceeds it
+Ask for confirmation after this review. AutoML/HPO and DEFT orchestration are
+not part of this core bundle. If the user supplied a time limit, flag any plan that exceeds it
 and offer concrete reductions before launch.
 
 Never end a successful launch review with only “nothing was launched.” End

@@ -98,10 +98,7 @@ def test_skill_info_images_are_stamped_from_versions_yaml():
 def test_cosmos_consumers_do_not_use_a_versions_image_key():
     legacy_key = "images.tao_toolkit." + "cosmos_rl"
     offenders = []
-    for root in (
-        ROOT / "skills" / "applications" / "cosmos-deft-aoi",
-        ROOT / "skills" / "applications" / "cosmos-inference-service",
-    ):
+    for root in (ROOT / "skills" / "applications" / "cosmos-inference-service",):
         for path in root.rglob("*"):
             if path.is_file() and path.suffix in {".md", ".yaml", ".yml"}:
                 if legacy_key in path.read_text(encoding="utf-8"):

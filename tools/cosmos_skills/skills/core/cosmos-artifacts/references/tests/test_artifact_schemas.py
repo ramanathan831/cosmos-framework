@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Schema tests for the four TAO artifacts.
+"""Schema tests for the shared Cosmos execution artifacts.
 
 The spec-bundle cases mirror real skill_info.yaml shapes: the config-mode
 bundle is DINO train (nested spec, array-indexed input pointers); the args-mode
@@ -32,11 +32,6 @@ def spec_schema():
 @pytest.fixture(scope="module")
 def record_schema():
     return load("job_record.schema.json")
-
-
-@pytest.fixture(scope="module")
-def best_rec_schema():
-    return load("best_rec.schema.json")
 
 
 def ok(instance, schema):
@@ -348,54 +343,3 @@ def test_job_record_platform_is_an_open_set(record_schema):
         r = copy.deepcopy(RECORD)
         r["platform"] = external
         ok(r, record_schema)
-
-
-# --------------------------------------------------------------------------- #
-# best_rec
-# --------------------------------------------------------------------------- #
-
-BEST_REC = {
-    "schema_version": 1,
-    "experiment_id": "automl-exp-7",
-    "metric_name": "far_at_100_recall",
-    "direction": "minimize",
-    "best": {
-        "rec_id": "rec_003",
-        "score": 0.0012,
-        "specs": {"train": {"optim": {"lr": 0.00013}}},
-        "observed_budget": {"num_epochs": 10},
-        "checkpoint_uri": "/lustre/results/automl-exp-7/rec_003/model_epoch_009_step_01200.pth",
-        "checkpoint_epoch": 9,
-        "checkpoint_step": 1200,
-    },
-    "all_recs": [
-        {"rec_id": "rec_001", "score": 0.004, "job_id": "dino-train-x1"},
-        {"rec_id": "rec_002", "score": None},
-        {"rec_id": "rec_003", "score": 0.0012, "job_id": "dino-train-x3"},
-    ],
-}
-
-
-def test_best_rec_valid(best_rec_schema):
-    ok(BEST_REC, best_rec_schema)
-
-
-def test_best_rec_rejects_missing_metric_identity(best_rec_schema):
-    r = copy.deepcopy(BEST_REC)
-    del r["metric_name"]
-    bad(r, best_rec_schema)
-    r = copy.deepcopy(BEST_REC)
-    r["direction"] = "up"
-    bad(r, best_rec_schema)
-
-
-def test_best_rec_rejects_dotted_specs(best_rec_schema):
-    r = copy.deepcopy(BEST_REC)
-    r["best"]["specs"] = {"train.optim.lr": 0.00013}
-    bad(r, best_rec_schema)
-
-
-def test_best_rec_rejects_missing_observed_budget(best_rec_schema):
-    r = copy.deepcopy(BEST_REC)
-    del r["best"]["observed_budget"]
-    bad(r, best_rec_schema)

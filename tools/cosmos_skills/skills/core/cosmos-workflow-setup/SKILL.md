@@ -1,6 +1,6 @@
 ---
 name: cosmos-workflow-setup
-description: Initialize the Cosmos workflow bundle in a Cosmos Framework checkout. Use before managed Cosmos reasoner, Embed, Predict, DEFT, or AutoML workflows to resolve local helpers, runtime dependencies, and platform routing. Native framework installation uses cosmos3-setup.
+description: Initialize the Cosmos workflow bundle in a Cosmos Framework checkout. Use before managed Cosmos reasoner, Embed, Predict, or video annotation workflows to resolve local helpers, runtime dependencies, and platform routing. Native framework installation uses cosmos3-setup.
 license: Apache-2.0
 metadata:
   author: NVIDIA Corporation
@@ -39,9 +39,10 @@ and scripts resolve against its real directory.
   `scripts/resolve_tao_model.py`, then its packaged backend planner.
 - Retrieval: `cosmos-embed`; synthetic videos: `cosmos-predict`; video QA
   annotation: `cosmos-annotate-videos`.
-- Inspection or traffic improvement: `cosmos-deft-aoi` or
-  `cosmos-deft-traffic`. Explicit HPO uses `cosmos-automl`.
 - Container endpoints: `cosmos-inference-service`.
+
+DEFT, anomaly/mining workflows, and AutoML/HPO are deferred; they are not
+installed by this bundle. See the bundle README for the preserved migration.
 
 ## Prepare execution
 
@@ -69,9 +70,9 @@ a user-approved env file in the same shell as the consuming command. Registry
 login, pulls, downloads, paid services, and GPU launches require authorization
 for the concrete operation; reuse authorization already given for that scope.
 
-The bundle needs no Cosmos workflow bundle install. Model containers, TAO Data Services,
-PAIDF, native platform CLIs, and optional AutoML wheels remain external
-dependencies. Image and wheel pins live in `versions.yaml`. Ordinary execution
-uses native CLIs; AutoML alone uses `nvidia-tao-automl` and its transitive SDK.
+No separate workflow plugin install is needed. Model containers, TAO Data
+Services, PAIDF, native platform CLIs, and optional DAFT conversion tooling
+remain external dependencies. Image pins live in `versions.yaml`. Execution
+uses native CLIs without the TAO SDK or AutoML wheels.
 Do not change a model's image or install heavyweight runtimes merely to run
 read-only planners or CPU tests.
