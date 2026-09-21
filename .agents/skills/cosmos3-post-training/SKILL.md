@@ -15,7 +15,8 @@ description: >
   — or any question about `cu130-train` / `cu128-train`,
   `convert_model_to_dcp` / `export_model` / `train`,
   or SFT output paths. For dataset captioning / JSONL assembly, see
-  `docs/dataset_jsonl.md`.
+  `docs/dataset_jsonl.md`. Also use for reasoner video-QA SFT/evaluation,
+  dense or PEFT training, and explicit Cosmos Framework/Cosmos-RL comparisons.
 ---
 
 # Cosmos3 Post-Training (SFT)
@@ -34,6 +35,34 @@ description: >
 All paths below are relative to the cosmos3 package root (`../../../` from this skill file). All `uv run` / `python` / `torchrun` / `bash` commands should also be run from there.
 
 ## Where to find answers
+
+### Reasoner video-QA workflows
+
+For managed conversation/task-aware video training or evaluation, read the
+[reasoner guide](../../../tools/cosmos_workflows/models/cosmos3-reasoner/guide.md).
+It supplies backend-specific planners, dataset validation, dense/PEFT contracts,
+automatic checkpoint preparation, and structured completion checks. Do not
+impose those gates on ordinary native generator recipes.
+
+- A Cosmos Framework request stays on Framework: pass `--backend cosmos-framework`
+  to `tools/cosmos_workflows/models/cosmos3-reasoner/scripts/cosmos_workflow.py`.
+  Use Cosmos-RL when requested; comparative runs select each backend explicitly.
+  The helper's legacy `auto` policy must not silently redirect a Framework task.
+- For Nano, collect the explicit `qwen3_vl` versus `cosmos3_omni` checkpoint
+  choice, frame sampling, train/validation inputs, and dense/PEFT settings.
+  The selected backend owns checkpoint conversion; preserve the source.
+- For evaluation, use `evaluation_workflow.py` beside the planner. Inherit
+  training inputs, ask only for its unresolved fields, and submit only a
+  checksum-valid `ready=true` plan after approval.
+- Before managed submission, use the platform and launch references in
+  `cosmos3-setup`. Keep nested specs, record-before-submit ordering, and
+  backend-reported completion; report token-weighted losses and task-aware metrics.
+- For DAFT input only, use the [validation reference](../../../tools/cosmos_workflows/models/cosmos3-reasoner/references/daft-validate.md)
+  and, if needed, the [conversion reference](../../../tools/cosmos_workflows/models/cosmos3-reasoner/references/daft-convert.md).
+  Native generator JSONL preparation remains in `docs/dataset_jsonl.md`;
+  multi-stage reasoning QA generation uses `cosmos-annotate-videos`.
+
+### Native recipe workflows
 
 The canonical reference is `docs/training.md`. Use this table to route questions:
 

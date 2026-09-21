@@ -4,14 +4,14 @@ name: Cosmos skills
 on:
   pull_request:
     paths:
-      - tools/cosmos_skills/**
+      - tools/cosmos_workflows/**
       - .agents/skills/**
       - .claude/skills/**
       - .github/workflows/cosmos-skills.yml
   push:
     branches: [main]
     paths:
-      - tools/cosmos_skills/**
+      - tools/cosmos_workflows/**
       - .agents/skills/**
       - .claude/skills/**
       - .github/workflows/cosmos-skills.yml
@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: tools/cosmos_skills
+        working-directory: tools/cosmos_workflows
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
