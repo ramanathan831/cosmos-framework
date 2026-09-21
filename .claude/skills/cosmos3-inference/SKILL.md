@@ -42,8 +42,8 @@ Read the selected platform reference through `cosmos3-setup` before launching,
 and track start/status/logs/stop using its job contract. A Ray/Gradio server is
 not automatically an OpenAI-compatible replacement for an annotation endpoint.
 
-Video-text retrieval and embedder fine-tuning use `cosmos-embed`; explicit PAIDF
-generation uses `cosmos-predict`. Neither replaces native Cosmos3 generation.
+Explicit PAIDF generation uses `cosmos-predict`; it does not replace native
+Cosmos3 generation.
 
 ### Native inference
 

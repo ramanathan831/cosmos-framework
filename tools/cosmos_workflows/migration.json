@@ -253,41 +253,6 @@
       "source_sha256": "ed07fdb6d524630735cae97da9ededeeeccebffb7c60f51b1ac6f5d07d741f8d"
     },
     {
-      "source": "skills/models/tao-finetune-cosmos-embed/SKILL.md",
-      "destination": "models/cosmos-embed/SKILL.md",
-      "source_sha256": "46ec7fc320eb706b3bed014a6895edc70ecd26db554ca621302de2c5152ec87d"
-    },
-    {
-      "source": "skills/models/tao-finetune-cosmos-embed/references/skill_info.yaml",
-      "destination": "models/cosmos-embed/references/skill_info.yaml",
-      "source_sha256": "54f7e1d9015879241b6bfec44b047dc28344fe9231c7bfed29c0e0f83869b904"
-    },
-    {
-      "source": "skills/models/tao-finetune-cosmos-embed/references/spec_template_evaluate.yaml",
-      "destination": "models/cosmos-embed/references/spec_template_evaluate.yaml",
-      "source_sha256": "a0a897edfd5793f4cd61c7dadc4c01595e17ad2ef3d85e1ffd713dd136b55fab"
-    },
-    {
-      "source": "skills/models/tao-finetune-cosmos-embed/references/spec_template_export_hf.yaml",
-      "destination": "models/cosmos-embed/references/spec_template_export_hf.yaml",
-      "source_sha256": "0b8c4873ff73cc0a042442ffa6eee02d28327573308351b188dbe49634dbad6b"
-    },
-    {
-      "source": "skills/models/tao-finetune-cosmos-embed/references/spec_template_export_onnx.yaml",
-      "destination": "models/cosmos-embed/references/spec_template_export_onnx.yaml",
-      "source_sha256": "fbe4f6da9477b61043085a125bd56a4c056561c5a7143e52d110d675f9d77556"
-    },
-    {
-      "source": "skills/models/tao-finetune-cosmos-embed/references/spec_template_inference.yaml",
-      "destination": "models/cosmos-embed/references/spec_template_inference.yaml",
-      "source_sha256": "94af098f7dafcc8806f1533aac63de03b17d6fd3a4d9075464bf1fe70a76fad7"
-    },
-    {
-      "source": "skills/models/tao-finetune-cosmos-embed/references/spec_template_train.yaml",
-      "destination": "models/cosmos-embed/references/spec_template_train.yaml",
-      "source_sha256": "f65aeda6abfdeb9134bfdbf85086db83ea262d8c592b579243fd28b27ad75304"
-    },
-    {
       "source": "skills/models/tao-finetune-cosmos-reason/SKILL.md",
       "destination": "models/cosmos3-reasoner/guide.md",
       "source_sha256": "eed10c7a33e033c63b15f2101e9ba299e57abe625c7fb02abdedc4740f7d7d08"
@@ -625,7 +590,6 @@
   ],
   "skill_routes": {
     "tao-finetune-cosmos-reason": "cosmos3-post-training",
-    "tao-finetune-cosmos-embed": "cosmos-embed",
     "paidf-cosmos-predict": "cosmos-predict",
     "tao-generate-video-reasoning-annotations": "cosmos-annotate-videos",
     "tao-run-inference-service": "cosmos3-inference",

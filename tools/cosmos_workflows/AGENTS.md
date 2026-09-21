@@ -2,7 +2,7 @@
 
 Read `README.md` for ownership and scope. This directory supports the existing
 framework skills; do not recreate a parallel setup, launch, or capability skill
-registry. Only Embed, Predict, and reasoning-QA annotation have new entrypoints.
+registry. Only Predict and reasoning-QA annotation have new entrypoints.
 
 - Keep native training and inference implementation in `cosmos_framework/`.
 - Resolve helper paths directly from this checkout.

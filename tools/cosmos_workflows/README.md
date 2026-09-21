@@ -12,11 +12,10 @@ training/inference implementations remain in `cosmos_framework/`.
 | Native generation, reasoner inference, container endpoints | `cosmos3-inference` | `inference-service/`, reasoner evaluation contracts |
 | Installation, managed launch, credentials, platform/GPU checks | `cosmos3-setup` | `execution/`, `scripts/`, `templates/` |
 | Environment and managed-job failures | `cosmos3-env-troubleshoot` | Execution retry and reasoner error references |
-| Video-text embeddings and retrieval | `cosmos-embed` | `models/cosmos-embed/` |
 | Explicit PAIDF video generation | `cosmos-predict` | `data/cosmos-predict/` |
 | Multi-stage caption/description/reasoning-QA generation | `cosmos-annotate-videos` | `data/cosmos-annotate-videos/` |
 
-Only the last three are new skills, exposed through relative discovery symlinks
+Only the last two are new skills, exposed through relative discovery symlinks
 in `.agents/skills` and `.claude/skills`. The four existing skill files are
 extended in both directories. Setup and launch references are read on demand,
 not loaded for unrelated code edits or ordinary native recipe questions.

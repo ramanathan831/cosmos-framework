@@ -18,7 +18,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 FRAMEWORK = ROOT.parents[1]
-NEW_SKILLS = {"cosmos-embed", "cosmos-predict", "cosmos-annotate-videos"}
+NEW_SKILLS = {"cosmos-predict", "cosmos-annotate-videos"}
 EXTENDED = {"cosmos3-post-training", "cosmos3-inference", "cosmos3-setup", "cosmos3-env-troubleshoot"}
 
 
@@ -149,6 +149,9 @@ def test_env_setup_is_relocatable_and_preserves_working_directory(relocated):
 def test_only_distinct_capabilities_have_new_skill_entrypoints(relocated):
     skills = list(relocated.rglob("SKILL.md"))
     assert {p.parent.name for p in skills} == NEW_SKILLS
+    for discovery in (".agents", ".claude"):
+        links = (relocated.parents[1] / discovery / "skills").iterdir()
+        assert {link.name for link in links if link.is_symlink()} == NEW_SKILLS
     for skill in skills:
         frontmatter = yaml.safe_load(skill.read_text().split("---", 2)[1])
         assert frontmatter["name"] == skill.parent.name
