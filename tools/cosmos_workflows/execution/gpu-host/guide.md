@@ -5,8 +5,8 @@
 
 > **Execution setup:** Use `cosmos3-setup` to resolve this checkout's `tools/cosmos_workflows` root and select the execution platform. The existing framework skills own this workflow; no extra plugin is required.
 
-Use this setup skill before TAO workflows run on the `docker`, `local-docker`,
-or `kubernetes` backend. The TAO-wide default minimums are:
+Use this setup skill before Cosmos workflows run on the `docker`, `local-docker`,
+or `kubernetes` backend. The workflow default minimums are:
 
 - NVIDIA driver `>=580` (open kernel module preferred)
 - CUDA Toolkit `>=13.0`
@@ -63,7 +63,7 @@ SB="${COSMOS_WORKFLOWS_ROOT:?source tools/cosmos_workflows/env.sh}"
 SETUP_SCRIPT="${SB}/execution/gpu-host/scripts/setup-nvidia-gpu-host.sh"
 
 bash "$SETUP_SCRIPT" --backend docker --check-only || {
-  echo "MISSING: TAO GPU host runtime is not ready."
+  echo "MISSING: Cosmos GPU host runtime is not ready."
   echo "After user approval, run (append --yes for non-interactive agent runs):"
   echo "  bash \"$SETUP_SCRIPT\" --backend docker --install"
   exit 1
@@ -146,7 +146,7 @@ sudo docker run --rm --runtime=nvidia --gpus all "$TAO_IMAGE" nvidia-smi -L
 ```
 
 The detected driver, CUDA Toolkit, and Container Toolkit versions must meet the
-active TAO-wide or model-specific minimums. Then run the selected image's GPU
+active workflow or model-specific minimums. Then run the selected image's GPU
 smoke test; version comparison alone is not sufficient compatibility proof.
 
 For a Cosmos backend, extend that smoke with the backend contract's Python and

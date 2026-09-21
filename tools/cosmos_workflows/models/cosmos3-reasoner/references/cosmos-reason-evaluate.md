@@ -221,7 +221,7 @@ reason to stage source or select Cosmos-RL.
 ## Completion and results
 
 Treat scheduler completion as provisional. Require child exit zero, terminal
-TAO `SUCCESS`, and the final metric emitted by the repository evaluator. Do not
+runtime `SUCCESS`, and the final metric emitted by the repository evaluator. Do not
 turn a successful evaluation into a failure by comparing prediction IDs with
 annotation IDs or by imposing a second annotation-format assumption.
 Persist the selected checkpoint, Framework export when applicable, resolved

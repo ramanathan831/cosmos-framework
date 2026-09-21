@@ -5,7 +5,7 @@ license: Apache-2.0
 metadata:
   author: NVIDIA Corporation
   version: 0.1.0
-  compatibility: Requires docker + nvidia-container-toolkit, the published Cosmos-Embed TAO container (pinned in this skill), and a HuggingFace token when downloading pretrained `nvidia/Cosmos-Embed1-*` weights.
+  compatibility: Requires docker + nvidia-container-toolkit, the published Cosmos-Embed container (pinned in this skill), and a HuggingFace token when downloading pretrained `nvidia/Cosmos-Embed1-*` weights.
   tags:
   - video
   - vision-language
@@ -40,7 +40,7 @@ Cosmos-Embed1 source tree for normal skill use; build from source only when
 developing the container itself.
 
 ```bash
-COSMOS_EMBED_IMAGE_DEFAULT=nvcr.io/nvidia/tao/tao-toolkit:7.1.0-cosmos-embed  # versions-key: images.tao_toolkit.cosmos_embed
+COSMOS_EMBED_IMAGE_DEFAULT=nvcr.io/nvidia/tao/tao-toolkit:7.1.0-cosmos-embed  # versions-key: images.containers.cosmos_embed
 COSMOS_EMBED_IMAGE="${COSMOS_EMBED_IMAGE:-$COSMOS_EMBED_IMAGE_DEFAULT}"
 docker pull "$COSMOS_EMBED_IMAGE"
 ```
@@ -69,7 +69,7 @@ Use these Docker options for all actions unless the local Docker/platform skill 
 
 ```bash
 set -a; source /path/to/.env; set +a   # omit if already exported
-COSMOS_EMBED_IMAGE_DEFAULT=nvcr.io/nvidia/tao/tao-toolkit:7.1.0-cosmos-embed  # versions-key: images.tao_toolkit.cosmos_embed
+COSMOS_EMBED_IMAGE_DEFAULT=nvcr.io/nvidia/tao/tao-toolkit:7.1.0-cosmos-embed  # versions-key: images.containers.cosmos_embed
 COSMOS_EMBED_IMAGE="${COSMOS_EMBED_IMAGE:-$COSMOS_EMBED_IMAGE_DEFAULT}"
 RUN_ROOT="${RUN_ROOT:-$PWD}"
 DOCKER_COMMON=(
@@ -242,7 +242,7 @@ Keep `model.network.embed_dim`, `model.input_hw`, and `model.network.spatial_res
 ### LoRA and AutoML Notes
 
 For parameter-efficient fine-tuning, set `model.lora.enabled=true` and keep
-`model.network.visual_encoder.transformer_engine=false`; TAO Core's
+`model.network.visual_encoder.transformer_engine=false`; the container's
 Cosmos-Embed1 config notes that PEFT cannot inject adapters into Transformer
 Engine layers. Treat the LoRA fields above as the first candidate parameters
 for manual tuning or AutoML-style search before unfreezing larger model blocks.

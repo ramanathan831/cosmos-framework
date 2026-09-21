@@ -420,7 +420,7 @@ def test_node_exclusions_are_live_filtered_and_rendered_without_hand_patch(
     args.timeout = "03:48:00"
     args.time_limit = "04:00:00"
     args.exclusive = True
-    args.tao_job_id = "cosmos-reason-train-node-check"
+    args.cosmos_job_id = "cosmos-reason-train-node-check"
     script = workflow.render_slurm(args, plan)
     assert "#SBATCH --exclude=batch-block5-00002,batch-block5-00003,batch-block5-00004,batch-block5-00005" in script
     assert "batch-block5-00006" not in script
@@ -439,7 +439,7 @@ def test_node_exclusions_are_live_filtered_and_rendered_without_hand_patch(
             "render-slurm",
             "--plan-artifact",
             str(artifact),
-            "--tao-job-id",
+            "--cosmos-job-id",
             "cosmos-reason-train-node-check-render",
             "--render-output",
             str(rendered_path),
@@ -1221,7 +1221,7 @@ def test_cosmos_rl_resolves_sft_hook_from_installed_native_package(tmp_path):
     args.stdout_path = str(tmp_path / "stdout.log")
     args.stderr_path = str(tmp_path / "stderr.log")
     args.container_mount = [f"{tmp_path}:{tmp_path}"]
-    args.tao_job_id = "cosmos-reason-train-hook-test"
+    args.cosmos_job_id = "cosmos-reason-train-hook-test"
     script = workflow.render_slurm(args, plan)
     assert "--container-env=" in script
     assert "FORCE_QWENVL_VIDEO_READER" in script
@@ -1311,7 +1311,7 @@ def test_framework_task_aware_slurm_uses_native_runtime_without_decoder_artifact
     args.partition = "compute"
     args.account = "project"
     args.container_mount = [f"{tmp_path}:{tmp_path}"]
-    args.tao_job_id = "cosmos-reason-train-framework-task"
+    args.cosmos_job_id = "cosmos-reason-train-framework-task"
     plan = workflow.build_plan(args)
 
     script = workflow.render_slurm(args, plan)
@@ -1581,7 +1581,7 @@ def test_omni_conversion_uses_platform_checkpoint_storage_and_rebinds_training_m
     assert "--backend cosmos-framework" in preparation["platform_action"]["container_command"]
     workflow.write_spec(args, plan)
     workflow.verify_model_preparation_helper(args, plan)
-    args.tao_job_id = "cosmos-reason-train-omni-prepare"
+    args.cosmos_job_id = "cosmos-reason-train-omni-prepare"
     slurm = workflow.render_slurm(args, plan)
     assert "TAO_COSMOS_MODEL_PREPARATION_OK" in slurm
     assert preparation["platform_action"]["helper_container_path"] in slurm
@@ -1990,14 +1990,14 @@ def test_slurm_script_is_bash_sqsh_no_requeue_and_preserves_failure(tmp_path):
     args.stderr_path = str(tmp_path / "stderr.log")
     args.container_mount = [f"{tmp_path}:{tmp_path}"]
     args.timeout = "03:48:00"
-    args.tao_job_id = "cosmos-reason-train-render-test"
+    args.cosmos_job_id = "cosmos-reason-train-render-test"
     plan = workflow.build_plan(args)
     workflow.write_spec(args, plan)
     assert "--no-container-remap-root" in plan["preflight"]["container_runtime"]
     assert "--no-container-mount-home" in plan["preflight"]["container_runtime"]
     script = workflow.render_slurm(args, plan)
     assert script.startswith("#!/usr/bin/env bash\n#SBATCH --job-name=")
-    assert f"#SBATCH --job-name={args.tao_job_id}" in script
+    assert f"#SBATCH --job-name={args.cosmos_job_id}" in script
     assert script.index("#SBATCH --account=") < script.index("set -Eeuo pipefail")
     assert "#SBATCH --no-requeue" in script and "--container-image=" in script
     assert "--no-container-remap-root" in script
@@ -2041,7 +2041,7 @@ def test_single_node_exclusive_slurm_step_uses_allocated_cpus(tmp_path):
     args.container_mount = [f"{tmp_path}:{tmp_path}"]
     args.cpus_per_task = 16
     args.exclusive = True
-    args.tao_job_id = "cosmos-reason-train-cpu-test"
+    args.cosmos_job_id = "cosmos-reason-train-cpu-test"
     plan = workflow.build_plan(args)
     workflow.write_spec(args, plan)
 
@@ -2065,7 +2065,7 @@ def test_slurm_script_rejects_invalid_child_timeout(tmp_path):
     args.stdout_path = str(tmp_path / "stdout.log")
     args.stderr_path = str(tmp_path / "stderr.log")
     args.container_mount = [f"{tmp_path}:{tmp_path}"]
-    args.tao_job_id = "cosmos-reason-train-timeout-test"
+    args.cosmos_job_id = "cosmos-reason-train-timeout-test"
     plan = workflow.build_plan(args)
     workflow.write_spec(args, plan)
     args.timeout = "03:99:00"
@@ -2150,7 +2150,7 @@ def test_requeue_rejected(tmp_path):
     args.account = "a"
     args.use_requeue = True
     args.container_mount = [f"{tmp_path}:{tmp_path}"]
-    args.tao_job_id = "cosmos-reason-train-requeue-test"
+    args.cosmos_job_id = "cosmos-reason-train-requeue-test"
     plan = workflow.build_plan(args)
     workflow.write_spec(args, plan)
     with pytest.raises(common.WorkflowError, match="requeue"):
@@ -2572,13 +2572,13 @@ def test_sealed_plan_render_rebinds_new_job_record_id(tmp_path):
     args.container_mount = [f"{tmp_path}:{tmp_path}"]
     args.stdout_path = str(tmp_path / "%x-%j.out")
     args.stderr_path = str(tmp_path / "%x-%j.err")
-    args.tao_job_id = ""
+    args.cosmos_job_id = ""
     plan = workflow.build_plan(args)
     workflow.write_spec(args, plan)
     artifact = tmp_path / "approved-plan.json"
     workflow.save_plan_artifact(args, plan, str(artifact))
     sealed = json.loads(artifact.read_text())
-    assert sealed["planner_request"]["tao_job_id"] == ""
+    assert sealed["planner_request"]["cosmos_job_id"] == ""
     assert sealed["environment"]["TAO_JOB_ID"] == args.experiment_id
 
     job_id = "cosmos-reason-train-c03ddd"
@@ -2587,12 +2587,12 @@ def test_sealed_plan_render_rebinds_new_job_record_id(tmp_path):
             "render-slurm",
             "--plan-artifact",
             str(artifact),
-            "--tao-job-id",
+            "--cosmos-job-id",
             job_id,
         ]
     )
     restored_args, restored_plan = workflow.load_plan_artifact(current, str(artifact))
-    assert restored_args.tao_job_id == job_id
+    assert restored_args.cosmos_job_id == job_id
     assert restored_plan["environment"]["TAO_JOB_ID"] == args.experiment_id
 
     rendered = workflow.render_slurm(restored_args, restored_plan)
@@ -2763,7 +2763,7 @@ def test_metadata_schema_and_child_failure_guard(tmp_path):
     metadata = workflow.initial_metadata(args, plan)
     common.validate_metadata(metadata)
     metadata["child_process"]["exit_code"] = 7
-    metadata["terminal_tao_status"] = "SUCCESS"
+    metadata["terminal_runtime_status"] = "SUCCESS"
     with pytest.raises(common.WorkflowError, match="nonzero"):
         common.validate_metadata(metadata)
     del metadata["image"]
@@ -2794,7 +2794,7 @@ def test_metadata_finalization_requires_child_and_tao_terminal_status(tmp_path):
         allocated_nodes=["node-a"],
         job_id="123",
     )
-    assert finalized["terminal_tao_status"] == "SUCCESS"
+    assert finalized["terminal_runtime_status"] == "SUCCESS"
     jsonl = tmp_path / "status-jsonl.json"
     jsonl.write_text('{"status":"RUNNING"}\n{"status":"SUCCESS"}\n')
     jsonl_finalized = workflow.finalize_metadata(
@@ -2805,7 +2805,7 @@ def test_metadata_finalization_requires_child_and_tao_terminal_status(tmp_path):
         scheduler_reason=None,
         scheduler_exit_code="0:0",
     )
-    assert jsonl_finalized["terminal_tao_status"] == "SUCCESS"
+    assert jsonl_finalized["terminal_runtime_status"] == "SUCCESS"
     child.write_text("9\n")
     failed = workflow.finalize_metadata(
         workflow.initial_metadata(args, plan),
@@ -2815,7 +2815,7 @@ def test_metadata_finalization_requires_child_and_tao_terminal_status(tmp_path):
         scheduler_reason=None,
         scheduler_exit_code="0:0",
     )
-    assert failed["terminal_tao_status"] == "FAILURE"
+    assert failed["terminal_runtime_status"] == "FAILURE"
     child.unlink()
     with pytest.raises(common.WorkflowError, match="exit-code file"):
         workflow.finalize_metadata(
@@ -3083,7 +3083,7 @@ def test_nvbug_framework_export_rejects_single_file_tensor_key_drift(tmp_path):
 
 def test_nvbug_render_docker_has_identity_and_idempotency_guard(tmp_path):
     args = SimpleNamespace(
-        tao_job_id="job-123",
+        cosmos_job_id="job-123",
         results_dir=str(tmp_path),
         container_results_dir="/results",
         container_mount=[f"{tmp_path}:/results"],

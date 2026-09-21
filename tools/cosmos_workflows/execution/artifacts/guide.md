@@ -10,7 +10,7 @@ both validate against this reference's `references/`.
 | Artifact | Schema | Produced by → consumed by |
 |---|---|---|
 | **spec-bundle** | `references/spec_bundle.schema.json` | model/data skill → platform skill (at the submit seam) |
-| **job-record** | `references/job_record.schema.json` | `scripts/tao_job_record.py` (the ONLY writer) → any re-attaching agent/poller |
+| **job-record** | `references/job_record.schema.json` | `scripts/cosmos_job_record.py` (the ONLY writer) → any re-attaching agent/poller |
 | **results_dir layout** | `references/results_dir.contract.md` | platform skill at submit → whoever collects outputs |
 
 ## Quick Start — validate an artifact
@@ -83,8 +83,8 @@ path across docker/slurm/kubernetes/brev.
 
 - The verify-before-launch gate runs on the **spec-bundle**, before any job id
   exists.
-- `tao_job_record.py open` writes `PENDING` + the resolved `results_dir`
+- `cosmos_job_record.py open` writes `PENDING` + the resolved `results_dir`
   **first** and returns the id — the only handle a launch can use. A submit
   that skipped the gate has no id, so it cannot launch.
-- `transitions` is append-only; `.tao/` lives outside every synced results
+- `transitions` is append-only; `.cosmos/` lives outside every synced results
   tree.

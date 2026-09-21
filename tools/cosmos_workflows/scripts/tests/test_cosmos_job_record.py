@@ -1,12 +1,12 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Unit tests for tao_job_record — the ONLY job-record writer.
+"""Unit tests for cosmos_job_record — the ONLY job-record writer.
 
 Invariants under test: open binds results_dir before any launch handle exists
 and the record validates against the M0 schema; transitions are append-only
 with immutable terminal states; every write is redacted; concurrent marks
-(agent + poller) lose nothing; a job id can never traverse outside .tao/jobs.
+(agent + poller) lose nothing; a job id can never traverse outside .cosmos/jobs.
 """
 
 import json
@@ -19,7 +19,7 @@ import jsonschema
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-import tao_job_record as jr  # noqa: E402
+import cosmos_job_record as jr  # noqa: E402
 
 SCHEMA = json.loads(
     (Path(__file__).resolve().parents[2] / "execution/artifacts/references/job_record.schema.json").read_text()
@@ -30,8 +30,8 @@ SECRET = "nvapi-SUPERSECRET123"
 
 @pytest.fixture(autouse=True)
 def state_dir(tmp_path, monkeypatch):
-    monkeypatch.setenv("TAO_STATE_DIR", str(tmp_path / ".tao"))
-    return tmp_path / ".tao"
+    monkeypatch.setenv("COSMOS_STATE_DIR", str(tmp_path / ".cosmos"))
+    return tmp_path / ".cosmos"
 
 
 def open_job(capsys, **overrides):
@@ -387,15 +387,25 @@ def test_rt_empty_required_fields_rejected_before_id(capsys):
 
 
 def test_rt_state_dir_set_but_empty_refused(monkeypatch, capsys):
-    monkeypatch.setenv("TAO_STATE_DIR", "")
+    monkeypatch.setenv("COSMOS_STATE_DIR", "")
     with pytest.raises(SystemExit, match="set but empty"):
         jr.main(["list"])
 
 
 def test_rt_state_dir_relative_refused(monkeypatch, capsys):
-    monkeypatch.setenv("TAO_STATE_DIR", "relative/state")
+    monkeypatch.setenv("COSMOS_STATE_DIR", "relative/state")
     with pytest.raises(SystemExit, match="absolute"):
         jr.main(["list"])
+
+
+def test_default_state_root_is_outside_the_checkout(monkeypatch, tmp_path):
+    monkeypatch.delenv("COSMOS_STATE_DIR", raising=False)
+    monkeypatch.setattr(Path, "home", lambda: tmp_path / "user-home")
+    assert jr.state_root() == tmp_path / "user-home" / ".cosmos"
+
+
+def test_configured_state_root_is_used_without_moving_existing_records(state_dir):
+    assert jr.state_root() == state_dir
 
 
 def test_rt_leading_underscore_arch_makes_valid_id(state_dir, capsys):

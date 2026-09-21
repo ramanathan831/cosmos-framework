@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "tao://artifacts/job_record.schema.json",
-  "title": "TAO job-record",
-  "description": "One durable record per job at .tao/jobs/<id>.json, OUTSIDE any synced results tree. ONLY writer: scripts/tao_job_record.py (open/mark/redact-view). `open` binds results_dir at SUBMIT time and returns the id — the ONLY launch handle (atomic record-then-launch). Every write is redacted. 'What is running' is never read from records; poll the backend (docker ps / kubectl get / squeue) via backend_ref.",
+  "$id": "cosmos://artifacts/job_record.schema.json",
+  "title": "Cosmos job-record",
+  "description": "One durable record per job at .cosmos/jobs/<id>.json, OUTSIDE any synced results tree. ONLY writer: scripts/cosmos_job_record.py (open/mark/redact-view). `open` binds results_dir at SUBMIT time and returns the id — the ONLY launch handle (atomic record-then-launch). Every write is redacted. 'What is running' is never read from records; poll the backend (docker ps / kubectl get / squeue) via backend_ref.",
   "type": "object",
   "required": ["schema_version", "id", "platform", "backend_ref", "image", "network_arch", "action", "results_dir", "storage_tier", "submitted_at", "transitions", "terminal_state", "redacted"],
   "additionalProperties": false,

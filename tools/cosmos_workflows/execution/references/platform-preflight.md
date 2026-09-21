@@ -8,7 +8,7 @@ created.
 Prefer the packaged preflight helper when the needed inputs are available:
 
 ```bash
-${COSMOS_WORKFLOWS_ROOT:?}/scripts/check_tao_launch_preflight.py \
+${COSMOS_WORKFLOWS_ROOT:?}/scripts/check_cosmos_launch_preflight.py \
   --skill-bank ${COSMOS_WORKFLOWS_ROOT:?} \
   --platform <platform> \
   --container-image <selected-image> \

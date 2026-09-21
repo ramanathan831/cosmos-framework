@@ -62,7 +62,7 @@ def test_relocated_resolver_routes_to_existing_skill(relocated, model, backend, 
     result = json.loads(
         run_helper(
             relocated,
-            "scripts/resolve_tao_model.py",
+            "scripts/resolve_cosmos_model.py",
             "--model",
             model,
             "--action",
@@ -93,7 +93,7 @@ def test_reasoner_action_ownership_preserves_framework_choice(relocated, action,
     result = json.loads(
         run_helper(
             relocated,
-            "scripts/resolve_tao_model.py",
+            "scripts/resolve_cosmos_model.py",
             "--model",
             "nvidia/Cosmos3-Nano",
             "--action",
@@ -112,8 +112,8 @@ def test_reasoner_action_ownership_preserves_framework_choice(relocated, action,
 @pytest.mark.parametrize(
     "helper",
     [
-        "scripts/resolve_tao_image.py",
-        "scripts/check_tao_launch_preflight.py",
+        "scripts/resolve_cosmos_image.py",
+        "scripts/check_cosmos_launch_preflight.py",
         "models/cosmos3-reasoner/scripts/cosmos_workflow.py",
         "models/cosmos3-reasoner/scripts/evaluation_workflow.py",
         "models/cosmos3-reasoner/scripts/framework_checkpoint_action.py",

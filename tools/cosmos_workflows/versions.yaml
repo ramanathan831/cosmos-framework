@@ -1,16 +1,16 @@
 # versions.yaml — source of truth for this bundle's runtime image pins.
 #
 # Skills carry literal image URIs, each
-# annotated with the key it came from ("# versions-key: images.tao_toolkit.pyt").
+# annotated with the key it came from ("# versions-key: images.containers.pyt").
 # scripts/stamp_versions.py fans this file out to every annotated line on a
 # release bump, and `stamp_versions.py --check` (run in CI) fails if any
 # annotated line drifts from this file. Do not hand-edit stamped values in
 # skills — edit here and run the stamper.
 #
-# Legacy key references (container_image: tao_toolkit.pyt) are still resolved
+# Legacy key references (container_image: containers.pyt) are still resolved
 # by the bundle's image resolver, but new skills should carry the stamped
 # literal + marker form:
-#   container_image: nvcr.io/nvidia/tao/tao-toolkit:7.0.1-pyt  # versions-key: images.tao_toolkit.pyt
+#   container_image: nvcr.io/nvidia/tao/tao-toolkit:7.0.1-pyt  # versions-key: images.containers.pyt
 #
 # Use unannotated absolute paths only for experimental images, third-party
 # registries, or one-offs (annotate those "# unpinned: <reason>"). Add a key
@@ -28,7 +28,7 @@
 # exactly this file + one stamper run.
 
 images:
-  tao_toolkit:
+  containers:
     pyt:                nvcr.io/nvstaging/tao/tao-toolkit-pyt:7.2.0-rc-36-multiarch
     deploy:             nvcr.io/nvstaging/tao/tao-toolkit-deploy:7.2.0-rc-37-multiarch
     data_services:      nvcr.io/nvidia/tao/tao-toolkit:7.2.0-data-services

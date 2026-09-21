@@ -26,12 +26,12 @@ I need these launch inputs before I can create specs or runner files:
    Platform examples:
    - SLURM/shared storage: <SHARED_TRAIN_PATH> or a platform URI supplied by the user
    - Brev/Kubernetes: s3://bucket/path/train and s3://bucket/path/eval
-   - local-docker: /data/tao/<model>/train or file:///data/tao/<model>/eval
+   - local-docker: /data/cosmos/<model>/train or file:///data/cosmos/<model>/eval
 
 3. Container image. I will resolve the default from packaged model metadata and
    show it before launch, for example:
    default image for <model>/<action>: <resolved container image>
-   Use this image, or provide image=<override> to pin a different TAO build.
+   Use this image, or provide image=<override> to pin a different container build.
 
 4. Compute shape required by the model, for example GPUs/nodes.
 

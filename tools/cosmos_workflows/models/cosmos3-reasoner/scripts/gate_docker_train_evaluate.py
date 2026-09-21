@@ -228,7 +228,7 @@ def open_eval_record(args: argparse.Namespace) -> tuple[str, Path]:
 def launch_eval(args: argparse.Namespace, job_id: str, results_dir: Path, checkpoint: Path) -> str:
     for directory in (
         results_dir,
-        results_dir / ".tao-runtime" / "home",
+        results_dir / ".cosmos-runtime" / "home",
         results_dir / ".cache",
         results_dir / "tmp",
         args.eval_cache,
@@ -259,7 +259,7 @@ def launch_eval(args: argparse.Namespace, job_id: str, results_dir: Path, checkp
     command.extend(
         [
             "--env",
-            "HOME=/results/.tao-runtime/home",
+            "HOME=/results/.cosmos-runtime/home",
             "--env",
             "COSMOS_CACHE=/cache",
             "--env",

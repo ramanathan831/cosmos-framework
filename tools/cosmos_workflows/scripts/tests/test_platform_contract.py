@@ -72,15 +72,15 @@ def test_platform_wires_the_job_record(platform):
     used to provide.
     """
     text = _skill_text(platform)
-    assert "tao_job_record.py" in text, (
-        f"{platform}/SKILL.md never invokes scripts/tao_job_record.py — jobs "
+    assert "cosmos_job_record.py" in text, (
+        f"{platform}/SKILL.md never invokes scripts/cosmos_job_record.py — jobs "
         f"launched by this platform cannot be tracked across invocations"
     )
-    assert re.search(r"tao_job_record\.py[\"']?\s+open", text), (
-        f"{platform}/SKILL.md never calls `tao_job_record.py open` to mint a job id"
+    assert re.search(r"cosmos_job_record\.py[\"']?\s+open", text), (
+        f"{platform}/SKILL.md never calls `cosmos_job_record.py open` to mint a job id"
     )
-    assert re.search(r"tao_job_record\.py[\"']?\s+mark", text), (
-        f"{platform}/SKILL.md never calls `tao_job_record.py mark` to update state"
+    assert re.search(r"cosmos_job_record\.py[\"']?\s+mark", text), (
+        f"{platform}/SKILL.md never calls `cosmos_job_record.py mark` to update state"
     )
 
 
@@ -122,12 +122,12 @@ def test_bank_relative_paths_resolve(skill_md):
 def test_slurm_enroot_conversion_uses_job_unique_node_local_temp():
     """Direct Enroot imports need the real Enroot variable, not only Pyxis' alias.
 
-    A fixed ``/tmp/enroot-tao`` directory can be removed by cleanup from another
+    A fixed ``/tmp/enroot-cosmos`` directory can be removed by cleanup from another
     allocation.  Enroot then fails during whiteout conversion with ``getcwd``
     and ``failed to resolve path`` errors after all image layers were fetched.
     """
     text = _skill_text("cosmos-run-on-slurm")
-    assert "ENROOT_TEMP_PATH=/tmp/enroot-tao-\\${SLURM_JOB_ID}" in text
+    assert "ENROOT_TEMP_PATH=/tmp/enroot-cosmos-\\${SLURM_JOB_ID}" in text
     assert "SLURM_ENROOT_TEMP_PATH=\\${ENROOT_TEMP_PATH}" in text
     assert "--chdir=/tmp" in text
 
@@ -167,7 +167,7 @@ def test_slurm_consumes_model_action_lifecycle_without_private_renderers():
     assert "renderer" in guardrails
 
 
-# Required flags of `tao_job_record.py open`, per its argparse definition. A
+# Required flags of `cosmos_job_record.py open`, per its argparse definition. A
 # documented invocation missing any of these fails at runtime with exit 2 —
 # which is exactly how this test was born: a hand-written Brev example omitted
 # --network-arch/--action/--storage-tier and looked entirely plausible.
@@ -176,36 +176,36 @@ JOB_RECORD_OPEN_REQUIRED = ("--platform", "--image", "--network-arch", "--action
 # `\\\n` must precede `[^\n]` in the alternation: otherwise `[^\n]` consumes the
 # backslash and the continuation branch can never match, truncating the capture
 # at the first line of a multi-line invocation.
-OPEN_INVOCATION_RE = re.compile(r"tao_job_record\.py[\"']?\s+open\b((?:\\\n|[^\n])*)", re.M)
+OPEN_INVOCATION_RE = re.compile(r"cosmos_job_record\.py[\"']?\s+open\b((?:\\\n|[^\n])*)", re.M)
 
 
 @pytest.mark.parametrize("platform", RUN_PLATFORMS)
 def test_documented_job_record_open_has_required_flags(platform):
-    """Every documented `tao_job_record.py open` must carry all required flags.
+    """Every documented `cosmos_job_record.py open` must carry all required flags.
 
     Guards docs against the script's real argparse signature, so a plausible but
     incomplete example cannot ship.
     """
     text = _skill_text(platform)
     invocations = OPEN_INVOCATION_RE.findall(text)
-    assert invocations, f"{platform}/SKILL.md documents no `tao_job_record.py open` call"
+    assert invocations, f"{platform}/SKILL.md documents no `cosmos_job_record.py open` call"
     for args in invocations:
         flat = args.replace("\\\n", " ")
         missing = [f for f in JOB_RECORD_OPEN_REQUIRED if f not in flat]
         assert not missing, (
-            f"{platform}/SKILL.md: `tao_job_record.py open` example is missing "
+            f"{platform}/SKILL.md: `cosmos_job_record.py open` example is missing "
             f"required flag(s) {missing} — it would exit 2 at runtime"
         )
 
 
 def test_job_record_required_flags_match_the_script():
-    """Keep the list above honest against tao_job_record.py itself."""
-    src = (REPO / "scripts/tao_job_record.py").read_text(encoding="utf-8")
+    """Keep the list above honest against cosmos_job_record.py itself."""
+    src = (REPO / "scripts/cosmos_job_record.py").read_text(encoding="utf-8")
     open_block = src[src.index('"open"') :]
     for flag in JOB_RECORD_OPEN_REQUIRED:
         assert f'"{flag}"' in open_block, (
             f"{flag} is listed as required here but no longer appears in "
-            f"tao_job_record.py's `open` parser — update JOB_RECORD_OPEN_REQUIRED"
+            f"cosmos_job_record.py's `open` parser — update JOB_RECORD_OPEN_REQUIRED"
         )
 
 
@@ -220,7 +220,7 @@ DIRECT_EXEC_RE = re.compile(
 def test_directly_invoked_scripts_are_executable():
     """Any script a platform skill execs directly must be executable.
 
-    This shipped broken: tao_job_record.py and redact_secrets.py were committed
+    This shipped broken: cosmos_job_record.py and redact_secrets.py were committed
     100644 while every other script in scripts/ was 100755, so the first line of
     `submit` failed with "permission denied" on all five platforms.
 

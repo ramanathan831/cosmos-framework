@@ -4,7 +4,7 @@ Container execution steps, monitoring, status mapping, cancellation, multi-node 
 
 ## Container Execution
 
-`tao-core` uses the SLURM handler to run TAO containers through Pyxis/Enroot:
+`tao-core` uses the SLURM handler to run model containers through Pyxis/Enroot:
 
 1. Stage compact JSON files for specs, environment, and cloud metadata under
    `<job_dir>/specs`, `<job_dir>/env`, and `<job_dir>/meta`.
@@ -48,13 +48,13 @@ not permission to shadow packages in the image or add a startup source patch.
 ### CS-OCI-ORD SQSH conversion profile
 
 Use partition `cpu_long`, not `cpu`; the latter's roughly 30-minute wall can
-kill TAO conversion and leave a truncated file. Request 4 CPUs, 7200M memory,
+kill container conversion and leave a truncated file. Request 4 CPUs, 7200M memory,
 no exclusive node, and a timeout of at least 120 minutes. This profile is
 preserved from successful conversion job `32370651` (21m28s elapsed).
 
 Set `TMPDIR=/tmp` and both `ENROOT_TEMP_PATH` and
 `SLURM_ENROOT_TEMP_PATH` to job-unique
-`/tmp/enroot-tao-${SLURM_JOB_ID}`. Direct Enroot and Pyxis may read different
+`/tmp/enroot-cosmos-${SLURM_JOB_ID}`. Direct Enroot and Pyxis may read different
 variables; node-local unique paths avoid cleanup races and unsupported shared
 overlay whiteouts.
 
@@ -67,7 +67,7 @@ the QOS condition to clear or move conversion into a GPU allocation.
 ## Monitoring
 
 - Scheduler status comes from the stored SLURM job id via `squeue` or `sacct`.
-- TAO terminal status comes from `status.json` in the shared results folder.
+- runtime terminal status comes from `status.json` in the shared results folder.
 - If the user enabled chat monitoring, continue polling at the requested
   interval while the job is `PENDING`, `RUNNING`, or otherwise non-terminal.
   Do not stop after a fixed elapsed time such as 30 minutes; long queue waits
@@ -116,7 +116,7 @@ torchrun --nnodes=$WORLD_SIZE --nproc-per-node=$NUM_GPU_PER_NODE \
   train.py
 ```
 
-(TAO entrypoints such as `dino train -e spec.yaml` build the torchrun invocation
+(packaged entrypoints such as `dino train -e spec.yaml` build the torchrun invocation
 internally from `WORLD_SIZE` + `NUM_GPU_PER_NODE`.)
 
 ### What the rendered template generates
@@ -131,15 +131,15 @@ The rendered multi-node `sbatch` script has:
 #SBATCH --wait-all-nodes=1           # don't start until all N nodes are allocated
 ```
 
-Then exports the rendezvous env vars before `srun --container-image=...` launches the container on each node. These match the TAO PyTorch container contract (`nvidia_tao_pytorch/core/entrypoint.py`):
+Then exports the rendezvous env vars before `srun --container-image=...` launches the container on each node. These match the packaged PyTorch container contract (`nvidia_tao_pytorch/core/entrypoint.py`):
 
 | Env var | Value | Read by |
 |---|---|---|
-| `WORLD_SIZE` | `N` (= node count, TAO's misnamed convention) | TAO container entrypoint |
-| `NUM_GPU_PER_NODE` | `G` | TAO container entrypoint |
-| `NODE_RANK` | `$SLURM_NODEID` | TAO container entrypoint, torchrun |
-| `MASTER_ADDR` | first hostname from `scontrol show hostname $SLURM_JOB_NODELIST` | TAO container entrypoint, torchrun |
-| `MASTER_PORT` | `29500` | TAO container entrypoint, torchrun |
+| `WORLD_SIZE` | `N` (= node count, the container entrypoint convention) | model container entrypoint |
+| `NUM_GPU_PER_NODE` | `G` | model container entrypoint |
+| `NODE_RANK` | `$SLURM_NODEID` | model container entrypoint, torchrun |
+| `MASTER_ADDR` | first hostname from `scontrol show hostname $SLURM_JOB_NODELIST` | model container entrypoint, torchrun |
+| `MASTER_PORT` | `29500` | model container entrypoint, torchrun |
 
 ```bash
 export WORLD_SIZE=N
@@ -152,7 +152,7 @@ export NODE_RANK=$SLURM_NODEID                          # SLURM provides this pe
 
 `SLURM_JOB_NODELIST` and `SLURM_NODEID` come from SLURM itself — no manual registration step.
 
-For TAO entrypoints (`dino train -e spec.yaml`, etc.) the container's entrypoint reads `WORLD_SIZE` + `NUM_GPU_PER_NODE` and constructs the torchrun command internally. For raw `torchrun` commands, use the standard PyTorch flags pointing at these env vars.
+For packaged entrypoints (`dino train -e spec.yaml`, etc.) the container's entrypoint reads `WORLD_SIZE` + `NUM_GPU_PER_NODE` and constructs the torchrun command internally. For raw `torchrun` commands, use the standard PyTorch flags pointing at these env vars.
 
 ### Cluster requirements for multi-node
 

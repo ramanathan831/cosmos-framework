@@ -673,7 +673,7 @@ def validate_metadata(metadata: Mapping[str, Any]) -> None:
         "dataset",
         "training_mode",
         "backend",
-        "tao_job_id",
+        "cosmos_job_id",
         "slurm",
         "image",
         "repositories",
@@ -689,7 +689,7 @@ def validate_metadata(metadata: Mapping[str, Any]) -> None:
         "timestamps",
         "scheduler",
         "child_process",
-        "terminal_tao_status",
+        "terminal_runtime_status",
         "metrics",
         "artifacts",
     }
@@ -721,9 +721,9 @@ def validate_metadata(metadata: Mapping[str, Any]) -> None:
         )
     if (
         metadata.get("child_process", {}).get("exit_code") not in {None, 0}
-        and metadata.get("terminal_tao_status") == "SUCCESS"
+        and metadata.get("terminal_runtime_status") == "SUCCESS"
     ):
-        raise WorkflowError("nonzero child-process exit code cannot have terminal TAO SUCCESS")
+        raise WorkflowError("nonzero child-process exit code cannot have terminal runtime SUCCESS")
     if metadata.get("slurm", {}).get("requeue") and metadata.get("child_process", {}).get("exit_code") not in {None, 0}:
         raise WorkflowError("requeue cannot hide a child-process failure")
     if (
@@ -731,7 +731,7 @@ def validate_metadata(metadata: Mapping[str, Any]) -> None:
         and metadata.get("child_process", {}).get("exit_code") is None
     ):
         raise WorkflowError("scheduler COMPLETED is invalid without a captured child-process exit code")
-    if metadata.get("terminal_tao_status") == "SUCCESS":
+    if metadata.get("terminal_runtime_status") == "SUCCESS":
         if (
             metadata.get("scheduler", {}).get("state") != "COMPLETED"
             or metadata.get("child_process", {}).get("exit_code") != 0

@@ -72,7 +72,7 @@ timeout kills GPU-idle jobs and bills the wasted time). `$BANK` =
    ```
 3. **Open the record — mints the id, binds `results_dir` on Lustre, before launch:**
    ```bash
-   JOB_ID=$("$BANK/scripts/tao_job_record.py" open --platform slurm --image "$IMAGE" \
+   JOB_ID=$("$BANK/scripts/cosmos_job_record.py" open --platform slurm --image "$IMAGE" \
      --network-arch "$ARCH" --action "$ACTION" --storage-tier A --results-root "$SLURM_BASE_RESULTS_DIR")
    ```
 4. **Consume the optional model lifecycle.** If the validated spec-bundle has
@@ -90,7 +90,7 @@ timeout kills GPU-idle jobs and bills the wasted time). `$BANK` =
 6. **Submit + record RUNNING:**
    ```bash
    SLURM_ID=$(ssh $LOGIN "sbatch --parsable <job_dir>/sbatch/job_$JOB_ID.sbatch")
-   "$BANK/scripts/tao_job_record.py" mark "$JOB_ID" --state RUNNING --backend-ref "$SLURM_ID"
+   "$BANK/scripts/cosmos_job_record.py" mark "$JOB_ID" --state RUNNING --backend-ref "$SLURM_ID"
    ```
 
 A submit that skipped the gate or the open has no id — so it cannot launch.
@@ -129,7 +129,7 @@ ssh $LOGIN "tail -n ${N:-200} <log_dir>/$JOB_ID-$SLURM_ID/main.out"   # SLURM au
 
 ```bash
 ssh $LOGIN "scancel $SLURM_ID"
-"$BANK/scripts/tao_job_record.py" mark "$JOB_ID" --state CANCELED --source agent
+"$BANK/scripts/cosmos_job_record.py" mark "$JOB_ID" --state CANCELED --source agent
 ```
 
 Treat an already-terminated SLURM job as a successful cancel.
@@ -140,11 +140,11 @@ Same four verbs, with three additions at submit:
 
 1. **Render `templates/slurm/multinode.sbatch.tmpl`** instead of the single-node
    one — it's a strict superset (adds `--nodes` / `--wait-all-nodes` + the
-   rendezvous block). `WORLD_SIZE` is the **node count** (TAO's misnomer); never
+   rendezvous block). `WORLD_SIZE` is the **node count** (the container entrypoint convention); never
    change it to a global-rank count.
 2. **NCCL probe first** — before the real job, run a cheap 2-node all-reduce
    (`scripts/nccl_allreduce_probe.py` under the container's torchrun) with a
-   ~120s timeout. Before invoking torchrun, preserve the TAO rendezvous values
+   ~120s timeout. Before invoking torchrun, preserve the container rendezvous values
    as `TAO_NODE_COUNT=$WORLD_SIZE`,
    `TAO_GPUS_PER_NODE=$NUM_GPU_PER_NODE`, and
    `TAO_NODE_RANK=$SLURM_PROCID`; torchrun overwrites its standard
@@ -172,7 +172,7 @@ these paths on the login/compute host and maps them through explicit container
 mounts. Do not add `lustre://`, `slurm://`, or `file://` prefixes to planner
 annotation, media, checkpoint, cache, or results paths.
 
-Legacy TAO microservice/SDK payloads may separately require `lustre:///...` or
+Legacy microservice/SDK payloads may separately require `lustre:///...` or
 `slurm://` storage URIs. Apply that encoding only at a consumer that declares
 it; it is not the native Cosmos planner's input format. Follow the selected
 model's contract when constructing each payload.
@@ -186,7 +186,7 @@ direct-spec modes, backend details, and the results-dir default.
 
 ## Container execution
 
-`tao-core` runs TAO containers through Pyxis/Enroot:
+`tao-core` runs model containers through Pyxis/Enroot:
 
 1. Stage compact JSON files for specs, environment, and cloud metadata under
    `<job_dir>/specs`, `<job_dir>/env`, and `<job_dir>/meta`.
@@ -208,7 +208,7 @@ images the cached SQSH is reused unless `force_reconvert_latest` is enabled.
 **The GPU is yours from the moment the allocation starts, not from when compute
 begins.** Anything the job does before training — pulling a registry image,
 converting it, fetching a dataset — runs on GPUs that are idle, billed, and
-visible to the cluster's GPU-idle reaper. A first-time TAO pull plus enroot
+visible to the cluster's GPU-idle reaper. A first-time image pull plus enroot
 conversion is minutes of that, which is long enough to be killed and long enough
 to be expensive.
 
@@ -224,7 +224,7 @@ ssh $LOGIN "test -e <sqsh>" || \
     -p <cpu_partition> -t <minutes> \
     bash -c 'set -Eeuo pipefail
       export TMPDIR=/tmp
-      export ENROOT_TEMP_PATH=/tmp/enroot-tao-\${SLURM_JOB_ID}
+      export ENROOT_TEMP_PATH=/tmp/enroot-cosmos-\${SLURM_JOB_ID}
       export SLURM_ENROOT_TEMP_PATH=\${ENROOT_TEMP_PATH}
       mkdir -p \"\${ENROOT_TEMP_PATH}\"
       cd /tmp
@@ -258,7 +258,7 @@ Diagnostic: if a job is unexpectedly slow to produce output, check what
 ## Monitoring and cancellation
 
 - Scheduler status comes from the stored SLURM job id via `squeue`/`sacct`;
-  TAO terminal status comes from `status.json` in the shared results folder.
+  runtime terminal status comes from `status.json` in the shared results folder.
 - While chat monitoring is enabled, keep polling at the requested interval for
   any non-terminal job (`PENDING`, `RUNNING`, or otherwise). Do not stop after a
   fixed elapsed time such as 30 minutes; long queue waits are normal on shared
@@ -335,7 +335,7 @@ count from total GPUs.
 For multi-node jobs (`num_nodes > 1`), the rendered
 `templates/slurm/multinode.sbatch.tmpl` sets the sbatch directives and exports
 the PyTorch-distributed rendezvous env vars: `WORLD_SIZE`, `NUM_GPU_PER_NODE`,
-`NODE_RANK`, `MASTER_ADDR`, and `MASTER_PORT` (29500). TAO entrypoints read
+`NODE_RANK`, `MASTER_ADDR`, and `MASTER_PORT` (29500). packaged entrypoints read
 `WORLD_SIZE` + `NUM_GPU_PER_NODE` and build torchrun internally. Cosmos-RL has
 special multi-node role handling for controller, policy, and rollout workers.
 See the `### Multi-node (nodes > 1)` submit subsection above for the NCCL-probe

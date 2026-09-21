@@ -1700,8 +1700,8 @@ def _env(
     framework_video_runtime: Mapping[str, Any] | None = None,
     model_profile: Mapping[str, Any] | None = None,
 ) -> dict[str, str]:
-    tao_job_id = args.tao_job_id or args.experiment_id
-    status_path = str(Path(args.container_results_dir) / tao_job_id / "status.json")
+    cosmos_job_id = args.cosmos_job_id or args.experiment_id
+    status_path = str(Path(args.container_results_dir) / cosmos_job_id / "status.json")
     common = {
         "PYTHONUNBUFFERED": "1",
         "PYTHONHASHSEED": str(args.seed),
@@ -1710,9 +1710,9 @@ def _env(
         "PYTORCH_CUDA_ALLOC_CONF": args.cuda_allocator,
         "NVIDIA_DRIVER_CAPABILITIES": "compute,utility,video",
         "TAO_DATALOADER_SEED": str(args.seed),
-        "TAO_JOB_ID": tao_job_id,
+        "TAO_JOB_ID": cosmos_job_id,
         "TAO_RESULTS_ROOT": args.container_results_dir,
-        "TAO_API_JOB_ID": tao_job_id,
+        "TAO_API_JOB_ID": cosmos_job_id,
         "TAO_API_RESULTS_DIR": args.container_results_dir,
         "TAO_STATUS_FILE": status_path,
     }
@@ -2340,7 +2340,7 @@ def _model_preparation(
     if args.platform == "slurm":
         helper_host_path = str(
             Path(args.results_dir).expanduser()
-            / (args.tao_job_id or args.experiment_id)
+            / (args.cosmos_job_id or args.experiment_id)
             / "model-preparation"
             / script.name
         )
@@ -4039,9 +4039,9 @@ def load_plan_artifact(
     args.format = current_args.format
     args.plan_artifact = str(path)
     args.render_output = getattr(current_args, "render_output", "")
-    args.tao_job_id = str(getattr(current_args, "tao_job_id", "") or "")
-    if args.verb in {"render-slurm", "render-docker"} and not args.tao_job_id:
-        raise WorkflowError(f"{args.verb} requires --tao-job-id from a newly opened job record")
+    args.cosmos_job_id = str(getattr(current_args, "cosmos_job_id", "") or "")
+    if args.verb in {"render-slurm", "render-docker"} and not args.cosmos_job_id:
+        raise WorkflowError(f"{args.verb} requires --cosmos-job-id from a newly opened job record")
     return args, plan
 
 
@@ -4051,13 +4051,13 @@ def render_docker(args: argparse.Namespace, plan: Mapping[str, Any]) -> str:
         raise WorkflowError("render-docker requires a Docker plan")
     if int(plan.get("compute", {}).get("nodes", 0)) != 1:
         raise WorkflowError("render-docker supports only single-node plans")
-    if not args.tao_job_id:
-        raise WorkflowError("render-docker requires --tao-job-id")
+    if not args.cosmos_job_id:
+        raise WorkflowError("render-docker requires --cosmos-job-id")
     image = str(plan.get("image", {}).get("tag") or "")
     if not image:
         raise WorkflowError("Docker plan has no resolved image")
     results_host = str(plan.get("paths", {}).get("results_dir", {}).get("original") or args.results_dir)
-    home = f"{args.container_results_dir.rstrip('/')}/.tao-runtime/home"
+    home = f"{args.container_results_dir.rstrip('/')}/.cosmos-runtime/home"
     lines = [
         "#!/usr/bin/env bash",
         "set -Eeuo pipefail",
@@ -4067,10 +4067,10 @@ def render_docker(args: argparse.Namespace, plan: Mapping[str, Any]) -> str:
         'HOST_USER_NAME="$(id -un)"',
         'HOST_IDENTITY_ARGS=(--user "$HOST_UID:$HOST_GID")',
         'for group_id in $(id -G); do [ "$group_id" = "$HOST_GID" ] || HOST_IDENTITY_ARGS+=(--group-add "$group_id"); done',
-        f"mkdir -p {shlex.quote(results_host + '/.tao-runtime/home/.cache/huggingface')} "
-        f"{shlex.quote(results_host + '/.tao-runtime/home/.cache/torchinductor')}",
-        f"docker inspect {shlex.quote(args.tao_job_id)} >/dev/null 2>&1 && "
-        f"{{ echo {shlex.quote(args.tao_job_id + ' already submitted')}; exit 0; }}",
+        f"mkdir -p {shlex.quote(results_host + '/.cosmos-runtime/home/.cache/huggingface')} "
+        f"{shlex.quote(results_host + '/.cosmos-runtime/home/.cache/torchinductor')}",
+        f"docker inspect {shlex.quote(args.cosmos_job_id)} >/dev/null 2>&1 && "
+        f"{{ echo {shlex.quote(args.cosmos_job_id + ' already submitted')}; exit 0; }}",
     ]
     compute = plan.get("compute", {})
     host_gpu_ids = compute.get("host_gpu_ids", [])
@@ -4084,9 +4084,9 @@ def render_docker(args: argparse.Namespace, plan: Mapping[str, Any]) -> str:
         "run",
         "-d",
         "--name",
-        args.tao_job_id,
+        args.cosmos_job_id,
         "--label",
-        f"tao-job={args.tao_job_id}",
+        f"cosmos-job={args.cosmos_job_id}",
         "--gpus",
         gpu_request,
         "--ipc=host",
@@ -4171,7 +4171,7 @@ def build_retry_plan(args: argparse.Namespace) -> dict[str, object]:
     request.update(
         {
             "experiment_id": args.job_id,
-            "tao_job_id": args.job_id,
+            "cosmos_job_id": args.job_id,
             "write_spec": str(write_spec_path),
             "container_spec_path": str(container_spec.expanduser().resolve()),
             "results_dir": str(action_root / "results"),
@@ -4239,11 +4239,11 @@ def _render_environment(
 ) -> dict[str, str]:
     """Bind sealed runtime settings to the post-review job record."""
     environment = dict(plan["environment"])
-    job_id = str(getattr(args, "tao_job_id", "") or "")
+    job_id = str(getattr(args, "cosmos_job_id", "") or "")
     if not job_id:
-        raise WorkflowError("SLURM rendering requires a minted TAO job-record ID")
+        raise WorkflowError("SLURM rendering requires a minted Cosmos job-record ID")
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", job_id):
-        raise WorkflowError(f"tao_job_id is unsafe for SLURM and result paths: {job_id!r}")
+        raise WorkflowError(f"cosmos_job_id is unsafe for SLURM and result paths: {job_id!r}")
     results_root = str(environment.get("TAO_RESULTS_ROOT") or getattr(args, "container_results_dir", args.results_dir))
     environment.update(
         {
@@ -4385,7 +4385,7 @@ def render_slurm(args: argparse.Namespace, plan: Mapping[str, Any]) -> str:
             ],
         )
     )
-    job_name = args.tao_job_id
+    job_name = args.cosmos_job_id
     writable_runtime_dirs = list(
         dict.fromkeys(
             str(Path(value).expanduser()) for value in (args.results_dir, args.checkpoint_dir, args.cache_dir)
@@ -4454,8 +4454,8 @@ def render_slurm(args: argparse.Namespace, plan: Mapping[str, Any]) -> str:
             "export SLURM_EXPORT_ENV=ALL",
             *cpu_step_setup,
             *runtime_dir_setup,
-            f"mkdir -p {shlex.quote(str(Path(args.results_dir).expanduser() / args.tao_job_id))}",
-            f"export TAO_CHILD_EXIT_FILE={shlex.quote(str(Path(args.results_dir).expanduser() / args.tao_job_id / 'child_exit_code'))}",
+            f"mkdir -p {shlex.quote(str(Path(args.results_dir).expanduser() / args.cosmos_job_id))}",
+            f"export TAO_CHILD_EXIT_FILE={shlex.quote(str(Path(args.results_dir).expanduser() / args.cosmos_job_id / 'child_exit_code'))}",
             env_exports,
             'export MASTER_ADDR="$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n1)"',
             f"export MASTER_PORT={args.master_port}",
@@ -4487,7 +4487,7 @@ def initial_metadata(args: argparse.Namespace, plan: Mapping[str, Any]) -> dict[
         "dataset": plan["dataset_family"],
         "training_mode": plan["training"]["training_mode"],
         "backend": plan["backend"],
-        "tao_job_id": args.tao_job_id,
+        "cosmos_job_id": args.cosmos_job_id,
         "slurm": {
             "job_id": None,
             "submission_host": socket.gethostname(),
@@ -4541,7 +4541,7 @@ def initial_metadata(args: argparse.Namespace, plan: Mapping[str, Any]) -> dict[
         "timestamps": {"planned": now, "started": None, "finished": None},
         "scheduler": {"state": "PLANNED", "reason": None, "exit_code": None},
         "child_process": {"exit_code": None},
-        "terminal_tao_status": "PENDING",
+        "terminal_runtime_status": "PENDING",
         "metrics": {
             "average_training_loss": None,
             "average_validation_loss": None,
@@ -4549,10 +4549,10 @@ def initial_metadata(args: argparse.Namespace, plan: Mapping[str, Any]) -> dict[
         },
         "artifacts": {
             "status_file": str(
-                Path(args.results_dir).expanduser() / (args.tao_job_id or args.experiment_id) / "status.json"
+                Path(args.results_dir).expanduser() / (args.cosmos_job_id or args.experiment_id) / "status.json"
             ),
             "child_exit_file": str(
-                Path(args.results_dir).expanduser() / (args.tao_job_id or args.experiment_id) / "child_exit_code"
+                Path(args.results_dir).expanduser() / (args.cosmos_job_id or args.experiment_id) / "child_exit_code"
             ),
         },
     }
@@ -4637,7 +4637,7 @@ def finalize_metadata(
     except ValueError as exc:
         raise WorkflowError("child-process exit-code file is invalid") from exc
     if not status_file.is_file():
-        raise WorkflowError("TAO structured status file is missing")
+        raise WorkflowError("runtime structured status file is missing")
     status_text = status_file.read_text(encoding="utf-8")
     try:
         status_payload = json.loads(status_text)
@@ -4648,9 +4648,9 @@ def finalize_metadata(
         try:
             records = [json.loads(line) for line in status_text.splitlines() if line.strip()]
         except json.JSONDecodeError as exc:
-            raise WorkflowError("TAO structured status is neither JSON nor JSONL") from exc
+            raise WorkflowError("runtime structured status is neither JSON nor JSONL") from exc
     if not records or not isinstance(records[-1], Mapping):
-        raise WorkflowError("TAO structured status contains no terminal record")
+        raise WorkflowError("runtime structured status contains no terminal record")
     tao_terminal = str(records[-1].get("status", "")).upper()
     metadata["slurm"].update(
         {
@@ -4668,10 +4668,10 @@ def finalize_metadata(
         "exit_code": scheduler_exit_code,
     }
     metadata["child_process"] = {"exit_code": child_exit}
-    metadata["terminal_tao_status"] = tao_terminal
+    metadata["terminal_runtime_status"] = tao_terminal
     metadata["timestamps"]["finished"] = datetime.now(timezone.utc).isoformat()
     if child_exit != 0 or scheduler_state.upper() != "COMPLETED" or tao_terminal != "SUCCESS":
-        metadata["terminal_tao_status"] = "FAILURE"
+        metadata["terminal_runtime_status"] = "FAILURE"
     validate_metadata(metadata)
     return metadata
 
@@ -5264,7 +5264,7 @@ def add_arguments(parser: argparse.ArgumentParser, *, require_inputs: bool) -> N
     parser.add_argument("--master-port", type=int, default=29500)
     parser.add_argument("--stdout-path", default="")
     parser.add_argument("--stderr-path", default="")
-    parser.add_argument("--tao-job-id", default="")
+    parser.add_argument("--cosmos-job-id", default="")
     parser.add_argument("--nccl-debug", default="INFO")
     parser.add_argument("--cuda-allocator", default="expandable_segments:True")
     parser.add_argument(

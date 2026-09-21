@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
-# TAO single-node SLURM launch template — storage tier A (data already on Lustre;
+# Cosmos single-node SLURM launch template — storage tier A (data already on Lustre;
 # nothing is fetched inside the GPU allocation, which would burn it under the
 # scheduler-idle timeout). cosmos-run-on-slurm renders this by substituting every
 # @@<NAME>@@ placeholder; $SLURM_* and the sidecar env stay literal. Multi-node

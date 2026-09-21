@@ -10,16 +10,16 @@ metadata:
   name: @@JOB_NAME_JSON@@
   namespace: @@NAMESPACE_JSON@@
   annotations:
-    tao.nvidia.com/job-record-id: @@JOB_ID_JSON@@
+    cosmos.nvidia.com/job-record-id: @@JOB_ID_JSON@@
   labels:
-    tao-job: @@JOB_NAME_JSON@@
+    cosmos-job: @@JOB_NAME_JSON@@
 spec:
   backoffLimit: 0
   ttlSecondsAfterFinished: @@TTL_SECONDS_JSON@@
   template:
     metadata:
       labels:
-        tao-job: @@JOB_NAME_JSON@@
+        cosmos-job: @@JOB_NAME_JSON@@
     spec:
       restartPolicy: Never
       imagePullSecrets: @@IMAGE_PULL_SECRETS_JSON@@

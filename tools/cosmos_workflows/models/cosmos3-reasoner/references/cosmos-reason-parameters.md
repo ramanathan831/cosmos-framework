@@ -141,7 +141,7 @@ text and input_ids` during calibration means `quantize.max_sequence_length` is
 too small for the sampled media tokens. The packaged template uses 4096;
 do not lower it to tiny values such as 128 for video calibration.
 
-**train_batch_per_replica not divisible by mini_batch**: The default `train_batch_per_replica=1` from the TAO Core schema is invalid because `mini_batch` defaults to 4. Immediate AssertionError on all ranks. Fix: set `train_batch_per_replica` to a multiple of `mini_batch` (recommended: 32 for large datasets, 4 for small datasets).
+**train_batch_per_replica not divisible by mini_batch**: The default `train_batch_per_replica=1` from the container runtime schema is invalid because `mini_batch` defaults to 4. Immediate AssertionError on all ranks. Fix: set `train_batch_per_replica` to a multiple of `mini_batch` (recommended: 32 for large datasets, 4 for small datasets).
 
 **train_batch_per_replica larger than samples per rank**: With FSDP, each rank sees `total_samples / dp_shard_size` samples. If `train_batch_per_replica` exceeds this, the trainer completes 0 training steps and attempts to save a checkpoint before the optimizer/scheduler is initialized, crashing with `'NoneType' object has no attribute 'state_dict'`. Fix: ensure `train_batch_per_replica <= total_samples / dp_shard_size`. For small datasets (e.g., 31 DEFT-generated samples on 8 GPUs = ~4 per rank), set `train_batch_per_replica` to 4.
 
@@ -163,7 +163,7 @@ launch gate is at least 256 GB of cumulative visible GPU memory, a GPU
 architecture supported by the selected Cosmos-RL image, and normal platform,
 container, S3, and credential preflight. Set `dp_shard_size` to the actual GPU
 count and do not require a fixed policy/rollout topology for SFT. Run
-`scripts/check_tao_launch_preflight.py --gpu-min-total-memory-gb 256 --gpu-arch-allowlist cosmos_rl=sm_80,sm_90,sm_100,sm_103,sm_103a,sm_120`
+`scripts/check_cosmos_launch_preflight.py --gpu-min-total-memory-gb 256 --gpu-arch-allowlist cosmos_rl=sm_80,sm_90,sm_100,sm_103,sm_103a,sm_120`
 before launching. If the target architecture is known but cannot be detected
 from the launch host, pass `--gpu-arch sm_XX` explicitly. Architecture-specific
 suffixes such as `a` and `f` match the same base SM family. `sm_121` is not
@@ -181,7 +181,7 @@ Model-specific inference mappings belong in this MD file. Agents should read thi
 
 - **Checkpoint metadata:** format: safetensors, folder: true
 
-Inference mappings from TAO Core `cosmos-rl.config.json`:
+Inference mappings from container runtime `cosmos-rl.config.json`:
 
 | Action | Spec Field | Inference Function | Meaning |
 |---|---|---|---|

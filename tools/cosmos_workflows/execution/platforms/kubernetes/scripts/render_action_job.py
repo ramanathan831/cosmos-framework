@@ -93,9 +93,9 @@ def kubernetes_job_name(job_id: str) -> str:
         return original
     slug = re.sub(r"[^a-z0-9]+", "-", original.lower()).strip("-")
     if not slug:
-        slug = "tao-job"
+        slug = "cosmos-job"
     digest = hashlib.sha256(original.encode("utf-8")).hexdigest()[:10]
-    prefix = slug[: MAX_JOB_NAME - len(digest) - 1].rstrip("-") or "tao-job"
+    prefix = slug[: MAX_JOB_NAME - len(digest) - 1].rstrip("-") or "cosmos-job"
     return f"{prefix}-{digest}"
 
 
@@ -230,7 +230,7 @@ def materialize_config(request: dict[str, Any], output_dir: pathlib.Path) -> pat
     if root == pathlib.Path(root.anchor) or not root.is_dir():
         raise RenderError("config output directory must be a non-root directory")
 
-    destination = root / f"tao-action-config-{digest}.{extension}"
+    destination = root / f"cosmos-action-config-{digest}.{extension}"
     encoded = content.encode("utf-8")
     if destination.exists() or destination.is_symlink():
         if _read_regular_file(destination, "materialized config") != encoded:
@@ -307,7 +307,7 @@ def _command_bundle(request: dict[str, Any], config_path: str | None) -> tuple[l
 
     if mode == "config" and _is_shell_script(command_text):
         command = ["/bin/sh", "-c"]
-        args = [command_text, "tao-action", *args]
+        args = [command_text, "cosmos-action", *args]
     else:
         try:
             command = shlex.split(command_text)
@@ -441,7 +441,7 @@ def _config_mount(
         )
     if source not in staged:
         raise RenderError(f"materialized config has no staged PVC subPath: {source}")
-    target = f"/tao-action-config/spec-{digest}.{extension}"
+    target = f"/cosmos-action-config/spec-{digest}.{extension}"
     return target, (source, target)
 
 
@@ -587,7 +587,7 @@ def build_parser() -> argparse.ArgumentParser:
     render.add_argument("--request", required=True, type=pathlib.Path)
     render.add_argument("--staging-map", required=True, type=pathlib.Path)
     render.add_argument("--job-id", required=True)
-    render.add_argument("--namespace", default=os.environ.get("TAO_K8S_NAMESPACE", "default"))
+    render.add_argument("--namespace", default=os.environ.get("COSMOS_K8S_NAMESPACE", "default"))
     render.add_argument("--pvc-claim", required=True)
     render.add_argument("--credential-secret")
     render.add_argument("--image-pull-secret")

@@ -9,7 +9,7 @@
     },
     {
       "source": "scripts/check_tao_launch_preflight.py",
-      "destination": "scripts/check_tao_launch_preflight.py",
+      "destination": "scripts/check_cosmos_launch_preflight.py",
       "source_sha256": "363946208b17be46ac41bc15b573b81acfcfac4e9abef206eeb2a8651b588f8b"
     },
     {
@@ -24,12 +24,12 @@
     },
     {
       "source": "scripts/resolve_tao_image.py",
-      "destination": "scripts/resolve_tao_image.py",
+      "destination": "scripts/resolve_cosmos_image.py",
       "source_sha256": "a74863d7d8bcf8b8171f3c48a7a0cdf92957c5d844f4a73a1365f515e94280c3"
     },
     {
       "source": "scripts/resolve_tao_model.py",
-      "destination": "scripts/resolve_tao_model.py",
+      "destination": "scripts/resolve_cosmos_model.py",
       "source_sha256": "de138f20356fba6fc3dbe588145c90da35e35d1a4b2a461857f88167435435dd"
     },
     {
@@ -44,12 +44,12 @@
     },
     {
       "source": "scripts/tao_job_record.py",
-      "destination": "scripts/tao_job_record.py",
+      "destination": "scripts/cosmos_job_record.py",
       "source_sha256": "332fd6638cef01f22eef0f27faa1842ec5fea2a80070b6f346b7113ee8432ac1"
     },
     {
       "source": "scripts/tao_slurm_stage.py",
-      "destination": "scripts/tao_slurm_stage.py",
+      "destination": "scripts/cosmos_slurm_stage.py",
       "source_sha256": "010d5a8a1a07ac42db0bef242ccf429b4b67c5421884d235b307d00e3e791320"
     },
     {
@@ -99,12 +99,12 @@
     },
     {
       "source": "scripts/tests/test_resolve_tao_image.py",
-      "destination": "scripts/tests/test_resolve_tao_image.py",
+      "destination": "scripts/tests/test_resolve_cosmos_image.py",
       "source_sha256": "60fbb65d7ab15a4844bc647183ad307bb4dc11a9a541580d2c53566a0cc0f9eb"
     },
     {
       "source": "scripts/tests/test_tao_job_record.py",
-      "destination": "scripts/tests/test_tao_job_record.py",
+      "destination": "scripts/tests/test_cosmos_job_record.py",
       "source_sha256": "066f9db6f1dcfba8345912b22ca30a630601ce4d43a81df0e1227add12d8734d"
     },
     {

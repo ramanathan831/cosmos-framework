@@ -3,7 +3,7 @@
   "$id": "https://nvidia.com/tao/schemas/cosmos-job-metadata-v1.json",
   "title": "Cosmos TAO job metadata",
   "type": "object",
-  "required": ["schema_version", "experiment_id", "dataset", "training_mode", "backend", "tao_job_id", "slurm", "image", "repositories", "config", "paths", "dataset_fingerprints", "model", "launch_command", "environment", "stdout", "stderr", "results_dir", "checkpoint_dir", "timestamps", "scheduler", "child_process", "terminal_tao_status", "metrics", "artifacts"],
+  "required": ["schema_version", "experiment_id", "dataset", "training_mode", "backend", "cosmos_job_id", "slurm", "image", "repositories", "config", "paths", "dataset_fingerprints", "model", "launch_command", "environment", "stdout", "stderr", "results_dir", "checkpoint_dir", "timestamps", "scheduler", "child_process", "terminal_runtime_status", "metrics", "artifacts"],
   "properties": {
     "schema_version": {"const": 1},
     "experiment_id": {"type": "string", "minLength": 1},

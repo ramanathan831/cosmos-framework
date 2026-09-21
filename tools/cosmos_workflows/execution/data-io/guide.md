@@ -32,7 +32,7 @@ set -a; source /path/to/.env; set +a   # omit if already exported
 aws s3 ls "s3://$S3_BUCKET_NAME/..."   # reads AWS_* from the environment
 ```
 
-If a session provides only the legacy TAO names (`ACCESS_KEY`, `SECRET_KEY`,
+If a session provides only the alternate names (`ACCESS_KEY`, `SECRET_KEY`,
 `S3_ENDPOINT_URL`, `CLOUD_REGION`), map them once, scoped to the command:
 `AWS_ACCESS_KEY_ID="$ACCESS_KEY" AWS_SECRET_ACCESS_KEY="$SECRET_KEY" aws s3 ...`
 
@@ -76,7 +76,7 @@ After staging, author the spec with **local paths** and run the verify gate.
 
 SLURM: never set `S3_BUCKET_NAME` (Lustre-only); run any upload on the login
 node, not inside the GPU allocation. Upload with excludes:
-`aws s3 sync <local>/ s3://... --exclude '.tao/*' <upload_excludes...>`.
+`aws s3 sync <local>/ s3://... --exclude '.cosmos/*' <upload_excludes...>`.
 
 ## Quick Start — annotation-selective staging
 

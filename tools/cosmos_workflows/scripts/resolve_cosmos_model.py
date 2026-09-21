@@ -293,7 +293,7 @@ def main() -> int:
         return 2
     if data is None:
         print(
-            f"UNMATCHED: no packaged TAO model skill owns '{args.model}'",
+            f"UNMATCHED: no packaged Cosmos model skill owns '{args.model}'",
             file=sys.stderr,
         )
         return UNMATCHED_EXIT

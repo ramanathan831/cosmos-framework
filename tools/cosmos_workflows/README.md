@@ -1,7 +1,7 @@
 # Cosmos workflow support
 
 These are supporting references and CPU-only orchestration helpers for the
-framework's existing skills, not a second skill bank or plugin. Native Python
+framework's existing skills. Native Python
 training/inference implementations remain in `cosmos_framework/`.
 
 ## Ownership and routing
@@ -22,8 +22,8 @@ extended in both directories. Setup and launch references are read on demand,
 not loaded for unrelated code edits or ordinary native recipe questions.
 
 Framework requests explicitly select `--backend cosmos-framework`; requested
-Cosmos-RL jobs and explicit backend comparisons remain supported. The imported
-resolver's historical `auto` behavior is retained for compatibility, not used
+Cosmos-RL jobs and explicit backend comparisons remain supported. The
+resolver's `auto` behavior is retained for compatibility, not used
 to silently replace a native Framework workflow. All five execution options
 (Docker, SLURM, Kubernetes, Brev, virtualenv) remain as supporting references;
 the model/action contract determines which fit.
@@ -34,7 +34,7 @@ From the repository root:
 
 ```bash
 source tools/cosmos_workflows/env.sh
-python "$COSMOS_WORKFLOWS_ROOT/scripts/resolve_tao_model.py" \
+python "$COSMOS_WORKFLOWS_ROOT/scripts/resolve_cosmos_model.py" \
   --model nvidia/Cosmos3-Nano --action train --backend cosmos-framework
 ```
 
@@ -42,27 +42,25 @@ Shared command paths in the references are relative to this directory. Use
 `cd "$COSMOS_WORKFLOWS_ROOT"` for those examples. A component's `scripts/`,
 `references/`, and `assets/` paths are relative to that component. Helpers find
 their own resources from `__file__`; they need no home-directory skill install.
-`tao_*` filenames, runtime commands, image pins, `.tao` records, and backend
-contracts are compatibility interfaces, not dependencies on the old repository.
+Framework-owned helpers use Cosmos names, with job records under
+`~/.cosmos/jobs` by default (`COSMOS_STATE_DIR` overrides the state root).
+Render commands take `--cosmos-job-id`; workflow metadata uses `cosmos_job_id`
+and `terminal_runtime_status`. Kubernetes selection uses `COSMOS_K8S_CONTEXT`
+and `COSMOS_K8S_NAMESPACE`. Existing state directories are not moved or deleted.
+External image URIs, package imports, and runtime protocols must match the
+selected backend; changing their spelling does not port their implementation.
 
 The launch reference owns review/approval, nested specs, record-before-submit
 ordering, and backend monitoring. Planning does not authorize jobs, registry
-operations, downloads, or host mutations. Model containers, TAO Data Services,
+operations, downloads, or host mutations. Model and annotation containers,
 PAIDF, and optional DAFT tooling remain external runtime dependencies.
 
-## Scope and provenance
+## Scope
 
-The full original migration is preserved on
-[`archive/cosmos-skills-full-migration`](https://github.com/ramanathan831/cosmos-framework/tree/archive/cosmos-skills-full-migration/tools/cosmos_skills).
-DEFT, anomaly generation, mining, and AutoML/HPO remain deferred. The interim
-18-skill version is preserved on `archive/cosmos-skills-pre-integration`.
-
-This integration removes the parallel setup/capability registry and AutoML
-catalog/schema-generation tooling. Runtime request/job schemas and tests stay
-with the helpers that use them. Domain prompt examples already available in
-the annotation image are not duplicated here. `migration.json` records original
-source hashes and destination paths, not current-file integrity hashes. Imported
-license headers and metadata remain authoritative; see `LICENSE` and `NOTICE`.
+Runtime request/job schemas and tests stay with the helpers that use them.
+Domain prompt examples already available in the annotation image are not
+duplicated here. License headers and metadata remain authoritative; see
+`LICENSE` and `NOTICE`. File attribution is recorded in `migration.json`.
 
 ## CPU validation
 

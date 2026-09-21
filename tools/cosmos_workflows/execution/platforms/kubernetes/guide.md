@@ -5,7 +5,7 @@
 
 > **Execution setup:** Use `cosmos3-setup` to resolve this checkout's `tools/cosmos_workflows` root and select the execution platform. The existing framework skills own this workflow; no extra plugin is required.
 
-Submits TAO container jobs as Kubernetes Jobs. Works on any cluster reachable via kubeconfig (EKS / GKE / AKS / on-prem) or in-cluster service account (when running inside a pod).
+Submits model container jobs as Kubernetes Jobs. Works on any cluster reachable via kubeconfig (EKS / GKE / AKS / on-prem) or in-cluster service account (when running inside a pod).
 
 Single-pod by default; opt into multi-node distributed training via `num_nodes > 1` (uses Indexed Job + headless Service, see [Multi-node training](#multi-node-training-distributed) below).
 
@@ -17,17 +17,17 @@ Operator/device plugin present.
 ```bash
 # 0. GPU node host runtime.
 # Run this on each self-managed GPU worker node or in the node image build.
-# Set TAO_K8S_SKIP_NODE_RUNTIME_CHECK=1 only when using managed GPU nodes whose
+# Set COSMOS_K8S_SKIP_NODE_RUNTIME_CHECK=1 only when using managed GPU nodes whose
 # driver/toolkit lifecycle is owned by the cloud provider or GPU Operator policy.
-if [ "${TAO_K8S_SKIP_NODE_RUNTIME_CHECK:-0}" != "1" ]; then
+if [ "${COSMOS_K8S_SKIP_NODE_RUNTIME_CHECK:-0}" != "1" ]; then
   COSMOS_WORKFLOWS_ROOT="${COSMOS_WORKFLOWS_ROOT:-$PWD}"
   SETUP_SCRIPT="${COSMOS_WORKFLOWS_ROOT}/execution/gpu-host/scripts/setup-nvidia-gpu-host.sh"
 
   bash "$SETUP_SCRIPT" --backend kubernetes --check-only || {
-    echo "MISSING: TAO Kubernetes GPU node runtime is not ready."
+    echo "MISSING: Cosmos Kubernetes GPU node runtime is not ready."
     echo "For self-managed GPU nodes, run after user approval:"
     echo "  bash \"$SETUP_SCRIPT\" --backend kubernetes --install --yes"
-    echo "For managed clusters, verify the node image/GPU Operator policy installs driver 580 and toolkit 1.19.0, then set TAO_K8S_SKIP_NODE_RUNTIME_CHECK=1."
+    echo "For managed clusters, verify the node image/GPU Operator policy installs driver 580 and toolkit 1.19.0, then set COSMOS_K8S_SKIP_NODE_RUNTIME_CHECK=1."
     exit 1
   }
 fi
@@ -58,7 +58,7 @@ fi
 
 The GPU node runtime check is mandatory for self-managed nodes. For managed
 clusters where the client is not running on a GPU worker, verify the provider
-node image or GPU Operator policy and set `TAO_K8S_SKIP_NODE_RUNTIME_CHECK=1`
+node image or GPU Operator policy and set `COSMOS_K8S_SKIP_NODE_RUNTIME_CHECK=1`
 instead of running the installer on the client. The GPU-capacity warning here is
 a soft check; the `submit` verb re-checks allocatable `nvidia.com/gpu` and
 hard-fails before applying the manifest (there is no gang scheduling, so a
@@ -70,8 +70,8 @@ too-big Job would sit `Pending` forever).
   - `~/.kube/config` — default discovery path
   - `$KUBECONFIG` — alternate path
   - In-cluster service account — used when running inside a pod (no kubeconfig needed)
-- **TAO_K8S_NAMESPACE** (optional): default namespace for Job submission. Defaults to `default`.
-- **TAO_K8S_CONTEXT** (optional): kubeconfig context name to switch clusters.
+- **COSMOS_K8S_NAMESPACE** (optional): default namespace for Job submission. Defaults to `default`.
+- **COSMOS_K8S_CONTEXT** (optional): kubeconfig context name to switch clusters.
 - **NGC_KEY** (optional): for nvcr.io image pulls. If you've pre-created an image-pull secret in the target namespace, reference its name in the rendered manifest's `imagePullSecrets`.
 - **AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY / S3_BUCKET_NAME / S3_ENDPOINT_URL** (optional): for S3 dataset I/O (storage tier C), injected into the pod via the per-job Secret (`envFrom.secretRef`), never inline. Legacy `ACCESS_KEY`/`SECRET_KEY` are mapped by `execution/data-io/guide.md`.
 
@@ -86,7 +86,7 @@ is not sufficient proof.
 ## Execution — the four verbs
 
 `execution/platforms/kubernetes/guide.md` is a platform **consumer**: it runs a spec-bundle via
-`kubectl`, mutating only the job-record. No nvidia-tao-sdk, no `tao_sdk` import —
+`kubectl`, mutating only the job-record. No service SDK —
 jobs are submitted with plain `kubectl apply`.
 `$BANK` = `${COSMOS_WORKFLOWS_ROOT}`.
 
@@ -118,7 +118,7 @@ jobs are submitted with plain `kubectl apply`.
    template cannot represent that contract.
 3. **Open the record — mints the id, binds `results_dir`, before launch:**
    ```bash
-   JOB_ID=$("$BANK/scripts/tao_job_record.py" open --platform kubernetes --image "$IMAGE" \
+   JOB_ID=$("$BANK/scripts/cosmos_job_record.py" open --platform kubernetes --image "$IMAGE" \
      --network-arch "$ARCH" --action "$ACTION" --storage-tier "$TIER" --results-dir "$RESULTS_DIR")
    ```
    `results_dir` must be a **mounted (surviving) volume path or an S3 prefix** —
@@ -166,7 +166,7 @@ kubectl delete job "$K8S_JOB_NAME" -n "$NAMESPACE" --cascade=foreground
 if [ -n "${CRED_SECRET:-}" ]; then
   kubectl delete secret "$CRED_SECRET" -n "$NAMESPACE" --ignore-not-found
 fi
-"$BANK/scripts/tao_job_record.py" mark "$JOB_ID" --state CANCELED --source agent
+"$BANK/scripts/cosmos_job_record.py" mark "$JOB_ID" --state CANCELED --source agent
 ```
 
 ### Multi-node (nodes > 1)
@@ -208,7 +208,7 @@ fake-device-plugin middle option: `references/local-cluster.md`.
 ## Container shell
 
 The simple single-pod template invokes its command via `/bin/sh -c` (POSIX sh,
-present in busybox/distroless as well as TAO images). For producer action
+present in busybox/distroless as well as model images). For producer action
 requests, an args-mode command and its arguments are native container argv; a
 producer that needs a shell declares the shell and its script explicitly. A
 simple config-mode command also becomes native argv after `{config_path}` is
@@ -246,21 +246,21 @@ steps above) to run distributed training across N pods. Rendering
 
    | Env var | Value | Read by |
    |---|---|---|
-   | `WORLD_SIZE` | `num_nodes` | TAO PyTorch container's `nvidia_tao_pytorch/core/entrypoint.py` (uses this to mean *node count*, even though PyTorch's own convention is *total processes*) |
-   | `NUM_GPU_PER_NODE` | `gpu_count` | TAO PyTorch container's entrypoint |
+   | `WORLD_SIZE` | `num_nodes` | packaged PyTorch container's `nvidia_tao_pytorch/core/entrypoint.py` (uses this to mean *node count*, even though PyTorch's own convention is *total processes*) |
+   | `NUM_GPU_PER_NODE` | `gpu_count` | packaged PyTorch container's entrypoint |
    | `NNODES` | `num_nodes` | `torchrun` and PyTorch-standard rendezvous |
    | `NPROC_PER_NODE` | `gpu_count` | `torchrun` |
    | `NODE_RANK` | `$JOB_COMPLETION_INDEX` | both |
    | `MASTER_ADDR` | `<job-name>-0.<job-name>` (pod-0's DNS) | both |
-   | `MASTER_PORT` | `29500` | both (TAO's default) |
+   | `MASTER_PORT` | `29500` | both (the container default) |
 
-   Both naming conventions are set so TAO entrypoints (`dino train`, etc.) and raw `torchrun` commands work without modification.
+   Both naming conventions are set so packaged entrypoints (`dino train`, etc.) and raw `torchrun` commands work without modification.
 
-For a TAO entrypoint, the container reads `spec.train.num_nodes` and the wired
+For a packaged entrypoint, the container reads `spec.train.num_nodes` and the wired
 env vars — e.g. `dino train -e /tmp/spec.yaml` with `gpu_count=8`, `num_nodes=4`
 (4 × 8 = 32 GPUs total).
 
-For raw `torchrun`-based commands (non-TAO containers), the wrapper invokes:
+For raw `torchrun`-based commands (non-model containers), the wrapper invokes:
 
 ```bash
 torchrun --nnodes=$NNODES --nproc-per-node=$NPROC_PER_NODE --node-rank=$NODE_RANK \
@@ -302,13 +302,13 @@ Feed the key over stdin — `--docker-password=$NGC_KEY` would put the secret in
 argv, where it is visible in the host's process table and shell history:
 ```bash
 set -a; source /path/to/.env; set +a   # omit if already exported
-kubectl create secret generic ngc-pull-secret -n tao-jobs \
+kubectl create secret generic ngc-pull-secret -n cosmos-jobs \
   --type=kubernetes.io/dockerconfigjson \
   --from-file=.dockerconfigjson=/dev/stdin <<EOF
 {"auths": {"nvcr.io": {"username": "\$oauthtoken", "password": "${NGC_KEY}"}}}
 EOF
 # Verify without reading the secret back:
-kubectl get secret ngc-pull-secret -n tao-jobs >/dev/null && echo SECRET_OK
+kubectl get secret ngc-pull-secret -n cosmos-jobs >/dev/null && echo SECRET_OK
 ```
 
 **Pod stays `Pending` forever** — `kubectl describe pod -l job-name=$JOB_ID` shows the scheduling reason in the `Events`. Common causes: insufficient GPU capacity (`Insufficient nvidia.com/gpu`), no node matches the pod's `nodeSelector`, missing image-pull secret, or PVC mount failure.

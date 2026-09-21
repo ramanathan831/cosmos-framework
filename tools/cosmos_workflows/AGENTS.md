@@ -5,10 +5,10 @@ framework skills; do not recreate a parallel setup, launch, or capability skill
 registry. Only Embed, Predict, and reasoning-QA annotation have new entrypoints.
 
 - Keep native training and inference implementation in `cosmos_framework/`.
-- Resolve helper paths here, never through a deprecated Skill Bank install.
+- Resolve helper paths directly from this checkout.
 - Preserve explicit backends, nested specs, launch approval, record-before-submit
-  ordering, and backend-reported terminal state. Runtime `tao_*` names remain
-  compatibility interfaces.
+  ordering, and backend-reported terminal state. Keep external runtime identifiers
+  exact; framework-owned helper names use the Cosmos namespace.
 - Read only the selected model/platform references. Native recipes need not use
   the managed-job layer; framework tasks must not silently select Cosmos-RL.
 - Keep helper tests CPU-only: `python -m pytest --confcutdir=. -q` here.

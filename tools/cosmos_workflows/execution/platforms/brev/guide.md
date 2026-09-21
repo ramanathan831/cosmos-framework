@@ -1,7 +1,7 @@
 <!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
-# Brev — TAO execution glue
+# Brev — Cosmos execution glue
 
 > **Execution setup:** Use `cosmos3-setup` to resolve this checkout's `tools/cosmos_workflows` root and select the execution platform. The existing framework skills own this workflow; no extra plugin is required.
 
@@ -12,8 +12,8 @@ done.
 
 This skill is deliberately thin. **Provisioning and managing instances — create,
 search by GPU/price, start/stop, delete, login — is owned by NVIDIA Brev's own
-agent skill, not duplicated here.** This skill covers only the TAO-specific part:
-running a TAO container on a reached instance through the **four-verb docker
+agent skill, not duplicated here.** This skill covers only the workflow-specific part:
+running a model container on a reached instance through the **four-verb docker
 contract**, deferring the container-how to `execution/platforms/docker/guide.md` over `brev exec`.
 
 ## Provisioning: use the official Brev skill or MCP
@@ -73,12 +73,12 @@ instance to stop billing. `$BANK` = `${COSMOS_WORKFLOWS_ROOT}`.
 
   ```bash
   redact_secrets.py lint <<<"$REMOTE_CMD"     # no inline secrets; creds as -e VAR
-  JOB_ID=$("$BANK/scripts/tao_job_record.py" open \
+  JOB_ID=$("$BANK/scripts/cosmos_job_record.py" open \
     --platform brev --image "$IMG" \
     --network-arch "$ARCH" --action "$ACTION" \
     --storage-tier "$TIER" --results-root "$RESULTS_ROOT")
-  brev exec <instance> "docker inspect '$JOB_ID' >/dev/null 2>&1 && { echo '$JOB_ID already submitted'; exit 0; }; docker run -d --name '$JOB_ID' --label 'tao-job=$JOB_ID' ..."
-  "$BANK/scripts/tao_job_record.py" mark "$JOB_ID" --state RUNNING \
+  brev exec <instance> "docker inspect '$JOB_ID' >/dev/null 2>&1 && { echo '$JOB_ID already submitted'; exit 0; }; docker run -d --name '$JOB_ID' --label 'cosmos-job=$JOB_ID' ..."
+  "$BANK/scripts/cosmos_job_record.py" mark "$JOB_ID" --state RUNNING \
     --backend-ref "<instance>/$JOB_ID"       # instance is part of the ref: the
                                              # container is unreachable without it
   ```
@@ -92,7 +92,7 @@ instance to stop billing. `$BANK` = `${COSMOS_WORKFLOWS_ROOT}`.
   ```bash
   brev exec <instance> "docker rm -f $JOB_ID"
   brev delete <instance>                      # ephemeral instances only
-  "$BANK/scripts/tao_job_record.py" mark "$JOB_ID" --state CANCELED --source agent
+  "$BANK/scripts/cosmos_job_record.py" mark "$JOB_ID" --state CANCELED --source agent
   ```
 
 ### `brev exec` argument form
@@ -110,7 +110,7 @@ NGC auth once per instance — **never put `NGC_KEY` on argv** (it lands in the
 remote process table); pipe it to `--password-stdin`:
 
 ```bash
-IMG=nvcr.io/nvstaging/tao/tao-toolkit-pyt:7.2.0-rc-36-multiarch  # versions-key: images.tao_toolkit.pyt
+IMG=nvcr.io/nvstaging/tao/tao-toolkit-pyt:7.2.0-rc-36-multiarch  # versions-key: images.containers.pyt
 
 # NGC auth (one-time per instance) — value never on argv.
 # Single-quoted locally so $NGC_KEY expands in the instance's shell; export it
@@ -122,13 +122,13 @@ brev exec <instance> 'printf %s "$NGC_KEY" | docker login nvcr.io -u "$oauthtoke
 brev exec <instance> "docker manifest inspect $IMG >/dev/null && echo AUTH_OK || echo AUTH_FAIL"
 
 # Pull BEFORE the GPU run. `docker run` would pull implicitly, but the instance
-# bills from boot, so a multi-GB first-time TAO pull is billed GPU-idle time.
+# bills from boot, so a multi-GB first-time image pull is billed GPU-idle time.
 # Pulling as its own step also separates a pull failure (auth/entitlement) from
 # a training failure in the logs.
 brev exec <instance> "docker image inspect $IMG >/dev/null 2>&1 || docker pull $IMG"
 
-# Run a TAO job (the docker `submit` verb, over brev exec)
-brev exec <instance> "docker inspect '$JOB_ID' >/dev/null 2>&1 && { echo '$JOB_ID already submitted'; exit 0; }; docker run -d --name '$JOB_ID' --label 'tao-job=$JOB_ID' --gpus all -v ~/data:/data -e NGC_KEY '$IMG' visual_changenet train -e /data/spec.yaml"
+# Run a Cosmos job (the docker `submit` verb, over brev exec)
+brev exec <instance> "docker inspect '$JOB_ID' >/dev/null 2>&1 && { echo '$JOB_ID already submitted'; exit 0; }; docker run -d --name '$JOB_ID' --label 'cosmos-job=$JOB_ID' --gpus all -v ~/data:/data -e NGC_KEY '$IMG' visual_changenet train -e /data/spec.yaml"
 ```
 
 ## Multi-GPU and multi-node

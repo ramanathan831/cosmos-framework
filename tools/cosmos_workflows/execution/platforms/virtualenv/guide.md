@@ -10,16 +10,16 @@ as an argv vector whose first element is `<venv>/bin/python`, never through a
 shell, never activating anything. The vendored runner
 (`references/virtualenv_runner.py`) is this platform's "native CLI" — the role
 `docker`/`kubectl`/`sbatch` play elsewhere — and owns only the process
-lifecycle. Job records stay with `tao_job_record.py`; specs are authored by the
+lifecycle. Job records stay with `cosmos_job_record.py`; specs are authored by the
 agent, exactly like every other platform.
 
 ## When to use
 
 - The workload is a **plain Python script** (its dependencies pip-installed in
-  a venv), not a TAO container action.
+  a venv), not a model container action.
 - **No docker** on the host, or container startup cost isn't worth it (fast
   smokes, AutoML trial loops over lightweight models).
-- Single node only. For TAO container actions use `execution/platforms/docker/guide.md`; for
+- Single node only. For model container actions use `execution/platforms/docker/guide.md`; for
   clusters use `-slurm` / `-kubernetes`.
 
 ## Preflight
@@ -55,7 +55,7 @@ in the job record's `results_dir`, which IS the runner's `--job-dir`.
    `redact_secrets.py lint`.
 2. **Open the record — mints the id, binds `results_dir` BEFORE launch:**
    ```bash
-   JOB_ID=$("$BANK/scripts/tao_job_record.py" open --platform virtualenv \
+   JOB_ID=$("$BANK/scripts/cosmos_job_record.py" open --platform virtualenv \
      --image "$VENV/bin/python" --network-arch "$ARCH" --action "$ACTION" \
      --storage-tier A --results-root "$RESULTS_ROOT")
    RESULTS_DIR="$RESULTS_ROOT/$JOB_ID"
@@ -75,7 +75,7 @@ in the job record's `results_dir`, which IS the runner's `--job-dir`.
    hides GPUs; neither reserves anything.
 4. **Record RUNNING** with the pid the runner printed:
    ```bash
-   "$BANK/scripts/tao_job_record.py" mark "$JOB_ID" --state RUNNING --backend-ref "pid:<pid>"
+   "$BANK/scripts/cosmos_job_record.py" mark "$JOB_ID" --state RUNNING --backend-ref "pid:<pid>"
    ```
 
 One submit per job dir — a retry gets a NEW record (`--retry-of`), never a
@@ -103,7 +103,7 @@ python3 "$RUNNER" logs --job-dir "$RESULTS_DIR" --tail 200
 
 ```bash
 python3 "$RUNNER" cancel --job-dir "$RESULTS_DIR"
-"$BANK/scripts/tao_job_record.py" mark "$JOB_ID" --state CANCELED --source agent
+"$BANK/scripts/cosmos_job_record.py" mark "$JOB_ID" --state CANCELED --source agent
 ```
 
 Cancel marks first (a not-yet-started wrapper self-cancels at its start gate),

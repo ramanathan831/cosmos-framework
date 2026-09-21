@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Resolve the default TAO container image for a model action.
+"""Resolve the default Cosmos container image for a model action.
 
 The helper reads packaged model metadata instead of relying on hand-written
 prompts. Launch workflows should show this image to the user and accept an
@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from resolve_tao_model import backend_contracts, select_implementation_backend
+from resolve_cosmos_model import backend_contracts, select_implementation_backend
 
 DEFAULT_SKILL_BANK = Path(os.environ.get("COSMOS_WORKFLOWS_ROOT", Path(__file__).resolve().parents[1]))
 
@@ -268,7 +268,7 @@ def resolve_image(
 def format_text(data: dict[str, Any]) -> str:
     """Format resolved image metadata for launch prompts."""
     lines = [
-        "TAO container image resolution:",
+        "Cosmos container image resolution:",
         f"- requested model: {data.get('requested_model', data['model'])}",
         f"- model: {data['model']} ({data['network_arch']})",
         f"- action: {data['action']}",

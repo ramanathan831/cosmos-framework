@@ -4,9 +4,9 @@
 
 set -euo pipefail
 
-MIN_DRIVER_VERSION="${TAO_MIN_DRIVER_VERSION:-580}"
-MIN_CUDA_VERSION="${TAO_MIN_CUDA_VERSION:-13.0}"
-MIN_CONTAINER_TOOLKIT_VERSION="${TAO_MIN_CONTAINER_TOOLKIT_VERSION:-1.19.0}"
+MIN_DRIVER_VERSION="${COSMOS_MIN_DRIVER_VERSION:-580}"
+MIN_CUDA_VERSION="${COSMOS_MIN_CUDA_VERSION:-13.0}"
+MIN_CONTAINER_TOOLKIT_VERSION="${COSMOS_MIN_CONTAINER_TOOLKIT_VERSION:-1.19.0}"
 DOCKER_PACKAGE_DEBIAN="${DOCKER_PACKAGE_DEBIAN:-${DOCKER_PACKAGE:-docker.io}}"
 BACKEND="docker"
 INSTALL=0
@@ -31,13 +31,13 @@ Usage: setup-nvidia-gpu-host.sh [--backend docker|kubernetes] [--check-only|--in
                                 [--min-container-toolkit-version VERSION]
                                 [--skip-docker-install] [--skip-docker-config] [--skip-docker-group]
 
-Checks and (with --install) installs the TAO GPU host runtime:
+Checks and (with --install) installs the Cosmos GPU host runtime:
   - NVIDIA driver >= 580 (open kernel module preferred)
   - CUDA Toolkit >= 13.0
   - NVIDIA Container Toolkit >= 1.19.0
   - Docker engine (installed on demand for the docker / local-docker backend)
 
-Those are the TAO-wide defaults. A selected model skill may override any
+Those are the workflow defaults. A selected model skill may override any
 minimum with the three --min-*-version flags. Newer compatible versions pass;
 the flags are minimum bounds, not exact release pins.
 
@@ -464,7 +464,7 @@ NVIDIA documentation:
   - Docker engine install guide (per distro):
       https://docs.docker.com/engine/install/
 
-The selected model's runtime requirements take precedence over the TAO-wide
+The selected model's runtime requirements take precedence over the workflow
 defaults. Rerun with the same --min-*-version flags after manual installation.
 EOF
   exit 1

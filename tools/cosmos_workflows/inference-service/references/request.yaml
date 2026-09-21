@@ -7,7 +7,7 @@ skill:
   targets_running_microservice: true
 
 service_registry:
-  state_file: /tmp/tao-inf-ms-state.json
+  state_file: /tmp/cosmos-inf-ms-state.json
 
 readiness_check:
   endpoint: "GET {base_url}/api/v1/health/readiness"

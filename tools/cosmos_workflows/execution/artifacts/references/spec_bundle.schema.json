@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "tao://artifacts/spec_bundle.schema.json",
-  "title": "TAO spec-bundle",
+  "$id": "cosmos://artifacts/spec_bundle.schema.json",
+  "title": "Cosmos spec-bundle",
   "description": "The typed package a model/data (producer) skill hands to a platform (consumer) skill: everything needed to run one action, nothing platform-specific. Mode-discriminated union: config | args.",
   "type": "object",
   "required": ["network_arch", "action", "image", "mode", "command", "declared_inputs", "declared_outputs", "compute_shape"],
@@ -12,7 +12,7 @@
     "image": {
       "type": "string",
       "pattern": "^\\S+/\\S+$",
-      "description": "Resolved container URI (registry/path:tag), carried as data. Never a versions.yaml key — resolve first via scripts/resolve_tao_image.py."
+      "description": "Resolved container URI (registry/path:tag), carried as data. Never a versions.yaml key — resolve first via scripts/resolve_cosmos_image.py."
     },
     "mode": { "enum": ["config", "args"] },
     "command": { "type": "string", "minLength": 1 },

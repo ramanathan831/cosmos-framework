@@ -128,7 +128,7 @@ Nano training without changing model ownership. Comparative runs reject
 AutoML/HPO orchestration and its tuning schemas are not bundled. The resolver
 retains historical workload hints for compatibility; they do not supply a runner.
 Framework-trained checkpoints use the native exact-key exporter, then the
-repository-backed TAO evaluation adapter. That does not make Framework a
+repository-backed container evaluation adapter. That does not make Framework a
 Cosmos-RL version.
 
 ## Evaluation intake and inheritance
@@ -168,7 +168,7 @@ Execute these stages in order and persist their outputs.
    `/opt/tao/image-provenance.json`. Never mount host source into training.
 5. Enforce the explicit Nano checkpoint model-type choice. If it is
    `cosmos3_omni`, show the conversion and platform-owned output path in the
-   launch review, then prepare the model through the shared TAO integration
+   launch review, then prepare the model through the shared container integration
    entrypoint packaged in the selected clean backend image after approval.
    Resolve URI/model-ID refs to immutable
    Hub commits automatically. Validate exact tensor/config keys and fingerprint model,
@@ -206,7 +206,7 @@ Execute these stages in order and persist their outputs.
 9. On SLURM reuse the supplied/derived SQSH or convert the selected image once
    before GPU submit. SQSH SHA and source provenance are not runtime gates.
    When Omni preparation is required, inspect the SQSH filesystem and reject it
-   unless it contains the shared TAO launcher, the native Framework converter,
+   unless it contains the shared container launcher, the native Framework converter,
    and `/opt/tao/framework-converter-runtime.json`. The runtime artifact must
    report `validation_mode=imported_converter_module`, proving the isolated
    converter's transitive dependency graph imported during the image build;
@@ -224,7 +224,7 @@ Execute these stages in order and persist their outputs.
     visual component as not applicable rather than as a failure.
 11. Materialize the full spec once and verify its SHA256 in the compute frame
     before rendering the job from the same plan artifact. Monitor scheduler and
-    structured TAO state to a terminal result, and preserve the child exit code
+    structured runtime state to a terminal result, and preserve the child exit code
     independently of scheduler state. Require child exit zero, structured
     `SUCCESS`, finite global train/validation loss, checkpoint completion, and
     a final evaluator metric before reporting completion.
@@ -294,7 +294,7 @@ generative exact match is not accuracy unless the task defines it.
 The native Framework callback and native Cosmos-RL logger own early failure,
 checkpoint, progress, metric, and terminal events. Do not stage a status bridge
 or patch status at container startup. `COMPLETED` from SLURM is failure when the
-child exit code is nonzero or the terminal TAO state is not successful.
+child exit code is nonzero or the terminal runtime state is not successful.
 
 ## SLURM invariants
 

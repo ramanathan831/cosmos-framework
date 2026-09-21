@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Four-verb process lifecycle for virtualenv-native TAO jobs.
+"""Four-verb process lifecycle for virtualenv-native Cosmos jobs.
 
 This is the virtualenv platform's "native CLI" — the role `docker` plays for
 the docker skill. It launches a Python script as an argv vector whose first
@@ -14,9 +14,9 @@ session, with a durable on-disk lifecycle that survives the launching process:
     logs    --job-dir D [--tail N] -> bounded tail of the job log
     cancel  --job-dir D            -> SIGTERM->SIGKILL the whole process group
 
-Job records are NOT written here — the agent owns them via tao_job_record.py
+Job records are NOT written here — the agent owns them via cosmos_job_record.py
 (open binds results_dir BEFORE submit; mark records the states this CLI
-reports). The runner's own durable truth lives under ``<job-dir>/.tao_runner/``:
+reports). The runner's own durable truth lives under ``<job-dir>/.cosmos_runner/``:
 ``submit_meta.json``, ``launcher_status.json`` (written by the wrapper the
 moment it starts: pid + start marker), ``exit_status.json`` (fsync'd atomic
 write on exit), a ``start_authorized`` gate, and a ``cancel_requested`` marker.
@@ -53,7 +53,7 @@ VOCAB_ERROR = "ERROR"
 VOCAB_CANCELED = "CANCELED"
 VOCAB_UNKNOWN = "UNKNOWN"
 
-RUNNER_DIR_NAME = ".tao_runner"
+RUNNER_DIR_NAME = ".cosmos_runner"
 LOG_TAIL_MAX_BYTES = 2 * 1024 * 1024
 LAUNCHER_RECORD_TIMEOUT_SECONDS = 10.0
 # STATUS may never declare a launch dead while submit could still legitimately
@@ -201,7 +201,7 @@ def main():
     # A healthy submit opens the gate within one poll of reading our record;
     # if it died first, give up with a durable record instead of spinning as
     # a phantom RUNNING job forever.
-    gate_timeout = float(os.environ.get("TAO_RUNNER_GATE_TIMEOUT", "30"))
+    gate_timeout = float(os.environ.get("COSMOS_RUNNER_GATE_TIMEOUT", "30"))
     gate_deadline = time.monotonic() + gate_timeout
     while not os.path.exists(start_gate_path):
         if time.monotonic() > gate_deadline:
@@ -947,7 +947,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     submit = sub.add_parser("submit", help="Launch a Python script in a venv, detached.")
     submit.add_argument(
-        "--job-dir", required=True, help="The job's results_dir (bound by tao_job_record open BEFORE submit)."
+        "--job-dir", required=True, help="The job's results_dir (bound by cosmos_job_record open BEFORE submit)."
     )
     submit.add_argument("--venv", required=True, help="Virtualenv root (pyvenv.cfg + bin/python).")
     submit.add_argument("--script", required=True, help="Python script to run.")

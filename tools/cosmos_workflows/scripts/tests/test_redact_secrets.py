@@ -157,7 +157,7 @@ def test_redact_idempotent():
 
 
 def test_redact_clean_text_unchanged():
-    text = 'AWS_ACCESS_KEY_ID="$ACCESS_KEY" aws s3 sync /r s3://b/results/j1/ --exclude ".tao/*"\n'
+    text = 'AWS_ACCESS_KEY_ID="$ACCESS_KEY" aws s3 sync /r s3://b/results/j1/ --exclude ".cosmos/*"\n'
     assert rs.redact(text) == text
 
 

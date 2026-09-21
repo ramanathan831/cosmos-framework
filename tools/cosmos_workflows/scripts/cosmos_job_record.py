@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""The ONLY writer of TAO job-records (.tao/jobs/<id>.json).
+"""The ONLY writer of Cosmos job-records (.cosmos/jobs/<id>.json).
 
 Implements the atomic record-then-launch invariant of the SDK-free execution
 architecture: ``open`` mints the job id, binds the resolved ``results_dir``,
@@ -14,7 +14,7 @@ has no id, so it cannot launch. ``mark`` appends status transitions
 a detached poller may both write), and passed through the redact_secrets
 redactor so no credential material is ever persisted.
 
-State root: $TAO_STATE_DIR if set, else ~/.tao — deliberately OUTSIDE any
+State root: $COSMOS_STATE_DIR if set, else ~/.cosmos — deliberately OUTSIDE any
 synced results tree. Records conform to
 execution/artifacts/references/job_record.schema.json.
 
@@ -29,7 +29,7 @@ Subcommands:
 
 "What is running" is NEVER answered from these records — poll the backend
 (docker ps / kubectl get / squeue) via backend_ref. Records answer "what was
-submitted, where do results live, and how did it end". No tao_sdk imports.
+submitted, where do results live, and how did it end". No service SDK is required.
 """
 
 from __future__ import annotations
@@ -83,15 +83,15 @@ SCHEMA_VERSION = 1
 
 
 def state_root() -> Path:
-    raw = os.environ.get("TAO_STATE_DIR")
+    raw = os.environ.get("COSMOS_STATE_DIR")
     if raw is not None:
         if not raw.strip():
-            raise SystemExit("TAO_STATE_DIR is set but empty; unset it or give an absolute path")
+            raise SystemExit("COSMOS_STATE_DIR is set but empty; unset it or give an absolute path")
         p = Path(raw)
         if not p.is_absolute():
-            raise SystemExit(f"TAO_STATE_DIR must be an absolute path (got {raw!r})")
+            raise SystemExit(f"COSMOS_STATE_DIR must be an absolute path (got {raw!r})")
         return p
-    return Path.home() / ".tao"
+    return Path.home() / ".cosmos"
 
 
 def jobs_dir() -> Path:
@@ -99,7 +99,7 @@ def jobs_dir() -> Path:
     try:
         d.mkdir(parents=True, exist_ok=True)
     except NotADirectoryError:
-        raise SystemExit(f"TAO_STATE_DIR is not a directory: {state_root()}")
+        raise SystemExit(f"COSMOS_STATE_DIR is not a directory: {state_root()}")
     except PermissionError:
         raise SystemExit(f"cannot create state dir (permission denied): {d}")
     return d

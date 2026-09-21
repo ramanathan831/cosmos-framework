@@ -4,14 +4,14 @@
 
 """Resolve a dotted key in versions.yaml to a string value.
 
-Single-purpose companion to ``resolve_tao_image.py``: that tool resolves an
+Single-purpose companion to ``resolve_cosmos_image.py``: that tool resolves an
 image via ``models/<name>/references/skill_info.yaml``, this one resolves a
 direct key path in ``versions.yaml``. Use it in shell scripts and skill
 docs so the YAML schema is known in exactly one place.
 
 Examples
 --------
-    resolve_versions_key.py images.tao_toolkit.pyt
+    resolve_versions_key.py images.containers.pyt
     resolve_versions_key.py images.metropolis_sdg.paidf_augmentation
 """
 
@@ -37,7 +37,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "key",
-        help="Dotted key path, e.g. 'images.tao_toolkit.pyt'.",
+        help="Dotted key path, e.g. 'images.containers.pyt'.",
     )
     parser.add_argument(
         "--skill-bank",

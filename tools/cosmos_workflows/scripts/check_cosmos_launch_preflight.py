@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Validate TAO launch prerequisites before generating workflow artifacts."""
+"""Validate Cosmos launch prerequisites before generating workflow artifacts."""
 
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ import yaml
 
 DEFAULT_SKILL_BANK = Path(os.environ.get("COSMOS_WORKFLOWS_ROOT", Path(__file__).resolve().parents[1]))
 REMOTE_SCHEMES = ("s3://", "azure://", "gs://", "http://", "https://")
-DEFAULT_GPU_SMOKE_IMAGE = os.environ.get("TAO_GPU_SMOKE_IMAGE", "ubuntu:22.04")
+DEFAULT_GPU_SMOKE_IMAGE = os.environ.get("COSMOS_GPU_SMOKE_IMAGE", "ubuntu:22.04")
 DEFAULT_LOW_VRAM_THRESHOLD_GB = 50.0
 KNOWN_IMAGE_SMS = {
     "cosmos-rl": ["sm_80", "sm_90", "sm_100", "sm_103", "sm_103a", "sm_120"],
@@ -38,7 +38,7 @@ def parse_args() -> argparse.Namespace:
         default=DEFAULT_SKILL_BANK,
         help="Path to the packaged Cosmos workflow bundle.",
     )
-    parser.add_argument("--platform", required=True, help="TAO execution platform.")
+    parser.add_argument("--platform", required=True, help="Cosmos execution platform.")
     parser.add_argument(
         "--docker-host",
         help=(
@@ -172,7 +172,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--container-image",
         help=(
-            "Selected TAO container image. Local Docker preflight uses this for "
+            "Selected model container image. Local Docker preflight uses this for "
             "GPU smoke checks and known image/GPU architecture compatibility."
         ),
     )
@@ -1219,11 +1219,11 @@ def check_docker_bind_path(label: str, path: str, image: str, pull_smoke_image: 
         "run",
         "--rm",
         "--mount",
-        f"type=bind,source={path},target=/tao_preflight_path,readonly",
+        f"type=bind,source={path},target=/cosmos_preflight_path,readonly",
         image,
         "test",
         "-e",
-        "/tao_preflight_path",
+        "/cosmos_preflight_path",
     ]
     result = run(command, timeout=45)
     if result.returncode == 0:
@@ -1384,8 +1384,8 @@ def kubectl_base() -> list[str]:
     command = ["kubectl"]
     if os.environ.get("KUBECONFIG"):
         command.extend(["--kubeconfig", os.environ["KUBECONFIG"]])
-    if os.environ.get("TAO_K8S_CONTEXT"):
-        command.extend(["--context", os.environ["TAO_K8S_CONTEXT"]])
+    if os.environ.get("COSMOS_K8S_CONTEXT"):
+        command.extend(["--context", os.environ["COSMOS_K8S_CONTEXT"]])
     return command
 
 
@@ -1402,7 +1402,7 @@ def check_kubernetes(platform: dict[str, Any], skip_access: bool) -> bool:
         print("kubectl not found. Install kubectl or run from inside the cluster.")
         return False
 
-    namespace = os.environ.get("TAO_K8S_NAMESPACE", "default")
+    namespace = os.environ.get("COSMOS_K8S_NAMESPACE", "default")
     base = kubectl_base()
     auth = run(base + ["auth", "can-i", "create", "jobs", "-n", namespace], timeout=30)
     if auth.returncode != 0 or auth.stdout.strip().lower() != "yes":
@@ -1478,8 +1478,8 @@ def check_slurm(
             except socket.gaierror as exc:
                 print(f"Host did not resolve: {host} ({exc})")
                 continue
-            result = run(ssh_command(host, "echo TAO_SSH_OK"), timeout=25)
-            if result.returncode == 0 and "TAO_SSH_OK" in result.stdout:
+            result = run(ssh_command(host, "echo COSMOS_SSH_OK"), timeout=25)
+            if result.returncode == 0 and "COSMOS_SSH_OK" in result.stdout:
                 working_host = host
                 print(f"Passwordless SSH OK: {host}")
                 break
@@ -1821,9 +1821,9 @@ def main() -> int:
     )
 
     if ok:
-        print("TAO launch preflight passed")
+        print("Cosmos launch preflight passed")
         return 0
-    print("TAO launch preflight failed")
+    print("Cosmos launch preflight failed")
     return 2
 
 

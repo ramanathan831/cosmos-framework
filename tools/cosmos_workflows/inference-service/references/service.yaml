@@ -13,7 +13,7 @@ docker_image_defaults:
     COSMOS_PREDICT2_5: IMAGE_COSMOS_PREDICT2_5
     TAO_DATASERVICES: IMAGE_TAO_DATASERVICES
   # Backend-specific Cosmos image knowledge remains in the Cosmos model
-  # skill's skill_info.yaml and is resolved through resolve_tao_image.py.
+  # skill's skill_info.yaml and is resolved through resolve_cosmos_image.py.
   model_skill_defaults:
     COSMOS_RL:
       model: nvidia/Cosmos3-Nano
@@ -23,8 +23,8 @@ docker_image_defaults:
   # scripts/resolve_versions_key.py. Absolute image URIs also work for one-off
   # environment overrides without a manifest bump.
   mapping:
-    COSMOS_PREDICT2_5: tao_toolkit.cosmos_predict
-    TAO_DATASERVICES: tao_toolkit.data_services
+    COSMOS_PREDICT2_5: containers.cosmos_predict
+    TAO_DATASERVICES: containers.data_services
 
 network_config_files:
   convention: "{network_arch}.config.json"
@@ -198,7 +198,7 @@ docker_run_reference:
     - "--gpus <n> OR --runtime=nvidia with NVIDIA_VISIBLE_DEVICES"
 
 service_registry:
-  state_file: /tmp/tao-inf-ms-state.json
+  state_file: /tmp/cosmos-inf-ms-state.json
   entry_schema:
     job_id: UUID string (TAO-generated)
     platform: "local-docker" | "brev" | "slurm" | "kubernetes"

@@ -236,7 +236,7 @@ def test_reject_missing_mode(spec_schema):
 
 def test_reject_unresolved_image_key(spec_schema):
     b = copy.deepcopy(DINO_BUNDLE)
-    b["image"] = "tao_toolkit.pyt"  # a versions.yaml key, not a resolved URI
+    b["image"] = "containers.pyt"  # a versions.yaml key, not a resolved URI
     bad(b, spec_schema)
 
 

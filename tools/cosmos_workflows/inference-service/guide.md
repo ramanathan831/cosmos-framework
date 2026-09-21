@@ -1,7 +1,7 @@
 <!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
-# TAO Inference Microservice
+# Cosmos Inference Microservice
 
 > **Execution setup:** Use `cosmos3-setup` to resolve this checkout's `tools/cosmos_workflows` root and select the execution platform. The existing framework skills own this workflow; no extra plugin is required.
 
@@ -58,7 +58,7 @@ Each `network_arch` has a sidecar config file named `{network_arch}.config.json`
 
 1. Read `{network_arch}.config.json` and take `api_params.image` (e.g. `COSMOS_RL`). This selects an entry from `docker_image_defaults` in `references/service.yaml`.
 2. If the host env var `IMAGE_<KEY>` is set (e.g. `IMAGE_COSMOS_RL`), it overrides the packaged default.
-3. For a key under `model_skill_defaults`, call `scripts/resolve_tao_image.py` with its model, action, and backend. This keeps the exact Cosmos image in the Cosmos model skill's `references/skill_info.yaml`.
+3. For a key under `model_skill_defaults`, call `scripts/resolve_cosmos_image.py` with its model, action, and backend. This keeps the exact Cosmos image in the Cosmos model skill's `references/skill_info.yaml`.
 4. For a key under `mapping`, resolve the dotted value against the repo-root `versions.yaml` with `scripts/resolve_versions_key.py`. Absolute environment overrides pass through unchanged. The Python examples live in `references/code-templates.yaml`.
 5. If the config file is missing or `api_params.image` is empty, fall back to the `COSMOS_RL` key.
 
@@ -132,11 +132,11 @@ Read **`execution/platforms/<platform>/guide.md`** and follow it to start the co
 
 **Port binding (local-docker and brev):** use **direct docker run** so that `-p <host_port>:8080` can be passed and the container name equals `job_id` exactly.
 
-**Port allocation rule (local-docker and brev, REQUIRED for concurrent services):** Before starting a service, read the registry (`/tmp/tao-inf-ms-state.json`) and collect the set of `host_port` values from every existing entry on the same platform (and, for brev, the same `instance_id`). Pick the **lowest free port starting from 8080** that is not in that set — e.g. `host_port = next(p for p in range(8080, 8200) if p not in used_ports)`. The default `8080` only applies when no other service is running. This is what makes "start 3 services, each reachable at a distinct `host_url`" work; without it, services 2 and 3 fail with `bind: address already in use`. SLURM and kubernetes get distinct endpoints from their own platform mechanisms and do not need this step.
+**Port allocation rule (local-docker and brev, REQUIRED for concurrent services):** Before starting a service, read the registry (`/tmp/cosmos-inf-ms-state.json`) and collect the set of `host_port` values from every existing entry on the same platform (and, for brev, the same `instance_id`). Pick the **lowest free port starting from 8080** that is not in that set — e.g. `host_port = next(p for p in range(8080, 8200) if p not in used_ports)`. The default `8080` only applies when no other service is running. This is what makes "start 3 services, each reachable at a distinct `host_url`" work; without it, services 2 and 3 fail with `bind: address already in use`. SLURM and kubernetes get distinct endpoints from their own platform mechanisms and do not need this step.
 
 ### 4.3 After start: service registry and endpoint
 
-Write the service registry immediately after the platform confirms the container is running. The registry (`/tmp/tao-inf-ms-state.json`) is keyed by `job_id`; `"latest"` always points to the most recently started service.
+Write the service registry immediately after the platform confirms the container is running. The registry (`/tmp/cosmos-inf-ms-state.json`) is keyed by `job_id`; `"latest"` always points to the most recently started service.
 
 See `references/code-templates.yaml` → `registry_write.<platform>` for the Python template.
 

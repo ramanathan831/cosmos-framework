@@ -31,14 +31,14 @@ with the harness (`run_in_background` wait-loop, `CronCreate`, or `/loop`). The
 poller auto-resubmits only the **unambiguous state-based** infra cases
 (`NODE_FAIL` / `BOOT_FAIL` / `PREEMPTED`) and, for auto-cleanup backends (K8s
 `ttlSecondsAfterFinished`, docker `--rm`), writes the **daemon-independent
-terminal record** (`tao_job_record mark --state <terminal> --source poller`)
+terminal record** (`cosmos_job_record mark --state <terminal> --source poller`)
 *before* the backend object is deleted; anything nuanced re-wakes the agent to
 classify. Pollers are idempotent — on re-attach, just re-establish one.
 
 ## Ambiguous submission is reconciliation, not a retry
 
 An empty `sbatch --parsable` response, SSH timeout, or lost connection does not
-prove that submission failed. Every sbatch script must carry the unique TAO
+prove that submission failed. Every sbatch script must carry the unique Cosmos
 job-record id as its exact SLURM job name. Before any resubmit, query both
 `squeue` and `sacct` by user and exact job name on every configured login host,
 allowing bounded accounting-propagation time:

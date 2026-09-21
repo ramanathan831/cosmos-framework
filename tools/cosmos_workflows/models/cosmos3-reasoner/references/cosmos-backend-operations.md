@@ -17,9 +17,9 @@ selects `source-build`.
 
 For every repository, record branch, commit, tree, and dirty state. Refuse a
 reproducibility build when any packaged source is dirty. The Framework path
-first builds its native Dockerfile, then builds the TAO action layer using that
+first builds its native Dockerfile, then builds the container action layer using that
 exact base. The Cosmos-RL path builds `Dockerfile.cosmos_rl` with exact native
-RL, TAO actions, DAFT, and TAO Core commits.
+RL, container actions, DAFT, and container runtime commits.
 
 Inspect `/opt/tao/image-provenance.json` after build. Verify repository commits,
 source-manifest checksum, dependency inputs, Python/package locations, and
@@ -45,7 +45,7 @@ runtime checkpoint area. Cosmos3 Nano Omni inputs use the packaged
 backend runtime; the planner resolves both Hub identities to immutable commits.
 The selected image invokes its backend-owned entrypoint. Cosmos Framework uses
 `cosmos_framework.scripts.convert_model_to_vlm_safetensors` directly in its
-native environment, without importing Cosmos-RL. Cosmos-RL uses the TAO-owned
+native environment, without importing Cosmos-RL. Cosmos-RL uses the integration-owned
 `cosmos_rl.model_preparation.vlm_safetensors` wrapper and packages an isolated
 Framework converter environment pinned by the Framework repository's `uv.lock`.
 For Cosmos-RL, the baked `/opt/tao/framework-converter-runtime.json` must attest
@@ -83,7 +83,7 @@ the model/data paths through the container.
 Jobs explicitly use Bash. Use one launcher task per node and preserve the
 training child code. Record scheduler state/reason/exit independently. Requeue
 is off unless separately validated. Scheduler `COMPLETED` never overrides a
-nonzero child exit or missing/failed TAO terminal state.
+nonzero child exit or missing/failed runtime terminal state.
 
 Framework topology is shard degree equal to GPUs per node and replicate degree
 equal to nodes. Cosmos-RL uses one controller on node zero and policy workers

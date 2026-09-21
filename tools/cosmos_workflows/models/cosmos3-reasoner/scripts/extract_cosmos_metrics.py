@@ -218,7 +218,7 @@ def summarize_records(
     if evaluation_summary.get("average_validation_accuracy") is None:
         missing.append("average validation accuracy")
     if terminal not in SUCCESS | FAILURE:
-        missing.append("terminal TAO status")
+        missing.append("terminal runtime status")
     if require_complete and missing:
         raise MetricError("completed metric report is incomplete: " + ", ".join(missing))
     return {

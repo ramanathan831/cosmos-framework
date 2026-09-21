@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Stage local files/dirs to a remote Lustre path over SSH/SCP for SLURM TAO jobs."""
+"""Stage local files/dirs to a remote Lustre path over SSH/SCP for SLURM Cosmos jobs."""
 
 from __future__ import annotations
 

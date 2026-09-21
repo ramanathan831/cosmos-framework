@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Regression tests for Cosmos backend and default-image compatibility."""
+"""Regression tests for Cosmos backend selection and default-image resolution."""
 
 from __future__ import annotations
 
@@ -14,19 +14,19 @@ import yaml
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-resolve_tao_image = importlib.import_module("resolve_tao_image")
-resolve_tao_model = importlib.import_module("resolve_tao_model")
+resolve_cosmos_image = importlib.import_module("resolve_cosmos_image")
+resolve_cosmos_model = importlib.import_module("resolve_cosmos_model")
 
 COSMOS_SKILL = ROOT / "models" / "cosmos3-reasoner"
 COSMOS_SKILL_INFO_PATH = COSMOS_SKILL / "references" / "skill_info.yaml"
-COSMOS_SKILL_INFO = resolve_tao_model.load_yaml(COSMOS_SKILL_INFO_PATH)
+COSMOS_SKILL_INFO = resolve_cosmos_model.load_yaml(COSMOS_SKILL_INFO_PATH)
 COSMOS_BACKENDS = COSMOS_SKILL_INFO["backend_contracts"]
 COSMOS_RL_IMAGE = COSMOS_BACKENDS["cosmos-rl"]["container_image"]
 COSMOS_FRAMEWORK_IMAGE = COSMOS_BACKENDS["cosmos-framework"]["container_image"]
 
 
 def test_cosmos_nano_default_train_preserves_rl_image_contract():
-    resolved = resolve_tao_image.resolve_image(ROOT, "nvidia/Cosmos3-Nano", "train")
+    resolved = resolve_cosmos_image.resolve_image(ROOT, "nvidia/Cosmos3-Nano", "train")
 
     assert resolved["backend"] == "cosmos-rl"
     assert resolved["image"] == COSMOS_RL_IMAGE
@@ -35,14 +35,14 @@ def test_cosmos_nano_default_train_preserves_rl_image_contract():
 
 
 def test_cosmos_nano_evaluate_uses_same_rl_image_contract():
-    resolved = resolve_tao_image.resolve_image(ROOT, "nvidia/Cosmos3-Nano", "evaluate")
+    resolved = resolve_cosmos_image.resolve_image(ROOT, "nvidia/Cosmos3-Nano", "evaluate")
 
     assert resolved["backend"] == "cosmos-rl"
     assert resolved["image"] == COSMOS_RL_IMAGE
 
 
 def test_explicit_framework_uses_skill_owned_backend_image():
-    resolved = resolve_tao_image.resolve_image(
+    resolved = resolve_cosmos_image.resolve_image(
         ROOT,
         "nvidia/Cosmos3-Nano",
         "train",
@@ -56,7 +56,7 @@ def test_explicit_framework_uses_skill_owned_backend_image():
 
 def test_cosmos_edge_auto_routes_to_framework_for_supported_actions():
     for action in ("train", "evaluate", "inference", "inference_microservice"):
-        resolved = resolve_tao_image.resolve_image(ROOT, "nvidia/Cosmos3-Edge", action)
+        resolved = resolve_cosmos_image.resolve_image(ROOT, "nvidia/Cosmos3-Edge", action)
         assert resolved["backend"] == "cosmos-framework"
         assert resolved["image"] == COSMOS_FRAMEWORK_IMAGE
 
@@ -70,10 +70,10 @@ def test_skill_info_images_are_stamped_from_versions_yaml():
         isinstance(declaration.get("container_image"), str) and declaration["container_image"].startswith("nvcr.io/")
         for declaration in COSMOS_BACKENDS.values()
     )
-    assert versions["images"]["tao_toolkit"]["cosmos_rl"] == COSMOS_RL_IMAGE
-    assert versions["images"]["tao_toolkit"]["cosmos_framework"] == COSMOS_FRAMEWORK_IMAGE
+    assert versions["images"]["containers"]["cosmos_rl"] == COSMOS_RL_IMAGE
+    assert versions["images"]["containers"]["cosmos_framework"] == COSMOS_FRAMEWORK_IMAGE
     for declaration in COSMOS_BACKENDS.values():
-        contract = resolve_tao_model.load_yaml(COSMOS_SKILL / declaration["path"])
+        contract = resolve_cosmos_model.load_yaml(COSMOS_SKILL / declaration["path"])
         assert "container_image" not in contract
 
     allowed_image_files = {
@@ -95,7 +95,7 @@ def test_skill_info_images_are_stamped_from_versions_yaml():
 
 
 def test_cosmos_consumers_do_not_use_a_versions_image_key():
-    legacy_key = "images.tao_toolkit." + "cosmos_rl"
+    legacy_key = "images.containers." + "cosmos_rl"
     offenders = []
     for root in (ROOT / "inference-service",):
         for path in root.rglob("*"):
@@ -106,7 +106,7 @@ def test_cosmos_consumers_do_not_use_a_versions_image_key():
 
 
 def test_resolver_returns_existing_framework_skill_and_relocated_guide():
-    resolved = resolve_tao_model.resolve_model(ROOT, "cosmos3-reasoner", action="train", backend="cosmos-framework")
+    resolved = resolve_cosmos_model.resolve_model(ROOT, "cosmos3-reasoner", action="train", backend="cosmos-framework")
     assert resolved is not None
     assert Path(resolved["skill_path"]).is_file()
     assert Path(resolved["skill_path"]).parent.name == "cosmos3-post-training"

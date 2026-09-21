@@ -69,10 +69,10 @@ platform skills); nothing else is platform-specific.
   uploads). Then lint the assembled command with `redact_secrets.py lint` and
   **open the record and launch, in that order**:
   ```bash
-  JOB_ID=$("$BANK/scripts/tao_job_record.py" open --platform <p> --image <img> \
+  JOB_ID=$("$BANK/scripts/cosmos_job_record.py" open --platform <p> --image <img> \
     --network-arch <arch> --action <action> --storage-tier <A|B|C> --results-root <root>)
   # <native launch, naming the backend object after $JOB_ID>
-  "$BANK/scripts/tao_job_record.py" mark "$JOB_ID" --state RUNNING --backend-ref <ref>
+  "$BANK/scripts/cosmos_job_record.py" mark "$JOB_ID" --state RUNNING --backend-ref <ref>
   ```
 - **status(id)** — poll the native backend, map to the fixed vocabulary
   `PENDING RUNNING COMPLETE ERROR CANCELED UNKNOWN`; the native sub-state
@@ -181,7 +181,7 @@ Before creating specs, runner scripts, workspaces, logs, state files, or
 submitting a job, resolve the image for the selected model/action:
 
 ```bash
-${COSMOS_WORKFLOWS_ROOT:?}/scripts/resolve_tao_image.py \
+${COSMOS_WORKFLOWS_ROOT:?}/scripts/resolve_cosmos_image.py \
   --skill-bank ${COSMOS_WORKFLOWS_ROOT:?} \
   --model <network> --action <action> --backend <auto-or-explicit> \
   --workload <workload-hint> --format text
@@ -209,14 +209,14 @@ If the user accepts, pass the resolved image as the job `image`. If the user
 overrides, require a non-empty image reference and pass that value instead.
 Do not silently launch on the default image. This confirmation applies to
 training, AutoML recommendations, evaluation, inference, export, TensorRT
-engine generation, and application workflows that submit TAO containers.
+engine generation, and application workflows that submit model containers.
 
 ## Credential Filtering
 
 After the user chooses a platform, get the credential list for **only that
 platform** from the chosen skill itself — its `## Credentials` section and, if
 present, `references/skill_info.yaml` (`required_credentials`, `credential_groups`,
-`optional_credentials`). The launch preflight (`check_tao_launch_preflight.py`)
+`optional_credentials`). The launch preflight (`check_cosmos_launch_preflight.py`)
 reads that same per-skill `skill_info.yaml` to enforce the credential gate; a
 credential-free platform (e.g. Docker) may ship only prose, in which case rely on
 its Preflight section.
@@ -227,8 +227,8 @@ SLURM, Kubernetes, or Docker. Do not ask for SLURM credentials on Brev,
 Kubernetes, or Docker. Ask S3 credentials only when the selected
 platform and the dataset/result URIs require `s3://` access.
 Credentials may already be present in the process environment or in a
-user-approved secret env file such as `~/.tao/secrets.env` or
-`~/.config/tao/.env`; source such files only when needed and never print,
+user-approved secret env file at the path provided by the user;
+source such files only when needed and never print,
 grep, cat, paste, or log their contents. Verify only variable presence.
 
 For initial launch intake, ask for required credentials and required credential
@@ -277,7 +277,7 @@ Ask for dataset examples that match the selected platform:
 - Brev, Kubernetes: usually `s3://bucket/path/train` and
   `s3://bucket/path/eval` unless the platform profile mounts shared storage.
 - Local Docker: local paths visible to the Docker host, such as
-  `/data/tao/<model>/train`, or direct spec paths visible inside the planned
+  `/data/cosmos/<model>/train`, or direct spec paths visible inside the planned
   container mount.
 - Remote Docker: absolute paths visible on the remote Docker host named by
   `DOCKER_HOST`, not paths on the local agent machine.
@@ -289,7 +289,7 @@ filenames.
 ## Platform Preflight
 
 Run the selected platform's preflight checks before any launch artifact is
-created — prefer the packaged helper `scripts/check_tao_launch_preflight.py`
+created — prefer the packaged helper `scripts/check_cosmos_launch_preflight.py`
 (`--platform <p> --container-image <img> --path <label>=<path> ...`). It verifies
 credentials, client tools, platform/cluster/object-store access, dataset paths
 from the compute frame, GPU/runtime health, and image-architecture fit; treat any

@@ -73,7 +73,7 @@ one waits forever. Three options, in increasing fidelity:
    cluster required. Verify the allocatable count is non-zero before concluding
    the passthrough worked.
 
-## Two things that keep a rendered TAO Job `Pending`
+## Two things that keep a rendered Cosmos Job `Pending`
 
 Both are prerequisites rather than bugs, and both were reproduced against
 minikube. The order matters — the first masks the second:

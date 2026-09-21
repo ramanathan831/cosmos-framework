@@ -9,8 +9,8 @@ of resolving ``versions.yaml`` at runtime. Each embedded literal is annotated
 with the versions.yaml key it came from, so this script can re-stamp every
 site on a release bump and CI can verify nothing drifted:
 
-    container_image: nvcr.io/nvidia/tao/tao-toolkit:7.0.1-pyt  # versions-key: images.tao_toolkit.pyt
-    export TAO_DS_IMAGE=nvcr.io/nvidia/tao/tao-toolkit:7.0.1-data-services  # versions-key: images.tao_toolkit.data_services
+    container_image: nvcr.io/nvidia/tao/tao-toolkit:7.0.1-pyt  # versions-key: images.containers.pyt
+    export TAO_DS_IMAGE=nvcr.io/nvidia/tao/tao-toolkit:7.0.1-data-services  # versions-key: images.containers.data_services
 
 Rules enforced:
   * A line carrying ``# versions-key: <dotted.key>`` must contain exactly the
@@ -71,7 +71,7 @@ SKIP_BASENAMES = {"stamp_versions.py", "migrate-to-version-keys.py"}
 
 
 def parse_versions(path: str) -> dict[str, str]:
-    """Flatten versions.yaml into {'images.tao_toolkit.pyt': 'nvcr.io/...', ...}.
+    """Flatten versions.yaml into {'images.containers.pyt': 'nvcr.io/...', ...}.
 
     Minimal reader for this file's known shape: nested mappings by 2-space
     indentation with scalar string leaves. Comments and blanks ignored.

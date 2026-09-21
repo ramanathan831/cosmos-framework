@@ -6,7 +6,7 @@ description: >
   and prompt upsampling. Use when the user asks "how do I run inference",
   "how do I generate a video", "how do I serve the model", "what parameters should I use",
   or any question about running the model to produce outputs. Also use for
-  reasoner checkpoint evaluation and TAO-container inference endpoints.
+  reasoner checkpoint evaluation and containerized inference endpoints.
 ---
 
 # Cosmos3 Inference
@@ -33,7 +33,7 @@ reasoner QA evaluation, use `cosmos3-post-training`'s
 Framework requests must select `--backend cosmos-framework`; do not inherit
 the imported helper's Cosmos-RL compatibility default implicitly.
 
-For a TAO-container microservice or an OpenAI-compatible annotation endpoint,
+For a containerized microservice or an OpenAI-compatible annotation endpoint,
 read the [service reference](../../../tools/cosmos_workflows/inference-service/guide.md).
 Resolve the model/backend before selecting its image. Framework DCP inputs
 use the packaged checkpoint `plan`/`prepare`/`verify` helper; native generation

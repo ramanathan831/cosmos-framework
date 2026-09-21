@@ -17,7 +17,7 @@ import tomllib
 import yaml
 
 REPO = Path(__file__).resolve().parents[2]
-PAS_DS_IMAGE = "nvcr.io/nvstaging/tao/tao-toolkit-ds:7.2.0-rc-52-multiarch"  # versions-key: images.tao_toolkit.deft_pas_data_services
+PAS_DS_IMAGE = "nvcr.io/nvstaging/tao/tao-toolkit-ds:7.2.0-rc-52-multiarch"  # versions-key: images.containers.deft_pas_data_services
 SCRIPT = REPO / "execution/platforms/kubernetes/scripts/render_action_job.py"
 SPEC = importlib.util.spec_from_file_location("render_action_job", SCRIPT)
 assert SPEC and SPEC.loader
@@ -118,8 +118,8 @@ def render(request=None, staging=None, **kwargs):
     return renderer.render_action_job(
         request or pas_pool_embed_request(),
         staging or pas_staging_map(),
-        job_id="tao-job-abc123",
-        namespace="tao-jobs",
+        job_id="cosmos-job-abc123",
+        namespace="cosmos-jobs",
         pvc_claim="tao-workspace",
         **kwargs,
     )
@@ -134,8 +134,8 @@ def test_pas_five_mount_request_preserves_aliases_and_access_modes():
     job, action = container(render())
     mounts = {item["mountPath"]: item for item in action["volumeMounts"]}
 
-    assert job["metadata"]["namespace"] == "tao-jobs"
-    assert job["metadata"]["annotations"]["tao.nvidia.com/job-record-id"] == "tao-job-abc123"
+    assert job["metadata"]["namespace"] == "cosmos-jobs"
+    assert job["metadata"]["annotations"]["cosmos.nvidia.com/job-record-id"] == "cosmos-job-abc123"
     assert set(mounts) == {
         "/dev/shm",
         "/results",
@@ -262,7 +262,7 @@ def test_config_mode_materializes_stages_and_mounts_the_exact_spec(tmp_path):
         )
     )
 
-    expected = "/tao-action-config/spec-" + source.stem.removeprefix("tao-action-config-") + ".yaml"
+    expected = "/cosmos-action-config/spec-" + source.stem.removeprefix("cosmos-action-config-") + ".yaml"
     assert action["command"] == ["visual_changenet", "train", "-e", expected]
     assert action["args"] == []
     assert "{config_path}" not in json.dumps(action)
@@ -284,7 +284,7 @@ def test_json_compatible_config_materialization_is_canonical_and_idempotent(tmp_
     second = renderer.materialize_config(request, tmp_path / "configs")
 
     assert first == second
-    assert len(first.stem.removeprefix("tao-action-config-")) == 64
+    assert len(first.stem.removeprefix("cosmos-action-config-")) == 64
     assert stat.S_IMODE(first.stat().st_mode) == 0o600
     assert json.loads(first.read_text(encoding="utf-8")) == request["spec_bundle"]["spec"]
 
@@ -365,10 +365,10 @@ def test_config_shell_script_is_preserved_for_cosmos_rl(tmp_path):
     _, action = container(render(request=request, staging=staging, config_source=source))
 
     assert action["command"] == ["/bin/sh", "-c"]
-    assert action["args"][1] == "tao-action"
+    assert action["args"][1] == "cosmos-action"
     assert "hook=$(python" in action["args"][0]
     assert "{config_path}" not in action["args"][0]
-    assert "/tao-action-config/spec-" in action["args"][0]
+    assert "/cosmos-action-config/spec-" in action["args"][0]
 
 
 def test_empty_argument_and_environment_value_are_preserved():
@@ -446,7 +446,7 @@ def test_real_pas_job_record_id_is_normalized_without_losing_identity():
         pas_pool_embed_request(),
         pas_staging_map(),
         job_id=job_id,
-        namespace="tao-jobs",
+        namespace="cosmos-jobs",
         pvc_claim="tao-workspace",
     )
     job = yaml.safe_load(manifest)
@@ -454,7 +454,7 @@ def test_real_pas_job_record_id_is_normalized_without_losing_identity():
     assert len(name) <= renderer.MAX_JOB_NAME
     assert renderer.DNS_LABEL_RE.fullmatch(name)
     assert "_" not in name
-    assert job["metadata"]["annotations"]["tao.nvidia.com/job-record-id"] == job_id
+    assert job["metadata"]["annotations"]["cosmos.nvidia.com/job-record-id"] == job_id
     assert renderer.kubernetes_job_name(job_id) == name
 
 
@@ -479,9 +479,9 @@ def test_cli_renders_the_same_contract(tmp_path):
             "--staging-map",
             str(staging_path),
             "--job-id",
-            "tao-job-abc123",
+            "cosmos-job-abc123",
             "--namespace",
-            "tao-jobs",
+            "cosmos-jobs",
             "--pvc-claim",
             "tao-workspace",
         ],
@@ -492,7 +492,7 @@ def test_cli_renders_the_same_contract(tmp_path):
     assert completed.returncode == 0, completed.stderr
     job = yaml.safe_load(completed.stdout)
     assert job["kind"] == "Job"
-    assert job["metadata"]["name"] == "tao-job-abc123"
+    assert job["metadata"]["name"] == "cosmos-job-abc123"
 
 
 def test_cli_materializes_then_renders_a_config_mode_request(tmp_path):
@@ -538,9 +538,9 @@ def test_cli_materializes_then_renders_a_config_mode_request(tmp_path):
             "--config-source",
             str(source),
             "--job-id",
-            "tao-job-abc123",
+            "cosmos-job-abc123",
             "--namespace",
-            "tao-jobs",
+            "cosmos-jobs",
             "--pvc-claim",
             "tao-workspace",
         ],

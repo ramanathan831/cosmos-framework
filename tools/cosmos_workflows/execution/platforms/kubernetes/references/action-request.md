@@ -22,7 +22,7 @@ if [ "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["spec_bu
   CONFIG_SOURCE=$(python3 \
     "$BANK/execution/platforms/kubernetes/scripts/render_action_job.py" \
     materialize-config --request "$ACTION_REQUEST" \
-    --output-dir "$WORKSPACE/.tao/action-configs")
+    --output-dir "$WORKSPACE/.cosmos/action-configs")
   CONFIG_RENDER_ARGS+=(--config-source "$CONFIG_SOURCE")
 fi
 ```
@@ -48,7 +48,7 @@ config when present:
     {"source": "/launcher/run/results", "sub_path": "jobs/action-123/results"},
     {"source": "/launcher/run/config", "sub_path": "jobs/action-123/results/config"},
     {"source": "/launcher/cache", "sub_path": "jobs/action-123/cache"},
-    {"source": "/launcher/.tao/action-configs/tao-action-config-<sha256>.yaml", "sub_path": "jobs/action-123/action-config.yaml"}
+    {"source": "/launcher/.cosmos/action-configs/cosmos-action-config-<sha256>.yaml", "sub_path": "jobs/action-123/action-config.yaml"}
   ]
 }
 ```
@@ -139,7 +139,7 @@ K8S_OBJECT=$(kubectl apply -f "$MANIFEST" -o name)
   echo "unexpected Kubernetes object: $K8S_OBJECT" >&2
   exit 1
 }
-"$BANK/scripts/tao_job_record.py" mark "$JOB_ID" --state RUNNING \
+"$BANK/scripts/cosmos_job_record.py" mark "$JOB_ID" --state RUNNING \
   --backend-ref "$NAMESPACE/$K8S_JOB_NAME"
 ```
 

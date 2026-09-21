@@ -54,7 +54,7 @@ job_payload_builder:
       image = os.environ.get("IMAGE_COSMOS_RL")
       if not image:
           resolved = subprocess.check_output(
-              [f"{os.environ['COSMOS_WORKFLOWS_ROOT']}/scripts/resolve_tao_image.py",
+              [f"{os.environ['COSMOS_WORKFLOWS_ROOT']}/scripts/resolve_cosmos_image.py",
                "--skill-bank", os.environ["COSMOS_WORKFLOWS_ROOT"],
                "--model", "nvidia/Cosmos3-Nano",
                "--action", "inference_microservice",
@@ -116,7 +116,7 @@ job_payload_builder:
       import os, subprocess
       image = os.environ.get("IMAGE_COSMOS_PREDICT2_5") or subprocess.check_output(
           [f"{os.environ['COSMOS_WORKFLOWS_ROOT']}/scripts/resolve_versions_key.py",
-           "images.tao_toolkit.cosmos_predict"], text=True
+           "images.containers.cosmos_predict"], text=True
       ).strip()
 
   tao-dataservices:
@@ -165,7 +165,7 @@ job_payload_builder:
       import os, subprocess
       image = os.environ.get("IMAGE_TAO_DATASERVICES") or subprocess.check_output(
           [f"{os.environ['COSMOS_WORKFLOWS_ROOT']}/scripts/resolve_versions_key.py",
-           "images.tao_toolkit.data_services"], text=True
+           "images.containers.data_services"], text=True
       ).strip()
 
 registry_write:
@@ -177,7 +177,7 @@ registry_write:
     import json, os
     from datetime import datetime, timezone
 
-    STATE_FILE = "/tmp/tao-inf-ms-state.json"
+    STATE_FILE = "/tmp/cosmos-inf-ms-state.json"
 
     try:
         with open(STATE_FILE) as f:
@@ -275,9 +275,9 @@ registry_write:
 
       job_name = subprocess.check_output(
           ["kubectl", "get", "jobs", "-n", namespace, "-o",
-           f"jsonpath={{.items[?(@.metadata.annotations.tao-job-id=='{job_id}')].metadata.name}}"],
+           f"jsonpath={{.items[?(@.metadata.annotations.cosmos-job-id=='{job_id}')].metadata.name}}"],
           text=True
-      ).strip() or f"tao-job-{job_id}"
+      ).strip() or f"cosmos-job-{job_id}"
 
       subprocess.run([
           "kubectl", "expose", "job", job_name,
@@ -355,7 +355,7 @@ stop:
     python: |
       import json
 
-      STATE_FILE = "/tmp/tao-inf-ms-state.json"
+      STATE_FILE = "/tmp/cosmos-inf-ms-state.json"
 
       try:
           with open(STATE_FILE) as f:
@@ -377,7 +377,7 @@ stop:
     python: |
       import json, os
 
-      STATE_FILE = "/tmp/tao-inf-ms-state.json"
+      STATE_FILE = "/tmp/cosmos-inf-ms-state.json"
 
       try:
           with open(STATE_FILE) as f:
@@ -406,7 +406,7 @@ request:
     python: |
       import json
 
-      STATE_FILE = "/tmp/tao-inf-ms-state.json"
+      STATE_FILE = "/tmp/cosmos-inf-ms-state.json"
 
       with open(STATE_FILE) as f:
           state = json.load(f)

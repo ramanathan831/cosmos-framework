@@ -3,7 +3,7 @@
 There is no registry and no interface file: **a platform skill declares the
 contract by documenting it, and you verify it by reading.** Any installed skill
 (in-bank or external — e.g. a `cosmos-run-on-kratos` from another repo) is a
-conformant TAO platform iff its SKILL.md documents, for its native CLI:
+conformant execution platform iff its SKILL.md documents, for its native CLI:
 
 1. **submit** that opens the job record BEFORE launching (record-then-launch)
    and names/labels the backend object after the id;

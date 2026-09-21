@@ -27,7 +27,7 @@ SB="${COSMOS_WORKFLOWS_ROOT:?source tools/cosmos_workflows/env.sh}"
 SETUP_SCRIPT="${SB}/execution/gpu-host/scripts/setup-nvidia-gpu-host.sh"
 
 bash "$SETUP_SCRIPT" --backend docker --check-only || {
-  echo "MISSING: TAO GPU host runtime is not ready."
+  echo "MISSING: Cosmos GPU host runtime is not ready."
   echo "After user approval, run (append --yes for non-interactive agent runs):"
   echo "  bash \"$SETUP_SCRIPT\" --backend docker --install"
   exit 1
@@ -71,7 +71,7 @@ below, with the raw state carried in the transition `message`. `$BANK` =
    secrets; pass creds as `-e VAR` with no value).
 3. **Open the record — this mints the id and binds `results_dir` BEFORE launch:**
    ```bash
-   JOB_ID=$("$BANK/scripts/tao_job_record.py" open \
+   JOB_ID=$("$BANK/scripts/cosmos_job_record.py" open \
      --platform docker --image "$IMAGE" \
      --network-arch "$ARCH" --action "$ACTION" \
      --storage-tier "$TIER" --results-root "$RESULTS_ROOT")
@@ -80,14 +80,14 @@ below, with the raw state carried in the transition `message`. `$BANK` =
    it (keep `--rm` OFF so an exited container stays inspectable):
    ```bash
    set -a; source /path/to/.env; set +a   # omit if already exported
-   CID=$(docker run -d --name "$JOB_ID" --label "tao-job=$JOB_ID" \
+   CID=$(docker run -d --name "$JOB_ID" --label "cosmos-job=$JOB_ID" \
      --gpus "$GPUS" --ipc=host \
      -v "$STAGE:/workspace" \
      -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e HF_TOKEN -e NGC_KEY \
      "$IMAGE" <bundle command, reading /workspace/spec.yaml>)
    ```
 5. **Record RUNNING:**
-   `"$BANK/scripts/tao_job_record.py" mark "$JOB_ID" --state RUNNING --backend-ref "$CID"`.
+   `"$BANK/scripts/cosmos_job_record.py" mark "$JOB_ID" --state RUNNING --backend-ref "$CID"`.
 
 A submit that skipped step 3 has no id, so it cannot launch — that is the
 record-then-launch invariant.
@@ -119,7 +119,7 @@ docker logs --tail "${N:-200}" "$JOB_ID"    # add -f to follow in-turn
 
 ```bash
 docker rm -f "$JOB_ID"
-"$BANK/scripts/tao_job_record.py" mark "$JOB_ID" --state CANCELED --source agent
+"$BANK/scripts/cosmos_job_record.py" mark "$JOB_ID" --state CANCELED --source agent
 ```
 
 ## Local vs remote (DOCKER_HOST)
@@ -145,7 +145,7 @@ HOST_IDENTITY_ARGS=(--user "$HOST_UID:$HOST_GID")
 for group_id in $(id -G); do
   [ "$group_id" = "$HOST_GID" ] || HOST_IDENTITY_ARGS+=(--group-add "$group_id")
 done
-mkdir -p "$HOST_RESULTS/.tao-runtime/home/.cache"/{huggingface,torch,triton,torchinductor,matplotlib}
+mkdir -p "$HOST_RESULTS/.cosmos-runtime/home/.cache"/{huggingface,torch,triton,torchinductor,matplotlib}
 
 docker run \
   --gpus all \
@@ -154,14 +154,14 @@ docker run \
   "${HOST_IDENTITY_ARGS[@]}" \
   -v /host/data:/data \
   -v "$HOST_RESULTS:/results" \
-  -e HOME=/results/.tao-runtime/home \
+  -e HOME=/results/.cosmos-runtime/home \
   -e USER="$HOST_USER_NAME" -e LOGNAME="$HOST_USER_NAME" \
-  -e XDG_CACHE_HOME=/results/.tao-runtime/home/.cache \
-  -e HF_HOME=/results/.tao-runtime/home/.cache/huggingface \
-  -e TORCH_HOME=/results/.tao-runtime/home/.cache/torch \
-  -e TRITON_CACHE_DIR=/results/.tao-runtime/home/.cache/triton \
-  -e TORCHINDUCTOR_CACHE_DIR=/results/.tao-runtime/home/.cache/torchinductor \
-  -e MPLCONFIGDIR=/results/.tao-runtime/home/.cache/matplotlib \
+  -e XDG_CACHE_HOME=/results/.cosmos-runtime/home/.cache \
+  -e HF_HOME=/results/.cosmos-runtime/home/.cache/huggingface \
+  -e TORCH_HOME=/results/.cosmos-runtime/home/.cache/torch \
+  -e TRITON_CACHE_DIR=/results/.cosmos-runtime/home/.cache/triton \
+  -e TORCHINDUCTOR_CACHE_DIR=/results/.cosmos-runtime/home/.cache/torchinductor \
+  -e MPLCONFIGDIR=/results/.cosmos-runtime/home/.cache/matplotlib \
   -e HF_TOKEN -e NGC_KEY \
   <image> \
   <command>
@@ -201,21 +201,21 @@ HOST_IDENTITY_ARGS=(--user "$HOST_UID:$HOST_GID")
 for group_id in $(id -G); do
   [ "$group_id" = "$HOST_GID" ] || HOST_IDENTITY_ARGS+=(--group-add "$group_id")
 done
-mkdir -p "$HOST_RESULTS/.tao-runtime/home/.cache"/{huggingface,torch,triton,torchinductor,matplotlib}
+mkdir -p "$HOST_RESULTS/.cosmos-runtime/home/.cache"/{huggingface,torch,triton,torchinductor,matplotlib}
 
 docker run -d --name <worker> \
   --gpus all --shm-size=8g \
   "${HOST_IDENTITY_ARGS[@]}" \
   -v <host-data>:/data \
   -v "$HOST_RESULTS:/results" \
-  -e HOME=/results/.tao-runtime/home \
+  -e HOME=/results/.cosmos-runtime/home \
   -e USER="$(id -un)" -e LOGNAME="$(id -un)" \
-  -e XDG_CACHE_HOME=/results/.tao-runtime/home/.cache \
-  -e HF_HOME=/results/.tao-runtime/home/.cache/huggingface \
-  -e TORCH_HOME=/results/.tao-runtime/home/.cache/torch \
-  -e TRITON_CACHE_DIR=/results/.tao-runtime/home/.cache/triton \
-  -e TORCHINDUCTOR_CACHE_DIR=/results/.tao-runtime/home/.cache/torchinductor \
-  -e MPLCONFIGDIR=/results/.tao-runtime/home/.cache/matplotlib \
+  -e XDG_CACHE_HOME=/results/.cosmos-runtime/home/.cache \
+  -e HF_HOME=/results/.cosmos-runtime/home/.cache/huggingface \
+  -e TORCH_HOME=/results/.cosmos-runtime/home/.cache/torch \
+  -e TRITON_CACHE_DIR=/results/.cosmos-runtime/home/.cache/triton \
+  -e TORCHINDUCTOR_CACHE_DIR=/results/.cosmos-runtime/home/.cache/torchinductor \
+  -e MPLCONFIGDIR=/results/.cosmos-runtime/home/.cache/matplotlib \
   --entrypoint sh \
   <image> -c "tail -f /dev/null"
 
@@ -236,8 +236,8 @@ docker image inspect <image> >/dev/null 2>&1 || docker pull <image>
 Tag containers for filtered listing later:
 
 ```bash
-docker run --label tao-toolkit ...
-docker ps --filter 'label=tao-toolkit'
+docker run --label cosmos-workflow ...
+docker ps --filter 'label=cosmos-workflow'
 ```
 
 ## Mount patterns
@@ -274,7 +274,7 @@ exception. Never substitute `chmod 777` as the normal fix.
 
 ## Env-var conventions
 
-Common passthrough vars for TAO-style workloads (the calling skill declares which it needs):
+Common passthrough vars for containerized workloads (the calling skill declares which it needs):
 
 - `NGC_KEY` — `nvcr.io` pulls; some runtimes also read at runtime
 - `HF_TOKEN` — gated HuggingFace model downloads
@@ -343,12 +343,12 @@ sudo rm -rf /var/lib/docker.old
 For microservice containers that talk to each other by name, create a docker network and attach containers:
 
 ```bash
-docker network create tao-net
-docker run --network tao-net --name api ...
-docker run --network tao-net --name worker ...   # can resolve `api` by name
+docker network create cosmos-net
+docker run --network cosmos-net --name api ...
+docker run --network cosmos-net --name worker ...   # can resolve `api` by name
 ```
 
-Most TAO training workloads don't need this — single container per job.
+Most model training workloads don't need this — single container per job.
 
 ## Common error modes
 
@@ -363,13 +363,13 @@ df` and are not fixed by pruning Docker images:
 ```bash
 df -h / /var/lib/docker <results_root>
 docker system df
-docker inspect <tao-container> --format '{{json .Mounts}}'
+docker inspect <model-container> --format '{{json .Mounts}}'
 du -xhd1 <results_root> 2>/dev/null | sort -h
 find <results_root> -maxdepth 3 -printf '%u:%g %m %s %p\n' 2>/dev/null | head
 ```
 
 For a bind mount, clean only job directories whose record is in a terminal state
-(`tao_job_record.py get "$JOB_ID"`), via a reviewed ownership repair; never assume
+(`cosmos_job_record.py get "$JOB_ID"`), via a reviewed ownership repair; never assume
 `docker system prune` touches them. For Docker's own root, relocate `data-root` as described
 above. `docker system prune -a --volumes` is destructive and may remove unused
 images and volumes belonging to other workflows, so run it only after explicit
@@ -385,7 +385,7 @@ user approval and a reviewed `docker system df` inventory.
 
 ## Scope boundary
 
-This skill both **runs** TAO jobs on Docker (§ Execution) and documents the docker
+This skill both **runs** Cosmos jobs on Docker (§ Execution) and documents the docker
 *how* that other skills defer to. Related:
 
 - `execution/platforms/brev/guide.md` — provisions a Brev instance, then defers the

@@ -42,7 +42,7 @@ Drive `tao-daft validate` against a DAFT dataset (or a tree of them).
 The CLI is the spec; the skill picks subcommand + flags and explains
 the result.
 
-Trigger when the user mentions "TAO DAFT", "DAFT format", validating a
+Trigger when the user mentions "DAFT format", validating a
 DAFT dataset, schema/cross-reference errors, or `tao-daft validate`.
 Do **not** trigger for non-DAFT layouts (COCO, YOLO, Data Factory JSONL),
 or for `tao-daft convert` — use `cosmos-convert-dataset-format`. For inspection

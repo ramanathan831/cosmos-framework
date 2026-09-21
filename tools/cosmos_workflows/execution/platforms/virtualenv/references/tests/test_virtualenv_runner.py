@@ -499,7 +499,7 @@ def test_wrapper_gate_timeout_writes_durable_error(venv, tmp_path):
     wrapper = job / "launch_job.py"
     wrapper.write_text(vr.JOB_WRAPPER_SOURCE, encoding="utf-8")
     exit_p, launch_p = job / "exit.json", job / "launcher.json"
-    env = {**os.environ, "TAO_RUNNER_GATE_TIMEOUT": "1"}
+    env = {**os.environ, "COSMOS_RUNNER_GATE_TIMEOUT": "1"}
     proc = subprocess.Popen(
         [
             str(venv / "bin" / "python"),
