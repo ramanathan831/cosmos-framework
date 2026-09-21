@@ -106,6 +106,16 @@ def _download_llm_tokenizer(
     )
 
 
+def _is_local_qwen35_snapshot(path: str) -> bool:
+    """Recognize pinned Qwen3.5 snapshots whose directory name is only a revision."""
+    config_path = os.path.join(path, "config.json")
+    if not os.path.isfile(config_path):
+        return False
+    with open(config_path) as config_file:
+        config = json.load(config_file)
+    return config.get("model_type") in {"qwen3_5", "qwen3_5_moe"}
+
+
 def build_processor(
     tokenizer_type: str,
     config_variant: Optional[str] = None,
@@ -117,10 +127,11 @@ def build_processor(
     # (e.g. the top level of nvidia/Cosmos3-Nano, which ships its own
     # preprocessor_config.json, tokenizer.json, etc). Avoids the redundant
     # upstream Qwen/Qwen3-VL-*-Instruct fetch. Qwen3-VL Nemo Chat variants use
-    # their specialized loss-mask wrapper. Renewed Cosmos3-Edge snapshots use
-    # the Nemotron bridge; other local artifacts use Qwen3VLProcessor.
+    # their specialized loss-mask wrapper. Nemotron3-Dense-VL and renewed
+    # Cosmos3-Edge snapshots use the Nemotron bridge; other local artifacts use
+    # Qwen3VLProcessor.
     if os.path.isdir(tokenizer_type):
-        if is_cosmos3_edge_native_snapshot(tokenizer_type):
+        if is_cosmos3_edge_native_snapshot(tokenizer_type) or "NVIDIA-Nemotron-3-Dense-VL" in tokenizer_type:
             return Nemotron3DenseVLProcessor(tokenizer_type, cache_dir=cache_dir)
         if "Qwen/Qwen3-VL" in tokenizer_type and "Nemo-Chat" in tokenizer_type:
             return Qwen3VLNemoChatProcessor(tokenizer_type, cache_dir=cache_dir)
@@ -137,7 +148,13 @@ def build_processor(
         raise ValueError("Provide either config_variant or (credentials, bucket), not both")
     if "Qwen/Qwen3-VL" in tokenizer_type and "Nemo-Chat" in tokenizer_type:
         return Qwen3VLNemoChatProcessor(tokenizer_type, credentials=credentials, bucket=bucket, cache_dir=cache_dir)
-    elif "Qwen/Qwen3-VL" in tokenizer_type or "Siglip2-Qwen3-1.7B" in tokenizer_type:
+    elif (
+        "Qwen/Qwen3-VL" in tokenizer_type
+        or "Siglip2-Qwen3-1.7B" in tokenizer_type
+        or "qwen3.5" in tokenizer_type.lower()
+        or "qwen3_5" in tokenizer_type.lower()
+        or _is_local_qwen35_snapshot(tokenizer_type)
+    ):
         return Qwen3VLProcessor(tokenizer_type, credentials=credentials, bucket=bucket, cache_dir=cache_dir)
     elif "nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-BF16" in tokenizer_type:
         return NemotronVLProcessor(tokenizer_type, credentials=credentials, bucket=bucket, cache_dir=cache_dir)

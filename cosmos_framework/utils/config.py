@@ -25,9 +25,9 @@ try:
 except ImportError:
     USE_MEGATRON = False
 
+from cosmos_framework.utils import distributed
 from cosmos_framework.utils.lazy_config import LazyCall as L
 from cosmos_framework.utils.lazy_config import LazyDict
-from cosmos_framework.utils import distributed
 from cosmos_framework.utils.misc import Color
 
 T = TypeVar("T")
@@ -408,8 +408,8 @@ class Profiling:
     # Set `record_shape` and `profile_memory` to False to reduce profile size.
     record_shape: bool = False
     profile_memory: bool = False
-    with_stack: bool = True
-    with_modules: bool = True
+    with_stack: bool = False
+    with_modules: bool = False
 
 
 @make_freezable
@@ -473,6 +473,8 @@ class TrainerConfig:
     # Validate every N completed epochs. A positive value takes priority over
     # validation_iter when steps_per_epoch is configured.
     validation_freq_in_epoch: int = 0
+    # Keep a bounded validation iterator alive so its worker can prefetch between validation calls.
+    prefetch_validation: bool = False
     # Whether to run the validation on the start of the training.
     run_validation_on_start: bool = False
     # Kill the process after N seconds since the last iteration (usually means dead job).
