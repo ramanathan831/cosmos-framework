@@ -16,6 +16,7 @@ from cosmos_framework.configs.base.defaults.quantization import QuantizationConf
 from cosmos_framework.configs.base.defaults.reasoner import VLMConfig
 from cosmos_framework.model.generator.mot.action_io_projector import ACTION_IO_PROJECTOR_TYPES
 from cosmos_framework.model.generator.utils.load_balancing_stats import LBLConfig
+from cosmos_framework.model.generator.utils.sr_latent_noise import SRLatentConditionNoiseConfig
 
 # Mirrors ``cosmos3.common.args.AttentionIOLayout``. Defined locally on purpose: importing
 # the ``cosmos3`` workspace package at module scope makes the whole cosmos3 config tree
@@ -173,6 +174,14 @@ class OmniMoTModelConfig:
     one sample carry both camera clips and LiDAR range clips. Its ``latent_ch`` is
     expected to differ from ``state_ch``; LiDAR keeps its own width through its own
     projections in the network, so ``lidar_state_ch`` must be set to the same value.
+    """
+
+    radar_tokenizer: LazyDict | None = None
+    """VAE for the radar/map polar-grid stream, alongside the camera VAE in ``tokenizer``.
+
+    Radar and map share this tokenizer: both are 6-channel range×azimuth clips.
+    There is no published checkpoint yet, so the Hydra default keeps
+    ``load_checkpoint=False`` until a trained iterate is exported.
     """
 
     lidar_state_ch: int | None = None
@@ -342,6 +351,10 @@ class OmniMoTModelConfig:
     sound_tokenizer: LazyDict | None = None  # Sound tokenizer config (e.g., AVAE)
     sound_dim: int | None = None  # Sound latent channel size (e.g., 64 for AVAE 48kHz)
     sound_latent_fps: int = 25  # Sound tokenizer's latent rate (e.g., 48kHz / 1920 hop = 25 Hz)
+
+    # Super-resolution: Gaussian noise on the LR conditioning latent of SR samples during training (L1).
+    # None disables it. See cosmos_framework/model/generator/utils/sr_latent_noise.py.
+    sr_latent_condition_noise: SRLatentConditionNoiseConfig | None = None
 
     # When False, removes bias from vae2llm, sound2llm, and the two Linear layers inside
     # time_embedder.  These biases seem to inject token-constant DC offsets that dominate

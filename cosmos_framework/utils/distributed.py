@@ -23,8 +23,8 @@ import torch
 import torch.distributed as dist
 from torch.distributed import get_process_group_ranks
 
-from cosmos_framework.utils.flags import INTERNAL
 from cosmos_framework.utils.device import Device
+from cosmos_framework.utils.flags import INTERNAL
 
 if dist.is_available():
     from torch.distributed.distributed_c10d import _get_default_group
@@ -34,6 +34,16 @@ from cosmos_framework.utils import log
 
 if TYPE_CHECKING:
     from cosmos_framework.utils.config import DDPConfig
+
+
+def _set_gpu_cpu_affinity(device: Device) -> None:
+    """Prefer GPU-local CPUs within the process's existing allocation."""
+    allocated_cpus = os.sched_getaffinity(0)
+    preferred_cpus = allocated_cpus.intersection(device.get_cpu_affinity())
+    if preferred_cpus:
+        os.sched_setaffinity(0, preferred_cpus)
+    else:
+        log.warning("No GPU-local CPU is available in the current CPU affinity; retaining the allocated set.")
 
 
 def init(store: dist.Store | None = None, backend: str | None = None) -> int | None:
@@ -58,17 +68,7 @@ def init(store: dist.Store | None = None, backend: str | None = None) -> int | N
     local_rank = int(os.getenv("LOCAL_RANK", 0))
     try:
         device = Device(local_rank)
-        allowed_affinity = set(os.sched_getaffinity(0))
-        device_affinity = set(device.get_cpu_affinity())
-        compatible_affinity = allowed_affinity.intersection(device_affinity)
-        if compatible_affinity:
-            os.sched_setaffinity(0, compatible_affinity)
-        else:
-            log.warning(
-                "Skipping GPU CPU affinity because NVML affinity "
-                f"{sorted(device_affinity)} does not intersect the process cpuset "
-                f"{sorted(allowed_affinity)}"
-            )
+        _set_gpu_cpu_affinity(device)
     except (pynvml.NVMLError, OSError) as e:
         log.warning(f"Failed to set device affinity: {e}")
     # Set up distributed communication. CPU checkpoint conversion needs Gloo

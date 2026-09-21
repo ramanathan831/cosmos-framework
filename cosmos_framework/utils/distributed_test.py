@@ -82,8 +82,7 @@ def test_init_logs_empty_nvml_slurm_affinity_intersection(monkeypatch: pytest.Mo
     distributed.init()
 
     warning.assert_called_once_with(
-        "Skipping GPU CPU affinity because NVML affinity [0, 1] does not "
-        "intersect the process cpuset [32, 33]"
+        "No GPU-local CPU is available in the current CPU affinity; retaining the allocated set."
     )
 
 

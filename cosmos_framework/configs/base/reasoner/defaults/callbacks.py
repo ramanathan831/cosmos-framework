@@ -21,7 +21,7 @@ from cosmos_framework.callbacks.tao_status import TAOStatusCallback
 from cosmos_framework.callbacks.tokens_per_sec import VLMTokensPerSec
 from cosmos_framework.callbacks.wandb_log import WandbCallback as WandBCallbackMultiplier
 from cosmos_framework.callbacks.wandb_vis import VisualizationLoggingCallback
-from cosmos_framework.configs.base.defaults.callbacks import JOB_MONITOR_CALLBACKS
+from cosmos_framework.configs.base.defaults.job_monitor import JOB_MONITOR_CALLBACKS
 from cosmos_framework.utils.callback import LowPrecisionCallback, WandBCallback
 from cosmos_framework.utils.lazy_config import PLACEHOLDER
 from cosmos_framework.utils.lazy_config import LazyCall as L
