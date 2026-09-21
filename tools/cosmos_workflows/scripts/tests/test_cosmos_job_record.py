@@ -40,7 +40,7 @@ def open_job(capsys, **overrides):
         "--platform",
         "slurm",
         "--image",
-        "nvcr.io/nvidia/tao/tao-toolkit:6.26.3-pyt",  # unpinned: test fixture
+        "cosmos-framework:local",  # unpinned: test fixture
         "--network-arch",
         "dino",
         "--action",
@@ -471,7 +471,7 @@ def test_platform_input_is_normalized_not_rejected(capsys, state_dir, raw, canon
                 "open",
                 f"--platform={raw}",
                 "--image",
-                "nvcr.io/nvidia/tao/tao-toolkit:6.26.3-pyt",  # unpinned: test fixture
+                "cosmos-framework:local",  # unpinned: test fixture
                 "--network-arch",
                 "dino",
                 "--action",

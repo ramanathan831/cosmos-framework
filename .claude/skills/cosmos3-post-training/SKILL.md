@@ -56,8 +56,8 @@ impose those gates on ordinary native generator recipes.
 - Before managed submission, use the platform and launch references in
   `cosmos3-setup`. Keep nested specs, record-before-submit ordering, and
   backend-reported completion; report token-weighted losses and task-aware metrics.
-- For DAFT input only, use the [validation reference](../../../tools/cosmos_workflows/models/cosmos3-reasoner/references/daft-validate.md)
-  and, if needed, the [conversion reference](../../../tools/cosmos_workflows/models/cosmos3-reasoner/references/daft-convert.md).
+- For task-aware input only, use the [validation reference](../../../tools/cosmos_workflows/models/cosmos3-reasoner/references/dataset-validate.md)
+  and, if needed, the [conversion reference](../../../tools/cosmos_workflows/models/cosmos3-reasoner/references/dataset-convert.md).
   Native generator JSONL preparation remains in `docs/dataset_jsonl.md`;
   multi-stage reasoning QA generation uses `cosmos-annotate-videos`.
 

@@ -38,7 +38,7 @@ def run_helper(bundle: Path, script: str, *args: str) -> subprocess.CompletedPro
     environment = os.environ.copy()
     for name in ("COSMOS_WORKFLOWS_ROOT", "COSMOS_SKILLS_ROOT", "PYTHONPATH"):
         environment.pop(name, None)
-    environment["TAO_SKILL_BANK_PATH"] = "/nonexistent/deprecated-skill-bank"
+    environment["COSMOS_SKILL_BANK_PATH"] = "/nonexistent/deprecated-skill-bank"
     return subprocess.run(
         [sys.executable, str(bundle / script), *args],
         cwd=bundle.parent,
@@ -187,6 +187,16 @@ def test_provenance_records_packaged_files_and_existing_routes():
         assert len(entry["source_sha256"]) == 64
     for name in manifest["skill_routes"].values():
         assert (FRAMEWORK / ".agents/skills" / name / "SKILL.md").is_file(), name
+
+
+def test_local_image_stamps_can_be_updated_without_registry_assumptions():
+    import stamp_versions
+
+    line = "container_image: cosmos-framework:local  # versions-key: images.containers.cosmos_framework"
+    original_image = "cosmos-framework:local"  # unpinned: test fixture
+    updated, ok = stamp_versions.replace_value(line, "registry.example.com/cosmos/framework:verified")
+    assert ok
+    assert updated == line.replace(original_image, "registry.example.com/cosmos/framework:verified")
 
 
 def test_local_markdown_references_resolve_without_source_repository():

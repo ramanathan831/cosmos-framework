@@ -25,7 +25,7 @@ from typing import Any
 DEFAULT_NANO_VLM_ARCHITECTURE_MODEL = "Qwen/Qwen3-VL-8B-Instruct"
 CONVERTER_ENTRYPOINT_MODULES = {
     "cosmos-framework": "cosmos_framework.scripts.convert_model_to_vlm_safetensors",
-    "cosmos-rl": "cosmos_rl.model_preparation.vlm_safetensors",
+    "cosmos-rl": "cosmos_framework.scripts.prepare_vlm_checkpoint",
 }
 
 
@@ -137,7 +137,7 @@ python -m {entrypoint} \
   --checkpoint-path "$source_value" --output-path "/output/$OUTPUT_NAME" \
   --vlm-model-name "$architecture_value"
 """
-    runtime_user = os.environ.get("USER") or os.environ.get("LOGNAME") or getpass.getuser() or "tao"
+    runtime_user = os.environ.get("USER") or os.environ.get("LOGNAME") or getpass.getuser() or "workflow_status"
     result = [
         # Run as the invoking user so the host-side validation pass can read
         # the prepared files; the selected backend image keeps its venv readable.
@@ -154,9 +154,9 @@ python -m {entrypoint} \
         "-e",
         f"LOGNAME={runtime_user}",
         "-e",
-        "HOME=/cache/tao-home",
+        "HOME=/cache/cosmos-home",
         "-e",
-        "XDG_CACHE_HOME=/cache/tao-home/.cache",
+        "XDG_CACHE_HOME=/cache/cosmos-home/.cache",
         "-e",
         "TORCHINDUCTOR_CACHE_DIR=/cache/torchinductor",
         "-e",
@@ -293,7 +293,7 @@ def main(argv: list[str] | None = None) -> int:
                 return 2
             shutil.rmtree(output)
         else:
-            metadata = output / "tao_conversion_provenance.json"
+            metadata = output / "cosmos_conversion_provenance.json"
             if metadata.is_file() and not args.force:
                 print(json.dumps({"status": "reused_verified", **existing}, indent=2))
                 return 0
@@ -324,7 +324,7 @@ def main(argv: list[str] | None = None) -> int:
         "output": identity(str(output)),
         "prepared": prepared,
     }
-    (output / "tao_conversion_provenance.json").write_text(json.dumps(provenance, indent=2, sort_keys=True) + "\n")
+    (output / "cosmos_conversion_provenance.json").write_text(json.dumps(provenance, indent=2, sort_keys=True) + "\n")
     print(json.dumps(provenance, indent=2, sort_keys=True))
     return 0
 

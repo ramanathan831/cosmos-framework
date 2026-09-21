@@ -4,7 +4,7 @@ Container execution steps, monitoring, status mapping, cancellation, multi-node 
 
 ## Container Execution
 
-`tao-core` uses the SLURM handler to run model containers through Pyxis/Enroot:
+The native SLURM commands run model containers through Pyxis/Enroot:
 
 1. Stage compact JSON files for specs, environment, and cloud metadata under
    `<job_dir>/specs`, `<job_dir>/env`, and `<job_dir>/meta`.
@@ -107,17 +107,17 @@ SLURM is the platform of choice for large multi-node runs — set `num_nodes > 1
 and render `templates/slurm/multinode.sbatch.tmpl`, which is a strict superset of
 the single-node template: it adds the sbatch directives and PyTorch-distributed
 rendezvous env vars below. For example, `NUM_GPUS=8` (GPUs per node) with
-`WORLD_SIZE=4` node count gives 4 × 8 = 32 GPUs total; the training command is a
+`NNODES=4` node count gives 4 × 8 = 32 GPUs total; the training command is a
 `torchrun` reading the exported env vars, e.g.:
 
 ```bash
-torchrun --nnodes=$WORLD_SIZE --nproc-per-node=$NUM_GPU_PER_NODE \
+torchrun --nnodes=$NNODES --nproc-per-node=$NPROC_PER_NODE \
   --node-rank=$NODE_RANK --master-addr=$MASTER_ADDR --master-port=$MASTER_PORT \
   train.py
 ```
 
 (packaged entrypoints such as `dino train -e spec.yaml` build the torchrun invocation
-internally from `WORLD_SIZE` + `NUM_GPU_PER_NODE`.)
+internally from `NNODES` + `NPROC_PER_NODE`.)
 
 ### What the rendered template generates
 
@@ -131,19 +131,19 @@ The rendered multi-node `sbatch` script has:
 #SBATCH --wait-all-nodes=1           # don't start until all N nodes are allocated
 ```
 
-Then exports the rendezvous env vars before `srun --container-image=...` launches the container on each node. These match the packaged PyTorch container contract (`nvidia_tao_pytorch/core/entrypoint.py`):
+Then exports the rendezvous env vars before `srun --container-image=...` launches the container on each node. The supplied command invokes native torchrun explicitly:
 
 | Env var | Value | Read by |
 |---|---|---|
-| `WORLD_SIZE` | `N` (= node count, the container entrypoint convention) | model container entrypoint |
-| `NUM_GPU_PER_NODE` | `G` | model container entrypoint |
+| `NNODES` | `N` (= node count, the container entrypoint convention) | model container entrypoint |
+| `NPROC_PER_NODE` | `G` | model container entrypoint |
 | `NODE_RANK` | `$SLURM_NODEID` | model container entrypoint, torchrun |
 | `MASTER_ADDR` | first hostname from `scontrol show hostname $SLURM_JOB_NODELIST` | model container entrypoint, torchrun |
 | `MASTER_PORT` | `29500` | model container entrypoint, torchrun |
 
 ```bash
-export WORLD_SIZE=N
-export NUM_GPU_PER_NODE=G
+export NNODES=N
+export NPROC_PER_NODE=G
 export MASTER_PORT=29500
 NODELIST=$(scontrol show hostname $SLURM_JOB_NODELIST)
 export MASTER_ADDR=$(echo $NODELIST | cut -d' ' -f1)   # first node = rank-0 / master
@@ -152,7 +152,9 @@ export NODE_RANK=$SLURM_NODEID                          # SLURM provides this pe
 
 `SLURM_JOB_NODELIST` and `SLURM_NODEID` come from SLURM itself — no manual registration step.
 
-For packaged entrypoints (`dino train -e spec.yaml`, etc.) the container's entrypoint reads `WORLD_SIZE` + `NUM_GPU_PER_NODE` and constructs the torchrun command internally. For raw `torchrun` commands, use the standard PyTorch flags pointing at these env vars.
+Use the standard torchrun flags pointing at these variables. Do not rely on a
+container entrypoint to infer or construct the distributed launch. WORLD_SIZE
+is the global worker count set by torchrun, never the node count.
 
 ### Cluster requirements for multi-node
 

@@ -15,11 +15,12 @@ Use this reference only when the parent `SKILL.md` points here for the current t
 
 ## Complete YAML Structure
 
-Generate a default experiment spec with `auto_label default_specs results_dir=/results module_name=auto_label`, then set `autolabel_type: "video_reasoning_annotation"`.
+Print the Framework-owned template with `cosmos-annotate-videos --print-defaults`.
+Fill in the results directory, inputs, and explicit provider model names. Secrets
+come from environment variables; do not save them in the spec.
 
 ```yaml
 results_dir: ???                        # Required — output directory
-autolabel_type: "video_reasoning_annotation"
 
 video_reasoning_annotation:
   # --- VLM (vision-language model, for steps 0/1a/1b/1c) ---
@@ -27,7 +28,7 @@ video_reasoning_annotation:
     backend: "gemini"                   # "gemini" or "openai"
     gemini:
       api_key: ""                       # Or set GOOGLE_API_KEY env var
-      model: "gemini-3.1-flash-lite-preview"
+      model: ""                         # Required explicit provider model
       media_resolution: "MEDIA_RESOLUTION_LOW"  # LOW / MEDIUM / HIGH
       temperature: 0.3
       max_output_tokens: 8192
@@ -44,7 +45,7 @@ video_reasoning_annotation:
     backend: "gemini"
     gemini:
       api_key: ""                       # Or set GOOGLE_API_KEY env var
-      model: "gemini-3.1-flash-lite-preview"
+      model: ""                         # Required explicit provider model
       temperature: 0.3
       max_output_tokens: 8192
       timeout: 120
@@ -86,7 +87,7 @@ video_reasoning_annotation:
 | Parallelism | `workflow.max_workers` | Higher = faster but watch API rate limits. Start with 4, increase if no throttling |
 | Video length limit | `workflow.max_video_length_sec` | Videos exceeding this are skipped. Default 300s (5 min) |
 | Custom prompts | `prompts_module` | Leave empty for general-purpose defaults. Set to a module path for domain-specific prompts |
-| Output metadata | `license`, `description_extra` | Step 4 emits one `<task>.json` per task type in the `tao-vl-reason-v1.0` envelope. `license` populates `metadata.license`; `description_extra` is appended to the per-task description string. `media_root` mirrors `data.video_root` automatically |
+| Output metadata | `license`, `description_extra` | Step 4 emits one `<task>.json` per task type in the `cosmos-video-reasoning-v1.0` envelope. `license` populates `metadata.license`; `description_extra` is appended to the per-task description string. `media_root` mirrors `data.video_root` automatically |
 
 ## Model / Endpoint Configuration
 
@@ -101,9 +102,11 @@ The selected platform must forward the variable by name (for example, Docker
 `--env GOOGLE_API_KEY`). Leave the Gemini `api_key` config empty to use the
 runtime's environment fallback. Never place the value in YAML or command argv.
 
-Recommended model assignments:
-- **VLM (Steps 0/1)**: `gemini-3.1-flash` or `gemini-3.1-pro` — needs video understanding
-- **LLM (Steps 2/3)**: `gemini-3.1-flash` (Gemini backend) or `gemma-4-31b` served via a local deployment — text-only, cheaper/self-hosted model works. For self-hosting, see the `inference-service` skill (should support Cosmos, Qwen, and Gemma) or any vLLM/NIM endpoint you bring yourself.
+Model names are explicit inputs, with no default provider model. Select a
+video-capable VLM for Steps 0/1 and a text-capable LLM for Steps 2/3. Verify
+availability, access, cost, and media limits with the chosen provider before
+launch. Self-hosting is described in the existing `cosmos3-inference` skill's
+service reference; compatible vLLM/NIM endpoints can also be supplied directly.
 
 Temperature guidance:
 - Captioning (Steps 0/1): 0.2-0.3 for factual accuracy
@@ -113,7 +116,7 @@ Temperature guidance:
 
 For self-hosted models, the pipeline accepts any endpoint that speaks the OpenAI chat-completions API. Two common ways to provision one:
 
-1. **`inference-service` skill** — workflow for standing up a containerized inference microservice locally. Should support Cosmos, Qwen, and Gemma. Check that skill's `references/service.yaml` `valid_network_arch_config_basenames` for the current model list.
+1. **`cosmos3-inference` skill** — routes to this checkout's service reference for native reasoner and compatible vLLM deployments.
 2. **Bring-your-own deployment** — vLLM, NIM, or any other OpenAI-compatible server.
 
 Either way, the YAML wiring is the same:
@@ -131,7 +134,7 @@ video_reasoning_annotation:
 ```
 
 For authenticated endpoints, the user sets `OPENAI_API_KEY` in the environment
-and the platform forwards it by name. The example uses Hydra/OmegaConf runtime
+and the platform forwards it by name. The example uses OmegaConf runtime
 interpolation, not a literal secret. Do not resolve that interpolation into
 staged specs, job records, or logged configuration. For an unauthenticated
 local endpoint, use the non-secret value required by that endpoint instead.

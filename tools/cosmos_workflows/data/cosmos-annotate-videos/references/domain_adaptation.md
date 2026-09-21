@@ -16,7 +16,7 @@ Use this reference only when the parent `SKILL.md` points here for the current t
 
 ## Overview
 
-The default prompts in `nvidia_tao_ds.auto_label.video_reasoning_annotation.prompts` work for general video content. For domain-specific datasets, customize the prompts via the template module to get significantly better caption accuracy, description quality, and QA relevance.
+The default prompts in `cosmos_framework.inference.video_annotation.prompts` work for general video content. For domain-specific datasets, customize the prompts via the template module to get significantly better caption accuracy, description quality, and QA relevance.
 
 ## Consultation Process
 
@@ -70,7 +70,7 @@ Only after confirmation, fill in the `prompt_template.py` placeholders. The capt
 
 ## Placeholder Reference
 
-The template module (`nvidia_tao_ds.auto_label.video_reasoning_annotation.prompt_template`) uses these placeholder patterns:
+The template module (`cosmos_framework.inference.video_annotation.prompt_template`) uses these placeholder patterns:
 
 | Placeholder | What to fill in | Example (traffic) |
 |-------------|----------------|-------------------|
@@ -104,10 +104,10 @@ After filling in placeholders:
 
 ## Reference Prompt Modules
 
-The selected annotation container provides domain-adapted prompt modules under
-`nvidia_tao_ds.auto_label.video_reasoning_annotation`. Verify availability in that
-runtime before use. They follow the built-in `PROMPT_TEMPLATES` and `get_prompt()`
-interface; this repository does not maintain duplicate module copies.
+Framework provides domain-adapted prompt modules under
+`cosmos_framework.inference.video_annotation`. They follow the built-in
+`PROMPT_TEMPLATES` and `get_prompt()` interface; the skill does not keep a second
+copy of these modules.
 
 - **`prompts_traffic`** — Traffic CCTV (intersections, highways).
 
@@ -119,6 +119,6 @@ interface; this repository does not maintain duplicate module copies.
 3. Set `prompts_module: "my_package.prompts_traffic"` in the YAML config
 
 **To create a new domain module:**
-1. Start from the template module (`nvidia_tao_ds.auto_label.video_reasoning_annotation.prompt_template`, placeholder-based) or from one of the reference modules
+1. Start from the template module (`cosmos_framework.inference.video_annotation.prompt_template`, placeholder-based) or from one of the reference modules
 2. Use the consultation process above to determine what placeholders to fill in
 3. Follow the same structure: `PROMPT_TEMPLATES` dict with all 26 keys + `get_prompt()` helper

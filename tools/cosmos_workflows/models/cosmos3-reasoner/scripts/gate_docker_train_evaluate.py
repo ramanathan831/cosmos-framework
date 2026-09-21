@@ -271,7 +271,7 @@ def launch_eval(args: argparse.Namespace, job_id: str, results_dir: Path, checkp
             "--env",
             "TMPDIR=/results/tmp",
             "--env",
-            f"TAO_API_JOB_ID={job_id}",
+            f"COSMOS_API_JOB_ID={job_id}",
             "--env",
             "COSMOS_VIDEO_CACHE_ITEMS=16",
             "--env",
@@ -289,7 +289,7 @@ def launch_eval(args: argparse.Namespace, job_id: str, results_dir: Path, checkp
             "--mount",
             f"type=bind,src={results_dir},dst=/results",
             args.image,
-            "cosmos-rl-evaluate",
+            "cosmos-reasoner-evaluate",
             "--config",
             f"/specs/{args.eval_spec.name}",
         ]

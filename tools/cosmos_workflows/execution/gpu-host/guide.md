@@ -34,7 +34,7 @@ Installation must be explicitly authorized by the user and rerun with
 
 ## Quick Start
 
-From the skill bank root:
+From the workflow support root:
 
 ```bash
 # Check the local Docker backend host.
@@ -142,7 +142,7 @@ After installation, verify:
 nvidia-smi
 nvcc --version
 docker info --format '{{json .Runtimes}}' | grep nvidia
-sudo docker run --rm --runtime=nvidia --gpus all "$TAO_IMAGE" nvidia-smi -L
+sudo docker run --rm --runtime=nvidia --gpus all "$COSMOS_IMAGE" nvidia-smi -L
 ```
 
 The detected driver, CUDA Toolkit, and Container Toolkit versions must meet the
@@ -152,7 +152,7 @@ smoke test; version comparison alone is not sufficient compatibility proof.
 For a Cosmos backend, extend that smoke with the backend contract's Python and
 entrypoint checks. Cosmos Framework must execute
 `/workspace/.venv/bin/python` as a non-root UID, import
-`cosmos_framework.callbacks.tao_status`, find native torchrun, and verify the
+`cosmos_framework.callbacks.workflow_status`, find native torchrun, and verify the
 A100 PatchEmbed compatibility marker when the host reports compute capability
 8.0. Cosmos-RL must resolve its requested action executable, import
 system PyAV for video workflows, resolve the restricted FFmpeg `h264_cuvid`

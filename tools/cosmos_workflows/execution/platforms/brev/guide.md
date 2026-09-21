@@ -110,12 +110,12 @@ NGC auth once per instance — **never put `NGC_KEY` on argv** (it lands in the
 remote process table); pipe it to `--password-stdin`:
 
 ```bash
-IMG=nvcr.io/nvstaging/tao/tao-toolkit-pyt:7.2.0-rc-36-multiarch  # versions-key: images.containers.pyt
+IMG=${COSMOS_IMAGE:?Select an accessible registry image built from this checkout}
 
 # NGC auth (one-time per instance) — value never on argv.
 # Single-quoted locally so $NGC_KEY expands in the instance's shell; export it
 # there first (or pipe it in from the local shell, if the instance has no copy).
-brev exec <instance> 'printf %s "$NGC_KEY" | docker login nvcr.io -u "$oauthtoken" --password-stdin'
+brev exec <instance> 'printf %s "$NGC_KEY" | docker login nvcr.io -u \$oauthtoken --password-stdin'
 
 # Verify auth without reading ~/.docker/config.json. Failure before a successful
 # login = not authenticated; failure after = the key's org lacks entitlement.

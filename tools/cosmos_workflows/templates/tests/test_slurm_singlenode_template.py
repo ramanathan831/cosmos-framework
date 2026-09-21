@@ -29,7 +29,7 @@ BASE = {
     "SBATCH_EXTRA": "#SBATCH --account=edgeai\n#SBATCH --partition=polar,polar3",
     "ENV_FILE": "",
     "EXTRA_ENV": "",
-    "IMAGE": "/lustre/fsw/sqsh/tao-toolkit-6.26.3-pyt.sqsh",
+    "IMAGE": "/lustre/fsw/sqsh/cosmos-framework.sqsh",
     "CONTAINER_MOUNTS": "/lustre",
     "COMMAND": "dino train -e /lustre/fsw/.../specs/dino-train-a1b2c3/spec.yaml",
 }

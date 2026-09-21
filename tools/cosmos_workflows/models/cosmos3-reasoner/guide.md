@@ -42,7 +42,7 @@ from history, another user, a prior job, an image, or a developer checkout.
   For Nano, use `Qwen/Qwen3-VL-8B-Instruct`, resolve both Hub models to
   immutable commits, and run the selected backend's packaged converter.
   Framework uses `cosmos_framework.scripts.convert_model_to_vlm_safetensors`;
-  Cosmos-RL uses `cosmos_rl.model_preparation.vlm_safetensors` with its pinned
+  Cosmos-RL uses `cosmos_framework.scripts.prepare_vlm_checkpoint` with its pinned
   isolated converter runtime. Validate an explicitly supplied
   `prepared_checkpoint_path` or donor, but never ask for one by default.
 - Accept `hf_model://nvidia/Cosmos3-Nano` directly. If a gated/private model
@@ -165,7 +165,7 @@ Execute these stages in order and persist their outputs.
 3. Validate tools, storage, paths, and runtime selection in the mandatory
    intake order; existing-SQSH and packaged-image modes skip source gates.
 4. Only for explicit `source-build`, validate/build clean sources and verify
-   `/opt/tao/image-provenance.json`. Never mount host source into training.
+   `/opt/cosmos/image-provenance.json`. Never mount host source into training.
 5. Enforce the explicit Nano checkpoint model-type choice. If it is
    `cosmos3_omni`, show the conversion and platform-owned output path in the
    launch review, then prepare the model through the shared container integration
@@ -207,7 +207,7 @@ Execute these stages in order and persist their outputs.
    before GPU submit. SQSH SHA and source provenance are not runtime gates.
    When Omni preparation is required, inspect the SQSH filesystem and reject it
    unless it contains the shared container launcher, the native Framework converter,
-   and `/opt/tao/framework-converter-runtime.json`. The runtime artifact must
+   and `/opt/cosmos/framework-converter-runtime.json`. The runtime artifact must
    report `validation_mode=imported_converter_module`, proving the isolated
    converter's transitive dependency graph imported during the image build;
    file presence alone is not sufficient.

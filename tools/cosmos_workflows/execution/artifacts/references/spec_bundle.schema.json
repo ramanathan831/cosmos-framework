@@ -11,8 +11,8 @@
     "action": { "type": "string", "minLength": 1 },
     "image": {
       "type": "string",
-      "pattern": "^\\S+/\\S+$",
-      "description": "Resolved container URI (registry/path:tag), carried as data. Never a versions.yaml key — resolve first via scripts/resolve_cosmos_image.py."
+      "pattern": "^(?:[^\\s/]+/[^\\s]+|[^\\s/:]+:[^\\s/]+)$",
+      "description": "Resolved registry image or explicitly built local name:tag, carried as data. Never a versions.yaml key. Remote platforms require a reachable registry image or staged runtime artifact."
     },
     "mode": { "enum": ["config", "args"] },
     "command": { "type": "string", "minLength": 1 },

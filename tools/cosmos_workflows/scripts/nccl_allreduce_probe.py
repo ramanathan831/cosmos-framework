@@ -6,12 +6,12 @@
 job to prove the cluster's NCCL rendezvous works BEFORE a real multi-node run
 burns GPU-hours hanging on the first collective.
 
-It reads the same rendezvous env the multi-node templates export (WORLD_SIZE =
-NODE COUNT, NUM_GPU_PER_NODE, NODE_RANK, plus torchrun's LOCAL_RANK and
+It reads the same rendezvous env the multi-node templates export (NNODES,
+NPROC_PER_NODE, NODE_RANK, plus torchrun's LOCAL_RANK and
 MASTER_ADDR/MASTER_PORT), computes the true GLOBAL world-size/rank, does one
 all-reduce, and prints NCCL_PROBE_OK. Launchers that invoke this probe under
-``torchrun`` must preserve the TAO values in ``TAO_NODE_COUNT``,
-``TAO_GPUS_PER_NODE``, and ``TAO_NODE_RANK`` because torchrun overwrites the
+``torchrun`` must preserve the Cosmos values in ``COSMOS_NODE_COUNT``,
+``COSMOS_GPUS_PER_NODE``, and ``COSMOS_NODE_RANK`` because torchrun overwrites the
 standard ``WORLD_SIZE`` environment variable with the global process count.
 If NCCL is misconfigured (e.g. the CS-OCI-ORD
 intra-node P2P hang) it HANGS on all_reduce — the orchestrating skill wraps this
@@ -20,7 +20,7 @@ NCCL_SOCKET_IFNAME, ...) and re-probes, caching the working env per cluster.
 
 `--dry-run` prints the computed rendezvous config WITHOUT importing torch or
 touching a GPU — the node-count->global-rank math (the easy thing to get wrong
-given WORLD_SIZE is TAO's node count, not the global rank count) is testable
+given NNODES is the node count, not the global rank count) is testable
 offline. torch is imported lazily so this file loads on a CPU host.
 """
 
@@ -32,19 +32,19 @@ import os
 
 
 def rendezvous_config(env: dict | None = None) -> dict:
-    """Compute the GLOBAL torch.distributed config from the TAO rendezvous env.
+    """Compute the GLOBAL torch.distributed config from the Cosmos rendezvous env.
 
-    WORLD_SIZE in the env is TAO's NODE COUNT; the true global world size is
+    NNODES in the env is the node count; the true global world size is
     node_count * gpus_per_node, and the global rank is
     node_rank * gpus_per_node + local_rank.
     """
     e = os.environ if env is None else env
-    # torchrun rewrites WORLD_SIZE to the global process count.  Preserve TAO's
+    # torchrun rewrites WORLD_SIZE to the global process count.  Preserve Cosmos's
     # node-count convention through explicit aliases when the probe is launched
     # beneath torchrun, while retaining the template variables as a fallback.
-    node_count = int(e.get("TAO_NODE_COUNT", e.get("WORLD_SIZE", "1")))
-    gpus_per_node = int(e.get("TAO_GPUS_PER_NODE", e.get("NUM_GPU_PER_NODE", "1")))
-    node_rank = int(e.get("TAO_NODE_RANK", e.get("NODE_RANK", "0")))
+    node_count = int(e.get("COSMOS_NODE_COUNT", e.get("NNODES", "1")))
+    gpus_per_node = int(e.get("COSMOS_GPUS_PER_NODE", e.get("NPROC_PER_NODE", "1")))
+    node_rank = int(e.get("COSMOS_NODE_RANK", e.get("NODE_RANK", "0")))
     local_rank = int(e.get("LOCAL_RANK", "0"))
     return {
         "global_world_size": node_count * gpus_per_node,

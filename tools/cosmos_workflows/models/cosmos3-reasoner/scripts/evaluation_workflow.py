@@ -323,16 +323,16 @@ def _framework_runtime_preflight(config: Mapping[str, Any]) -> str:
     worker_probe = (
         "assert 'if self.dataloader_num_workers == 0' in source; "
         "assert ('yield self.prepare_tasks' in source or "
-        "'TAO_FRAMEWORK_DIRECT_PREFETCH_ATTESTATION' in source); "
+        "'COSMOS_FRAMEWORK_DIRECT_PREFETCH_ATTESTATION' in source); "
         if worker_profile == (0, 0, False)
         else "assert 'persistent_workers=self.dataloader_persistent_workers' in source; "
         "assert 'multiprocessing_context=self.dataloader_multiprocessing_context' in source; "
     )
     probe = (
         "import inspect; "
-        "from cosmos_rl.evaluation.base import BaseEvaluator; "
-        "from cosmos_rl.framework.runtime import CosmosFrameworkRuntime; "
-        "from cosmos_rl.utils.framework_torchcodec_video import FrameworkTorchCodecVideoPreprocessor; "
+        "from cosmos_framework.evaluation.reasoner.base import BaseEvaluator; "
+        "from cosmos_framework.inference.reasoner.runtime import CosmosFrameworkRuntime; "
+        "from cosmos_framework.inference.reasoner.framework_torchcodec_video import FrameworkTorchCodecVideoPreprocessor; "
         "assert 'torchcodec-cuda-on-demand' in inspect.getsource(BaseEvaluator.load_model); "
         "assert '_framework_decoded_media' in inspect.getsource(CosmosFrameworkRuntime._task_conversation); "
         "source = inspect.getsource(FrameworkTorchCodecVideoPreprocessor); "
@@ -356,18 +356,18 @@ def _evaluation_spec_bundle(plan: Mapping[str, Any], backend: str, config: Mappi
     model = config.get("model") if isinstance(config.get("model"), Mapping) else {}
     dataset = config.get("dataset") if isinstance(config.get("dataset"), Mapping) else {}
     results_dir = str(config.get("results_dir") or "")
-    command_name = "cosmos-framework-evaluate" if backend == "cosmos-framework" else "cosmos-rl-evaluate"
+    command_name = "cosmos-reasoner-evaluate" if backend == "cosmos-framework" else "cosmos-reasoner-evaluate"
     environment = {
         "NCCL_DEBUG": "WARN",
         "NVIDIA_DRIVER_CAPABILITIES": "compute,utility,video",
         "PYTHONHASHSEED": str(config.get("evaluation", {}).get("seed", 0)),
         "PYTHONUNBUFFERED": "1",
-        "TAO_API_JOB_ID": "{job_id}",
-        "TAO_API_RESULTS_DIR": "{results_dir}",
-        "TAO_JOB_ID": "{job_id}",
-        "TAO_RESULTS_ROOT": "{results_dir}",
-        "TAO_STATUS_FILE": "{results_dir}/status.json",
-        "TAO_STATUS_PATH": "{results_dir}/status.json",
+        "COSMOS_API_JOB_ID": "{job_id}",
+        "COSMOS_API_RESULTS_DIR": "{results_dir}",
+        "COSMOS_JOB_ID": "{job_id}",
+        "COSMOS_RESULTS_ROOT": "{results_dir}",
+        "COSMOS_STATUS_FILE": "{results_dir}/status.json",
+        "COSMOS_STATUS_PATH": "{results_dir}/status.json",
         "TORCH_NCCL_ASYNC_ERROR_HANDLING": "1",
     }
     vision = config.get("vision") if isinstance(config.get("vision"), Mapping) else {}
@@ -375,9 +375,9 @@ def _evaluation_spec_bundle(plan: Mapping[str, Any], backend: str, config: Mappi
         environment.update(
             {
                 "FORCE_QWENVL_VIDEO_READER": "pynvvideocodec",
-                "TAO_PYNV_DECODER_CACHE_SIZE": str(vision.get("decoder_cache_size", 4)),
-                "TAO_PYNV_FRAME_TRANSFER": str(vision.get("frame_transfer", "host_rgb")),
-                "TAO_PYNV_VIDEO_CACHE_SIZE": str(vision.get("video_cache_size", 0)),
+                "COSMOS_PYNV_DECODER_CACHE_SIZE": str(vision.get("decoder_cache_size", 4)),
+                "COSMOS_PYNV_FRAME_TRANSFER": str(vision.get("frame_transfer", "host_rgb")),
+                "COSMOS_PYNV_VIDEO_CACHE_SIZE": str(vision.get("video_cache_size", 0)),
             }
         )
     pre_commands = [_framework_runtime_preflight(config)] if backend == "cosmos-framework" else []

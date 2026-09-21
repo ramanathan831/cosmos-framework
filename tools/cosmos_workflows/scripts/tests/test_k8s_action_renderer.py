@@ -17,7 +17,7 @@ import tomllib
 import yaml
 
 REPO = Path(__file__).resolve().parents[2]
-PAS_DS_IMAGE = "nvcr.io/nvstaging/tao/tao-toolkit-ds:7.2.0-rc-52-multiarch"  # versions-key: images.containers.deft_pas_data_services
+PAS_DS_IMAGE = "cosmos-framework:local"  # versions-key: images.containers.deft_pas_data_services
 SCRIPT = REPO / "execution/platforms/kubernetes/scripts/render_action_job.py"
 SPEC = importlib.util.spec_from_file_location("render_action_job", SCRIPT)
 assert SPEC and SPEC.loader
@@ -120,7 +120,7 @@ def render(request=None, staging=None, **kwargs):
         staging or pas_staging_map(),
         job_id="cosmos-job-abc123",
         namespace="cosmos-jobs",
-        pvc_claim="tao-workspace",
+        pvc_claim="cosmos-workspace",
         **kwargs,
     )
 
@@ -168,7 +168,7 @@ def test_forwarded_credentials_are_secret_references_not_inline_values():
     request["forward_env"] = ["HF_TOKEN"]
     manifest = render(
         request=request,
-        credential_secret="tao-creds-abc123",
+        credential_secret="cosmos-creds-abc123",
         image_pull_secret="ngc-pull-secret",
     )
     job, action = container(manifest)
@@ -179,7 +179,7 @@ def test_forwarded_credentials_are_secret_references_not_inline_values():
         "name": "HF_TOKEN",
         "valueFrom": {
             "secretKeyRef": {
-                "name": "tao-creds-abc123",
+                "name": "cosmos-creds-abc123",
                 "key": "HF_TOKEN",
             }
         },
@@ -219,7 +219,7 @@ def test_inline_and_forwarded_name_collision_is_rejected():
     request["environment"]["HF_TOKEN"] = "must-not-be-inline"
     request["forward_env"] = ["HF_TOKEN"]
     with pytest.raises(renderer.RenderError, match="must not be present"):
-        render(request=request, credential_secret="tao-creds-abc123")
+        render(request=request, credential_secret="cosmos-creds-abc123")
 
 
 @pytest.mark.parametrize("schema_version", [None, "0", "2", 1])
@@ -447,7 +447,7 @@ def test_real_pas_job_record_id_is_normalized_without_losing_identity():
         pas_staging_map(),
         job_id=job_id,
         namespace="cosmos-jobs",
-        pvc_claim="tao-workspace",
+        pvc_claim="cosmos-workspace",
     )
     job = yaml.safe_load(manifest)
     name = job["metadata"]["name"]
@@ -483,7 +483,7 @@ def test_cli_renders_the_same_contract(tmp_path):
             "--namespace",
             "cosmos-jobs",
             "--pvc-claim",
-            "tao-workspace",
+            "cosmos-workspace",
         ],
         text=True,
         capture_output=True,
@@ -542,7 +542,7 @@ def test_cli_materializes_then_renders_a_config_mode_request(tmp_path):
             "--namespace",
             "cosmos-jobs",
             "--pvc-claim",
-            "tao-workspace",
+            "cosmos-workspace",
         ],
         text=True,
         capture_output=True,

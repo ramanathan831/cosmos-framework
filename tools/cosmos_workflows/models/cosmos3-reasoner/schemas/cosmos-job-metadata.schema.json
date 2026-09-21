@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://nvidia.com/tao/schemas/cosmos-job-metadata-v1.json",
-  "title": "Cosmos TAO job metadata",
+  "$id": "https://nvidia.com/cosmos/schemas/cosmos-job-metadata-v1.json",
+  "title": "Cosmos Cosmos job metadata",
   "type": "object",
   "required": ["schema_version", "experiment_id", "dataset", "training_mode", "backend", "cosmos_job_id", "slurm", "image", "repositories", "config", "paths", "dataset_fingerprints", "model", "launch_command", "environment", "stdout", "stderr", "results_dir", "checkpoint_dir", "timestamps", "scheduler", "child_process", "terminal_runtime_status", "metrics", "artifacts"],
   "properties": {

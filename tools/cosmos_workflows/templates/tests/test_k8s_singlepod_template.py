@@ -25,10 +25,10 @@ BASE = {
     "JOB_NAME": "dino-train-a1b2c3",
     "TTL_SECONDS": "3600",
     "IMAGE_PULL_SECRET": "ngc-pull-secret",
-    "IMAGE": "nvcr.io/nvidia/tao/tao-toolkit:6.26.3-pyt",  # unpinned: test fixture
+    "IMAGE": "cosmos-framework:local",  # unpinned: test fixture
     "COMMAND": "dino train -e /data/specs/spec.yaml",
     "NUM_GPUS": "1",
-    "CRED_SECRET": "tao-creds-dino-train-a1b2c3",
+    "CRED_SECRET": "cosmos-creds-dino-train-a1b2c3",
     "RESULTS_DIR": "/data/results/dino-train-a1b2c3",
     "MOUNT_PATH": "/data",
     "SHM_SIZE": "16Gi",
@@ -74,10 +74,10 @@ def test_dev_shm_sized_memory():
 def test_creds_via_secretref_never_inline():
     c = load()["spec"]["template"]["spec"]["containers"][0]
     # creds arrive via envFrom.secretRef — only the secret NAME, no values
-    assert c["envFrom"][0]["secretRef"]["name"] == "tao-creds-dino-train-a1b2c3"
+    assert c["envFrom"][0]["secretRef"]["name"] == "cosmos-creds-dino-train-a1b2c3"
     # the only inline env is the non-secret results root
     inline = {e["name"] for e in c.get("env", [])}
-    assert inline == {"TAO_RESULTS_ROOT"}
+    assert inline == {"COSMOS_RESULTS_ROOT"}
     assert not any(k in inline for k in ("AWS_SECRET_ACCESS_KEY", "NGC_KEY", "HF_TOKEN"))
 
 
@@ -91,9 +91,9 @@ def test_rendered_manifest_lints_clean():
 
 def test_ttl_present_so_outputs_must_be_bound_before_deletion():
     # TTL deletes the Job — the results_dir must be a persistent mount path, and
-    # the template wires TAO_RESULTS_ROOT to the mounted-volume path
+    # the template wires COSMOS_RESULTS_ROOT to the mounted-volume path
     c = load()["spec"]["template"]["spec"]["containers"][0]
-    rr = next(e["value"] for e in c["env"] if e["name"] == "TAO_RESULTS_ROOT")
+    rr = next(e["value"] for e in c["env"] if e["name"] == "COSMOS_RESULTS_ROOT")
     mount = next(m["mountPath"] for m in c["volumeMounts"] if m["name"] == "data")
     assert rr.startswith(mount)  # results land on the mounted (surviving) volume
 

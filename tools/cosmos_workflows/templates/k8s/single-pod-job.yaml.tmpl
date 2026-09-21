@@ -35,7 +35,7 @@ spec:
       imagePullSecrets:
         - name: "@@IMAGE_PULL_SECRET@@"
       containers:
-        - name: tao
+        - name: cosmos
           image: "@@IMAGE@@"
           command: ["/bin/sh", "-c", "@@COMMAND@@"]
           resources:
@@ -45,7 +45,7 @@ spec:
             - secretRef:
                 name: "@@CRED_SECRET@@"
           env:
-            - name: TAO_RESULTS_ROOT
+            - name: COSMOS_RESULTS_ROOT
               value: "@@RESULTS_DIR@@"
           volumeMounts:
             - name: dshm

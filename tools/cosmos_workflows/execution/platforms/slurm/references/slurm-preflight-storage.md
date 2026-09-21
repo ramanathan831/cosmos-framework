@@ -1,6 +1,6 @@
 # SLURM Preflight Storage And Credentials
 
-SSH preflight, enroot credentials, prerequisite setup, backend details, storage, and SSH remediation. No nvidia-tao-sdk is required; jobs run over ssh + sbatch/squeue/sacct/scancel.
+SSH preflight, enroot credentials, prerequisite setup, backend details, storage, and SSH remediation. No SDK is required; jobs run over ssh + sbatch/squeue/sacct/scancel.
 
 Load this file only when the compact `guide.md` points here for the current task. If this reference conflicts with `guide.md`, `skill_info.yaml`, schemas, or platform/model skills, the compact/current source wins.
 
@@ -194,8 +194,9 @@ dataset paths. Prefer shared filesystem URIs:
 - Use `lustre:///absolute/path` for user-provided datasets on Lustre.
 - `slurm://` paths may appear in microservices metadata and are converted to
   actual Lustre paths before the container starts.
-- Avoid bare `/local/path` and `file://` dataset URIs for SLURM. Validation in
-  `tao-core` rejects local and file paths for remote backends.
+- Use absolute shared-filesystem paths verified on compute nodes. A login-host
+  path is not proof that GPU nodes can read it; resolve logical storage URIs
+  through data staging before passing native paths to the model command.
 
 Accept either dataset roots or direct spec-key paths:
 
@@ -247,5 +248,5 @@ Results are supplied at runtime, for example:
 <SHARED_RESULTS_ROOT>/<job_id>
 ```
 
-The runner sets `TAO_API_RESULTS_DIR` to the parent results directory because
+The runner sets `COSMOS_API_RESULTS_DIR` to the parent results directory because
 container code appends the job id when writing status and artifacts.

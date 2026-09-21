@@ -10,9 +10,10 @@ import threading
 import time
 from pathlib import Path
 
-from cosmos_rl.evaluation.base import BaseEvaluator
 from qwen_vl_utils import process_vision_info, vision_process
 from vllm.model_executor.layers.conv import Conv3dLayer
+
+from cosmos_framework.evaluation.reasoner.base import BaseEvaluator
 
 
 def _forward_cuda_with_patch_embed_fallback(self, x):
@@ -190,7 +191,7 @@ BaseEvaluator.run_evaluation = _run_evaluation_streaming
 
 
 def main() -> None:
-    from cosmos_rl.evaluation.evaluate import main as evaluate_main
+    from cosmos_framework.evaluation.reasoner.evaluate import main as evaluate_main
 
     evaluate_main()
 

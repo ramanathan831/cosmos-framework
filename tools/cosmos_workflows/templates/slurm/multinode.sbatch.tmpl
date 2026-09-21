@@ -6,9 +6,8 @@
 # superset: same skeleton + a rank/master rendezvous block. cosmos-run-on-slurm
 # renders it by substituting @@<NAME>@@; $SLURM_* stay literal.
 #
-# LOAD-BEARING: WORLD_SIZE is TAO's NODE COUNT (a misnomer — the container
-# entrypoint reads WORLD_SIZE + NUM_GPU_PER_NODE and builds torchrun internally).
-# Do NOT "correct" it to a global-rank count; that silently mis-shards training.
+# NNODES is the node count; the supplied command launches torchrun explicitly.
+# torchrun sets WORLD_SIZE to the global worker count.
 # EXTRA_ENV carries the cluster's NCCL knobs discovered by the NCCL probe (e.g.
 # NCCL_P2P_DISABLE=1) — a wrong/empty value hangs the first collective for the
 # entire distributed timeout with no error.
@@ -39,13 +38,13 @@ fi
 # Per-cluster NCCL env from the probe (e.g. NCCL_P2P_DISABLE=1, NCCL_SOCKET_IFNAME=eth0).
 @@EXTRA_ENV@@
 
-# Rendezvous — WORLD_SIZE = NODE COUNT (TAO convention), not global-rank count.
-export WORLD_SIZE=@@NUM_NODES@@
-export NUM_GPU_PER_NODE=@@GPUS_PER_NODE@@
+# Rendezvous for an explicitly supplied native torchrun command.
+export NNODES=@@NUM_NODES@@
+export NPROC_PER_NODE=@@GPUS_PER_NODE@@
 export MASTER_PORT=29500
 export MASTER_ADDR=$(scontrol show hostname "$SLURM_JOB_NODELIST" | head -1)
 export NODE_RANK=$SLURM_NODEID
 
 srun --container-image=@@IMAGE@@ \
      --container-mounts=@@CONTAINER_MOUNTS@@ \
-     @@COMMAND@@
+     bash -lc 'export NODE_RANK=${SLURM_PROCID:-0}; exec @@COMMAND@@'

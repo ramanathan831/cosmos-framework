@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Pure validation and provenance primitives for Cosmos TAO workflows.
+"""Pure validation and provenance primitives for Cosmos Cosmos workflows.
 
 This module deliberately has no machine- or user-specific defaults.  Every
 filesystem location in its output originates in a runtime request.
@@ -28,7 +28,7 @@ MODEL_ID_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 ACCURACY_TASKS = {"bcq", "binary", "mcq", "binary_choice", "multiple_choice"}
 DATASET_FAMILIES = {"auto", "video_conversation", "task_aware_video_reasoning"}
 MEDIA_FIELDS = ("video", "video_id", "image", "image_id", "media", "media_path")
-TAO_VL_MEDIA_FIELDS = ("video_id", "image_id")
+COSMOS_VL_MEDIA_FIELDS = ("video_id", "image_id")
 CLASSIFICATION_LABEL_SETS = (
     frozenset({"a", "b", "c", "d"}),
     frozenset({"yes", "no"}),
@@ -395,12 +395,14 @@ def inspect_dataset(
                 if requested_tasks and task not in requested_tasks:
                     continue
                 canonical_media = [
-                    field for field in TAO_VL_MEDIA_FIELDS if isinstance(record.get(field), str) and record.get(field)
+                    field
+                    for field in COSMOS_VL_MEDIA_FIELDS
+                    if isinstance(record.get(field), str) and record.get(field)
                 ]
                 if len(canonical_media) != 1:
                     aliases = [field for field in MEDIA_FIELDS if record.get(field)]
                     schema_errors.append(
-                        f"{annotation_path}:{index}: task-aware tao-vl-reason-v1.0 "
+                        f"{annotation_path}:{index}: task-aware cosmos-video-reasoning-v1.0 "
                         "record requires exactly one canonical video_id or image_id; "
                         f"found {aliases or 'none'}"
                     )
@@ -518,7 +520,7 @@ def inspect_dataset(
         "answer_type": "letter" if known_task_types == {"mcq"} else "freeform",
         "task_semantics": task_semantics,
         "metric_names": metric_names,
-        "normalization": "tao-cosmos-shared-v2",
+        "normalization": "cosmos-cosmos-shared-v2",
         "requires_user_input": [
             *(["task.type"] if unresolved_accuracy_tasks else []),
             *(["metrics.names"] if set(task_counts) - set(accuracy_tasks) and not metric_names else []),
@@ -736,7 +738,7 @@ def validate_metadata(metadata: Mapping[str, Any]) -> None:
             metadata.get("scheduler", {}).get("state") != "COMPLETED"
             or metadata.get("child_process", {}).get("exit_code") != 0
         ):
-            raise WorkflowError("TAO SUCCESS requires scheduler COMPLETED and child-process exit code zero")
+            raise WorkflowError("Cosmos SUCCESS requires scheduler COMPLETED and child-process exit code zero")
 
 
 def selected_environment(environment: Mapping[str, str]) -> dict[str, str]:
@@ -750,15 +752,15 @@ def selected_environment(environment: Mapping[str, str]) -> dict[str, str]:
         "NVIDIA_DRIVER_CAPABILITIES",
         "CUDA_FORWARD_COMPAT",
         "FORCE_QWENVL_VIDEO_READER",
-        "TAO_SFT_BATCH_THREADS",
-        "TAO_PYNV_FRAME_TRANSFER",
-        "TAO_PYNV_VIDEO_CACHE_SIZE",
-        "TAO_PYNV_DECODER_CACHE_SIZE",
+        "COSMOS_SFT_BATCH_THREADS",
+        "COSMOS_PYNV_FRAME_TRANSFER",
+        "COSMOS_PYNV_VIDEO_CACHE_SIZE",
+        "COSMOS_PYNV_DECODER_CACHE_SIZE",
         "COSMOS_CACHE",
-        "TAO_VIDEO_CACHE_SIZE",
-        "TAO_FRAMEWORK_SFT_PROCESS_THREADS",
-        "TAO_VIDEO_DECODER_DEVICE",
-        "TAO_VIDEO_DECODER_THREADS",
+        "COSMOS_VIDEO_CACHE_SIZE",
+        "COSMOS_FRAMEWORK_SFT_PROCESS_THREADS",
+        "COSMOS_VIDEO_DECODER_DEVICE",
+        "COSMOS_VIDEO_DECODER_THREADS",
     }
     return {key: environment[key] for key in sorted(allow & set(environment))}
 
@@ -908,7 +910,7 @@ def materialize_dataset(
     payload: Any
     if resolved_family == "task_aware_video_reasoning":
         payload = {
-            "format": "tao-vl-reason-v1.0",
+            "format": "cosmos-video-reasoning-v1.0",
             "metadata": {"task": "mixed"},
             "items": records,
         }

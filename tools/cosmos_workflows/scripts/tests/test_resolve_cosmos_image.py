@@ -67,7 +67,7 @@ def test_skill_info_images_are_stamped_from_versions_yaml():
     assert "container_image" not in COSMOS_SKILL_INFO
     assert set(COSMOS_BACKENDS) == {"cosmos-framework", "cosmos-rl"}
     assert all(
-        isinstance(declaration.get("container_image"), str) and declaration["container_image"].startswith("nvcr.io/")
+        isinstance(declaration.get("container_image"), str) and declaration["container_image"].endswith(":local")
         for declaration in COSMOS_BACKENDS.values()
     )
     assert versions["images"]["containers"]["cosmos_rl"] == COSMOS_RL_IMAGE
@@ -88,7 +88,8 @@ def test_skill_info_images_are_stamped_from_versions_yaml():
                 continue
             if path.suffix not in {".json", ".md", ".py", ".toml", ".yaml", ".yml"}:
                 continue
-            if image in path.read_text(encoding="utf-8", errors="ignore"):
+            lines = path.read_text(encoding="utf-8", errors="ignore").splitlines()
+            if any(image in line and "versions-key:" not in line and "unpinned:" not in line for line in lines):
                 offenders.append(str(path.relative_to(ROOT)))
         image_offenders[image] = offenders
     assert not any(image_offenders.values()), image_offenders

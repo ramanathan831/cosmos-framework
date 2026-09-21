@@ -6,8 +6,9 @@ Runtime selection is independent of source construction. A user-supplied
 SLURM `.sqsh` is the authoritative container artifact and is used directly
 after compute-frame readability checks. Its filename does not need to match a
 packaged image tag, and repository/build provenance and SQSH SHA256 are not
-runtime gates. If no SQSH is supplied, use the exact image in the selected
-backend contract, derive its target under `sqsh_cache_dir`, reuse that target
+runtime gates. If no SQSH is supplied, request an explicit registry image;
+the local build targets are not published images. Derive its target under
+`sqsh_cache_dir`, reuse that target
 when readable, or convert the exact image once through the SLURM platform
 before GPU submit. Docker uses an explicit image tag when supplied and the
 packaged backend image otherwise.
@@ -17,20 +18,21 @@ selects `source-build`.
 
 For every repository, record branch, commit, tree, and dirty state. Refuse a
 reproducibility build when any packaged source is dirty. The Framework path
-first builds its native Dockerfile, then builds the container action layer using that
-exact base. The Cosmos-RL path builds `Dockerfile.cosmos_rl` with exact native
-RL, container actions, DAFT, and container runtime commits.
+builds the root `Dockerfile` with the exact Framework source. The Cosmos-RL path
+builds `docker/cosmos-rl.Dockerfile` from the same Framework context with the
+clean native RL checkout as a named Docker build context. Dataset adapters,
+action commands, and service code come from Framework, not separate packages.
 
-Inspect `/opt/tao/image-provenance.json` after build. Verify repository commits,
+Inspect `/opt/cosmos/image-provenance.json` after build. Verify repository commits,
 source-manifest checksum, dependency inputs, Python/package locations, and
 non-root imports. Resolve and record image ID/digest. SLURM then converts that
 exact digest to a newly named SQSH in the runtime-supplied cache directory and
 records its SHA256. A source change invalidates both image and SQSH.
 
-For Cosmos-RL, image verification must import both `deep_ep` and
+For Cosmos-RL images that include DeepEP, verification must import both `deep_ep` and
 `deep_ep_cpp`, inspect the compiled extension for the internode mask-buffer
 symbols referenced by the Python bindings, and verify that vLLM uses the
-linear-equivalent Qwen3-VL Conv3D path for every PyTorch version at or above
+linear-equivalent Qwen3-VL Conv3D path, when vLLM is installed, for PyTorch at or above
 2.9. A successful `nvidia-smi` or `cosmos-rl --help` check does not cover these
 ABI and dispatch contracts.
 
@@ -45,12 +47,12 @@ runtime checkpoint area. Cosmos3 Nano Omni inputs use the packaged
 backend runtime; the planner resolves both Hub identities to immutable commits.
 The selected image invokes its backend-owned entrypoint. Cosmos Framework uses
 `cosmos_framework.scripts.convert_model_to_vlm_safetensors` directly in its
-native environment, without importing Cosmos-RL. Cosmos-RL uses the integration-owned
-`cosmos_rl.model_preparation.vlm_safetensors` wrapper and packages an isolated
-Framework converter environment pinned by the Framework repository's `uv.lock`.
-For Cosmos-RL, the baked `/opt/tao/framework-converter-runtime.json` must attest
+native environment, without importing Cosmos-RL. Cosmos-RL uses the Framework-owned
+`cosmos_framework.scripts.prepare_vlm_checkpoint` wrapper in its installed
+environment; the build must pass the converter's dependency import gate.
+For Cosmos-RL, the baked `/opt/cosmos/framework-converter-runtime.json` must attest
 `validation_mode=imported_converter_module`, which proves that the converter
-and its transitive dependencies imported in the isolated interpreter during
+and its transitive dependencies imported in the selected interpreter during
 the image build. Reject an existing SQSH before submit if the selected
 backend's entrypoint, or Cosmos-RL's import-level attestation, is absent.
 Do not ask a Cosmos-RL user for a donor checkpoint, a second backend image, or
@@ -108,7 +110,7 @@ opt-in; when selected for conversation-style data, separate train and validation
 cache keys combine dataset, model, and processor fingerprints, and completeness
 manifests plus every entry are validated before training. An explicitly
 selected NVDEC/PyNvVideoCodec task-aware run uses the packaged
-`cosmos_rl.utils.video_override_artifacts` builder and validator; the A100
+`cosmos_framework.inference.reasoner.video_override_artifacts` builder and validator; the A100
 software path decodes the original paired media directly and does not create a
 GPU override artifact.
 

@@ -37,7 +37,7 @@ Step 1b: Chunk captions                         → VLM: fixed-duration segment 
 Step 1c: [Optional, anomaly only] Highlight     → LLM extracts anomaly timestamp, VLM captions clip
 Step 2:  Description synthesis                  → LLM: synthesize captions into structured narrative
 Step 3:  QA generation                          → LLM: MCQ, binary, open-ended with reasoning
-Step 4:  Parse outputs                          → Per-task `tao-vl-reason-v1.0` JSON files
+Step 4:  Parse outputs                          → Per-task `cosmos-video-reasoning-v1.0` JSON files
 ```
 
 Steps are individually selectable via `workflow.steps`. The pipeline has built-in resume — each step skips already-processed videos, so re-running after a prompt tweak is safe.
@@ -57,10 +57,10 @@ Ask the user: *"What domain are these videos from?"* Choose one of the following
 
 | Domain | What to do |
 |---|---|
-| **general** | Use the default prompts. Set `prompts_module: ""` (or omit). The built-in `nvidia_tao_ds.auto_label.video_reasoning_annotation.prompts` covers domain-agnostic content. |
-| **traffic** (CCTV intersections, highways; dashcam excluded) | Set `prompts_module: "nvidia_tao_ds.auto_label.video_reasoning_annotation.prompts_traffic"`, using the selected container's module. |
-| **warehouse** (industrial site CCTV — safety, operations, security) | Set `prompts_module: "nvidia_tao_ds.auto_label.video_reasoning_annotation.prompts_warehouse"`, using the selected container's module. |
-| **custom** (any other domain) | **Run the workshop in [references/domain_adaptation.md](references/domain_adaptation.md)**. It walks through: Phase 1 — question types the user wants the model to answer; Phase 2 — caption-requirements checklist; Phase 3 — fill the `[PLACEHOLDER]` markers in `nvidia_tao_ds.auto_label.video_reasoning_annotation.prompt_template`. The two reference modules above are working examples to model after. Do this **before** any pipeline runs. |
+| **general** | Use the default prompts. Set `prompts_module: ""` (or omit). The built-in `cosmos_framework.inference.video_annotation.prompts` covers domain-agnostic content. |
+| **traffic** (CCTV intersections, highways; dashcam excluded) | Set `prompts_module: "cosmos_framework.inference.video_annotation.prompts_traffic"`, using the selected container's module. |
+| **warehouse** (industrial site CCTV — safety, operations, security) | Set `prompts_module: "cosmos_framework.inference.video_annotation.prompts_warehouse"`, using the selected container's module. |
+| **custom** (any other domain) | **Run the workshop in [references/domain_adaptation.md](references/domain_adaptation.md)**. It walks through: Phase 1 — question types the user wants the model to answer; Phase 2 — caption-requirements checklist; Phase 3 — fill the `[PLACEHOLDER]` markers in `cosmos_framework.inference.video_annotation.prompt_template`. The two reference modules above are working examples to model after. Do this **before** any pipeline runs. |
 
 ### 3. Anomaly / normal / mixed
 
@@ -90,23 +90,23 @@ If the user doesn't have endpoint access ready and isn't ready to set one up, st
 
 ## Quick start
 
-The pipeline runs inside the selected annotation container via the `auto_label` CLI:
+The pipeline is implemented in Framework's `cosmos_framework/inference/video_annotation/`.
+Use an environment installed with the `workflows` extra, or build this checkout's
+root Dockerfile. Select the execution platform before any paid API calls.
 
 ```bash
-auto_label generate -e /path/to/spec.yaml \
-    results_dir=/results \
-    video_reasoning_annotation.data.video_root=/videos \
-    video_reasoning_annotation.workflow.mode=auto
+cosmos-annotate-videos --config /path/to/spec.yaml --results-dir /results
 ```
 
 Generate a default spec to start from:
 
 ```bash
-auto_label default_specs results_dir=/results module_name=auto_label
-# then set:  autolabel_type: "video_reasoning_annotation"
+cosmos-annotate-videos --print-defaults
 ```
 
-All fields support Hydra dot-notation overrides on the command line. For the full YAML reference (every field, model/endpoint setup, error patterns), see [references/configuration.md](references/configuration.md).
+Edit nested YAML fields in the spec; dotted command-line overrides are not accepted.
+Choose the provider model explicitly and supply credentials through environment
+variables. For all fields, see [references/configuration.md](references/configuration.md).
 
 ## Pilot workflow
 
@@ -137,9 +137,9 @@ Key fields (full reference in [references/configuration.md](references/configura
 
 ## Prompts
 
-- **Built-in (general)**: `nvidia_tao_ds.auto_label.video_reasoning_annotation.prompts` — domain-agnostic, used by default.
-- **Template**: `nvidia_tao_ds.auto_label.video_reasoning_annotation.prompt_template` — same 26 keys with `[PLACEHOLDER]` markers for domain customization.
-- **Domain modules**: the selected container supplies `prompts_traffic` and `prompts_warehouse` under `nvidia_tao_ds.auto_label.video_reasoning_annotation`. Confirm the image contains the requested module; do not silently substitute prompts if it is missing. Customize from that runtime's module in a user-owned project, not a second copy maintained here.
+- **Built-in (general)**: `cosmos_framework.inference.video_annotation.prompts` — domain-agnostic, used by default.
+- **Template**: `cosmos_framework.inference.video_annotation.prompt_template` — same 26 keys with `[PLACEHOLDER]` markers for domain customization.
+- **Domain modules**: the selected container supplies `prompts_traffic` and `prompts_warehouse` under `cosmos_framework.inference.video_annotation`. Confirm the image contains the requested module; do not silently substitute prompts if it is missing. Customize from that runtime's module in a user-owned project, not a second copy maintained here.
 - **Custom domains**: see [references/domain_adaptation.md](references/domain_adaptation.md) for the full workshop and placeholder reference.
 
 ## Inputs
@@ -155,13 +155,13 @@ Provide `video_root`, `input_jsonl_files`, or both (lists merge).
 All outputs go to `results_dir/` with per-step subdirectories (`step_0_filter/`, `step_1a_caption/`, …, `step_4_output/`):
 
 - **Steps 0–3**: JSONL — one JSON object per video per line.
-- **Step 4**: One `<task>.json` per non-empty task type, in the **`tao-vl-reason-v1.0`** envelope. Up to 10 files: `mcq.json`, `mcq_openended.json`, `bcq.json`, `bcq_openended.json`, `open_qa.json`, `causal_linkage.json`, `temporal_localization.json`, `temporal_description.json`, `scene_description.json`, `video_summarization.json`.
+- **Step 4**: One `<task>.json` per non-empty task type, in the **`cosmos-video-reasoning-v1.0`** envelope. Up to 10 files: `mcq.json`, `mcq_openended.json`, `bcq.json`, `bcq_openended.json`, `open_qa.json`, `causal_linkage.json`, `temporal_localization.json`, `temporal_description.json`, `scene_description.json`, `video_summarization.json`.
 
 Each step 4 file looks like:
 
 ```json
 {
-  "format": "tao-vl-reason-v1.0",
+  "format": "cosmos-video-reasoning-v1.0",
   "metadata": {"type": "annotation", "task": "<task>", "date": "YYYY-MM-DD",
                "description": "<per-task + description_extra>", "license": "<from config>"},
   "media_root": "<data.video_root>" | null,
@@ -173,6 +173,6 @@ Each step 4 file looks like:
 
 ## Prerequisites
 
-- **Container**: `nvcr.io/nvstaging/tao/tao-toolkit-pyt:7.2.0-rc-36-multiarch`. <!-- versions-key: images.containers.pyt -->
+- **Container**: `cosmos-framework:local`. <!-- versions-key: images.containers.pyt -->
 - **ffmpeg / ffprobe**: required for chunk captioning (Step 1b) and highlight extraction (Step 1c).
 - **VLM endpoint**: at least one — Gemini API key or OpenAI-compatible endpoint.

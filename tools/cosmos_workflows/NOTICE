@@ -7,3 +7,13 @@ headers and SKILL.md license fields remain authoritative.
 
 Changes in this repository include Cosmos skill names, relocatable bundle
 discovery, local agent integration, dependency closure, and CPU validation.
+
+Framework runtime implementations additionally incorporate Apache-2.0 material
+from NVIDIA data-services, dataset adapters, Cosmos action utilities, and
+Cosmos-RL. Exact revisions, original paths, and original-file SHA256 values
+are recorded under runtime_sources and runtime_implementations in migration.json.
+This includes the dataset schema bundle (individual resources retain their
+source attribution in that manifest), domain prompts, video processing,
+evaluation, compression helpers, and selected training extensions.
+These implementation files retain their original copyright/license headers.
+New Framework implementations use the repository's OpenMDW-1.1 license.

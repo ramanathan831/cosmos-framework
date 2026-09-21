@@ -6,7 +6,7 @@ Storage-tier-agnostic layout for every job's outputs:
 <root>/<job_id>/<output_key>/...
 ```
 
-- `<root>` = `TAO_RESULTS_ROOT` (a persistent mount — tier A/B) **or**
+- `<root>` = `COSMOS_RESULTS_ROOT` (a persistent mount — tier A/B) **or**
   `s3://$S3_BUCKET_NAME/results` (tier C upload target).
 - `<job_id>` = the id minted by `cosmos_job_record.py open`.
 - `<output_key>` = each `declared_outputs[].spec_key` from the spec-bundle

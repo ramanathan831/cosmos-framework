@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Annotation-driven selective download for TAO host-side staging.
+"""Annotation-driven selective download for Cosmos host-side staging.
 
 Given an annotation file (parquet / jsonl / json / csv) that references data
 files by relative path in one or more columns, resolve the *exact* set of
@@ -10,8 +10,8 @@ referenced files and download only those from an S3 source prefix into a local
 staging directory.
 
 This replaces the in-container selective-download logic of the former
-``tao_sdk.script_runner`` — host-side, using ``boto3`` directly. There is no
-``tao_sdk`` import and no ``fsspec``/``s3fs`` dependency.
+``cosmos_sdk.script_runner`` — host-side, using ``boto3`` directly. There is no
+``cosmos_sdk`` import and no ``fsspec``/``s3fs`` dependency.
 
 Correctness note: a mis-parse here silently drops training samples, so key
 extraction is deterministic and exhaustively unit-tested

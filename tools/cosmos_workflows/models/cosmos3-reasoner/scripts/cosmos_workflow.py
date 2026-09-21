@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Build reproducible Cosmos3 TAO plans from runtime-only inputs."""
+"""Build reproducible Cosmos3 Cosmos plans from runtime-only inputs."""
 
 from __future__ import annotations
 
@@ -269,7 +269,7 @@ def resolve_model_profile(
             "video_max_pixels": None,
         },
     }[tier]
-    daft_only_values = {
+    reasoning_only_values = {
         "fps": args.fps,
         "min_frames": args.min_frames,
         "max_frames": args.max_frames,
@@ -280,9 +280,9 @@ def resolve_model_profile(
         "video_min_pixels": args.video_min_pixels,
         "video_total_pixels": args.video_total_pixels,
     }
-    selected_daft_only = sorted(name for name, value in daft_only_values.items() if value is not None)
-    if backend != "cosmos-rl" and selected_daft_only:
-        raise WorkflowError(f"DAFT vision options apply only to the cosmos-rl backend: {selected_daft_only}")
+    selected_reasoning_only = sorted(name for name, value in reasoning_only_values.items() if value is not None)
+    if backend != "cosmos-rl" and selected_reasoning_only:
+        raise WorkflowError(f"task-aware vision options apply only to the cosmos-rl backend: {selected_reasoning_only}")
     if args.fps is not None and args.frames:
         raise WorkflowError("fps and frames/nframes are mutually exclusive")
     if args.fps is not None and args.fps <= 0:
@@ -350,7 +350,7 @@ def resolve_model_profile(
                 args.video_max_pixels,
                 args.video_frame_width,
                 args.video_frame_height,
-                *daft_only_values.values(),
+                *reasoning_only_values.values(),
             )
         )
         or args.attention_implementation != "auto"
@@ -391,7 +391,7 @@ def _vision_config(
     *,
     resolved_frames: int | None = None,
 ) -> dict[str, int | float]:
-    """Return the native DAFT/Qwen video-element options for one plan."""
+    """Return the native task-aware/Qwen video-element options for one plan."""
     vision: dict[str, int | float] = {}
     if args.fps is not None:
         vision["fps"] = args.fps
@@ -768,7 +768,7 @@ mv -f -- "$tmp" "$target"
 trap - EXIT
 sha256sum "$target"
 """
-    remote = shlex.join(["bash", "-c", script, "tao-write", str(output.parent), str(output)])
+    remote = shlex.join(["bash", "-c", script, "cosmos-write", str(output.parent), str(output)])
     result = subprocess.run(
         _ssh_command(args, host, remote),
         input=content,
@@ -817,12 +817,12 @@ def _remote_file_exists(args: argparse.Namespace, *, path: str, host: str) -> bo
 
 
 MODEL_PREPARATION_SQSH_ENTRIES = (
-    "cosmos_rl/model_preparation/vlm_safetensors.py",
+    "cosmos_framework/scripts/prepare_vlm_checkpoint.py",
     "cosmos_framework/scripts/convert_model_to_vlm_safetensors.py",
-    "opt/tao/framework-converter-runtime.json",
+    "opt/cosmos/framework-converter-runtime.json",
 )
 FRAMEWORK_MODEL_PREPARATION_SQSH_ENTRIES = ("cosmos_framework/scripts/convert_model_to_vlm_safetensors.py",)
-MODEL_PREPARATION_RUNTIME_ENTRY = "opt/tao/framework-converter-runtime.json"
+MODEL_PREPARATION_RUNTIME_ENTRY = "opt/cosmos/framework-converter-runtime.json"
 MODEL_PREPARATION_RUNTIME_VALIDATION_MODE = "imported_converter_module"
 MODEL_PREPARATION_RUNTIME_ATTESTATION = (
     f"{MODEL_PREPARATION_RUNTIME_ENTRY}#validation_mode={MODEL_PREPARATION_RUNTIME_VALIDATION_MODE}"
@@ -876,7 +876,7 @@ def _remote_sqsh_missing_entries(
         reader_script = (
             f"if unsquashfs -cat {quoted_path} {quoted_entry} 2>/dev/null; then "
             "exit 0; fi; "
-            "extract_dir=$(mktemp -d /tmp/tao-sqsh-attestation.XXXXXX); "
+            "extract_dir=$(mktemp -d /tmp/cosmos-sqsh-attestation.XXXXXX); "
             "trap 'find \"${extract_dir:?}\" -depth -delete' EXIT; "
             f'unsquashfs -d "$extract_dir/root" -no-progress {quoted_path} '
             f"{quoted_entry} >/dev/null 2>&1; "
@@ -1069,15 +1069,15 @@ def _framework_spec(
         "job": {
             "task": "vlm",
             "experiment": (
-                "tao_task_aware_video_reasoning_edge"
+                "cosmos_task_aware_video_reasoning_edge"
                 if args.dataset_family == "task_aware_video_reasoning"
-                else "tao_video_conversation_edge"
+                else "cosmos_video_conversation_edge"
             )
             if model_tier(args.model) == "edge"
             else (
-                "tao_task_aware_video_reasoning"
+                "cosmos_task_aware_video_reasoning"
                 if args.dataset_family == "task_aware_video_reasoning"
-                else "tao_video_conversation"
+                else "cosmos_video_conversation"
             ),
             "project": "cosmos3_reasoner",
             "group": args.dataset_family,
@@ -1142,7 +1142,7 @@ def _framework_spec(
             "callbacks": {
                 "compile_tokenizer": {"compile_after_iterations": 3, "enabled": False},
                 "grad_clip": {"clip_norm": args.gradient_clip, "force_finite": False},
-                "tao": {
+                "workflow_status": {
                     "enabled": True,
                     "experiment_name": args.experiment_id,
                     "logging_interval": 1,
@@ -1295,7 +1295,7 @@ def _rl_video_runtime(
         "validation_video_feature_cache_scope": "rank_local_gpu_embeddings",
         "validation_video_feature_cache_population": "on_demand_during_validation",
         "dataset_prewarm": False,
-        "capability_fallback": ("tao_system_pyav_sparse" if fast else "not_applicable"),
+        "capability_fallback": ("cosmos_system_pyav_sparse" if fast else "not_applicable"),
         "capability_fallback_scope": ("nvdec_incompatible_stream_only" if fast else "not_applicable"),
     }
 
@@ -1470,8 +1470,8 @@ def _rl_spec(
 ) -> dict[str, Any]:
     if len(train_media) != 1 or len(val_media) != 1:
         raise WorkflowError("Cosmos-RL requires one explicit shared media root per split when annotations are merged")
-    train_manifest = train_annotations[0] if len(train_annotations) == 1 else "__TAO_TRAIN_MERGED_MANIFEST__"
-    val_manifest = val_annotations[0] if len(val_annotations) == 1 else "__TAO_VALIDATION_MERGED_MANIFEST__"
+    train_manifest = train_annotations[0] if len(train_annotations) == 1 else "__COSMOS_TRAIN_MERGED_MANIFEST__"
+    val_manifest = val_annotations[0] if len(val_annotations) == 1 else "__COSMOS_VALIDATION_MERGED_MANIFEST__"
     spec = load_yaml(REFERENCES / "spec_template_train.yaml")
     cache_mode = getattr(args, "rl_dataset_cache_mode", "direct")
     if cache_mode not in {"direct", "prewarm"}:
@@ -1649,9 +1649,9 @@ def _rl_spec(
         spec["policy"].pop("lora", None)
     spec["logging"].update(
         {
-            "logger": ["console", "tao"],
+            "logger": ["console", "workflow_status"],
             "experiment_name": args.experiment_id,
-            "project_name": "cosmos-rl-tao",
+            "project_name": "cosmos-rl",
         }
     )
     spec["custom"].update(
@@ -1709,15 +1709,15 @@ def _env(
         "TORCH_NCCL_ASYNC_ERROR_HANDLING": "1",
         "PYTORCH_CUDA_ALLOC_CONF": args.cuda_allocator,
         "NVIDIA_DRIVER_CAPABILITIES": "compute,utility,video",
-        "TAO_DATALOADER_SEED": str(args.seed),
-        "TAO_JOB_ID": cosmos_job_id,
-        "TAO_RESULTS_ROOT": args.container_results_dir,
-        "TAO_API_JOB_ID": cosmos_job_id,
-        "TAO_API_RESULTS_DIR": args.container_results_dir,
-        "TAO_STATUS_FILE": status_path,
+        "COSMOS_DATALOADER_SEED": str(args.seed),
+        "COSMOS_JOB_ID": cosmos_job_id,
+        "COSMOS_RESULTS_ROOT": args.container_results_dir,
+        "COSMOS_API_JOB_ID": cosmos_job_id,
+        "COSMOS_API_RESULTS_DIR": args.container_results_dir,
+        "COSMOS_STATUS_FILE": status_path,
     }
     if args.video_override_map:
-        common["TAO_VIDEO_OVERRIDE_MAP"] = _containerize(args, args.video_override_map)
+        common["COSMOS_VIDEO_OVERRIDE_MAP"] = _containerize(args, args.video_override_map)
     if backend == "cosmos-framework":
         if not framework_video_runtime:
             raise WorkflowError("Cosmos Framework video runtime was not resolved")
@@ -1728,11 +1728,8 @@ def _env(
         baked_overlay_pythonpath = getattr(args, "framework_baked_overlay_pythonpath", "")
         if baked_overlay_pythonpath:
             overlay = Path(baked_overlay_pythonpath)
-            if not overlay.is_absolute() or not str(overlay).startswith("/tao-patches-framework-"):
-                raise WorkflowError(
-                    "framework_baked_overlay_pythonpath must be an absolute "
-                    "baked container path below /tao-patches-framework-*"
-                )
+            if not overlay.is_absolute():
+                raise WorkflowError("framework_baked_overlay_pythonpath must be an absolute baked container path")
             common["PYTHONPATH"] = str(overlay)
         resolved_profile = model_profile or {
             "frame_width": args.video_resized_width or args.video_frame_width or 1280,
@@ -1745,63 +1742,63 @@ def _env(
                 "VLM_SAFETENSORS_PATH": prepared_model,
                 # Framework derives DCP paths as
                 # $IMAGINAIRE_OUTPUT_ROOT/<project>/<group>/<name>/checkpoints.
-                # Keep those artifacts under the caller's checkpoint root; TAO
+                # Keep those artifacts under the caller's checkpoint root; Cosmos
                 # status and logs remain explicitly routed to results above.
                 "IMAGINAIRE_OUTPUT_ROOT": args.container_checkpoint_dir,
-                "TAO_VIDEO_DATASET_FAMILY": args.dataset_family,
-                "TAO_VIDEO_TRAIN_ANNOTATION": train_annotations[0],
-                "TAO_VIDEO_TRAIN_ANNOTATIONS": json.dumps(list(train_annotations)),
-                "TAO_VIDEO_TRAIN_MEDIA": train_media[0],
-                "TAO_VIDEO_TRAIN_MEDIA_ROOTS": json.dumps(framework_train_media),
-                "TAO_VIDEO_VAL_ANNOTATION": val_annotations[0],
-                "TAO_VIDEO_VAL_ANNOTATIONS": json.dumps(list(val_annotations)),
-                "TAO_VIDEO_VAL_MEDIA": val_media[0],
-                "TAO_VIDEO_VAL_MEDIA_ROOTS": json.dumps(framework_val_media),
-                "TAO_VIDEO_NUM_FRAMES": str(args.frames),
-                "TAO_VIDEO_FRAME_WIDTH": str(resolved_profile["frame_width"]),
-                "TAO_VIDEO_FRAME_HEIGHT": str(resolved_profile["frame_height"]),
-                "TAO_VIDEO_SYSTEM_PROMPT": args.system_prompt,
-                "TAO_VIDEO_CACHE_SIZE": str(framework_video_runtime["video_cache_size"]),
-                "TAO_FRAMEWORK_SFT_PROCESS_THREADS": str(framework_video_runtime["sft_process_threads"]),
-                "TAO_FRAMEWORK_DATALOADER_NUM_WORKERS": str(framework_video_runtime.get("dataloader_num_workers", 1)),
-                "TAO_VIDEO_DECODER_DEVICE": str(framework_video_runtime["decoder_device"]),
-                "TAO_VIDEO_DECODER_THREADS": str(framework_video_runtime["decoder_threads"]),
-                "TAO_FRAMEWORK_VALIDATION_BATCH_SIZE": str(framework_video_runtime["validation_batch_size"]),
-                "TAO_FRAMEWORK_VALIDATION_SHARD_STRATEGY": str(framework_video_runtime["validation_shard_strategy"]),
-                "TAO_FRAMEWORK_VALIDATION_VIDEO_FEATURE_CACHE_SIZE": str(
+                "COSMOS_VIDEO_DATASET_FAMILY": args.dataset_family,
+                "COSMOS_VIDEO_TRAIN_ANNOTATION": train_annotations[0],
+                "COSMOS_VIDEO_TRAIN_ANNOTATIONS": json.dumps(list(train_annotations)),
+                "COSMOS_VIDEO_TRAIN_MEDIA": train_media[0],
+                "COSMOS_VIDEO_TRAIN_MEDIA_ROOTS": json.dumps(framework_train_media),
+                "COSMOS_VIDEO_VAL_ANNOTATION": val_annotations[0],
+                "COSMOS_VIDEO_VAL_ANNOTATIONS": json.dumps(list(val_annotations)),
+                "COSMOS_VIDEO_VAL_MEDIA": val_media[0],
+                "COSMOS_VIDEO_VAL_MEDIA_ROOTS": json.dumps(framework_val_media),
+                "COSMOS_VIDEO_NUM_FRAMES": str(args.frames),
+                "COSMOS_VIDEO_FRAME_WIDTH": str(resolved_profile["frame_width"]),
+                "COSMOS_VIDEO_FRAME_HEIGHT": str(resolved_profile["frame_height"]),
+                "COSMOS_VIDEO_SYSTEM_PROMPT": args.system_prompt,
+                "COSMOS_VIDEO_CACHE_SIZE": str(framework_video_runtime["video_cache_size"]),
+                "COSMOS_FRAMEWORK_SFT_PROCESS_THREADS": str(framework_video_runtime["sft_process_threads"]),
+                "COSMOS_FRAMEWORK_DATALOADER_NUM_WORKERS": str(
+                    framework_video_runtime.get("dataloader_num_workers", 1)
+                ),
+                "COSMOS_VIDEO_DECODER_DEVICE": str(framework_video_runtime["decoder_device"]),
+                "COSMOS_VIDEO_DECODER_THREADS": str(framework_video_runtime["decoder_threads"]),
+                "COSMOS_FRAMEWORK_VALIDATION_BATCH_SIZE": str(framework_video_runtime["validation_batch_size"]),
+                "COSMOS_FRAMEWORK_VALIDATION_SHARD_STRATEGY": str(framework_video_runtime["validation_shard_strategy"]),
+                "COSMOS_FRAMEWORK_VALIDATION_VIDEO_FEATURE_CACHE_SIZE": str(
                     framework_video_runtime["validation_video_feature_cache_size"]
                 ),
-                "TAO_FRAMEWORK_VALIDATION_PROCESSED_VIDEO_CACHE_SIZE": str(
+                "COSMOS_FRAMEWORK_VALIDATION_PROCESSED_VIDEO_CACHE_SIZE": str(
                     framework_video_runtime.get("validation_processed_video_cache_size", 0)
                 ),
             }
         )
         framework_frontload_unique = framework_video_runtime.get("validation_cache_frontload_unique_per_batch", 0)
         if framework_frontload_unique:
-            common["TAO_FRAMEWORK_VALIDATION_CACHE_FRONTLOAD_UNIQUE_PER_BATCH"] = str(framework_frontload_unique)
+            common["COSMOS_FRAMEWORK_VALIDATION_CACHE_FRONTLOAD_UNIQUE_PER_BATCH"] = str(framework_frontload_unique)
         framework_prefetch = framework_video_runtime.get("dataloader_prefetch_factor", 2)
         if framework_prefetch is not None:
-            common["TAO_FRAMEWORK_DATALOADER_PREFETCH_FACTOR"] = str(framework_prefetch)
+            common["COSMOS_FRAMEWORK_DATALOADER_PREFETCH_FACTOR"] = str(framework_prefetch)
         if args.video_max_pixels:
-            common["TAO_VIDEO_MAX_PIXELS"] = str(args.video_max_pixels)
+            common["COSMOS_VIDEO_MAX_PIXELS"] = str(args.video_max_pixels)
         if args.run_mode in {"smoke", "diagnostic"}:
             train_limit = args.smoke_train_samples if args.run_mode == "smoke" else args.train_sample_limit
             val_limit = args.smoke_validation_samples if args.run_mode == "smoke" else args.validation_sample_limit
             if args.dataset_family == "task_aware_video_reasoning":
                 train_limit *= 2
             if train_limit:
-                common["TAO_VIDEO_TRAIN_LIMIT"] = str(train_limit)
+                common["COSMOS_VIDEO_TRAIN_LIMIT"] = str(train_limit)
             if val_limit:
-                common["TAO_VIDEO_VAL_LIMIT"] = str(val_limit)
+                common["COSMOS_VIDEO_VAL_LIMIT"] = str(val_limit)
     else:
         common["COSMOS_SFT_REQUIRE_VISUAL_GRADIENTS"] = "1"
         baked_overlay_pythonpath = getattr(args, "rl_baked_overlay_pythonpath", "")
         if baked_overlay_pythonpath:
             overlay = Path(baked_overlay_pythonpath)
-            if not overlay.is_absolute() or not str(overlay).startswith("/tao-patches/"):
-                raise WorkflowError(
-                    "rl_baked_overlay_pythonpath must be an absolute baked container path below /tao-patches"
-                )
+            if not overlay.is_absolute():
+                raise WorkflowError("rl_baked_overlay_pythonpath must be an absolute baked container path")
             common["PYTHONPATH"] = str(overlay)
         if (
             args.dataset_family == "video_conversation"
@@ -1811,12 +1808,12 @@ def _env(
         if not rl_video_runtime:
             raise WorkflowError("Cosmos-RL video runtime was not resolved")
         common["FORCE_QWENVL_VIDEO_READER"] = str(rl_video_runtime["video_decoder"])
-        common["TAO_SFT_BATCH_THREADS"] = str(rl_video_runtime["sft_batch_threads"])
+        common["COSMOS_SFT_BATCH_THREADS"] = str(rl_video_runtime["sft_batch_threads"])
         if rl_video_runtime["selected_profile"] == "pynv-device-rgbp":
-            common["TAO_PYNV_FRAME_TRANSFER"] = "device_rgbp"
-            common["TAO_PYNV_VIDEO_CACHE_SIZE"] = str(rl_video_runtime["video_cache_size"])
-            common["TAO_PYNV_DECODER_CACHE_SIZE"] = str(rl_video_runtime["decoder_cache_size"])
-        common["TAO_VALIDATION_VIDEO_FEATURE_CACHE_SIZE"] = str(
+            common["COSMOS_PYNV_FRAME_TRANSFER"] = "device_rgbp"
+            common["COSMOS_PYNV_VIDEO_CACHE_SIZE"] = str(rl_video_runtime["video_cache_size"])
+            common["COSMOS_PYNV_DECODER_CACHE_SIZE"] = str(rl_video_runtime["decoder_cache_size"])
+        common["COSMOS_VALIDATION_VIDEO_FEATURE_CACHE_SIZE"] = str(
             rl_video_runtime.get("validation_video_feature_cache_size", 0)
         )
     return common
@@ -1838,9 +1835,9 @@ def _command(args: argparse.Namespace, backend: str) -> str:
         ]
         return " ".join(parts)
     hook_module = (
-        "cosmos_rl.tools.custom_hooks.tao_vl_reason_daft_sft_example"
+        "cosmos_framework.integrations.cosmos_rl.reasoning_sft"
         if args.dataset_family == "task_aware_video_reasoning"
-        else "cosmos_rl.tools.custom_hooks.tao_sft_example"
+        else "cosmos_framework.integrations.cosmos_rl.conversation_sft"
     )
     hook_assignment = (
         'hook="$(/opt/venv/cosmos_rl/bin/python -c '
@@ -1852,8 +1849,8 @@ def _command(args: argparse.Namespace, backend: str) -> str:
     if getattr(args, "rl_baked_overlay_pythonpath", ""):
         hook_checks.extend(
             [
-                'case "$hook" in /tao-patches/*) ;; *) echo "Expected baked Cosmos-RL hook, found: $hook" >&2; exit 2 ;; esac',
-                'printf "TAO_COSMOS_RL_BAKED_HOOK=%s\\n" "$hook"',
+                f'case "$hook" in {shlex.quote(args.rl_baked_overlay_pythonpath.rstrip("/"))}/*) ;; *) echo "Expected selected baked hook, found: $hook" >&2; exit 2 ;; esac',
+                'printf "COSMOS_COSMOS_RL_BAKED_HOOK=%s\\n" "$hook"',
             ]
         )
     if args.nodes == 1:
@@ -1885,17 +1882,12 @@ def _command(args: argparse.Namespace, backend: str) -> str:
 
 
 def _source_commits(args: argparse.Namespace, backend: str) -> dict[str, str]:
-    required = (
-        {"cosmos-framework": args.cosmos_framework_commit}
-        if backend == "cosmos-framework"
-        else {"cosmos-rl-github": args.cosmos_rl_commit}
-    )
-    required["cosmos-rl"] = args.tao_integration_commit
-    required["nvidia-tao-daft"] = args.daft_commit
-    required["tao-core"] = args.tao_core_commit
-    missing = [key for key, value in required.items() if not value]
+    required = {"cosmos-framework": args.cosmos_framework_commit}
+    if backend == "cosmos-rl":
+        required["cosmos-rl"] = args.cosmos_rl_commit
+    missing = [key for key, value in required.items() if not re.fullmatch(r"[0-9a-fA-F]{40}", value or "")]
     if missing:
-        raise WorkflowError(f"repository commit inputs are required for clean image provenance: {missing}")
+        raise WorkflowError(f"full repository commits are required for clean image provenance: {missing}")
     return required
 
 
@@ -1927,10 +1919,14 @@ def _enroot_image_reference(image: str) -> str:
         scheme, remainder = image.split("://", 1)
         if scheme not in {"docker", "dockerd"}:
             raise WorkflowError(f"unsupported Enroot image scheme in {image!r}")
+        if scheme == "dockerd":
+            return image
     else:
         remainder = image
     if "/" not in remainder:
-        raise WorkflowError(f"container image must include a registry and repository: {image!r}")
+        raise WorkflowError(
+            f"Remote SLURM needs an explicit registry image or existing SQSH, not a local build target: {image!r}"
+        )
     registry, repository = remainder.split("/", 1)
     return f"docker://{registry}#{repository}"
 
@@ -2009,9 +2005,7 @@ def _runtime_image_plan(
         "dockerfile": None,
         "build_context": None,
         "native_repository": {},
-        "integration_repository": {},
-        "daft_repository": {},
-        "tao_core_repository": {},
+        "repositories": {},
         "build_arguments": {},
         "clean_build_commands": [],
         "required_commits": {},
@@ -2035,134 +2029,63 @@ def _runtime_image_plan(
 
 
 def _source_build_image_plan(args: argparse.Namespace, backend: str, commits: Mapping[str, str]) -> dict[str, Any]:
-    dockerfile = "Dockerfile"
-    integration = path_identity(args.tao_integration_repo)
-    native_name = "cosmos-framework" if backend == "cosmos-framework" else "cosmos-rl-github"
-    native_repo = path_identity(args.cosmos_framework_repo if backend == "cosmos-framework" else args.cosmos_rl_repo)
-    daft_repo = path_identity(args.daft_repo)
-    tao_core_repo = path_identity(args.tao_core_repo)
-    image = args.image_tag
-    if not image:
-        raise WorkflowError("image_tag is required; old or historical image tags are never selected implicitly")
-    if not args.build_context or not args.build_timestamp:
-        raise WorkflowError("build_context and build_timestamp are required image build inputs")
-    missing_trees = [
-        name
-        for name, value in (
-            (native_name, args.native_tree),
-            ("cosmos-rl", args.integration_tree),
-            ("nvidia-tao-daft", args.daft_tree),
-            ("tao-core", args.tao_core_tree),
-        )
-        if not value
-    ]
-    if missing_trees:
-        raise WorkflowError(f"repository tree inputs are required for clean image provenance: {missing_trees}")
-    if backend == "cosmos-framework":
-        if not args.cosmos_framework_base_image:
-            raise WorkflowError("cosmos_framework_base_image is required for the unified clean Framework build")
-        if not args.cosmos_framework_source_repository or not args.cosmos_framework_source_branch:
-            raise WorkflowError(
-                "cosmos_framework_source_repository and cosmos_framework_source_branch "
-                "are required for the unified clean Framework build"
-            )
-        build_args = {
-            "COSMOS_BACKEND": "cosmos-framework",
-            "COSMOS_FRAMEWORK_BASE_IMAGE": args.cosmos_framework_base_image,
-            "COSMOS_FRAMEWORK_REPO": args.cosmos_framework_source_repository,
-            "COSMOS_FRAMEWORK_BRANCH": args.cosmos_framework_source_branch,
-            "EXPECTED_FRAMEWORK_COMMIT": commits[native_name],
-            "EXPECTED_FRAMEWORK_TREE": args.native_tree,
-            "ACTIONS_COMMIT": commits["cosmos-rl"],
-            "ACTIONS_TREE": args.integration_tree,
-            "DAFT_COMMIT": commits["nvidia-tao-daft"],
-            "DAFT_TREE": args.daft_tree,
-            "TAO_CORE_COMMIT": commits["tao-core"],
-            "TAO_CORE_TREE": args.tao_core_tree,
-            "SOURCE_DIRTY": "0",
-            "BUILD_TIMESTAMP": args.build_timestamp,
-        }
-        commands = []
-    else:
-        if not args.cosmos_rl_base_image:
-            raise WorkflowError("cosmos_rl_base_image is required for the clean Cosmos-RL build")
-        if not args.cosmos_rl_source_repository or not args.cosmos_rl_source_branch:
-            raise WorkflowError(
-                "cosmos_rl_source_repository and cosmos_rl_source_branch are required for the clean Cosmos-RL build"
-            )
-        build_args = {
-            "COSMOS_BACKEND": "cosmos-rl",
-            "COSMOS_RL_BUILD_MODE": "no-efa",
-            "VLLM_BASE_IMAGE": args.cosmos_rl_base_image,
-            "COSMOS_RL_GITHUB_REPO": args.cosmos_rl_source_repository,
-            "COSMOS_RL_GITHUB_BRANCH": args.cosmos_rl_source_branch,
-            "COSMOS_RL_COMMIT": commits[native_name],
-            "COSMOS_RL_TREE": args.native_tree,
-            "ACTIONS_COMMIT": commits["cosmos-rl"],
-            "ACTIONS_TREE": args.integration_tree,
-            "DAFT_COMMIT": commits["nvidia-tao-daft"],
-            "DAFT_TREE": args.daft_tree,
-            "TAO_CORE_COMMIT": commits["tao-core"],
-            "TAO_CORE_TREE": args.tao_core_tree,
-            "SOURCE_DIRTY": "0",
-            "BUILD_TIMESTAMP": args.build_timestamp,
-            "PYAV_WHEEL_SHA256": "f9a65d1f48b818323fb411e80358f89d77dec340b01d27c6b2dfbb9cbf4b779f",
-        }
-        commands = []
-    command = [
-        "docker",
-        "build",
-        "--pull",
-        "-f",
-        str(Path(integration["expanded"]) / dockerfile),
-        "-t",
-        image,
-    ]
-    source_repository = (
-        args.cosmos_framework_source_repository if backend == "cosmos-framework" else args.cosmos_rl_source_repository
-    )
-    if source_repository.startswith(("ssh://", "git@")):
-        if not args.ssh_key_path:
-            raise WorkflowError("ssh_key_path is required for an SSH source repository")
-        command[2:2] = ["--ssh", f"default={args.ssh_key_path}"]
+    framework = path_identity(args.cosmos_framework_repo)
+    framework_tree = args.framework_tree or (args.native_tree if backend == "cosmos-framework" else "")
+    trees = {"cosmos-framework": framework_tree}
+    repositories = {"cosmos-framework": framework}
+    base_image = args.cosmos_framework_base_image if backend == "cosmos-framework" else args.cosmos_rl_base_image
+    if not args.image_tag or not args.build_timestamp or not base_image:
+        raise WorkflowError("image_tag, build_timestamp, and a backend base image are required")
+    if "/tao/" in base_image or "tao-toolkit" in base_image:
+        raise WorkflowError("select an independent CUDA/PyTorch base image")
+    dockerfile = "Dockerfile" if backend == "cosmos-framework" else "docker/cosmos-rl.Dockerfile"
+    build_args = {
+        "BASE_IMAGE": base_image,
+        "SOURCE_COMMIT": commits["cosmos-framework"],
+        "SOURCE_TREE": framework_tree,
+        "SOURCE_DIRTY": "0",
+        "BUILD_TIMESTAMP": args.build_timestamp,
+    }
+    command = ["docker", "build", "--pull", "-f", str(Path(framework["expanded"]) / dockerfile), "-t", args.image_tag]
+    if backend == "cosmos-rl":
+        repositories["cosmos-rl"] = path_identity(args.cosmos_rl_repo)
+        trees["cosmos-rl"] = args.native_tree
+        build_args.update(COSMOS_RL_COMMIT=commits["cosmos-rl"], COSMOS_RL_TREE=args.native_tree)
+        command.extend(["--build-context", f"cosmos-rl={repositories['cosmos-rl']['expanded']}"])
+    missing = [name for name, tree in trees.items() if not re.fullmatch(r"[0-9a-fA-F]{40}", tree or "")]
+    if missing:
+        raise WorkflowError(f"full repository tree identities are required: {missing}")
     for key, value in build_args.items():
         command.extend(["--build-arg", f"{key}={value}"])
-    command.append(args.build_context)
-    commands.append(shlex.join(command))
+    context = framework["expanded"]
+    command.append(context)
     return {
         "mode": "source-build",
         "selection_source": "explicit_source_build_request",
-        "tag": image,
+        "tag": args.image_tag,
         "dockerfile": dockerfile,
-        "build_context": args.build_context,
-        "native_repository": native_repo,
-        "integration_repository": integration,
-        "daft_repository": daft_repo,
-        "tao_core_repository": tao_core_repo,
+        "build_context": context,
+        "native_repository": framework if backend == "cosmos-framework" else repositories["cosmos-rl"],
+        "repositories": repositories,
         "build_arguments": build_args,
-        "clean_build_commands": commands,
+        "clean_build_commands": [shlex.join(command)],
         "required_commits": dict(commits),
-        "required_trees": {
-            native_name: args.native_tree,
-            "cosmos-rl": args.integration_tree,
-            "nvidia-tao-daft": args.daft_tree,
-            "tao-core": args.tao_core_tree,
-        },
-        "provenance_path": "/opt/tao/image-provenance.json",
+        "required_trees": trees,
+        "provenance_path": "/opt/cosmos/image-provenance.json",
         "must_rebuild_after_source_change": True,
         "sqsh": {
             "target": args.sqsh_path,
             "reuse_allowed": False,
-            "conversion_required": bool(args.platform == "slurm"),
-            "command": shlex.join(["enroot", "import", "--output", args.sqsh_path, f"dockerd://{image}"])
+            "conversion_required": args.platform == "slurm",
+            "command": shlex.join(["enroot", "import", "--output", args.sqsh_path, f"dockerd://{args.image_tag}"])
             if args.sqsh_path
             else None,
-            "verification": "record SHA256 and verify /opt/tao/image-provenance.json through Pyxis before launch",
+            "verification": "record SHA256 and verify /opt/cosmos/image-provenance.json through Pyxis before launch",
         },
     }
 
 
-_MODEL_PREPARATION_IMAGE_DIGEST_ENV = "TAO_COSMOS_PREPARATION_IMAGE_DIGEST"
+_MODEL_PREPARATION_IMAGE_DIGEST_ENV = "COSMOS_COSMOS_PREPARATION_IMAGE_DIGEST"
 
 
 def _model_preparation_command_with_digest(command: Sequence[str]) -> str:
@@ -2408,7 +2331,7 @@ def _model_preparation(
         "kind": "cosmos3_omni_to_exact_qwen3_vl",
         "output": path_identity(output, required=False),
         "command": preparation_command,
-        "provenance": "tao_conversion_provenance.json plus exact tensor/config validation",
+        "provenance": "cosmos_conversion_provenance.json plus exact tensor/config validation",
         "runtime_model_source": "prepared_checkpoint_output",
         "conversion_notice_required": True,
         "conversion_owner": backend,
@@ -2438,10 +2361,10 @@ def _preflight_contract(
     python = "/workspace/.venv/bin/python" if backend == "cosmos-framework" else "/opt/venv/cosmos_rl/bin/python"
     imports = [
         "import torch",
-        "assert torch.cuda.is_available(), 'TAO_PREFLIGHT_ASSERTION_FAILED:cuda_available'",
+        "assert torch.cuda.is_available(), 'COSMOS_PREFLIGHT_ASSERTION_FAILED:cuda_available'",
         (
             f"assert torch.cuda.device_count() == {args.gpus_per_node}, "
-            "'TAO_PREFLIGHT_ASSERTION_FAILED:cuda_device_count'"
+            "'COSMOS_PREFLIGHT_ASSERTION_FAILED:cuda_device_count'"
         ),
     ]
     if backend == "cosmos-framework":
@@ -2450,128 +2373,56 @@ def _preflight_contract(
         imports.extend(
             [
                 "from cosmos_framework.scripts import convert_model_to_vlm_safetensors as converter_module",
-                "assert converter_module.__file__, 'TAO_PREFLIGHT_ASSERTION_FAILED:model_preparation_runtime'",
+                "assert converter_module.__file__, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:model_preparation_runtime'",
                 "import cosmos_framework",
                 "import inspect",
                 "import os",
-                "from cosmos_framework.callbacks.tao_status import TAOStatusCallback",
-                "import cosmos_framework.callbacks.tao_status as framework_tao_status",
+                "from cosmos_framework.callbacks.workflow_status import WorkflowStatusCallback",
+                "import cosmos_framework.callbacks.workflow_status as framework_workflow_status",
                 "from cosmos_framework.data.generator.dataflow import ContiguousBatcher",
                 "from cosmos_framework.data.generator.dataflow import CosmosDataLoader",
-                "from cosmos_framework.configs.base.reasoner.experiment.tao_video_sft import VideoSFTProcessor",
+                "from cosmos_framework.configs.base.reasoner.experiment.video_sft import VideoSFTProcessor",
                 "import importlib; framework_video_recipe=importlib.import_module('cosmos_framework.configs.base.reasoner.experiment.' + 'w' + 'ts_vlm')",
                 "import cosmos_framework.model.generator.hf_model as framework_hf_model",
                 "import cosmos_framework.data.generator.dataflow.loader as framework_dataflow_loader",
                 "from cosmos_framework.scripts.export_vlm_dcp import export_vlm_dcp",
                 "import torchcodec",
-                "assert 'max_tokens' in inspect.signature(ContiguousBatcher).parameters, 'TAO_PREFLIGHT_ASSERTION_FAILED:contiguous_batcher_max_tokens'",
-                "assert ContiguousBatcher.preserves_source_order is True, 'TAO_PREFLIGHT_ASSERTION_FAILED:contiguous_batcher_source_order'",
-                "loader_source=inspect.getsource(framework_dataflow_loader._DataflowIterableDataset); assert 'group[-1]' in loader_source and 'cursor_epoch' in loader_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:cross_epoch_resume_cursor'",
-                "assert os.environ.get('TAO_VIDEO_DECODER_DEVICE') == 'cuda'",
-                f"assert os.environ.get('TAO_VIDEO_CACHE_SIZE') == {str(framework_video_runtime['video_cache_size'])!r}",
-                f"assert os.environ.get('TAO_FRAMEWORK_SFT_PROCESS_THREADS') == {str(framework_video_runtime['sft_process_threads'])!r}",
-                f"assert os.environ.get('TAO_FRAMEWORK_DATALOADER_NUM_WORKERS') == {str(framework_video_runtime['dataloader_num_workers'])!r}",
-                f"assert os.environ.get('TAO_VIDEO_DECODER_THREADS') == {str(framework_video_runtime['decoder_threads'])!r}",
-                f"assert os.environ.get('TAO_FRAMEWORK_VALIDATION_BATCH_SIZE') == {str(framework_video_runtime['validation_batch_size'])!r}",
-                f"assert os.environ.get('TAO_FRAMEWORK_VALIDATION_SHARD_STRATEGY') == {str(framework_video_runtime['validation_shard_strategy'])!r}",
-                f"assert os.environ.get('TAO_FRAMEWORK_VALIDATION_VIDEO_FEATURE_CACHE_SIZE') == {str(framework_video_runtime['validation_video_feature_cache_size'])!r}",
-                f"assert os.environ.get('TAO_FRAMEWORK_VALIDATION_PROCESSED_VIDEO_CACHE_SIZE') == {str(framework_video_runtime.get('validation_processed_video_cache_size', 0))!r}",
-                "framework_loader_source=inspect.getsource(CosmosDataLoader.__init__); assert 'multiprocessing_context' in framework_loader_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:framework_spawn_prefetch'",
-                "assert '__getstate__' in VideoSFTProcessor.__dict__ and '__setstate__' in VideoSFTProcessor.__dict__, 'TAO_PREFLIGHT_ASSERTION_FAILED:framework_spawn_pickle'",
+                "assert 'max_tokens' in inspect.signature(ContiguousBatcher).parameters, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:contiguous_batcher_max_tokens'",
+                "assert ContiguousBatcher.preserves_source_order is True, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:contiguous_batcher_source_order'",
+                "loader_source=inspect.getsource(framework_dataflow_loader._DataflowIterableDataset); assert 'group[-1]' in loader_source and 'cursor_epoch' in loader_source, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:cross_epoch_resume_cursor'",
+                "assert os.environ.get('COSMOS_VIDEO_DECODER_DEVICE') == 'cuda'",
+                f"assert os.environ.get('COSMOS_VIDEO_CACHE_SIZE') == {str(framework_video_runtime['video_cache_size'])!r}",
+                f"assert os.environ.get('COSMOS_FRAMEWORK_SFT_PROCESS_THREADS') == {str(framework_video_runtime['sft_process_threads'])!r}",
+                f"assert os.environ.get('COSMOS_FRAMEWORK_DATALOADER_NUM_WORKERS') == {str(framework_video_runtime['dataloader_num_workers'])!r}",
+                f"assert os.environ.get('COSMOS_VIDEO_DECODER_THREADS') == {str(framework_video_runtime['decoder_threads'])!r}",
+                f"assert os.environ.get('COSMOS_FRAMEWORK_VALIDATION_BATCH_SIZE') == {str(framework_video_runtime['validation_batch_size'])!r}",
+                f"assert os.environ.get('COSMOS_FRAMEWORK_VALIDATION_SHARD_STRATEGY') == {str(framework_video_runtime['validation_shard_strategy'])!r}",
+                f"assert os.environ.get('COSMOS_FRAMEWORK_VALIDATION_VIDEO_FEATURE_CACHE_SIZE') == {str(framework_video_runtime['validation_video_feature_cache_size'])!r}",
+                f"assert os.environ.get('COSMOS_FRAMEWORK_VALIDATION_PROCESSED_VIDEO_CACHE_SIZE') == {str(framework_video_runtime.get('validation_processed_video_cache_size', 0))!r}",
+                "framework_loader_source=inspect.getsource(CosmosDataLoader.__init__); assert 'multiprocessing_context' in framework_loader_source, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:framework_spawn_prefetch'",
+                "assert '__getstate__' in VideoSFTProcessor.__dict__ and '__setstate__' in VideoSFTProcessor.__dict__, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:framework_spawn_pickle'",
                 f"from torchcodec.decoders import VideoDecoder; d=VideoDecoder({representative_media!r}, device='cuda'); frame=d.get_frames_at([0]).data; assert str(frame.device).startswith('cuda'), frame.device; assert len(d)>0",
             ]
         )
         if framework_video_runtime.get("validation_cache_frontload_unique_per_batch"):
             imports.extend(
                 [
-                    f"assert os.environ.get('TAO_FRAMEWORK_VALIDATION_CACHE_FRONTLOAD_UNIQUE_PER_BATCH') == {str(framework_video_runtime['validation_cache_frontload_unique_per_batch'])!r}",
-                    "frontload_source=inspect.getsource(framework_video_recipe.MediaGroupedMapDistributor); assert '_staged_cache_frontload' in frontload_source and 'unique_per_batch' in frontload_source and 'sorted(staged) != sorted(assignment)' in frontload_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:framework_staged_validation_frontload'",
+                    f"assert os.environ.get('COSMOS_FRAMEWORK_VALIDATION_CACHE_FRONTLOAD_UNIQUE_PER_BATCH') == {str(framework_video_runtime['validation_cache_frontload_unique_per_batch'])!r}",
+                    "frontload_source=inspect.getsource(framework_video_recipe.MediaGroupedMapDistributor); assert '_staged_cache_frontload' in frontload_source and 'unique_per_batch' in frontload_source and 'sorted(staged) != sorted(assignment)' in frontload_source, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:framework_staged_validation_frontload'",
                 ]
             )
         framework_overlay = getattr(args, "framework_baked_overlay_pythonpath", "")
         if framework_overlay:
-            framework_module_prefix = getattr(args, "framework_baked_overlay_module_prefix", "") or framework_overlay
-            framework_hf_module_prefix = framework_module_prefix
-            if any(
-                marker in framework_overlay
-                for marker in (
-                    "evalval-lab-v18",
-                    "evalval-lab-v19",
-                    "evalval-lab-v20",
-                    "evalval-lab-v21",
-                )
-            ):
-                # The validation-cache derivatives intentionally append
-                # only hf_model.py and inherit the validated data/status
-                # modules from v13.  Attest both owners independently.
-                framework_module_prefix = "/tao-patches-framework-c312482-evalval-lab-v13/modules"
-            elif any(marker in framework_overlay for marker in ("evalval-lab-v12", "evalval-lab-v13")):
-                framework_hf_module_prefix = "/tao-patches-framework-c312482-evalval-lab-v2/modules"
-            imports.extend(
-                [
-                    f"assert framework_video_recipe.__file__.startswith({framework_module_prefix!r}), framework_video_recipe.__file__",
-                    f"assert framework_hf_model.__file__.startswith({framework_hf_module_prefix!r}), framework_hf_model.__file__",
-                    "assert hasattr(framework_video_recipe, 'MediaGroupedMapDistributor'), 'TAO_PREFLIGHT_ASSERTION_FAILED:framework_media_grouped_distributor'",
-                    "assert hasattr(framework_video_recipe, 'VideoVLMCollator'), 'TAO_PREFLIGHT_ASSERTION_FAILED:framework_video_cache_key_collator'",
-                    "hf_source=inspect.getsource(framework_hf_model.HFModel); assert '_configure_validation_video_feature_cache' in hf_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:framework_validation_feature_cache'",
-                    "feature_cache_source=inspect.getsource(framework_hf_model._ValidationVideoFeatureCache)",
-                ]
+            prefix = getattr(args, "framework_baked_overlay_module_prefix", "") or framework_overlay
+            imports.append(
+                f"assert framework_video_recipe.__file__.startswith({prefix!r}), framework_video_recipe.__file__"
             )
-            if framework_video_runtime["validation_video_feature_cache_size"]:
-                imports.extend(
-                    [
-                        "assert 'visual.forward = MethodType(cached_visual_forward, visual)' in hf_source and 'boundary=visual_forward' in hf_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:framework_validation_visual_forward_cache'",
-                        "assert 'not self.training' in hf_source and 'not torch.is_grad_enabled()' in hf_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:framework_validation_only_feature_cache'",
-                        "assert 'torch.distributed.all_reduce' in feature_cache_source and (('ReduceOp.MIN' in feature_cache_source and 'ReduceOp.MAX' in feature_cache_source) or ('_distributed_cache_state' in feature_cache_source and '[int(not local_cacheable), int(local_missing)]' in feature_cache_source and 'ReduceOp.MAX' in feature_cache_source)) and 'sync_dummy_encodes' in feature_cache_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:framework_validation_feature_cache_collective_safety'",
-                    ]
-                )
-            if framework_video_runtime.get("validation_processed_video_cache_size"):
-                imports.extend(
-                    [
-                        "processed_cache_source=inspect.getsource(framework_video_recipe._ProcessedVideoCacheProxy)",
-                        "assert 'TAO_FRAMEWORK_VALIDATION_PROCESSED_VIDEO_CACHE_HIT_ATTESTATION' in processed_cache_source and '_inflight' in processed_cache_source and 'deepcopy' in processed_cache_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:framework_validation_processed_video_cache'",
-                        "video_processor_source=inspect.getsource(framework_video_recipe.VideoSFTProcessor); assert '_ProcessedVideoCacheProxy' in video_processor_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:framework_validation_processed_video_cache_install'",
-                    ]
-                )
-            if framework_video_runtime.get("validation_partial_final_batch"):
-                imports.append(
-                    "assert framework_video_recipe.MediaGroupedMapDistributor.finite_validation_stream is True, 'TAO_PREFLIGHT_ASSERTION_FAILED:framework_finite_validation_stream'"
-                )
-            if any(
-                marker in framework_overlay
-                for marker in (
-                    "evalval-lab-v10",
-                    "evalval-lab-v11",
-                    "evalval-lab-v12",
-                    "evalval-lab-v13",
-                )
-            ):
-                status_module_prefix = "/tao-patches-framework-c312482-evalval-lab-v10/modules"
-                imports.extend(
-                    [
-                        f"assert framework_tao_status.__file__.startswith({status_module_prefix!r}), framework_tao_status.__file__",
-                        "tao_status_source=inspect.getsource(TAOStatusCallback); assert 'TAO_FRAMEWORK_VALIDATION_STATUS_REDUCTION_ATTESTATION' in tao_status_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:framework_validation_status_reduction'",
-                        "assert '_validation_local_numerators' in tao_status_source and 'torch.stack' in tao_status_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:framework_validation_deferred_scalar_transfer'",
-                    ]
-                )
-            if framework_video_runtime.get("dataloader_pin_memory"):
-                imports.append(
-                    "video_loader_source=inspect.getsource(framework_video_recipe._video_conversation_dataloader); assert 'pin_memory=True' in video_loader_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:framework_pinned_dataloader'"
-                )
-            if "evalval-lab-v11" in framework_overlay:
-                imports.extend(
-                    [
-                        "import cosmos_framework.trainer as framework_trainer",
-                        "assert framework_trainer.__file__.startswith('/tao-patches-framework-c312482-evalval-lab-v11/modules'), framework_trainer.__file__",
-                        "trainer_validate_source=inspect.getsource(framework_trainer.ImaginaireTrainer.validate); assert '@torch.inference_mode()' in trainer_validate_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:framework_validation_inference_mode'",
-                    ]
-                )
         if framework_video_runtime["validation_shard_strategy"] == "media_grouped":
             imports.extend(
                 [
-                    "assert hasattr(framework_video_recipe, 'MediaGroupedMapDistributor'), 'TAO_PREFLIGHT_ASSERTION_FAILED:framework_media_grouped_distributor'",
-                    "assert framework_video_recipe.MediaGroupedMapDistributor.finite_validation_stream is True, 'TAO_PREFLIGHT_ASSERTION_FAILED:framework_finite_validation_stream'",
-                    "assert hasattr(framework_video_recipe, 'VideoVLMCollator'), 'TAO_PREFLIGHT_ASSERTION_FAILED:framework_video_cache_key_collator'",
+                    "assert hasattr(framework_video_recipe, 'MediaGroupedMapDistributor'), 'COSMOS_PREFLIGHT_ASSERTION_FAILED:framework_media_grouped_distributor'",
+                    "assert framework_video_recipe.MediaGroupedMapDistributor.finite_validation_stream is True, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:framework_finite_validation_stream'",
+                    "assert hasattr(framework_video_recipe, 'VideoVLMCollator'), 'COSMOS_PREFLIGHT_ASSERTION_FAILED:framework_video_cache_key_collator'",
                 ]
             )
         if framework_video_runtime["validation_video_feature_cache_size"]:
@@ -2579,112 +2430,74 @@ def _preflight_contract(
                 [
                     "framework_hf_source=inspect.getsource(framework_hf_model.HFModel)",
                     "framework_feature_cache_source=inspect.getsource(framework_hf_model._ValidationVideoFeatureCache)",
-                    "assert '_configure_validation_video_feature_cache' in framework_hf_source and 'visual.forward = MethodType(cached_visual_forward, visual)' in framework_hf_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:framework_validation_visual_forward_cache'",
-                    "assert 'not self.training' in framework_hf_source and 'not torch.is_grad_enabled()' in framework_hf_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:framework_validation_only_feature_cache'",
-                    "assert 'torch.distributed.all_reduce' in framework_feature_cache_source and 'ReduceOp.MIN' in framework_feature_cache_source and 'ReduceOp.MAX' in framework_feature_cache_source and 'sync_dummy_encodes' in framework_feature_cache_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:framework_validation_feature_cache_collective_safety'",
-                    "framework_status_source=inspect.getsource(TAOStatusCallback); assert 'TAO_FRAMEWORK_VALIDATION_STATUS_REDUCTION_ATTESTATION' in framework_status_source and '_validation_local_numerators' in framework_status_source and 'torch.stack' in framework_status_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:framework_validation_deferred_scalar_transfer'",
+                    "assert '_configure_validation_video_feature_cache' in framework_hf_source and 'visual.forward = MethodType(cached_visual_forward, visual)' in framework_hf_source, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:framework_validation_visual_forward_cache'",
+                    "assert 'not self.training' in framework_hf_source and 'not torch.is_grad_enabled()' in framework_hf_source, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:framework_validation_only_feature_cache'",
+                    "assert 'torch.distributed.all_reduce' in framework_feature_cache_source and 'ReduceOp.MIN' in framework_feature_cache_source and 'ReduceOp.MAX' in framework_feature_cache_source and 'sync_dummy_encodes' in framework_feature_cache_source, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:framework_validation_feature_cache_collective_safety'",
+                    "framework_status_source=inspect.getsource(WorkflowStatusCallback); assert 'COSMOS_FRAMEWORK_VALIDATION_STATUS_REDUCTION_ATTESTATION' in framework_status_source and '_validation_local_numerators' in framework_status_source and 'torch.stack' in framework_status_source, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:framework_validation_deferred_scalar_transfer'",
                 ]
             )
         if framework_video_runtime.get("dataloader_pin_memory"):
             imports.append(
-                "framework_video_loader_source=inspect.getsource(framework_video_recipe._video_conversation_dataloader); assert 'pin_memory=True' in framework_video_loader_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:framework_pinned_dataloader'"
+                "framework_video_loader_source=inspect.getsource(framework_video_recipe._video_conversation_dataloader); assert 'pin_memory=True' in framework_video_loader_source, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:framework_pinned_dataloader'"
             )
     else:
         imports.extend(
             [
-                "from cosmos_rl.model_preparation.vlm_safetensors import inspect_converter_runtime",
+                "from cosmos_framework.scripts.prepare_vlm_checkpoint import inspect_converter_runtime",
                 "converter_runtime=inspect_converter_runtime()",
                 (
                     "assert converter_runtime['module'] == "
                     "'cosmos_framework.scripts.convert_model_to_vlm_safetensors', "
-                    "'TAO_PREFLIGHT_ASSERTION_FAILED:model_preparation_runtime'"
+                    "'COSMOS_PREFLIGHT_ASSERTION_FAILED:model_preparation_runtime'"
                 ),
                 "import cosmos_rl",
                 "import av",
                 "import inspect",
                 "import os",
-                "from nvidia_tao_core.microservices.handlers import huggingface_inference_microservice_server",
+                "from cosmos_framework.integrations.cosmos_rl.compat import configure_patch_embedding, install_runtime_extensions; install_runtime_extensions(); configure_patch_embedding()",
+                "from cosmos_framework.model.generator.qwen3_vl_compat import should_use_linear_patch_embed",
                 "from transformers.models.qwen3_vl.modeling_qwen3_vl import Qwen3VLVisionPatchEmbed",
                 "from cosmos_rl.dispatcher.data.packer.hf_vlm_data_packer import HFVLMDataPacker",
                 "from cosmos_rl.policy.model import hf_models as hf_models_module",
                 "from cosmos_rl.policy.trainer.llm_trainer import sft_trainer as sft_trainer_module",
-                "from cosmos_rl.tools.custom_hooks import tao_sft_example as tao_hook_module",
-                "assert (getattr(Qwen3VLVisionPatchEmbed.forward, '_tao_linear_patch_embed', False) or getattr(Qwen3VLVisionPatchEmbed.forward, '_tao_channels_last_3d', False)), 'TAO_PREFLIGHT_ASSERTION_FAILED:qwen_patch_embed'",
-                "assert os.environ.get('COSMOS_SFT_REQUIRE_VISUAL_GRADIENTS') == '1', 'TAO_PREFLIGHT_ASSERTION_FAILED:visual_gradient_env'",
+                "from cosmos_framework.integrations.cosmos_rl import conversation_sft as cosmos_hook_module",
+                "assert (not should_use_linear_patch_embed('auto') or getattr(Qwen3VLVisionPatchEmbed.forward, '_cosmos_channels_last_3d', False)), 'COSMOS_PREFLIGHT_ASSERTION_FAILED:qwen_patch_embed'",
+                "assert os.environ.get('COSMOS_SFT_REQUIRE_VISUAL_GRADIENTS') == '1', 'COSMOS_PREFLIGHT_ASSERTION_FAILED:visual_gradient_env'",
                 "vlm_collate_source=inspect.getsource(HFVLMDataPacker._collate_fn)",
-                "assert 'batch[\"attention_mask\"]' in vlm_collate_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:vlm_attention_mask'",
+                "assert 'batch[\"attention_mask\"]' in vlm_collate_source, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:vlm_attention_mask'",
                 "sft_source=inspect.getsource(sft_trainer_module.SFTTrainer.step_training)",
-                "assert '_enforce_visual_gradient_contract' in sft_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:visual_gradient_contract'",
+                "assert '_enforce_visual_gradient_contract' in sft_source, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:visual_gradient_contract'",
                 "sft_validation_source=inspect.getsource(sft_trainer_module.SFTTrainer.step_validation)",
-                "assert os.environ.get('TAO_COSMOS_RL_DERIVATIVE') != 'rl-c312482-evalval-lab-v13' or '/tao-patches/rl-c312482-evalval-lab-v13/modules/' in sft_trainer_module.__file__, 'TAO_PREFLIGHT_ASSERTION_FAILED:v13_sft_trainer_path'",
-                "assert os.environ.get('TAO_COSMOS_RL_DERIVATIVE') != 'rl-c312482-evalval-lab-v13' or 'if self.forward_model.training:' in sft_validation_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:v13_validation_eval_guard'",
-                "rl_derivative=os.environ.get('TAO_COSMOS_RL_DERIVATIVE')",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v14' or '/tao-patches/rl-c312482-evalval-lab-v14/modules/' in hf_models_module.__file__, 'TAO_PREFLIGHT_ASSERTION_FAILED:v14_hf_model_path'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v14' or '/tao-patches/rl-c312482-evalval-lab-v14/modules/' in inspect.getmodule(HFVLMDataPacker).__file__, 'TAO_PREFLIGHT_ASSERTION_FAILED:v14_data_packer_path'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v14' or '/tao-patches/rl-c312482-evalval-lab-v12/modules/' in sft_trainer_module.__file__, 'TAO_PREFLIGHT_ASSERTION_FAILED:v14_verified_v12_trainer_path'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v14' or os.environ.get('TAO_VALIDATION_VIDEO_FEATURE_CACHE_SIZE') == '341', 'TAO_PREFLIGHT_ASSERTION_FAILED:v14_feature_cache_capacity'",
-                "hf_model_source=inspect.getsource(hf_models_module.HFModel); feature_cache_source=inspect.getsource(hf_models_module._ValidationVideoFeatureCache)",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v14' or ('_configure_validation_video_feature_cache' in hf_model_source and 'not self.training' in hf_model_source and 'not torch.is_grad_enabled()' in hf_model_source), 'TAO_PREFLIGHT_ASSERTION_FAILED:v14_validation_only_feature_cache'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v14' or ('get_or_encode' in feature_cache_source and 'self.entries' in feature_cache_source), 'TAO_PREFLIGHT_ASSERTION_FAILED:v14_feature_cache_implementation'",
+                "from cosmos_framework.integrations.cosmos_rl.feature_cache import HFModelMethods; hf_model_source=inspect.getsource(HFModelMethods); feature_cache_source=inspect.getsource(hf_models_module._ValidationVideoFeatureCache)",
                 "video_key_source=inspect.getsource(HFVLMDataPacker._extract_video_cache_keys)",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v14' or ('os.path.realpath' in video_key_source and '://') in video_key_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:v14_video_cache_identity'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v16' or '/tao-patches/rl-c312482-evalval-lab-v16/modules/' in hf_models_module.__file__, 'TAO_PREFLIGHT_ASSERTION_FAILED:v16_hf_model_path'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v16' or '/tao-patches/rl-c312482-evalval-lab-v14/modules/' in inspect.getmodule(HFVLMDataPacker).__file__, 'TAO_PREFLIGHT_ASSERTION_FAILED:v16_data_packer_path'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v16' or '/tao-patches/rl-c312482-evalval-lab-v12/modules/' in sft_trainer_module.__file__, 'TAO_PREFLIGHT_ASSERTION_FAILED:v16_verified_v12_trainer_path'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v16' or os.environ.get('TAO_VALIDATION_VIDEO_FEATURE_CACHE_SIZE') == '341', 'TAO_PREFLIGHT_ASSERTION_FAILED:v16_feature_cache_capacity'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v16' or ('_configure_validation_video_feature_cache' in hf_model_source and 'not self.training' in hf_model_source and 'not torch.is_grad_enabled()' in hf_model_source), 'TAO_PREFLIGHT_ASSERTION_FAILED:v16_validation_only_feature_cache'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v16' or ('torch.distributed.all_reduce' in feature_cache_source and 'ReduceOp.MIN' in feature_cache_source and 'ReduceOp.MAX' in feature_cache_source and 'sync_dummy_encodes' in feature_cache_source), 'TAO_PREFLIGHT_ASSERTION_FAILED:v16_fsdp_collective_safety'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v16' or ('os.path.realpath' in video_key_source and '://') in video_key_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:v16_video_cache_identity'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v17' or '/tao-patches/rl-c312482-evalval-lab-v17/modules/' in hf_models_module.__file__, 'TAO_PREFLIGHT_ASSERTION_FAILED:v17_hf_model_path'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v17' or '/tao-patches/rl-c312482-evalval-lab-v17/modules/' in inspect.getmodule(HFVLMDataPacker).__file__, 'TAO_PREFLIGHT_ASSERTION_FAILED:v17_data_packer_path'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v17' or '/tao-patches/rl-c312482-evalval-lab-v12/modules/' in sft_trainer_module.__file__, 'TAO_PREFLIGHT_ASSERTION_FAILED:v17_verified_v12_trainer_path'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v17' or os.environ.get('TAO_VALIDATION_VIDEO_FEATURE_CACHE_SIZE') == '341', 'TAO_PREFLIGHT_ASSERTION_FAILED:v17_feature_cache_capacity'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v17' or ('_configure_validation_video_feature_cache' in hf_model_source and 'get_image_features' in hf_model_source and 'not self.training' in hf_model_source and 'not torch.is_grad_enabled()' in hf_model_source), 'TAO_PREFLIGHT_ASSERTION_FAILED:v17_merged_visual_cache_hook'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v17' or ('torch.distributed.all_reduce' in feature_cache_source and 'ReduceOp.MIN' in feature_cache_source and 'ReduceOp.MAX' in feature_cache_source and 'sync_dummy_encodes' in feature_cache_source), 'TAO_PREFLIGHT_ASSERTION_FAILED:v17_fsdp_collective_safety'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v17' or ('os.path.realpath' in video_key_source and '://' in video_key_source and 'model_dump' in video_key_source), 'TAO_PREFLIGHT_ASSERTION_FAILED:v17_video_cache_identity'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v18' or '/tao-patches/rl-c312482-evalval-lab-v17/modules/' in hf_models_module.__file__, 'TAO_PREFLIGHT_ASSERTION_FAILED:v18_hf_model_path'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v18' or '/tao-patches/rl-c312482-evalval-lab-v17/modules/' in inspect.getmodule(HFVLMDataPacker).__file__, 'TAO_PREFLIGHT_ASSERTION_FAILED:v18_data_packer_path'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v18' or '/tao-patches/rl-c312482-evalval-lab-v18/modules/' in tao_hook_module.__file__, 'TAO_PREFLIGHT_ASSERTION_FAILED:v18_hook_path'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v18' or '/tao-patches/rl-c312482-evalval-lab-v12/modules/' in sft_trainer_module.__file__, 'TAO_PREFLIGHT_ASSERTION_FAILED:v18_verified_v12_trainer_path'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v18' or os.environ.get('TAO_VALIDATION_VIDEO_FEATURE_CACHE_SIZE') == '341', 'TAO_PREFLIGHT_ASSERTION_FAILED:v18_feature_cache_capacity'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v18' or ('get_image_features' in hf_model_source and 'not self.training' in hf_model_source and 'not torch.is_grad_enabled()' in hf_model_source), 'TAO_PREFLIGHT_ASSERTION_FAILED:v18_merged_visual_cache_hook'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v18' or ('torch.distributed.all_reduce' in feature_cache_source and 'ReduceOp.MIN' in feature_cache_source and 'ReduceOp.MAX' in feature_cache_source and 'sync_dummy_encodes' in feature_cache_source), 'TAO_PREFLIGHT_ASSERTION_FAILED:v18_fsdp_collective_safety'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v18' or ('os.path.realpath' in video_key_source and '://' in video_key_source and 'model_dump' in video_key_source), 'TAO_PREFLIGHT_ASSERTION_FAILED:v18_video_cache_identity'",
-                "media_sampler_source=inspect.getsource(tao_hook_module.MediaGroupedDistributedSampler._build_indices)",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v18' or ('cache_frontloaded' in media_sampler_source and 'cache_remainder' in media_sampler_source), 'TAO_PREFLIGHT_ASSERTION_FAILED:v18_cache_frontloaded_sampler'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v19' or '/tao-patches/rl-c312482-evalval-lab-v17/modules/' in hf_models_module.__file__, 'TAO_PREFLIGHT_ASSERTION_FAILED:v19_hf_model_path'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v19' or '/tao-patches/rl-c312482-evalval-lab-v17/modules/' in inspect.getmodule(HFVLMDataPacker).__file__, 'TAO_PREFLIGHT_ASSERTION_FAILED:v19_data_packer_path'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v19' or '/tao-patches/rl-c312482-evalval-lab-v19/modules/' in tao_hook_module.__file__, 'TAO_PREFLIGHT_ASSERTION_FAILED:v19_hook_path'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v19' or '/tao-patches/rl-c312482-evalval-lab-v12/modules/' in sft_trainer_module.__file__, 'TAO_PREFLIGHT_ASSERTION_FAILED:v19_verified_v12_trainer_path'",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v19' or os.environ.get('TAO_VALIDATION_VIDEO_FEATURE_CACHE_SIZE') == '341', 'TAO_PREFLIGHT_ASSERTION_FAILED:v19_feature_cache_capacity'",
-                "staged_sampler_source=inspect.getsource(tao_hook_module.MediaGroupedDistributedSampler._staged_cache_frontload)",
-                "assert rl_derivative != 'rl-c312482-evalval-lab-v19' or ('unique_per_batch' in staged_sampler_source and 'remaining' in staged_sampler_source and 'ordered.extend' in staged_sampler_source), 'TAO_PREFLIGHT_ASSERTION_FAILED:v19_staged_cache_frontload'",
-                "assert av.codec.Codec('h264', 'r').name == 'h264', 'TAO_PREFLIGHT_ASSERTION_FAILED:h264_software_name'",
-                "assert av.codec.Codec('hevc', 'r').name == 'hevc', 'TAO_PREFLIGHT_ASSERTION_FAILED:hevc_software_name'",
-                "from cosmos_rl.utils.runtime_dependency_contract import verify_deepep, verify_vllm_conv3d",
-                "verify_deepep()",
-                "verify_vllm_conv3d()",
+                "media_sampler_source=inspect.getsource(cosmos_hook_module.MediaGroupedDistributedSampler._build_indices)",
+                "staged_sampler_source=inspect.getsource(cosmos_hook_module.MediaGroupedDistributedSampler._staged_cache_frontload)",
+                "assert av.codec.Codec('h264', 'r').name == 'h264', 'COSMOS_PREFLIGHT_ASSERTION_FAILED:h264_software_name'",
+                "assert av.codec.Codec('hevc', 'r').name == 'hevc', 'COSMOS_PREFLIGHT_ASSERTION_FAILED:hevc_software_name'",
+                "from cosmos_framework.integrations.cosmos_rl.runtime_dependency_contract import verify_deepep, verify_vllm_conv3d",
+                "import importlib.util; verify_deepep() if importlib.util.find_spec('deep_ep') else None",
+                "verify_vllm_conv3d() if importlib.util.find_spec('vllm') else None",
                 "import qwen_vl_utils.vision_process as vp",
             ]
         )
         if not rl_video_runtime:
             raise WorkflowError("Cosmos-RL preflight has no resolved video runtime")
         imports.append(
-            f"assert os.environ.get('TAO_VALIDATION_VIDEO_FEATURE_CACHE_SIZE') == {str(rl_video_runtime.get('validation_video_feature_cache_size', 0))!r}, 'TAO_PREFLIGHT_ASSERTION_FAILED:rl_validation_feature_cache_capacity'"
+            f"assert os.environ.get('COSMOS_VALIDATION_VIDEO_FEATURE_CACHE_SIZE') == {str(rl_video_runtime.get('validation_video_feature_cache_size', 0))!r}, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:rl_validation_feature_cache_capacity'"
         )
         if rl_video_runtime.get("validation_video_feature_cache_size"):
             imports.extend(
                 [
-                    "assert '_configure_validation_video_feature_cache' in hf_model_source and 'not self.training' in hf_model_source and 'not torch.is_grad_enabled()' in hf_model_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:rl_validation_only_feature_cache'",
-                    "assert 'torch.distributed.all_reduce' in feature_cache_source and 'ReduceOp.MIN' in feature_cache_source and 'ReduceOp.MAX' in feature_cache_source and 'sync_dummy_encodes' in feature_cache_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:rl_validation_feature_cache_collective_safety'",
-                    "assert 'os.path.realpath' in video_key_source and '://' in video_key_source and 'model_dump' in video_key_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:rl_validation_video_cache_identity'",
+                    "assert '_configure_validation_video_feature_cache' in hf_model_source and 'not self.training' in hf_model_source and 'not torch.is_grad_enabled()' in hf_model_source, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:rl_validation_only_feature_cache'",
+                    "assert 'torch.distributed.all_reduce' in feature_cache_source and 'ReduceOp.MIN' in feature_cache_source and 'ReduceOp.MAX' in feature_cache_source and 'sync_dummy_encodes' in feature_cache_source, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:rl_validation_feature_cache_collective_safety'",
+                    "assert 'os.path.realpath' in video_key_source and '://' in video_key_source and 'model_dump' in video_key_source, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:rl_validation_video_cache_identity'",
                 ]
             )
         if rl_video_runtime.get("validation_shard_strategy") == "media_grouped":
             imports.extend(
                 [
-                    "assert hasattr(tao_hook_module, 'MediaGroupedDistributedSampler'), 'TAO_PREFLIGHT_ASSERTION_FAILED:rl_media_grouped_sampler'",
-                    "assert 'cache_frontloaded' in media_sampler_source and 'cache_remainder' in media_sampler_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:rl_cache_frontloaded_sampler'",
+                    "assert hasattr(cosmos_hook_module, 'MediaGroupedDistributedSampler'), 'COSMOS_PREFLIGHT_ASSERTION_FAILED:rl_media_grouped_sampler'",
+                    "assert 'cache_frontloaded' in media_sampler_source and 'cache_remainder' in media_sampler_source, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:rl_cache_frontloaded_sampler'",
                 ]
             )
         if rl_video_runtime["selected_profile"] == "pynv-device-rgbp":
@@ -2696,42 +2509,42 @@ def _preflight_contract(
                     "from cosmos_rl.policy.worker.sft_worker import _dataloader_worker_kwargs",
                     "from cosmos_rl.dispatcher.data.packer import hf_vlm_data_packer as packer_module",
                     "import cosmos_rl.launcher.launch_all as launch_all_module",
-                    "from cosmos_rl.utils.pynv_video_reader import register_pynv_video_reader",
-                    "from cosmos_rl.utils.video_pixel_bounds import normalize_video_pixel_bounds",
-                    "import cosmos_rl.utils.pynv_video_reader as pynv_reader",
-                    "assert nvc.OutputColorType.RGBP is not None, 'TAO_PREFLIGHT_ASSERTION_FAILED:pynv_rgbp'",
-                    "assert cuda_driver is not None, 'TAO_PREFLIGHT_ASSERTION_FAILED:cuda_driver_binding'",
-                    "assert os.environ.get('FORCE_QWENVL_VIDEO_READER') == 'pynvvideocodec', 'TAO_PREFLIGHT_ASSERTION_FAILED:forced_pynv_reader'",
-                    "assert os.environ.get('TAO_PYNV_FRAME_TRANSFER') == 'device_rgbp', 'TAO_PREFLIGHT_ASSERTION_FAILED:device_rgbp_env'",
+                    "from cosmos_framework.inference.reasoner.pynv_video_reader import register_pynv_video_reader",
+                    "from cosmos_framework.inference.reasoner.video_pixel_bounds import normalize_video_pixel_bounds",
+                    "import cosmos_framework.inference.reasoner.pynv_video_reader as pynv_reader",
+                    "assert nvc.OutputColorType.RGBP is not None, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:pynv_rgbp'",
+                    "assert cuda_driver is not None, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:cuda_driver_binding'",
+                    "assert os.environ.get('FORCE_QWENVL_VIDEO_READER') == 'pynvvideocodec', 'COSMOS_PREFLIGHT_ASSERTION_FAILED:forced_pynv_reader'",
+                    "assert os.environ.get('COSMOS_PYNV_FRAME_TRANSFER') == 'device_rgbp', 'COSMOS_PREFLIGHT_ASSERTION_FAILED:device_rgbp_env'",
                     "worker_source=inspect.getsource(vp._ensure_forced_video_reader)",
-                    "assert 'TAO_PYNV_DECODER_CACHE_SIZE' in worker_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:worker_decoder_cache_forwarding'",
+                    "assert 'COSMOS_PYNV_DECODER_CACHE_SIZE' in worker_source, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:worker_decoder_cache_forwarding'",
                     "packer_source=inspect.getsource(packer_module.qwen_vl_process_vision_info)",
-                    "assert 'normalize_video_pixel_bounds(' in packer_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:worker_pixel_bound_normalization'",
-                    "assert 'vision_process.fetch_video(' in packer_source, 'TAO_PREFLIGHT_ASSERTION_FAILED:processed_video_cache_binding'",
+                    "assert 'normalize_video_pixel_bounds(' in packer_source, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:worker_pixel_bound_normalization'",
+                    "assert 'vision_process.fetch_video(' in packer_source, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:processed_video_cache_binding'",
                     "worker_kwargs=_dataloader_worker_kwargs(1, 2)",
-                    "assert worker_kwargs['persistent_workers'] is True, 'TAO_PREFLIGHT_ASSERTION_FAILED:persistent_workers'",
+                    "assert worker_kwargs['persistent_workers'] is True, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:persistent_workers'",
                     (
                         "profile=register_pynv_video_reader("
                         f"cache_size={int(rl_video_runtime['video_cache_size'])},"
                         f"decoder_cache_size={int(rl_video_runtime['decoder_cache_size'])},"
                         "strict=True)"
                     ),
-                    "assert profile['frame_transfer'] == 'device_rgbp', 'TAO_PREFLIGHT_ASSERTION_FAILED:registered_frame_transfer'",
-                    "assert profile['capability_fallback'] == 'tao_system_pyav_sparse', 'TAO_PREFLIGHT_ASSERTION_FAILED:capability_fallback'",
-                    "assert '_is_nvdec_capability_error' in inspect.getsource(pynv_reader), 'TAO_PREFLIGHT_ASSERTION_FAILED:capability_classifier'",
-                    "assert 'TAO_VIDEO_DECODER_CAPABILITY_FALLBACK_ATTESTATION' in inspect.getsource(pynv_reader), 'TAO_PREFLIGHT_ASSERTION_FAILED:capability_attestation'",
-                    "pixel_probe={'video':'/tmp/tao-pixel-bound-probe.mp4','max_pixels':81920}",
+                    "assert profile['frame_transfer'] == 'device_rgbp', 'COSMOS_PREFLIGHT_ASSERTION_FAILED:registered_frame_transfer'",
+                    "assert profile['capability_fallback'] == 'cosmos_system_pyav_sparse', 'COSMOS_PREFLIGHT_ASSERTION_FAILED:capability_fallback'",
+                    "assert '_is_nvdec_capability_error' in inspect.getsource(pynv_reader), 'COSMOS_PREFLIGHT_ASSERTION_FAILED:capability_classifier'",
+                    "assert 'COSMOS_VIDEO_DECODER_CAPABILITY_FALLBACK_ATTESTATION' in inspect.getsource(pynv_reader), 'COSMOS_PREFLIGHT_ASSERTION_FAILED:capability_attestation'",
+                    "pixel_probe={'video':'/tmp/cosmos-pixel-bound-probe.mp4','max_pixels':81920}",
                     "pixel_probe=normalize_video_pixel_bounds(pixel_probe,16,vp)",
-                    "assert pixel_probe.get('min_pixels') == pixel_probe['max_pixels'] == 81920, 'TAO_PREFLIGHT_ASSERTION_FAILED:pixel_bound_visibility'",
-                    "assert isinstance(pixel_probe['min_pixels'],int) and isinstance(pixel_probe['max_pixels'],int), 'TAO_PREFLIGHT_ASSERTION_FAILED:pixel_bound_type'",
-                    "assert 'controller_id == -1 or i == controller_id' not in inspect.getsource(launch_all_module), 'TAO_PREFLIGHT_ASSERTION_FAILED:all_child_failures_propagate'",
-                    "assert vp.get_video_reader_backend() == 'pynvvideocodec', 'TAO_PREFLIGHT_ASSERTION_FAILED:registered_qwen_backend'",
+                    "assert pixel_probe.get('min_pixels') == pixel_probe['max_pixels'] == 81920, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:pixel_bound_visibility'",
+                    "assert isinstance(pixel_probe['min_pixels'],int) and isinstance(pixel_probe['max_pixels'],int), 'COSMOS_PREFLIGHT_ASSERTION_FAILED:pixel_bound_type'",
+                    "assert 'controller_id == -1 or i == controller_id' not in inspect.getsource(launch_all_module), 'COSMOS_PREFLIGHT_ASSERTION_FAILED:all_child_failures_propagate'",
+                    "assert vp.get_video_reader_backend() == 'pynvvideocodec', 'COSMOS_PREFLIGHT_ASSERTION_FAILED:registered_qwen_backend'",
                 ]
             )
         else:
             imports.extend(
                 [
-                    "from cosmos_rl.utils.system_pyav_video_reader import _assert_software_video_decoders, register_system_pyav_video_reader",
+                    "from cosmos_framework.inference.reasoner.system_pyav_video_reader import _assert_software_video_decoders, register_system_pyav_video_reader",
                     "assert _assert_software_video_decoders() == {'h264': 'h264', 'hevc': 'hevc'}",
                     "assert os.environ.get('FORCE_QWENVL_VIDEO_READER') == 'torchvision'",
                     "assert vp.get_video_reader_backend() == 'torchvision'",
@@ -2740,12 +2553,12 @@ def _preflight_contract(
                 ]
             )
     if args.dataset_family == "task_aware_video_reasoning":
-        imports.append("import nvidia_tao_daft")
+        imports.append("from cosmos_framework.data.reasoner.qa_dataset import ReasoningConversationDataset")
     imports.extend(
         [
             "p=torch.cuda.get_device_properties(0)",
-            "assert p.total_memory >= 30 * 1024**3, 'TAO_PREFLIGHT_ASSERTION_FAILED:gpu_memory'",
-            "import tempfile; f=tempfile.NamedTemporaryFile(delete=False); f.close(); torch.distributed.init_process_group('nccl', init_method='file://'+f.name, rank=0, world_size=1); cache_state_probe=torch.tensor([1],device='cuda',dtype=torch.int32); torch.distributed.all_reduce(cache_state_probe,op=torch.distributed.ReduceOp.MIN); assert cache_state_probe.item() == 1, 'TAO_PREFLIGHT_ASSERTION_FAILED:nccl_min_max_scalars'; cache_state_probe.zero_(); torch.distributed.all_reduce(cache_state_probe,op=torch.distributed.ReduceOp.MAX); assert cache_state_probe.item() == 0, 'TAO_PREFLIGHT_ASSERTION_FAILED:nccl_min_max_scalars'; torch.distributed.destroy_process_group()",
+            "assert p.total_memory >= 30 * 1024**3, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:gpu_memory'",
+            "import tempfile; f=tempfile.NamedTemporaryFile(delete=False); f.close(); torch.distributed.init_process_group('nccl', init_method='file://'+f.name, rank=0, world_size=1); cache_state_probe=torch.tensor([1],device='cuda',dtype=torch.int32); torch.distributed.all_reduce(cache_state_probe,op=torch.distributed.ReduceOp.MIN); assert cache_state_probe.item() == 1, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:nccl_min_max_scalars'; cache_state_probe.zero_(); torch.distributed.all_reduce(cache_state_probe,op=torch.distributed.ReduceOp.MAX); assert cache_state_probe.item() == 0, 'COSMOS_PREFLIGHT_ASSERTION_FAILED:nccl_min_max_scalars'; torch.distributed.destroy_process_group()",
             "print({'gpu': p.name, 'capability': (p.major,p.minor), 'memory':p.total_memory, 'torch':torch.__version__, 'cuda':torch.version.cuda})",
         ]
     )
@@ -2754,7 +2567,7 @@ def _preflight_contract(
         validator = [
             python,
             "-m",
-            "cosmos_rl.utils.validate_video_override_artifacts",
+            "cosmos_framework.inference.reasoner.validate_video_override_artifacts",
             *decoder_artifact["validation_arguments"],
         ]
         container_checks.append(shlex.join(validator))
@@ -2786,32 +2599,32 @@ def _preflight_contract(
         if backend == "cosmos-framework":
             container_env_names = [
                 "PYTHONPATH",
-                "TAO_VIDEO_DECODER_DEVICE",
-                "TAO_VIDEO_CACHE_SIZE",
-                "TAO_FRAMEWORK_SFT_PROCESS_THREADS",
-                "TAO_FRAMEWORK_DATALOADER_NUM_WORKERS",
-                "TAO_FRAMEWORK_DATALOADER_PREFETCH_FACTOR",
-                "TAO_VIDEO_DECODER_THREADS",
-                "TAO_FRAMEWORK_VALIDATION_BATCH_SIZE",
-                "TAO_FRAMEWORK_VALIDATION_SHARD_STRATEGY",
-                "TAO_FRAMEWORK_VALIDATION_VIDEO_FEATURE_CACHE_SIZE",
-                "TAO_FRAMEWORK_VALIDATION_CACHE_FRONTLOAD_UNIQUE_PER_BATCH",
+                "COSMOS_VIDEO_DECODER_DEVICE",
+                "COSMOS_VIDEO_CACHE_SIZE",
+                "COSMOS_FRAMEWORK_SFT_PROCESS_THREADS",
+                "COSMOS_FRAMEWORK_DATALOADER_NUM_WORKERS",
+                "COSMOS_FRAMEWORK_DATALOADER_PREFETCH_FACTOR",
+                "COSMOS_VIDEO_DECODER_THREADS",
+                "COSMOS_FRAMEWORK_VALIDATION_BATCH_SIZE",
+                "COSMOS_FRAMEWORK_VALIDATION_SHARD_STRATEGY",
+                "COSMOS_FRAMEWORK_VALIDATION_VIDEO_FEATURE_CACHE_SIZE",
+                "COSMOS_FRAMEWORK_VALIDATION_CACHE_FRONTLOAD_UNIQUE_PER_BATCH",
             ]
         elif rl_video_runtime["selected_profile"] == "pynv-device-rgbp":
             container_env_names = [
                 "COSMOS_SFT_REQUIRE_VISUAL_GRADIENTS",
                 "FORCE_QWENVL_VIDEO_READER",
-                "TAO_PYNV_FRAME_TRANSFER",
-                "TAO_PYNV_VIDEO_CACHE_SIZE",
-                "TAO_PYNV_DECODER_CACHE_SIZE",
-                "TAO_SFT_BATCH_THREADS",
-                "TAO_VALIDATION_VIDEO_FEATURE_CACHE_SIZE",
+                "COSMOS_PYNV_FRAME_TRANSFER",
+                "COSMOS_PYNV_VIDEO_CACHE_SIZE",
+                "COSMOS_PYNV_DECODER_CACHE_SIZE",
+                "COSMOS_SFT_BATCH_THREADS",
+                "COSMOS_VALIDATION_VIDEO_FEATURE_CACHE_SIZE",
             ]
         else:
             container_env_names = [
                 "COSMOS_SFT_REQUIRE_VISUAL_GRADIENTS",
                 "FORCE_QWENVL_VIDEO_READER",
-                "TAO_VALIDATION_VIDEO_FEATURE_CACHE_SIZE",
+                "COSMOS_VALIDATION_VIDEO_FEATURE_CACHE_SIZE",
             ]
         container = " ".join(
             [
@@ -2938,7 +2751,7 @@ def _decoder_artifact_plan(
     artifact_root = (
         Path(args.cache_dir).expanduser()
         / "video-overrides"
-        / f"{dataset_fingerprint[:16]}-{args.tao_integration_commit[:12]}"
+        / f"{dataset_fingerprint[:16]}-{args.cosmos_framework_commit[:12]}"
     )
     map_path = args.video_override_map or str(artifact_root / "video_override_map.json")
     manifest_path = args.video_override_manifest or str(artifact_root / "manifest.json")
@@ -3002,7 +2815,7 @@ def _decoder_artifact_plan(
         "--processor-fingerprint",
         processor_fingerprint,
         "--integration-commit",
-        args.tao_integration_commit,
+        args.cosmos_framework_commit,
     ]
     if force_all_validation_media:
         for annotation in args.validation_annotation:
@@ -3037,23 +2850,23 @@ def _decoder_artifact_plan(
                 else "resolved_backend_data_contract"
             ),
         },
-        "preparation_module": "cosmos_rl.utils.video_override_artifacts",
+        "preparation_module": "cosmos_framework.inference.reasoner.video_override_artifacts",
         "preparation_arguments": preparation_arguments,
         "preparation_command": shlex.join(
             [
                 python,
                 "-m",
-                "cosmos_rl.utils.video_override_artifacts",
+                "cosmos_framework.inference.reasoner.video_override_artifacts",
                 *preparation_arguments,
             ]
         ),
-        "validation_module": "cosmos_rl.utils.validate_video_override_artifacts",
+        "validation_module": "cosmos_framework.inference.reasoner.validate_video_override_artifacts",
         "validation_arguments": validation_arguments,
         "validation_command": shlex.join(
             [
                 python,
                 "-m",
-                "cosmos_rl.utils.validate_video_override_artifacts",
+                "cosmos_framework.inference.reasoner.validate_video_override_artifacts",
                 *validation_arguments,
             ]
         ),
@@ -3414,11 +3227,8 @@ def build_plan(
         raise WorkflowError("--framework-baked-overlay-module-prefix applies only to the cosmos-framework backend")
     if framework_module_prefix:
         module_prefix = Path(framework_module_prefix)
-        if not module_prefix.is_absolute() or not str(module_prefix).startswith("/tao-patches-framework-"):
-            raise WorkflowError(
-                "framework_baked_overlay_module_prefix must be an absolute "
-                "baked container path below /tao-patches-framework-*"
-            )
+        if not module_prefix.is_absolute():
+            raise WorkflowError("framework_baked_overlay_module_prefix must be an absolute baked container path")
     if backend == "cosmos-framework" and getattr(args, "rl_validation_shard_strategy", "auto") != "auto":
         raise WorkflowError("--rl-validation-shard-strategy applies only to the cosmos-rl backend")
     if backend == "cosmos-framework" and any(
@@ -3852,8 +3662,8 @@ def write_spec(
 
     if plan["backend"] == "cosmos-rl":
         for split, marker, key in (
-            ("train", "__TAO_TRAIN_MERGED_MANIFEST__", "train_dataset"),
-            ("validation", "__TAO_VALIDATION_MERGED_MANIFEST__", "val_dataset"),
+            ("train", "__COSMOS_TRAIN_MERGED_MANIFEST__", "train_dataset"),
+            ("validation", "__COSMOS_VALIDATION_MERGED_MANIFEST__", "val_dataset"),
         ):
             current = spec["custom"][key]["annotation_path"]
             if args.run_mode == "smoke":
@@ -4244,12 +4054,14 @@ def _render_environment(
         raise WorkflowError("SLURM rendering requires a minted Cosmos job-record ID")
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", job_id):
         raise WorkflowError(f"cosmos_job_id is unsafe for SLURM and result paths: {job_id!r}")
-    results_root = str(environment.get("TAO_RESULTS_ROOT") or getattr(args, "container_results_dir", args.results_dir))
+    results_root = str(
+        environment.get("COSMOS_RESULTS_ROOT") or getattr(args, "container_results_dir", args.results_dir)
+    )
     environment.update(
         {
-            "TAO_JOB_ID": job_id,
-            "TAO_API_JOB_ID": job_id,
-            "TAO_STATUS_FILE": str(Path(results_root) / job_id / "status.json"),
+            "COSMOS_JOB_ID": job_id,
+            "COSMOS_API_JOB_ID": job_id,
+            "COSMOS_STATUS_FILE": str(Path(results_root) / job_id / "status.json"),
         }
     )
     return environment
@@ -4312,7 +4124,7 @@ def render_slurm(args: argparse.Namespace, plan: Mapping[str, Any]) -> str:
             [
                 "set -Eeuo pipefail",
                 preparation_native,
-                'echo "TAO_COSMOS_MODEL_PREPARATION_OK"',
+                'echo "COSMOS_COSMOS_MODEL_PREPARATION_OK"',
             ]
         )
         preparation_srun = " ".join(
@@ -4347,11 +4159,11 @@ def render_slurm(args: argparse.Namespace, plan: Mapping[str, Any]) -> str:
             '  echo "Cosmos packaged runtime startup check failed with exit code $runtime_preflight_rc" >&2',
             '  exit "$runtime_preflight_rc"',
             "fi",
-            'echo "TAO_COSMOS_PACKAGED_RUNTIME_STARTUP_OK"',
+            'echo "COSMOS_COSMOS_PACKAGED_RUNTIME_STARTUP_OK"',
         ]
     wrapped = "\n".join(
         [
-            'export HOME="/tmp/tao-${TAO_JOB_ID:?TAO_JOB_ID must be set}-${SLURM_PROCID:-0}"',
+            'export HOME="/tmp/cosmos-${COSMOS_JOB_ID:?COSMOS_JOB_ID must be set}-${SLURM_PROCID:-0}"',
             'mkdir -p -m 700 "$HOME"',
             "ulimit -n 65536",
             "ulimit -s unlimited",
@@ -4431,7 +4243,7 @@ def render_slurm(args: argparse.Namespace, plan: Mapping[str, Any]) -> str:
             '  echo "Exclusive allocation exposes fewer CPUs than requested: requested=$requested_cpus_per_task allocated=$step_cpus_per_task" >&2',
             "  exit 2",
             "fi",
-            'printf "TAO_SLURM_CPU_ALLOCATION requested=%s allocated=%s step=%s policy=allocated-exclusive-single-node\\n" "$requested_cpus_per_task" "$step_cpus_per_task" "$step_cpus_per_task"',
+            'printf "COSMOS_SLURM_CPU_ALLOCATION requested=%s allocated=%s step=%s policy=allocated-exclusive-single-node\\n" "$requested_cpus_per_task" "$step_cpus_per_task" "$step_cpus_per_task"',
         ]
     preparation_lines: list[str] = []
     if preparation_srun:
@@ -4442,7 +4254,7 @@ def render_slurm(args: argparse.Namespace, plan: Mapping[str, Any]) -> str:
             'model_preparation_rc="$?"',
             "set -e",
             'if [[ "$model_preparation_rc" -ne 0 ]]; then',
-            '  printf "%s\\n" "$model_preparation_rc" > "${TAO_CHILD_EXIT_FILE:?TAO_CHILD_EXIT_FILE must be set}"',
+            '  printf "%s\\n" "$model_preparation_rc" > "${COSMOS_CHILD_EXIT_FILE:?COSMOS_CHILD_EXIT_FILE must be set}"',
             '  echo "Cosmos model preparation failed with exit code $model_preparation_rc" >&2',
             '  exit "$model_preparation_rc"',
             "fi",
@@ -4455,7 +4267,7 @@ def render_slurm(args: argparse.Namespace, plan: Mapping[str, Any]) -> str:
             *cpu_step_setup,
             *runtime_dir_setup,
             f"mkdir -p {shlex.quote(str(Path(args.results_dir).expanduser() / args.cosmos_job_id))}",
-            f"export TAO_CHILD_EXIT_FILE={shlex.quote(str(Path(args.results_dir).expanduser() / args.cosmos_job_id / 'child_exit_code'))}",
+            f"export COSMOS_CHILD_EXIT_FILE={shlex.quote(str(Path(args.results_dir).expanduser() / args.cosmos_job_id / 'child_exit_code'))}",
             env_exports,
             'export MASTER_ADDR="$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n1)"',
             f"export MASTER_PORT={args.master_port}",
@@ -4466,7 +4278,7 @@ def render_slurm(args: argparse.Namespace, plan: Mapping[str, Any]) -> str:
             srun,
             'child_rc="$?"',
             "set -e",
-            'printf "%s\\n" "$child_rc" > "${TAO_CHILD_EXIT_FILE:?TAO_CHILD_EXIT_FILE must be set}"',
+            'printf "%s\\n" "$child_rc" > "${COSMOS_CHILD_EXIT_FILE:?COSMOS_CHILD_EXIT_FILE must be set}"',
             'if [[ "$child_rc" -ne 0 ]]; then echo "Cosmos child process failed with exit code $child_rc" >&2; fi',
             'exit "$child_rc"',
             "",
@@ -4651,7 +4463,7 @@ def finalize_metadata(
             raise WorkflowError("runtime structured status is neither JSON nor JSONL") from exc
     if not records or not isinstance(records[-1], Mapping):
         raise WorkflowError("runtime structured status contains no terminal record")
-    tao_terminal = str(records[-1].get("status", "")).upper()
+    cosmos_terminal = str(records[-1].get("status", "")).upper()
     metadata["slurm"].update(
         {
             "job_id": job_id or metadata["slurm"].get("job_id"),
@@ -4668,9 +4480,9 @@ def finalize_metadata(
         "exit_code": scheduler_exit_code,
     }
     metadata["child_process"] = {"exit_code": child_exit}
-    metadata["terminal_runtime_status"] = tao_terminal
+    metadata["terminal_runtime_status"] = cosmos_terminal
     metadata["timestamps"]["finished"] = datetime.now(timezone.utc).isoformat()
-    if child_exit != 0 or scheduler_state.upper() != "COMPLETED" or tao_terminal != "SUCCESS":
+    if child_exit != 0 or scheduler_state.upper() != "COMPLETED" or cosmos_terminal != "SUCCESS":
         metadata["terminal_runtime_status"] = "FAILURE"
     validate_metadata(metadata)
     return metadata
@@ -4765,14 +4577,7 @@ def local_preflight(
             preparation_sqsh_exists = Path(preparation_sqsh).expanduser().is_file()
 
     image = plan["image"]
-    repository_identities = {
-        ("cosmos-framework" if plan["backend"] == "cosmos-framework" else "cosmos-rl-github"): image.get(
-            "native_repository", {}
-        ),
-        "cosmos-rl": image.get("integration_repository", {}),
-        "nvidia-tao-daft": image.get("daft_repository", {}),
-        "tao-core": image.get("tao_core_repository", {}),
-    }
+    repository_identities = image.get("repositories", {})
     if image.get("mode") == "source-build":
         for name, identity in repository_identities.items():
             check_repository(
@@ -4997,7 +4802,7 @@ def add_arguments(parser: argparse.ArgumentParser, *, require_inputs: bool) -> N
         default="",
         help=(
             "Absolute in-container site-packages path already baked below "
-            "/tao-patches in an explicitly selected derivative SQSH."
+            "/cosmos-patches in an explicitly selected derivative SQSH."
         ),
     )
     parser.add_argument(
@@ -5074,7 +4879,7 @@ def add_arguments(parser: argparse.ArgumentParser, *, require_inputs: bool) -> N
         default="",
         help=(
             "Absolute in-container site-packages path already baked below "
-            "/tao-patches-framework-* in an explicitly selected derivative SQSH."
+            "/cosmos-patches-framework-* in an explicitly selected derivative SQSH."
         ),
     )
     parser.add_argument(
@@ -5193,16 +4998,10 @@ def add_arguments(parser: argparse.ArgumentParser, *, require_inputs: bool) -> N
     parser.add_argument("--cache-dir", default="")
     parser.add_argument("--sqsh-cache-dir", default="")
     parser.add_argument("--ssh-key-path", default="")
-    parser.add_argument("--tao-integration-repo", default="")
     parser.add_argument("--cosmos-framework-repo", default="")
     parser.add_argument("--cosmos-rl-repo", default="")
-    parser.add_argument("--daft-repo", default="")
-    parser.add_argument("--tao-core-repo", default="")
     parser.add_argument("--build-context", default="")
     parser.add_argument("--native-context-path", default="cosmos-rl-github")
-    parser.add_argument("--integration-context-path", default="cosmos-rl")
-    parser.add_argument("--daft-context-path", default="nvidia-tao-daft")
-    parser.add_argument("--tao-core-context-path", default="tao-core")
     parser.add_argument("--image-tag", default="")
     parser.add_argument("--sqsh-path", default="")
     parser.add_argument(
@@ -5222,13 +5021,8 @@ def add_arguments(parser: argparse.ArgumentParser, *, require_inputs: bool) -> N
     parser.add_argument("--cosmos-rl-base-image", default="")
     parser.add_argument("--cosmos-framework-commit", default="")
     parser.add_argument("--cosmos-rl-commit", default="")
-    parser.add_argument("--tao-integration-commit", default="")
     parser.add_argument("--native-tree", default="")
-    parser.add_argument("--daft-commit", default="")
-    parser.add_argument("--tao-core-commit", default="")
-    parser.add_argument("--integration-tree", default="")
-    parser.add_argument("--daft-tree", default="")
-    parser.add_argument("--tao-core-tree", default="")
+    parser.add_argument("--framework-tree", default="")
     parser.add_argument("--build-timestamp", default="")
     parser.add_argument("--write-spec", default="")
     parser.add_argument("--container-spec-path", default="/specs/train.toml")

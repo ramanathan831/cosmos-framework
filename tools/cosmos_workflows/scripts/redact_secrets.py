@@ -34,7 +34,7 @@ Known boundaries (out of scope, by design — use $VAR/stdin/secretKeyRef):
   ``https://user:token@host`` URL userinfo; Secret ``stringData:``/``data:``
   values; ``$(echo secret)`` command substitution; secrets in files referenced
   by path; a literal piped to ``--password-stdin`` (indistinguishable from
-  ``printf "$VAR"``). No tao_sdk imports; stdlib only.
+  ``printf "$VAR"``). No cosmos_sdk imports; stdlib only.
 """
 
 from __future__ import annotations

@@ -5,7 +5,7 @@
 """Plan, verify, and run the Framework checkpoint pre-action export.
 
 Cosmos Framework training writes a PyTorch Distributed Checkpoint (DCP), while
-TAO evaluate and inference actions load a Hugging Face safetensors directory.
+Cosmos evaluate and inference actions load a Hugging Face safetensors directory.
 This checked-in skill helper makes that conversion an idempotent, provenance-
 checked stage.  The tensor conversion itself deliberately remains owned by
 ``cosmos_framework.scripts.export_vlm_dcp`` in the Framework repository.
@@ -463,7 +463,7 @@ def prepare_export(args: argparse.Namespace) -> dict[str, Any]:
         "export_manifest_sha256": sha256_file(final_output / "export_manifest.json"),
         "timestamp_ns": time.time_ns(),
     }
-    _atomic_json(final_output / ".tao_export_complete", marker)
+    _atomic_json(final_output / ".cosmos_export_complete", marker)
     return {
         **build_plan(args),
         "status": "VERIFIED",

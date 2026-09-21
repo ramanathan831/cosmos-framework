@@ -75,7 +75,7 @@ def _sealed_plan(
             "model_tier": model_tier,
         },
         "compute": {"total_gpus": 8},
-        "image": {"tag": f"nvcr.io/nvidia/tao/{backend}:test"},
+        "image": {"tag": f"example.invalid/cosmos/{backend}:test"},
         "decoder_artifact": {"enabled": False},
         "evaluation_contract": {
             "schema_version": 1,
@@ -608,8 +608,8 @@ def test_ready_plan_emits_reusable_backend_isolated_execution_bundle(
     assert framework["spec"]["results_dir"] == "{results_dir}"
     assert rl_plan["spec_bundle_sha256"] == stable_hash(rl)
     assert framework_plan["spec_bundle_sha256"] == stable_hash(framework)
-    assert rl["command"] == "cosmos-rl-evaluate --config {config_path}"
-    assert framework["command"] == ("cosmos-framework-evaluate --config {config_path}")
+    assert rl["command"] == "cosmos-reasoner-evaluate --config {config_path}"
+    assert framework["command"] == ("cosmos-reasoner-evaluate --config {config_path}")
     assert rl["execution"]["pre_commands"] == []
     assert "FrameworkTorchCodecVideoPreprocessor" in framework["execution"]["pre_commands"][0]
     assert rl["execution"]["environment"]["FORCE_QWENVL_VIDEO_READER"] == ("pynvvideocodec")

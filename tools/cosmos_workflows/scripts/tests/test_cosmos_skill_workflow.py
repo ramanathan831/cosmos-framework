@@ -136,7 +136,7 @@ def make_task_aware_video(tmp_path: Path, split: str) -> tuple[list[Path], Path]
         path.write_text(
             json.dumps(
                 {
-                    "format": "tao-vl-reason-v1.0",
+                    "format": "cosmos-video-reasoning-v1.0",
                     "metadata": {"task": task},
                     "items": items,
                 }
@@ -174,11 +174,8 @@ def args_for(
         "checkpoints",
         "cache",
         "sqsh-cache",
-        "integration",
         "framework",
         "rl",
-        "daft",
-        "tao-core",
     ):
         (tmp_path / name).mkdir(exist_ok=True)
     ssh_key = tmp_path / "id_ed25519"
@@ -217,16 +214,10 @@ def args_for(
         str(tmp_path / "sqsh-cache"),
         "--ssh-key-path",
         str(ssh_key),
-        "--tao-integration-repo",
-        str(tmp_path / "integration"),
         "--cosmos-framework-repo",
         str(tmp_path / "framework"),
         "--cosmos-rl-repo",
         str(tmp_path / "rl"),
-        "--daft-repo",
-        str(tmp_path / "daft"),
-        "--tao-core-repo",
-        str(tmp_path / "tao-core"),
         "--build-context",
         str(tmp_path),
         "--image-tag",
@@ -236,13 +227,7 @@ def args_for(
         "--cosmos-framework-commit",
         "f" * 40,
         "--cosmos-rl-commit",
-        "r" * 40,
-        "--tao-integration-commit",
-        "i" * 40,
-        "--daft-commit",
-        "d" * 40,
-        "--tao-core-commit",
-        "c" * 40,
+        "a" * 40,
         "--cosmos-framework-base-image",
         "nvidia/cuda:13.0.2-cudnn-devel-ubuntu24.04",
         "--cosmos-framework-source-repository",
@@ -256,13 +241,7 @@ def args_for(
         "--cosmos-rl-source-branch",
         "feature/enhanced-hooks-and-custom-loggers",
         "--native-tree",
-        "n" * 40,
-        "--integration-tree",
-        "t" * 40,
-        "--daft-tree",
-        "d" * 40,
-        "--tao-core-tree",
-        "c" * 40,
+        "b" * 40,
         "--build-timestamp",
         "2026-08-05T00:00:00Z",
         "--write-spec",
@@ -720,7 +699,7 @@ def test_framework_prepare_runs_export_once_then_reuses_it(tmp_path, monkeypatch
     assert first["pre_action_result"] == "exported"
     assert second["pre_action_result"] == "reused"
     assert len(calls) == 1
-    assert (export / ".tao_export_complete").is_file()
+    assert (export / ".cosmos_export_complete").is_file()
 
 
 def test_framework_action_model_uri_requires_immutable_revision(tmp_path):
@@ -747,7 +726,7 @@ def test_framework_action_contract_is_packaged_and_dataset_agnostic():
         "inference_microservice",
     }
     assert contract["actions"]["evaluate"]["pre_action"] == "export_if_framework_dcp"
-    assert contract["actions"]["inference"]["command"].startswith("cosmos-framework-inference")
+    assert contract["actions"]["inference"]["command"].startswith("cosmos-reasoner-inference")
     source = (SKILL / "scripts" / "framework_checkpoint_action.py").read_text(encoding="utf-8")
     assert "cosmos_framework.scripts.export_vlm_dcp" in source
     for forbidden in ("/lustre/", "rarunachalam", "wts", "aetc"):
@@ -938,18 +917,18 @@ def test_video_conversation_framework_dense_spec_and_no_historical_paths(tmp_pat
     assert framework_runtime["validation_shard_strategy"] == "stride"
     assert framework_runtime["validation_video_feature_cache_size"] == 0
     assert framework_runtime["dataset_prewarm"] is False
-    assert plan["environment"]["TAO_VIDEO_CACHE_SIZE"] == "16"
-    assert plan["environment"]["TAO_FRAMEWORK_SFT_PROCESS_THREADS"] == "8"
-    assert plan["environment"]["TAO_FRAMEWORK_DATALOADER_NUM_WORKERS"] == "1"
-    assert plan["environment"]["TAO_FRAMEWORK_DATALOADER_PREFETCH_FACTOR"] == "4"
-    assert plan["environment"]["TAO_VIDEO_DECODER_DEVICE"] == "cuda"
-    assert plan["environment"]["TAO_VIDEO_DECODER_THREADS"] == "1"
+    assert plan["environment"]["COSMOS_VIDEO_CACHE_SIZE"] == "16"
+    assert plan["environment"]["COSMOS_FRAMEWORK_SFT_PROCESS_THREADS"] == "8"
+    assert plan["environment"]["COSMOS_FRAMEWORK_DATALOADER_NUM_WORKERS"] == "1"
+    assert plan["environment"]["COSMOS_FRAMEWORK_DATALOADER_PREFETCH_FACTOR"] == "4"
+    assert plan["environment"]["COSMOS_VIDEO_DECODER_DEVICE"] == "cuda"
+    assert plan["environment"]["COSMOS_VIDEO_DECODER_THREADS"] == "1"
     preflight = plan["preflight"]["container_runtime"]
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:contiguous_batcher_max_tokens" in preflight
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:contiguous_batcher_source_order" in preflight
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:cross_epoch_resume_cursor" in preflight
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:framework_spawn_prefetch" in preflight
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:framework_spawn_pickle" in preflight
+    assert "COSMOS_PREFLIGHT_ASSERTION_FAILED:contiguous_batcher_max_tokens" in preflight
+    assert "COSMOS_PREFLIGHT_ASSERTION_FAILED:contiguous_batcher_source_order" in preflight
+    assert "COSMOS_PREFLIGHT_ASSERTION_FAILED:cross_epoch_resume_cursor" in preflight
+    assert "COSMOS_PREFLIGHT_ASSERTION_FAILED:framework_spawn_prefetch" in preflight
+    assert "COSMOS_PREFLIGHT_ASSERTION_FAILED:framework_spawn_pickle" in preflight
     assert plan["datasets"]["train"]["annotations"][0]["original"] == args.train_annotation[0]
     source = Path(workflow.__file__).read_text(encoding="utf-8")
     assert "/lustre/" not in source and "rarunachalam" not in source
@@ -1032,23 +1011,23 @@ def test_cosmos_rl_peft_spec_defaults_to_direct_processing(tmp_path):
     assert plan["spec"]["validation"]["dataloader_num_workers"] == 1
     assert plan["spec"]["validation"]["dataloader_prefetch_factor"] == 2
     assert plan["environment"]["FORCE_QWENVL_VIDEO_READER"] == "pynvvideocodec"
-    assert plan["environment"]["TAO_PYNV_FRAME_TRANSFER"] == "device_rgbp"
-    assert plan["environment"]["TAO_SFT_BATCH_THREADS"] == "4"
-    assert plan["environment"]["TAO_PYNV_VIDEO_CACHE_SIZE"] == "16"
-    assert plan["environment"]["TAO_PYNV_DECODER_CACHE_SIZE"] == "16"
+    assert plan["environment"]["COSMOS_PYNV_FRAME_TRANSFER"] == "device_rgbp"
+    assert plan["environment"]["COSMOS_SFT_BATCH_THREADS"] == "4"
+    assert plan["environment"]["COSMOS_PYNV_VIDEO_CACHE_SIZE"] == "16"
+    assert plan["environment"]["COSMOS_PYNV_DECODER_CACHE_SIZE"] == "16"
     preflight = plan["preflight"]["container_runtime"]
     assert "inspect.getsource" in preflight
-    assert "TAO_PYNV_DECODER_CACHE_SIZE" in preflight
+    assert "COSMOS_PYNV_DECODER_CACHE_SIZE" in preflight
     assert "persistent_workers" in preflight
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:worker_decoder_cache_forwarding" in preflight
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:worker_pixel_bound_normalization" in preflight
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:processed_video_cache_binding" in preflight
+    assert "COSMOS_PREFLIGHT_ASSERTION_FAILED:worker_decoder_cache_forwarding" in preflight
+    assert "COSMOS_PREFLIGHT_ASSERTION_FAILED:worker_pixel_bound_normalization" in preflight
+    assert "COSMOS_PREFLIGHT_ASSERTION_FAILED:processed_video_cache_binding" in preflight
     assert "packer_module.qwen_vl_process_vision_info" in preflight
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:persistent_workers" in preflight
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:pixel_bound_visibility" in preflight
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:pixel_bound_type" in preflight
+    assert "COSMOS_PREFLIGHT_ASSERTION_FAILED:persistent_workers" in preflight
+    assert "COSMOS_PREFLIGHT_ASSERTION_FAILED:pixel_bound_visibility" in preflight
+    assert "COSMOS_PREFLIGHT_ASSERTION_FAILED:pixel_bound_type" in preflight
     assert "pixel_probe=normalize_video_pixel_bounds" in preflight
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:all_child_failures_propagate" in preflight
+    assert "COSMOS_PREFLIGHT_ASSERTION_FAILED:all_child_failures_propagate" in preflight
 
 
 def test_cosmos_rl_dense_optimizer_is_dataset_independent(tmp_path):
@@ -1080,7 +1059,7 @@ def test_cosmos_rl_system_pyav_profile_is_explicit_and_worker_zero_safe(tmp_path
     assert runtime["dataloader_prefetch_factor"] is None
     assert plan["spec"]["custom"]["video_decoder"] == "torchvision"
     assert plan["environment"]["FORCE_QWENVL_VIDEO_READER"] == "torchvision"
-    assert "TAO_PYNV_FRAME_TRANSFER" not in plan["environment"]
+    assert "COSMOS_PYNV_FRAME_TRANSFER" not in plan["environment"]
     assert "dataloader_prefetch_factor" not in plan["spec"]["train"]["train_policy"]
     assert "dataloader_prefetch_factor" not in plan["spec"]["validation"]
 
@@ -1098,8 +1077,8 @@ def test_cosmos_rl_explicit_zero_disables_processed_video_cache(tmp_path):
     assert runtime["decoder_cache_size"] == 4
     assert plan["spec"]["custom"]["video_cache_size"] == 0
     assert plan["spec"]["custom"]["video_decoder_cache_size"] == 4
-    assert plan["environment"]["TAO_PYNV_VIDEO_CACHE_SIZE"] == "0"
-    assert plan["environment"]["TAO_PYNV_DECODER_CACHE_SIZE"] == "4"
+    assert plan["environment"]["COSMOS_PYNV_VIDEO_CACHE_SIZE"] == "0"
+    assert plan["environment"]["COSMOS_PYNV_DECODER_CACHE_SIZE"] == "4"
 
 
 def test_cosmos_nano_video_pixel_budget_is_shared_by_framework_and_rl(tmp_path):
@@ -1110,7 +1089,7 @@ def test_cosmos_nano_video_pixel_budget_is_shared_by_framework_and_rl(tmp_path):
     rl_plan = workflow.build_plan(rl_args)
 
     assert framework_plan["processor_profile"]["max_video_pixels"] == 81920
-    assert framework_plan["environment"]["TAO_VIDEO_MAX_PIXELS"] == "81920"
+    assert framework_plan["environment"]["COSMOS_VIDEO_MAX_PIXELS"] == "81920"
     assert rl_plan["processor_profile"]["max_video_pixels"] == 81920
     assert rl_plan["spec"]["custom"]["vision"]["max_pixels"] == 81920
 
@@ -1210,8 +1189,8 @@ def test_cosmos_rl_resolves_sft_hook_from_installed_native_package(tmp_path):
     plan = workflow.build_plan(args)
 
     assert "importlib.import_module" in plan["command"]
-    assert "cosmos_rl.tools.custom_hooks.tao_sft_example" in plan["command"]
-    assert "/opt/cosmos_rl/tao_sft_example.py" not in plan["command"]
+    assert "cosmos_framework.integrations.cosmos_rl.conversation_sft" in plan["command"]
+    assert "/opt/cosmos_rl/cosmos_sft_example.py" not in plan["command"]
     assert 'test -f "$hook"' in plan["command"]
     args.platform = "slurm"
     args.partition = "compute"
@@ -1225,7 +1204,7 @@ def test_cosmos_rl_resolves_sft_hook_from_installed_native_package(tmp_path):
     script = workflow.render_slurm(args, plan)
     assert "--container-env=" in script
     assert "FORCE_QWENVL_VIDEO_READER" in script
-    assert "TAO_PYNV_DECODER_CACHE_SIZE" in script
+    assert "COSMOS_PYNV_DECODER_CACHE_SIZE" in script
     child_argv = shlex.split(script.split("set +e\n", 1)[1].split("\nchild_rc=", 1)[0])
     nested = subprocess.run(["bash", "-n", "-c", child_argv[-1]], capture_output=True, text=True)
     assert nested.returncode == 0, nested.stderr
@@ -1235,7 +1214,8 @@ def test_cosmos_rl_static_train_contract_resolves_installed_hook():
     metadata = workflow.load_yaml(SKILL / "references" / "skill_info.yaml")
     command = metadata["actions"]["train"]["command"]
 
-    assert "Path(cosmos_rl.__file__).parent" in command
+    assert "Path(cosmos_framework.__file__).parent" in command
+    assert '"integrations" / "cosmos_rl" / "conversation_sft.py"' in command
     assert 'test -f "$hook"' in command
     assert 'cosmos-rl --config {config_path} "$hook"' in command
     assert "package://" not in command
@@ -1389,7 +1369,7 @@ def test_task_aware_smoke_limit_counts_logical_records_before_expansion(tmp_path
     assert plan["training"]["logical_train_records"] == 16
     assert plan["training"]["exposed_train_samples"] == 32
     assert plan["training"]["optimizer_updates"] == 4
-    assert plan["environment"]["TAO_VIDEO_TRAIN_LIMIT"] == "32"
+    assert plan["environment"]["COSMOS_VIDEO_TRAIN_LIMIT"] == "32"
     assert plan["spec"]["trainer"]["max_iter"] == 4
 
 
@@ -1413,15 +1393,15 @@ def test_task_aware_paths_tasks_and_accuracy_coverage(tmp_path):
     coverage = plan["datasets"]["validation"]["metric_coverage"]
     assert coverage["accuracy_tasks"] == ["bcq", "mcq"]
     assert coverage["excluded_tasks"] == ["scene_description"]
-    assert json.loads(plan["environment"]["TAO_VIDEO_TRAIN_ANNOTATIONS"]) == args.train_annotation
-    assert plan["spec"]["job"]["experiment"] == "tao_task_aware_video_reasoning"
+    assert json.loads(plan["environment"]["COSMOS_VIDEO_TRAIN_ANNOTATIONS"]) == args.train_annotation
+    assert plan["spec"]["job"]["experiment"] == "cosmos_task_aware_video_reasoning"
     args_rl = args_for(
         tmp_path / "rl",
         dataset_family="task_aware_video_reasoning",
         backend="cosmos-rl",
     )
     plan_rl = workflow.build_plan(args_rl)
-    assert "cosmos_rl.tools.custom_hooks.tao_vl_reason_daft_sft_example" in plan_rl["command"]
+    assert "cosmos_framework.integrations.cosmos_rl.reasoning_sft" in plan_rl["command"]
 
 
 def test_task_aware_question_answer_schema_is_supported_and_validated(tmp_path):
@@ -1432,7 +1412,7 @@ def test_task_aware_question_answer_schema_is_supported_and_validated(tmp_path):
     annotation.write_text(
         json.dumps(
             {
-                "format": "tao-vl-reason-v1.0",
+                "format": "cosmos-video-reasoning-v1.0",
                 "metadata": {"task": "bcq"},
                 "items": [
                     {
@@ -1583,10 +1563,12 @@ def test_omni_conversion_uses_platform_checkpoint_storage_and_rebinds_training_m
     workflow.verify_model_preparation_helper(args, plan)
     args.cosmos_job_id = "cosmos-reason-train-omni-prepare"
     slurm = workflow.render_slurm(args, plan)
-    assert "TAO_COSMOS_MODEL_PREPARATION_OK" in slurm
+    assert "COSMOS_COSMOS_MODEL_PREPARATION_OK" in slurm
     assert preparation["platform_action"]["helper_container_path"] in slurm
     assert f"--container-image={args.sqsh_path}" in slurm
-    assert slurm.index("TAO_COSMOS_MODEL_PREPARATION_OK") < slurm.index("Cosmos packaged runtime startup check failed")
+    assert slurm.index("COSMOS_COSMOS_MODEL_PREPARATION_OK") < slurm.index(
+        "Cosmos packaged runtime startup check failed"
+    )
 
 
 def test_cosmos_rl_omni_owns_preparation_defaults_without_extra_user_inputs(
@@ -1648,7 +1630,7 @@ def test_checkpoint_preparation_targets_the_requested_output_directory(tmp_path)
     assert f"OUTPUT_NAME={output.name}" in command
     shell = command[-1]
     assert '--output-path "/output/$OUTPUT_NAME"' in shell
-    assert "python -m cosmos_rl.model_preparation.vlm_safetensors" in shell
+    assert "python -m cosmos_framework.scripts.prepare_vlm_checkpoint" in shell
     assert "python -m cosmos_framework.scripts.convert_model_to_vlm_safetensors" not in shell
     assert f"{output.parent}:/output" in command
 
@@ -1683,7 +1665,9 @@ def test_sqsh_model_preparation_contract_reports_only_missing_entries(monkeypatc
         [
             SimpleNamespace(
                 returncode=0,
-                stdout=("cosmos_rl/model_preparation/vlm_safetensors.py\nopt/tao/framework-converter-runtime.json\n"),
+                stdout=(
+                    "cosmos_framework/scripts/prepare_vlm_checkpoint.py\nopt/cosmos/framework-converter-runtime.json\n"
+                ),
                 stderr="",
             ),
             SimpleNamespace(
@@ -1705,8 +1689,8 @@ def test_sqsh_model_preparation_contract_reports_only_missing_entries(monkeypatc
         path="/shared/cosmos.sqsh",
         host="login.example",
     ) == [
-        "cosmos_rl/model_preparation/vlm_safetensors.py",
-        "opt/tao/framework-converter-runtime.json",
+        "cosmos_framework/scripts/prepare_vlm_checkpoint.py",
+        "opt/cosmos/framework-converter-runtime.json",
     ]
 
 
@@ -1770,10 +1754,10 @@ def test_sqsh_model_preparation_contract_rejects_presence_only_attestation(
         args,
         path="/shared/cosmos.sqsh",
         host="login.example",
-    ) == ["opt/tao/framework-converter-runtime.json#validation_mode=imported_converter_module"]
+    ) == ["opt/cosmos/framework-converter-runtime.json#validation_mode=imported_converter_module"]
     assert "unsquashfs -cat" in commands[1][-1]
     assert "unsquashfs -d" in commands[1][-1]
-    assert "mktemp -d /tmp/tao-sqsh-attestation.XXXXXX" in commands[1][-1]
+    assert "mktemp -d /tmp/cosmos-sqsh-attestation.XXXXXX" in commands[1][-1]
     assert 'find "${extract_dir:?}" -depth -delete' in commands[1][-1]
     assert "imported_converter_module" in commands[1][-1]
 
@@ -1804,8 +1788,8 @@ def test_sqsh_model_preparation_contract_inspection_failure_is_actionable(
 @pytest.mark.parametrize(
     "dataset_family,experiment",
     [
-        ("video_conversation", "tao_video_conversation_edge"),
-        ("task_aware_video_reasoning", "tao_task_aware_video_reasoning_edge"),
+        ("video_conversation", "cosmos_video_conversation_edge"),
+        ("task_aware_video_reasoning", "cosmos_task_aware_video_reasoning_edge"),
     ],
 )
 def test_public_edge_checkpoint_uses_skill_runtime_profile(tmp_path, dataset_family, experiment):
@@ -1839,7 +1823,7 @@ def test_public_edge_checkpoint_uses_skill_runtime_profile(tmp_path, dataset_fam
             "explicit_overrides",
         ],
     }
-    assert plan["environment"]["TAO_VIDEO_MAX_PIXELS"] == str(plan["processor_profile"]["max_video_pixels"])
+    assert plan["environment"]["COSMOS_VIDEO_MAX_PIXELS"] == str(plan["processor_profile"]["max_video_pixels"])
 
 
 def test_public_edge_uri_is_snapshotted_without_alternate_checkpoint(tmp_path):
@@ -2002,15 +1986,15 @@ def test_slurm_script_is_bash_sqsh_no_requeue_and_preserves_failure(tmp_path):
     assert "#SBATCH --no-requeue" in script and "--container-image=" in script
     assert "--no-container-remap-root" in script
     assert "--no-container-mount-home" in script
-    assert 'export HOME="/tmp/tao-${TAO_JOB_ID:?TAO_JOB_ID must be set}-${SLURM_PROCID:-0}"' in script
+    assert 'export HOME="/tmp/cosmos-${COSMOS_JOB_ID:?COSMOS_JOB_ID must be set}-${SLURM_PROCID:-0}"' in script
     assert 'mkdir -p -m 700 "$HOME"' in script
     assert "timeout --signal=TERM --kill-after=30s 13680s srun" in script
-    assert "TAO_COSMOS_PACKAGED_RUNTIME_STARTUP_OK" in script
+    assert "COSMOS_COSMOS_PACKAGED_RUNTIME_STARTUP_OK" in script
     assert plan["preflight"]["container_runtime"] not in script
     assert script.count("--container-image=") == 1
     assert "export SLURM_EXPORT_ENV=ALL" in script
     assert "--container-env=" in script
-    assert "TAO_STATUS_FILE" in script
+    assert "COSMOS_STATUS_FILE" in script
     assert 'exit "$child_rc"' in script
     assert subprocess.run(["bash", "-n"], input=script, text=True).returncode == 0
     child_argv = shlex.split(script.split("set +e\n", 1)[1].split("\nchild_rc=", 1)[0])
@@ -2137,10 +2121,10 @@ def test_framework_expands_one_shared_media_root_per_annotation(tmp_path):
             "validation_video_feature_cache_size": 0,
         },
     )
-    assert len(json.loads(environment["TAO_VIDEO_TRAIN_MEDIA_ROOTS"])) == 2
-    assert len(json.loads(environment["TAO_VIDEO_VAL_MEDIA_ROOTS"])) == 2
+    assert len(json.loads(environment["COSMOS_VIDEO_TRAIN_MEDIA_ROOTS"])) == 2
+    assert len(json.loads(environment["COSMOS_VIDEO_VAL_MEDIA_ROOTS"])) == 2
     assert environment["IMAGINAIRE_OUTPUT_ROOT"] == args.container_checkpoint_dir
-    assert environment["TAO_RESULTS_ROOT"] == args.container_results_dir
+    assert environment["COSMOS_RESULTS_ROOT"] == args.container_results_dir
 
 
 def test_requeue_rejected(tmp_path):
@@ -2200,40 +2184,34 @@ def test_clean_build_plan_requires_new_sqsh_and_provenance(tmp_path):
     framework_args.image_runtime_mode = "source-build"
     plan = workflow.build_plan(framework_args)
     assert plan["image"]["dockerfile"] == "Dockerfile"
-    assert plan["image"]["build_arguments"]["COSMOS_BACKEND"] == "cosmos-framework"
-    assert (
-        plan["image"]["build_arguments"]["COSMOS_FRAMEWORK_BASE_IMAGE"] == "nvidia/cuda:13.0.2-cudnn-devel-ubuntu24.04"
-    )
-    assert (
-        plan["image"]["build_arguments"]["COSMOS_FRAMEWORK_REPO"] == "https://github.com/example/cosmos-framework.git"
-    )
-    assert plan["image"]["build_arguments"]["COSMOS_FRAMEWORK_BRANCH"] == "dev/test-framework"
-    assert plan["image"]["build_arguments"]["EXPECTED_FRAMEWORK_COMMIT"] == "f" * 40
-    assert plan["image"]["build_arguments"]["EXPECTED_FRAMEWORK_TREE"] == "n" * 40
+    assert plan["image"]["build_context"] == framework_args.cosmos_framework_repo
+    assert plan["image"]["build_arguments"] == {
+        "BASE_IMAGE": "nvidia/cuda:13.0.2-cudnn-devel-ubuntu24.04",
+        "SOURCE_COMMIT": "f" * 40,
+        "SOURCE_TREE": "b" * 40,
+        "SOURCE_DIRTY": "0",
+        "BUILD_TIMESTAMP": framework_args.build_timestamp,
+    }
+    assert set(plan["image"]["repositories"]) == {"cosmos-framework"}
     assert len(plan["image"]["clean_build_commands"]) == 1
     assert plan["image"]["must_rebuild_after_source_change"] is True
     assert plan["image"]["sqsh"]["reuse_allowed"] is False
-    assert plan["image"]["provenance_path"] == "/opt/tao/image-provenance.json"
+    assert plan["image"]["provenance_path"] == "/opt/cosmos/image-provenance.json"
     assert plan["image"]["required_commits"]["cosmos-framework"] == "f" * 40
 
     rl_args = args_for(tmp_path / "rl", backend="cosmos-rl")
     rl_args.image_runtime_mode = "source-build"
+    rl_args.framework_tree = "c" * 40
     rl_plan = workflow.build_plan(rl_args)
-    assert rl_plan["image"]["dockerfile"] == "Dockerfile"
-    assert rl_plan["image"]["build_arguments"]["COSMOS_BACKEND"] == "cosmos-rl"
-    assert (
-        rl_plan["image"]["build_arguments"]["COSMOS_RL_GITHUB_REPO"]
-        == "ssh://git@gitlab.example.com:12051/group/cosmos-reason"
-    )
-    assert rl_plan["image"]["build_arguments"]["COSMOS_RL_GITHUB_BRANCH"] == "feature/enhanced-hooks-and-custom-loggers"
-    assert rl_plan["image"]["build_arguments"]["COSMOS_RL_COMMIT"] == "r" * 40
-    assert rl_plan["image"]["build_arguments"]["COSMOS_RL_TREE"] == "n" * 40
-    assert "USE_LOCAL_COSMOS_RL_GITHUB" not in rl_plan["image"]["build_arguments"]
-    assert "--ssh" in rl_plan["image"]["clean_build_commands"][0]
-    assert (
-        rl_plan["image"]["build_arguments"]["PYAV_WHEEL_SHA256"]
-        == "f9a65d1f48b818323fb411e80358f89d77dec340b01d27c6b2dfbb9cbf4b779f"
-    )
+    assert rl_plan["image"]["dockerfile"] == "docker/cosmos-rl.Dockerfile"
+    assert rl_plan["image"]["build_arguments"]["SOURCE_TREE"] == "c" * 40
+    assert rl_plan["image"]["build_arguments"]["COSMOS_RL_COMMIT"] == "a" * 40
+    assert rl_plan["image"]["build_arguments"]["COSMOS_RL_TREE"] == "b" * 40
+    assert set(rl_plan["image"]["repositories"]) == {"cosmos-framework", "cosmos-rl"}
+    command = rl_plan["image"]["clean_build_commands"][0]
+    assert "--build-context" in command
+    assert "cosmos-rl=" + rl_args.cosmos_rl_repo in command
+    assert "--ssh" not in command
 
 
 def test_existing_sqsh_is_runtime_authority_without_source_build_intake(tmp_path):
@@ -2246,24 +2224,13 @@ def test_existing_sqsh_is_runtime_authority_without_source_build_intake(tmp_path
     args.container_mount = [f"{tmp_path}:{tmp_path}"]
     args.image_tag = ""
     for name in (
-        "tao_integration_repo",
         "cosmos_framework_repo",
         "cosmos_rl_repo",
-        "daft_repo",
-        "tao_core_repo",
         "build_context",
         "cosmos_framework_commit",
         "cosmos_rl_commit",
-        "tao_integration_commit",
-        "daft_commit",
-        "tao_core_commit",
         "native_tree",
-        "integration_tree",
-        "daft_tree",
-        "tao_core_tree",
         "build_timestamp",
-        "cosmos_rl_source_repository",
-        "cosmos_rl_source_branch",
         "cosmos_rl_base_image",
     ):
         setattr(args, name, "")
@@ -2283,7 +2250,7 @@ def test_existing_sqsh_is_runtime_authority_without_source_build_intake(tmp_path
     assert not any("provenance" in error for error in preflight["errors"])
 
 
-def test_omitted_sqsh_uses_packaged_backend_image_and_derived_cache_path(tmp_path):
+def test_remote_slurm_rejects_unbuilt_local_target_and_accepts_registry_image(tmp_path):
     args = args_for(tmp_path, backend="cosmos-framework")
     args.platform = "slurm"
     args.partition = "polar3,polar4"
@@ -2294,18 +2261,21 @@ def test_omitted_sqsh_uses_packaged_backend_image_and_derived_cache_path(tmp_pat
     args.image_tag = ""
     args.sqsh_path = ""
 
+    with pytest.raises(common.WorkflowError, match="explicit registry image or existing SQSH"):
+        workflow.build_plan(args)
+    args.sqsh_path = ""
+    args.image_tag = "registry.example.com/cosmos/framework:test"
+    args.image_tag_was_supplied = True
     plan = workflow.build_plan(args)
-
-    skill_info = workflow.load_yaml(SKILL / "references" / "skill_info.yaml")
-    expected_image = skill_info["backend_contracts"]["cosmos-framework"]["container_image"]
+    expected_image = args.image_tag
     expected_sqsh = tmp_path / "sqsh-cache" / workflow._sqsh_name_for_image(expected_image)
     assert plan["image"]["mode"] == "packaged-image"
-    assert plan["image"]["selection_source"] == "packaged_backend_default"
+    assert plan["image"]["selection_source"] == "explicit_image_tag"
     assert plan["image"]["tag"] == expected_image
     assert args.sqsh_path == str(expected_sqsh)
     assert plan["image"]["sqsh"]["conversion_required"] is True
     assert "enroot import" in plan["image"]["sqsh"]["command"]
-    expected_enroot_uri = "docker://" + expected_image.replace("nvcr.io/", "nvcr.io#", 1)
+    expected_enroot_uri = "docker://" + expected_image.replace("registry.example.com/", "registry.example.com#", 1)
     assert expected_enroot_uri in plan["image"]["sqsh"]["command"]
     preflight = workflow.local_preflight(args, plan, env={"NGC_KEY": "SET"})
     assert not any("source" in error or "repository" in error for error in preflight["errors"])
@@ -2317,7 +2287,7 @@ def test_source_build_inputs_are_required_only_when_explicitly_selected(tmp_path
     args.image_runtime_mode = "source-build"
     args.build_context = ""
 
-    with pytest.raises(common.WorkflowError, match="build_context"):
+    with pytest.raises(common.WorkflowError, match="full repository tree identities"):
         workflow.build_plan(args)
 
 
@@ -2372,7 +2342,7 @@ def test_container_mount_translation_preserves_original_paths(tmp_path):
     args.slurm_host = ["h"]
     plan = workflow.build_plan(args)
     assert plan["datasets"]["train"]["annotations"][0]["original"] == args.train_annotation[0]
-    assert plan["environment"]["TAO_VIDEO_TRAIN_ANNOTATION"].startswith("/runtime/")
+    assert plan["environment"]["COSMOS_VIDEO_TRAIN_ANNOTATION"].startswith("/runtime/")
     assert plan["prepared_model_container_path"].startswith("/runtime/")
     assert plan["config_container_path"] == "/runtime/spec.toml"
     assert args.container_results_dir == "/runtime/results"
@@ -2579,7 +2549,7 @@ def test_sealed_plan_render_rebinds_new_job_record_id(tmp_path):
     workflow.save_plan_artifact(args, plan, str(artifact))
     sealed = json.loads(artifact.read_text())
     assert sealed["planner_request"]["cosmos_job_id"] == ""
-    assert sealed["environment"]["TAO_JOB_ID"] == args.experiment_id
+    assert sealed["environment"]["COSMOS_JOB_ID"] == args.experiment_id
 
     job_id = "cosmos-reason-train-c03ddd"
     current = workflow.parse_args(
@@ -2593,12 +2563,12 @@ def test_sealed_plan_render_rebinds_new_job_record_id(tmp_path):
     )
     restored_args, restored_plan = workflow.load_plan_artifact(current, str(artifact))
     assert restored_args.cosmos_job_id == job_id
-    assert restored_plan["environment"]["TAO_JOB_ID"] == args.experiment_id
+    assert restored_plan["environment"]["COSMOS_JOB_ID"] == args.experiment_id
 
     rendered = workflow.render_slurm(restored_args, restored_plan)
     assert f"#SBATCH --job-name={job_id}" in rendered
-    assert f"export TAO_JOB_ID={job_id}" in rendered
-    assert f"export TAO_API_JOB_ID={job_id}" in rendered
+    assert f"export COSMOS_JOB_ID={job_id}" in rendered
+    assert f"export COSMOS_API_JOB_ID={job_id}" in rendered
     assert f"/{job_id}/status.json" in rendered and f"/{job_id}/child_exit_code" in rendered
     assert f"/{args.experiment_id}/child_exit_code" not in rendered
 
@@ -2771,7 +2741,7 @@ def test_metadata_schema_and_child_failure_guard(tmp_path):
         common.validate_metadata(metadata)
 
 
-def test_metadata_finalization_requires_child_and_tao_terminal_status(tmp_path):
+def test_metadata_finalization_requires_child_and_cosmos_terminal_status(tmp_path):
     args = args_for(tmp_path)
     args.partition = "p"
     args.account = "a"
@@ -2848,7 +2818,7 @@ def test_request_and_metadata_schemas_and_no_environment_history():
     assert "model_preparation_image_tag" not in request_schema["properties"]
     assert "model_preparation_sqsh_path" not in request_schema["properties"]
     profile_schema = request_schema["properties"]["training"]["properties"]["video_profile"]
-    assert profile_schema["x_tao_native_mapping"]["max_frames"] == "custom.vision.max_frames"
+    assert profile_schema["x_cosmos_native_mapping"]["max_frames"] == "custom.vision.max_frames"
     jsonschema.validate({"fps": 1.0, "max_frames": 120}, profile_schema)
     with pytest.raises(jsonschema.ValidationError):
         jsonschema.validate({"frames": 8, "fps": 1.0}, profile_schema)
@@ -2965,7 +2935,7 @@ def test_nvbug_conversion_command_has_nonroot_identity_env(tmp_path):
     )
     joined = " ".join(checkpoint_preparation.command(args, tmp_path / "out", tmp_path / "cache"))
     assert "USER=" in joined and "LOGNAME=" in joined
-    assert "HOME=/cache/tao-home" in joined
+    assert "HOME=/cache/cosmos-home" in joined
     assert "TORCHINDUCTOR_CACHE_DIR=/cache/torchinductor" in joined
 
 
@@ -2989,8 +2959,8 @@ def test_nvbug_task_aware_alias_media_key_fails_closed(tmp_path):
 def test_nvbug_framework_edge_dimensions_reach_environment(tmp_path):
     args = args_for(tmp_path, dataset_family="task_aware_video_reasoning", model_name="nvidia/Cosmos3-Edge")
     plan = workflow.build_plan(args)
-    assert plan["environment"]["TAO_VIDEO_FRAME_WIDTH"] == "1280"
-    assert plan["environment"]["TAO_VIDEO_FRAME_HEIGHT"] == "720"
+    assert plan["environment"]["COSMOS_VIDEO_FRAME_WIDTH"] == "1280"
+    assert plan["environment"]["COSMOS_VIDEO_FRAME_HEIGHT"] == "720"
 
 
 def test_nvbug_local_preflight_rejects_undecodable_media(monkeypatch, tmp_path):
@@ -3097,7 +3067,7 @@ def test_nvbug_render_docker_has_identity_and_idempotency_guard(tmp_path):
         },
         "image": {"tag": "example.invalid/cosmos:immutable"},
         "paths": {"results_dir": {"original": str(tmp_path)}},
-        "environment": {"TAO_JOB_ID": "job-123"},
+        "environment": {"COSMOS_JOB_ID": "job-123"},
         "command": "python -m cosmos_framework.scripts.train --sft-toml=/spec.toml",
     }
     rendered = workflow.render_docker(args, plan)

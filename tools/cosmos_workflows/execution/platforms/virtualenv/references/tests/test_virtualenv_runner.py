@@ -101,7 +101,7 @@ def test_submit_runs_to_complete_and_writes_results(capsys, venv, job_dir, tmp_p
         "train.py",
         (
             "import os, pathlib, sys\n"
-            "out = pathlib.Path(os.environ['TAO_RESULTS_ROOT']) / 'metrics.json'\n"
+            "out = pathlib.Path(os.environ['COSMOS_RESULTS_ROOT']) / 'metrics.json'\n"
             "out.write_text('{\"metric\": 0.9}')\n"
             "print('trained', sys.argv[1:])\n"
         ),
@@ -143,12 +143,12 @@ def test_placeholders_render_and_env_lands_in_script(capsys, venv, job_dir, tmp_
             "  'argv': sys.argv[1:],\n"
             "  'cuda': os.environ.get('CUDA_VISIBLE_DEVICES'),\n"
             "  'venv': os.environ.get('VIRTUAL_ENV'),\n"
-            "  'job_id': os.environ.get('TAO_JOB_ID'),\n"
-            "  'passthrough': os.environ.get('TAO_TEST_TOKEN'),\n"
+            "  'job_id': os.environ.get('COSMOS_JOB_ID'),\n"
+            "  'passthrough': os.environ.get('COSMOS_TEST_TOKEN'),\n"
             "}))\n"
         ),
     )
-    os.environ["TAO_TEST_TOKEN"] = "present"
+    os.environ["COSMOS_TEST_TOKEN"] = "present"
     try:
         rc, sub = run_verb(
             capsys,
@@ -171,10 +171,10 @@ def test_placeholders_render_and_env_lands_in_script(capsys, venv, job_dir, tmp_
             "--gpu-ids",
             "0,1",
             "-e",
-            "TAO_TEST_TOKEN",
+            "COSMOS_TEST_TOKEN",
         )
     finally:
-        os.environ.pop("TAO_TEST_TOKEN", None)
+        os.environ.pop("COSMOS_TEST_TOKEN", None)
     assert rc == 0, sub
     assert wait_terminal(capsys, job_dir)["status"] == "COMPLETE"
     dump = json.loads((job_dir / "dump.json").read_text())
@@ -191,7 +191,7 @@ def test_gpus_zero_hides_cuda_devices(capsys, venv, job_dir, tmp_path):
         "cuda.py",
         (
             "import os, pathlib\n"
-            "pathlib.Path(os.environ['TAO_RESULTS_ROOT'], 'cuda.txt')"
+            "pathlib.Path(os.environ['COSMOS_RESULTS_ROOT'], 'cuda.txt')"
             ".write_text(repr(os.environ.get('CUDA_VISIBLE_DEVICES')))\n"
         ),
     )
@@ -309,7 +309,7 @@ def test_leaked_background_child_is_cleaned_up(capsys, venv, job_dir, tmp_path):
         (
             "import os, pathlib, subprocess, sys\n"
             "child = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(300)'])\n"
-            "pathlib.Path(os.environ['TAO_RESULTS_ROOT'], 'child.pid')"
+            "pathlib.Path(os.environ['COSMOS_RESULTS_ROOT'], 'child.pid')"
             ".write_text(str(child.pid))\n"
         ),
     )

@@ -1,36 +1,29 @@
 schema_version: 2
 backend: cosmos-rl
 display_name: Cosmos-RL
-native_source_repository: cosmos-reason-gitlab
-tao_integration_repository: cosmos-rl
+native_source_repository: cosmos-rl
+runtime_implementation_repository: cosmos-framework
 runtime_image_selection:
   explicit_sqsh_precedence: true
   packaged_default_when_omitted: true
   source_build_requires_explicit_mode: true
 build:
-  owner: cosmos-rl
-  dockerfile: Dockerfile
+  owner: cosmos-framework
+  dockerfile: docker/cosmos-rl.Dockerfile
   required_build_args:
-  - COSMOS_BACKEND
-  - COSMOS_RL_BUILD_MODE
-  - VLLM_BASE_IMAGE
-  - COSMOS_RL_GITHUB_REPO
-  - COSMOS_RL_GITHUB_BRANCH
-  - ACTIONS_COMMIT
-  - ACTIONS_TREE
-  - DAFT_COMMIT
-  - DAFT_TREE
-  - TAO_CORE_COMMIT
-  - TAO_CORE_TREE
+  - BASE_IMAGE
+  - SOURCE_COMMIT
+  - SOURCE_TREE
+  - COSMOS_RL_COMMIT
+  - COSMOS_RL_TREE
   - SOURCE_DIRTY
   - BUILD_TIMESTAMP
-  - PYAV_WHEEL_SHA256
   clean_source_required: true
-  provenance_file: /opt/tao/image-provenance.json
+  provenance_file: /opt/cosmos/image-provenance.json
 runtime:
   shell: /bin/bash
   python: /opt/venv/cosmos_rl/bin/python
-  working_directory: /workspace/cosmos_rl
+  working_directory: /workspace
   non_root_executable_required: true
   video_decoder_selection: explicit_profile
   default_video_profiles:
@@ -45,14 +38,14 @@ runtime:
       dataloader_workers: 1
       dataloader_prefetch_factor: 2
       dataloader_persistent_workers: true
-      worker_decoder_cache_forwarding: TAO_PYNV_DECODER_CACHE_SIZE_required
+      worker_decoder_cache_forwarding: COSMOS_PYNV_DECODER_CACHE_SIZE_required
       sft_batch_threads: 4
       processed_video_cache_capacity_default: inspected_unique_media_capacity
       decoder_session_cache_capacity_default: inspected_unique_media_capacity
       disk_cache: false
       prewarm: false
       compatibility_artifact: optional_and_never_a_direct_launch_gate
-      capability_fallback: tao_system_pyav_sparse
+      capability_fallback: cosmos_system_pyav_sparse
       capability_fallback_scope: nvdec_incompatible_stream_only
     system-pyav:
       decoder: torchvision
@@ -73,7 +66,7 @@ configuration:
   schema: cosmos_rl.policy.config.Config
   entrypoint: cosmos-rl --config <config> <dataset_hook>
   vision_schema:
-    type: cosmos_rl.tools.custom_hooks.tao_vl_reason_daft_sft_example.VisionConfig
+    type: cosmos_framework.integrations.cosmos_rl.reasoning_sft.VisionConfig
     fields:
     - resized_height
     - resized_width
@@ -107,11 +100,11 @@ training_integrity:
     separate_smoke_job: false
 dataset_families:
   video_conversation:
-    hook: package://cosmos_rl/tools/custom_hooks/tao_sft_example.py
+    hook: package://cosmos_framework/integrations/cosmos_rl/conversation_sft.py
     runtime_inputs: [train_annotation, train_media_root, validation_annotation, validation_media_root]
   task_aware_video_reasoning:
-    hook: package://cosmos_rl/tools/custom_hooks/tao_vl_reason_daft_sft_example.py
-    format_package: nvidia-tao-daft
+    hook: package://cosmos_framework/integrations/cosmos_rl/reasoning_sft.py
+    format_module: cosmos_framework.data.reasoner.qa_dataset
     runtime_inputs: [train_annotations, train_media_roots, validation_annotations, validation_media_roots, task_selection]
 parallelism:
   controller: one_on_node_zero
@@ -123,15 +116,15 @@ checkpoint:
   input: prepared_qwen3_vl_hf_safetensors
   accepted_source_inputs: [qwen3_vl_hf_safetensors, cosmos3_omni]
   source_model_type_selection: explicit_for_nano
-  cosmos3_omni_preparation: shared_tao_entrypoint_with_pinned_isolated_framework_converter_in_selected_platform_checkpoint_storage
-  cosmos3_omni_preparation_entrypoint: cosmos_rl.model_preparation.vlm_safetensors
+  cosmos3_omni_preparation: shared_cosmos_entrypoint_with_pinned_isolated_framework_converter_in_selected_platform_checkpoint_storage
+  cosmos3_omni_preparation_entrypoint: cosmos_framework.scripts.prepare_vlm_checkpoint
   cosmos3_omni_native_converter: cosmos_framework.scripts.convert_model_to_vlm_safetensors
   runtime_input_after_preparation: qwen3_vl_hf_safetensors
   output: cosmos_rl_epoch_policy_and_hf_safetensors
   cadence: epoch
   async_multinode: disabled
 status:
-  native_logger: TAOStatusLogger
+  native_logger: CosmosStatusLogger
   structured_only: true
   metrics:
   - train/avg_loss
@@ -146,11 +139,11 @@ actions:
   export: {supported: true, implementation: native_checkpoint_export}
   evaluate:
     supported: true
-    implementation: tao_integration
+    implementation: framework_owned
     execution_contract: evaluation_workflow.spec_bundle.execution
-  inference: {supported: true, implementation: tao_integration}
-  inference_microservice: {supported: true, implementation: tao_integration}
-  quantize: {supported: true, implementation: tao_integration}
+  inference: {supported: true, implementation: framework_owned}
+  inference_microservice: {supported: true, implementation: framework_owned}
+  quantize: {supported: true, implementation: framework_owned}
 cache:
   default_mode: direct
   direct_training_starts_without_prewarm: true
@@ -165,8 +158,8 @@ cache:
   completeness_manifest_required: true
 decoder_artifact:
   schema_version: 2
-  builder: cosmos_rl.utils.video_override_artifacts
-  validator: cosmos_rl.utils.validate_video_override_artifacts
+  builder: cosmos_framework.inference.reasoner.video_override_artifacts
+  validator: cosmos_framework.inference.reasoner.validate_video_override_artifacts
   selection_basis: resolved_rl_decoder_capability
   scan_all_referenced_media: true
   convert_only_incompatible_media_for_fast_profile: true

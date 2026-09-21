@@ -6,7 +6,7 @@
 Get data to and from the compute container. Decide the storage tier first —
 under **strategy A (pre-positioned mount) no bytes move at all** — and when a
 fetch is needed, move it **host-side** with `aws`/`s5cmd`/`boto3`/`huggingface-cli`/`ngc`
-directly — no `nvidia-tao-sdk`, no in-container runtime. Other platform skills
+directly — no SDK or in-container control runtime. Other platform skills
 call this reference to stage inputs before launch and sync outputs after. It never
 launches a container itself. The chosen tier is stamped into the job-record at
 submit.
@@ -70,8 +70,8 @@ After staging, author the spec with **local paths** and run the verify gate.
 
 ## Output routing (3-way) + upload
 
-- `TAO_RESULTS_ROOT` set → write to that mount, **no upload**.
-- else `S3_BUCKET_NAME` set → upload to `s3://$S3_BUCKET_NAME/results/$TAO_JOB_ID/`.
+- `COSMOS_RESULTS_ROOT` set → write to that mount, **no upload**.
+- else `S3_BUCKET_NAME` set → upload to `s3://$S3_BUCKET_NAME/results/$COSMOS_JOB_ID/`.
 - else → **loud ephemeral warning**.
 
 SLURM: never set `S3_BUCKET_NAME` (Lustre-only); run any upload on the login

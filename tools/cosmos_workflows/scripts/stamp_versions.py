@@ -9,8 +9,8 @@ of resolving ``versions.yaml`` at runtime. Each embedded literal is annotated
 with the versions.yaml key it came from, so this script can re-stamp every
 site on a release bump and CI can verify nothing drifted:
 
-    container_image: nvcr.io/nvidia/tao/tao-toolkit:7.0.1-pyt  # versions-key: images.containers.pyt
-    export TAO_DS_IMAGE=nvcr.io/nvidia/tao/tao-toolkit:7.0.1-data-services  # versions-key: images.containers.data_services
+    container_image: cosmos-framework:local  # versions-key: images.containers.pyt
+    export COSMOS_DS_IMAGE=cosmos-framework:local  # versions-key: images.containers.data_services
 
 Rules enforced:
   * A line carrying ``# versions-key: <dotted.key>`` must contain exactly the
@@ -22,7 +22,7 @@ Rules enforced:
     scan. Formats that cannot carry a trailing comment (Dockerfile ``ARG``
     lines, YAML values consumed verbatim) may put the annotation on the line
     immediately above the pin.
-  * Stray scan: image references with an explicit tag, or nvidia-tao-* wheel
+  * Stray scan: image references with an explicit tag, or nvidia-cosmos-* wheel
     pins, on lines with neither annotation are reported. ``.json`` files are
     exempt (JSON cannot carry annotations; pins there are recorded artifacts,
     not templates). The 7.1.0 stray backlog is cleared: CI runs
@@ -54,10 +54,11 @@ MARKER_RE = re.compile(r"(?:#|<!--)\s*versions-key:\s*([A-Za-z0-9_.]+)")
 UNPINNED_RE = re.compile(r"(?:#|<!--)\s*unpinned:\s*\S")
 # An image reference with an explicit tag (registry host / path : tag).
 IMAGE_RE = re.compile(r"[A-Za-z0-9.-]+\.[A-Za-z]{2,}/[A-Za-z0-9_./-]+:[A-Za-z0-9][A-Za-z0-9_.-]*")
+LOCAL_IMAGE_RE = re.compile(r"(?<![A-Za-z0-9_./-])[A-Za-z0-9][A-Za-z0-9_./-]*:[A-Za-z0-9][A-Za-z0-9_.-]*(?!//)")
 # A pinned wheel spec, optionally with extras: name[extra]==1.2.3 / name==1.2.3rc4
 WHEEL_RE = re.compile(r"[A-Za-z0-9._-]+(?:\[[A-Za-z0-9_,-]+\])?==[A-Za-z0-9.]+")
-# nvidia-tao-* wheels are the only release-cadenced wheels; strays scan just those.
-STRAY_WHEEL_RE = re.compile(r"nvidia-tao-[a-z-]+(?:\[[A-Za-z0-9_,-]+\])?==[A-Za-z0-9.]+")
+# nvidia-cosmos-* wheels are the only release-cadenced wheels; strays scan just those.
+STRAY_WHEEL_RE = re.compile(r"nvidia-cosmos-[a-z-]+(?:\[[A-Za-z0-9_,-]+\])?==[A-Za-z0-9.]+")
 # Bare dotted key as the whole value (first-time stamping of key-form fields).
 DOTTED_KEY_VALUE_RE = re.compile(r"^(\s*[A-Za-z_]+:\s*)([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)+)(\s*#.*)$")
 
@@ -114,6 +115,9 @@ def replace_value(line: str, new_value: str) -> tuple[str, bool]:
     """Replace the versioned value token on a marked line. Returns (line, ok)."""
     code = line.split("#", 1)[0]
     m = IMAGE_RE.search(code)
+    if m:
+        return line[: m.start()] + new_value + line[m.end() :], True
+    m = LOCAL_IMAGE_RE.search(code)
     if m:
         return line[: m.start()] + new_value + line[m.end() :], True
     m = WHEEL_RE.search(code)

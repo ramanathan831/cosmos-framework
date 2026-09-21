@@ -179,7 +179,7 @@ Same four verbs, plus:
 2. **Capacity gate ×nodes:** hard-fail unless allocatable GPUs ≥ `gpus_per_node ×
    nodes` (no gang scheduling → a partial start leaves rank-0 waiting forever).
 3. **Render `templates/k8s/indexed-job.yaml.tmpl`** — the headless Service +
-   Indexed Job + rendezvous env (`WORLD_SIZE` = node count, `NODE_RANK` from
+   Indexed Job + rendezvous env (`NNODES` = node count, `NODE_RANK` from
    `JOB_COMPLETION_INDEX`, `MASTER_ADDR=<job>-0.<svc>`, `/dev/shm` 16Gi so NCCL
    doesn't silently hang). `kubectl apply -f` creates the Service and Job together;
    `cancel` deletes the Job (Foreground) and the Service.
@@ -246,8 +246,6 @@ steps above) to run distributed training across N pods. Rendering
 
    | Env var | Value | Read by |
    |---|---|---|
-   | `WORLD_SIZE` | `num_nodes` | packaged PyTorch container's `nvidia_tao_pytorch/core/entrypoint.py` (uses this to mean *node count*, even though PyTorch's own convention is *total processes*) |
-   | `NUM_GPU_PER_NODE` | `gpu_count` | packaged PyTorch container's entrypoint |
    | `NNODES` | `num_nodes` | `torchrun` and PyTorch-standard rendezvous |
    | `NPROC_PER_NODE` | `gpu_count` | `torchrun` |
    | `NODE_RANK` | `$JOB_COMPLETION_INDEX` | both |

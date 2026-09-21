@@ -140,14 +140,14 @@ Same four verbs, with three additions at submit:
 
 1. **Render `templates/slurm/multinode.sbatch.tmpl`** instead of the single-node
    one — it's a strict superset (adds `--nodes` / `--wait-all-nodes` + the
-   rendezvous block). `WORLD_SIZE` is the **node count** (the container entrypoint convention); never
+   rendezvous block). `NNODES` is the **node count** (the container entrypoint convention); never
    change it to a global-rank count.
 2. **NCCL probe first** — before the real job, run a cheap 2-node all-reduce
    (`scripts/nccl_allreduce_probe.py` under the container's torchrun) with a
    ~120s timeout. Before invoking torchrun, preserve the container rendezvous values
-   as `TAO_NODE_COUNT=$WORLD_SIZE`,
-   `TAO_GPUS_PER_NODE=$NUM_GPU_PER_NODE`, and
-   `TAO_NODE_RANK=$SLURM_PROCID`; torchrun overwrites its standard
+   as `COSMOS_NODE_COUNT=$NNODES`,
+   `COSMOS_GPUS_PER_NODE=$NPROC_PER_NODE`, and
+   `COSMOS_NODE_RANK=$SLURM_PROCID`; torchrun overwrites its standard
    `WORLD_SIZE` with the global process count. `NCCL_PROBE_OK` → proceed.
    **Timed out** (the collective hung)
    → set the cluster's NCCL knob in `EXTRA_ENV` and re-probe — on CS-OCI-ORD that
@@ -186,7 +186,7 @@ direct-spec modes, backend details, and the results-dir default.
 
 ## Container execution
 
-`tao-core` runs model containers through Pyxis/Enroot:
+The platform's native commands run model containers through Pyxis/Enroot:
 
 1. Stage compact JSON files for specs, environment, and cloud metadata under
    `<job_dir>/specs`, `<job_dir>/env`, and `<job_dir>/meta`.
@@ -307,7 +307,7 @@ results root, or the workflow cannot proceed without overriding defaults.
 
 ## Resource defaults
 
-Defaults from `tao-core`:
+Generic template defaults (model contracts and explicit user resources override these):
 
 - `num_nodes`: 1
 - `num_gpus`: 4
@@ -334,9 +334,9 @@ count from total GPUs.
 
 For multi-node jobs (`num_nodes > 1`), the rendered
 `templates/slurm/multinode.sbatch.tmpl` sets the sbatch directives and exports
-the PyTorch-distributed rendezvous env vars: `WORLD_SIZE`, `NUM_GPU_PER_NODE`,
-`NODE_RANK`, `MASTER_ADDR`, and `MASTER_PORT` (29500). packaged entrypoints read
-`WORLD_SIZE` + `NUM_GPU_PER_NODE` and build torchrun internally. Cosmos-RL has
+the PyTorch-distributed rendezvous env vars: `NNODES`, `NPROC_PER_NODE`,
+`NODE_RANK`, `MASTER_ADDR`, and `MASTER_PORT` (29500). Supply an explicit native
+torchrun command using `NNODES` and `NPROC_PER_NODE`. Cosmos-RL has
 special multi-node role handling for controller, policy, and rollout workers.
 See the `### Multi-node (nodes > 1)` submit subsection above for the NCCL-probe
 gate and per-cluster env caching.

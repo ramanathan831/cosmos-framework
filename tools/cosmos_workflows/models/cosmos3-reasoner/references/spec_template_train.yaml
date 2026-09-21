@@ -68,7 +68,7 @@ policy:
 logging:
   logger:
   - console
-  - tao
+  - workflow_status
   project_name: cosmos-rl
   experiment_name: cosmos-rl
 redis: '12800'

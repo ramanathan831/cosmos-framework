@@ -50,7 +50,7 @@ def bad(instance, schema):
 DINO_BUNDLE = {
     "network_arch": "dino",
     "action": "train",
-    "image": "nvcr.io/nvidia/tao/tao-toolkit:6.26.3-pyt",  # unpinned: test fixture
+    "image": "cosmos-framework:local",  # unpinned: test fixture
     "mode": "config",
     "command": "dino train -e {config_path}",
     "config_format": "yaml",
@@ -76,7 +76,7 @@ DINO_BUNDLE = {
             "spec_key": "train.pretrained_model_path",
             "type": "file",
             "optional": True,
-            "uri": "ngc://nvidia/tao/pretrained_dino_nvimagenet:fan_small",
+            "uri": "ngc://nvidia/cosmos/pretrained_dino_nvimagenet:fan_small",
         },
     ],
     "declared_outputs": [{"spec_key": "results_dir", "type": "folder"}],
@@ -88,7 +88,7 @@ DINO_BUNDLE = {
 ARGS_BUNDLE = {
     "network_arch": "data_services",
     "action": "gap_analysis",
-    "image": "nvcr.io/nvidia/tao/tao-toolkit:6.26.3-data-services",  # unpinned: test fixture
+    "image": "cosmos-framework:local",  # unpinned: test fixture
     "mode": "args",
     "command": "gap_analysis vcn_aoi",
     "args": ["--results-parquet", "/data/results.parquet", "--top-k", "200"],
@@ -116,7 +116,7 @@ def test_bundle_accepts_model_owned_action_lifecycle(spec_schema):
     b["execution"] = {
         "environment": {
             "PYTHONUNBUFFERED": "1",
-            "TAO_JOB_ID": "{job_id}",
+            "COSMOS_JOB_ID": "{job_id}",
         },
         "pre_commands": ["python -m package.runtime_preflight"],
         "post_commands": ["python -m package.verify_results --config {config_path}"],
@@ -267,7 +267,7 @@ RECORD = {
     "id": "dino-train-a1b2c3",
     "platform": "slurm",
     "backend_ref": None,
-    "image": "nvcr.io/nvidia/tao/tao-toolkit:6.26.3-pyt",  # unpinned: test fixture
+    "image": "cosmos-framework:local",  # unpinned: test fixture
     "network_arch": "dino",
     "action": "train",
     "results_dir": "/lustre/fsw/portfolios/users/me/results/dino-train-a1b2c3",

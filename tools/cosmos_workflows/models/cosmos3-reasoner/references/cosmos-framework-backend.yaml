@@ -2,33 +2,24 @@ schema_version: 2
 backend: cosmos-framework
 display_name: Cosmos Framework
 native_source_repository: cosmos-framework
-tao_integration_repository: cosmos-rl
+runtime_implementation_repository: cosmos-framework
 runtime_image_selection:
   explicit_sqsh_precedence: true
   packaged_default_when_omitted: true
   source_build_requires_explicit_mode: true
 build:
   stages:
-  - owner: cosmos-rl
+  - owner: cosmos-framework
     dockerfile: Dockerfile
-    purpose: unified clean Framework trainer and TAO action image
+    purpose: unified clean Framework trainer and Cosmos action image
     required_build_args:
-    - COSMOS_BACKEND
-    - COSMOS_FRAMEWORK_BASE_IMAGE
-    - COSMOS_FRAMEWORK_REPO
-    - COSMOS_FRAMEWORK_BRANCH
-    - EXPECTED_FRAMEWORK_COMMIT
-    - EXPECTED_FRAMEWORK_TREE
-    - ACTIONS_COMMIT
-    - ACTIONS_TREE
-    - DAFT_COMMIT
-    - DAFT_TREE
-    - TAO_CORE_COMMIT
-    - TAO_CORE_TREE
+    - BASE_IMAGE
+    - SOURCE_COMMIT
+    - SOURCE_TREE
     - SOURCE_DIRTY
     - BUILD_TIMESTAMP
   clean_source_required: true
-  provenance_file: /opt/tao/image-provenance.json
+  provenance_file: /opt/cosmos/image-provenance.json
 runtime:
   shell: /bin/bash
   python: /workspace/.venv/bin/python
@@ -61,11 +52,11 @@ configuration:
   unknown_keys: forbidden
 dataset_families:
   video_conversation:
-    native_adapter: cosmos_framework.configs.base.reasoner.experiment.tao_video_sft.VideoConversationDataset
+    native_adapter: cosmos_framework.configs.base.reasoner.experiment.video_sft.VideoConversationDataset
     runtime_inputs: [train_annotation, train_media_root, validation_annotation, validation_media_root]
   task_aware_video_reasoning:
-    native_adapter: cosmos_framework.data.generator.local_datasets.tao_vl_reason.TaoVlReasonDaftDataset
-    format_package: nvidia-tao-daft
+    native_adapter: cosmos_framework.data.generator.local_datasets.reasoning_qa.ReasoningQADataset
+    format_module: cosmos_framework.data.reasoner.qa_dataset
     runtime_inputs: [train_annotations, train_media_roots, validation_annotations, validation_media_roots, task_selection]
 parallelism:
   shard_degree: gpus_per_node
@@ -96,7 +87,7 @@ checkpoint:
     peft: reconstruct adapters from the saved Framework config and export merged safetensors
     failure_behavior: block the requested action and preserve any invalid prior export for recovery
 status:
-  native_callback: cosmos_framework.callbacks.tao_status.TAOStatusCallback
+  native_callback: cosmos_framework.callbacks.workflow_status.WorkflowStatusCallback
   structured_only: true
   metrics:
   - train/avg_loss
@@ -115,9 +106,9 @@ actions:
     command: python -m cosmos_framework.scripts.export_vlm_dcp
   evaluate:
     supported: true
-    implementation: tao_integration_adapter_after_verified_export
+    implementation: framework_owned_adapter_after_verified_export
     pre_action: export_if_framework_dcp
-    command: cosmos-framework-evaluate --config <config>
+    command: cosmos-reasoner-evaluate --config <config>
     execution_contract: evaluation_workflow.spec_bundle.execution
     checkpoint_action_manifest: terminal_verified_required
     image_capability_attestation: baked_framework_evaluator_runtime_required
@@ -135,14 +126,14 @@ actions:
       cosmos_rl_decoder_path: unchanged_and_not_selected
   inference:
     supported: true
-    implementation: tao_integration_adapter_after_verified_export
+    implementation: framework_owned_adapter_after_verified_export
     pre_action: export_if_framework_dcp
-    command: cosmos-framework-inference <arguments>
+    command: cosmos-reasoner-inference <arguments>
   inference_microservice:
     supported: true
-    implementation: tao_integration_adapter_after_verified_export
+    implementation: framework_owned_adapter_after_verified_export
     pre_action: export_if_framework_dcp
-    command: cosmos-framework-inference-microservice <arguments>
+    command: cosmos-reasoner-serve <arguments>
   quantize: {supported: false, reason: no validated Framework checkpoint quantization route}
 compatibility:
   a100_qwen3_vl_patch_embed: native_per_model_linear_equivalent
@@ -162,5 +153,5 @@ model_profiles:
       max_video_pixels: 5529600
       sequence_length: 16000
       attention_implementation: flash_attention_2
-    environment_binding: TAO_VIDEO_MAX_PIXELS
+    environment_binding: COSMOS_VIDEO_MAX_PIXELS
     provenance: base model and processor profile are fingerprinted separately

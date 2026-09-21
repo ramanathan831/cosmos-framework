@@ -669,8 +669,8 @@ def cmd_submit(args: argparse.Namespace) -> int:
     process_env["VIRTUAL_ENV"] = str(venv_path)
     current_path = process_env.get("PATH", "")
     process_env["PATH"] = str(venv_path / "bin") + (os.pathsep + current_path if current_path else "")
-    process_env["TAO_JOB_ID"] = placeholders["job_id"]
-    process_env["TAO_RESULTS_ROOT"] = str(job_dir)
+    process_env["COSMOS_JOB_ID"] = placeholders["job_id"]
+    process_env["COSMOS_RESULTS_ROOT"] = str(job_dir)
     process_env.setdefault("PYTHONUNBUFFERED", "1")
     if gpu_ids is not None:
         process_env["CUDA_VISIBLE_DEVICES"] = ",".join(str(i) for i in gpu_ids)
@@ -954,7 +954,7 @@ def build_parser() -> argparse.ArgumentParser:
     submit.add_argument(
         "--arg", action="append", default=[], help="Script argv token; may use {config_path} {results_dir} {job_id}."
     )
-    submit.add_argument("--job-id", default=None, help="Job-record id (sets TAO_JOB_ID).")
+    submit.add_argument("--job-id", default=None, help="Job-record id (sets COSMOS_JOB_ID).")
     submit.add_argument("--config-path", default=None, help="Spec file the agent authored; fills {config_path}.")
     submit.add_argument("--cwd", default=None, help="Working directory (default: current).")
     submit.add_argument(

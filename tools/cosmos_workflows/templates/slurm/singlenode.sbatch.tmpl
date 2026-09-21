@@ -39,7 +39,7 @@ fi
 # probe (M7) populates this automatically per cluster context.
 @@EXTRA_ENV@@
 
-# Single node: the TAO container reads its GPU count from the spec; no cross-node
+# Single node: the Cosmos container reads its GPU count from the spec; no cross-node
 # rendezvous. Spec + dataset are on Lustre, mounted read-through by Pyxis/Enroot.
 srun --container-image=@@IMAGE@@ \
      --container-mounts=@@CONTAINER_MOUNTS@@ \

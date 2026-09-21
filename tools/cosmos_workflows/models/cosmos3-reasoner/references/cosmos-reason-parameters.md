@@ -173,7 +173,7 @@ platform still fails with a kernel JIT error such as
 `nvrtc: invalid --gpu-architecture`, classify it as an image/toolchain defect to
 fix with a compatible image, not as a platform resource incompatibility.
 
-**TAO_API_JOB_ID status logging warnings in direct Docker**: `cosmos-rl-evaluate`, `cosmos-rl-inference`, and `cosmos-rl-quantize` may log a traceback from `tao_status_logger.py` when `TAO_API_JOB_ID` is unset. For direct local-Docker model-skill validation this is nonfatal if the process exits 0 and the action writes its expected result files. Do not hide a real action failure behind this warning, but do not mark an otherwise successful local run failed only because status-file logging was unavailable.
+**COSMOS_API_JOB_ID status logging warnings in direct Docker**: `cosmos-reasoner-evaluate`, `cosmos-reasoner-inference`, and `cosmos-reasoner-quantize` may log a traceback from `workflow_status_logger.py` when `COSMOS_API_JOB_ID` is unset. For direct local-Docker model-skill validation this is nonfatal if the process exits 0 and the action writes its expected result files. Do not hide a real action failure behind this warning, but do not mark an otherwise successful local run failed only because status-file logging was unavailable.
 
 ## Spec Param / Parent Model Inference
 

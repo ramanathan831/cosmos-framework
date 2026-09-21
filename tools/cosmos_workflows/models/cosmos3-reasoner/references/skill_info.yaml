@@ -13,10 +13,10 @@ automl_enabled: true
 backend_contracts:
   cosmos-framework:
     path: references/cosmos-framework-backend.yaml
-    container_image: nvcr.io/nvstaging/tao/cosmos-framework:cosmos3-tao-reproducibility-20260818-6aa9a80  # versions-key: images.containers.cosmos_framework
+    container_image: cosmos-framework:local  # versions-key: images.containers.cosmos_framework
   cosmos-rl:
     path: references/cosmos-rl-backend.yaml
-    container_image: nvcr.io/nvstaging/tao/cosmos_rl:7.2.0-rc-241-multiarch  # versions-key: images.containers.cosmos_rl
+    container_image: cosmos-rl:local  # versions-key: images.containers.cosmos_rl
 backend_resolver: scripts/cosmos_workflow.py
 backend_selection:
   policy: explicit backend wins; otherwise select by model, action, and workflow and report the rationale
@@ -73,14 +73,14 @@ workflow_contract:
       separate_user_input: forbidden
       entrypoints:
         cosmos-framework: cosmos_framework.scripts.convert_model_to_vlm_safetensors
-        cosmos-rl: cosmos_rl.model_preparation.vlm_safetensors
+        cosmos-rl: cosmos_framework.scripts.prepare_vlm_checkpoint
       sqsh_required_entries:
         cosmos-framework:
           - cosmos_framework/scripts/convert_model_to_vlm_safetensors.py
         cosmos-rl:
-          - cosmos_rl/model_preparation/vlm_safetensors.py
+          - cosmos_framework/scripts/prepare_vlm_checkpoint.py
           - cosmos_framework/scripts/convert_model_to_vlm_safetensors.py
-          - opt/tao/framework-converter-runtime.json
+          - opt/cosmos/framework-converter-runtime.json
     huggingface_revision_resolution:
       user_commit_sha_required: false
       default_requested_ref: main
@@ -160,7 +160,7 @@ workflow_contract:
       sft_batch_threads: 4
       processed_video_cache: rank_local_memory_populated_on_demand
       decoder_session_cache: rank_local_native_populated_on_demand
-      worker_decoder_cache_forwarding: TAO_PYNV_DECODER_CACHE_SIZE_required
+      worker_decoder_cache_forwarding: COSMOS_PYNV_DECODER_CACHE_SIZE_required
       processed_video_cache_capacity_default: inspected_unique_media_capacity
       decoder_session_cache_capacity_default: inspected_unique_media_capacity
       prewarm: false
@@ -172,7 +172,7 @@ workflow_contract:
       padded_multiset: preserved_exactly
       video_feature_cache: rank_local_gpu_embeddings_populated_on_demand
       feature_cache_capacity_default: min_inspected_unique_media_capacity_512
-      feature_cache_environment: TAO_VALIDATION_VIDEO_FEATURE_CACHE_SIZE
+      feature_cache_environment: COSMOS_VALIDATION_VIDEO_FEATURE_CACHE_SIZE
       exact_validation_batch: preserved_from_user_contract
       maximum_throughput_overrides:
         validation_batch_size: 16
@@ -181,7 +181,7 @@ workflow_contract:
       prewarm: false
       disk_cache: false
       compatibility_artifact: optional_and_never_a_direct_launch_gate
-      capability_fallback: tao_system_pyav_sparse
+      capability_fallback: cosmos_system_pyav_sparse
       capability_fallback_scope: nvdec_incompatible_stream_only
     system-pyav:
       decoder: torchvision
@@ -223,30 +223,30 @@ workflow_contract:
       finite_stream: true
       video_feature_cache: rank_local_gpu_embeddings_populated_on_demand
       feature_cache_capacity_default: min_inspected_unique_media_capacity_512
-      feature_cache_environment: TAO_FRAMEWORK_VALIDATION_VIDEO_FEATURE_CACHE_SIZE
+      feature_cache_environment: COSMOS_FRAMEWORK_VALIDATION_VIDEO_FEATURE_CACHE_SIZE
       processed_video_cache: worker_local_host_tensors_populated_on_demand
       processed_video_cache_capacity_default: inspected_unique_media_capacity
-      processed_video_cache_environment: TAO_FRAMEWORK_VALIDATION_PROCESSED_VIDEO_CACHE_SIZE
+      processed_video_cache_environment: COSMOS_FRAMEWORK_VALIDATION_PROCESSED_VIDEO_CACHE_SIZE
       exact_validation_batch: preserved_from_user_contract
       maximum_throughput_frontload:
         selection_condition: repeated_media_and_user_selected_validation_batch_at_least_2
         unique_per_batch_default: min_8_and_half_validation_batch
-        environment: TAO_FRAMEWORK_VALIDATION_CACHE_FRONTLOAD_UNIQUE_PER_BATCH
+        environment: COSMOS_FRAMEWORK_VALIDATION_CACHE_FRONTLOAD_UNIQUE_PER_BATCH
       deferred_metric_scalar_transfer: validation_end
       prewarm: false
       disk_cache: false
   backend_action_commands:
     cosmos-framework:
       export: python -m cosmos_framework.scripts.export_vlm_dcp
-      evaluate: cosmos-framework-evaluate --config {config_path}
-      inference: cosmos-framework-inference <arguments>
-      inference_microservice: cosmos-framework-inference-microservice <arguments>
+      evaluate: cosmos-reasoner-evaluate --config {config_path}
+      inference: cosmos-reasoner-inference <arguments>
+      inference_microservice: cosmos-reasoner-serve <arguments>
       required_pre_action: scripts/framework_checkpoint_action.py prepare
     cosmos-rl:
-      evaluate: cosmos-rl-evaluate --config {config_path}
-      inference: cosmos-rl-inference <arguments>
-      inference_microservice: cosmos-rl-inference-microservice <arguments>
-      quantize: cosmos-rl-quantize <arguments>
+      evaluate: cosmos-reasoner-evaluate --config {config_path}
+      inference: cosmos-reasoner-inference <arguments>
+      inference_microservice: cosmos-reasoner-serve <arguments>
+      quantize: cosmos-reasoner-quantize <arguments>
 data_sources:
   train:
     custom.train_dataset.annotation_path:
@@ -323,7 +323,7 @@ spec_params:
     train.resume: resume_model
 actions:
   evaluate:
-    command: cosmos-rl-evaluate --config {config_path}
+    command: cosmos-reasoner-evaluate --config {config_path}
     config_format: toml
     mode: config
     execution_contract:
@@ -364,7 +364,7 @@ actions:
 
       cfg = tomllib.load(open(sys.argv[1], "rb"))
       args = [
-          "cosmos-rl-inference",
+          "cosmos-reasoner-inference",
           "--model_path", cfg["model_path"],
           "--torch_dtype", cfg.get("torch_dtype", "auto"),
           "--device_map", cfg.get("device_map", "auto"),
@@ -404,7 +404,6 @@ actions:
       python - {config_path} <<'PY'
       import sys
       import tomllib
-      import types
 
       cfg = tomllib.load(open(sys.argv[1], "rb"))
       model = cfg.get("model", dict())
@@ -433,23 +432,8 @@ actions:
       if dataset.get("media_dir"):
           args.extend(["--media_dir", dataset["media_dir"]])
 
-      sys.path.insert(0, "/opt/quantize_deps")
-      import compressed_tensors.utils.match as match
-      if not hasattr(match, "_match_name") and hasattr(match, "match_name"):
-          match._match_name = match.match_name
-      from compressed_tensors.config import CompressionFormat
-      format_mod = types.ModuleType("compressed_tensors.config.format")
-
-      def _get_quant_compression_format(input_activations=None, weights=None):
-          qtype = getattr(weights, "type", None) or getattr(input_activations, "type", None)
-          if str(qtype).lower() == "float":
-              return CompressionFormat.float_quantized
-          return CompressionFormat.int_quantized
-
-      format_mod._get_quant_compression_format = _get_quant_compression_format
-      sys.modules["compressed_tensors.config.format"] = format_mod
-      sys.argv = ["cosmos-rl-quantize"] + args
-      from cosmos_rl.quantization.quantize import main
+      sys.argv = ["cosmos-reasoner-quantize"] + args
+      from cosmos_framework.scripts.quantize_reasoner import main
       raise SystemExit(main())
       PY
     config_format: toml
@@ -468,7 +452,7 @@ actions:
     - inputs/
   train:
     command: |
-      hook="$(/opt/venv/cosmos_rl/bin/python -c 'import cosmos_rl; from pathlib import Path; print(Path(cosmos_rl.__file__).parent / "tools" / "custom_hooks" / "tao_sft_example.py")')"
+      hook="$(/opt/venv/cosmos_rl/bin/python -c 'import cosmos_framework; from pathlib import Path; print(Path(cosmos_framework.__file__).parent / "integrations" / "cosmos_rl" / "conversation_sft.py")')"
       test -f "$hook"
       cosmos-rl --config {config_path} "$hook"
     config_format: toml

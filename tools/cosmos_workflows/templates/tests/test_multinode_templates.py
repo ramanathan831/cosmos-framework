@@ -3,9 +3,9 @@
 
 """Render + rendezvous tests for the multi-node templates (SLURM + k8s).
 
-The load-bearing invariant everywhere: WORLD_SIZE is the NODE COUNT (TAO's
+The load-bearing invariant everywhere: NNODES is the NODE COUNT (Cosmos's
 misnamed convention), never the GPU count — every case renders with nodes != gpus
-and asserts WORLD_SIZE == nodes. A subtly-wrong rendezvous hangs silently for the
+and asserts NNODES == nodes. A subtly-wrong rendezvous hangs silently for the
 whole distributed timeout, so these are vendored, tested templates, not freehand.
 """
 
@@ -24,7 +24,7 @@ import redact_secrets  # noqa: E402
 SLURM = REPO / "templates/slurm/multinode.sbatch.tmpl"
 K8S = REPO / "templates/k8s/indexed-job.yaml.tmpl"
 
-# nodes (2) deliberately != gpus-per-node (8) so WORLD_SIZE=2 can't be confused with GPUs
+# nodes (2) deliberately != gpus-per-node (8) so NNODES=2 can't be confused with GPUs
 SLURM_VALS = {
     "JOB_NAME": "dino-train-a1b2c3",
     "NUM_NODES": "2",
@@ -35,7 +35,7 @@ SLURM_VALS = {
     "SBATCH_EXTRA": "#SBATCH --account=edgeai\n#SBATCH --partition=batch",
     "ENV_FILE": "",
     "EXTRA_ENV": "export NCCL_P2P_DISABLE=1",
-    "IMAGE": "/lustre/sqsh/tao.sqsh",
+    "IMAGE": "/lustre/sqsh/cosmos.sqsh",
     "CONTAINER_MOUNTS": "/lustre",
     "COMMAND": "dino train -e /lustre/specs/spec.yaml",
 }
@@ -45,8 +45,8 @@ K8S_VALS = {
     "GPUS_PER_NODE": "8",
     "TTL_SECONDS": "3600",
     "IMAGE_PULL_SECRET": "ngc-pull-secret",
-    "IMAGE": "nvcr.io/nvidia/tao/tao-toolkit:6.26.3-pyt",  # unpinned: test fixture
-    "CRED_SECRET": "tao-creds-dino-train-a1b2c3",
+    "IMAGE": "cosmos-framework:local",  # unpinned: test fixture
+    "CRED_SECRET": "cosmos-creds-dino-train-a1b2c3",
     "RESULTS_DIR": "/data/results/dino-train-a1b2c3",
     "MOUNT_PATH": "/data",
     "SHM_SIZE": "16Gi",
@@ -75,9 +75,9 @@ def test_slurm_all_markers_substituted_and_valid_bash():
 
 def test_slurm_world_size_is_node_count_not_gpus():
     t = render(SLURM, SLURM_VALS)
-    assert "export WORLD_SIZE=2" in t  # nodes, not 8 GPUs
-    assert "export WORLD_SIZE=8" not in t
-    assert "export NUM_GPU_PER_NODE=8" in t
+    assert "export NNODES=2" in t  # nodes, not 8 GPUs
+    assert "export NNODES=8" not in t
+    assert "export NPROC_PER_NODE=8" in t
 
 
 def test_slurm_rendezvous_and_directives():
@@ -131,8 +131,8 @@ def test_k8s_indexed_completions_parallelism_subdomain():
 def test_k8s_world_size_node_count_and_master_addr():
     _, job = k8s_docs()
     env = {e["name"]: e["value"] for e in job["spec"]["template"]["spec"]["containers"][0]["env"]}
-    assert env["WORLD_SIZE"] == "2"  # nodes, not the 8 GPUs
-    assert env["NUM_GPU_PER_NODE"] == "8"
+    assert env["NNODES"] == "2"  # nodes, not the 8 GPUs
+    assert env["NPROC_PER_NODE"] == "8"
     assert env["MASTER_ADDR"] == "dino-train-a1b2c3-0.dino-train-a1b2c3"  # pod-0 . headless-svc
     assert env["MASTER_PORT"] == "29500"
 
@@ -147,7 +147,7 @@ def test_k8s_gpu_limit_and_shm_and_secretref():
     _, job = k8s_docs()
     c = job["spec"]["template"]["spec"]["containers"][0]
     assert c["resources"]["limits"]["nvidia.com/gpu"] == "8"  # per node
-    assert c["envFrom"][0]["secretRef"]["name"] == "tao-creds-dino-train-a1b2c3"
+    assert c["envFrom"][0]["secretRef"]["name"] == "cosmos-creds-dino-train-a1b2c3"
     vols = {v["name"]: v for v in job["spec"]["template"]["spec"]["volumes"]}
     assert vols["dshm"]["emptyDir"]["sizeLimit"] == "16Gi"
 
@@ -175,8 +175,6 @@ def test_k8s_service_publishes_not_ready_addresses():
 # a documented `torchrun --nnodes=$NNODES` recipe renders as `--nnodes=` when
 # the template silently stops exporting it.
 DOCUMENTED_K8S_ENV = {
-    "WORLD_SIZE": "2",  # TAO convention: node count
-    "NUM_GPU_PER_NODE": "8",
     "NNODES": "2",  # torchrun spelling of the same node count
     "NPROC_PER_NODE": "8",  # torchrun spelling of GPUs per node
     "MASTER_PORT": "29500",

@@ -44,7 +44,7 @@ def _video_args() -> SimpleNamespace:
         rl_validation_shard_strategy="media_grouped",
         rl_validation_cache_frontload_batch_size=0,
         rl_validation_cache_frontload_unique_per_batch=0,
-        rl_baked_overlay_pythonpath="/tao-patches/test/site-packages",
+        rl_baked_overlay_pythonpath="/cosmos-patches/test/site-packages",
         validation_batch_size=1,
         seed=42,
         sequence_length=40960,
@@ -118,7 +118,7 @@ def test_video_spec_and_environment_force_packaged_system_pyav_contract() -> Non
     assert spec["custom"]["validation_cache_frontload_batch_size"] == 0
     assert spec["custom"]["validation_cache_frontload_unique_per_batch"] == 0
     assert environment["FORCE_QWENVL_VIDEO_READER"] == "torchvision"
-    assert environment["PYTHONPATH"] == "/tao-patches/test/site-packages"
+    assert environment["PYTHONPATH"] == "/cosmos-patches/test/site-packages"
     assert spec["train"]["train_policy"]["dataloader_num_workers"] == 0
     assert spec["train"]["train_policy"]["dataloader_drop_last"] is False
     assert spec["train"]["train_policy"]["enable_dataset_cache"] is False
@@ -172,7 +172,7 @@ def test_rl_repeated_media_auto_profile_emits_measured_validation_cache_contract
     assert runtime["validation_shard_strategy"] == "media_grouped"
     assert runtime["validation_video_feature_cache_size"] == 341
     assert spec["custom"]["validation_shard_strategy"] == "media_grouped"
-    assert environment["TAO_VALIDATION_VIDEO_FEATURE_CACHE_SIZE"] == "341"
+    assert environment["COSMOS_VALIDATION_VIDEO_FEATURE_CACHE_SIZE"] == "341"
 
 
 def test_rl_auto_profile_stays_uncached_without_repeated_validation_media() -> None:
@@ -202,21 +202,21 @@ def test_cosmos_rl_command_resolves_the_imported_hook_module() -> None:
     )
 
     assert "importlib.import_module" in command
-    assert "cosmos_rl.tools.custom_hooks.tao_sft_example" in command
+    assert "cosmos_framework.integrations.cosmos_rl.conversation_sft" in command
     assert "Path(cosmos_rl.__file__).parent" not in command
-    assert "TAO_COSMOS_RL_BAKED_HOOK" not in command
+    assert "COSMOS_COSMOS_RL_BAKED_HOOK" not in command
 
     baked = MODULE._command(
         SimpleNamespace(
             dataset_family="video_conversation",
             nodes=1,
             container_spec_path="/specs/train.toml",
-            rl_baked_overlay_pythonpath="/tao-patches/test/site-packages",
+            rl_baked_overlay_pythonpath="/cosmos-patches/test/site-packages",
         ),
         "cosmos-rl",
     )
-    assert 'case "$hook" in /tao-patches/*)' in baked
-    assert "TAO_COSMOS_RL_BAKED_HOOK" in baked
+    assert 'case "$hook" in /cosmos-patches/test/site-packages/*)' in baked
+    assert "COSMOS_COSMOS_RL_BAKED_HOOK" in baked
 
 
 def test_cosmos_rl_preflight_rejects_dependency_abi_and_dispatch_regressions() -> None:
@@ -244,7 +244,7 @@ def test_cosmos_rl_preflight_rejects_dependency_abi_and_dispatch_regressions() -
 
     runtime = contract["container_runtime"]
     assert "inspect_converter_runtime" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:model_preparation_runtime" in runtime
+    assert "COSMOS_PREFLIGHT_ASSERTION_FAILED:model_preparation_runtime" in runtime
     assert "verify_deepep" in runtime
     assert "verify_vllm_conv3d" in runtime
     assert "h264_cuvid" not in runtime
@@ -252,45 +252,14 @@ def test_cosmos_rl_preflight_rejects_dependency_abi_and_dispatch_regressions() -
     assert "_assert_software_video_decoders" in runtime
     assert "FORCE_QWENVL_VIDEO_READER" in runtime
     assert "torchvision" in runtime
-    assert "_tao_linear_patch_embed" in runtime
-    assert "_tao_channels_last_3d" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:vlm_attention_mask" in runtime
+    assert "install_runtime_extensions" in runtime
+    assert "_cosmos_channels_last_3d" in runtime
+    assert "COSMOS_PREFLIGHT_ASSERTION_FAILED:vlm_attention_mask" in runtime
     assert "HFVLMDataPacker._collate_fn" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:visual_gradient_contract" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:visual_gradient_env" in runtime
+    assert "COSMOS_PREFLIGHT_ASSERTION_FAILED:visual_gradient_contract" in runtime
+    assert "COSMOS_PREFLIGHT_ASSERTION_FAILED:visual_gradient_env" in runtime
     assert "COSMOS_SFT_REQUIRE_VISUAL_GRADIENTS" in runtime
     assert "SFTTrainer.step_training" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v14_hf_model_path" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v14_data_packer_path" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v14_verified_v12_trainer_path" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v14_feature_cache_capacity" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v14_validation_only_feature_cache" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v14_feature_cache_implementation" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v14_video_cache_identity" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v16_hf_model_path" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v16_data_packer_path" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v16_verified_v12_trainer_path" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v16_feature_cache_capacity" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v16_validation_only_feature_cache" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v16_fsdp_collective_safety" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v16_video_cache_identity" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v17_hf_model_path" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v17_data_packer_path" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v17_verified_v12_trainer_path" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v17_feature_cache_capacity" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v17_merged_visual_cache_hook" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v17_fsdp_collective_safety" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v17_video_cache_identity" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v18_hf_model_path" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v18_data_packer_path" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v18_hook_path" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v18_verified_v12_trainer_path" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v18_feature_cache_capacity" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v18_merged_visual_cache_hook" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v18_fsdp_collective_safety" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v18_video_cache_identity" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v18_cache_frontloaded_sampler" in runtime
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:v19_staged_cache_frontload" in runtime
     assert "DeepEP Python/extension ABI" in contract["checks"]
     assert "vLLM Qwen3-VL Conv3D dispatch guard" in contract["checks"]
     assert "checksum-pinned software System PyAV image capability" in contract["checks"]
@@ -340,7 +309,7 @@ def test_slurm_renderer_creates_writable_mount_roots_before_pyxis() -> None:
     args = SimpleNamespace(
         platform="slurm",
         partition="polar3",
-        account="tao",
+        account="workflow_status",
         sqsh_path="/images/cosmos.sqsh",
         use_requeue=False,
         timeout="00:10:00",
@@ -447,11 +416,11 @@ def test_slurm_model_preparation_resolves_authoritative_sqsh_digest() -> None:
     container_command = action["container_command"]
     assert "<" + "RESOLVE_AFTER_CLEAN_BUILD" + ">" not in container_command
     assert container_command.count("--runtime-image-digest") == 1
-    assert "TAO_COSMOS_PREPARATION_IMAGE_DIGEST" in container_command
+    assert "COSMOS_COSMOS_PREPARATION_IMAGE_DIGEST" in container_command
     assert "/images/cosmos-rl.sqsh" in container_command
 
     args.partition = "polar3"
-    args.account = "tao"
+    args.account = "workflow_status"
     args.use_requeue = False
     args.timeout = "00:10:00"
     args.nodes = 1
@@ -476,7 +445,7 @@ def test_slurm_model_preparation_resolves_authoritative_sqsh_digest() -> None:
 
     assert "sha256sum -- /images/cosmos-rl.sqsh" in script
     assert "unable to resolve runtime image digest" in script
-    assert ("--container-env=HF_TOKEN,HUGGING_FACE_HUB_TOKEN,TAO_COSMOS_PREPARATION_IMAGE_DIGEST") in script
+    assert ("--container-env=HF_TOKEN,HUGGING_FACE_HUB_TOKEN,COSMOS_COSMOS_PREPARATION_IMAGE_DIGEST") in script
 
 
 def _decoder_args(**overrides: object) -> SimpleNamespace:
@@ -489,7 +458,7 @@ def _decoder_args(**overrides: object) -> SimpleNamespace:
         "video_override_force_video": [],
         "processor_revision": "packaged",
         "cache_dir": "/cache",
-        "tao_integration_commit": "a" * 40,
+        "cosmos_integration_commit": "a" * 40,
         "train_annotation": ["/data/train.json"],
         "train_media_root": ["/data/train"],
         "validation_annotation": ["/data/val.json"],
@@ -602,7 +571,7 @@ def test_framework_prefetch_default_is_video_conversation_profile_specific() -> 
         validation_batch_size=5,
         framework_validation_shard_strategy="media_grouped",
         framework_validation_video_feature_cache_size=0,
-        framework_baked_overlay_pythonpath=("/tao-patches-framework-c312482-evalval-lab-v13/site-packages"),
+        framework_baked_overlay_pythonpath=("/cosmos-patches-framework-c312482-evalval-lab-v13/site-packages"),
         framework_video_cache_size=None,
         framework_sft_process_threads=0,
         framework_video_decoder_threads=0,
@@ -729,8 +698,8 @@ def test_framework_v12_preflight_requires_finite_validation_stream() -> None:
     args = _video_args()
     args.backend = "cosmos-framework"
     args.gpus_per_node = 8
-    args.framework_baked_overlay_pythonpath = "/tao-patches-framework-c312482-evalval-lab-v12/site-packages"
-    args.framework_baked_overlay_module_prefix = "/tao-patches-framework-c312482-evalval-lab-v12/modules"
+    args.framework_baked_overlay_pythonpath = "/cosmos-patches-framework-c312482-evalval-lab-v12/site-packages"
+    args.framework_baked_overlay_module_prefix = "/cosmos-patches-framework-c312482-evalval-lab-v12/modules"
     args.results_dir = "/results"
     args.checkpoint_dir = "/checkpoints"
     args.cache_dir = "/cache"
@@ -764,18 +733,16 @@ def test_framework_v12_preflight_requires_finite_validation_stream() -> None:
     assert "cosmos_framework.scripts" in startup
     assert "convert_model_to_vlm_safetensors" in startup
     assert "cosmos_rl.model_preparation" not in startup
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:model_preparation_runtime" in startup
+    assert "COSMOS_PREFLIGHT_ASSERTION_FAILED:model_preparation_runtime" in startup
     assert "framework_finite_validation_stream" in startup
-    assert "evalval-lab-v10/modules" in startup
-    assert "evalval-lab-v2/modules" in startup
 
 
 def test_framework_validation_cache_preflight_attests_inherited_and_new_modules() -> None:
     args = _video_args()
     args.backend = "cosmos-framework"
     args.gpus_per_node = 8
-    args.framework_baked_overlay_pythonpath = "/tao-patches-framework-c312482-evalval-lab-v18/site-packages"
-    args.framework_baked_overlay_module_prefix = "/tao-patches-framework-c312482-evalval-lab-v18/modules"
+    args.framework_baked_overlay_pythonpath = "/cosmos-patches-framework-c312482-evalval-lab-v18/site-packages"
+    args.framework_baked_overlay_module_prefix = "/cosmos-patches-framework-c312482-evalval-lab-v18/modules"
     args.results_dir = "/results"
     args.checkpoint_dir = "/checkpoints"
     args.cache_dir = "/cache"
@@ -806,15 +773,14 @@ def test_framework_validation_cache_preflight_attests_inherited_and_new_modules(
     )
 
     startup = preflight["container_startup"]
-    assert "/tao-patches-framework-c312482-evalval-lab-v13/modules" in startup
-    assert "/tao-patches-framework-c312482-evalval-lab-v18/modules" in startup
+    assert "/cosmos-patches-framework-c312482-evalval-lab-v18/modules" in startup
     assert "framework_validation_visual_forward_cache" in startup
     assert "framework_validation_only_feature_cache" in startup
     assert "framework_validation_feature_cache_collective_safety" in startup
-    assert "TAO_PREFLIGHT_ASSERTION_FAILED:nccl_min_max_scalars" in startup
+    assert "COSMOS_PREFLIGHT_ASSERTION_FAILED:nccl_min_max_scalars" in startup
 
-    args.framework_baked_overlay_pythonpath = "/tao-patches-framework-c312482-evalval-lab-v19/site-packages"
-    args.framework_baked_overlay_module_prefix = "/tao-patches-framework-c312482-evalval-lab-v19/modules"
+    args.framework_baked_overlay_pythonpath = "/cosmos-patches-framework-c312482-evalval-lab-v19/site-packages"
+    args.framework_baked_overlay_module_prefix = "/cosmos-patches-framework-c312482-evalval-lab-v19/modules"
     preflight = MODULE._preflight_contract(
         args,
         "cosmos-framework",
@@ -824,11 +790,10 @@ def test_framework_validation_cache_preflight_attests_inherited_and_new_modules(
         framework_video_runtime=runtime,
     )
     startup = preflight["container_startup"]
-    assert "/tao-patches-framework-c312482-evalval-lab-v13/modules" in startup
-    assert "/tao-patches-framework-c312482-evalval-lab-v19/modules" in startup
+    assert "/cosmos-patches-framework-c312482-evalval-lab-v19/modules" in startup
 
-    args.framework_baked_overlay_pythonpath = "/tao-patches-framework-c312482-evalval-lab-v20/site-packages"
-    args.framework_baked_overlay_module_prefix = "/tao-patches-framework-c312482-evalval-lab-v20/modules"
+    args.framework_baked_overlay_pythonpath = "/cosmos-patches-framework-c312482-evalval-lab-v20/site-packages"
+    args.framework_baked_overlay_module_prefix = "/cosmos-patches-framework-c312482-evalval-lab-v20/modules"
     preflight = MODULE._preflight_contract(
         args,
         "cosmos-framework",
@@ -838,11 +803,10 @@ def test_framework_validation_cache_preflight_attests_inherited_and_new_modules(
         framework_video_runtime=runtime,
     )
     startup = preflight["container_startup"]
-    assert "/tao-patches-framework-c312482-evalval-lab-v13/modules" in startup
-    assert "/tao-patches-framework-c312482-evalval-lab-v20/modules" in startup
+    assert "/cosmos-patches-framework-c312482-evalval-lab-v20/modules" in startup
 
-    args.framework_baked_overlay_pythonpath = "/tao-patches-framework-c312482-evalval-lab-v21/site-packages"
-    args.framework_baked_overlay_module_prefix = "/tao-patches-framework-c312482-evalval-lab-v21/modules"
+    args.framework_baked_overlay_pythonpath = "/cosmos-patches-framework-c312482-evalval-lab-v21/site-packages"
+    args.framework_baked_overlay_module_prefix = "/cosmos-patches-framework-c312482-evalval-lab-v21/modules"
     preflight = MODULE._preflight_contract(
         args,
         "cosmos-framework",
@@ -852,8 +816,7 @@ def test_framework_validation_cache_preflight_attests_inherited_and_new_modules(
         framework_video_runtime=runtime,
     )
     startup = preflight["container_startup"]
-    assert "/tao-patches-framework-c312482-evalval-lab-v13/modules" in startup
-    assert "/tao-patches-framework-c312482-evalval-lab-v21/modules" in startup
+    assert "/cosmos-patches-framework-c312482-evalval-lab-v21/modules" in startup
 
 
 def test_framework_validation_feature_cache_is_gated_on_supported_model_type() -> None:

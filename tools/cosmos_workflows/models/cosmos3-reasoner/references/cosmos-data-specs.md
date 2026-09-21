@@ -17,7 +17,7 @@ and media mappings must be explicit in the generated backend spec.
 
 Each split accepts one or more annotation files and one shared media root or
 one media root per annotation. The canonical envelope is an object with
-`format=tao-vl-reason-v1.0`, metadata containing the task, and an `items`
+`format=cosmos-video-reasoning-v1.0`, metadata containing the task, and an `items`
 array. Task selection is optional but must produce at least one record.
 
 Supported task names are `bcq`, `mcq`, `bcq_openended`, `mcq_openended`,

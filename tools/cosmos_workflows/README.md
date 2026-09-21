@@ -51,14 +51,26 @@ selected backend; changing their spelling does not port their implementation.
 
 The launch reference owns review/approval, nested specs, record-before-submit
 ordering, and backend monitoring. Planning does not authorize jobs, registry
-operations, downloads, or host mutations. Model and annotation containers,
-PAIDF, and optional DAFT tooling remain external runtime dependencies.
+operations, downloads, or host mutations. Dataset validation/conversion,
+annotation, reasoner actions, checkpoint handling, service adapters, and lifecycle
+logging now have implementations in `cosmos_framework/`. Install the optional
+`workflows` extra for these capabilities. GPU dependencies remain separate from
+the CPU orchestration helpers.
+
+Build images from this checkout: the root `Dockerfile` for Framework,
+`docker/cosmos-rl.Dockerfile` for the optional native Cosmos-RL integration,
+`docker/quantize.Dockerfile` for its isolated quantization dependencies, and
+`docker/predict-service.Dockerfile` to extend an official Predict 2.5 image.
+The `*:local` values in `versions.yaml` are local build targets, not published
+images. Remote platforms require a user-built registry image/digest or an
+explicitly materialized SLURM SQSH. Native Cosmos-RL and Predict are independent
+optional backends; PAIDF remains a separate explicitly selected service.
 
 ## Scope
 
 Runtime request/job schemas and tests stay with the helpers that use them.
-Domain prompt examples already available in the annotation image are not
-duplicated here. License headers and metadata remain authoritative; see
+Domain prompts live with the native annotation implementation, not in a second
+copy beside the skill. License headers and metadata remain authoritative; see
 `LICENSE` and `NOTICE`. File attribution is recorded in `migration.json`.
 
 ## CPU validation
@@ -74,3 +86,10 @@ Tests cover model/backend/image resolution, sealed plans, checkpoint/evaluation
 handoffs, execution contracts, relocation, and agent integration without model
 weights, GPUs, registry access, or framework GPU fixtures. They do not substitute
 for live training or inference validation.
+
+Additional runtime contract tests are in `tests/workflow_runtime/`; run them
+with `pytest --confcutdir=tests/workflow_runtime -c /dev/null tests/workflow_runtime`.
+The optional Cosmos-RL integration expects the native APIs checked by its
+preflight. Framework owns the conversation, collation, validation-cache,
+decoder-worker, and status extensions. GPU builds, distributed execution,
+quantization, model serving, and paid API calls require separate validation.

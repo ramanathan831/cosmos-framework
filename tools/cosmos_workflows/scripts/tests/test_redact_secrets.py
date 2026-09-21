@@ -101,7 +101,7 @@ K8S_GOOD = """
         - name: AWS_SECRET_ACCESS_KEY
           valueFrom:
             secretKeyRef:
-              name: tao-creds-j123
+              name: cosmos-creds-j123
               key: secret-key
 """
 
