@@ -21,9 +21,9 @@ from torch.utils.data import Dataset
 from cosmos_framework.callbacks.cosmos_dataloader_state import CosmosDataLoaderStateCallback
 from cosmos_framework.configs.base.reasoner.experiment.dataflow_roles import VLMCollator, VLMProcessor
 from cosmos_framework.data.generator.dataflow import ContiguousBatcher, CosmosDataLoader, MapDistributor
-from cosmos_framework.data.generator.local_datasets.tao_vl_reason import (
-    TaoVlReasonDaftDataset,
-    apply_daft_chat_template,
+from cosmos_framework.data.generator.local_datasets.reasoning_qa import (
+    ReasoningQADataset,
+    apply_reasoning_chat_template,
 )
 from cosmos_framework.data.generator.processors import build_processor
 from cosmos_framework.utils.generator.torchcodec_video import TorchCodecVideoReader
@@ -164,7 +164,7 @@ class _ProcessedVideoCacheProxy:
                     self._entries.move_to_end(key)
                     if not self._hit_attested:
                         print(
-                            "TAO_FRAMEWORK_VALIDATION_PROCESSED_VIDEO_CACHE_HIT_ATTESTATION "
+                            "COSMOS_FRAMEWORK_VALIDATION_PROCESSED_VIDEO_CACHE_HIT_ATTESTATION "
                             f"rank={os.environ.get('RANK', os.environ.get('LOCAL_RANK', '0'))} "
                             f"capacity={self.capacity}",
                             flush=True,
@@ -230,7 +230,7 @@ class VideoSFTProcessor(VLMProcessor):
         video_max_pixels: int | str | None = 81920,
         video_override_map: str | None = None,
         system_prompt: str = "",
-        use_daft_chat_template: bool = False,
+        use_reasoning_chat_template: bool = False,
     ) -> None:
         super().__init__(processor=processor, ignore_index=ignore_index)
         num_video_frames = int(num_video_frames)
@@ -253,15 +253,13 @@ class VideoSFTProcessor(VLMProcessor):
         video_processor = getattr(hf_processor, "video_processor", None)
         if processed_video_cache_size:
             if video_processor is None:
-                raise RuntimeError(
-                    "processed video caching requires processor.video_processor"
-                )
+                raise RuntimeError("processed video caching requires processor.video_processor")
             hf_processor.video_processor = _ProcessedVideoCacheProxy(
                 video_processor,
                 processed_video_cache_size,
             )
             print(
-                "TAO_FRAMEWORK_VALIDATION_PROCESSED_VIDEO_CACHE_ENABLED_ATTESTATION "
+                "COSMOS_FRAMEWORK_VALIDATION_PROCESSED_VIDEO_CACHE_ENABLED_ATTESTATION "
                 f"rank={os.environ.get('RANK', os.environ.get('LOCAL_RANK', '0'))} "
                 f"capacity={processed_video_cache_size} population=on_demand",
                 flush=True,
@@ -294,9 +292,9 @@ class VideoSFTProcessor(VLMProcessor):
             size["longest_edge"] = parsed_video_max_pixels
             self.video_max_pixels = parsed_video_max_pixels
         self.system_prompt = system_prompt
-        self.use_daft_chat_template = use_daft_chat_template
-        if self.use_daft_chat_template:
-            apply_daft_chat_template(processor)
+        self.use_reasoning_chat_template = use_reasoning_chat_template
+        if self.use_reasoning_chat_template:
+            apply_reasoning_chat_template(processor)
         self._video_cache: OrderedDict[str, tuple[list[Image.Image], float]] = OrderedDict()
         self._video_cache_lock = threading.Lock()
         self._video_inflight: dict[str, threading.Event] = {}
@@ -372,7 +370,7 @@ class VideoSFTProcessor(VLMProcessor):
             with self._video_cache_lock:
                 if not self._video_runtime_attested:
                     print(
-                        "TAO_FRAMEWORK_VIDEO_RUNTIME "
+                        "COSMOS_FRAMEWORK_VIDEO_RUNTIME "
                         f"rank={os.environ.get('RANK', os.environ.get('LOCAL_RANK', '0'))} "
                         "backend=torchcodec "
                         f"requested_device={self.requested_video_device} "
@@ -459,9 +457,7 @@ class VideoSFTProcessor(VLMProcessor):
         video_path = item.get("video")
         if isinstance(video_path, str):
             video_path = self.video_overrides.get(video_path, video_path)
-            sample["tao_video_cache_key"] = os.path.realpath(
-                os.path.abspath(os.path.expanduser(video_path))
-            )
+            sample["cosmos_video_cache_key"] = os.path.realpath(os.path.abspath(os.path.expanduser(video_path)))
         return sample
 
 
@@ -469,11 +465,11 @@ class VideoVLMCollator(VLMCollator):
     """Preserve one stable video identity per sample for validation caching."""
 
     def collate(self, samples: list[dict]) -> dict:
-        cache_keys = [sample.get("tao_video_cache_key") for sample in samples]
+        cache_keys = [sample.get("cosmos_video_cache_key") for sample in samples]
         batch = super().collate(samples)
-        batch.pop("tao_video_cache_key", None)
+        batch.pop("cosmos_video_cache_key", None)
         if all(isinstance(key, str) for key in cache_keys):
-            batch["tao_video_cache_keys"] = cache_keys
+            batch["cosmos_video_cache_keys"] = cache_keys
         return batch
 
 
@@ -498,8 +494,7 @@ class MediaGroupedMapDistributor(MapDistributor):
         """Bound unseen media per early batch while preserving every index."""
         if batch_size <= 0 or unique_per_batch <= 0 or unique_per_batch > batch_size:
             raise ValueError(
-                "staged validation cache frontloading requires positive batch and "
-                "unique counts with unique <= batch"
+                "staged validation cache frontloading requires positive batch and unique counts with unique <= batch"
             )
         remaining = OrderedDict((key, list(group)) for key, group in rank_groups.items())
         group_keys = list(remaining)
@@ -559,10 +554,10 @@ class MediaGroupedMapDistributor(MapDistributor):
         if any(remaining) or any(len(indices) != per_stream for indices in assignments):
             raise RuntimeError("media-grouped validation sharding did not produce equal stream lengths")
 
-        batch_size = int(os.environ.get("TAO_FRAMEWORK_VALIDATION_BATCH_SIZE", "1"))
+        batch_size = int(os.environ.get("COSMOS_FRAMEWORK_VALIDATION_BATCH_SIZE", "1"))
         unique_per_batch = int(
             os.environ.get(
-                "TAO_FRAMEWORK_VALIDATION_CACHE_FRONTLOAD_UNIQUE_PER_BATCH",
+                "COSMOS_FRAMEWORK_VALIDATION_CACHE_FRONTLOAD_UNIQUE_PER_BATCH",
                 str(max(1, batch_size // 2)),
             )
         )
@@ -577,9 +572,7 @@ class MediaGroupedMapDistributor(MapDistributor):
                 unique_per_batch,
             )
             if len(staged) != per_stream or sorted(staged) != sorted(assignment):
-                raise RuntimeError(
-                    "staged validation cache frontloading changed the rank-local multiset"
-                )
+                raise RuntimeError("staged validation cache frontloading changed the rank-local multiset")
             staged_assignments.append(staged)
         assignments = staged_assignments
         return assignments
@@ -612,13 +605,10 @@ def _video_conversation_dataloader(
     system_prompt_env: str = "WTS_SYSTEM_PROMPT",
 ) -> LazyDict:
     validation_grouped = (
-        not shuffle
-        and os.environ.get("TAO_FRAMEWORK_VALIDATION_SHARD_STRATEGY", "stride") == "media_grouped"
+        not shuffle and os.environ.get("COSMOS_FRAMEWORK_VALIDATION_SHARD_STRATEGY", "stride") == "media_grouped"
     )
     distributor_cls = MediaGroupedMapDistributor if validation_grouped else MapDistributor
-    max_batch_size = (
-        int(os.environ.get("TAO_FRAMEWORK_VALIDATION_BATCH_SIZE", "1")) if not shuffle else 1
-    )
+    max_batch_size = int(os.environ.get("COSMOS_FRAMEWORK_VALIDATION_BATCH_SIZE", "1")) if not shuffle else 1
     return L(CosmosDataLoader)(
         distributor=L(distributor_cls)(
             dataset=L(VideoConversationDataset)(
@@ -627,7 +617,7 @@ def _video_conversation_dataloader(
                 limit=f"${{oc.env:{limit_env},''}}",
             ),
             shuffle=shuffle,
-            seed="${oc.env:TAO_DATALOADER_SEED,42}",
+            seed="${oc.env:COSMOS_DATALOADER_SEED,42}",
             name="train" if shuffle else "val",
         ),
         processor=L(VideoSFTProcessor)(
@@ -638,8 +628,8 @@ def _video_conversation_dataloader(
             ignore_index=IGNORE_INDEX,
             num_video_frames=f"${{oc.env:{frame_env},8}}",
             video_cache_size=f"${{oc.env:{cache_env},8}}",
-            video_device="${oc.env:TAO_VIDEO_DECODER_DEVICE,cuda}",
-            video_num_threads="${oc.env:TAO_VIDEO_DECODER_THREADS,1}",
+            video_device="${oc.env:COSMOS_VIDEO_DECODER_DEVICE,cuda}",
+            video_num_threads="${oc.env:COSMOS_VIDEO_DECODER_THREADS,1}",
             # Training was pinned to 0, so every epoch re-decoded every video. That is
             # the dominant cost of a training step here: measured on a GB300, the wall
             # step splits 2.00s waiting on the dataloader against 0.62s of compute, so
@@ -650,12 +640,12 @@ def _video_conversation_dataloader(
             # decoded frames, so capacity has to be chosen against the dataset size and
             # available host memory rather than assumed.
             processed_video_cache_size=(
-                "${oc.env:TAO_FRAMEWORK_VALIDATION_PROCESSED_VIDEO_CACHE_SIZE,0}"
+                "${oc.env:COSMOS_FRAMEWORK_VALIDATION_PROCESSED_VIDEO_CACHE_SIZE,0}"
                 if not shuffle
-                else "${oc.env:TAO_FRAMEWORK_TRAIN_PROCESSED_VIDEO_CACHE_SIZE,0}"
+                else "${oc.env:COSMOS_FRAMEWORK_TRAIN_PROCESSED_VIDEO_CACHE_SIZE,0}"
             ),
             video_max_pixels=f"${{oc.env:{max_pixels_env},81920}}",
-            video_override_map="${oc.env:TAO_VIDEO_OVERRIDE_MAP,''}",
+            video_override_map="${oc.env:COSMOS_VIDEO_OVERRIDE_MAP,''}",
             system_prompt=f"${{oc.env:{system_prompt_env},''}}",
         ),
         batcher=L(ContiguousBatcher)(
@@ -664,12 +654,12 @@ def _video_conversation_dataloader(
             drop_last=False,
         ),
         collator=L(VideoVLMCollator)(),
-        num_workers="${oc.env:TAO_FRAMEWORK_DATALOADER_NUM_WORKERS,1}",
-        prefetch_factor="${oc.env:TAO_FRAMEWORK_DATALOADER_PREFETCH_FACTOR,4}",
+        num_workers="${oc.env:COSMOS_FRAMEWORK_DATALOADER_NUM_WORKERS,1}",
+        prefetch_factor="${oc.env:COSMOS_FRAMEWORK_DATALOADER_PREFETCH_FACTOR,4}",
         persistent_workers=True,
         pin_memory=True,
         multiprocessing_context="spawn",
-        processing_threads="${oc.env:TAO_FRAMEWORK_SFT_PROCESS_THREADS,8}",
+        processing_threads="${oc.env:COSMOS_FRAMEWORK_SFT_PROCESS_THREADS,8}",
     )
 
 
@@ -690,7 +680,7 @@ def _task_aware_video_dataloader(
     limit_env = limit_env or f"AETC_{split.upper()}_LIMIT"
     return L(CosmosDataLoader)(
         distributor=L(MapDistributor)(
-            dataset=L(TaoVlReasonDaftDataset)(
+            dataset=L(ReasoningQADataset)(
                 annotation_paths=f"${{oc.env:{annotation_env}}}",
                 media_root=f"${{oc.env:{media_env}}}",
                 response_mode="hybrid" if split == "train" else "answer",
@@ -699,7 +689,7 @@ def _task_aware_video_dataloader(
                 max_samples=f"${{oc.env:{limit_env},''}}",
             ),
             shuffle=shuffle,
-            seed="${oc.env:TAO_DATALOADER_SEED,42}",
+            seed="${oc.env:COSMOS_DATALOADER_SEED,42}",
             name=split,
         ),
         processor=L(VideoSFTProcessor)(
@@ -710,12 +700,12 @@ def _task_aware_video_dataloader(
             ignore_index=IGNORE_INDEX,
             num_video_frames=f"${{oc.env:{frame_env},8}}",
             video_cache_size=f"${{oc.env:{cache_env},8}}",
-            video_device="${oc.env:TAO_VIDEO_DECODER_DEVICE,cuda}",
-            video_num_threads="${oc.env:TAO_VIDEO_DECODER_THREADS,1}",
+            video_device="${oc.env:COSMOS_VIDEO_DECODER_DEVICE,cuda}",
+            video_num_threads="${oc.env:COSMOS_VIDEO_DECODER_THREADS,1}",
             video_max_pixels=f"${{oc.env:{max_pixels_env},81920}}",
-            video_override_map="${oc.env:TAO_VIDEO_OVERRIDE_MAP,''}",
+            video_override_map="${oc.env:COSMOS_VIDEO_OVERRIDE_MAP,''}",
             system_prompt="",
-            use_daft_chat_template=True,
+            use_reasoning_chat_template=True,
         ),
         batcher=L(ContiguousBatcher)(
             max_batch_size=1,
@@ -723,12 +713,12 @@ def _task_aware_video_dataloader(
             drop_last=False,
         ),
         collator=L(VLMCollator)(),
-        num_workers="${oc.env:TAO_FRAMEWORK_DATALOADER_NUM_WORKERS,1}",
-        prefetch_factor="${oc.env:TAO_FRAMEWORK_DATALOADER_PREFETCH_FACTOR,2}",
+        num_workers="${oc.env:COSMOS_FRAMEWORK_DATALOADER_NUM_WORKERS,1}",
+        prefetch_factor="${oc.env:COSMOS_FRAMEWORK_DATALOADER_PREFETCH_FACTOR,2}",
         persistent_workers=True,
         pin_memory=False,
         multiprocessing_context="spawn",
-        processing_threads="${oc.env:TAO_FRAMEWORK_SFT_PROCESS_THREADS,8}",
+        processing_threads="${oc.env:COSMOS_FRAMEWORK_SFT_PROCESS_THREADS,8}",
     )
 
 
@@ -751,7 +741,7 @@ wts_vlm = LazyDict(
         trainer=dict(
             callbacks=dict(
                 dataloader_state=L(CosmosDataLoaderStateCallback)(),
-                tao=dict(
+                workflow_status=dict(
                     enabled=True,
                     logging_interval=1,
                     validation_heartbeat_interval=1,
@@ -819,8 +809,8 @@ ConfigStore.instance().store(
 )
 
 
-# Internal TAO AETC path: keep Framework's trainer/model implementation while
-# consuming the same DAFT dataset and Qwen chat-template contract as Cosmos-RL.
+# Internal Cosmos AETC path: keep Framework's trainer/model implementation while
+# consuming the same task-aware dataset and Qwen chat-template contract as Cosmos-RL.
 aetc_daft_vlm = deepcopy(wts_vlm)
 aetc_daft_vlm["job"]["group"] = "aetc_daft_sft"
 aetc_daft_vlm["dataloader_train"] = _task_aware_video_dataloader(split="train", shuffle=True)
@@ -851,8 +841,8 @@ ConfigStore.instance().store(
 )
 
 
-# Edge AETC uses the native Edge policy and the same DAFT dataset contract as
-# the Nano AETC recipe. Runtime processor limits are supplied by TAO rather
+# Edge AETC uses the native Edge policy and the same task-aware dataset contract as
+# the Nano AETC recipe. Runtime processor limits are supplied by Cosmos rather
 # than encoded by modifying the public model checkpoint.
 aetc_daft_vlm_edge = deepcopy(wts_vlm_edge)
 aetc_daft_vlm_edge["job"]["group"] = "aetc_daft_edge_sft"
@@ -867,73 +857,73 @@ ConfigStore.instance().store(
 )
 
 
-# Dataset-neutral TAO contracts. The older experiment registrations above are
+# Dataset-neutral Cosmos contracts. The older experiment registrations above are
 # retained only so existing result configs remain loadable.
-tao_video_conversation = deepcopy(wts_vlm)
-tao_video_conversation["job"]["group"] = "tao_video_conversation_sft"
-tao_video_conversation["dataloader_train"] = _video_conversation_dataloader(
-    annotation_env="TAO_VIDEO_TRAIN_ANNOTATION",
-    media_env="TAO_VIDEO_TRAIN_MEDIA",
-    limit_env="TAO_VIDEO_TRAIN_LIMIT",
+cosmos_video_conversation = deepcopy(wts_vlm)
+cosmos_video_conversation["job"]["group"] = "cosmos_video_conversation_sft"
+cosmos_video_conversation["dataloader_train"] = _video_conversation_dataloader(
+    annotation_env="COSMOS_VIDEO_TRAIN_ANNOTATION",
+    media_env="COSMOS_VIDEO_TRAIN_MEDIA",
+    limit_env="COSMOS_VIDEO_TRAIN_LIMIT",
     shuffle=True,
-    frame_env="TAO_VIDEO_NUM_FRAMES",
-    cache_env="TAO_VIDEO_CACHE_SIZE",
-    max_pixels_env="TAO_VIDEO_MAX_PIXELS",
-    system_prompt_env="TAO_VIDEO_SYSTEM_PROMPT",
+    frame_env="COSMOS_VIDEO_NUM_FRAMES",
+    cache_env="COSMOS_VIDEO_CACHE_SIZE",
+    max_pixels_env="COSMOS_VIDEO_MAX_PIXELS",
+    system_prompt_env="COSMOS_VIDEO_SYSTEM_PROMPT",
 )
-tao_video_conversation["dataloader_val"] = _video_conversation_dataloader(
-    annotation_env="TAO_VIDEO_VAL_ANNOTATION",
-    media_env="TAO_VIDEO_VAL_MEDIA",
-    limit_env="TAO_VIDEO_VAL_LIMIT",
+cosmos_video_conversation["dataloader_val"] = _video_conversation_dataloader(
+    annotation_env="COSMOS_VIDEO_VAL_ANNOTATION",
+    media_env="COSMOS_VIDEO_VAL_MEDIA",
+    limit_env="COSMOS_VIDEO_VAL_LIMIT",
     shuffle=False,
-    frame_env="TAO_VIDEO_NUM_FRAMES",
-    cache_env="TAO_VIDEO_CACHE_SIZE",
-    max_pixels_env="TAO_VIDEO_MAX_PIXELS",
-    system_prompt_env="TAO_VIDEO_SYSTEM_PROMPT",
+    frame_env="COSMOS_VIDEO_NUM_FRAMES",
+    cache_env="COSMOS_VIDEO_CACHE_SIZE",
+    max_pixels_env="COSMOS_VIDEO_MAX_PIXELS",
+    system_prompt_env="COSMOS_VIDEO_SYSTEM_PROMPT",
 )
 
-tao_task_aware_video_reasoning = deepcopy(tao_video_conversation)
-tao_task_aware_video_reasoning["job"]["group"] = "tao_task_aware_video_reasoning_sft"
-tao_task_aware_video_reasoning["dataloader_train"] = _task_aware_video_dataloader(
+cosmos_task_aware_video_reasoning = deepcopy(cosmos_video_conversation)
+cosmos_task_aware_video_reasoning["job"]["group"] = "cosmos_task_aware_video_reasoning_sft"
+cosmos_task_aware_video_reasoning["dataloader_train"] = _task_aware_video_dataloader(
     split="train",
     shuffle=True,
-    annotation_env="TAO_VIDEO_TRAIN_ANNOTATIONS",
-    media_env="TAO_VIDEO_TRAIN_MEDIA_ROOTS",
-    limit_env="TAO_VIDEO_TRAIN_LIMIT",
-    frame_env="TAO_VIDEO_NUM_FRAMES",
-    cache_env="TAO_VIDEO_CACHE_SIZE",
-    max_pixels_env="TAO_VIDEO_MAX_PIXELS",
-    system_prompt_env="TAO_VIDEO_SYSTEM_PROMPT",
+    annotation_env="COSMOS_VIDEO_TRAIN_ANNOTATIONS",
+    media_env="COSMOS_VIDEO_TRAIN_MEDIA_ROOTS",
+    limit_env="COSMOS_VIDEO_TRAIN_LIMIT",
+    frame_env="COSMOS_VIDEO_NUM_FRAMES",
+    cache_env="COSMOS_VIDEO_CACHE_SIZE",
+    max_pixels_env="COSMOS_VIDEO_MAX_PIXELS",
+    system_prompt_env="COSMOS_VIDEO_SYSTEM_PROMPT",
 )
-tao_task_aware_video_reasoning["dataloader_val"] = _task_aware_video_dataloader(
+cosmos_task_aware_video_reasoning["dataloader_val"] = _task_aware_video_dataloader(
     split="val",
     shuffle=False,
-    annotation_env="TAO_VIDEO_VAL_ANNOTATIONS",
-    media_env="TAO_VIDEO_VAL_MEDIA_ROOTS",
-    limit_env="TAO_VIDEO_VAL_LIMIT",
-    frame_env="TAO_VIDEO_NUM_FRAMES",
-    cache_env="TAO_VIDEO_CACHE_SIZE",
-    max_pixels_env="TAO_VIDEO_MAX_PIXELS",
-    system_prompt_env="TAO_VIDEO_SYSTEM_PROMPT",
+    annotation_env="COSMOS_VIDEO_VAL_ANNOTATIONS",
+    media_env="COSMOS_VIDEO_VAL_MEDIA_ROOTS",
+    limit_env="COSMOS_VIDEO_VAL_LIMIT",
+    frame_env="COSMOS_VIDEO_NUM_FRAMES",
+    cache_env="COSMOS_VIDEO_CACHE_SIZE",
+    max_pixels_env="COSMOS_VIDEO_MAX_PIXELS",
+    system_prompt_env="COSMOS_VIDEO_SYSTEM_PROMPT",
 )
 
-tao_video_conversation_edge = deepcopy(tao_video_conversation)
-tao_video_conversation_edge["defaults"][4] = {"override /vlm_policy": "cosmos3_edge_reasoner"}
-tao_video_conversation_edge["job"]["group"] = "tao_video_conversation_edge_sft"
-tao_video_conversation_edge["optimizer"].pop("lr_multipliers", None)
-tao_video_conversation_edge["model"]["config"]["policy"]["model_max_length"] = 16000
+cosmos_video_conversation_edge = deepcopy(cosmos_video_conversation)
+cosmos_video_conversation_edge["defaults"][4] = {"override /vlm_policy": "cosmos3_edge_reasoner"}
+cosmos_video_conversation_edge["job"]["group"] = "cosmos_video_conversation_edge_sft"
+cosmos_video_conversation_edge["optimizer"].pop("lr_multipliers", None)
+cosmos_video_conversation_edge["model"]["config"]["policy"]["model_max_length"] = 16000
 
-tao_task_aware_video_reasoning_edge = deepcopy(tao_task_aware_video_reasoning)
-tao_task_aware_video_reasoning_edge["defaults"][4] = {"override /vlm_policy": "cosmos3_edge_reasoner"}
-tao_task_aware_video_reasoning_edge["job"]["group"] = "tao_task_aware_video_reasoning_edge_sft"
-tao_task_aware_video_reasoning_edge["optimizer"].pop("lr_multipliers", None)
-tao_task_aware_video_reasoning_edge["model"]["config"]["policy"]["model_max_length"] = 16000
+cosmos_task_aware_video_reasoning_edge = deepcopy(cosmos_task_aware_video_reasoning)
+cosmos_task_aware_video_reasoning_edge["defaults"][4] = {"override /vlm_policy": "cosmos3_edge_reasoner"}
+cosmos_task_aware_video_reasoning_edge["job"]["group"] = "cosmos_task_aware_video_reasoning_edge_sft"
+cosmos_task_aware_video_reasoning_edge["optimizer"].pop("lr_multipliers", None)
+cosmos_task_aware_video_reasoning_edge["model"]["config"]["policy"]["model_max_length"] = 16000
 
 for name, node in (
-    ("tao_video_conversation", tao_video_conversation),
-    ("tao_task_aware_video_reasoning", tao_task_aware_video_reasoning),
-    ("tao_video_conversation_edge", tao_video_conversation_edge),
-    ("tao_task_aware_video_reasoning_edge", tao_task_aware_video_reasoning_edge),
+    ("cosmos_video_conversation", cosmos_video_conversation),
+    ("cosmos_task_aware_video_reasoning", cosmos_task_aware_video_reasoning),
+    ("cosmos_video_conversation_edge", cosmos_video_conversation_edge),
+    ("cosmos_task_aware_video_reasoning_edge", cosmos_task_aware_video_reasoning_edge),
 ):
     ConfigStore.instance().store(group="experiment", package="_global_", name=name, node=node)
 

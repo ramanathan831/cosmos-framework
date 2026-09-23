@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: OpenMDW-1.1
 
-"""DAFT-backed ``tao-vl-reason-v1.0`` dataset adapter for Framework SFT."""
+"""Task-aware video reasoning dataset adapter for Framework SFT."""
 
 from __future__ import annotations
 
@@ -39,10 +39,10 @@ def _optional_positive_int(value: int | str | None) -> int | None:
     return parsed if parsed > 0 else None
 
 
-class TaoVlReasonDaftDataset(Dataset):
-    """Expose DAFT conversations through Cosmos Framework's map dataflow.
+class ReasoningQADataset(Dataset):
+    """Expose task-aware conversations through Cosmos Framework's map dataflow.
 
-    The index mapping intentionally matches the internal Cosmos-RL DAFT hook:
+    The index mapping intentionally matches the internal Cosmos-RL task-aware hook:
     hybrid mode interleaves answer and reasoning targets for every raw item.
     """
 
@@ -57,12 +57,7 @@ class TaoVlReasonDaftDataset(Dataset):
         sample_stride: int = 1,
         sample_offset: int = 0,
     ) -> None:
-        try:
-            from nvidia_tao_daft.datasets.tao_vl_reason_v1_0 import (
-                TaoVlReasonV1_0CosmosRLConversationDataset,
-            )
-        except ImportError as exc:
-            raise ImportError("nvidia-tao-daft>=2.9.1 is required for task-aware video annotations") from exc
+        from cosmos_framework.data.reasoner.qa_dataset import ReasoningConversationDataset
 
         paths = parse_path_list(annotation_paths)
         if isinstance(media_root, str) and media_root.strip().startswith("["):
@@ -74,7 +69,7 @@ class TaoVlReasonDaftDataset(Dataset):
         if sample_offset < 0:
             raise ValueError("sample_offset must be non-negative")
 
-        self.dataset = TaoVlReasonV1_0CosmosRLConversationDataset(
+        self.dataset = ReasoningConversationDataset(
             annotation_paths=paths,
             media_roots=media_root,
             system_prompt=system_prompt,
@@ -111,14 +106,9 @@ class TaoVlReasonDaftDataset(Dataset):
         return {"messages": self.dataset[daft_index]}
 
 
-def apply_daft_chat_template(processor: Any) -> None:
-    """Apply DAFT's Qwen3-VL Instruct template to a Framework processor."""
-    try:
-        from nvidia_tao_daft.datasets.tao_vl_reason_v1_0 import (
-            apply_chat_template_override,
-        )
-    except ImportError as exc:
-        raise ImportError("nvidia-tao-daft>=2.9.1 is required for task-aware video annotations") from exc
+def apply_reasoning_chat_template(processor: Any) -> None:
+    """Apply the Qwen3-VL Instruct template to a Framework processor."""
+    from cosmos_framework.data.reasoner.qa_dataset import apply_chat_template_override
 
     huggingface_processor = getattr(processor, "processor", processor)
     apply_chat_template_override(huggingface_processor)
