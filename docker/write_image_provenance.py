@@ -6,8 +6,8 @@
 from __future__ import annotations
 
 import hashlib
-import importlib.metadata
 import importlib
+import importlib.metadata
 import json
 import os
 import platform
@@ -32,9 +32,14 @@ def _version(distribution: str) -> str | None:
 
 def main() -> int:
     workspace = Path(os.environ.get("PROVENANCE_WORKSPACE", "/workspace")).resolve(strict=True)
-    output_dir = Path(os.environ.get("PROVENANCE_OUTPUT_DIR", "/opt/tao")).resolve()
+    output_dir = Path(os.environ.get("PROVENANCE_OUTPUT_DIR", "/opt/cosmos")).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
-    roots = [workspace / "cosmos_framework", workspace / "pyproject.toml", workspace / "uv.lock", workspace / "Dockerfile"]
+    roots = [
+        workspace / "cosmos_framework",
+        workspace / "pyproject.toml",
+        workspace / "uv.lock",
+        workspace / "Dockerfile",
+    ]
     files: list[Path] = []
     for root in roots:
         if root.is_file():
@@ -74,6 +79,23 @@ def main() -> int:
             for name in ("cosmos_framework", "torch", "transformers")
         },
     }
+    if os.environ.get("COSMOS_RL_COMMIT"):
+        runtime_root = Path("/opt/cosmos-rl")
+        payload["repositories"]["cosmos-rl"] = {
+            "commit": os.environ["COSMOS_RL_COMMIT"],
+            "tree": os.environ.get("COSMOS_RL_TREE"),
+            "dirty": False,
+        }
+        runtime_entries = [
+            (str(path.relative_to(runtime_root)), _sha256(path))
+            for path in sorted(runtime_root.rglob("*.py"))
+            if "__pycache__" not in path.parts
+        ]
+        runtime_manifest = "".join(f"{digest}  {name}\n" for name, digest in runtime_entries)
+        (output_dir / "cosmos-rl-source-manifest.sha256").write_text(runtime_manifest, encoding="utf-8")
+        payload["repositories"]["cosmos-rl"]["source_manifest_sha256"] = hashlib.sha256(
+            runtime_manifest.encode()
+        ).hexdigest()
     (output_dir / "image-provenance.json").write_text(
         json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )

@@ -22,17 +22,17 @@ torchcodec_video = types.ModuleType("cosmos_framework.utils.generator.torchcodec
 torchcodec_video.TorchCodecVideoReader = object
 sys.modules.setdefault("cosmos_framework.utils.generator.torchcodec_video", torchcodec_video)
 
-from cosmos_framework.configs.base.reasoner.experiment.tao_video_sft import (
+from cosmos_framework.configs.base.reasoner.experiment.video_sft import (
     VideoConversationDataset,
     VideoSFTProcessor,
-    tao_task_aware_video_reasoning,
-    tao_task_aware_video_reasoning_edge,
-    tao_video_conversation_edge,
+    cosmos_task_aware_video_reasoning,
+    cosmos_task_aware_video_reasoning_edge,
+    cosmos_video_conversation_edge,
 )
 from cosmos_framework.data.generator.dataflow import ContiguousBatcher
-from cosmos_framework.data.generator.local_datasets.tao_vl_reason import (
-    TaoVlReasonDaftDataset,
-    apply_daft_chat_template,
+from cosmos_framework.data.generator.local_datasets.reasoning_qa import (
+    ReasoningQADataset,
+    apply_reasoning_chat_template,
     parse_path_list,
 )
 
@@ -51,14 +51,10 @@ def _install_fake_daft(monkeypatch) -> list[object]:
     def fake_template(processor) -> None:
         calls.append(processor)
 
-    package = types.ModuleType("nvidia_tao_daft")
-    datasets = types.ModuleType("nvidia_tao_daft.datasets")
-    module = types.ModuleType("nvidia_tao_daft.datasets.tao_vl_reason_v1_0")
-    module.TaoVlReasonV1_0CosmosRLConversationDataset = FakeDataset
-    module.apply_chat_template_override = fake_template
-    monkeypatch.setitem(sys.modules, "nvidia_tao_daft", package)
-    monkeypatch.setitem(sys.modules, "nvidia_tao_daft.datasets", datasets)
-    monkeypatch.setitem(sys.modules, "nvidia_tao_daft.datasets.tao_vl_reason_v1_0", module)
+    from cosmos_framework.data.reasoner import qa_dataset
+
+    monkeypatch.setattr(qa_dataset, "ReasoningConversationDataset", FakeDataset)
+    monkeypatch.setattr(qa_dataset, "apply_chat_template_override", fake_template)
     return calls
 
 
@@ -96,15 +92,13 @@ def test_video_conversation_dataset_resolves_media_paths_and_limit(tmp_path) -> 
 
 def test_wts_recipe_uses_resume_safe_contiguous_batches() -> None:
     from cosmos_framework.configs.base.reasoner.experiment.wts_vlm import (
-        tao_video_conversation,
+        cosmos_video_conversation,
     )
 
-    batcher = tao_video_conversation["dataloader_train"]["batcher"]
+    batcher = cosmos_video_conversation["dataloader_train"]["batcher"]
     target = batcher["_target_"]
     if isinstance(target, str):
-        assert target == (
-            "cosmos_framework.data.generator.dataflow.ContiguousBatcher"
-        )
+        assert target == ("cosmos_framework.data.generator.dataflow.ContiguousBatcher")
     else:
         assert target is ContiguousBatcher
     assert batcher["max_batch_size"] == 1
@@ -129,10 +123,7 @@ def test_media_grouped_validation_stream_is_finite_and_equally_padded() -> None:
             return f"video-{index // 2}"
 
     distributor = MediaGroupedMapDistributor(FakeDataset(), shuffle=False)
-    streams = [
-        list(distributor.stream(rank, 4, 0, 1))
-        for rank in range(4)
-    ]
+    streams = [list(distributor.stream(rank, 4, 0, 1)) for rank in range(4)]
 
     assert distributor.finite_validation_stream is True
     assert [len(stream) for stream in streams] == [3, 3, 3, 3]
@@ -231,9 +222,9 @@ def test_video_conversation_dataset_accepts_generic_media_and_messages(tmp_path)
 
 
 def test_generic_edge_recipe_uses_native_edge_policy() -> None:
-    assert tao_video_conversation_edge["defaults"][4] == {"override /vlm_policy": "cosmos3_edge_reasoner"}
-    assert "lr_multipliers" not in tao_video_conversation_edge["optimizer"]
-    assert tao_video_conversation_edge["model"]["config"]["policy"]["model_max_length"] == 16000
+    assert cosmos_video_conversation_edge["defaults"][4] == {"override /vlm_policy": "cosmos3_edge_reasoner"}
+    assert "lr_multipliers" not in cosmos_video_conversation_edge["optimizer"]
+    assert cosmos_video_conversation_edge["model"]["config"]["policy"]["model_max_length"] == 16000
 
 
 def test_video_max_pixels_is_a_runtime_processor_setting() -> None:
@@ -471,20 +462,18 @@ def test_video_decoder_rejects_wrong_rank_cuda_device(tmp_path, monkeypatch) -> 
 
 
 def test_task_aware_edge_recipe_uses_runtime_video_profile() -> None:
-    assert tao_task_aware_video_reasoning_edge["defaults"][4] == {"override /vlm_policy": "cosmos3_edge_reasoner"}
-    assert "video_max_pixels" in tao_task_aware_video_reasoning_edge["dataloader_train"]["processor"]
-    assert "video_max_pixels" in tao_video_conversation_edge["dataloader_train"]["processor"]
+    assert cosmos_task_aware_video_reasoning_edge["defaults"][4] == {"override /vlm_policy": "cosmos3_edge_reasoner"}
+    assert "video_max_pixels" in cosmos_task_aware_video_reasoning_edge["dataloader_train"]["processor"]
+    assert "video_max_pixels" in cosmos_video_conversation_edge["dataloader_train"]["processor"]
     source = __import__("inspect").getsource(sys.modules[VideoSFTProcessor.__module__])
-    assert "TAO_VIDEO_MAX_PIXELS" in source
-    assert "TAO_FRAMEWORK_SFT_PROCESS_THREADS" in source
-    assert "TAO_FRAMEWORK_DATALOADER_NUM_WORKERS" in source
-    assert "TAO_FRAMEWORK_DATALOADER_PREFETCH_FACTOR" in source
+    assert "COSMOS_VIDEO_MAX_PIXELS" in source
+    assert "COSMOS_FRAMEWORK_SFT_PROCESS_THREADS" in source
+    assert "COSMOS_FRAMEWORK_DATALOADER_NUM_WORKERS" in source
+    assert "COSMOS_FRAMEWORK_DATALOADER_PREFETCH_FACTOR" in source
 
 
 def test_video_processor_is_spawn_pickle_safe() -> None:
-    wrapped_processor = types.SimpleNamespace(
-        tokenizer=types.SimpleNamespace(pad_token_id=0)
-    )
+    wrapped_processor = types.SimpleNamespace(tokenizer=types.SimpleNamespace(pad_token_id=0))
     processor = VideoSFTProcessor(
         wrapped_processor,
         video_cache_size=8,
@@ -502,7 +491,7 @@ def test_video_processor_is_spawn_pickle_safe() -> None:
 
 def test_daft_dataset_matches_internal_hybrid_index_order(monkeypatch) -> None:
     calls = _install_fake_daft(monkeypatch)
-    dataset = TaoVlReasonDaftDataset(
+    dataset = ReasoningQADataset(
         annotation_paths='["bcq.json", "mcq.json"]',
         media_root="/data/customer-media",
         response_mode="hybrid",
@@ -523,11 +512,11 @@ def test_daft_dataset_matches_internal_hybrid_index_order(monkeypatch) -> None:
 def test_daft_chat_template_targets_wrapped_hf_processor(monkeypatch) -> None:
     calls = _install_fake_daft(monkeypatch)
     wrapped = types.SimpleNamespace(processor=object())
-    apply_daft_chat_template(wrapped)
+    apply_reasoning_chat_template(wrapped)
     assert calls == [wrapped.processor]
 
 
 def test_task_aware_recipe_and_json_path_parser() -> None:
     assert parse_path_list('["a.json", "b.json"]') == ["a.json", "b.json"]
-    assert tao_task_aware_video_reasoning["job"]["group"] == "tao_task_aware_video_reasoning_sft"
-    assert tao_task_aware_video_reasoning["dataloader_train"]["processor"]["use_daft_chat_template"]
+    assert cosmos_task_aware_video_reasoning["job"]["group"] == "cosmos_task_aware_video_reasoning_sft"
+    assert cosmos_task_aware_video_reasoning["dataloader_train"]["processor"]["use_reasoning_chat_template"]
