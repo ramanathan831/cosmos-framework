@@ -1,0 +1,16 @@
+# Local build targets, not published registry images.
+# Build Framework with the root Dockerfile and Cosmos-RL with
+# docker/cosmos-rl.Dockerfile. Supply a registry image/digest for remote
+# platforms, or an explicitly materialized SQSH for SLURM.
+# The PAIDF service remains an independent external generation backend.
+images:
+  containers:
+    pyt: cosmos-framework:local
+    deploy: cosmos-framework:local
+    data_services: cosmos-framework:local
+    deft_pas_data_services: cosmos-framework:local
+    cosmos_framework: cosmos-framework:local
+    cosmos_rl: cosmos-rl:local
+    cosmos_predict: cosmos-predict:local
+  metropolis_sdg:
+    paidf_augmentation: nvcr.io/nvidia/paidf-augmentation:1.0.0
