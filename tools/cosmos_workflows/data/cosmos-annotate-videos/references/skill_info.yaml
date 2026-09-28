@@ -1,0 +1,22 @@
+network_arch: cosmos-annotate-videos
+type: data
+container_image: cosmos-framework:local  # versions-key: images.containers.data_services
+gpu_spec_key: null
+required_credentials: []
+actions:
+  generate:
+    command: cosmos-annotate-videos --config {config_path}
+    config_format: yaml
+    mode: config
+    inputs:
+      video_reasoning_annotation.data.video_root:
+        type: folder
+      video_reasoning_annotation.data.input_jsonl_files:
+        type: file
+    outputs:
+      results_dir:
+        type: folder
+    upload_excludes:
+    - inputs/
+    configuration_template: cosmos-annotate-videos --print-defaults
+    provider_models: explicit_user_selection_required
