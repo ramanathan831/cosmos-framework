@@ -77,6 +77,14 @@ For a per-subpackage tour with descriptions, see [`docs/code_structure.md`](./do
 
 Agent skills (codebase navigation, env troubleshooting, inference, post-training, setup) live in [`.agents/skills/`](./.agents/skills) and [`.claude/skills/`](./.claude/skills).
 
+The existing post-training, inference, setup, and troubleshooting skills also
+cover managed Cosmos workflows. Their supporting contracts and tested helpers
+live in [`tools/cosmos_workflows/`](./tools/cosmos_workflows/README.md) and resolve
+directly from this checkout. Only the distinct PAIDF Predict and video-QA
+annotation capabilities add new skill entrypoints. Preserve
+native framework routing and explicit backend choices; do not treat imported
+Cosmos-RL defaults as permission to redirect a Cosmos Framework request.
+
 ## Common Tasks
 
 ### Training
