@@ -232,6 +232,8 @@ class GeminiClient(LLMClient):
         return self._extract_text(response)
 
     def _call_with_retry(self, contents, config, max_retries=3, retry_delay=5):
+        if max_retries < 1:
+            raise ValueError("max_retries must be at least 1")
         last_error = None
         for attempt in range(max_retries):
             try:
@@ -250,7 +252,9 @@ class GeminiClient(LLMClient):
                 )
                 if attempt < max_retries - 1:
                     time.sleep(retry_delay * (attempt + 1))
-        raise last_error
+        if last_error is not None:
+            raise last_error
+        raise RuntimeError("Gemini request did not return a response")
 
     @staticmethod
     def _extract_text(response):
