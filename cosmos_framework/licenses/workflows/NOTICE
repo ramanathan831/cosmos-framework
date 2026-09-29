@@ -7,4 +7,6 @@ Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 The original Apache-2.0 license is preserved in LICENSE. Individual source
 headers remain authoritative. This includes dataset schemas, domain prompts,
 video processing, evaluation, compression helpers, and training extensions.
-New Framework implementations use the repository's OpenMDW-1.1 license.
+Python implementations in cosmos_framework use the repository's OpenMDW-1.1
+license, including the integrated runtime sources. Original-source attribution
+and license text are retained here for provenance.

@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES.
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: OpenMDW-1.1
 
 """Sparse, cached Qwen video reader for the release image's CPU PyAV stack.
 
