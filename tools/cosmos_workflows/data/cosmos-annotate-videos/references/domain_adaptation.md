@@ -116,7 +116,7 @@ copy of these modules.
 
 **To use a reference module:**
 
-1. Copy the selected runtime's module into a user-owned project when customization is requested; preserve its license header.
+1. Copy the Framework prompt module into a user-owned project when customization is requested; preserve its license header.
 2. Tune the prompts for your specific camera angles, layouts, and annotation goals
 3. Set `prompts_module: "my_package.prompts_traffic"` in the YAML config
 
