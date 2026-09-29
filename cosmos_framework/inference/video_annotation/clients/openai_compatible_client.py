@@ -172,6 +172,8 @@ class OpenAICompatibleClient(LLMClient):
         )
 
     def _call_with_retry(self, messages, temperature, max_tokens, max_retries=3, retry_delay=5):
+        if max_retries < 1:
+            raise ValueError("max_retries must be at least 1")
         last_error = None
         for attempt in range(max_retries):
             try:
@@ -198,4 +200,6 @@ class OpenAICompatibleClient(LLMClient):
                 )
                 if attempt < max_retries - 1:
                     time.sleep(retry_delay * (attempt + 1))
-        raise last_error
+        if last_error is not None:
+            raise last_error
+        raise RuntimeError("LLM request did not return a response")
