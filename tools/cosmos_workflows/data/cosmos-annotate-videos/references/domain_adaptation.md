@@ -13,7 +13,6 @@ Use this reference only when the parent `SKILL.md` points here for the current t
 - Iterative Prompt Tuning
 - Reference Prompt Modules
 
-
 ## Overview
 
 The default prompts in `cosmos_framework.inference.video_annotation.prompts` work for general video content. For domain-specific datasets, customize the prompts via the template module to get significantly better caption accuracy, description quality, and QA relevance.
@@ -51,9 +50,11 @@ Then ask: **"What are the most important elements you want captured in the annot
 Based on the user's answers, infer what the captions MUST capture for the QA to be answerable. Present as a two-tier checklist:
 
 > **Must capture (directly needed for the questions):**
+>
 > - [ ] [Items derived from the user's question types]
 >
 > **Should capture (provides context for reasoning):**
+>
 > - [ ] [Supporting context — scene environment, timestamps, pre/post-event state, etc.]
 
 For each question type the user selected, ask: "What would a captioner need to observe and write down for this question to be answerable from the caption alone?" Those become the "Must capture" items.
@@ -72,20 +73,20 @@ Only after confirmation, fill in the `prompt_template.py` placeholders. The capt
 
 The template module (`cosmos_framework.inference.video_annotation.prompt_template`) uses these placeholder patterns:
 
-| Placeholder | What to fill in | Example (traffic) |
-|-------------|----------------|-------------------|
-| `[DOMAIN]` | Domain name | "traffic surveillance" |
-| `[POSITIVE_CRITERION_N]` | What makes a video belong to this domain | "Fixed-angle view of road, intersection, or highway" |
-| `[EXCLUSION_N]` | What is NOT this domain | "Dashcam or in-vehicle POV footage" |
-| `[ANOMALY_DEFINITION]` | What counts as anomalous in this domain | "any event involving collision, near-miss, stalled vehicle, or traffic rule violation" |
-| `[ANOMALY_EXAMPLE_N]` | Concrete anomaly examples | "Vehicle running a red light and colliding with cross-traffic" |
-| `[NORMAL_EXAMPLE_N]` | Concrete normal examples | "Vehicles waiting at a red light and proceeding when green" |
-| `[KEY_ASPECT_N]` | Caption focus areas (from checklist) | "Traffic Signal State", "Vehicle Movements", "The Collision" |
-| `[DOMAIN_ACTOR_DETAILS]` | What to track about actors | "Vehicle Identification — color, type, lane position, direction" |
-| `[DOMAIN_SPATIAL_CONTEXT]` | Spatial details to note | "Intersection Layout — lane markings, signal positions, crosswalks" |
-| `[DOMAIN_ENVIRONMENTAL_FACTORS]` | Environmental conditions | "Lighting, weather, road surface condition, visibility" |
-| `[DOMAIN_DYNAMICS]` | Micro-actions to describe in chunks | "Vehicle Dynamics — acceleration, braking, lane changes, turns" |
-| `[DOMAIN_MCQ_EXAMPLE_*]` | Example QA for the domain | (see traffic/warehouse reference modules) |
+| Placeholder                      | What to fill in                          | Example (traffic)                                                                      |
+| -------------------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------- |
+| `[DOMAIN]`                       | Domain name                              | "traffic surveillance"                                                                 |
+| `[POSITIVE_CRITERION_N]`         | What makes a video belong to this domain | "Fixed-angle view of road, intersection, or highway"                                   |
+| `[EXCLUSION_N]`                  | What is NOT this domain                  | "Dashcam or in-vehicle POV footage"                                                    |
+| `[ANOMALY_DEFINITION]`           | What counts as anomalous in this domain  | "any event involving collision, near-miss, stalled vehicle, or traffic rule violation" |
+| `[ANOMALY_EXAMPLE_N]`            | Concrete anomaly examples                | "Vehicle running a red light and colliding with cross-traffic"                         |
+| `[NORMAL_EXAMPLE_N]`             | Concrete normal examples                 | "Vehicles waiting at a red light and proceeding when green"                            |
+| `[KEY_ASPECT_N]`                 | Caption focus areas (from checklist)     | "Traffic Signal State", "Vehicle Movements", "The Collision"                           |
+| `[DOMAIN_ACTOR_DETAILS]`         | What to track about actors               | "Vehicle Identification — color, type, lane position, direction"                       |
+| `[DOMAIN_SPATIAL_CONTEXT]`       | Spatial details to note                  | "Intersection Layout — lane markings, signal positions, crosswalks"                    |
+| `[DOMAIN_ENVIRONMENTAL_FACTORS]` | Environmental conditions                 | "Lighting, weather, road surface condition, visibility"                                |
+| `[DOMAIN_DYNAMICS]`              | Micro-actions to describe in chunks      | "Vehicle Dynamics — acceleration, braking, lane changes, turns"                        |
+| `[DOMAIN_MCQ_EXAMPLE_*]`         | Example QA for the domain                | (see traffic/warehouse reference modules)                                              |
 
 This is a representative subset — open `prompt_template.py` for the complete placeholder list, including QA-example placeholders for every enabled `qa_type`.
 
@@ -114,11 +115,13 @@ copy of these modules.
 - **`prompts_warehouse`** — Warehouse / industrial site CCTV.
 
 **To use a reference module:**
+
 1. Copy the selected runtime's module into a user-owned project when customization is requested; preserve its license header.
 2. Tune the prompts for your specific camera angles, layouts, and annotation goals
 3. Set `prompts_module: "my_package.prompts_traffic"` in the YAML config
 
 **To create a new domain module:**
+
 1. Start from the template module (`cosmos_framework.inference.video_annotation.prompt_template`, placeholder-based) or from one of the reference modules
 2. Use the consultation process above to determine what placeholders to fill in
 3. Follow the same structure: `PROMPT_TEMPLATES` dict with all 26 keys + `get_prompt()` helper

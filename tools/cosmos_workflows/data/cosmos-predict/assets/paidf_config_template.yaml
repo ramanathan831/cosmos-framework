@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 # Template shape for PAIDF Cosmos Predict media generation.
 #
 # The helper script writes a concrete config.yaml with one data entry per unique

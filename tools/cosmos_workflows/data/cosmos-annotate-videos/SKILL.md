@@ -55,12 +55,12 @@ When the user invokes this skill, walk through these questions in order. Don't s
 
 Ask the user: *"What domain are these videos from?"* Choose one of the following branches:
 
-| Domain | What to do |
-|---|---|
-| **general** | Use the default prompts. Set `prompts_module: ""` (or omit). The built-in `cosmos_framework.inference.video_annotation.prompts` covers domain-agnostic content. |
-| **traffic** (CCTV intersections, highways; dashcam excluded) | Set `prompts_module: "cosmos_framework.inference.video_annotation.prompts_traffic"`, using the selected container's module. |
-| **warehouse** (industrial site CCTV — safety, operations, security) | Set `prompts_module: "cosmos_framework.inference.video_annotation.prompts_warehouse"`, using the selected container's module. |
-| **custom** (any other domain) | **Run the workshop in [references/domain_adaptation.md](references/domain_adaptation.md)**. It walks through: Phase 1 — question types the user wants the model to answer; Phase 2 — caption-requirements checklist; Phase 3 — fill the `[PLACEHOLDER]` markers in `cosmos_framework.inference.video_annotation.prompt_template`. The two reference modules above are working examples to model after. Do this **before** any pipeline runs. |
+| Domain                                                              | What to do                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **general**                                                         | Use the default prompts. Set `prompts_module: ""` (or omit). The built-in `cosmos_framework.inference.video_annotation.prompts` covers domain-agnostic content.                                                                                                                                                                                                                                                                              |
+| **traffic** (CCTV intersections, highways; dashcam excluded)        | Set `prompts_module: "cosmos_framework.inference.video_annotation.prompts_traffic"`, using the selected container's module.                                                                                                                                                                                                                                                                                                                  |
+| **warehouse** (industrial site CCTV — safety, operations, security) | Set `prompts_module: "cosmos_framework.inference.video_annotation.prompts_warehouse"`, using the selected container's module.                                                                                                                                                                                                                                                                                                                |
+| **custom** (any other domain)                                       | **Run the workshop in [references/domain_adaptation.md](references/domain_adaptation.md)**. It walks through: Phase 1 — question types the user wants the model to answer; Phase 2 — caption-requirements checklist; Phase 3 — fill the `[PLACEHOLDER]` markers in `cosmos_framework.inference.video_annotation.prompt_template`. The two reference modules above are working examples to model after. Do this **before** any pipeline runs. |
 
 ### 3. Anomaly / normal / mixed
 
@@ -124,16 +124,16 @@ Quality compounds downstream — bad captions produce bad descriptions which pro
 
 Key fields (full reference in [references/configuration.md](references/configuration.md)):
 
-| Field | Default | Description |
-|---|---|---|
-| `workflow.steps` | `["0","1a","1b","1c","2","3","4"]` | Which pipeline steps to execute |
-| `workflow.mode` | `"auto"` | `"auto"`, `"anomaly"`, or `"normal"` |
-| `vlm.backend` | `"gemini"` | `"gemini"` or `"openai"` (OpenAI-compatible) |
-| `llm.backend` | `"gemini"` | Same options; text-only, cheaper model works |
-| `workflow.max_workers` | `4` | Parallel threads per step (watch API rate limits) |
-| `license` | `""` | Optional: written to `metadata.license` in step 4 outputs (e.g. `"CC-BY-4.0"`) |
-| `description_extra` | `""` | Optional: extra text appended to per-task descriptions in step 4 metadata |
-| `prompts_module` | `""` | Dotted import path to custom prompts module |
+| Field                  | Default                            | Description                                                                    |
+| ---------------------- | ---------------------------------- | ------------------------------------------------------------------------------ |
+| `workflow.steps`       | `["0","1a","1b","1c","2","3","4"]` | Which pipeline steps to execute                                                |
+| `workflow.mode`        | `"auto"`                           | `"auto"`, `"anomaly"`, or `"normal"`                                           |
+| `vlm.backend`          | `"gemini"`                         | `"gemini"` or `"openai"` (OpenAI-compatible)                                   |
+| `llm.backend`          | `"gemini"`                         | Same options; text-only, cheaper model works                                   |
+| `workflow.max_workers` | `4`                                | Parallel threads per step (watch API rate limits)                              |
+| `license`              | `""`                               | Optional: written to `metadata.license` in step 4 outputs (e.g. `"CC-BY-4.0"`) |
+| `description_extra`    | `""`                               | Optional: extra text appended to per-task descriptions in step 4 metadata      |
+| `prompts_module`       | `""`                               | Dotted import path to custom prompts module                                    |
 
 ## Prompts
 
