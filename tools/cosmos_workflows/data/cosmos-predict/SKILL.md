@@ -21,7 +21,7 @@ Prepare and run PAIDF Cosmos Predict generation for media samples. The skill emi
 
 ## Purpose
 
-Use this skill when the user or an upstream workflow has media samples and needs synthetic/generated videos from PAIDF Cosmos Predict. No DEFT workflow is required. This skill does not start the VLM captioning service. A reachable OpenAI-compatible base URL for the model used to caption input media must be provided at runtime.
+Use this skill when the user or an upstream workflow has media samples and needs synthetic/generated videos from PAIDF Cosmos Predict. This skill does not start the VLM captioning service. A reachable OpenAI-compatible base URL for the model used to caption input media must be provided at runtime.
 
 ## Prerequisites
 
@@ -69,6 +69,10 @@ Example:
 The PAIDF augmentation image is resolved from `images.metropolis_sdg.paidf_augmentation` in `versions.yaml`; users do not need to provide it for the standard workflow.
 
 ## Agent Run Procedure
+
+Run the examples from `tools/cosmos_workflows/` in this checkout. Resolve the
+shared launch and Docker procedures through `cosmos3-setup` before generation;
+the PAIDF image is an external dependency recorded in `versions.yaml`.
 
 Before running, determine these runtime values from the user request or upstream workflow output:
 

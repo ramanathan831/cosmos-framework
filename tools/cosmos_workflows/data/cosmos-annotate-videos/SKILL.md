@@ -5,7 +5,7 @@ license: Apache-2.0
 metadata:
   author: NVIDIA Corporation
   version: 0.1.0
-  compatibility: Requires docker + nvidia-container-toolkit + at least one VLM endpoint (Gemini API key or OpenAI-compatible).
+  compatibility: Requires Framework's workflows extra, ffmpeg/ffprobe, and a VLM endpoint (Gemini or OpenAI-compatible).
   tags:
   - video
   - annotation
@@ -40,11 +40,14 @@ Step 3:  QA generation                          → LLM: MCQ, binary, open-ended
 Step 4:  Parse outputs                          → Per-task `cosmos-video-reasoning-v1.0` JSON files
 ```
 
-Steps are individually selectable via `workflow.steps`. The pipeline has built-in resume — each step skips already-processed videos, so re-running after a prompt tweak is safe.
+Steps are individually selectable via `workflow.steps`. Resume skips successfully
+processed videos by path; it does not detect changed prompts or model settings.
+Use a fresh results directory when comparing prompt or model changes.
 
 ## Initial consultation
 
-When the user invokes this skill, walk through these questions in order. Don't skip — getting domain and VLM access right up front prevents wasted runs.
+Resolve these inputs from the request and existing configuration. Ask only for
+missing choices that affect annotation content, endpoint access, or cost.
 
 ### 1. Videos
 
@@ -76,8 +79,8 @@ Ask the user: *"What domain are these videos from?"* Choose one of the following
 
 If the user has **no endpoint at all** and wants to self-host, use `cosmos3-inference`
 and its `tools/cosmos_workflows/inference-service/guide.md` reference. Check that
-reference's `references/service.yaml` supported model list and endpoint protocol
-before relying on a model. Native Ray/Gradio serving is not automatically a
+reference's `references/service.yaml` service contracts and verify the chosen
+model's multimodal support. Native Ray/Gradio serving is not automatically a
 compatible substitute.
 
 If the user doesn't have endpoint access ready and isn't ready to set one up, stop here and help them figure it out first.
@@ -115,7 +118,7 @@ Use this when running a 5–10 video pilot:
 1. Run the pipeline on the pilot subset with the chosen `prompts_module` and `workflow.mode`.
 2. Inspect `results_dir/step_1a_caption/captions.jsonl` — captions accurate, capturing the right level of detail?
 3. Inspect `results_dir/step_3_qa/qa_output.jsonl` — questions meaningful, answers correct, reasoning logical?
-4. If quality is insufficient: adjust the prompts (in `prompts_module` if domain-customized, or fall back to `general` if a domain module is over-tuned), and re-run. The pipeline auto-skips already-processed videos.
+4. If quality is insufficient, adjust the prompts and rerun the pilot in a fresh results directory so cached captions and QA do not hide the changes.
 5. Once satisfied, scale to the full dataset by pointing `data.video_root` (or `data.input_jsonl_files`) at the full set and re-running with the same `results_dir` (resume) or a fresh one (full re-run).
 
 Quality compounds downstream — bad captions produce bad descriptions which produce bad QA. Focus iteration on Step 1a/1b output first; descriptions and QA usually improve once captions are right.
@@ -139,7 +142,7 @@ Key fields (full reference in [references/configuration.md](references/configura
 
 - **Built-in (general)**: `cosmos_framework.inference.video_annotation.prompts` — domain-agnostic, used by default.
 - **Template**: `cosmos_framework.inference.video_annotation.prompt_template` — same 26 keys with `[PLACEHOLDER]` markers for domain customization.
-- **Domain modules**: the selected container supplies `prompts_traffic` and `prompts_warehouse` under `cosmos_framework.inference.video_annotation`. Confirm the image contains the requested module; do not silently substitute prompts if it is missing. Customize from that runtime's module in a user-owned project, not a second copy maintained here.
+- **Domain modules**: Framework supplies `prompts_traffic` and `prompts_warehouse` under `cosmos_framework.inference.video_annotation`. Confirm the installed package or container contains the requested module; do not silently substitute prompts if it is missing. Customize from that module in a user-owned project, not a second copy maintained here.
 - **Custom domains**: see [references/domain_adaptation.md](references/domain_adaptation.md) for the full workshop and placeholder reference.
 
 ## Inputs
@@ -173,6 +176,7 @@ Each step 4 file looks like:
 
 ## Prerequisites
 
-- **Container**: `cosmos-framework:local`. <!-- versions-key: images.containers.pyt -->
+- **Environment**: Framework with the `workflows` extra; a local GPU is unnecessary when using remote endpoints.
+- **Container option**: `cosmos-framework:local`. <!-- versions-key: images.containers.cosmos_framework -->
 - **ffmpeg / ffprobe**: required for chunk captioning (Step 1b) and highlight extraction (Step 1c).
 - **VLM endpoint**: at least one — Gemini API key or OpenAI-compatible endpoint.

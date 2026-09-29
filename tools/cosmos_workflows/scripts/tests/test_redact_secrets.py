@@ -36,7 +36,7 @@ def test_literal_env_assignment_flagged():
 
 
 def test_scoped_env_reference_passes():
-    # the sanctioned cosmos-data-io pattern
+    # the sanctioned data staging pattern
     text = 'AWS_ACCESS_KEY_ID="$ACCESS_KEY" AWS_SECRET_ACCESS_KEY="$SECRET_KEY" aws s3 ls'
     assert rs.scan(text) == []
 
@@ -91,7 +91,7 @@ def test_flag_with_var_reference_passes():
 K8S_BAD = f"""
       env:
         - name: MODEL_PATH
-          value: /models/dino.pth
+          value: /models/cosmos3.pth
         - name: AWS_SECRET_ACCESS_KEY
           value: {SECRET}
 """
@@ -147,7 +147,7 @@ def test_redact_flag_and_login_p():
 def test_redact_k8s_value():
     red = rs.redact(K8S_BAD)
     assert SECRET not in red and "secretKeyRef" in red
-    assert "value: /models/dino.pth" in red  # non-secret value untouched
+    assert "value: /models/cosmos3.pth" in red  # non-secret value untouched
 
 
 def test_redact_idempotent():

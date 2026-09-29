@@ -6,13 +6,9 @@
 job to prove the cluster's NCCL rendezvous works BEFORE a real multi-node run
 burns GPU-hours hanging on the first collective.
 
-It reads the same rendezvous env the multi-node templates export (NNODES,
-NPROC_PER_NODE, NODE_RANK, plus torchrun's LOCAL_RANK and
-MASTER_ADDR/MASTER_PORT), computes the true GLOBAL world-size/rank, does one
-all-reduce, and prints NCCL_PROBE_OK. Launchers that invoke this probe under
-``torchrun`` must preserve the Cosmos values in ``COSMOS_NODE_COUNT``,
-``COSMOS_GPUS_PER_NODE``, and ``COSMOS_NODE_RANK`` because torchrun overwrites the
-standard ``WORLD_SIZE`` environment variable with the global process count.
+It uses torchrun's WORLD_SIZE, RANK, LOCAL_WORLD_SIZE, and LOCAL_RANK, does
+one all-reduce, and prints NCCL_PROBE_OK. For offline template checks it can
+also derive these values from NNODES, NPROC_PER_NODE, and NODE_RANK.
 If NCCL is misconfigured (e.g. the CS-OCI-ORD
 intra-node P2P hang) it HANGS on all_reduce — the orchestrating skill wraps this
 with a timeout and, on timeout, sets the cluster's NCCL knob (NCCL_P2P_DISABLE=1,
@@ -32,25 +28,21 @@ import os
 
 
 def rendezvous_config(env: dict | None = None) -> dict:
-    """Compute the GLOBAL torch.distributed config from the Cosmos rendezvous env.
-
-    NNODES in the env is the node count; the true global world size is
-    node_count * gpus_per_node, and the global rank is
-    node_rank * gpus_per_node + local_rank.
-    """
+    """Read standard torchrun ranks, with launcher-template fallbacks."""
     e = os.environ if env is None else env
-    # torchrun rewrites WORLD_SIZE to the global process count.  Preserve Cosmos's
-    # node-count convention through explicit aliases when the probe is launched
-    # beneath torchrun, while retaining the template variables as a fallback.
-    node_count = int(e.get("COSMOS_NODE_COUNT", e.get("NNODES", "1")))
-    gpus_per_node = int(e.get("COSMOS_GPUS_PER_NODE", e.get("NPROC_PER_NODE", "1")))
-    node_rank = int(e.get("COSMOS_NODE_RANK", e.get("NODE_RANK", "0")))
+    gpus_per_node = int(e.get("LOCAL_WORLD_SIZE", e.get("NPROC_PER_NODE", "1")))
     local_rank = int(e.get("LOCAL_RANK", "0"))
+    world_size = int(e.get("WORLD_SIZE", int(e.get("NNODES", "1")) * gpus_per_node))
+    rank = int(e.get("RANK", int(e.get("NODE_RANK", "0")) * gpus_per_node + local_rank))
+    if gpus_per_node < 1 or world_size < 1 or world_size % gpus_per_node:
+        raise ValueError("world size must be a positive multiple of local world size")
+    if not 0 <= local_rank < gpus_per_node or not 0 <= rank < world_size:
+        raise ValueError("global and local ranks must be within their world sizes")
     return {
-        "global_world_size": node_count * gpus_per_node,
-        "global_rank": node_rank * gpus_per_node + local_rank,
+        "global_world_size": world_size,
+        "global_rank": rank,
         "local_rank": local_rank,
-        "node_count": node_count,
+        "node_count": world_size // gpus_per_node,
         "gpus_per_node": gpus_per_node,
         "master_addr": e.get("MASTER_ADDR", ""),
         "master_port": e.get("MASTER_PORT", "29500"),

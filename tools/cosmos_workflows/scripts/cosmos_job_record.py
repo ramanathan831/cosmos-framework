@@ -4,7 +4,7 @@
 
 """The ONLY writer of Cosmos job-records (.cosmos/jobs/<id>.json).
 
-Implements the atomic record-then-launch invariant of the SDK-free execution
+Implements the atomic record-then-launch invariant of the workflow execution
 architecture: ``open`` mints the job id, binds the resolved ``results_dir``,
 and writes the initial PENDING record — and the id it prints is the ONLY
 handle a platform skill may launch with. A submit that skipped the verify gate
@@ -51,7 +51,7 @@ STATES = ("PENDING", "RUNNING", "COMPLETE", "ERROR", "CANCELED", "UNKNOWN")
 TERMINAL_STATES = ("COMPLETE", "ERROR", "CANCELED")
 SOURCES = ("agent", "poller", "backend-hook")
 # The platform field is an OPEN set — NOT a registry. Any installed platform
-# skill (in-bank or external, e.g. kratos) records under its short name.
+# skill (packaged or external) records under its short name.
 # EXAMPLE_PLATFORMS feeds help/error text ONLY — never matched against.
 # Values are NORMALIZED into canonical kebab-case (trim, lowercase,
 # spaces/underscores -> hyphens); only irreducible garbage is rejected —

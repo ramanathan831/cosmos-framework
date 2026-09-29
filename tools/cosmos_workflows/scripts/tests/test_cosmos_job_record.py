@@ -42,7 +42,7 @@ def open_job(capsys, **overrides):
         "--image",
         "cosmos-framework:local",  # unpinned: test fixture
         "--network-arch",
-        "dino",
+        "cosmos3",
         "--action",
         "train",
         "--storage-tier",
@@ -94,7 +94,7 @@ def test_open_writes_schema_valid_pending_record(state_dir, capsys):
 def test_open_id_is_the_printed_handle_and_matches_pattern(capsys):
     job_id = open_job(capsys)
     assert re.match(r"^[A-Za-z0-9][A-Za-z0-9._-]*$", job_id)
-    assert job_id.startswith("dino-train-")
+    assert job_id.startswith("cosmos3-train-")
 
 
 def test_open_explicit_results_dir_used_verbatim(state_dir, capsys):
@@ -105,7 +105,7 @@ def test_open_explicit_results_dir_used_verbatim(state_dir, capsys):
         "--image",
         "nvcr.io/x/y:1",  # unpinned: test fixture
         "--network-arch",
-        "dino",
+        "cosmos3",
         "--action",
         "evaluate",
         "--storage-tier",
@@ -170,11 +170,11 @@ def test_open_sanitizes_weird_arch_names(state_dir, capsys):
 
 
 def test_open_with_parent_and_retry_links(state_dir, capsys):
-    job_id = open_job(capsys, parent_job="automl-exp-7", retry_of="dino-train-000000")
+    job_id = open_job(capsys, parent_job="automl-exp-7", retry_of="cosmos3-train-000000")
     rec = read_record(state_dir, job_id)
     jsonschema.validate(rec, SCHEMA)
     assert rec["parent_job"] == "automl-exp-7"
-    assert rec["retry_of"] == "dino-train-000000"
+    assert rec["retry_of"] == "cosmos3-train-000000"
 
 
 # --------------------------------------------------------------------------- #
@@ -234,7 +234,7 @@ def test_terminal_mark_stamps_and_is_immutable(state_dir, capsys):
 
 def test_mark_missing_record_fails(capsys):
     with pytest.raises(SystemExit, match="no job-record"):
-        jr.main(["mark", "dino-train-zzzzzz", "--state", "RUNNING"])
+        jr.main(["mark", "cosmos3-train-zzzzzz", "--state", "RUNNING"])
 
 
 def test_traversal_id_rejected(capsys):
@@ -326,7 +326,7 @@ def test_rt_url_userinfo_redacted_in_results_dir(state_dir, capsys):
         "--image",
         "nvcr.io/x/y:1",  # unpinned: test fixture
         "--network-arch",
-        "dino",
+        "cosmos3",
         "--action",
         "train",
         "--storage-tier",
@@ -348,7 +348,7 @@ def test_rt_legit_results_dir_with_credword_segment_untouched(state_dir, capsys)
         "--image",
         "nvcr.io/x/y:1",  # unpinned: test fixture
         "--network-arch",
-        "dino",
+        "cosmos3",
         "--action",
         "train",
         "--storage-tier",
@@ -371,7 +371,7 @@ def test_rt_empty_required_fields_rejected_before_id(capsys):
             "--image",
             "img:1",
             "--network-arch",
-            "dino",
+            "cosmos3",
             "--action",
             "train",
             "--storage-tier",
@@ -445,7 +445,7 @@ def test_rt_terminal_err_class_enrichment(state_dir, capsys):
 
 
 def test_external_platform_slug_is_accepted_and_schema_valid(capsys, state_dir):
-    """An externally installed platform skill (e.g. cosmos-run-on-kratos) must be
+    """An externally installed platform skill (e.g. custom-platform) must be
     able to open records under its short name with NO bank edit."""
     job_id = open_job(capsys, platform="kratos")
     record = read_record(state_dir, job_id)
@@ -473,7 +473,7 @@ def test_platform_input_is_normalized_not_rejected(capsys, state_dir, raw, canon
                 "--image",
                 "cosmos-framework:local",  # unpinned: test fixture
                 "--network-arch",
-                "dino",
+                "cosmos3",
                 "--action",
                 "train",
                 "--storage-tier",

@@ -4,7 +4,7 @@
 #
 # Cosmos single-node SLURM launch template — storage tier A (data already on Lustre;
 # nothing is fetched inside the GPU allocation, which would burn it under the
-# scheduler-idle timeout). cosmos-run-on-slurm renders this by substituting every
+# scheduler-idle timeout). slurm renders this by substituting every
 # @@<NAME>@@ placeholder; $SLURM_* and the sidecar env stay literal. Multi-node
 # (M7) is a strict superset: the same skeleton plus a rank/master rendezvous
 # block and the NCCL probe's env.

@@ -3,7 +3,7 @@
 
 network_arch: cosmos-annotate-videos
 type: data
-container_image: cosmos-framework:local  # versions-key: images.containers.data_services
+container_image: cosmos-framework:local  # versions-key: images.containers.cosmos_framework
 gpu_spec_key: null
 required_credentials: []
 actions:

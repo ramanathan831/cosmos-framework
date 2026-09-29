@@ -21,17 +21,17 @@ sys.path.insert(0, str(REPO / "scripts"))
 import redact_secrets  # noqa: E402
 
 BASE = {
-    "JOB_NAME": "dino-train-a1b2c3",
+    "JOB_NAME": "cosmos3-train-a1b2c3",
     "NUM_GPUS": "1",
     "CPUS_PER_TASK": "16",
     "TIME": "04:00:00",
-    "LOG_DIR": "/lustre/fsw/portfolios/edgeai/users/me/results/dino-train-a1b2c3/slurm-logs",
+    "LOG_DIR": "/lustre/fsw/portfolios/edgeai/users/me/results/cosmos3-train-a1b2c3/slurm-logs",
     "SBATCH_EXTRA": "#SBATCH --account=edgeai\n#SBATCH --partition=polar,polar3",
     "ENV_FILE": "",
     "EXTRA_ENV": "",
     "IMAGE": "/lustre/fsw/sqsh/cosmos-framework.sqsh",
     "CONTAINER_MOUNTS": "/lustre",
-    "COMMAND": "dino train -e /lustre/fsw/.../specs/dino-train-a1b2c3/spec.yaml",
+    "COMMAND": "python -m cosmos_framework.scripts.train --sft-toml /lustre/fsw/.../specs/cosmos3-train-a1b2c3/spec.yaml",
 }
 
 
@@ -58,7 +58,7 @@ def test_rendered_is_valid_bash():
 
 
 def test_env_file_present_case_is_valid_bash():
-    rendered = render({"ENV_FILE": "/lustre/.../job_dino-train-a1b2c3.env"})
+    rendered = render({"ENV_FILE": "/lustre/.../job_cosmos3-train-a1b2c3.env"})
     assert bash_syntax_ok(rendered)
     assert "trap 'shred -u" in rendered  # sidecar shredded on exit
     assert 'source "/lustre' in rendered

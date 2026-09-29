@@ -1,16 +1,13 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Tests for the NCCL probe's rendezvous math (the wire-3 error-prone bit).
-
-WORLD_SIZE is Cosmos's NODE COUNT, so the global world-size/rank derivation is the
-thing a hand-written probe gets wrong — an off-by-one here sends collectives to
-the wrong ranks and hangs. torch is never imported (dry-run path only).
-"""
+"""CPU-only tests for torchrun ranks and offline launcher-template math."""
 
 import json
 import sys
 from pathlib import Path
+
+import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import nccl_allreduce_probe as probe  # noqa: E402
@@ -39,15 +36,13 @@ def test_last_rank():
     assert cfg["global_rank"] == cfg["global_world_size"] - 1  # 15
 
 
-def test_cosmos_aliases_survive_torchrun_world_size_overwrite():
+def test_torchrun_ranks_need_no_custom_aliases():
     cfg = probe.rendezvous_config(
         {
             "WORLD_SIZE": "16",  # torchrun's global process count
             "RANK": "11",
             "LOCAL_RANK": "3",
-            "COSMOS_NODE_COUNT": "2",
-            "COSMOS_GPUS_PER_NODE": "8",
-            "COSMOS_NODE_RANK": "1",
+            "LOCAL_WORLD_SIZE": "8",
         }
     )
     assert cfg["node_count"] == 2
@@ -55,9 +50,40 @@ def test_cosmos_aliases_survive_torchrun_world_size_overwrite():
     assert cfg["global_rank"] == 11
 
 
+def test_torchrun_values_take_precedence_over_launcher_defaults():
+    cfg = probe.rendezvous_config(
+        {
+            "WORLD_SIZE": "8",
+            "RANK": "5",
+            "LOCAL_WORLD_SIZE": "4",
+            "LOCAL_RANK": "1",
+            "NNODES": "1",
+            "NPROC_PER_NODE": "1",
+        }
+    )
+    assert cfg["global_world_size"] == 8
+    assert cfg["global_rank"] == 5
+    assert cfg["node_count"] == 2
+
+
+@pytest.mark.parametrize(
+    "env",
+    [
+        {"WORLD_SIZE": "0"},
+        {"LOCAL_WORLD_SIZE": "0"},
+        {"WORLD_SIZE": "3", "LOCAL_WORLD_SIZE": "2"},
+        {"RANK": "1"},
+        {"LOCAL_RANK": "-1"},
+    ],
+)
+def test_invalid_rendezvous_is_rejected(env):
+    with pytest.raises(ValueError):
+        probe.rendezvous_config(env)
+
+
 def test_master_addr_port_passthrough():
-    cfg = probe.rendezvous_config({"MASTER_ADDR": "dino-0.dino", "MASTER_PORT": "29500"})
-    assert cfg["master_addr"] == "dino-0.dino" and cfg["master_port"] == "29500"
+    cfg = probe.rendezvous_config({"MASTER_ADDR": "cosmos3-0.cosmos3", "MASTER_PORT": "29500"})
+    assert cfg["master_addr"] == "cosmos3-0.cosmos3" and cfg["master_port"] == "29500"
 
 
 def test_defaults_single_process():

@@ -24,7 +24,7 @@
     },
     "storage_tier": {
       "enum": ["A", "B", "C"],
-      "description": "Stamped by the cosmos-data-io consumer at stage time — never guessed by the producer."
+      "description": "Stamped by the data staging consumer at stage time — never guessed by the producer."
     },
     "upload_excludes": { "type": "array", "items": { "type": "string" } },
     "submitted_at": { "type": "string", "minLength": 1, "description": "ISO 8601 UTC" },
@@ -54,7 +54,7 @@
       "description": "The agent's failure classification (see execution/references/failure-analysis-retry.md). ERR_INFRA is retriable; ERR_PROGRAM never."
     },
     "retry_of": { "type": ["string", "null"], "description": "Job id this run retries (infra auto-retry chain)." },
-    "parent_job": { "type": ["string", "null"], "description": "Experiment/loop thread for AutoML/DEFT children. Workflow-level state stays in best_rec.json / deft_state.json." },
+    "parent_job": { "type": ["string", "null"], "description": "Optional parent workflow job, for example an evaluation following training." },
     "redacted": { "const": true, "description": "Every write passes scripts/redact_secrets.py. A record with a raw credential is a bug." }
   }
 }
