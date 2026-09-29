@@ -6,14 +6,14 @@ training/inference implementations remain in `cosmos_framework/`.
 
 ## Ownership and routing
 
-| User task | Skill entrypoint | Supporting resources here |
-| --- | --- | --- |
-| Recipe SFT, reasoner video-QA SFT/evaluation, checkpoint preparation | `cosmos3-post-training` | `models/cosmos3-reasoner/` |
-| Native generation, reasoner inference, container endpoints | `cosmos3-inference` | `inference-service/`, reasoner evaluation contracts |
-| Installation, managed launch, credentials, platform/GPU checks | `cosmos3-setup` | `execution/`, `scripts/`, `templates/` |
-| Environment and managed-job failures | `cosmos3-env-troubleshoot` | Execution retry and reasoner error references |
-| Explicit PAIDF video generation | `cosmos-predict` | `data/cosmos-predict/` |
-| Multi-stage caption/description/reasoning-QA generation | `cosmos-annotate-videos` | `data/cosmos-annotate-videos/` |
+| User task                                                            | Skill entrypoint           | Supporting resources here                           |
+| -------------------------------------------------------------------- | -------------------------- | --------------------------------------------------- |
+| Recipe SFT, reasoner video-QA SFT/evaluation, checkpoint preparation | `cosmos3-post-training`    | `models/cosmos3-reasoner/`                          |
+| Native generation, reasoner inference, container endpoints           | `cosmos3-inference`        | `inference-service/`, reasoner evaluation contracts |
+| Installation, managed launch, credentials, platform/GPU checks       | `cosmos3-setup`            | `execution/`, `scripts/`, `templates/`              |
+| Environment and managed-job failures                                 | `cosmos3-env-troubleshoot` | Execution retry and reasoner error references       |
+| Explicit PAIDF video generation                                      | `cosmos-predict`           | `data/cosmos-predict/`                              |
+| Multi-stage caption/description/reasoning-QA generation              | `cosmos-annotate-videos`   | `data/cosmos-annotate-videos/`                      |
 
 Only the last two are new skills, exposed through relative discovery symlinks
 in `.agents/skills` and `.claude/skills`. The four existing skill files are
