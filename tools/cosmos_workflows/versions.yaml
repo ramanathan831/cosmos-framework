@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+# Local build targets, not published registry images.
+# Build Framework with the root Dockerfile. Supply a registry image/digest for remote
+# platforms, or an explicitly materialized SQSH for SLURM.
+# The PAIDF service remains an independent external generation backend.
+images:
+  containers:
+    cosmos_framework: cosmos-framework:local
+  metropolis_sdg:
+    paidf_augmentation: nvcr.io/nvidia/paidf-augmentation:1.0.0
