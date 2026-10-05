@@ -80,7 +80,7 @@ Agent skills (codebase navigation, env troubleshooting, inference, post-training
 The existing post-training, inference, setup, and troubleshooting skills also
 cover managed Cosmos workflows. Their supporting contracts and tested helpers
 live in [`tools/cosmos_workflows/`](./tools/cosmos_workflows/README.md) and resolve
-directly from this checkout. Only the distinct PAIDF Predict and video-QA
+directly from this checkout. The distinct PAIDF Predict and video-QA
 annotation capabilities add new skill entrypoints. The helpers call native
 Framework training, checkpoint, evaluation, and inference entrypoints.
 
