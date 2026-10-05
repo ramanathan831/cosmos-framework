@@ -77,6 +77,18 @@ For a per-subpackage tour with descriptions, see [`docs/code_structure.md`](./do
 
 Agent skills (codebase navigation, env troubleshooting, inference, post-training, setup) live in [`.agents/skills/`](./.agents/skills) and [`.claude/skills/`](./.claude/skills).
 
+The existing post-training, inference, setup, and troubleshooting skills also
+cover managed Cosmos workflows. Their supporting contracts and tested helpers
+live in [`tools/cosmos_workflows/`](./tools/cosmos_workflows/README.md) and resolve
+directly from this checkout. The distinct PAIDF Predict and video-QA
+annotation capabilities add new skill entrypoints. The helpers call native
+Framework training, checkpoint, evaluation, and inference entrypoints.
+
+AutoML uses the distinct [`cosmos-automl`](./.agents/skills/cosmos-automl/SKILL.md)
+skill and native adapter under [`cosmos_framework/automl/`](./cosmos_framework/automl/).
+Read [`docs/automl.md`](./docs/automl.md) for the optional engine wheel, supported
+fixed-budget reasoner workflow, and release/validation limits.
+
 ## Common Tasks
 
 ### Training

@@ -52,6 +52,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+automl = ["nvidia-automl-core>=0.1.0,<0.2"]
 workflows = [
   "attrs",
   "jsonschema",
@@ -168,6 +169,7 @@ train = [
 
 
 [project.scripts]
+cosmos-automl = "cosmos_framework.scripts.automl:main"
 cosmos-dataset = "cosmos_framework.scripts.dataset:main"
 cosmos-annotate-videos = "cosmos_framework.scripts.annotate_videos:main"
 cosmos-reasoner-evaluate = "cosmos_framework.evaluation.reasoner.evaluate:main"
