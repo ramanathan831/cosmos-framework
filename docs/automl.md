@@ -21,12 +21,27 @@ python -m pip install -e '.[automl,workflows]'
 cosmos-automl --help
 ```
 
-Normal `pip install 'cosmos-framework[automl]'` (and resolving `uv --all-extras`)
-requires the core wheel to be available on your package index or supplied via
-a wheelhouse. Publishing that dependency and updating the resolver lock is a
-release gate, not something the helper silently works around with a source
-checkout. The engine's staging source/build instructions live in the separate
-AutoML project at `packages/automl-core`; none of the commands here read it.
+The core is maintained in `tao-automl/packages/automl-core` and built independently;
+that is a maintainer source location, not a consumer installation prerequisite.
+Current delivery is **local wheels only**. To install a supplied Framework wheel
+instead of an editable checkout, install the core wheel above, then:
+
+```bash
+python -m pip install '/path/to/cosmos_framework-1.2.2-py3-none-any.whl[automl,workflows]'
+python -m pip check
+cosmos-automl --help
+```
+
+If Framework 1.2.2 is already installed from a different build, resolve the extras
+above, then replace just that package with `pip install --force-reinstall --no-deps
+/path/to/cosmos_framework-1.2.2-py3-none-any.whl`. The wheelhouse is not an offline
+mirror of third-party dependencies.
+
+A bare index install and normal `uv` lock resolution do not automatically find
+these local wheels. The checked-in lock does not yet include the unpublished
+core dependency. A distributable dependency location and refreshed resolver lock
+remain a release gate; no source checkout or machine-specific wheel path is
+silently added to work around it.
 
 The controller is CPU-only. The execution environment must separately have
 Framework's training and reasoner evaluation prerequisites, GPU resources,
@@ -178,3 +193,34 @@ python -m ruff check cosmos_framework/automl cosmos_framework/scripts/automl.py 
 
 These validate planning, native paths, schema guards, discovery and checkpoint
 handoffs using fixtures. They are not end-to-end GPU training/evaluation tests.
+
+### Bounded local verification (2026-10-05)
+
+A separate real Docker run used Cosmos3-Nano-VLM and disjoint WTS training and
+validation data on four A100 80 GB GPUs (four-rank training, single-GPU evaluation).
+Four sequential trials each completed 10 LoRA steps, saved a native final-step
+DCP, exported it for evaluation, and scored the same 32 held-out questions.
+All four scored 21/32; the best record selected the first tied trial. This verifies
+the workflow, **not model-quality improvement or a full-dataset benchmark**.
+
+The fourth candidate exercised GP/EI after three successful warm-up observations.
+With tied scores, its acquisition retained the seeded initial candidate and the
+GP fit emitted convergence warnings. Controller interruption/resume collected
+existing workers/results without duplicate trials. A fifth four-GPU trial was
+canceled during training; its container and child processes stopped, with no
+successful result recorded. No GPU driver upgrade was needed.
+
+The initial smoke trained successfully but failed evaluation because its omitted
+decoder selected unavailable PyNvVideoCodec dependencies. The explicit TorchCodec
+example and evaluator preflight guidance above address that configuration mismatch.
+GPU UUID allocation also avoided a host-specific Docker ordinal-selection failure;
+the non-compute display GPU was excluded.
+
+The two project wheels passed a fresh CPU-environment install, dependency check,
+CLI help and planning outside both source checkouts, with no TAO packages installed.
+The core wheel also completed a small standalone four-trial CPU example. Those
+packaging checks do not establish GPU compatibility. Full-data quality, other
+models/tasks, distributed evaluation and remote execution remain unverified here.
+A tokenizer-regex warning in the workload logs also needs investigation before
+using these runs as model-quality evidence; this validation did not alter the
+supplied checkpoint or tokenizer.
