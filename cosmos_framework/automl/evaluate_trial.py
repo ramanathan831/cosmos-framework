@@ -21,19 +21,26 @@ def read_toml(path: Path) -> dict:
         return tomllib.load(stream)
 
 
-def validate_dcp(checkpoint: Path) -> None:
-    model = checkpoint / "model"
-    metadata = model / ".metadata"
-    shards = list(model.glob("*.distcp"))
-    if (
-        not metadata.is_file()
-        or not metadata.resolve().is_relative_to(checkpoint.resolve())
-        or not metadata.stat().st_size
-        or not shards
-    ):
-        raise ValueError("Expected a native DCP model directory with nonempty metadata and shards")
-    if any(not shard.resolve().is_relative_to(checkpoint.resolve()) or not shard.stat().st_size for shard in shards):
-        raise ValueError("DCP shards must be nonempty and remain within the trial checkpoint")
+def validate_dcp(checkpoint: Path, *, components: tuple[str, ...] = ("model",)) -> None:
+    """Check native DCP file structure without importing torch or unpickling metadata.
+
+    Native loading still validates the serialized state. Framework deduplicates
+    replicated state onto the lowest rank, so other ranks may write empty shards.
+    Each required component must contain data, but not every rank-local file must.
+    """
+    root = checkpoint.resolve()
+    for component in components:
+        directory = checkpoint / component
+        metadata = directory / ".metadata"
+        shards = list(directory.glob("*.distcp"))
+        if not metadata.is_file() or not metadata.resolve().is_relative_to(root) or not metadata.stat().st_size:
+            raise ValueError(f"DCP {component} requires nonempty metadata within the trial checkpoint")
+        if not shards:
+            raise ValueError(f"DCP {component} checkpoint lacks shards")
+        if any(not shard.is_file() or not shard.resolve().is_relative_to(root) for shard in shards):
+            raise ValueError(f"DCP {component} shards must be regular files within the trial checkpoint")
+        if not any(shard.stat().st_size for shard in shards):
+            raise ValueError(f"DCP {component} requires nonempty shard data")
 
 
 def prepare(run_dir: Path, evaluation: dict, output: Path, expected_iteration: int) -> tuple[dict, Path]:

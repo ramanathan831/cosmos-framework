@@ -87,7 +87,7 @@ Framework training, checkpoint, evaluation, and inference entrypoints.
 AutoML uses the distinct [`cosmos-automl`](./.agents/skills/cosmos-automl/SKILL.md)
 skill and native adapter under [`cosmos_framework/automl/`](./cosmos_framework/automl/).
 Read [`docs/automl.md`](./docs/automl.md) for the optional engine wheel, supported
-fixed-budget reasoner workflow, and release/validation limits.
+reasoner search and GEPA prompt workflows, and release/validation limits.
 
 ## Common Tasks
 
