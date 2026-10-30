@@ -255,10 +255,12 @@ class _WorkerSpec:
 
 
 _WORKER_CACHE: _PreprocessingCache | None = None
+_WORKER_PROCESSING_CALLS = 0
+_WORKER_PROCESSING_SECONDS = 0.0
 
 
 def _initialize_worker(spec: _WorkerSpec) -> None:
-    global _WORKER_CACHE
+    global _WORKER_CACHE, _WORKER_PROCESSING_CALLS, _WORKER_PROCESSING_SECONDS
     os.environ["CUDA_VISIBLE_DEVICES"] = ""
     os.environ["HF_HUB_OFFLINE"] = "1"
     os.environ["TRANSFORMERS_OFFLINE"] = "1"
@@ -280,15 +282,24 @@ def _initialize_worker(spec: _WorkerSpec) -> None:
     if packer.validation_semantics_identity() != spec.identity:
         raise ValueError("spawned preprocessing worker rebuilt a different processor contract")
     _WORKER_CACHE = _PreprocessingCache(packer, cache_bytes=spec.cache_bytes, media_hashes=spec.media_hashes)
+    _WORKER_PROCESSING_CALLS, _WORKER_PROCESSING_SECONDS = 0, 0.0
 
 
 def _process_worker(target: SFTTarget) -> tuple[SFTPolicyInput, dict[str, Any]]:
+    global _WORKER_PROCESSING_CALLS, _WORKER_PROCESSING_SECONDS
     if _WORKER_CACHE is None:
         raise RuntimeError("preprocessing worker was not initialized")
+    started = time.perf_counter()
     result = _WORKER_CACHE.process(target)
+    elapsed = time.perf_counter() - started
     if torch.cuda.is_initialized():
         raise RuntimeError("SFT preprocessing initialized CUDA in the CPU worker")
-    return result, _WORKER_CACHE.stats()
+    _WORKER_PROCESSING_CALLS += 1
+    _WORKER_PROCESSING_SECONDS += elapsed
+    return result, {
+        **_WORKER_CACHE.stats(),
+        "timing": {"processing_calls": _WORKER_PROCESSING_CALLS, "processing_seconds": _WORKER_PROCESSING_SECONDS},
+    }
 
 
 class SFTPreprocessingPipeline:
@@ -311,7 +322,16 @@ class SFTPreprocessingPipeline:
         )
         self._pending: deque = deque()
         self._window_active, self._closed, self._failed = False, False, False
-        self.preprocessing_stats: dict[str, Any] = self._cache.stats()
+        # Disposable execution counters, intentionally absent from cache keys,
+        # processor identity and checkpoints. Worker processing includes cache
+        # hits but excludes IPC; parent waiting is Future.result only. These
+        # durations overlap and must never be added to infer training wall time.
+        self._processing_calls, self._processing_seconds = 0, 0.0
+        self._wait_calls, self._wait_seconds = 0, 0.0
+        self.preprocessing_stats: dict[str, Any] = {
+            **self._cache.stats(),
+            "timing": {"processing_calls": 0, "processing_seconds": 0.0, "wait_calls": 0, "wait_seconds": 0.0},
+        }
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self._packer, name)
@@ -346,13 +366,28 @@ class SFTPreprocessingPipeline:
             return self._consume_future(future)
         if self._executor is not None:
             return self._consume_future(self._executor.submit(_process_worker, copy.deepcopy(target)))
+        started = time.perf_counter()
         result = self._cache.process(target)
-        self.preprocessing_stats = self._cache.stats()
+        self._processing_seconds += time.perf_counter() - started
+        self._processing_calls += 1
+        self.preprocessing_stats = {
+            **self._cache.stats(),
+            "timing": {
+                "processing_calls": self._processing_calls,
+                "processing_seconds": self._processing_seconds,
+                "wait_calls": 0,
+                "wait_seconds": 0.0,
+            },
+        }
         return result
 
     def _consume_future(self, future) -> SFTPolicyInput:
         try:
+            started = time.perf_counter()
             sample, self.preprocessing_stats = future.result(timeout=300)
+            self._wait_seconds += time.perf_counter() - started
+            self._wait_calls += 1
+            self.preprocessing_stats["timing"].update(wait_calls=self._wait_calls, wait_seconds=self._wait_seconds)
             _cpu_bytes(sample)
             return sample
         except BaseException:

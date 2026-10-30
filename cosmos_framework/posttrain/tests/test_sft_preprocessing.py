@@ -213,6 +213,9 @@ def test_spawned_prefetch_preserves_order_identity_rng_and_cold_resume(tmp_path)
         # Validation outside a training window shares the same worker and hits.
         assert pipeline.sft_process_sample(rows[0]) == expected[0]
         assert pipeline.preprocessing_stats["samples"]["hits"] == 1
+        timing = pipeline.preprocessing_stats["timing"]
+        assert timing["processing_calls"] == timing["wait_calls"] == 3
+        assert timing["processing_seconds"] >= 0 and timing["wait_seconds"] >= 0
     finally:
         pipeline.close()
     with pytest.raises(RuntimeError, match="closed"):
@@ -222,8 +225,36 @@ def test_spawned_prefetch_preserves_order_identity_rng_and_cold_resume(tmp_path)
         resumed.prepare_window(rows)
         assert [resumed.sft_process_sample(row) for row in rows] == expected
         resumed.finish_window()
+        assert resumed.preprocessing_stats["timing"]["processing_calls"] == 2
+        assert resumed.preprocessing_stats["timing"]["wait_calls"] == 2
     finally:
         resumed.close()
+
+
+def test_synchronous_timing_counts_hits_without_claiming_decoder_calls(tmp_path, monkeypatch):
+    from cosmos_framework.posttrain.data.packer import sft_preprocess
+
+    packer, pipeline = _local_pipeline(tmp_path, prefetch=False)
+    row = _text_row("A")
+    expected = packer.sft_process_sample(row)
+    identity, before_rng = pipeline.validation_semantics_identity(), torch.get_rng_state().clone()
+    clock = iter([10.0, 12.0, 20.0, 20.25])
+    monkeypatch.setattr(sft_preprocess.time, "perf_counter", lambda: next(clock))
+    try:
+        assert pipeline.sft_process_sample(row) == expected
+        assert pipeline.sft_process_sample(row) == expected
+        assert pipeline.preprocessing_stats["timing"] == {
+            "processing_calls": 2,
+            "processing_seconds": 2.25,
+            "wait_calls": 0,
+            "wait_seconds": 0.0,
+        }
+        assert pipeline.preprocessing_stats["samples"]["misses"] == 1
+        assert pipeline.preprocessing_stats["samples"]["hits"] == 1
+        assert pipeline.validation_semantics_identity() == identity
+        assert torch.equal(before_rng, torch.get_rng_state())
+    finally:
+        pipeline.close()
 
 
 @pytest.mark.parametrize("relative", [False, True], ids=["absolute-alias", "relative-alias"])

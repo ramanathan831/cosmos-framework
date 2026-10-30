@@ -17,7 +17,9 @@ import copy
 import hashlib
 import json
 import math
+import os
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -34,6 +36,224 @@ def _write_json(path: Path, value: Any) -> None:
     with path.open("x", encoding="utf-8") as stream:
         json.dump(value, stream, sort_keys=True, indent=2, allow_nan=False)
         stream.write("\n")
+        stream.flush()
+        os.fsync(stream.fileno())
+
+
+INTERRUPTION_EXIT_CODE = 86
+
+
+def _rank_process_snapshot() -> dict[str, Any]:
+    """Attest rank/child birth identities before process loss; never grants ownership."""
+
+    def identity(pid: int) -> dict[str, Any] | None:
+        try:
+            root = Path("/proc") / str(pid)
+            tail = (root / "stat").read_text().rsplit(")", 1)[1].split()
+            uid = int(
+                next(line.split()[1] for line in (root / "status").read_text().splitlines() if line.startswith("Uid:"))
+            )
+            return {
+                "pid": pid,
+                "ppid": int(tail[1]),
+                "pgid": int(tail[2]),
+                "session": int(tail[3]),
+                "start_ticks": int(tail[19]),
+                "uid": uid,
+                "cgroup": (root / "cgroup").read_text(),
+            }
+        except (FileNotFoundError, ProcessLookupError):
+            return None
+
+    rank = identity(os.getpid())
+    if rank is None:
+        raise RuntimeError("cannot record native rank process identity")
+    pending, seen, descendants = [rank["pid"]], {rank["pid"]}, []
+    while pending:
+        parent = pending.pop()
+        try:
+            for task in (Path("/proc") / str(parent) / "task").iterdir():
+                try:
+                    children = [int(value) for value in (task / "children").read_text().split()]
+                except (FileNotFoundError, ProcessLookupError):
+                    continue
+                for pid in children:
+                    record = identity(pid)
+                    if record is not None and record["ppid"] == parent and pid not in seen:
+                        descendants.append(record)
+                        seen.add(pid)
+                        pending.append(pid)
+        except (FileNotFoundError, ProcessLookupError):
+            pass
+    return {"rank": rank, "descendants": descendants}
+
+
+def inspect_checkpoint(path: str, *, expected_step: int | None = None) -> dict[str, Any]:
+    """Inspect an explicit, own-run adapter checkpoint without constructing its base.
+
+    This reads native trusted trainer/RNG state. It is not an arbitrary-pickle viewer.
+    Pending validation/publication and skipped or partial updates fail qualification.
+    """
+    from cosmos_framework.posttrain.checkpoint.adapter import read_adapter_metadata
+    from cosmos_framework.posttrain.checkpoint.manager import CheckpointManager
+
+    manager = CheckpointManager(checkpoint_format="dcp")
+    explicit = str(Path(path).resolve())
+    resolved = manager.resolve_resume(explicit, str(Path(explicit).parent))
+    if resolved is None or Path(resolved).resolve() != Path(explicit):
+        raise ValueError("checkpoint inspection requires the explicit committed source")
+
+    def read() -> dict[str, Any]:
+        metadata = read_adapter_metadata(explicit, require_resume=True, manager=manager)
+        state = manager.load_component(explicit, "trainer")
+        data = manager.load_component(explicit, "data")
+        if not isinstance(state, dict) or data is None:
+            raise ValueError("checkpoint requires trainer and data state")
+        step = state.get("optimizer_step")
+        if type(step) is not int or step < 1 or (expected_step is not None and step != expected_step):
+            raise ValueError("checkpoint optimizer step differs from the requested boundary")
+        if any(
+            state.get(key) != value
+            for key, value in {
+                "iter": step,
+                "attempt_id": step,
+                "accum": 0,
+                "n_mini": 1,
+                "nonfinite_skips_total": 0,
+                "nonfinite_skips_consecutive": 0,
+            }.items()
+        ):
+            raise ValueError("checkpoint is not a healthy completed optimizer boundary")
+        if state.get("zero_grad_skips_total", 0) != 0:
+            raise ValueError("checkpoint contains skipped zero-gradient updates")
+        validation = state.get("validation")
+        if (
+            not isinstance(validation, dict)
+            or validation["progress"]["pending_step"] is not None
+            or validation.get("publication") is not None
+        ):
+            raise ValueError("checkpoint requires completed validation and publication")
+        if not all(key in state for key in ("rng", "lr_scheduler", "objective_identity", "adapter_training")):
+            raise ValueError("checkpoint is missing required exact-resume controls")
+        return {
+            "path": explicit,
+            "optimizer_step": step,
+            "metadata_sha256": _json_digest(metadata),
+            "model_identity": metadata["identity"],
+            "parameters": metadata["parameters"],
+            "optimizer": metadata["optimizer"],
+            "healthy_completed_boundary": True,
+            "control_file_sha256": {
+                name: hashlib.sha256((Path(explicit) / f"{name}.pt").read_bytes()).hexdigest()
+                for name in ("trainer", "data", "model_metadata")
+            },
+        }
+
+    result, provenance = manager.load_with_stable_provenance(explicit, read)
+    result["provenance"] = provenance
+    return result
+
+
+def _interruption_state(trainer: Any, mode: str, after_step: int) -> dict[str, Any]:
+    codec = trainer._adapter_checkpoint_codec()
+    if codec is None or trainer._iter != after_step:
+        raise ValueError("interruption requires the intended native adapter optimizer boundary")
+    if not callable(getattr(trainer._net(), "_cosmos_validate_frozen_base", None)):
+        raise ValueError("interruption qualification requires the native frozen-state validator")
+    codec.assert_live(trainer._net(), trainer.opt)
+    codec.validate_frozen_base()
+    rejected = False
+    if mode == "accumulation":
+        if trainer.grad_accum <= 1 or trainer._accum != 1 or trainer._attempt_id != after_step + 1:
+            raise ValueError("interruption requires the first completed accumulating microbatch")
+        try:
+            trainer._require_checkpoint_boundary()
+        except RuntimeError:
+            rejected = True
+        if not rejected:
+            raise RuntimeError("partial accumulation unexpectedly permits checkpoint publication")
+    elif mode == "boundary":
+        trainer._require_checkpoint_boundary()
+        if trainer._attempt_id != after_step:
+            raise ValueError("completed-boundary interruption has an unfinished attempt")
+    else:
+        raise ValueError("unsupported interruption mode")
+    return {
+        "optimizer_step": trainer._iter,
+        "attempt_id": trainer._attempt_id,
+        "accumulation_step": trainer._accum,
+        "input_window_active": trainer._input_window_active,
+        "partial_checkpoint_rejected": rejected,
+        "frozen_base_validated": True,
+        "exact_optimizer_membership_validated": True,
+        "adapter_tensors": len(codec.parameters),
+    }
+
+
+def interrupt_native(args: argparse.Namespace) -> dict[str, Any]:
+    """Delegate to native SFT; inject a recorded process exit at a precise test boundary."""
+    from cosmos_framework.posttrain.entrypoints import sft
+    from cosmos_framework.posttrain.roles.trainer.llm import LLMTrainer
+    from cosmos_framework.posttrain.utils import qlora_metrics
+    from cosmos_framework.posttrain.utils.entry import out_dir
+    from cosmos_framework.utils.config import load_config
+
+    if os.environ.get("WORLD_SIZE") != "1" or os.environ.get("RANK") != "0":
+        raise ValueError("interruption qualification requires native one-rank torchrun")
+    config = load_config(args.config, ["--", *args.override])
+    root = Path(out_dir(config)).resolve() / "checkpoints"
+    if root != Path(args.checkpoint_root).resolve() or args.after_step < 1:
+        raise ValueError("interruption checkpoint root must belong to this native run")
+    receipt = Path(args.receipt).resolve()
+    if receipt.exists():
+        raise FileExistsError(receipt)
+    original_train, original_phase, original_argv = LLMTrainer.train, qlora_metrics.record_qlora_phase, sys.argv
+    last_trainer = None
+
+    def terminate(trainer: Any) -> None:
+        checkpoint = inspect_checkpoint(str(root / f"iter_{args.after_step:06d}"), expected_step=args.after_step)
+        state = _interruption_state(trainer, args.mode, args.after_step)
+        if torch.cuda.is_initialized():
+            torch.cuda.synchronize()
+        _write_json(
+            receipt,
+            {
+                "protocol": "cosmos.qlora-injected-interruption.v1",
+                "mode": args.mode,
+                "checkpoint": checkpoint,
+                "live_state": state,
+                "process_snapshot": _rank_process_snapshot(),
+                "exit_code": INTERRUPTION_EXIT_CODE,
+            },
+        )
+        # Intentional process loss: no finally/atexit save, gradient or input-window drain.
+        os._exit(INTERRUPTION_EXIT_CODE)
+
+    def observed_train(trainer: Any, batch: Any) -> dict[str, Any]:
+        nonlocal last_trainer
+        result = original_train(trainer, batch)
+        last_trainer = trainer
+        if args.mode == "accumulation" and trainer._iter == args.after_step and trainer._accum == 1:
+            if result.get("optim/update_outcome") != "accumulating":
+                raise RuntimeError("native microbatch did not report accumulation")
+            terminate(trainer)
+        return result
+
+    def observed_phase(phase: str, *, reset_peak: bool = False) -> Any:
+        result = original_phase(phase, reset_peak=reset_peak)
+        if args.mode == "boundary" and phase == f"validation_checkpoint_boundary_{args.after_step}":
+            if last_trainer is None:
+                raise RuntimeError("native boundary arrived without a trainer update")
+            terminate(last_trainer)
+        return result
+
+    LLMTrainer.train, qlora_metrics.record_qlora_phase = observed_train, observed_phase
+    sys.argv = ["native-sft", "--config", args.config, "--", *args.override]
+    try:
+        sft.main()
+        raise RuntimeError("native run finished without the required injected interruption")
+    finally:
+        LLMTrainer.train, qlora_metrics.record_qlora_phase, sys.argv = original_train, original_phase, original_argv
 
 
 def _probe_rows(data: str, video_row: int, image: str | None, output: Path) -> dict[str, dict[str, Any]]:
@@ -456,6 +676,18 @@ def compare_checkpoints(args: argparse.Namespace) -> dict[str, Any]:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
+    command = commands.add_parser("inspect-checkpoint")
+    command.add_argument("--checkpoint", required=True)
+    command.add_argument("--expected-step", type=int)
+    command.set_defaults(operation=lambda args: inspect_checkpoint(args.checkpoint, expected_step=args.expected_step))
+    command = commands.add_parser("interrupt-native", help="Qualification only: run native SFT and inject process loss")
+    command.add_argument("--config", required=True)
+    command.add_argument("--checkpoint-root", required=True)
+    command.add_argument("--receipt", required=True)
+    command.add_argument("--after-step", type=int, default=2)
+    command.add_argument("--mode", choices=("boundary", "accumulation"), required=True)
+    command.add_argument("--override", action="append", default=[])
+    command.set_defaults(operation=interrupt_native)
     command = commands.add_parser("probe")
     command.add_argument("--config", required=True)
     command.add_argument("--checkpoint")

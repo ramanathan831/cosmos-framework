@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import copy
 import json
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
@@ -13,12 +14,117 @@ import torch
 
 from cosmos_framework.posttrain.tests.qlora_integration import (
     _assert_close_tree,
+    _interruption_state,
     _load_flat_dcp,
     _portable_trainer_controls,
     _probe_rows,
     _restore_probe_execution,
+    inspect_checkpoint,
+    interrupt_native,
 )
 from cosmos_framework.posttrain.utils.qlora_metrics import record_qlora_phase
+
+
+def test_checkpoint_inspection_reads_real_dcp_controls_without_constructing_base(tmp_path):
+    from cosmos_framework.posttrain.tests.test_checkpoint_adapter import _save, _trainer
+
+    trainer = _trainer()
+    trainer.configure_validation({"enabled": False})
+    trainer.train([None])
+    path = _save(trainer, tmp_path)
+    result = inspect_checkpoint(str(path), expected_step=1)
+    assert result["healthy_completed_boundary"]
+    assert len(result["parameters"]) == 2  # No fixed rank16 or full-model tensor assumption.
+    assert result["optimizer_step"] == 1
+    assert set(result["control_file_sha256"]) == {"trainer", "data", "model_metadata"}
+    with pytest.raises(ValueError, match="requested boundary"):
+        inspect_checkpoint(str(path), expected_step=2)
+    state = torch.load(path / "trainer.pt", weights_only=False)
+    state["accum"] = 1
+    torch.save(state, path / "trainer.pt")
+    with pytest.raises(ValueError, match="healthy completed"):
+        inspect_checkpoint(str(path), expected_step=1)
+
+
+def test_real_accumulation_interruption_proves_checkpoint_rejection_and_membership():
+    from cosmos_framework.posttrain.tests.test_checkpoint_adapter import _trainer
+
+    trainer = _trainer(grad_accum=2)
+    checks = []
+    trainer._net()._cosmos_validate_frozen_base = lambda: checks.append(True)
+    for _ in range(4):
+        trainer.train([None])
+    boundary = _interruption_state(trainer, "boundary", 2)
+    assert boundary["accumulation_step"] == 0
+    assert not boundary["partial_checkpoint_rejected"]
+    trainer.train([None])
+    partial = _interruption_state(trainer, "accumulation", 2)
+    assert partial["accumulation_step"] == 1 and partial["attempt_id"] == 3
+    assert partial["partial_checkpoint_rejected"] and len(checks) == 2
+    trainer.opt.param_groups[0]["params"].append(trainer._net().base.weight)
+    with pytest.raises(ValueError, match="membership"):
+        _interruption_state(trainer, "accumulation", 2)
+
+
+def test_interruption_cannot_claim_frozen_proof_without_validator():
+    from cosmos_framework.posttrain.tests.test_checkpoint_adapter import _trainer
+
+    trainer = _trainer()
+    trainer.train([None])
+    with pytest.raises(ValueError, match="frozen-state validator"):
+        _interruption_state(trainer, "boundary", 1)
+
+
+@pytest.mark.parametrize("mode,expected_calls", [("boundary", 4), ("accumulation", 5)])
+def test_interruption_wrapper_delegates_native_main_and_restores_hooks(tmp_path, monkeypatch, mode, expected_calls):
+    from cosmos_framework.posttrain.entrypoints import sft
+    from cosmos_framework.posttrain.roles.trainer.llm import LLMTrainer
+    from cosmos_framework.posttrain.tests import qlora_integration as integration
+    from cosmos_framework.posttrain.tests.test_checkpoint_adapter import _trainer
+    from cosmos_framework.posttrain.utils import entry, qlora_metrics
+    from cosmos_framework.utils import config
+
+    class InjectedExit(Exception):
+        pass
+
+    trainer = _trainer(grad_accum=2)
+    trainer._net()._cosmos_validate_frozen_base = lambda: None
+    original_train, original_phase = LLMTrainer.train, qlora_metrics.record_qlora_phase
+    calls = []
+
+    def native_main():
+        for _ in range(8):
+            calls.append(True)
+            trainer.train([None])
+            if trainer._accum == 0:
+                qlora_metrics.record_qlora_phase(f"validation_checkpoint_boundary_{trainer._iter}", reset_peak=True)
+
+    def exit_process(code):
+        assert code == integration.INTERRUPTION_EXIT_CODE
+        raise InjectedExit
+
+    monkeypatch.setenv("WORLD_SIZE", "1")
+    monkeypatch.setenv("RANK", "0")
+    monkeypatch.delenv("COSMOS_QLORA_METRICS_FILE", raising=False)
+    monkeypatch.setattr(config, "load_config", lambda *_: None)
+    monkeypatch.setattr(entry, "out_dir", lambda _: str(tmp_path / "native"))
+    monkeypatch.setattr(sft, "main", native_main)
+    monkeypatch.setattr(integration, "inspect_checkpoint", lambda path, **_: {"path": path, "optimizer_step": 2})
+    monkeypatch.setattr(integration.os, "_exit", exit_process)
+    args = SimpleNamespace(
+        config="fixture",
+        override=[],
+        checkpoint_root=str(tmp_path / "native/checkpoints"),
+        receipt=str(tmp_path / "interruption.json"),
+        after_step=2,
+        mode=mode,
+    )
+    with pytest.raises(InjectedExit):
+        interrupt_native(args)
+    record = json.loads((tmp_path / "interruption.json").read_text())
+    assert record["mode"] == mode and record["live_state"]["optimizer_step"] == 2
+    assert len(calls) == expected_calls
+    assert LLMTrainer.train is original_train and qlora_metrics.record_qlora_phase is original_phase
 
 
 def test_flat_checkpoint_comparison_preserves_tensor_and_control_state(tmp_path):
