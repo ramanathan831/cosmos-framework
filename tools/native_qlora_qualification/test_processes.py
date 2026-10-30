@@ -10,6 +10,7 @@ import os
 import platform
 import subprocess
 import sys
+import threading
 import time
 from types import SimpleNamespace
 
@@ -97,6 +98,43 @@ def test_pid_birth_change_refuses_signal(monkeypatch):
     monkeypatch.setattr(processes, "process_identity", lambda _: {**expected, "start_ticks": 11, "state": "S"})
     with pytest.raises(RuntimeError, match="reused"):
         tracker._signal(expected, processes.signal.SIGKILL)
+
+
+@pytest.mark.parametrize("change", [None, "unknown", "start_ticks", "uid", "cgroup"])
+def test_stale_children_snapshot_accepts_only_previously_verified_reparent(monkeypatch, change):
+    from tools.native_qlora_qualification import processes
+
+    parent = {"pid": 100, "ppid": 50, "start_ticks": 10, "uid": 7, "cgroup": "owned"}
+    child = {"pid": 200, "ppid": 100, "start_ticks": 20, "uid": 7, "cgroup": "owned"}
+    actual = {100: parent.copy(), 200: child.copy()}
+    tracker = object.__new__(OwnedProcessTree)
+    tracker.root = parent
+    tracker.known = {100: parent.copy()}
+    if change != "unknown":
+        tracker.known[200] = child.copy()
+    tracker._lock = threading.RLock()
+    monkeypatch.setattr(processes, "process_identity", lambda pid: actual[pid].copy())
+
+    def snapshot_then_reparent(pid):
+        if pid != 100:
+            return set()
+        # The kernel returned this child while its parent was live, but the
+        # parent's exit reparents it before refresh reads the child's identity.
+        actual[200]["ppid"] = 1
+        if change in {"start_ticks", "uid"}:
+            actual[200][change] += 1
+        elif change == "cgroup":
+            actual[200]["cgroup"] = "unrelated"
+        return {200}
+
+    monkeypatch.setattr(processes, "children", snapshot_then_reparent)
+    if change is None:
+        tracker.refresh()
+        assert tracker.known[200] == {**child, "ppid": 1}
+    else:
+        with pytest.raises(RuntimeError, match="ownership changed|identity was reused or moved"):
+            tracker.refresh()
+        assert tracker.known.get(200) == (None if change == "unknown" else child)
 
 
 @pytest.mark.parametrize("operation", ["open", "send_signal"])

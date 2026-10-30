@@ -158,15 +158,20 @@ class OwnedProcessTree:
                     child = process_identity(child_pid)
                     if child is None:
                         continue
-                    if (
+                    previous = self.known.get(child_pid)
+                    if previous is not None:
+                        if not same_process(previous, child):
+                            raise RuntimeError("owned descendant identity was reused or moved during qualification")
+                        # A known child can reparent after the parent's children
+                        # snapshot, before this identity read. Its verified birth,
+                        # UID and cgroup still establish ownership independently
+                        # of its new PPID; unknown children need live ancestry.
+                    elif (
                         child["ppid"] != pid
                         or child["uid"] != self.root["uid"]
                         or child["cgroup"] != self.root["cgroup"]
                     ):
                         raise RuntimeError("descendant ownership changed during qualification tracking")
-                    previous = self.known.get(child_pid)
-                    if previous is not None and not same_process(previous, child):
-                        raise RuntimeError("owned descendant PID was reused during qualification")
                     self.known[child_pid] = child
                     queue.append(child_pid)
 
