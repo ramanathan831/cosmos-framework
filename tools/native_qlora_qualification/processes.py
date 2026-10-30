@@ -9,12 +9,75 @@ while their ancestry was live. A receipt cannot grant ownership of a new PID.
 
 from __future__ import annotations
 
+import ctypes
 import errno
 import os
+import platform
 import signal
+import sys
 import threading
 from pathlib import Path
 from typing import Any
+
+
+def _has_native_pidfds() -> bool:
+    return callable(getattr(os, "pidfd_open", None)) and callable(getattr(signal, "pidfd_send_signal", None))
+
+
+class _PidfdBackend:
+    """Use Python wrappers or the explicit Linux x86-64 pidfd syscall ABI.
+
+    Portable CPython builds may omit both wrappers even on a supporting kernel.
+    The fallback still operates exclusively on pidfds; it never signals a PID.
+    Syscall numbers match Linux asm/unistd_64.h: send_signal=424, open=434.
+    ABI: https://man7.org/linux/man-pages/man2/pidfd_open.2.html and
+    https://man7.org/linux/man-pages/man2/pidfd_send_signal.2.html.
+    """
+
+    def __init__(self):
+        self.backend = "python_pidfd" if _has_native_pidfds() else "linux_x86_64_pidfd_syscalls"
+        if self.backend == "linux_x86_64_pidfd_syscalls":
+            if (
+                sys.platform != "linux"
+                or platform.machine() != "x86_64"
+                or ctypes.sizeof(ctypes.c_void_p) != 8
+                or ctypes.sizeof(ctypes.c_long) != 8
+            ):
+                raise RuntimeError("pidfd syscall fallback requires explicit Linux x86_64 LP64 support")
+            self._libc = ctypes.CDLL(None, use_errno=True)
+            self._syscall = self._libc.syscall
+            self._syscall.restype = ctypes.c_long
+            self._syscall.argtypes = [ctypes.c_long]
+
+    def _call(self, number: int, *args) -> int:
+        result = self._syscall(ctypes.c_long(number), *args)
+        if result < 0:
+            error = ctypes.get_errno()
+            raise OSError(error, os.strerror(error))
+        return int(result)
+
+    def open(self, pid: int) -> int:
+        if self.backend == "python_pidfd":
+            return os.pidfd_open(pid)
+        return self._call(434, ctypes.c_int(pid), ctypes.c_uint(0))
+
+    def send_signal(self, fd: int, signum: int) -> None:
+        if self.backend == "python_pidfd":
+            signal.pidfd_send_signal(fd, signum)
+        else:
+            self._call(424, ctypes.c_int(fd), ctypes.c_int(signum), ctypes.c_void_p(None), ctypes.c_uint(0))
+
+    def probe(self) -> dict[str, str | bool]:
+        """Probe only this process using signal zero; call before launching work."""
+        try:
+            fd = self.open(os.getpid())
+            try:
+                self.send_signal(fd, 0)
+            finally:
+                os.close(fd)
+        except OSError as error:
+            raise RuntimeError(f"qualification pidfd capability probe failed ({self.backend}): {error}") from error
+        return {"pidfd_backend": self.backend, "self_pidfd_open": True, "self_signal_zero": True}
 
 
 def process_identity(pid: int) -> dict[str, Any] | None:
@@ -56,11 +119,15 @@ def children(pid: int) -> set[int]:
 
 
 class OwnedProcessTree:
-    """Start immediately after Popen; call cleanup in finally, even after root exit."""
+    """Check support before Popen; track immediately after it and always clean up."""
+
+    @staticmethod
+    def check_support() -> dict[str, str | bool]:
+        return _PidfdBackend().probe()
 
     def __init__(self, root_pid: int, *, interval: float = 0.5):
-        if not hasattr(os, "pidfd_open") or not hasattr(signal, "pidfd_send_signal"):
-            raise RuntimeError("qualification process cleanup requires Linux pidfd support")
+        self._pidfd = _PidfdBackend()
+        self.capability = self._pidfd.probe()
         root = process_identity(root_pid)
         if root is None or root["ppid"] != os.getpid() or root["uid"] != os.getuid():
             raise ValueError("process tracker root must be this process's freshly launched child")
@@ -128,7 +195,7 @@ class OwnedProcessTree:
         if actual is None or actual["state"] == "Z":
             return False
         try:
-            fd = os.pidfd_open(record["pid"])
+            fd = self._pidfd.open(record["pid"])
         except OSError as error:
             # A dead session/group leader can retain its PID through live group
             # members: pidfd_open returns EINVAL, not ESRCH, for that non-task PID.
@@ -142,14 +209,14 @@ class OwnedProcessTree:
             if not same_process(record, actual):
                 raise RuntimeError("refusing to signal a reused or moved process identity")
             try:
-                signal.pidfd_send_signal(fd, signum)
+                self._pidfd.send_signal(fd, signum)
                 return True
             except ProcessLookupError:
                 return False
         finally:
             os.close(fd)
 
-    def cleanup(self) -> dict[str, int]:
+    def cleanup(self) -> dict[str, int | str]:
         self._stop.set()
         self._thread.join(timeout=max(5, 4 * self.interval))
         if self._thread.is_alive():
@@ -169,4 +236,8 @@ class OwnedProcessTree:
         killed = sum(self._signal(record, signal.SIGKILL) for record in reversed(list(self.known.values())))
         if self._error is not None:
             raise RuntimeError("process ownership tracking failed") from self._error
-        return {"observed_processes": len(self.known), "signaled_processes": killed}
+        return {
+            "observed_processes": len(self.known),
+            "signaled_processes": killed,
+            "pidfd_backend": self._pidfd.backend,
+        }

@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: OpenMDW-1.1
 """Orchestration contracts; these do not qualify accelerator kernels or performance."""
 
+import importlib
 import json
 import sys
 from pathlib import Path
@@ -11,6 +12,22 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent))
 from protocol import file_sha256
 from run import Stages, verify_kernel_gate
+
+
+@pytest.mark.parametrize("module_name", ["run", "lifecycle"])
+def test_missing_process_capability_refuses_stages_before_launch(tmp_path, monkeypatch, module_name):
+    module = importlib.import_module(module_name)
+
+    def unavailable():
+        raise RuntimeError("pidfd capability unavailable")
+
+    monkeypatch.setattr(module.OwnedProcessTree, "check_support", staticmethod(unavailable))
+    with pytest.raises(RuntimeError, match="pidfd capability unavailable"):
+        if module_name == "run":
+            module.Stages(tmp_path, Path("/usr/bin/time"))
+        else:
+            module.Stages(tmp_path, {}, 10)
+    assert not (tmp_path / "stages").exists()
 
 
 def test_failed_stage_retains_command_log_and_exit_code(tmp_path):

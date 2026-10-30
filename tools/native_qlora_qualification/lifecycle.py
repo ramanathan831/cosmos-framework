@@ -150,8 +150,10 @@ def compare_next_metrics(reference: Path, candidate: Path, step: int) -> dict[st
 
 class Stages:
     def __init__(self, output: Path, environment: dict[str, str], timeout: int):
+        self.process_capability = OwnedProcessTree.check_support()
         self.output, self.environment, self.timeout = output, environment, timeout
         (output / "stages").mkdir()
+        write_json(output / "process-capability.json", self.process_capability)
         self.outcomes: list[dict[str, Any]] = []
 
     def run(

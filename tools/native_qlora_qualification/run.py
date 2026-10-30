@@ -212,11 +212,13 @@ def kernel_gate(args: argparse.Namespace) -> None:
 
 class Stages:
     def __init__(self, output: Path, time_binary: Path, *, timeout_seconds: int = 7200):
+        self.process_capability = OwnedProcessTree.check_support()
         self.output, self.time_binary, self.timeout = output, time_binary, timeout_seconds
         self.outcomes: list[dict] = []
         self.work = output / "work"
         self.work.mkdir()
         (output / "stages").mkdir()
+        write_json(output / "process-capability.json", self.process_capability)
         self.marker = output / "current-stage.txt"
         self.marker.write_text("initialization\n")
 
