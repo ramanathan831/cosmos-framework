@@ -97,6 +97,8 @@ Score all 584 development rows. Seal the selection rule and all candidate identi
 
 The bounded continuation permits at most 48 GPU allocation-hours, four concurrent GPUs, and 64 separate CPU core-hours, including failed attempts. These are experiment limits, not resource recommendations or evidence for small-GPU support. If the budget or available final data cannot resolve a gate, report the missing evidence; do not expand the budget or weaken a threshold implicitly.
 
+The [sealed uncertainty clarification](evidence/native_qlora_multiseed_protocol_20261030.json) fixes the exact resampling procedure before continuation training outcomes. It retains paired seeds and complete recording groups, token-weighted NLL and all original margins. The primary hierarchical analysis draws groups independently within each sampled seed; a conservative crossed sensitivity uses the same group draw across sampled seeds. Both must satisfy the margins. Frozen predictions remain a fixed deterministic reference, and slice intervals are exploratory. [quality_confirmation.py](../../tools/native_qlora_qualification/quality_confirmation.py) checks statistical pairing; experiment and artifact identity validation remains a separate prerequisite.
+
 ## Unchanged release gates and pending measurements
 
 | Gate              | Required evidence                                                                                                                                           | Current status                                                                                                                                                   |
