@@ -297,7 +297,20 @@ def final_checkpoint(output: Path, experiment: Experiment, receipt: dict) -> Pat
     return checkpoint
 
 
+def validate_action_checkpoint(action: str, checkpoint: str | None) -> None:
+    """Keep frozen, fresh training and trained evaluation unambiguous before work."""
+    if action not in {"train-eval", "evaluate", "frozen"}:
+        raise ValueError("unsupported native qualification action")
+    if checkpoint is not None and (not isinstance(checkpoint, str) or not checkpoint.strip()):
+        raise ValueError("checkpoint must be an explicit nonempty source path")
+    if action == "evaluate" and checkpoint is None:
+        raise ValueError("trained evaluation requires an explicit checkpoint")
+    if action != "evaluate" and checkpoint is not None:
+        raise ValueError(f"{action} requires a fresh base and rejects an inherited checkpoint")
+
+
 def execute(args: argparse.Namespace) -> None:
+    validate_action_checkpoint(args.action, args.checkpoint)
     experiment = Experiment.read(args.spec)
     output = Path(args.output).absolute()
     output.mkdir(parents=True, exist_ok=False)
@@ -366,8 +379,6 @@ def execute(args: argparse.Namespace) -> None:
             )
         checkpoint = Path(args.checkpoint) if args.checkpoint else None
         if args.action == "train-eval":
-            if checkpoint is not None:
-                raise ValueError("fresh experiment cannot inherit another run's checkpoint")
             stages.run(
                 "training",
                 [

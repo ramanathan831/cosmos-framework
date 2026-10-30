@@ -6,12 +6,39 @@ import importlib
 import json
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parent))
 from protocol import file_sha256
-from run import Stages, verify_kernel_gate
+from run import Stages, validate_action_checkpoint, verify_kernel_gate
+
+
+@pytest.mark.parametrize("action,checkpoint", [("train-eval", None), ("frozen", None), ("evaluate", "/own/checkpoint")])
+def test_explicit_native_action_checkpoint_contract(action, checkpoint):
+    validate_action_checkpoint(action, checkpoint)
+
+
+@pytest.mark.parametrize(
+    "action,checkpoint",
+    [
+        ("evaluate", None),
+        ("frozen", "/trained/checkpoint"),
+        ("train-eval", "/other/checkpoint"),
+        ("evaluate", ""),
+        ("evaluate", "   "),
+        ("unknown", None),
+    ],
+)
+def test_ambiguous_action_fails_before_config_read_or_allocation(tmp_path, monkeypatch, action, checkpoint):
+    module = importlib.import_module("run")
+    monkeypatch.setattr(module.Experiment, "read", lambda path: pytest.fail("read configuration before action guard"))
+    monkeypatch.setattr(module, "verify_build", lambda path: pytest.fail("verified runtime before action guard"))
+    output = tmp_path / "new"
+    with pytest.raises(ValueError):
+        module.execute(SimpleNamespace(action=action, checkpoint=checkpoint, output=str(output), spec="unread.json"))
+    assert not output.exists()
 
 
 @pytest.mark.parametrize("module_name", ["run", "lifecycle"])
