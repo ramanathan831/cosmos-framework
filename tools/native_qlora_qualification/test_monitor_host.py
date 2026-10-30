@@ -3,16 +3,87 @@
 """Real Linux child lifetimes plus hostile receipt tests; no models or CUDA."""
 
 import copy
+import ctypes
+import json
 import select
 import shutil
 import subprocess
 import sys
 import time
+from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
 
 from tools.native_qlora_qualification import monitor_host as host
+
+
+class _CapabilityHeader(ctypes.Structure):
+    _fields_ = [("version", ctypes.c_uint32), ("pid", ctypes.c_int)]
+
+
+class _CapabilityWord(ctypes.Structure):
+    _fields_ = [("effective", ctypes.c_uint32), ("permitted", ctypes.c_uint32), ("inheritable", ctypes.c_uint32)]
+
+
+def _capabilities(values=None):
+    """Linux v3 capget/capset ABI, pid=0 means this sampling thread only."""
+    libc = ctypes.CDLL(None, use_errno=True)
+    header = _CapabilityHeader(0x20080522, 0)
+    words = (_CapabilityWord * 2)()
+    call = libc.capget if values is None else libc.capset
+    call.argtypes = [ctypes.POINTER(_CapabilityHeader), ctypes.POINTER(_CapabilityWord)]
+    call.restype = ctypes.c_int
+    if values is not None:
+        for index, value in enumerate(values):
+            for key in ("effective", "permitted", "inheritable"):
+                setattr(words[index], key, value[key])
+    if call(ctypes.byref(header), words) != 0:
+        code = ctypes.get_errno()
+        raise OSError(code, "current-thread capability operation failed")
+    return [{key: getattr(word, key) for key in ("effective", "permitted", "inheritable")} for word in words]
+
+
+def _capability_status():
+    return {
+        key: value.strip()
+        for line in Path("/proc/thread-self/status").read_text().splitlines()
+        for key, _, value in (line.partition(":"),)
+        if key.startswith("Cap")
+    }
+
+
+@contextmanager
+def without_ptrace_capability(request):
+    """Permission fixture only; restore the complete original structure even on failure.
+
+    Containers may grant CAP_SYS_PTRACE, which overrides nondumpable protection.
+    Clear only that effective bit, retaining permitted/inheritable/bounding/ambient
+    capabilities. No training or monitor production policy uses this context.
+    """
+    initial = _capabilities()
+    initial_status = _capability_status()
+    expected = copy.deepcopy(initial)
+    expected[0]["effective"] &= ~(1 << 19)  # Linux CAP_SYS_PTRACE.
+    evidence = {"initial": initial, "initial_proc_status": initial_status, "drop_expected": expected}
+    try:
+        _capabilities(expected)
+        evidence["dropped"] = _capabilities()
+        evidence["dropped_proc_status"] = _capability_status()
+        assert evidence["dropped"] == expected
+        assert all(
+            evidence["dropped_proc_status"][key] == initial_status[key] for key in initial_status if key != "CapEff"
+        )
+        yield evidence
+    finally:
+        try:
+            _capabilities(initial)
+            evidence["restored"] = _capabilities()
+            evidence["restored_proc_status"] = _capability_status()
+            assert evidence["restored"] == initial
+            assert evidence["restored_proc_status"] == initial_status
+        finally:
+            request.node.user_properties.append(("ptrace_capability_fixture", json.dumps(evidence, sort_keys=True)))
 
 
 @pytest.fixture
@@ -22,7 +93,7 @@ def child():
     def start(*, nondumpable=False):
         code = "import ctypes,sys; data=bytearray(4*1024*1024); "
         if nondumpable:
-            code += "assert ctypes.CDLL(None).prctl(4,0,0,0,0)==0; "
+            code += "libc=ctypes.CDLL(None); assert libc.prctl(4,0,0,0,0)==0; assert libc.prctl(3,0,0,0,0)==0; "
         code += "print('ready',flush=True); sys.stdin.read(1)"
         process = subprocess.Popen(
             [sys.executable, "-I", "-S", "-c", code], stdin=subprocess.PIPE, stdout=subprocess.PIPE
@@ -93,17 +164,26 @@ def test_real_exit_between_status_and_rollup_retries_and_preserves_failure(sampl
     assert sample["process_host_memory"][str(process.pid)]["address_space_released"] is True
 
 
-def test_actual_live_nondumpable_child_is_incomplete(child, tmp_path):
+def test_actual_live_nondumpable_child_is_incomplete(child, tmp_path, request):
     process = child(nondumpable=True)
     value = host.HostSampler(process.pid, tmp_path / "stage")
+    before = host.read_proc(process.pid, "smaps_rollup")
     try:
-        sample = value.collect()
-        item = sample["host_collection"]["attempts"][0]["processes"][str(process.pid)]
-        assert item["rollup"]["error"]["errno"] == 13
-        assert item["poll_after"]["events"] == []
-        assert not host.validate_sample(sample)["host_pss_complete"]
-        assert "live_or_unknown_memory_unreadable" in sample["host_collection_errors"]
-        assert len(sample["host_collection"]["attempts"]) == 1
+        with without_ptrace_capability(request) as evidence:
+            evidence.update(child_pr_get_dumpable=0, before_read=before)
+            sample = value.collect()
+            item = sample["host_collection"]["attempts"][0]["processes"][str(process.pid)]
+            evidence["dropped_read"] = item["rollup"]
+            assert item["rollup"]["error"]["errno"] == 13
+            assert item["poll_after"]["events"] == []
+            assert not host.validate_sample(sample)["host_pss_complete"]
+            assert "live_or_unknown_memory_unreadable" in sample["host_collection_errors"]
+            assert len(sample["host_collection"]["attempts"]) == 1
+        restored = host.read_proc(process.pid, "smaps_rollup")
+        request.node.user_properties.append(("restored_read", json.dumps(restored, sort_keys=True)))
+        assert ("error" in restored) == ("error" in before)
+        if "error" in before:
+            assert restored["error"]["errno"] == before["error"]["errno"]
     finally:
         value.close()
 
@@ -296,27 +376,44 @@ def test_discovery_to_pin_identity_reuse_fails_closed(sampler, monkeypatch):
     assert len(sample["host_collection"]["attempts"]) == 1
 
 
-def test_actual_live_eacces_followed_by_exit_cannot_be_hidden_by_retry(child, tmp_path, monkeypatch):
+def test_actual_live_eacces_followed_by_exit_cannot_be_hidden_by_retry(child, tmp_path, monkeypatch, request):
     process = child(nondumpable=True)
     value = host.HostSampler(process.pid, tmp_path / "stage")
     read = host.read_proc
-
-    def error_then_exit(pid, name):
-        result = read(pid, name)
-        if pid == process.pid and name == "smaps_rollup":
-            assert result["error"]["errno"] == 13
-            process.terminate()
-            process.wait(timeout=5)
-        return result
-
-    monkeypatch.setattr(host, "read_proc", error_then_exit)
+    before = read(process.pid, "smaps_rollup")
     try:
-        sample = value.collect()
-        assert not host.validate_sample(sample)["host_pss_complete"]
-        assert len(sample["host_collection"]["attempts"]) == 1
-        assert "unexplained_read_error_before_exit" in sample["host_collection_errors"]
+        with without_ptrace_capability(request) as evidence:
+            evidence.update(child_pr_get_dumpable=0, before_read=before)
+
+            def error_then_exit(pid, name):
+                result = read(pid, name)
+                if pid == process.pid and name == "smaps_rollup":
+                    evidence["dropped_read"] = result
+                    assert result["error"]["errno"] == 13
+                    process.terminate()
+                    process.wait(timeout=5)
+                return result
+
+            monkeypatch.setattr(host, "read_proc", error_then_exit)
+            sample = value.collect()
+            evidence["after_exit_read"] = sample["host_collection"]["attempts"][0]["processes"][str(process.pid)][
+                "stat_after"
+            ]
+            assert not host.validate_sample(sample)["host_pss_complete"]
+            assert len(sample["host_collection"]["attempts"]) == 1
+            assert "unexplained_read_error_before_exit" in sample["host_collection_errors"]
     finally:
         value.close()
+
+
+def test_capability_fixture_restores_exact_state_after_assertion_failure(request):
+    original = _capabilities()
+    original_status = _capability_status()
+    with pytest.raises(AssertionError, match="deliberate fixture body failure"):
+        with without_ptrace_capability(request):
+            assert False, "deliberate fixture body failure"
+    assert _capabilities() == original
+    assert _capability_status() == original_status
 
 
 def test_valid_pre_exit_attempt_peak_is_not_lost_when_final_retry_is_zero(sampler, monkeypatch):

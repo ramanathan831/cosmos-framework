@@ -855,11 +855,11 @@ def test_cell_reload_is_bound_to_own_final_model(tmp_path, monkeypatch, damage):
     assert report["complete"] is False
 
 
-def explicit_profile_fixture(tmp_path):
+def explicit_profile_fixture(tmp_path, *, version=2):
     """Synthetic future producer: no private revision is implicitly trusted."""
     f = Fixture(tmp_path)
-    f.inputs["protocol"] = select.PROFILE_INPUT_PROTOCOL
-    workflow_root, runner_root = "workflows/aaaaaaa", "gpu-runtime-v6"
+    f.inputs["protocol"] = select.PROFILE_INPUT_PROTOCOL if version == 2 else select.PROFILE_INPUT_PROTOCOL_V3
+    workflow_root, runner_root = "workflows/aaaaaaa", "gpu-runtime-v6" if version == 2 else "gpu-runtime-v7"
     files = {}
 
     def source(name, contents):
@@ -1003,3 +1003,30 @@ def test_explicit_profile_unrelated_file_is_not_strict_monitor_helper(tmp_path):
     identity["plan"]["inputs"] = [{"path": p, "sha256": s} for p, s in f.inputs["files"].items()]
     with pytest.raises(select.InvalidExecutionSelection, match="strict host-monitor"):
         select.producer_profile(f.evidence(), identity)
+
+
+def test_v3_profile_binds_exact_v7_without_changing_v2(tmp_path):
+    fixture, identity = explicit_profile_fixture(tmp_path, version=3)
+    workflow, result = select.producer_profile(fixture.evidence(), identity)
+    assert workflow["code_revision"] == "a" * 40
+    assert result["input_protocol"] == select.PROFILE_INPUT_PROTOCOL_V3
+    assert result["runner"]["root"] == "gpu-runtime-v7"
+    fixture.inputs["protocol"] = select.PROFILE_INPUT_PROTOCOL
+    with pytest.raises(select.InvalidExecutionSelection, match="observed execution"):
+        select.producer_profile(fixture.evidence(), identity)
+
+
+def test_v3_cannot_reuse_v6_profile_even_with_matching_inventory(tmp_path):
+    fixture, identity = explicit_profile_fixture(tmp_path)
+    fixture.inputs["protocol"] = select.PROFILE_INPUT_PROTOCOL_V3
+    with pytest.raises(select.InvalidExecutionSelection, match="observed execution"):
+        select.producer_profile(fixture.evidence(), identity)
+
+
+def test_v3_rechecks_its_v7_inventory_at_publication(tmp_path):
+    fixture, identity = explicit_profile_fixture(tmp_path, version=3)
+    evidence = fixture.evidence()
+    select.producer_profile(evidence, identity)
+    (tmp_path / "gpu-runtime-v7/extra.py").write_text("# late unbound source")
+    with pytest.raises(select.InvalidExecutionSelection, match="inventory changed"):
+        evidence.stable()

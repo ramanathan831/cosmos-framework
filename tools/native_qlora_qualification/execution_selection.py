@@ -41,6 +41,7 @@ from tools.native_qlora_qualification.protocol import Experiment, write_json
 PROTOCOL = "cosmos.qlora-execution-selection.v1"
 INPUT_PROTOCOL = "cosmos.qlora-execution-selection-inputs.v1"
 PROFILE_INPUT_PROTOCOL = "cosmos.qlora-execution-selection-inputs.v2"
+PROFILE_INPUT_PROTOCOL_V3 = "cosmos.qlora-execution-selection-inputs.v3"
 PRODUCER_PROFILE_PROTOCOL = "cosmos.qlora-runtime-producer-profile.v1"
 TRAINING_REVISION = "55e7f14dfeca84002d0324108808a0e682579842"
 WHEEL_SHA = "4939262dbf2de43be0b3f9d579b0bc2fbf72ab84250852397b0dc14087b5792b"
@@ -96,10 +97,12 @@ class Evidence:
         self.root, self.inputs, self.used = Path(root).resolve(), inputs, {}
         self.python_inventories: dict[str, set[str]] = {}
         require(
-            inputs.get("protocol") in (INPUT_PROTOCOL, PROFILE_INPUT_PROTOCOL), "unsupported execution input schema"
+            inputs.get("protocol") in (INPUT_PROTOCOL, PROFILE_INPUT_PROTOCOL, PROFILE_INPUT_PROTOCOL_V3),
+            "unsupported execution input schema",
         )
         require(
-            ("producer_profile" in inputs) == (inputs.get("protocol") == PROFILE_INPUT_PROTOCOL),
+            ("producer_profile" in inputs)
+            == (inputs.get("protocol") in (PROFILE_INPUT_PROTOCOL, PROFILE_INPUT_PROTOCOL_V3)),
             "explicit producer profile requires the versioned input schema",
         )
         require(isinstance(inputs.get("files"), dict), "missing pinned evidence inventory")
@@ -234,7 +237,8 @@ def producer_profile(evidence: Evidence, identity: dict) -> tuple[dict, dict]:
     require(
         re.fullmatch("[0-9a-f]{40}", w["revision"] or "") is not None
         and w["root"] == "workflows/" + w["revision"][:7]
-        and r["root"] == "gpu-runtime-v6"
+        and r["root"]
+        == ("gpu-runtime-v7" if evidence.inputs["protocol"] == PROFILE_INPUT_PROTOCOL_V3 else "gpu-runtime-v6")
         and workflow.get("code_revision") == w["revision"]
         and workflow.get("training_package_revision") == TRAINING_REVISION
         and workflow.get("training_wheel_sha256") == WHEEL_SHA
@@ -270,7 +274,11 @@ def producer_profile(evidence: Evidence, identity: dict) -> tuple[dict, dict]:
         and value.get("preserve", {}).get("all_quality_and_memory_thresholds") == "unchanged",
         "presealed telemetry correction policy missing or changed",
     )
-    return workflow, {"input_protocol": PROFILE_INPUT_PROTOCOL, "profile_sha256": binding["sha256"], **profile}
+    return workflow, {
+        "input_protocol": evidence.inputs["protocol"],
+        "profile_sha256": binding["sha256"],
+        **profile,
+    }
 
 
 def healthy_outcomes(evidence: Evidence, root: str, records: list, expected: tuple[str, ...]) -> None:
