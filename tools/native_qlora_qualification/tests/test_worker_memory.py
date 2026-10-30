@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: OpenMDW-1.1
 from __future__ import annotations
 
-import importlib.util
 import json
 import subprocess
 import sys
@@ -13,13 +12,9 @@ import numpy as np
 import pytest
 import torch
 
-_PATH = Path(__file__).parents[1] / "worker_memory.py"
-sys.path.insert(0, str(_PATH.parent))
-_SPEC = importlib.util.spec_from_file_location("worker_memory", _PATH)
-assert _SPEC and _SPEC.loader
-memory = importlib.util.module_from_spec(_SPEC)
-sys.modules[_SPEC.name] = memory
-_SPEC.loader.exec_module(memory)
+from tools.native_qlora_qualification import worker_memory as memory
+
+_PATH = Path(memory.__file__)
 
 
 def test_policy_changes_only_blas_and_cpu_safety():

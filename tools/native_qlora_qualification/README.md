@@ -59,6 +59,29 @@ The input manifest binds all consumed files and declares any recorded-root alias
 
 `worker_memory.py` compares the inherited worker environment with a fresh-process BLAS-thread intervention. Use sequential AB/BA pairs on matched CPU placement. It checks exact processed tensor and RNG identities, live-cache accounting, process-tree memory and thread/allocator provenance. Its end-only garbage collection and allocator trim are disposable diagnostics, not a production policy.
 
+The opt-in periodic diagnostic uses `--trim-every-rows 0` for a matched sham and `--trim-every-rows 128` for worker-local `malloc_trim(0)`. Both modes keep inherited thread settings, verify the same live cache and RNG at every drained 128-row boundary, and perform no explicit GC or cache eviction. Both receive the same separately timed end-only trim. Omitting the option preserves the original thread comparison and end-only GC/trim behavior. Periodic comparisons require one complete sham and one complete treatment with identical placement, environment, processed tensors, cursor and cache identities, plus clean child exits. Post-result shutdown stamps distinguish pipeline close, monitor join and leaving the child main.
+
+Run from a tools-only staging directory against the verified wheel overlay and prepared processor/data bundle; the launcher must verify package bytes and import resolution before these commands. Use a disposable CPU allocation with eight physical cores for the recorded configuration. Keep the inherited thread environment identical within each pair and use a fresh output root for every repeat:
+
+```bash
+for interval in 0 128; do
+  python -m tools.native_qlora_qualification.worker_memory run \
+    --config cosmos_framework/posttrain/configs/sft_qwen3_vl_8b_qlora.py \
+    --model-path "$SFT_MODEL_PATH" --data-root "$WTS_ACCEPTED_DATA" \
+    --build-receipt "$BUILD_RECEIPT" --output "$CPU_EVIDENCE/trim-$interval" \
+    --thread-policy inherited --trim-every-rows "$interval" \
+    --rows 1000 --seed 42 --repeat 0 --expected-physical-cpus 8 \
+    --timeout-seconds 1720
+done
+python -m tools.native_qlora_qualification.worker_memory compare \
+  --run "$CPU_EVIDENCE/trim-0" --run "$CPU_EVIDENCE/trim-128" \
+  --output "$CPU_EVIDENCE/comparison.json"
+```
+
+Counterbalance with `128 0`, `--repeat 1` and another fresh output root. The timeout covers startup, replay and shutdown; allocation wall time must cover both children and setup. The [completed CPU evidence](../../docs/post_training/evidence/native_qlora_worker_memory_20261030.json) has SHA256 `72fbd667c01c5b7bab357de3b6eff4061dd5f0019b7e58a24a9ca6374cc7837a`. Its two clean pairs reduced observed boundary worker PSS by about 1.08 and 1.11 GiB while preserving all processed outputs and state. The failed initial attempt remains descriptive-only evidence. Replay time increased by about 12 and 210 seconds respectively; order, cache warmth and system load remain confounded, so no speed improvement is claimed.
+
+The promoted periodic replay, maintenance and shutdown functions preserve the qualified diagnostic's syntax-tree semantics; [source-provenance tests](tests/test_worker_memory_periodic.py) pin those functions and the legacy replay separately. Promotion adds explicit mode dispatch, rejects mixed protocols or incomplete exits, and requires at least one periodic boundary. The evidence is CPU preprocessing replay only: no model, production reclamation policy, live-training memory bound or larger-media benefit is established. Direct trim-call time excludes deferred page-fault and training costs.
+
 `workloads.py` prepares actual processor-measured video workloads, including 3,840–4,096-token examples with at least 1,024 supervised tokens and a larger 16-frame input. The long task is an explicitly synthetic textual ledger alongside real media. These fixtures establish numerical, recovery and resource behavior; they do not establish WTS task quality. No token padding or truncation is used to manufacture sequence lengths.
 
 `monitor.py` samples owned device-process memory and host process-tree RSS/PSS. Sampled peaks are lower bounds; summed RSS may count shared pages twice. Native CUDA phase peaks end at their recorded event and reset afterward. Preprocessing processing/wait counters overlap training and each other and must not be added to elapsed wall time. Report loading, first-step/warmup, training, validation, checkpointing, publication, reload and scoring costs separately, including complete training-to-evaluation elapsed time.
