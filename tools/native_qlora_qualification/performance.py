@@ -8,8 +8,11 @@ are separate views, never additive. External memory peaks are sampled lower
 bounds, including when their observed difference exceeds the memory criterion.
 
 CLI: --run RUN (repeatable), --pair-plan PLAN.json (optional), --output NEW.json.
-The pair-plan protocol is cosmos.qlora-performance-pairs.v1 with kind controlled
-or best_fit and pairs [{repeat: 1, nf4: {path, contract_sha256}, bf16: {...}}, ...].
+Controlled pair plans retain cosmos.qlora-performance-pairs.v1. Best-fit plans
+require v2, --pair-plan-sha256 and selection bindings for confirmation_plan,
+development_plan, development_selection and execution_selection, each {path,sha256}.
+The execution-selection receipt pins all six confirmation_specs by {path,sha256}.
+Pairs are [{repeat: 1, nf4: {path, contract_sha256}, bf16: {...}}, ...].
 Paths are private inputs and are never copied into the output. Exactly three
 complete pairs are required for inferential summaries; other runs stay visible.
 """
@@ -24,6 +27,7 @@ import random
 import re
 import statistics
 from collections import defaultdict
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -34,10 +38,173 @@ GIB = 1024**3
 PROTOCOL = "cosmos.native-qlora-performance.v1"
 STAGES = ("preflight", "training", "portable_publication", "probe_dcp", "probe_portable", "reload_exact", "scoring")
 WINDOWS = (("updates_1_300", 1, 300), ("updates_6_30", 6, 30), ("updates_31_300", 31, 300))
+BEST_FIT_FIELDS = frozenset({"learning_rate", "rank", "alpha", "microbatch", "activation_checkpointing"})
+CONFIRMATION_SEEDS = (17, 42, 123)
 
 
 class InvalidEvidence(ValueError):
     """Fixed, public-safe explanation of an evidence-contract violation."""
+
+
+@dataclass(frozen=True)
+class BestFitSelection:
+    """Externally pinned decisions; this analyzer does not rerun candidate ranking."""
+
+    specifications: dict[tuple[str, int], dict]
+    specification_sha256: dict[tuple[str, int], str]
+    source_sha256: dict[str, str]
+    data_sha256: str
+    bound_files: tuple[tuple[str, str], ...]
+
+    def assert_stable(self) -> None:
+        for path, sha in self.bound_files:
+            if hashlib.sha256(Path(path).read_bytes()).hexdigest() != sha:
+                raise InvalidEvidence("sealed selection evidence changed during analysis")
+
+
+def read_selection_binding(binding: dict) -> tuple[dict, str]:
+    if (
+        set(binding) != {"path", "sha256"}
+        or not isinstance(binding["sha256"], str)
+        or not re.fullmatch(r"[0-9a-f]{64}", binding["sha256"])
+    ):
+        raise InvalidEvidence("selection inputs require exact paths and SHA256 digests")
+    raw = Path(binding["path"]).read_bytes()
+    if hashlib.sha256(raw).hexdigest() != binding["sha256"]:
+        raise InvalidEvidence("sealed selection input digest differs")
+    value = json.loads(raw)
+    if not isinstance(value, dict):
+        raise InvalidEvidence("selection input must be a JSON object")
+    return value, binding["sha256"]
+
+
+def load_best_fit_selection(bindings: dict) -> BestFitSelection:
+    """Bind selected five-field changes, unchanged data and all six exact specs.
+
+    execution_selection uses cosmos.qlora-execution-selection.v1, complete=true,
+    confirmation_plan_sha256, development_selection_sha256, runtime_matrix_plan_sha256s,
+    selected[arm]={activation_checkpointing,microbatch,runtime_completion_sha256,
+    lifecycle_completion_sha256}, evidence_sha256 and confirmation_specs=[{path,sha256}].
+    Its producer must audit the complete predeclared calibration grid and recovery
+    proofs. Here their pinned decision and evidence hashes bind the measured runs;
+    they do not authorize untouched scoring or replace model/checkpoint validation.
+    """
+    expected = {"confirmation_plan", "development_plan", "development_selection", "execution_selection"}
+    if set(bindings) != expected:
+        raise InvalidEvidence("best-fit comparison requires both selection receipts and their sealed plans")
+    loaded = {key: read_selection_binding(value) for key, value in bindings.items()}
+    sources = {key: value[1] for key, value in loaded.items()}
+    confirmation, development, decision, execution = (
+        loaded[key][0]
+        for key in ("confirmation_plan", "development_plan", "development_selection", "execution_selection")
+    )
+    if (
+        confirmation.get("protocol") != "cosmos.qlora-confirmation-and-best-fit-plan.v2"
+        or confirmation.get("development_plan_sha256") != sources["development_plan"]
+        or confirmation.get("paired_seeds") != list(CONFIRMATION_SEEDS)
+        or development.get("protocol") != "cosmos.qlora-development-plan.v1"
+        or decision.get("protocol") != "cosmos.qlora-development-selection.v1"
+        or decision.get("complete") is not True
+        or decision.get("development_plan_sha256") != sources["development_plan"]
+        or decision.get("development_manifest_sha256") != development.get("development_manifest_sha256")
+        or decision.get("confirmation_seeds_required") != list(CONFIRMATION_SEEDS)
+        or decision.get("fixed_release_gates") != development.get("fixed_gates")
+        or development.get("fixed_gates", {}).get("relative_supervised_token_nll_one_sided_95_upper_max") != 0.02
+        or development.get("fixed_gates", {}).get("accuracy_loss_one_sided_95_upper_max") != 0.01
+        or development.get("fixed_gates", {}).get("paired_training_seeds") != list(CONFIRMATION_SEEDS)
+        or decision.get("development_rows") != 584
+        or decision.get("development_groups") != 12
+        or execution.get("protocol") != "cosmos.qlora-execution-selection.v1"
+        or execution.get("complete") is not True
+        or execution.get("confirmation_plan_sha256") != sources["confirmation_plan"]
+        or execution.get("development_selection_sha256") != sources["development_selection"]
+    ):
+        raise InvalidEvidence("best-fit decisions are incomplete or differ from their sealed confirmation scope")
+    matrix_hashes = [row["sha256"] for row in confirmation["runtime_matrix_plans"]]
+    rule = confirmation["best_fit"]["execution_selection_contract"]
+    if (
+        len(matrix_hashes) != 2
+        or execution.get("runtime_matrix_plan_sha256s") != matrix_hashes
+        or rule.get("activation_checkpointing") != ["full", "none"]
+        or rule.get("microbatches") != [1, 2, 4]
+        or rule.get("fixed_model_execution")
+        != {"adapter_compute_dtype": "float32", "logits_mode": "full", "compile_language_model": False}
+        or rule.get("timed_updates_inclusive") != [3, 20]
+        or confirmation["best_fit"].get("steps") != 300
+        or confirmation["best_fit"].get("warmup_steps") != 30
+        or confirmation["best_fit"].get("effective_batch") != 8
+    ):
+        raise InvalidEvidence("best-fit execution selection scope differs")
+    selected = {}
+    evidence_hashes = execution.get("evidence_sha256", [])
+    if (
+        not isinstance(evidence_hashes, list)
+        or not evidence_hashes
+        or any(not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{64}", value) for value in evidence_hashes)
+    ):
+        raise InvalidEvidence("execution selection lacks pinned calibration and recovery evidence")
+    for arm in ("nf4", "bf16"):
+        winner = decision["selected"][arm]
+        records = [
+            row for row in decision["candidates"] if row["arm"] == arm and row["candidate"] == winner["candidate"]
+        ]
+        if (
+            decision["arm_status"].get(arm) != "development_candidate_selected"
+            or len(records) != 1
+            or records[0].get("state") != "completed"
+            or records[0].get("eligible") is not True
+            or winner.get("evidence_sha256") != digest_json(records[0])
+            or winner.get("contract_sha256") != records[0].get("contract_sha256")
+            or winner.get("hyperparameters") != records[0].get("hyperparameters")
+            or set(winner["hyperparameters"]) != {"learning_rate", "rank", "alpha"}
+        ):
+            raise InvalidEvidence("development winner is not bound to its eligible candidate evidence")
+        choice = execution["selected"][arm]
+        if (
+            choice.get("activation_checkpointing") not in ("full", "none")
+            or type(choice.get("microbatch")) is not int
+            or choice["microbatch"] not in (1, 2, 4)
+            or any(
+                choice.get(key) not in evidence_hashes
+                for key in ("runtime_completion_sha256", "lifecycle_completion_sha256")
+            )
+        ):
+            raise InvalidEvidence("execution winner lacks an eligible configuration and recovery identity")
+        selected[arm] = {
+            **winner["hyperparameters"],
+            **{key: choice[key] for key in ("activation_checkpointing", "microbatch")},
+        }
+    specifications, spec_hashes = {}, {}
+    for binding in execution["confirmation_specs"]:
+        spec, sha = read_selection_binding(binding)
+        actual = Experiment(**spec)
+        key = actual.arm, actual.seed
+        if key in specifications or actual.seed not in CONFIRMATION_SEEDS:
+            raise InvalidEvidence("confirmation specifications must contain each arm and seed exactly once")
+        expected_spec = Experiment(actual.name, actual.arm, seed=actual.seed, **selected[actual.arm]).as_dict()
+        if spec != expected_spec:
+            raise InvalidEvidence("confirmation specification changed an unselected or fixed training setting")
+        specifications[key] = {field: value for field, value in spec.items() if field != "name"}
+        spec_hashes[key] = sha
+    if set(specifications) != {(arm, seed) for arm in ("nf4", "bf16") for seed in CONFIRMATION_SEEDS}:
+        raise InvalidEvidence("best-fit comparison requires all six locked confirmation specifications")
+    data_hash = digest_json(
+        [
+            development[key]
+            for key in (
+                "development_manifest_sha256",
+                "development_data_sha256",
+                "fresh_training_data_sha256",
+                "development_data_sha256",
+            )
+        ]
+    )
+    bound_files = tuple(
+        (binding["path"], binding["sha256"]) for binding in [*bindings.values(), *execution["confirmation_specs"]]
+    )
+    selection = BestFitSelection(specifications, spec_hashes, sources, data_hash, bound_files)
+    selection.assert_stable()
+    return selection
 
 
 def number(value: Any, *, positive: bool = False) -> bool:
@@ -483,6 +650,9 @@ def summarize_run(path: Path) -> dict:
             "targets_sha256": digest_json(identity["targets"]),
             "adapter_sha256": digest_json(identity["adapter"]),
             "initial_adapters_sha256": digest_json(identity["initial_adapters"]),
+            "adapter_policy_sha256": digest_json(
+                {k: v for k, v in identity["adapter"].items() if k not in ("rank", "alpha")}
+            ),
             "build_sha256": digest_json(contract["build"]),
             "tool_sha256": digest_json(contract["tools"]),
             "data_sha256": digest_json([item["sha256"] for item in contract["files"][2:6]]),
@@ -507,6 +677,14 @@ def summarize_run(path: Path) -> dict:
                 }
             ),
         }
+        specification_hash = contract["files"][0]["sha256"]
+        if not isinstance(specification_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", specification_hash):
+            raise InvalidEvidence("input specification requires a valid SHA256 identity")
+        report["input_specification_sha256"] = specification_hash
+        report["adapter_configuration_matches_experiment"] = all(
+            identity["adapter"].get(key) == spec[field]
+            for key, field in (("rank", "rank"), ("alpha", "alpha"), ("initialization_seed", "seed"))
+        )
         report["hardware"] = {
             "accelerator": runtime["name"],
             "device_bytes": runtime["device_bytes"],
@@ -551,9 +729,19 @@ def paired_bootstrap(nf4: list[float], bf16: list[float], *, repetitions: int = 
     }
 
 
-def compare_pairs(pairs: list[tuple[dict, dict]], *, kind: str = "controlled", repetitions: int = 10000) -> dict:
+def compare_pairs(
+    pairs: list[tuple[dict, dict]],
+    *,
+    kind: str = "controlled",
+    repetitions: int = 10000,
+    selection: BestFitSelection | None = None,
+) -> dict:
     if kind not in ("controlled", "best_fit"):
         raise InvalidEvidence("unknown comparison kind")
+    if kind == "best_fit" and not isinstance(selection, BestFitSelection):
+        raise InvalidEvidence("best-fit comparison requires verified sealed selection receipts")
+    if kind == "best_fit":
+        selection.assert_stable()
     result = {"kind": kind, "inferential": False, "pairs": len(pairs), "exclusions": [], "release_qualified": False}
     identities = set()
     for a, b in pairs:
@@ -571,12 +759,45 @@ def compare_pairs(pairs: list[tuple[dict, dict]], *, kind: str = "controlled", r
         keys = set(a["pairing"])
         if kind == "best_fit":
             keys -= {"controls_sha256", "adapter_sha256", "initial_adapters_sha256"}
+            if a["experiment"]["rank"] == b["experiment"]["rank"]:
+                keys.add("initial_adapters_sha256")
         if any(
             a["pairing"][key] is None or b["pairing"][key] is None or a["pairing"][key] != b["pairing"][key]
             for key in keys
         ):
             result["exclusions"].append("unmatched_settings_build_data_allocation_or_hardware")
         if kind == "best_fit":
+            differences = {
+                key
+                for key in set(a["experiment"]) | set(b["experiment"])
+                if key != "arm" and a["experiment"].get(key) != b["experiment"].get(key)
+            }
+            if differences - BEST_FIT_FIELDS:
+                result["exclusions"].append("best_fit_pair_changed_unselected_training_controls")
+            for row in (a, b):
+                key = row["experiment"]["arm"], row["experiment"]["seed"]
+                if (
+                    row["experiment"] != selection.specifications.get(key)
+                    or row.get("input_specification_sha256") != selection.specification_sha256.get(key)
+                    or row["pairing"]["data_sha256"] != selection.data_sha256
+                    or row.get("adapter_configuration_matches_experiment") is not True
+                ):
+                    result["exclusions"].append("measured_best_fit_run_differs_from_locked_selection")
+                memory = row["memory_by_stage"]["training"]
+                sampled = memory["sampled"]
+                peaks = [
+                    sampled["owned_device_process_peak_bytes"],
+                    memory["allocator_peak_allocated_bytes"],
+                    memory["allocator_peak_reserved_bytes"],
+                ]
+                if (
+                    sampled["gpu_memory_evidence_valid"] is not True
+                    or sampled["host_pss_complete"] is not True
+                    or memory["allocator_evidence_complete"] is not True
+                    or any(not number(peak, positive=True) for peak in peaks)
+                    or max(peaks) > 24 * GIB
+                ):
+                    result["exclusions"].append("selected_best_fit_run_lacks_valid_under_24gib_training_memory")
             result.setdefault("configuration_differences", []).append(
                 {
                     key: [a["experiment"].get(key), b["experiment"].get(key)]
@@ -593,6 +814,16 @@ def compare_pairs(pairs: list[tuple[dict, dict]], *, kind: str = "controlled", r
             result["exclusions"].append("repeats_mix_different_arm_configurations_data_or_builds")
     if len(pairs) != 3:
         result["exclusions"].append("three_complete_pairs_required")
+    if kind == "best_fit":
+        for arm_index in (0, 1):
+            if sorted(
+                pair[arm_index]["experiment"]["seed"] for pair in pairs if pair[arm_index].get("timing_eligible")
+            ) != list(CONFIRMATION_SEEDS):
+                result["exclusions"].append("best_fit_requires_exact_paired_confirmation_seeds")
+        result["selection_source_sha256"] = selection.source_sha256
+        result["selection_scope"] = (
+            "Pinned development/execution decisions and six confirmation specifications. Candidate ranking and recovery proofs are not rerun by this analyzer; untouched scoring is not authorized."
+        )
     if result["exclusions"]:
         return result
     result["inferential"] = True
@@ -645,13 +876,26 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run", type=Path, action="append", default=[])
     parser.add_argument("--pair-plan", type=Path)
+    parser.add_argument("--pair-plan-sha256")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     paths = list(args.run)
     plan = None
+    plan_sha256 = None
+    selection = None
     if args.pair_plan:
-        plan = json.loads(args.pair_plan.read_text())
-        if plan.get("protocol") != "cosmos.qlora-performance-pairs.v1":
+        plan_bytes = args.pair_plan.read_bytes()
+        plan_sha256 = hashlib.sha256(plan_bytes).hexdigest()
+        plan = json.loads(plan_bytes)
+        if plan.get("kind") == "best_fit":
+            if (
+                plan.get("protocol") != "cosmos.qlora-performance-pairs.v2"
+                or not args.pair_plan_sha256
+                or plan_sha256 != args.pair_plan_sha256
+            ):
+                raise InvalidEvidence("best-fit pair plan requires v2 and its externally pinned SHA256")
+            selection = load_best_fit_selection(plan["selection"])
+        elif plan.get("protocol") != "cosmos.qlora-performance-pairs.v1":
             raise InvalidEvidence("invalid paired plan protocol")
         paths.extend(Path(pair[arm]["path"]) for pair in plan["pairs"] for arm in ("nf4", "bf16"))
     if not paths:
@@ -672,14 +916,18 @@ def main() -> None:
                     raise InvalidEvidence("pair-plan contract digest differs")
                 arms.append(run)
             pairs.append(tuple(arms))
-        comparison = compare_pairs(pairs, kind=plan["kind"])
+        comparison = compare_pairs(pairs, kind=plan["kind"], selection=selection)
+    if args.pair_plan and hashlib.sha256(args.pair_plan.read_bytes()).hexdigest() != plan_sha256:
+        raise InvalidEvidence("paired plan changed during analysis")
+    if selection is not None:
+        selection.assert_stable()
     write_json_new(
         args.output,
         {
             "protocol": PROTOCOL,
             "runs": list(reports.values()),
             "comparison": comparison,
-            "pair_plan_sha256": hashlib.sha256(args.pair_plan.read_bytes()).hexdigest() if args.pair_plan else None,
+            "pair_plan_sha256": plan_sha256,
             "historical_evidence": "Not pooled: historical timing reports have different scope and remain separately labeled sources.",
             "release_qualified": False,
         },

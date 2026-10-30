@@ -367,28 +367,10 @@ def test_malformed_experiment_cannot_echo_private_values_in_excluded_report(tmp_
     assert "experiment" not in report
 
 
-def test_best_fit_discloses_differences_but_preserves_pair_seed_and_repeat_scope(tmp_path):
-    pairs = [
-        (
-            summarize_run(experiment_root(tmp_path, "nf4", repeat)),
-            summarize_run(experiment_root(tmp_path, "bf16", repeat)),
-        )
-        for repeat in range(1, 4)
-    ]
-    for a, _ in pairs:
-        a["experiment"]["rank"] = 32
-        a["pairing"]["controls_sha256"] = "different"
-        a["pairing"]["adapter_sha256"] = "different"
-        a["pairing"]["initial_adapters_sha256"] = "different"
-    assert not compare_pairs(pairs)["inferential"]
-    report = compare_pairs(pairs, kind="best_fit")
-    assert report["inferential"]
-    assert report["configuration_differences"][0]["rank"] == [32, 16]
-    pairs[0][0]["experiment"]["seed"] = 17
-    assert not compare_pairs(pairs, kind="best_fit")["inferential"]
-    pairs[0][0]["experiment"]["seed"] = 42
-    pairs[0][0]["experiment"]["rank"] = 64
-    assert not compare_pairs(pairs, kind="best_fit")["inferential"]
+def test_best_fit_refuses_unbound_legacy_comparison(tmp_path):
+    pairs = [(summarize_run(experiment_root(tmp_path, "nf4")), summarize_run(experiment_root(tmp_path, "bf16")))]
+    with pytest.raises(ValueError, match="selection receipts"):
+        compare_pairs(pairs, kind="best_fit")
 
 
 def test_valid_timing_cannot_override_invalid_memory_evidence(tmp_path):
@@ -403,3 +385,377 @@ def test_valid_timing_cannot_override_invalid_memory_evidence(tmp_path):
     report = compare_pairs(pairs)
     assert report["inferential"]
     assert report["training_memory_pairs"][1]["sampled_6gib_criterion_met"] is None
+
+
+def best_fit_fixture(tmp_path, *, different_rank=True):
+    import hashlib
+
+    from tools.native_qlora_qualification.common import digest_json
+    from tools.native_qlora_qualification.performance import load_best_fit_selection
+
+    def bind(name, value):
+        path = tmp_path / "selection" / (name + ".json")
+        write(path, value)
+        return {"path": str(path), "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+
+    gates = {
+        "relative_supervised_token_nll_one_sided_95_upper_max": 0.02,
+        "accuracy_loss_one_sided_95_upper_max": 0.01,
+        "paired_training_seeds": [17, 42, 123],
+    }
+    development = {
+        "protocol": "cosmos.qlora-development-plan.v1",
+        "development_manifest_sha256": "2" * 64,
+        "development_data_sha256": "3" * 64,
+        "fresh_training_data_sha256": "4" * 64,
+        "fixed_gates": gates,
+    }
+    bindings = {"development_plan": bind("development", development)}
+    confirmation = {
+        "protocol": "cosmos.qlora-confirmation-and-best-fit-plan.v2",
+        "development_plan_sha256": bindings["development_plan"]["sha256"],
+        "paired_seeds": [17, 42, 123],
+        "runtime_matrix_plans": [{"sha256": "5" * 64}, {"sha256": "6" * 64}],
+        "best_fit": {
+            "steps": 300,
+            "warmup_steps": 30,
+            "effective_batch": 8,
+            "execution_selection_contract": {
+                "activation_checkpointing": ["full", "none"],
+                "microbatches": [1, 2, 4],
+                "fixed_model_execution": {
+                    "adapter_compute_dtype": "float32",
+                    "logits_mode": "full",
+                    "compile_language_model": False,
+                },
+                "timed_updates_inclusive": [3, 20],
+            },
+        },
+    }
+    bindings["confirmation_plan"] = bind("confirmation", confirmation)
+    hyperparameters = {
+        "nf4": {"rank": 32 if different_rank else 16, "alpha": 64.0 if different_rank else 32.0, "learning_rate": 1e-4},
+        "bf16": {"rank": 16, "alpha": 32.0, "learning_rate": 5e-5},
+    }
+    candidates = [
+        {
+            "candidate": "chosen",
+            "arm": arm,
+            "state": "completed",
+            "eligible": True,
+            "hyperparameters": hyperparameters[arm],
+            "contract_sha256": "7" * 64,
+        }
+        for arm in ("nf4", "bf16")
+    ]
+    decision = {
+        "protocol": "cosmos.qlora-development-selection.v1",
+        "complete": True,
+        "development_plan_sha256": bindings["development_plan"]["sha256"],
+        "development_manifest_sha256": development["development_manifest_sha256"],
+        "confirmation_seeds_required": [17, 42, 123],
+        "fixed_release_gates": gates,
+        "development_rows": 584,
+        "development_groups": 12,
+        "candidates": candidates,
+        "arm_status": {arm: "development_candidate_selected" for arm in ("nf4", "bf16")},
+        "selected": {
+            row["arm"]: {
+                "candidate": row["candidate"],
+                "hyperparameters": row["hyperparameters"],
+                "contract_sha256": row["contract_sha256"],
+                "evidence_sha256": digest_json(row),
+            }
+            for row in candidates
+        },
+    }
+    bindings["development_selection"] = bind("decision", decision)
+    selected = {
+        "nf4": {
+            "activation_checkpointing": "none",
+            "microbatch": 2,
+            "runtime_completion_sha256": "8" * 64,
+            "lifecycle_completion_sha256": "9" * 64,
+        },
+        "bf16": {
+            "activation_checkpointing": "full",
+            "microbatch": 1,
+            "runtime_completion_sha256": "a" * 64,
+            "lifecycle_completion_sha256": "b" * 64,
+        },
+    }
+    specs = []
+    pairs = []
+    for seed in (17, 42, 123):
+        pair = []
+        for arm in ("nf4", "bf16"):
+            spec = Experiment(
+                f"selected_{arm}_{seed}",
+                arm,
+                seed=seed,
+                **hyperparameters[arm],
+                **{k: selected[arm][k] for k in ("activation_checkpointing", "microbatch")},
+            ).as_dict()
+            spec_binding = bind(spec["name"], spec)
+            specs.append(spec_binding)
+            root = experiment_root(tmp_path, arm, seed)
+            contract = json.loads((root / "contract.json").read_text())
+            contract["experiment"] = spec
+            contract["files"][0]["sha256"] = spec_binding["sha256"]
+            contract["files"][5]["sha256"] = development["development_data_sha256"]
+            write(root / "contract.json", contract)
+            complete = json.loads((root / "completion.json").read_text())
+            complete["experiment"] = spec
+            write(root / "completion.json", complete)
+            final = json.loads((root / "final-checkpoint.json").read_text())
+            final["metadata"]["identity"]["adapter"] = {
+                "rank": spec["rank"],
+                "alpha": spec["alpha"],
+                "initialization_seed": seed,
+                "parameter_dtype": "float32",
+                "method": "lora",
+            }
+            final["metadata"]["identity"]["initial_adapters"] = {"tensor": digest_json([seed, spec["rank"]])}
+            write(root / "final-checkpoint.json", final)
+            if arm == "bf16":
+                phases = [json.loads(line) for line in (root / "stages/training/memory.jsonl").read_text().splitlines()]
+                for phase in phases:
+                    phase["cuda"]["peak_allocated_bytes"] = min(phase["cuda"]["peak_allocated_bytes"], 22 * GIB)
+                    phase["cuda"]["peak_reserved_bytes"] = min(phase["cuda"]["peak_reserved_bytes"], 22 * GIB + 1)
+                write(root / "stages/training/memory.jsonl", phases, lines=True)
+                write(root / "nvml-host.jsonl", [sample(t, used=22 * GIB) for t in range(1, 14)], lines=True)
+            pair.append(summarize_run(root))
+        pairs.append(tuple(pair))
+    execution = {
+        "protocol": "cosmos.qlora-execution-selection.v1",
+        "complete": True,
+        "confirmation_plan_sha256": bindings["confirmation_plan"]["sha256"],
+        "development_selection_sha256": bindings["development_selection"]["sha256"],
+        "runtime_matrix_plan_sha256s": ["5" * 64, "6" * 64],
+        "selected": selected,
+        "evidence_sha256": ["8" * 64, "9" * 64, "a" * 64, "b" * 64],
+        "confirmation_specs": specs,
+    }
+    bindings["execution_selection"] = bind("execution", execution)
+    return pairs, load_best_fit_selection(bindings), bindings
+
+
+def test_best_fit_requires_selected_five_fields_exact_specs_and_seeds(tmp_path):
+    pairs, selection, _ = best_fit_fixture(tmp_path)
+    assert all(a["timing_eligible"] and b["timing_eligible"] for a, b in pairs)
+    assert not compare_pairs(pairs)["inferential"]
+    report = compare_pairs(pairs, kind="best_fit", selection=selection)
+    assert report["inferential"], report
+    assert report["observed_training_seeds"] == [17, 42, 123]
+    assert set(report["configuration_differences"][0]) == {
+        "rank",
+        "alpha",
+        "learning_rate",
+        "microbatch",
+        "activation_checkpointing",
+    }
+    assert report["original_matched_recipe_memory_eligible"] is False
+    assert "private" not in json.dumps(report) and str(tmp_path) not in json.dumps(report)
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("warmup_steps", 10),
+        ("cache_bytes", 0),
+        ("adapter_compute_dtype", "bfloat16"),
+        ("learning_rate", 2e-4),
+        ("rank", 64),
+        ("microbatch", 4),
+        ("activation_checkpointing", "selective"),
+    ],
+)
+def test_best_fit_rejects_unselected_or_additional_changes(tmp_path, field, value):
+    pairs, selection, _ = best_fit_fixture(tmp_path)
+    pairs[0][0]["experiment"][field] = value
+    report = compare_pairs(pairs, kind="best_fit", selection=selection)
+    assert not report["inferential"]
+    assert "measured_best_fit_run_differs_from_locked_selection" in report["exclusions"]
+
+
+@pytest.mark.parametrize(
+    "damage", ["seed", "spec", "data", "adapter_policy", "adapter_binding", "invalid_memory", "over_budget"]
+)
+def test_best_fit_rejects_identity_seed_and_budget_failures(tmp_path, damage):
+    pairs, selection, _ = best_fit_fixture(tmp_path)
+    row = pairs[0][0]
+    if damage == "seed":
+        row["experiment"]["seed"] = 42
+    elif damage == "spec":
+        row["input_specification_sha256"] = "f" * 64
+    elif damage == "data":
+        row["pairing"]["data_sha256"] = "f" * 64
+    elif damage == "adapter_policy":
+        row["pairing"]["adapter_policy_sha256"] = "f" * 64
+    elif damage == "adapter_binding":
+        row["adapter_configuration_matches_experiment"] = False
+    elif damage == "invalid_memory":
+        row["memory_by_stage"]["training"]["sampled"]["gpu_memory_evidence_valid"] = False
+    else:
+        row["memory_by_stage"]["training"]["allocator_peak_reserved_bytes"] = 25 * GIB
+    assert not compare_pairs(pairs, kind="best_fit", selection=selection)["inferential"]
+
+
+def test_best_fit_same_rank_keeps_initial_adapter_equality(tmp_path):
+    pairs, selection, _ = best_fit_fixture(tmp_path, different_rank=False)
+    assert compare_pairs(pairs, kind="best_fit", selection=selection)["inferential"]
+    pairs[0][0]["pairing"]["initial_adapters_sha256"] = "wrong"
+    assert not compare_pairs(pairs, kind="best_fit", selection=selection)["inferential"]
+
+
+@pytest.mark.parametrize(
+    "damage",
+    [
+        "missing",
+        "unsealed",
+        "incomplete",
+        "wrong_plan",
+        "unbound_candidate",
+        "missing_recovery",
+        "spec_control",
+        "spec_seed",
+    ],
+)
+def test_best_fit_receipt_negatives(tmp_path, damage):
+    import hashlib
+
+    from tools.native_qlora_qualification.performance import load_best_fit_selection
+
+    _, _, bindings = best_fit_fixture(tmp_path)
+    if damage == "missing":
+        bindings.pop("development_selection")
+    elif damage == "unsealed":
+        Path(bindings["execution_selection"]["path"]).write_text("{}")
+    else:
+        key = "development_selection" if damage == "unbound_candidate" else "execution_selection"
+        path = Path(bindings[key]["path"])
+        value = json.loads(path.read_text())
+        if damage == "incomplete":
+            value["complete"] = False
+        elif damage == "wrong_plan":
+            value["confirmation_plan_sha256"] = "f" * 64
+        elif damage == "unbound_candidate":
+            value["selected"]["nf4"]["hyperparameters"]["rank"] = 64
+        elif damage == "missing_recovery":
+            value["selected"]["nf4"]["lifecycle_completion_sha256"] = "c" * 64
+        else:
+            spec_path = Path(value["confirmation_specs"][0]["path"])
+            spec = json.loads(spec_path.read_text())
+            spec["cache_bytes" if damage == "spec_control" else "seed"] = 0
+            write(spec_path, spec)
+            value["confirmation_specs"][0]["sha256"] = hashlib.sha256(spec_path.read_bytes()).hexdigest()
+        write(path, value)
+        bindings[key]["sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+        if key == "development_selection":
+            ep = Path(bindings["execution_selection"]["path"])
+            e = json.loads(ep.read_text())
+            e["development_selection_sha256"] = bindings[key]["sha256"]
+            write(ep, e)
+            bindings["execution_selection"]["sha256"] = hashlib.sha256(ep.read_bytes()).hexdigest()
+    with pytest.raises(ValueError):
+        load_best_fit_selection(bindings)
+
+
+def test_best_fit_receipts_cannot_change_after_initial_load(tmp_path):
+    pairs, selection, bindings = best_fit_fixture(tmp_path)
+    Path(bindings["execution_selection"]["path"]).write_text("{}")
+    with pytest.raises(ValueError, match="changed during analysis"):
+        compare_pairs(pairs, kind="best_fit", selection=selection)
+
+
+@pytest.mark.parametrize("mode", ["legacy", "missing_digest", "wrong_digest", "valid"])
+def test_best_fit_cli_requires_external_plan_digest(tmp_path, monkeypatch, mode):
+    import hashlib
+    import sys
+
+    from tools.native_qlora_qualification.performance import main
+
+    _, _, bindings = best_fit_fixture(tmp_path)
+    pairs = []
+    for repeat, seed in enumerate((17, 42, 123), 1):
+        pair = {"repeat": repeat}
+        for arm in ("nf4", "bf16"):
+            root = tmp_path / f"{arm}_{seed}"
+            pair[arm] = {
+                "path": str(root),
+                "contract_sha256": hashlib.sha256((root / "contract.json").read_bytes()).hexdigest(),
+            }
+        pairs.append(pair)
+    plan = {
+        "protocol": "cosmos.qlora-performance-pairs.v1" if mode == "legacy" else "cosmos.qlora-performance-pairs.v2",
+        "kind": "best_fit",
+        "selection": bindings,
+        "pairs": pairs,
+    }
+    path, output = tmp_path / "pairs.json", tmp_path / "public-report.json"
+    write(path, plan)
+    arguments = ["performance.py", "--pair-plan", str(path), "--output", str(output)]
+    if mode != "missing_digest":
+        arguments += [
+            "--pair-plan-sha256",
+            "f" * 64 if mode == "wrong_digest" else hashlib.sha256(path.read_bytes()).hexdigest(),
+        ]
+    monkeypatch.setattr(sys, "argv", arguments)
+    if mode == "valid":
+        main()
+        report = json.loads(output.read_text())
+        assert report["comparison"]["inferential"] is True
+        assert str(tmp_path) not in output.read_text()
+    else:
+        with pytest.raises(ValueError, match="externally pinned"):
+            main()
+        assert not output.exists()
+
+
+@pytest.mark.parametrize("damage", ["pair_plan", "selection"])
+def test_best_fit_publication_refuses_inputs_mutated_during_bootstrap(tmp_path, monkeypatch, damage):
+    import hashlib
+    import sys
+
+    from tools.native_qlora_qualification import performance
+
+    _, _, bindings = best_fit_fixture(tmp_path)
+    pairs = []
+    for repeat, seed in enumerate((17, 42, 123), 1):
+        pair = {"repeat": repeat}
+        for arm in ("nf4", "bf16"):
+            root = tmp_path / f"{arm}_{seed}"
+            pair[arm] = {
+                "path": str(root),
+                "contract_sha256": hashlib.sha256((root / "contract.json").read_bytes()).hexdigest(),
+            }
+        pairs.append(pair)
+    path, output = tmp_path / "pairs.json", tmp_path / "public-report.json"
+    write(
+        path,
+        {"protocol": "cosmos.qlora-performance-pairs.v2", "kind": "best_fit", "selection": bindings, "pairs": pairs},
+    )
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "performance.py",
+            "--pair-plan",
+            str(path),
+            "--pair-plan-sha256",
+            hashlib.sha256(path.read_bytes()).hexdigest(),
+            "--output",
+            str(output),
+        ],
+    )
+    original = performance.paired_bootstrap
+
+    def mutate_then_bootstrap(*args, **kwargs):
+        target = path if damage == "pair_plan" else Path(bindings["execution_selection"]["path"])
+        target.write_text("{}")
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(performance, "paired_bootstrap", mutate_then_bootstrap)
+    with pytest.raises(ValueError, match="changed during analysis"):
+        performance.main()
+    assert not output.exists()
