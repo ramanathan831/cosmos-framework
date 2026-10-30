@@ -32,6 +32,7 @@ from pathlib import Path
 from typing import Any
 
 from tools.native_qlora_qualification.common import digest_json, write_json_new
+from tools.native_qlora_qualification.monitor_host import validate_sample
 from tools.native_qlora_qualification.protocol import Experiment
 
 GIB = 1024**3
@@ -365,6 +366,13 @@ def sampled_memory(samples: list[dict], *, expected_uuid: str, device_bytes: int
     errors, owned, device, rss, pss, stamps = [], [], [], [], [], []
     capacities = set()
     for row in samples:
+        host_receipt_valid = True
+        if "host_process_memory_method" in row or "host_collection" in row:
+            try:
+                validate_sample(row)
+            except (ValueError, KeyError, TypeError):
+                host_receipt_valid = False
+                errors.append("invalid_host_collection_receipt")
         if not number(row.get("unix_seconds")):
             errors.append("invalid_timestamp")
         else:
@@ -400,13 +408,21 @@ def sampled_memory(samples: list[dict], *, expected_uuid: str, device_bytes: int
             errors.append("invalid_owned_process_memory_or_nvml_sentinel")
         for key, values in (("selected_host_rss_sum_bytes", rss), ("selected_host_pss_sum_bytes", pss)):
             value = row.get(key)
+            if host_receipt_valid and "host_process_memory_method" in row:
+                peak_key = (
+                    "host_observed_attempt_rss_peak_bytes"
+                    if values is rss
+                    else "host_observed_complete_attempt_pss_peak_bytes"
+                )
+                value = row.get(peak_key)
             if (
-                type(value) is int
+                host_receipt_valid
+                and type(value) is int
                 and 0 <= value < 2**63
                 and (values is not pss or row.get("host_pss_complete") is True)
             ):
                 values.append(value)
-        if row.get("host_pss_complete") is not True:
+        if not host_receipt_valid or row.get("host_pss_complete") is not True:
             errors.append("incomplete_host_pss")
     if not samples:
         errors.append("no_samples")

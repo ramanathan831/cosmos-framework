@@ -853,3 +853,153 @@ def test_cell_reload_is_bound_to_own_final_model(tmp_path, monkeypatch, damage):
         f.put(path, value)
     report, _ = select.analyze(f.evidence())
     assert report["complete"] is False
+
+
+def explicit_profile_fixture(tmp_path):
+    """Synthetic future producer: no private revision is implicitly trusted."""
+    f = Fixture(tmp_path)
+    f.inputs["protocol"] = select.PROFILE_INPUT_PROTOCOL
+    workflow_root, runner_root = "workflows/aaaaaaa", "gpu-runtime-v6"
+    files = {}
+
+    def source(name, contents):
+        path = tmp_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(contents)
+        sha = hashlib.sha256(contents).hexdigest()
+        f.inputs["files"][name] = sha
+        return sha
+
+    for name in ("monitor.py", "monitor_host.py", "run.py"):
+        relative = "tools/native_qlora_qualification/" + name
+        files[relative] = source(workflow_root + "/" + relative, b"# synthetic\n")
+    archive = source(workflow_root + "/source.tar", b"synthetic archive")
+    workflow = {
+        "files": files,
+        "code_revision": "a" * 40,
+        "training_package_revision": select.TRAINING_REVISION,
+        "training_wheel_sha256": select.WHEEL_SHA,
+        "source_archive_sha256": archive,
+    }
+    workflow_sha = f.put(workflow_root + "/receipt.json", workflow)
+    driver_sha = source(runner_root + "/driver.py", b"# reviewed synthetic driver\n")
+    runner_sha = f.put(runner_root + "/receipt.json", {"files": {"driver.py": driver_sha}})
+    correction_sha = f.put(
+        "correction.json",
+        {
+            "protocol": "cosmos.qlora-telemetry-correction-plan.v1",
+            "preserve": {
+                "native_training_package": select.TRAINING_REVISION,
+                "all_quality_and_memory_thresholds": "unchanged",
+            },
+        },
+    )
+    profile = {
+        "protocol": select.PRODUCER_PROFILE_PROTOCOL,
+        "training": {"code_revision": select.TRAINING_REVISION, "wheel_sha256": select.WHEEL_SHA},
+        "workflow": {
+            "root": workflow_root,
+            "revision": "a" * 40,
+            "receipt_sha256": workflow_sha,
+            "source_archive_sha256": archive,
+        },
+        "runner": {"root": runner_root, "receipt_sha256": runner_sha, "driver_sha256": driver_sha},
+        "monitor": {
+            "method": "proc-identity-state-read-attempts-v1",
+            "files": {n: files["tools/native_qlora_qualification/" + n] for n in ("monitor.py", "monitor_host.py")},
+        },
+        "correction_plan": {"path": "correction.json", "sha256": correction_sha},
+    }
+    profile_sha = f.put("producer-profile.json", profile)
+    binding = {"path": "producer-profile.json", "sha256": profile_sha}
+    f.inputs["producer_profile"] = binding
+    identity = {
+        "driver_sha256": driver_sha,
+        "workflow_receipt_sha256": workflow_sha,
+        "plan": {
+            "producer_profile": binding,
+            "workflow_receipt_sha256": workflow_sha,
+            "inputs": [{"path": p, "sha256": s} for p, s in f.inputs["files"].items()],
+        },
+    }
+    return f, identity
+
+
+def test_explicit_profile_requires_exact_presealed_source_inventory(tmp_path):
+    f, identity = explicit_profile_fixture(tmp_path)
+    workflow, profile = select.producer_profile(f.evidence(), identity)
+    assert workflow["code_revision"] == "a" * 40
+    assert profile["profile_sha256"] == f.inputs["producer_profile"]["sha256"]
+    evidence = f.evidence()
+    select.producer_profile(evidence, identity)
+    (tmp_path / "workflows/aaaaaaa/tools/native_qlora_qualification/monitor.py").write_text("# changed")
+    with pytest.raises(select.InvalidExecutionSelection, match="changed"):
+        evidence.stable()
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        "unbound_profile",
+        "different_plan_profile",
+        "driver",
+        "workflow",
+        "missing_helper",
+        "extra_python",
+        "source_archive",
+        "unknown_method",
+    ],
+)
+def test_explicit_profile_rejects_mismatched_or_unsealed_producer(tmp_path, change):
+    f, identity = explicit_profile_fixture(tmp_path)
+    if change == "unbound_profile":
+        identity["plan"]["inputs"] = [r for r in identity["plan"]["inputs"] if r["path"] != "producer-profile.json"]
+    elif change == "different_plan_profile":
+        identity["plan"]["producer_profile"] = {"path": "producer-profile.json", "sha256": "b" * 64}
+    elif change in ("driver", "workflow"):
+        identity[change + ("_sha256" if change == "driver" else "_receipt_sha256")] = "b" * 64
+    elif change == "extra_python":
+        (tmp_path / "gpu-runtime-v6/extra.py").write_text("# unreviewed")
+    elif change == "source_archive":
+        (tmp_path / "workflows/aaaaaaa/source.tar").write_bytes(b"changed")
+    else:
+        profile = f.read("producer-profile.json")
+        if change == "unknown_method":
+            profile["monitor"]["method"] = "best_effort"
+        else:
+            profile["monitor"]["files"].pop("monitor_host.py")
+        sha = f.put("producer-profile.json", profile)
+        f.inputs["producer_profile"]["sha256"] = sha
+        identity["plan"]["inputs"] = [{"path": p, "sha256": s} for p, s in f.inputs["files"].items()]
+    with pytest.raises(select.InvalidExecutionSelection):
+        select.producer_profile(f.evidence(), identity)
+
+
+def test_legacy_input_cannot_opt_in_to_future_profile(tmp_path):
+    f, identity = explicit_profile_fixture(tmp_path)
+    f.inputs["protocol"] = select.INPUT_PROTOCOL
+    with pytest.raises(select.InvalidExecutionSelection, match="versioned"):
+        f.evidence()
+    del f.inputs["producer_profile"]
+    with pytest.raises(select.InvalidExecutionSelection, match="pinned v5"):
+        select.producer_profile(f.evidence(), identity)
+
+
+def test_explicit_profile_late_python_inventory_injection_is_rejected(tmp_path):
+    f, identity = explicit_profile_fixture(tmp_path)
+    evidence = f.evidence()
+    select.producer_profile(evidence, identity)
+    (tmp_path / "gpu-runtime-v6/late.py").write_text("# late unbound source")
+    with pytest.raises(select.InvalidExecutionSelection, match="inventory changed"):
+        evidence.stable()
+
+
+def test_explicit_profile_unrelated_file_is_not_strict_monitor_helper(tmp_path):
+    f, identity = explicit_profile_fixture(tmp_path)
+    profile = f.read("producer-profile.json")
+    profile["monitor"]["files"]["run.py"] = profile["monitor"]["files"].pop("monitor_host.py")
+    sha = f.put("producer-profile.json", profile)
+    f.inputs["producer_profile"]["sha256"] = sha
+    identity["plan"]["inputs"] = [{"path": p, "sha256": s} for p, s in f.inputs["files"].items()]
+    with pytest.raises(select.InvalidExecutionSelection, match="strict host-monitor"):
+        select.producer_profile(f.evidence(), identity)

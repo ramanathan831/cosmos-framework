@@ -40,6 +40,8 @@ from tools.native_qlora_qualification.protocol import Experiment, write_json
 
 PROTOCOL = "cosmos.qlora-execution-selection.v1"
 INPUT_PROTOCOL = "cosmos.qlora-execution-selection-inputs.v1"
+PROFILE_INPUT_PROTOCOL = "cosmos.qlora-execution-selection-inputs.v2"
+PRODUCER_PROFILE_PROTOCOL = "cosmos.qlora-runtime-producer-profile.v1"
 TRAINING_REVISION = "55e7f14dfeca84002d0324108808a0e682579842"
 WHEEL_SHA = "4939262dbf2de43be0b3f9d579b0bc2fbf72ab84250852397b0dc14087b5792b"
 WORKFLOW_SHA = "8cbdb6fcc866cdb5990a8d6b26492f4fbd3e74302361e6aa09c4c9c9976990b7"
@@ -92,7 +94,14 @@ class Evidence:
 
     def __init__(self, root: Path, inputs: dict):
         self.root, self.inputs, self.used = Path(root).resolve(), inputs, {}
-        require(inputs.get("protocol") == INPUT_PROTOCOL, "unsupported execution input schema")
+        self.python_inventories: dict[str, set[str]] = {}
+        require(
+            inputs.get("protocol") in (INPUT_PROTOCOL, PROFILE_INPUT_PROTOCOL), "unsupported execution input schema"
+        )
+        require(
+            ("producer_profile" in inputs) == (inputs.get("protocol") == PROFILE_INPUT_PROTOCOL),
+            "explicit producer profile requires the versioned input schema",
+        )
         require(isinstance(inputs.get("files"), dict), "missing pinned evidence inventory")
         self.recorded_root = Path(inputs["recorded_root"])
         require(self.recorded_root.is_absolute(), "recorded evidence root must be absolute")
@@ -123,16 +132,21 @@ class Evidence:
         return path
 
     def read(self, value: str, *, lines: bool = False) -> Any:
+        raw = self.bytes(value)
+        if lines:
+            require(bool(raw.splitlines()) and all(line.strip() for line in raw.splitlines()), "empty evidence JSONL")
+            return [json.loads(line) for line in raw.splitlines()]
+        return json.loads(raw)
+
+    def bytes(self, value: str) -> bytes:
+        """Read and bind non-JSON inventories without executing producer code."""
         relative = self.relative(value)
         sha = self.inputs["files"].get(relative)
         require(is_sha(sha), "consumed evidence file lacks an external digest")
         raw = self.path(relative).read_bytes()
         require(hashlib.sha256(raw).hexdigest() == sha, "pinned evidence bytes changed")
         self.used[relative] = sha
-        if lines:
-            require(bool(raw.splitlines()) and all(line.strip() for line in raw.splitlines()), "empty evidence JSONL")
-            return [json.loads(line) for line in raw.splitlines()]
-        return json.loads(raw)
+        return raw
 
     def sha(self, value: str) -> str:
         relative = self.relative(value)
@@ -144,10 +158,119 @@ class Evidence:
             require(
                 hashlib.sha256(self.path(path).read_bytes()).hexdigest() == sha, "evidence changed before publication"
             )
+        for root, expected in self.python_inventories.items():
+            directory = self.path(root)
+            require(
+                {str(path.relative_to(directory)) for path in directory.rglob("*.py")} == expected,
+                "producer Python inventory changed before publication",
+            )
 
 
 def child(root: str, name: str) -> str:
     return str(Path(root) / name)
+
+
+def producer_profile(evidence: Evidence, identity: dict) -> tuple[dict, dict]:
+    """Bind one sealed producer, retaining the immutable v1/v5 interpretation.
+
+    A v2 profile is data sealed before calibration, so no workflow needs to hash
+    itself or its future private runner. It is not an arbitrary allowed-version
+    list: every source byte, submitted plan and observed identity must agree.
+    """
+    plan = identity["plan"]
+    if evidence.inputs["protocol"] == INPUT_PROTOCOL:
+        require(
+            identity.get("driver_sha256") == DRIVER_SHA and identity.get("workflow_receipt_sha256") == WORKFLOW_SHA,
+            "runtime producer is not the pinned v5/workflow941 runner",
+        )
+        workflow = evidence.read("workflows/941b645/receipt.json")
+        require(evidence.sha("workflows/941b645/receipt.json") == WORKFLOW_SHA, "workflow inventory differs")
+        return workflow, {"input_protocol": INPUT_PROTOCOL, "workflow_receipt_sha256": WORKFLOW_SHA}
+
+    binding = evidence.inputs["producer_profile"]
+    require(set(binding) == {"path", "sha256"} and is_sha(binding["sha256"]), "invalid producer profile binding")
+    profile = evidence.read(binding["path"])
+    require(evidence.sha(binding["path"]) == binding["sha256"], "producer profile digest differs")
+    require(
+        set(profile) == {"protocol", "training", "workflow", "runner", "monitor", "correction_plan"}
+        and profile["protocol"] == PRODUCER_PROFILE_PROTOCOL
+        and profile["training"] == {"code_revision": TRAINING_REVISION, "wheel_sha256": WHEEL_SHA},
+        "producer profile schema or unchanged native package differs",
+    )
+    bound = {
+        row["path"]: row["sha256"] for row in plan["inputs"] if row.get("scope", "qualification") == "qualification"
+    }
+    require(
+        plan.get("producer_profile") == binding and bound.get(evidence.relative(binding["path"])) == binding["sha256"],
+        "calibration plan did not preseal the exact producer profile",
+    )
+    loaded = {}
+    for kind, required in (
+        ("workflow", {"root", "revision", "receipt_sha256", "source_archive_sha256"}),
+        ("runner", {"root", "receipt_sha256", "driver_sha256"}),
+    ):
+        item = profile[kind]
+        require(set(item) == required, "producer source binding schema differs")
+        path = child(item["root"], "receipt.json")
+        receipt = evidence.read(path)
+        require(
+            is_sha(item["receipt_sha256"])
+            and evidence.sha(path) == item["receipt_sha256"] == bound.get(evidence.relative(path)),
+            "producer receipt was not pinned by calibration",
+        )
+        files = receipt["files"]
+        require(isinstance(files, dict) and files, "producer source inventory missing")
+        for name, sha in files.items():
+            require(not Path(name).is_absolute() and ".." not in Path(name).parts, "producer inventory path escaped")
+            evidence.bytes(child(item["root"], name))
+            require(is_sha(sha) and evidence.sha(child(item["root"], name)) == sha, "producer source changed")
+        actual = {str(p.relative_to(evidence.path(item["root"]))) for p in evidence.path(item["root"]).rglob("*.py")}
+        require(actual == {name for name in files if name.endswith(".py")}, "producer Python inventory differs")
+        evidence.python_inventories[item["root"]] = actual
+        loaded[kind] = receipt
+    workflow, runner = loaded["workflow"], loaded["runner"]
+    w, r = profile["workflow"], profile["runner"]
+    evidence.bytes(child(w["root"], "source.tar"))
+    require(
+        re.fullmatch("[0-9a-f]{40}", w["revision"] or "") is not None
+        and w["root"] == "workflows/" + w["revision"][:7]
+        and r["root"] == "gpu-runtime-v6"
+        and workflow.get("code_revision") == w["revision"]
+        and workflow.get("training_package_revision") == TRAINING_REVISION
+        and workflow.get("training_wheel_sha256") == WHEEL_SHA
+        and evidence.sha(child(w["root"], "source.tar"))
+        == workflow.get("source_archive_sha256")
+        == w["source_archive_sha256"]
+        and identity.get("workflow_receipt_sha256") == plan.get("workflow_receipt_sha256") == w["receipt_sha256"]
+        and identity.get("driver_sha256") == runner["files"].get("driver.py") == r["driver_sha256"],
+        "producer source or observed execution identity differs",
+    )
+    monitor = profile["monitor"]
+    require(
+        set(monitor) == {"method", "files"}
+        and monitor["method"] == "proc-identity-state-read-attempts-v1"
+        and isinstance(monitor["files"], dict)
+        and set(monitor["files"]) == {"monitor.py", "monitor_host.py"},
+        "strict host-monitor method and helper inventory required",
+    )
+    for name, sha in monitor["files"].items():
+        require(
+            Path(name).name == name
+            and name.endswith(".py")
+            and workflow["files"].get("tools/native_qlora_qualification/" + name) == sha,
+            "monitor source is not in the exact workflow inventory",
+        )
+    correction = profile["correction_plan"]
+    require(set(correction) == {"path", "sha256"}, "telemetry correction binding differs")
+    value = evidence.read(correction["path"])
+    require(
+        evidence.sha(correction["path"]) == correction["sha256"] == bound.get(evidence.relative(correction["path"]))
+        and value.get("protocol") == "cosmos.qlora-telemetry-correction-plan.v1"
+        and value.get("preserve", {}).get("native_training_package") == TRAINING_REVISION
+        and value.get("preserve", {}).get("all_quality_and_memory_thresholds") == "unchanged",
+        "presealed telemetry correction policy missing or changed",
+    )
+    return workflow, {"input_protocol": PROFILE_INPUT_PROTOCOL, "profile_sha256": binding["sha256"], **profile}
 
 
 def healthy_outcomes(evidence: Evidence, root: str, records: list, expected: tuple[str, ...]) -> None:
@@ -708,12 +831,7 @@ def audit_profile(evidence: Evidence, record: dict, confirmation: dict, *, colle
     identity = evidence.read(child(attempt, "identity.json"))
     top = evidence.read(child(attempt, "completion.json"))
     plan = identity["plan"]
-    require(
-        identity.get("plan_sha256") == digest_plan(evidence, identity)
-        and identity.get("driver_sha256") == DRIVER_SHA
-        and identity.get("workflow_receipt_sha256") == WORKFLOW_SHA,
-        "runtime producer is not the pinned v5/workflow941 runner",
-    )
+    require(identity.get("plan_sha256") == digest_plan(evidence, identity), "runtime submitted plan digest differs")
     require(
         plan.get("protocol") == "cosmos.qlora-gpu-plan.v2"
         and plan.get("mode") == "runtime_profile"
@@ -722,8 +840,7 @@ def audit_profile(evidence: Evidence, record: dict, confirmation: dict, *, colle
         "runtime attempt used another plan or workload",
     )
     require(top.get("completed") is True, "runtime profile failed or is incomplete")
-    workflow = evidence.read("workflows/941b645/receipt.json")
-    require(evidence.sha("workflows/941b645/receipt.json") == WORKFLOW_SHA, "workflow inventory differs")
+    workflow, _ = producer_profile(evidence, identity)
     tools = {
         Path(name).name: sha
         for name, sha in workflow["files"].items()
