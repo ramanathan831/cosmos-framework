@@ -21,7 +21,7 @@ Keep generated rows and media private. Preserve the split manifests and their SH
 
 `protocol.py` defines the strict JSON `Experiment` schema and bounded allocation accounting. The two precision arms use the same native overrides, differing in their base recipe and run name. Training, adapter initialization and validation seeds are explicit. Parameter, arithmetic and optimizer precision remain separate.
 
-`run.py kernel-gate` verifies the wheel overlay and runs all 14 real CUDA tests without skips. `run.py experiment` requires that gate for the same build, then measures native training, portable adapter publication, fresh DCP/portable probes, exact reload comparison and sealed-split scoring. Each output directory is exclusive; unsuccessful attempts retain commands, logs and exit status. A successful completion receipt is execution evidence, not a quality-gate pass.
+`run.py kernel-gate` verifies the wheel overlay and runs all 14 real CUDA tests plus the existing higher-precision native CPU regression without skips. `run.py experiment` requires that gate for the same build, then measures native training, portable adapter publication, fresh DCP/portable probes, exact reload comparison and sealed-split scoring. Each output directory is exclusive; unsuccessful attempts retain commands, logs and exit status. A successful completion receipt is execution evidence, not a quality-gate pass. Fresh `train-eval` and `frozen` actions reject an external checkpoint; `evaluate` requires one explicitly.
 
 ```bash
 python "$WORKFLOW_SOURCE/tools/native_qlora_qualification/run.py" kernel-gate \
@@ -38,6 +38,22 @@ python "$WORKFLOW_SOURCE/tools/native_qlora_qualification/run.py" experiment \
 `TRAINING_DATA` contains the sealed fresh `train.jsonl` and a `validation.jsonl` copy of the development data. Export `PYTHONHASHSEED` equal to the experiment seed and `CUBLAS_WORKSPACE_CONFIG=:4096:8` before launching. The runner records input digests and the complete native dotlist. Pair precision arms sequentially within the same scheduler allocation, counterbalance their order across repeats, and record physical CPU placement. Account for failed allocations as well as successful ones. The 2026-10-30 continuation uses a predeclared maximum of 48 GPU allocation-hours, four concurrent GPUs, and 64 core-hours for separate CPU diagnostics.
 
 `lifecycle.py` runs a separate four-update recovery qualification for each selected numerical configuration. It compares uninterrupted execution with both a completed-boundary interruption and process loss after a real accumulating microbatch. Only explicit checkpoints from that attempt may resume. The immediate next update and final update must match model, optimizer, RNG, cursor, controls and numerical metrics exactly. Fresh multimodal DCP and portable probes must also match exactly. Filter experiment output/horizon fields before passing repeated `--override` arguments: the recovery runner owns its output names and fixes horizon four, warmup one and save cadence one.
+
+## Selection and comparison
+
+`selection.py` validates all eight predeclared development candidates against their exact specifications, final checkpoints, scorer identities and complete development rows. It retains failed candidates and refuses selection when a precision baseline is incomplete. Development selection does not authorize untouched scoring.
+
+`execution_selection.py` separately validates the short-video full/no-checkpointing calibration: each precision starts at microbatch one and advances to two or four only after the preceding cell satisfies the observed 24 GiB device-process budget. It recomputes native timing and memory evidence, verifies accepted-boundary recovery and rejects incomplete calibration. The sealed rule chooses the lowest mean update time after warmup, then lower observed peak, smaller microbatch and full checkpointing for exact ties. It combines those execution choices with the development-selected learning rate, rank and alpha to emit six 300-update confirmation specifications at seeds 17, 42 and 123. Long/media fixtures remain separate scope tests; this short screening result is not a full-run speed or quality result.
+
+```bash
+python -m tools.native_qlora_qualification.execution_selection \
+  --inputs "$PINNED_EXECUTION_INPUTS" --inputs-sha256 "$INPUTS_SHA256" \
+  --evidence-root "$QUALIFICATION_EVIDENCE" --output "$NEW_SELECTION"
+```
+
+The input manifest binds all consumed files and declares any recorded-root aliases needed for a local evidence mirror. Incomplete calibration produces only a diagnostic decision; complete decisions produce the locked specifications and execution receipt. Keep executable receipts private when they contain filesystem paths.
+
+`performance.py` keeps controlled comparisons strict. A separately tuned `best_fit` comparison requires an externally pinned v2 pair plan binding the confirmation/development plans and both selection decisions. Only selected learning rate, rank, alpha, microbatch and checkpointing mode may differ between precision arms. All three declared seeds, paired placement and valid memory evidence remain required. An over-budget BF16 control stays visible in controlled comparisons; it cannot qualify as a 24 GiB best-fit candidate. The observed budget does not establish support on a physical 24 GiB accelerator.
 
 ## Runtime and memory diagnostics
 
