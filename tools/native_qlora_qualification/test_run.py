@@ -25,35 +25,60 @@ def test_failed_stage_retains_command_log_and_exit_code(tmp_path):
         stages.run("intentional_failure", [sys.executable, "-c", "pass"])
 
 
-@pytest.mark.parametrize("invalid", ["skip", "missing", "other_build", "changed_xml", None])
-def test_gpu_gate_requires_complete_exact_build_without_skips(tmp_path, invalid):
+@pytest.mark.parametrize("suite", ["gpu", "higher_precision"])
+@pytest.mark.parametrize(
+    "invalid",
+    [
+        "skipped",
+        "failure",
+        "error",
+        "missing_case",
+        "extra_case",
+        "missing_path",
+        "missing_sha",
+        "missing_file",
+        "changed_xml",
+        "malformed_xml",
+        None,
+    ],
+)
+def test_gpu_gate_requires_both_exact_test_suites_without_skips(tmp_path, suite, invalid):
     receipt = {"code_revision": "a" * 40, "wheel_sha256": "b" * 64}
-    xml = tmp_path / "gpu.xml"
-    count = 13 if invalid == "missing" else 14
-    body = "".join(
-        '<testcase name="kernel_'
-        + str(i)
-        + '">'
-        + ("<skipped/>" if invalid == "skip" and i == 0 else "")
-        + "</testcase>"
-        for i in range(count)
-    )
-    xml.write_text("<testsuite>" + body + "</testsuite>")
-    gate = tmp_path / "gate.json"
-    gate.write_text(
-        json.dumps(
-            {
-                "completed": True,
-                "build": receipt if invalid != "other_build" else {},
-                "junit_xml": str(xml),
-                "junit_sha256": file_sha256(xml),
-            }
+    value = {"completed": True, "build": receipt}
+    for name, expected_count, prefix in (("gpu", 14, ""), ("higher_precision", 1, "higher_precision_")):
+        selected = name == suite
+        count = expected_count + (int(invalid == "extra_case") - int(invalid == "missing_case") if selected else 0)
+        body = "".join(
+            f'<testcase name="test_{index}">'
+            + (f"<{invalid}/>" if selected and index == 0 and invalid in {"skipped", "failure", "error"} else "")
+            + "</testcase>"
+            for index in range(count)
         )
-    )
-    if invalid == "changed_xml":
-        xml.write_text(xml.read_text() + "\n")
+        xml = tmp_path / f"{name}.xml"
+        xml.write_text("<testsuite>" + body + "</testsuite>" if not (selected and invalid == "malformed_xml") else "<")
+        value[prefix + "junit_xml"] = str(xml)
+        value[prefix + "junit_sha256"] = file_sha256(xml)
+        if selected:
+            if invalid == "missing_path":
+                del value[prefix + "junit_xml"]
+            elif invalid == "missing_sha":
+                del value[prefix + "junit_sha256"]
+            elif invalid == "missing_file":
+                xml.unlink()
+            elif invalid == "changed_xml":
+                xml.write_text(xml.read_text() + "\n")
+    gate = tmp_path / "gate.json"
+    gate.write_text(json.dumps(value))
     if invalid is None:
         assert verify_kernel_gate(gate, receipt)["completed"]
     else:
         with pytest.raises(ValueError):
             verify_kernel_gate(gate, receipt)
+
+
+@pytest.mark.parametrize("completed,build", [(False, {"version": 1}), (True, {"version": 2})])
+def test_gpu_gate_requires_completed_matching_build_before_xml(tmp_path, completed, build):
+    gate = tmp_path / "gate.json"
+    gate.write_text(json.dumps({"completed": completed, "build": build}))
+    with pytest.raises(ValueError, match="completed real-kernel gate for this exact build"):
+        verify_kernel_gate(gate, {"version": 1})

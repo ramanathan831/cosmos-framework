@@ -55,12 +55,24 @@ def verify_kernel_gate(path: Path, receipt: dict) -> dict:
     gate = json.loads(path.read_text())
     if gate.get("completed") is not True or gate.get("build") != receipt:
         raise ValueError("training requires the completed real-kernel gate for this exact build")
-    junit = Path(gate["junit_xml"])
-    if file_sha256(junit) != gate["junit_sha256"]:
-        raise ValueError("kernel gate XML differs from its receipt")
-    cases = list(ET.parse(junit).getroot().iter("testcase"))
-    if len(cases) != 14 or any(case.find(tag) is not None for case in cases for tag in ("skipped", "failure", "error")):
-        raise ValueError("kernel gate requires all 14 real CUDA tests without skips")
+    for label, path_key, digest_key, count in (
+        ("real CUDA", "junit_xml", "junit_sha256", 14),
+        ("higher-precision multimodal", "higher_precision_junit_xml", "higher_precision_junit_sha256", 1),
+    ):
+        xml_path, expected_digest = gate.get(path_key), gate.get(digest_key)
+        if not isinstance(xml_path, str) or not xml_path or not isinstance(expected_digest, str):
+            raise ValueError(f"kernel gate is missing its {label} XML identity")
+        try:
+            junit = Path(xml_path)
+            if file_sha256(junit) != expected_digest:
+                raise ValueError(f"kernel gate {label} XML differs from its receipt")
+            cases = list(ET.parse(junit).getroot().iter("testcase"))
+        except (OSError, ET.ParseError) as error:
+            raise ValueError(f"kernel gate {label} XML is unavailable or invalid") from error
+        if len(cases) != count or any(
+            case.find(tag) is not None for case in cases for tag in ("skipped", "failure", "error")
+        ):
+            raise ValueError(f"kernel gate requires all {count} {label} tests without skips or failures")
     return gate
 
 
