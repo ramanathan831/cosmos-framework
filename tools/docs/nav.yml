@@ -48,6 +48,7 @@ nav:
       - SFT:
           - SFT recipes: training.md
           - Native QLoRA (experimental): post_training/native_qlora.md
+          - Native QLoRA qualification: post_training/native_qlora_qualification.md
           - Datasets:
               - JSONL datasets: dataset_jsonl.md
               - Custom datasets: custom_dataset.md

@@ -4,6 +4,8 @@ This experimental path trains native LoRA adapters on a frozen NF4 language base
 
 **The release quality gate is not satisfied: trained NF4's token-NLL point estimate was 4.18% worse than BF16, exceeding the proposed 2% margin.** Faster preprocessing preserved that result. Quality evidence remains limited to one training seed and the stated diagnostic workload; the full release protocol is outstanding.
 
+The [continuation qualification checklist](native_qlora_qualification.md) maps the implementation to its evidence and remaining gates. Its data audit found seven related recording families across the original train/validation boundary and only one untouched validation family. The old 256 examples remain an exposed regression set; new settings are selected on a separately withheld development partition.
+
 The initial candidate is `Qwen/Qwen3-VL-8B-Instruct` at revision `0c351dd01ed87e9c1b53cbc748cba10e6187ff3b`, on **one Linux x86-64 A100 80GB, one torchrun process**. FSDP/HSDP, additional GPUs, offload, MoE, DoRA/PiSSA, other quantizers, and merged serving exports are rejected or unqualified. See the [design and release evidence requirements](qlora_native_vlm_design.md).
 
 ## Prepare a sealed runtime
