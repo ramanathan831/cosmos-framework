@@ -8,6 +8,11 @@ https://github.com/torvalds/linux/blob/v5.15/kernel/fork.c#L1748-L1765
 All reads and failed attempts remain in the receipt. A retry is permitted only
 for a proven exit or newly observed descendant. Unreadable live processes,
 identity changes and stage races are incomplete, never interpreted as zero.
+V3 binds PID/start to the process pidfd; proc inode ownership is retained
+only as mutable metadata, never used to infer identity or released memory:
+https://github.com/torvalds/linux/blob/v5.15/fs/proc/base.c#L1709-L1763
+Ancestry admits new descendants. Already pinned descendants remain owned if
+their parent exits and they are reparented; PPID is not process-birth identity.
 """
 
 from __future__ import annotations
@@ -25,7 +30,9 @@ except ImportError:  # Direct monitor.py invocation from the sealed tool directo
     from processes import _PidfdBackend
 
 LEGACY_METHOD = "proc-identity-state-read-attempts-v1"
-METHOD = "proc-identity-state-read-attempts-v2"
+EXIT_OWNER_METHOD = "proc-identity-state-read-attempts-v2"
+METHOD = "proc-identity-state-read-attempts-v3"
+IDENTITY_SEMANTICS = "pid_start_pidfd_owned_ancestry"
 MAX_ATTEMPTS = 3
 MAX_COLLECTION_SECONDS = 0.75
 
@@ -47,8 +54,10 @@ def read_proc(pid: int, name: str) -> dict:
                 "ppid": int(tail[1]),
                 "start_ticks": int(tail[19]),
                 # Historical wire name: this is proc inode ownership, not a
-                # credential UID. Linux task_dump_owner() changes it when mm
-                # is cleared on exit, including inside a user namespace.
+                # credential UID or immutable process identity. Linux
+                # task_dump_owner() derives it from credentials/dumpability/mm;
+                # it can change while the same process remains alive. Also,
+                # this stat() is later than the text read, not an atomic snapshot.
                 "uid": path.stat().st_uid,
             }
         else:
@@ -68,14 +77,15 @@ def read_proc(pid: int, name: str) -> dict:
     return result
 
 
-def _identity(value: dict) -> tuple:
-    return tuple(value.get(k) for k in ("pid", "start_ticks", "uid"))
+def _identity(value: dict, *, owner_is_identity: bool = True) -> tuple:
+    # Keep the historical tuple exclusively for decoding v1/v2 evidence.
+    fields = ("pid", "start_ticks", "uid") if owner_is_identity else ("pid", "start_ticks")
+    return tuple(value.get(k) for k in fields)
 
 
-def _valid_identity(value: Any) -> bool:
-    return isinstance(value, dict) and all(
-        type(value.get(k)) is int and value[k] >= 0 for k in ("pid", "start_ticks", "uid")
-    )
+def _valid_identity(value: Any, *, owner_is_identity: bool = True) -> bool:
+    fields = ("pid", "start_ticks", "uid") if owner_is_identity else ("pid", "start_ticks", "ppid", "uid")
+    return isinstance(value, dict) and all(type(value.get(k)) is int and value[k] >= 0 for k in fields)
 
 
 def _released_owner_transition(value: Any, expected: Any, released: bool) -> bool:
@@ -146,19 +156,22 @@ def _receipt_valid(read: Any) -> bool:
     )
 
 
-def classify_process(record: dict, *, released_after_discovery: bool = False) -> tuple[dict, list[str], bool]:
+def classify_process(
+    record: dict, *, released_after_discovery: bool = False, owner_is_identity: bool = True
+) -> tuple[dict, list[str], bool]:
     """Recompute memory, hard errors and proven exit transition from raw reads."""
     errors: list[str] = []
     pin = record.get("pin", {})
     expected = pin.get("identity")
-    if not _valid_identity(expected) or pin.get("flags") != 0 or pin.get("error"):
+    if not _valid_identity(expected, owner_is_identity=owner_is_identity) or pin.get("flags") != 0 or pin.get("error"):
         errors.append("unbound_process_identity")
     for key in ("discovery", "before", "after"):
         read = pin.get(key, {})
         if (
             not _receipt_valid(read)
-            or not _valid_identity(read.get("value"))
-            or _identity(read["value"]) != _identity(expected or {})
+            or not _valid_identity(read.get("value"), owner_is_identity=owner_is_identity)
+            or _identity(read["value"], owner_is_identity=owner_is_identity)
+            != _identity(expected or {}, owner_is_identity=owner_is_identity)
         ):
             errors.append("invalid_pidfd_binding")
     if all(_receipt_valid(pin.get(key)) for key in ("discovery", "before", "after")):
@@ -184,8 +197,12 @@ def classify_process(record: dict, *, released_after_discovery: bool = False) ->
         value = reads[name].get("value")
         if (
             value is not None
-            and (not _valid_identity(value) or _identity(value) != _identity(expected or {}))
-            and not _released_owner_transition(value, expected, released_after_discovery)
+            and (
+                not _valid_identity(value, owner_is_identity=owner_is_identity)
+                or _identity(value, owner_is_identity=owner_is_identity)
+                != _identity(expected or {}, owner_is_identity=owner_is_identity)
+            )
+            and not (owner_is_identity and _released_owner_transition(value, expected, released_after_discovery))
         ):
             errors.append("process_identity_changed")
     before, after = _released(reads["poll_before"]), _released(reads["poll_after"])
@@ -219,9 +236,15 @@ def classify_process(record: dict, *, released_after_discovery: bool = False) ->
 def summarize_collection(receipt: dict) -> dict:
     """Fail closed and independently derive the final attempt's legacy fields."""
     method = receipt.get("protocol")
-    if method not in (LEGACY_METHOD, METHOD):
+    if method not in (LEGACY_METHOD, EXIT_OWNER_METHOD, METHOD):
         raise ValueError("unsupported host collection protocol")
-    final_polls_required = method == METHOD
+    owner_is_identity = method != METHOD
+    if method == METHOD:
+        if receipt.get("identity_semantics") != IDENTITY_SEMANTICS:
+            raise ValueError("missing pidfd-bound process identity semantics")
+    elif "identity_semantics" in receipt:
+        raise ValueError("v3 identity semantics cannot be relabeled as v1/v2")
+    final_polls_required = method in (EXIT_OWNER_METHOD, METHOD)
     if final_polls_required and receipt.get("uid_semantics") != "proc_inode_owner":
         raise ValueError("missing proc inode ownership semantics")
     attempts = receipt.get("attempts")
@@ -299,7 +322,11 @@ def summarize_collection(receipt: dict) -> dict:
             ancestor, visited = pid, set()
             while ancestor not in before:
                 value = attempt["discovery_after"].get(str(ancestor), {}).get("value", {})
-                if ancestor in visited or not _valid_identity(value) or value.get("ppid") not in after:
+                if (
+                    ancestor in visited
+                    or not _valid_identity(value, owner_is_identity=owner_is_identity)
+                    or value.get("ppid") not in after
+                ):
                     hard_errors.append("unproven_new_descendant")
                     break
                 visited.add(ancestor)
@@ -328,11 +355,19 @@ def summarize_collection(receipt: dict) -> dict:
                 observed = discovery.get(pid, {}).get("value")
                 if (
                     observed is not None
-                    and _identity(observed) != _identity(expected)
-                    and not _released_owner_transition(observed, expected, final_released is True)
+                    and (
+                        (not owner_is_identity and not _valid_identity(observed, owner_is_identity=False))
+                        or _identity(observed, owner_is_identity=owner_is_identity)
+                        != _identity(expected, owner_is_identity=owner_is_identity)
+                    )
+                    and not (
+                        owner_is_identity and _released_owner_transition(observed, expected, final_released is True)
+                    )
                 ):
                     hard_errors.append("discovery_identity_changed")
-            values, errors, changed = classify_process(record, released_after_discovery=final_released is True)
+            values, errors, changed = classify_process(
+                record, released_after_discovery=final_released is True, owner_is_identity=owner_is_identity
+            )
             memory[pid] = values
             hard_errors.extend(errors)
             process_errors.extend(errors)
@@ -371,8 +406,8 @@ def summarize_collection(receipt: dict) -> dict:
 
 
 def _validate_sample(sample: dict) -> dict:
-    """Validate a v2 sample without trusting its producer's totals/complete flag."""
-    if sample.get("host_process_memory_method") not in (LEGACY_METHOD, METHOD):
+    """Validate each version without trusting producer totals or upgrading old evidence."""
+    if sample.get("host_process_memory_method") not in (LEGACY_METHOD, EXIT_OWNER_METHOD, METHOD):
         raise ValueError("unsupported host memory method")
     receipt = sample.get("host_collection", {})
     if receipt.get("protocol") != sample["host_process_memory_method"]:
@@ -447,13 +482,21 @@ class HostSampler:
             if (
                 "value" not in before
                 or "value" not in discovery
-                or _identity(before["value"]) != _identity(discovery["value"])
+                or not _valid_identity(before["value"], owner_is_identity=False)
+                or not _valid_identity(discovery["value"], owner_is_identity=False)
+                or _identity(before["value"], owner_is_identity=False)
+                != _identity(discovery["value"], owner_is_identity=False)
             ):
                 raise ProcessLookupError(errno.ESRCH, "identity unavailable before pin")
             fd = self.backend.open(pid)
             after = read_proc(pid, "stat")
             pin["after"] = after
-            if "value" not in after or _identity(before["value"]) != _identity(after["value"]):
+            if (
+                "value" not in after
+                or not _valid_identity(after["value"], owner_is_identity=False)
+                or _identity(before["value"], owner_is_identity=False)
+                != _identity(after["value"], owner_is_identity=False)
+            ):
                 raise ProcessLookupError(errno.ESRCH, "identity changed while pinning")
             pin["identity"] = before["value"]
         except OSError as error:
@@ -477,6 +520,7 @@ class HostSampler:
         receipt = {
             "protocol": METHOD,
             "uid_semantics": "proc_inode_owner",
+            "identity_semantics": IDENTITY_SEMANTICS,
             "root_pid": self.root_pid,
             "excluded_monitor_pid": self.exclude_pid,
             "attempts": [],

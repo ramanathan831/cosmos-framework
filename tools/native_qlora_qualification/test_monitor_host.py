@@ -309,10 +309,279 @@ def test_actual_exit_after_memory_before_final_discovery_retains_owner_change_an
     )
 
 
+def test_actual_live_group_owner_change_preserves_valid_memory_without_exit_proof(tmp_path, monkeypatch, request):
+    """The leader exits after a real read; a live thread still owns the shared mm.
+
+    This makes proc ownership change on the qualified user-namespace target,
+    without requiring an unmapped UID or granting memory-read capabilities.
+    The existing unreadable-leader test separately requires incompleteness when
+    the actual memory read occurs after the leader's exit instead.
+    """
+    compiler = shutil.which("cc")
+    assert compiler, "real owner-transition qualification requires a C compiler"
+    source = tmp_path / "owner_transition.c"
+    source.write_text("""
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdatomic.h>
+static atomic_int leader_leaving;
+static void *worker(void *unused) {
+  char *p = malloc(8 * 1024 * 1024);
+  if (!p) _exit(11);
+  for (int i = 0; i < 8 * 1024 * 1024; i += 4096) p[i] = 1;
+  puts("ready"); fflush(stdout);
+  while (!atomic_load(&leader_leaving)) usleep(1000);
+  char c; if (read(0, &c, 1) != 1) _exit(12);
+  free(p); return NULL;
+}
+int main(void) {
+  pthread_t thread;
+  if (pthread_create(&thread, NULL, worker, NULL)) return 13;
+  char c; if (read(0, &c, 1) != 1) return 14;
+  atomic_store(&leader_leaving, 1);
+  pthread_exit(NULL);
+}
+""")
+    binary = tmp_path / "owner_transition"
+    subprocess.run([compiler, "-pthread", "-O0", str(source), "-o", str(binary)], check=True, timeout=15)
+    process = subprocess.Popen([str(binary)], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    stage = tmp_path / "stage"
+    stage.write_text("training")
+    sampler = host.HostSampler(process.pid, stage)
+    read = host.read_proc
+    fired = False
+    try:
+        assert process.stdout.readline() == b"ready\n"
+
+        def leave_leader_after_actual_memory(pid, name):
+            nonlocal fired
+            result = read(pid, name)
+            if pid == process.pid and name == "smaps_rollup" and not fired:
+                assert result["value"]["Pss"] > 4 * 1024 * 1024
+                fired = True
+                process.stdin.write(b"x")
+                process.stdin.flush()
+                deadline = time.monotonic() + 5
+                while read(pid, "stat").get("value", {}).get("state") != "Z":
+                    assert time.monotonic() < deadline, "leader did not exit while worker remained alive"
+                    time.sleep(0.001)
+            return result
+
+        monkeypatch.setattr(host, "read_proc", leave_leader_after_actual_memory)
+        sample = sampler.collect()
+        key = str(process.pid)
+        attempts = sample["host_collection"]["attempts"]
+        assert len(attempts) == 1
+        item = attempts[0]["processes"][key]
+        before, after = item["stat_before"]["value"], item["stat_after"]["value"]
+        assert before["uid"] != after["uid"], "qualification requires actual mutable proc inode ownership"
+        assert all(before[name] == after[name] for name in ("pid", "start_ticks", "ppid"))
+        assert after["state"] == "Z"
+        assert item["poll_before"]["events"] == item["poll_after"]["events"] == []
+        assert attempts[0]["post_discovery_polls"][key]["events"] == []
+        assert host.validate_sample(sample)["host_pss_complete"]
+        assert sample["selected_host_pss_sum_bytes"] == item["rollup"]["value"]["Pss"] > 4 * 1024 * 1024
+        assert "address_space_released" not in sample["process_host_memory"][key]
+        request.node.user_properties.append(
+            (
+                "actual_live_group_inode_owner_transition",
+                json.dumps(
+                    {
+                        "before": before,
+                        "after": after,
+                        "memory_read": item["rollup"],
+                        "poll_before": item["poll_before"],
+                        "poll_after": item["poll_after"],
+                        "post_discovery_poll": attempts[0]["post_discovery_polls"][key],
+                        "final_pss_bytes": sample["selected_host_pss_sum_bytes"],
+                        "address_space_released": False,
+                        "complete": sample["host_pss_complete"],
+                    },
+                    sort_keys=True,
+                ),
+            )
+        )
+        process.stdin.write(b"y")
+        process.stdin.flush()
+        process.wait(timeout=5)
+        assert process.returncode == 0
+    finally:
+        sampler.close()
+        if process.poll() is None:
+            process.kill()
+        process.wait(timeout=5)
+        process.stdin.close()
+        process.stdout.close()
+
+
+@pytest.mark.parametrize("state", ["R", "S", "Z"])
+def test_v3_owner_only_is_metadata_and_never_zero_memory(sampler, state):
+    value, process = sampler
+    sample = value.collect()
+    receipt = sample["host_collection"]
+    attempt = receipt["attempts"][0]
+    key = str(process.pid)
+    for read in (attempt["processes"][key]["stat_after"], attempt["discovery_after"][key]):
+        read["value"].update(uid=read["value"]["uid"] + 1, state=state)
+    sample.update(host.summarize_collection(receipt))
+    assert host.validate_sample(sample)["host_pss_complete"]
+    assert sample["selected_host_pss_sum_bytes"] > 4 * 1024 * 1024
+    assert "address_space_released" not in sample["process_host_memory"][key]
+
+
+@pytest.mark.parametrize("field", ["pid", "start_ticks"])
+def test_v3_owner_change_cannot_conceal_bound_identity_change(sampler, field):
+    value, process = sampler
+    sample = value.collect()
+    attempt = sample["host_collection"]["attempts"][0]
+    key = str(process.pid)
+    for read in (attempt["processes"][key]["stat_after"], attempt["discovery_after"][key]):
+        read["value"]["uid"] += 1
+        read["value"][field] += 1
+    result = host.summarize_collection(sample["host_collection"])
+    assert not result["host_pss_complete"]
+    assert "process_identity_changed" in result["host_collection_errors"]
+    assert "discovery_identity_changed" in result["host_collection_errors"]
+
+
+def test_actual_pinned_descendant_remains_owned_after_reparenting(tmp_path, request):
+    compiler = shutil.which("cc")
+    assert compiler, "real owned-reparent qualification requires a C compiler"
+    source = tmp_path / "reparent.c"
+    source.write_text("""
+#include <sys/prctl.h>
+#include <sys/wait.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+int main(void) {
+  int parent_go[2], child_go[2];
+  if (prctl(PR_SET_CHILD_SUBREAPER, 1, 0, 0, 0) || pipe(parent_go) || pipe(child_go)) return 11;
+  pid_t parent = fork(); if (parent < 0) return 12;
+  if (!parent) {
+    pid_t child = fork(); if (child < 0) _exit(13);
+    if (!child) {
+      char *p = malloc(4 * 1024 * 1024); if (!p) _exit(14);
+      for (int i = 0; i < 4 * 1024 * 1024; i += 4096) p[i] = 1;
+      printf("child %d\\n", getpid()); fflush(stdout);
+      char c; if (read(child_go[0], &c, 1) != 1) _exit(15);
+      free(p); _exit(0);
+    }
+    char c; if (read(parent_go[0], &c, 1) != 1) _exit(16);
+    _exit(0);
+  }
+  printf("parent %d\\n", parent); fflush(stdout);
+  char c; int status;
+  if (read(0, &c, 1) != 1 || write(parent_go[1], "x", 1) != 1) return 17;
+  if (waitpid(parent, &status, 0) != parent || status != 0) return 18;
+  puts("reparented"); fflush(stdout);
+  if (read(0, &c, 1) != 1 || write(child_go[1], "x", 1) != 1) return 19;
+  if (waitpid(-1, &status, 0) <= 0 || status != 0) return 20;
+  return 0;
+}
+""")
+    binary = tmp_path / "reparent"
+    subprocess.run([compiler, "-O0", str(source), "-o", str(binary)], check=True, timeout=15)
+    process = subprocess.Popen([str(binary)], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    stage = tmp_path / "stage"
+    stage.write_text("training")
+    sampler = host.HostSampler(process.pid, stage)
+    try:
+        members = dict(process.stdout.readline().decode().split() for _ in range(2))
+        parent, child = int(members["parent"]), int(members["child"])
+        before = sampler.collect()
+        assert host.validate_sample(before)["host_pss_complete"]
+        original = before["host_collection"]["attempts"][0]["processes"][str(child)]["pin"]["identity"]
+        assert original["ppid"] == parent
+        process.stdin.write(b"p")
+        process.stdin.flush()
+        assert process.stdout.readline() == b"reparented\n"
+        after = sampler.collect()
+        item = after["host_collection"]["attempts"][0]["processes"][str(child)]
+        assert item["pin"]["identity"] == original
+        assert item["stat_before"]["value"]["ppid"] == process.pid != parent
+        assert item["poll_before"]["events"] == item["poll_after"]["events"] == []
+        assert host.validate_sample(after)["host_pss_complete"]
+        assert after["process_host_memory"][str(child)]["Pss_rollup"] > 3 * 1024 * 1024
+        request.node.user_properties.append(
+            (
+                "actual_owned_descendant_reparenting",
+                json.dumps(
+                    {"pin": original, "observed": item["stat_before"], "complete": after["host_pss_complete"]},
+                    sort_keys=True,
+                ),
+            )
+        )
+        process.stdin.write(b"c")
+        process.stdin.flush()
+        process.wait(timeout=5)
+        assert process.returncode == 0
+    finally:
+        # Release both private fixture gates even if a receipt assertion fails;
+        # the isolated subreaper waits for its own child, leaving no orphan.
+        if process.poll() is None:
+            try:
+                process.stdin.write(b"pc")
+                process.stdin.flush()
+                process.wait(timeout=5)
+            except (BrokenPipeError, subprocess.TimeoutExpired):
+                for item in sampler.tracked.values():
+                    if item["fd"] is not None:
+                        try:
+                            sampler.backend.send_signal(item["fd"], 9)
+                        except ProcessLookupError:
+                            pass
+                process.wait(timeout=5)
+        sampler.close()
+        process.stdin.close()
+        process.stdout.close()
+
+
+def test_unrelated_new_member_cannot_use_owner_metadata_to_gain_admission(sampler):
+    value, process = sampler
+    sample = value.collect()
+    receipt = sample["host_collection"]
+    attempt = receipt["attempts"][0]
+    stranger = process.pid + 10000000
+    attempt["selected_after"].append(stranger)
+    read = copy.deepcopy(attempt["discovery_after"][str(process.pid)])
+    read["value"].update(pid=stranger, ppid=stranger, uid=read["value"]["uid"] + 1)
+    attempt["discovery_after"][str(stranger)] = read
+    result = host.summarize_collection(receipt)
+    assert not result["host_pss_complete"]
+    assert "unproven_new_descendant" in result["host_collection_errors"]
+
+
+@pytest.mark.parametrize("method", [host.LEGACY_METHOD, host.EXIT_OWNER_METHOD])
+def test_v3_receipt_cannot_be_relabelled_as_prior_method(sampler, method):
+    value, _ = sampler
+    sample = value.collect()
+    sample["host_process_memory_method"] = sample["host_collection"]["protocol"] = method
+    with pytest.raises(ValueError, match="v3 identity semantics"):
+        host.validate_sample(sample)
+
+
+def test_v2_owner_only_change_retains_original_incomplete_classification(sampler):
+    value, process = sampler
+    sample = value.collect()
+    receipt = sample["host_collection"]
+    sample["host_process_memory_method"] = receipt["protocol"] = host.EXIT_OWNER_METHOD
+    del receipt["identity_semantics"]
+    receipt["attempts"][0]["discovery_after"][str(process.pid)]["value"]["uid"] += 1
+    sample.update(host.summarize_collection(receipt))
+    assert not host.validate_sample(sample)["host_pss_complete"]
+    assert sample["host_collection_errors"] == ["discovery_identity_changed"]
+
+
 @pytest.mark.parametrize("damage", ["live_owner", "birth", "parent", "no_exit", "poll_error"])
 def test_final_discovery_owner_exception_is_strictly_exit_bound(sampler, damage):
     value, process = sampler
     sample = value.collect()
+    # This is the immutable v2 classifier, including its owner-as-identity rule.
+    sample["host_process_memory_method"] = sample["host_collection"]["protocol"] = host.EXIT_OWNER_METHOD
+    del sample["host_collection"]["identity_semantics"]
     attempt = sample["host_collection"]["attempts"][0]
     key = str(process.pid)
     changed = attempt["discovery_after"][key]["value"]
@@ -361,6 +630,7 @@ def test_legacy_v1_owner_mismatch_remains_incomplete_without_new_proof(sampler):
     receipt = sample["host_collection"]
     sample["host_process_memory_method"] = receipt["protocol"] = host.LEGACY_METHOD
     del receipt["uid_semantics"]
+    del receipt["identity_semantics"]
     for attempt in receipt["attempts"]:
         del attempt["post_discovery_polls"]
     changed = receipt["attempts"][0]["discovery_after"][str(process.pid)]["value"]
