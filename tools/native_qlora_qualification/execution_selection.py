@@ -45,12 +45,14 @@ PROFILE_INPUT_PROTOCOL_V3 = "cosmos.qlora-execution-selection-inputs.v3"
 PROFILE_INPUT_PROTOCOL_V4 = "cosmos.qlora-execution-selection-inputs.v4"
 PROFILE_INPUT_PROTOCOL_V5 = "cosmos.qlora-execution-selection-inputs.v5"
 PROFILE_INPUT_PROTOCOL_V6 = "cosmos.qlora-execution-selection-inputs.v6"
+PROFILE_INPUT_PROTOCOL_V7 = "cosmos.qlora-execution-selection-inputs.v7"
 PROFILE_PRODUCERS = {
     PROFILE_INPUT_PROTOCOL: ("gpu-runtime-v6", "proc-identity-state-read-attempts-v1"),
     PROFILE_INPUT_PROTOCOL_V3: ("gpu-runtime-v7", "proc-identity-state-read-attempts-v1"),
     PROFILE_INPUT_PROTOCOL_V4: ("gpu-runtime-v8", "proc-identity-state-read-attempts-v2"),
     PROFILE_INPUT_PROTOCOL_V5: ("gpu-runtime-v9", "proc-identity-state-read-attempts-v3"),
     PROFILE_INPUT_PROTOCOL_V6: ("gpu-runtime-v10", "proc-identity-state-read-attempts-v3"),
+    PROFILE_INPUT_PROTOCOL_V7: ("gpu-runtime-v11", "proc-identity-state-read-attempts-v3"),
 }
 PRODUCER_PROFILE_PROTOCOL = "cosmos.qlora-runtime-producer-profile.v1"
 TRAINING_REVISION = "55e7f14dfeca84002d0324108808a0e682579842"

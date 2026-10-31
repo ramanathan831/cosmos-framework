@@ -864,12 +864,18 @@ def explicit_profile_fixture(tmp_path, *, version=2):
         4: select.PROFILE_INPUT_PROTOCOL_V4,
         5: select.PROFILE_INPUT_PROTOCOL_V5,
         6: select.PROFILE_INPUT_PROTOCOL_V6,
+        7: select.PROFILE_INPUT_PROTOCOL_V7,
     }[version]
     workflow_root, runner_root = (
         "workflows/aaaaaaa",
-        {2: "gpu-runtime-v6", 3: "gpu-runtime-v7", 4: "gpu-runtime-v8", 5: "gpu-runtime-v9", 6: "gpu-runtime-v10"}[
-            version
-        ],
+        {
+            2: "gpu-runtime-v6",
+            3: "gpu-runtime-v7",
+            4: "gpu-runtime-v8",
+            5: "gpu-runtime-v9",
+            6: "gpu-runtime-v10",
+            7: "gpu-runtime-v11",
+        }[version],
     )
     files = {}
 
@@ -922,6 +928,7 @@ def explicit_profile_fixture(tmp_path, *, version=2):
                 4: "proc-identity-state-read-attempts-v2",
                 5: "proc-identity-state-read-attempts-v3",
                 6: "proc-identity-state-read-attempts-v3",
+                7: "proc-identity-state-read-attempts-v3",
             }[version],
             "files": {n: files["tools/native_qlora_qualification/" + n] for n in ("monitor.py", "monitor_host.py")},
         },
@@ -1190,6 +1197,65 @@ def test_v6_requires_profile_presealed_by_submitted_calibration(tmp_path):
 
 def test_v6_profile_cannot_backfill_the_unversioned_legacy_contract(tmp_path):
     fixture, identity = explicit_profile_fixture(tmp_path, version=6)
+    fixture.inputs["protocol"] = select.INPUT_PROTOCOL
+    with pytest.raises(select.InvalidExecutionSelection, match="versioned"):
+        fixture.evidence()
+    del fixture.inputs["producer_profile"]
+    with pytest.raises(select.InvalidExecutionSelection, match="pinned v5"):
+        select.producer_profile(fixture.evidence(), identity)
+
+
+def test_v7_profile_binds_exact_v11_with_same_strict_v3_raw_semantics(tmp_path):
+    fixture, identity = explicit_profile_fixture(tmp_path, version=7)
+    evidence = fixture.evidence()
+    _, result = select.producer_profile(evidence, identity)
+    assert result["input_protocol"] == select.PROFILE_INPUT_PROTOCOL_V7
+    assert result["runner"]["root"] == "gpu-runtime-v11"
+    assert result["monitor"]["method"] == "proc-identity-state-read-attempts-v3"
+    evidence.stable()
+    (tmp_path / "gpu-runtime-v11/extra.py").write_text("# late unbound source")
+    with pytest.raises(select.InvalidExecutionSelection, match="inventory changed"):
+        evidence.stable()
+
+
+@pytest.mark.parametrize(
+    "source_version,target_version", [(2, 7), (3, 7), (4, 7), (5, 7), (6, 7), (7, 2), (7, 3), (7, 4), (7, 5), (7, 6)]
+)
+def test_v7_cannot_relabel_previous_runners_even_with_same_v3_method(tmp_path, source_version, target_version):
+    fixture, identity = explicit_profile_fixture(tmp_path, version=source_version)
+    fixture.inputs["protocol"] = {
+        2: select.PROFILE_INPUT_PROTOCOL,
+        3: select.PROFILE_INPUT_PROTOCOL_V3,
+        4: select.PROFILE_INPUT_PROTOCOL_V4,
+        5: select.PROFILE_INPUT_PROTOCOL_V5,
+        6: select.PROFILE_INPUT_PROTOCOL_V6,
+        7: select.PROFILE_INPUT_PROTOCOL_V7,
+    }[target_version]
+    with pytest.raises(select.InvalidExecutionSelection, match="observed execution"):
+        select.producer_profile(fixture.evidence(), identity)
+
+
+@pytest.mark.parametrize("method_version", [1, 2, 4])
+def test_v7_does_not_allow_other_raw_monitor_semantics(tmp_path, method_version):
+    fixture, identity = explicit_profile_fixture(tmp_path, version=7)
+    profile = fixture.read("producer-profile.json")
+    profile["monitor"]["method"] = f"proc-identity-state-read-attempts-v{method_version}"
+    sha = fixture.put("producer-profile.json", profile)
+    fixture.inputs["producer_profile"]["sha256"] = sha
+    identity["plan"]["inputs"] = [{"path": path, "sha256": value} for path, value in fixture.inputs["files"].items()]
+    with pytest.raises(select.InvalidExecutionSelection, match="strict host-monitor"):
+        select.producer_profile(fixture.evidence(), identity)
+
+
+def test_v7_requires_profile_presealed_by_submitted_calibration(tmp_path):
+    fixture, identity = explicit_profile_fixture(tmp_path, version=7)
+    identity["plan"]["inputs"] = [row for row in identity["plan"]["inputs"] if row["path"] != "producer-profile.json"]
+    with pytest.raises(select.InvalidExecutionSelection, match="did not preseal"):
+        select.producer_profile(fixture.evidence(), identity)
+
+
+def test_v7_profile_cannot_backfill_the_unversioned_legacy_contract(tmp_path):
+    fixture, identity = explicit_profile_fixture(tmp_path, version=7)
     fixture.inputs["protocol"] = select.INPUT_PROTOCOL
     with pytest.raises(select.InvalidExecutionSelection, match="versioned"):
         fixture.evidence()
