@@ -119,6 +119,45 @@ The allowlist contains 252 language attention/MLP matrices; vision, projectors, 
 
 The default comparison recipe is 300 updates, accumulation 8, sequence limit 4096, and image area budget 65,536–262,144 pixels. The pinned Transformers 5.8.1 Qwen3-VL video processor bounds the total `T × H × W`: eight frames use budgets 32,768–524,288, equivalent to 4,096–65,536 pixels per frame before resize rounding. Change both total budgets when changing frame count, and record the actual resized dimensions and visual-token count. A short canary changes those schedule/batch settings and is a separate experiment. Do not extend it by changing its horizon during exact resume.
 
+## Reproduce the selected development recipe
+
+The selected rank-32 study uses the existing native recipe with explicit overrides. Its [completed three-seed results](native_qlora_qualification.md#completed-selected-three-seed-development-comparison) remain experimental: the crossed NLL uncertainty bound fails the unchanged 2% gate. This is the fixed-execution development choice, not a successful same-budget best-fit search or a universal default.
+
+Use the sealed build and pinned processor above. Set `SFT_DATA_ROOT` to the source-bound grouped training directory containing the fresh 4,611-row `train.jsonl` and a `validation.jsonl` copy of the 584-row development partition. Preserve the corresponding manifests; do not substitute the earlier raw conversion's split. The [qualification runner](../../tools/native_qlora_qualification/README.md#native-experiments) supplies preflight, measurement, portable publication, fresh reload and complete development scoring around this native launch. The training command alone does not perform that qualification.
+
+```bash
+export SFT_DATA_ROOT=/absolute/work/qlora/grouped-training
+export QLORA_SEED=17
+export PYTHONHASHSEED="$QLORA_SEED"
+torchrun --standalone --nproc-per-node=1 \
+    -m cosmos_framework.posttrain.entrypoints.sft --config "$QLORA_CONFIG" -- \
+    job.name="qlora_rank32_seed${QLORA_SEED}" \
+    model.model_config.adapter.rank=32 model.model_config.adapter.alpha=64 \
+    model.model_config.adapter.initialization_seed="$QLORA_SEED" \
+    model.model_config.activation_checkpointing=full \
+    model.model_config.adapter_compute_dtype=float32 \
+    model.model_config.sft_logits_mode=full \
+    model.model_config.compile_language_model=false \
+    rl.seed="$QLORA_SEED" rl.deterministic=true \
+    rl.max_steps=300 rl.lr_schedule.cycle_steps=300 \
+    rl.optimizer.lr=0.0001 rl.optimizer.warmup_steps=30 \
+    rl.micro_batch_size=1 rl.grad_accum=8 rl.max_length=4096 \
+    rl.preprocessing_cache_bytes=1073741824 rl.preprocessing_prefetch=true \
+    rl.checkpoint_format=dcp rl.save_async=false rl.save_every=50 \
+    'rl.checkpoint_components=["model","optimizer","training_state"]' \
+    rl.emergency_checkpoint_components=full rl.keep_optim_last=0 rl.keep_model_last=0 \
+    rl.validation.enabled=true rl.validation.before_training=true \
+    rl.validation.every_steps=50 rl.validation.max_samples=64 \
+    rl.validation.batch_size=1 rl.validation.seed="$QLORA_SEED" \
+    rl.validation.save_checkpoint=true \
+    'rl.validation.checkpoint_components=["model","optimizer","training_state"]' \
+    rl.processor_kwargs.videos_kwargs.num_frames=8 \
+    rl.processor_kwargs.videos_kwargs.size.shortest_edge=32768 \
+    rl.processor_kwargs.videos_kwargs.size.longest_edge=524288
+```
+
+Run the BF16 control with `sft_qwen3_vl_8b_lora.py`, a distinct output name and identical overrides. The paired seed policy is 17, 42 and 123; set the environment, training, adapter-initialization and validation seeds together before each launch. The recorded study reused the audited seed-42 pair and ran fresh pairs for 17 and 123. Reproducing these commands creates new evidence and does not turn that historical reuse into a fresh trial. Eight processed temporal slots and a 4,096-token limit are configuration values, not measured frame uniqueness or a training-length distribution.
+
 ## Experimental performance controls
 
 These opt-in controls are implemented for the single-device native adapter path. On the sealed `a406ea1d32c95277c57ac8e7ec274784bed3aaf7` runtime, **14 real CUDA tests and 13 four-update native lifecycle cases passed**. Each lifecycle case compared uninterrupted training with its own fresh-process resume, then compared DCP and portable reloads on text, image and video inputs. Adapter/optimizer state and controlled reload outputs matched with `atol=0, rtol=0`; this is parity within each recorded configuration, not equality between different execution settings. The [lifecycle and input-shape evidence](evidence/native_qlora_lifecycle_a406ea1.json) records the exact configurations, source digests and measurement limits.
