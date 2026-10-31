@@ -35,6 +35,8 @@ METHOD = "proc-identity-state-read-attempts-v3"
 IDENTITY_SEMANTICS = "pid_start_pidfd_owned_ancestry"
 MAX_ATTEMPTS = 3
 MAX_COLLECTION_SECONDS = 0.75
+MAX_EXIT_WAIT_MILLISECONDS = 350
+EXIT_WAIT_RETRY_RESERVE_SECONDS = 0.25
 
 
 def _error(error: Exception) -> dict:
@@ -119,14 +121,16 @@ def _read_stage(path: Path) -> dict:
     return result
 
 
-def _poll(fd: int | None) -> dict:
+def _poll(fd: int | None, *, timeout_milliseconds: int = 0) -> dict:
     result = {"begin_unix_seconds": time.time(), "begin_monotonic_seconds": time.monotonic()}
+    if timeout_milliseconds:
+        result["timeout_milliseconds"] = timeout_milliseconds
     try:
         if fd is None:
             raise OSError(errno.EBADF, "no identity-bound pidfd")
         poller = select.poll()
         poller.register(fd, select.POLLIN)
-        result["events"] = [mask for _, mask in poller.poll(0)]
+        result["events"] = [mask for _, mask in poller.poll(timeout_milliseconds)]
     except OSError as error:
         result["error"] = _error(error)
     result.update(end_unix_seconds=time.time(), end_monotonic_seconds=time.monotonic())
@@ -231,6 +235,56 @@ def classify_process(
     if errors or transition:
         memory["rollup_unavailable"] = "Pss_rollup" not in memory
     return memory, sorted(set(errors)), transition
+
+
+def _exit_wait_eligible(record: dict) -> bool:
+    """Wait only for exit-compatible missing memory on a valid, still-owned pidfd."""
+    _, errors, transition = classify_process(record, owner_is_identity=False)
+    if (
+        transition
+        or "live_or_unknown_memory_unreadable" not in errors
+        or set(errors) - {"live_or_unknown_memory_unreadable", "live_or_unknown_identity_unreadable"}
+        or _released(record["poll_before"]) is not False
+        or _released(record["poll_after"]) is not False
+    ):
+        return False
+    # Permission failures and malformed/unknown reads must remain hard failures,
+    # even if the same process happens to exit shortly afterward.
+    return all(
+        read.get("error", {}).get("errno") in (errno.ENOENT, errno.ESRCH) if "error" in read else True
+        for read in (record[name] for name in ("stat_before", "status", "rollup", "stat_after"))
+    )
+
+
+def _validate_exit_wait(record: dict, *, method: str, collection_start: float) -> None:
+    """Optional v3 acquisition detail; historical reads retain identical semantics."""
+    wait = record.get("exit_wait")
+    if wait is None:
+        if "timeout_milliseconds" in record.get("poll_after", {}):
+            raise ValueError("timed pidfd poll lacks its initial read and budget")
+        return
+    if (
+        method != METHOD
+        or not isinstance(wait, dict)
+        or set(wait) != {"initial_poll", "deadline_monotonic_seconds", "retry_reserve_seconds"}
+        or wait["retry_reserve_seconds"] != EXIT_WAIT_RETRY_RESERVE_SECONDS
+        or wait["deadline_monotonic_seconds"] != collection_start + MAX_COLLECTION_SECONDS
+    ):
+        raise ValueError("invalid exit-wait bounds or method")
+    initial, final = wait["initial_poll"], record.get("poll_after", {})
+    timeout = final.get("timeout_milliseconds")
+    if (
+        not _receipt_valid(initial)
+        or not _receipt_valid(final)
+        or type(timeout) is not int
+        or not 0 < timeout <= MAX_EXIT_WAIT_MILLISECONDS
+        or record["stat_after"]["end_monotonic_seconds"] > initial["begin_monotonic_seconds"]
+        or initial["end_monotonic_seconds"] > final["begin_monotonic_seconds"]
+        or final["begin_monotonic_seconds"] + timeout / 1000
+        > wait["deadline_monotonic_seconds"] - EXIT_WAIT_RETRY_RESERVE_SECONDS
+        or not _exit_wait_eligible({**record, "poll_after": initial})
+    ):
+        raise ValueError("exit wait was not justified by owned exit-compatible reads")
 
 
 def summarize_collection(receipt: dict) -> dict:
@@ -342,6 +396,7 @@ def summarize_collection(receipt: dict) -> dict:
             hard_errors.append("stage_changed_or_unreadable")
         memory, transitioned, process_errors = {}, False, []
         for pid, record in records.items():
+            _validate_exit_wait(record, method=method, collection_start=first_start)
             if record.get("pin", {}).get("identity", {}).get("pid") != int(pid):
                 hard_errors.append("process_key_identity_mismatch")
             expected = record.get("pin", {}).get("identity", {})
@@ -515,6 +570,23 @@ class HostSampler:
         record["poll_after"] = _poll(item["fd"])
         return record
 
+    def _wait_for_exit(self, pid: int, record: dict, deadline: float) -> None:
+        if not _exit_wait_eligible(record):
+            return
+        remaining = deadline - time.monotonic() - EXIT_WAIT_RETRY_RESERVE_SECONDS
+        # Reserve time for a new complete collection. Scheduler delay may still
+        # exceed a requested poll timeout; only an in-budget retry is accepted.
+        timeout = min(MAX_EXIT_WAIT_MILLISECONDS, int(remaining * 1000) - 1)
+        if timeout <= 0:
+            return
+        initial = record["poll_after"]
+        record["exit_wait"] = {
+            "initial_poll": initial,
+            "deadline_monotonic_seconds": deadline,
+            "retry_reserve_seconds": EXIT_WAIT_RETRY_RESERVE_SECONDS,
+        }
+        record["poll_after"] = _poll(self.tracked[pid]["fd"], timeout_milliseconds=timeout)
+
     def collect(self) -> dict:
         started = time.monotonic()
         receipt = {
@@ -529,12 +601,19 @@ class HostSampler:
         }
         for _ in range(MAX_ATTEMPTS):
             attempt_started = time.monotonic()
+            if not receipt["attempts"]:
+                started = attempt_started
             stage = _read_stage(self.stage_file)
             selected = self._discover()
             discovery_before = self.discovery
             for pid in selected - self.tracked.keys():
                 self._pin(pid, discovery_before[str(pid)])
-            records = {str(pid): self._process(pid) for pid in sorted(selected)}
+            records = {}
+            for pid in sorted(selected):
+                record = self._process(pid)
+                if len(receipt["attempts"]) < MAX_ATTEMPTS - 1:
+                    self._wait_for_exit(pid, record, started + MAX_COLLECTION_SECONDS)
+                records[str(pid)] = record
             after = self._discover()
             discovery_after = self.discovery
             for pid in after - self.tracked.keys():

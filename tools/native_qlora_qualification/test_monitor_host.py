@@ -720,6 +720,8 @@ int main(void) { pthread_t thread; pthread_create(&thread, NULL, worker, NULL); 
         item = sample["host_collection"]["attempts"][0]["processes"][str(process.pid)]
         assert item["stat_before"]["value"]["state"] == "Z"
         assert item["poll_after"]["events"] == []
+        assert item["exit_wait"]["initial_poll"]["events"] == []
+        assert 0 < item["poll_after"]["timeout_milliseconds"] <= host.MAX_EXIT_WAIT_MILLISECONDS
         assert not host.validate_sample(sample)["host_pss_complete"]
         assert "address_space_released" not in sample["process_host_memory"][str(process.pid)]
         process.stdin.write(b"x")
@@ -776,6 +778,7 @@ def test_discovery_to_pin_identity_reuse_fails_closed(sampler, monkeypatch):
     assert not host.validate_sample(sample)["host_pss_complete"]
     assert "unbound_process_identity" in sample["host_collection_errors"]
     assert len(sample["host_collection"]["attempts"]) == 1
+    assert all("exit_wait" not in item for item in sample["host_collection"]["attempts"][0]["processes"].values())
 
 
 def test_actual_live_eacces_followed_by_exit_cannot_be_hidden_by_retry(child, tmp_path, monkeypatch, request):
@@ -804,6 +807,7 @@ def test_actual_live_eacces_followed_by_exit_cannot_be_hidden_by_retry(child, tm
             assert not host.validate_sample(sample)["host_pss_complete"]
             assert len(sample["host_collection"]["attempts"]) == 1
             assert "unexplained_read_error_before_exit" in sample["host_collection_errors"]
+            assert "exit_wait" not in sample["host_collection"]["attempts"][0]["processes"][str(process.pid)]
     finally:
         value.close()
 
@@ -896,3 +900,124 @@ def test_retry_start_after_bound_is_rejected(sampler):
         poll["events"] = [select.POLLIN]
     with pytest.raises(ValueError, match="bounded collection interval"):
         host.summarize_collection(receipt)
+
+
+def test_actual_delayed_last_thread_exit_waits_then_recollects(tmp_path, monkeypatch, request):
+    compiler = shutil.which("cc")
+    assert compiler, "actual delayed whole-process exit qualification requires a C compiler"
+    source = tmp_path / "delayed_exit.c"
+    source.write_text("""#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+static void *worker(void *unused) {
+  char *p = malloc(8 * 1024 * 1024);
+  if (!p) _exit(11);
+  for (int i = 0; i < 8 * 1024 * 1024; i += 4096) p[i] = 1;
+  puts("ready"); fflush(stdout);
+  char c; if (read(0, &c, 1) != 1) _exit(12);
+  usleep(100000); free(p); return NULL;
+}
+int main(void) { pthread_t t; if (pthread_create(&t, NULL, worker, NULL)) return 13; pthread_exit(NULL); }
+""")
+    binary = tmp_path / "delayed_exit"
+    subprocess.run([compiler, "-pthread", "-O0", str(source), "-o", str(binary)], check=True, timeout=15)
+    process = subprocess.Popen([str(binary)], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    sampler = host.HostSampler(process.pid, tmp_path / "stage")
+    read, fired = host.read_proc, False
+    try:
+        assert process.stdout.readline() == b"ready\n"
+        deadline = time.monotonic() + 5
+        while read(process.pid, "stat").get("value", {}).get("state") != "Z":
+            assert time.monotonic() < deadline
+            time.sleep(0.001)
+
+        def release_after_failed_memory(pid, name):
+            nonlocal fired
+            result = read(pid, name)
+            if pid == process.pid and name == "smaps_rollup" and not fired:
+                assert result["error"]["errno"] == 3
+                fired = True
+                process.stdin.write(b"x")
+                process.stdin.flush()
+            return result
+
+        monkeypatch.setattr(host, "read_proc", release_after_failed_memory)
+        sample = sampler.collect()
+        attempts, key = sample["host_collection"]["attempts"], str(process.pid)
+        assert len(attempts) == 2
+        first, second = (attempt["processes"][key] for attempt in attempts)
+        assert first["rollup"]["error"]["errno"] == 3
+        assert first["poll_before"]["events"] == first["exit_wait"]["initial_poll"]["events"] == []
+        assert host._released(first["poll_after"]) is True
+        assert 0 < first["poll_after"]["timeout_milliseconds"] <= host.MAX_EXIT_WAIT_MILLISECONDS
+        assert first["poll_after"]["end_monotonic_seconds"] - first["poll_after"]["begin_monotonic_seconds"] >= 0.05
+        assert attempts[1]["begin_monotonic_seconds"] <= attempts[0]["begin_monotonic_seconds"] + 0.75
+        assert host._released(second["poll_before"]) is host._released(second["poll_after"]) is True
+        assert host.validate_sample(sample)["host_pss_complete"]
+        assert sample["process_host_memory"][key]["address_space_released"] is True
+        assert sample["selected_host_pss_sum_bytes"] == 0
+        request.node.user_properties.append(("actual_delayed_group_exit_wait", json.dumps(sample, sort_keys=True)))
+        process.wait(timeout=5)
+        assert process.returncode == 0
+    finally:
+        sampler.close()
+        if process.poll() is None:
+            process.kill()
+        process.wait(timeout=5)
+        process.stdin.close()
+        process.stdout.close()
+
+
+@pytest.mark.parametrize("damage", ["permission", "unknown_error", "birth", "missing_identity"])
+def test_exit_wait_refuses_non_exit_compatible_reads(sampler, damage):
+    value, process = sampler
+    record = value.collect()["host_collection"]["attempts"][0]["processes"][str(process.pid)]
+    record["rollup"].pop("value")
+    record["rollup"]["error"] = {"type": "ProcessLookupError", "errno": 3}
+    assert host._exit_wait_eligible(record)
+    if damage == "permission":
+        record["rollup"]["error"]["errno"] = 13
+    elif damage == "unknown_error":
+        record["status"].pop("value")
+        record["status"]["error"] = {"type": "OSError", "errno": 5}
+    elif damage == "birth":
+        record["stat_after"]["value"]["start_ticks"] += 1
+    else:
+        record["pin"].pop("identity")
+    assert not host._exit_wait_eligible(record)
+
+
+@pytest.mark.parametrize("damage", ["initial_poll", "duration", "deadline", "reserve", "permission", "method"])
+def test_exit_wait_receipt_cannot_invent_a_budget_or_eligibility(sampler, damage):
+    value, process = sampler
+    sample = value.collect()
+    attempt = sample["host_collection"]["attempts"][0]
+    record = attempt["processes"][str(process.pid)]
+    record["rollup"].pop("value")
+    record["rollup"]["error"] = {"type": "ProcessLookupError", "errno": 3}
+    initial = copy.deepcopy(record["poll_after"])
+    final = copy.deepcopy(initial)
+    final["begin_monotonic_seconds"] = initial["end_monotonic_seconds"]
+    final["timeout_milliseconds"] = 1
+    record["poll_after"] = final
+    record["exit_wait"] = {
+        "initial_poll": initial,
+        "deadline_monotonic_seconds": attempt["begin_monotonic_seconds"] + 0.75,
+        "retry_reserve_seconds": 0.25,
+    }
+    method = host.METHOD
+    if damage == "initial_poll":
+        initial["events"] = [select.POLLIN]
+    elif damage == "duration":
+        final["timeout_milliseconds"] = 1000
+    elif damage == "deadline":
+        record["exit_wait"]["deadline_monotonic_seconds"] += 1
+    elif damage == "reserve":
+        record["exit_wait"]["retry_reserve_seconds"] = 0
+    elif damage == "permission":
+        record["rollup"]["error"]["errno"] = 13
+    else:
+        method = host.EXIT_OWNER_METHOD
+    with pytest.raises(ValueError, match="exit.wait|exit wait"):
+        host._validate_exit_wait(record, method=method, collection_start=attempt["begin_monotonic_seconds"])
