@@ -189,6 +189,8 @@ It checks text, image, and real video losses/logits, media sensitivity, trainabl
 
 The [completed controlled three-seed comparison](native_qlora_qualification.md#completed-controlled-three-seed-comparison) uses the same cache/prefetch settings in both precision arms. NF4 steady updates were 6.68% slower, while the complete measured-experiment timing interval crossed parity. Paired sampled GPU process peaks differed by 9.78–9.88 GiB; host-memory gaps remain explicit. The development-set NLL uncertainty bounds still fail the unchanged 2% criterion. These results are separate from the historical within-arm preprocessing improvements below and do not qualify the pending selected rank-32 execution recipe.
 
+The [completed sequence/media matrix](native_qlora_qualification.md#completed-runtime-and-recovery-matrix) adds real-kernel 20-update tests for roughly 4,096-token synthetic targets and larger 16-slot video, plus exact four-update recovery for the stated settings. Larger-video NF4 microbatch four fit the observed process-memory predicate but did not improve throughput. Long-workload host measurements remain incomplete; combined long-target/larger-video input and physical 24 GB GPUs were not tested. This runtime evidence uses rank 16 and does not establish task quality or a general speed advantage.
+
 The selected performance recipe adds a 1 GiB CPU cache and ordered prefetch to the original model settings: full non-reentrant activation checkpointing, FP32 adapter arithmetic/parameters/gradients/moments, full logits, microbatch one, accumulation eight, and compilation disabled. Run it through the same native entrypoint, using a new output name:
 
 ```bash
