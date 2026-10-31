@@ -26,10 +26,10 @@ from tools.native_qlora_qualification.score import aggregate
 PROTOCOL = "cosmos.qlora-development-selection.v1"
 RULE = "Within each precision, minimize development supervised-token NLL among completed finite candidates with owned device-process sampled peak <=24GiB and development restricted-choice accuracy no more than1percentage point below that precision baseline candidate; tie by smaller peak then elapsed seconds. Selection does not imply quality-gate success."
 CANDIDATES = {
-    "lr_5e5": (16, 32.0, 5e-5),
-    "baseline": (16, 32.0, 1e-4),
-    "lr_2e4": (16, 32.0, 2e-4),
-    "rank32": (32, 64.0, 1e-4),
+    "lr_5e5": (16, 32, 5e-5),
+    "baseline": (16, 32, 1e-4),
+    "lr_2e4": (16, 32, 2e-4),
+    "rank32": (32, 64, 1e-4),
 }
 GATES = {
     "accuracy_gain_vs_frozen_quantized_one_sided_95_lower_min_exclusive": 0.0,

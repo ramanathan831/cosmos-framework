@@ -13,6 +13,15 @@ from tools.native_qlora_qualification.protocol import Experiment
 from tools.native_qlora_qualification.score import aggregate
 from tools.native_qlora_qualification.test_performance import experiment_root, write
 
+# Match the original sealed JSON specs independently of the selector constants.
+# In particular, alpha was serialized as an integer in every native override.
+DECLARED_CANDIDATES = {
+    "lr_5e5": (16, 32, 5e-5),
+    "baseline": (16, 32, 1e-4),
+    "lr_2e4": (16, 32, 2e-4),
+    "rank32": (32, 64, 1e-4),
+}
+
 
 def score_rows(ce):
     rows = []
@@ -149,7 +158,7 @@ def sealed(tmp_path):
         "candidates": [],
     }
     runs = []
-    for repeat, (candidate, (rank, alpha, lr)) in enumerate(selection.CANDIDATES.items(), 1):
+    for repeat, (candidate, (rank, alpha, lr)) in enumerate(DECLARED_CANDIDATES.items(), 1):
         entry = {"candidate": candidate, "ordered_runs": []}
         for arm in ("nf4", "bf16"):
             root = experiment_root(tmp_path / "runs", arm, repeat)
@@ -229,6 +238,47 @@ def test_complete_eight_candidate_selection_has_no_untouched_scoring_authority(s
     assert report["protocol"] != "cosmos.qlora-selection.v1"
     assert "/private/" not in json.dumps(report)
     assert str(sealed["plan_path"].parent) not in json.dumps(report)
+
+
+def test_original_integer_alpha_overrides_admit_all_eight_declared_candidates(sealed):
+    for row in sealed["runs"]:
+        contract = json.loads((Path(row["path"]) / "contract.json").read_text())
+        alpha = 64 if row["candidate"] == "rank32" else 32
+        assert type(contract["experiment"]["alpha"]) is int
+        assert f"model.model_config.adapter.alpha={alpha}" in contract["overrides"]
+    report = selection.select_development(**sealed)
+    assert report["complete"] is True
+    assert len(report["candidates"]) == 8
+    assert all(row["state"] == "completed" for row in report["candidates"])
+
+
+@pytest.mark.parametrize("candidate", ["baseline", "rank32"])
+@pytest.mark.parametrize("damage", ["changed_alpha", "float_override", "float_metadata_and_override"])
+def test_alpha_correction_keeps_exact_predeclared_override_contract(sealed, candidate, damage):
+    entry = item(sealed, candidate=candidate)
+    path = Path(entry["path"]) / "contract.json"
+    contract = json.loads(path.read_text())
+    alpha = contract["experiment"]["alpha"]
+    if damage == "changed_alpha":
+        contract["experiment"]["alpha"] = alpha + 1
+        replacement = str(alpha + 1)
+    else:
+        replacement = str(float(alpha))
+        if damage == "float_metadata_and_override":
+            contract["experiment"]["alpha"] = float(alpha)
+    contract["overrides"] = [
+        f"model.model_config.adapter.alpha={replacement}"
+        if value.startswith("model.model_config.adapter.alpha=")
+        else value
+        for value in contract["overrides"]
+    ]
+    write(path, contract)
+    entry["contract_sha256"] = digest_file(path)
+    report = selection.select_development(**sealed)
+    rejected = next(row for row in report["candidates"] if (row["candidate"], row["arm"]) == (candidate, "nf4"))
+    assert rejected["state"] == "incomplete"
+    assert rejected["eligible"] is False
+    assert rejected["reasons"] == ["native experiment differs from the predeclared candidate"]
 
 
 @pytest.mark.parametrize("damage", ["plan_sha", "gate", "regression", "groups", "rows", "duplicate_input"])
