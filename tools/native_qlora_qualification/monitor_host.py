@@ -24,7 +24,8 @@ try:
 except ImportError:  # Direct monitor.py invocation from the sealed tool directory.
     from processes import _PidfdBackend
 
-METHOD = "proc-identity-state-read-attempts-v1"
+LEGACY_METHOD = "proc-identity-state-read-attempts-v1"
+METHOD = "proc-identity-state-read-attempts-v2"
 MAX_ATTEMPTS = 3
 MAX_COLLECTION_SECONDS = 0.75
 
@@ -45,6 +46,9 @@ def read_proc(pid: int, name: str) -> dict:
                 "state": tail[0],
                 "ppid": int(tail[1]),
                 "start_ticks": int(tail[19]),
+                # Historical wire name: this is proc inode ownership, not a
+                # credential UID. Linux task_dump_owner() changes it when mm
+                # is cleared on exit, including inside a user namespace.
                 "uid": path.stat().st_uid,
             }
         else:
@@ -71,6 +75,25 @@ def _identity(value: dict) -> tuple:
 def _valid_identity(value: Any) -> bool:
     return isinstance(value, dict) and all(
         type(value.get(k)) is int and value[k] >= 0 for k in ("pid", "start_ticks", "uid")
+    )
+
+
+def _released_owner_transition(value: Any, expected: Any, released: bool) -> bool:
+    """An owner-only change is admissible solely for this proven exited task.
+
+    A zombie leader is insufficient: `released` comes from the identity-bound
+    process pidfd after final discovery, which waits for the entire group.
+    Live owner changes, reparenting and changed birth identities remain errors.
+    https://github.com/torvalds/linux/blob/v5.15/fs/proc/base.c#L1846-L1870
+    """
+    return (
+        released
+        and _valid_identity(value)
+        and _valid_identity(expected)
+        and value.get("state") in ("Z", "X")
+        and all(value.get(key) == expected.get(key) for key in ("pid", "start_ticks", "ppid"))
+        and type(value.get("ppid")) is int
+        and value["uid"] != expected["uid"]
     )
 
 
@@ -123,7 +146,7 @@ def _receipt_valid(read: Any) -> bool:
     )
 
 
-def classify_process(record: dict) -> tuple[dict, list[str], bool]:
+def classify_process(record: dict, *, released_after_discovery: bool = False) -> tuple[dict, list[str], bool]:
     """Recompute memory, hard errors and proven exit transition from raw reads."""
     errors: list[str] = []
     pin = record.get("pin", {})
@@ -159,7 +182,11 @@ def classify_process(record: dict) -> tuple[dict, list[str], bool]:
             errors.append("invalid_read_order")
     for name in ("stat_before", "stat_after"):
         value = reads[name].get("value")
-        if value is not None and (not _valid_identity(value) or _identity(value) != _identity(expected or {})):
+        if (
+            value is not None
+            and (not _valid_identity(value) or _identity(value) != _identity(expected or {}))
+            and not _released_owner_transition(value, expected, released_after_discovery)
+        ):
             errors.append("process_identity_changed")
     before, after = _released(reads["poll_before"]), _released(reads["poll_after"])
     if before is None or after is None or (before is True and after is not True):
@@ -191,8 +218,12 @@ def classify_process(record: dict) -> tuple[dict, list[str], bool]:
 
 def summarize_collection(receipt: dict) -> dict:
     """Fail closed and independently derive the final attempt's legacy fields."""
-    if receipt.get("protocol") != METHOD:
+    method = receipt.get("protocol")
+    if method not in (LEGACY_METHOD, METHOD):
         raise ValueError("unsupported host collection protocol")
+    final_polls_required = method == METHOD
+    if final_polls_required and receipt.get("uid_semantics") != "proc_inode_owner":
+        raise ValueError("missing proc inode ownership semantics")
     attempts = receipt.get("attempts")
     if (
         not isinstance(attempts, list)
@@ -244,6 +275,26 @@ def summarize_collection(receipt: dict) -> dict:
                 or not all(_receipt_valid(read) for read in discovery.values())
             ):
                 raise ValueError("missing discovery receipts")
+        final_polls = attempt.get("post_discovery_polls", {})
+        if final_polls_required:
+            if not isinstance(final_polls, dict) or set(final_polls) != set(records):
+                raise ValueError("missing post-discovery pidfd receipts")
+            for pid, poll in final_polls.items():
+                if not _receipt_valid(poll):
+                    raise ValueError("invalid post-discovery pidfd receipt")
+                preceding = [attempt["discovery_after"][pid], records[pid].get("poll_after", {})]
+                if any(
+                    not _receipt_valid(read) or read["end_monotonic_seconds"] > poll["begin_monotonic_seconds"]
+                    for read in preceding
+                ):
+                    raise ValueError("post-discovery pidfd read precedes discovery")
+                if (
+                    not _receipt_valid(attempt.get("stage_after"))
+                    or poll["end_monotonic_seconds"] > attempt["stage_after"]["begin_monotonic_seconds"]
+                ):
+                    raise ValueError("post-discovery pidfd read follows stage boundary")
+        elif final_polls or "uid_semantics" in receipt:
+            raise ValueError("v2 exit proof cannot be relabeled as v1")
         for pid in set(after) - set(before):
             ancestor, visited = pid, set()
             while ancestor not in before:
@@ -267,15 +318,26 @@ def summarize_collection(receipt: dict) -> dict:
             if record.get("pin", {}).get("identity", {}).get("pid") != int(pid):
                 hard_errors.append("process_key_identity_mismatch")
             expected = record.get("pin", {}).get("identity", {})
+            final_released = _released(final_polls[pid]) if final_polls_required else False
+            previous_released = _released(record.get("poll_after", {}))
+            if final_polls_required and (
+                final_released is None or (previous_released is True and final_released is not True)
+            ):
+                hard_errors.append("invalid_post_discovery_exit_proof")
             for discovery in (attempt["discovery_before"], attempt["discovery_after"], prior_discovery):
                 observed = discovery.get(pid, {}).get("value")
-                if observed is not None and _identity(observed) != _identity(expected):
+                if (
+                    observed is not None
+                    and _identity(observed) != _identity(expected)
+                    and not _released_owner_transition(observed, expected, final_released is True)
+                ):
                     hard_errors.append("discovery_identity_changed")
-            values, errors, changed = classify_process(record)
+            values, errors, changed = classify_process(record, released_after_discovery=final_released is True)
             memory[pid] = values
             hard_errors.extend(errors)
             process_errors.extend(errors)
             transitioned |= changed
+            transitioned |= final_polls_required and previous_released is False and final_released is True
         if not process_errors:
             if all("VmRSS" in value for value in memory.values()):
                 observed_rss.append(sum(value["VmRSS"] for value in memory.values()))
@@ -310,9 +372,11 @@ def summarize_collection(receipt: dict) -> dict:
 
 def _validate_sample(sample: dict) -> dict:
     """Validate a v2 sample without trusting its producer's totals/complete flag."""
-    if sample.get("host_process_memory_method") != METHOD:
+    if sample.get("host_process_memory_method") not in (LEGACY_METHOD, METHOD):
         raise ValueError("unsupported host memory method")
     receipt = sample.get("host_collection", {})
+    if receipt.get("protocol") != sample["host_process_memory_method"]:
+        raise ValueError("host method differs from collection protocol")
     if not _receipt_valid(receipt.get("stage_publish")):
         raise ValueError("missing final stage read receipt")
     derived = summarize_collection(receipt)
@@ -412,6 +476,7 @@ class HostSampler:
         started = time.monotonic()
         receipt = {
             "protocol": METHOD,
+            "uid_semantics": "proc_inode_owner",
             "root_pid": self.root_pid,
             "excluded_monitor_pid": self.exclude_pid,
             "attempts": [],
@@ -430,6 +495,7 @@ class HostSampler:
             discovery_after = self.discovery
             for pid in after - self.tracked.keys():
                 self._pin(pid, discovery_after[str(pid)])
+            final_polls = {str(pid): _poll(self.tracked[pid]["fd"]) for pid in sorted(selected)}
             attempt = {
                 "begin_monotonic_seconds": attempt_started,
                 "discovery_before": discovery_before,
@@ -439,6 +505,7 @@ class HostSampler:
                 "selected_before": sorted(selected),
                 "selected_after": sorted(after),
                 "processes": records,
+                "post_discovery_polls": final_polls,
             }
             receipt["attempts"].append(attempt)
             receipt["final_attempt"] = len(receipt["attempts"]) - 1

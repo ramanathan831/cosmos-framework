@@ -241,10 +241,142 @@ def test_repeated_proven_transitions_exhaust_retry_without_hiding_attempts(sampl
         return record
 
     monkeypatch.setattr(value, "_process", transitioning)
+    poll = host._poll
+
+    def final_released(fd):
+        result = poll(fd)
+        result["events"] = [select.POLLIN]
+        return result
+
+    monkeypatch.setattr(host, "_poll", final_released)
     sample = value.collect()
     assert len(sample["host_collection"]["attempts"]) == host.MAX_ATTEMPTS
     assert not host.validate_sample(sample)["host_pss_complete"]
     assert sample["host_collection_errors"] == ["membership_transition_retry_exhausted"]
+
+
+def test_actual_exit_after_memory_before_final_discovery_retains_owner_change_and_peak(sampler, monkeypatch, request):
+    value, process = sampler
+    discover = value._discover
+    calls = 0
+
+    def exit_before_final_discovery():
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            process.terminate()
+            poller = select.poll()
+            poller.register(value.tracked[process.pid]["fd"], select.POLLIN)
+            assert any(mask & select.POLLIN for _, mask in poller.poll(5000)), "child did not fully exit"
+            # Do not reap: the real zombie's proc inode owner must be observed.
+        return discover()
+
+    monkeypatch.setattr(value, "_discover", exit_before_final_discovery)
+    sample = value.collect()
+    attempts = sample["host_collection"]["attempts"]
+    assert len(attempts) == 2
+    first, last = attempts
+    key = str(process.pid)
+    item = first["processes"][key]
+    before = first["discovery_before"][key]["value"]
+    after = first["discovery_after"][key]["value"]
+    assert all(before[name] == after[name] for name in ("pid", "start_ticks", "ppid"))
+    assert before["uid"] != after["uid"], "qualification requires an actual proc inode owner transition"
+    assert after["state"] == "Z"
+    assert item["poll_after"]["events"] == []
+    assert first["post_discovery_polls"][key]["events"][0] & select.POLLIN
+    assert item["rollup"]["value"]["Pss"] > 4 * 1024 * 1024
+    assert host.validate_sample(sample)["host_pss_complete"]
+    assert sample["selected_host_pss_sum_bytes"] == 0
+    assert sample["host_observed_complete_attempt_pss_peak_bytes"] >= item["rollup"]["value"]["Pss"]
+    assert last["processes"][key]["stat_before"]["value"]["uid"] == after["uid"]
+    request.node.user_properties.append(
+        (
+            "actual_exit_inode_owner_transition",
+            json.dumps(
+                {
+                    "before": before,
+                    "after": after,
+                    "pre_exit_pss_bytes": item["rollup"]["value"]["Pss"],
+                    "post_discovery_events": first["post_discovery_polls"][key]["events"],
+                    "retained_attempts": len(attempts),
+                    "final_pss_bytes": sample["selected_host_pss_sum_bytes"],
+                    "observed_attempt_peak_bytes": sample["host_observed_complete_attempt_pss_peak_bytes"],
+                },
+                sort_keys=True,
+            ),
+        )
+    )
+
+
+@pytest.mark.parametrize("damage", ["live_owner", "birth", "parent", "no_exit", "poll_error"])
+def test_final_discovery_owner_exception_is_strictly_exit_bound(sampler, damage):
+    value, process = sampler
+    sample = value.collect()
+    attempt = sample["host_collection"]["attempts"][0]
+    key = str(process.pid)
+    changed = attempt["discovery_after"][key]["value"]
+    changed["uid"] += 1
+    changed["state"] = "R" if damage == "live_owner" else "Z"
+    if damage == "birth":
+        changed["start_ticks"] += 1
+    if damage == "parent":
+        changed["ppid"] += 1
+    attempt["post_discovery_polls"][key]["events"] = (
+        [] if damage == "no_exit" else [select.POLLERR] if damage == "poll_error" else [select.POLLIN]
+    )
+    result = host.summarize_collection(sample["host_collection"])
+    assert not result["host_pss_complete"]
+    assert "discovery_identity_changed" in result["host_collection_errors"]
+
+
+@pytest.mark.parametrize("damage", ["missing", "order", "downgrade", "semantics", "scope"])
+def test_final_discovery_proof_receipt_cannot_be_omitted_or_relabeled(sampler, damage):
+    value, process = sampler
+    sample = value.collect()
+    receipt = sample["host_collection"]
+    attempt = receipt["attempts"][0]
+    key = str(process.pid)
+    if damage == "missing":
+        del attempt["post_discovery_polls"]
+    elif damage == "order":
+        attempt["post_discovery_polls"][key]["begin_monotonic_seconds"] = 0
+    elif damage == "downgrade":
+        sample["host_process_memory_method"] = receipt["protocol"] = host.LEGACY_METHOD
+    elif damage == "semantics":
+        receipt["uid_semantics"] = "credential_uid"
+    else:
+        attempt["post_discovery_polls"][str(process.pid + 10000000)] = copy.deepcopy(
+            attempt["post_discovery_polls"][key]
+        )
+    with pytest.raises(ValueError):
+        host.validate_sample(sample)
+
+
+def test_legacy_v1_owner_mismatch_remains_incomplete_without_new_proof(sampler):
+    from tools.native_qlora_qualification.performance import sampled_memory
+
+    value, process = sampler
+    sample = value.collect()
+    receipt = sample["host_collection"]
+    sample["host_process_memory_method"] = receipt["protocol"] = host.LEGACY_METHOD
+    del receipt["uid_semantics"]
+    for attempt in receipt["attempts"]:
+        del attempt["post_discovery_polls"]
+    changed = receipt["attempts"][0]["discovery_after"][str(process.pid)]["value"]
+    changed["uid"] += 1
+    changed["state"] = "Z"
+    sample.update(host.summarize_collection(receipt))
+    assert host.validate_sample(sample)["host_pss_complete"] is False
+    assert sample["host_collection_errors"] == ["discovery_identity_changed"]
+    sample.update(
+        unix_seconds=time.time(),
+        device_uuid="gpu",
+        device_memory_total_bytes=100,
+        device_memory_used_bytes=10,
+        device_compute_processes=[],
+    )
+    assert sampled_memory([sample], expected_uuid="gpu", device_bytes=100)["host_pss_complete"] is False
 
 
 @pytest.mark.parametrize("mutation", ["complete", "total", "omit", "pid", "poll_error", "retry", "stage", "timestamp"])
@@ -490,5 +622,7 @@ def test_retry_start_after_bound_is_rejected(sampler):
     # Check the bound independently; prior transition proof is also required.
     for record in receipt["attempts"][0]["processes"].values():
         record["poll_after"]["events"] = [select.POLLIN]
+    for poll in receipt["attempts"][0]["post_discovery_polls"].values():
+        poll["events"] = [select.POLLIN]
     with pytest.raises(ValueError, match="bounded collection interval"):
         host.summarize_collection(receipt)

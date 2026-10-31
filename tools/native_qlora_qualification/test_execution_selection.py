@@ -858,8 +858,15 @@ def test_cell_reload_is_bound_to_own_final_model(tmp_path, monkeypatch, damage):
 def explicit_profile_fixture(tmp_path, *, version=2):
     """Synthetic future producer: no private revision is implicitly trusted."""
     f = Fixture(tmp_path)
-    f.inputs["protocol"] = select.PROFILE_INPUT_PROTOCOL if version == 2 else select.PROFILE_INPUT_PROTOCOL_V3
-    workflow_root, runner_root = "workflows/aaaaaaa", "gpu-runtime-v6" if version == 2 else "gpu-runtime-v7"
+    f.inputs["protocol"] = {
+        2: select.PROFILE_INPUT_PROTOCOL,
+        3: select.PROFILE_INPUT_PROTOCOL_V3,
+        4: select.PROFILE_INPUT_PROTOCOL_V4,
+    }[version]
+    workflow_root, runner_root = (
+        "workflows/aaaaaaa",
+        {2: "gpu-runtime-v6", 3: "gpu-runtime-v7", 4: "gpu-runtime-v8"}[version],
+    )
     files = {}
 
     def source(name, contents):
@@ -905,7 +912,9 @@ def explicit_profile_fixture(tmp_path, *, version=2):
         },
         "runner": {"root": runner_root, "receipt_sha256": runner_sha, "driver_sha256": driver_sha},
         "monitor": {
-            "method": "proc-identity-state-read-attempts-v1",
+            "method": "proc-identity-state-read-attempts-v2"
+            if version == 4
+            else "proc-identity-state-read-attempts-v1",
             "files": {n: files["tools/native_qlora_qualification/" + n] for n in ("monitor.py", "monitor_host.py")},
         },
         "correction_plan": {"path": "correction.json", "sha256": correction_sha},
@@ -1030,3 +1039,49 @@ def test_v3_rechecks_its_v7_inventory_at_publication(tmp_path):
     (tmp_path / "gpu-runtime-v7/extra.py").write_text("# late unbound source")
     with pytest.raises(select.InvalidExecutionSelection, match="inventory changed"):
         evidence.stable()
+
+
+def test_v4_profile_binds_exact_v8_and_exit_proof_monitor(tmp_path):
+    fixture, identity = explicit_profile_fixture(tmp_path, version=4)
+    evidence = fixture.evidence()
+    _, result = select.producer_profile(evidence, identity)
+    assert result["input_protocol"] == select.PROFILE_INPUT_PROTOCOL_V4
+    assert result["runner"]["root"] == "gpu-runtime-v8"
+    assert result["monitor"]["method"] == "proc-identity-state-read-attempts-v2"
+    evidence.stable()
+    (tmp_path / "gpu-runtime-v8/extra.py").write_text("# late unbound source")
+    with pytest.raises(select.InvalidExecutionSelection, match="inventory changed"):
+        evidence.stable()
+
+
+@pytest.mark.parametrize("source_version,target_version", [(2, 4), (3, 4), (4, 2), (4, 3)])
+def test_v4_cannot_reinterpret_legacy_runner_profiles(tmp_path, source_version, target_version):
+    fixture, identity = explicit_profile_fixture(tmp_path, version=source_version)
+    fixture.inputs["protocol"] = {
+        2: select.PROFILE_INPUT_PROTOCOL,
+        3: select.PROFILE_INPUT_PROTOCOL_V3,
+        4: select.PROFILE_INPUT_PROTOCOL_V4,
+    }[target_version]
+    with pytest.raises(select.InvalidExecutionSelection, match="observed execution"):
+        select.producer_profile(fixture.evidence(), identity)
+
+
+@pytest.mark.parametrize("version", [2, 3, 4])
+def test_profile_monitor_version_cannot_upgrade_or_downgrade_history(tmp_path, version):
+    fixture, identity = explicit_profile_fixture(tmp_path, version=version)
+    profile = fixture.read("producer-profile.json")
+    profile["monitor"]["method"] = (
+        "proc-identity-state-read-attempts-v1" if version == 4 else "proc-identity-state-read-attempts-v2"
+    )
+    sha = fixture.put("producer-profile.json", profile)
+    fixture.inputs["producer_profile"]["sha256"] = sha
+    identity["plan"]["inputs"] = [{"path": path, "sha256": value} for path, value in fixture.inputs["files"].items()]
+    with pytest.raises(select.InvalidExecutionSelection, match="strict host-monitor"):
+        select.producer_profile(fixture.evidence(), identity)
+
+
+def test_v4_requires_profile_presealed_by_submitted_calibration(tmp_path):
+    fixture, identity = explicit_profile_fixture(tmp_path, version=4)
+    identity["plan"]["inputs"] = [row for row in identity["plan"]["inputs"] if row["path"] != "producer-profile.json"]
+    with pytest.raises(select.InvalidExecutionSelection, match="did not preseal"):
+        select.producer_profile(fixture.evidence(), identity)

@@ -42,6 +42,12 @@ PROTOCOL = "cosmos.qlora-execution-selection.v1"
 INPUT_PROTOCOL = "cosmos.qlora-execution-selection-inputs.v1"
 PROFILE_INPUT_PROTOCOL = "cosmos.qlora-execution-selection-inputs.v2"
 PROFILE_INPUT_PROTOCOL_V3 = "cosmos.qlora-execution-selection-inputs.v3"
+PROFILE_INPUT_PROTOCOL_V4 = "cosmos.qlora-execution-selection-inputs.v4"
+PROFILE_PRODUCERS = {
+    PROFILE_INPUT_PROTOCOL: ("gpu-runtime-v6", "proc-identity-state-read-attempts-v1"),
+    PROFILE_INPUT_PROTOCOL_V3: ("gpu-runtime-v7", "proc-identity-state-read-attempts-v1"),
+    PROFILE_INPUT_PROTOCOL_V4: ("gpu-runtime-v8", "proc-identity-state-read-attempts-v2"),
+}
 PRODUCER_PROFILE_PROTOCOL = "cosmos.qlora-runtime-producer-profile.v1"
 TRAINING_REVISION = "55e7f14dfeca84002d0324108808a0e682579842"
 WHEEL_SHA = "4939262dbf2de43be0b3f9d579b0bc2fbf72ab84250852397b0dc14087b5792b"
@@ -97,12 +103,11 @@ class Evidence:
         self.root, self.inputs, self.used = Path(root).resolve(), inputs, {}
         self.python_inventories: dict[str, set[str]] = {}
         require(
-            inputs.get("protocol") in (INPUT_PROTOCOL, PROFILE_INPUT_PROTOCOL, PROFILE_INPUT_PROTOCOL_V3),
+            inputs.get("protocol") in (INPUT_PROTOCOL, *PROFILE_PRODUCERS),
             "unsupported execution input schema",
         )
         require(
-            ("producer_profile" in inputs)
-            == (inputs.get("protocol") in (PROFILE_INPUT_PROTOCOL, PROFILE_INPUT_PROTOCOL_V3)),
+            ("producer_profile" in inputs) == (inputs.get("protocol") in PROFILE_PRODUCERS),
             "explicit producer profile requires the versioned input schema",
         )
         require(isinstance(inputs.get("files"), dict), "missing pinned evidence inventory")
@@ -233,12 +238,12 @@ def producer_profile(evidence: Evidence, identity: dict) -> tuple[dict, dict]:
         loaded[kind] = receipt
     workflow, runner = loaded["workflow"], loaded["runner"]
     w, r = profile["workflow"], profile["runner"]
+    expected_runner, expected_monitor = PROFILE_PRODUCERS[evidence.inputs["protocol"]]
     evidence.bytes(child(w["root"], "source.tar"))
     require(
         re.fullmatch("[0-9a-f]{40}", w["revision"] or "") is not None
         and w["root"] == "workflows/" + w["revision"][:7]
-        and r["root"]
-        == ("gpu-runtime-v7" if evidence.inputs["protocol"] == PROFILE_INPUT_PROTOCOL_V3 else "gpu-runtime-v6")
+        and r["root"] == expected_runner
         and workflow.get("code_revision") == w["revision"]
         and workflow.get("training_package_revision") == TRAINING_REVISION
         and workflow.get("training_wheel_sha256") == WHEEL_SHA
@@ -252,7 +257,7 @@ def producer_profile(evidence: Evidence, identity: dict) -> tuple[dict, dict]:
     monitor = profile["monitor"]
     require(
         set(monitor) == {"method", "files"}
-        and monitor["method"] == "proc-identity-state-read-attempts-v1"
+        and monitor["method"] == expected_monitor
         and isinstance(monitor["files"], dict)
         and set(monitor["files"]) == {"monitor.py", "monitor_host.py"},
         "strict host-monitor method and helper inventory required",
