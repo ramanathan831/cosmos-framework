@@ -115,6 +115,18 @@ def write_json(path: Path, value: Any) -> None:
         os.fsync(stream.fileno())
 
 
+def adapter_state_label(identity: dict[str, Any], *, reloaded: bool) -> str:
+    """Distinguish frozen zero-B references from intentionally nonzero initial factors."""
+    if reloaded:
+        return "reloaded_checkpoint"
+    method = identity.get("adapter", {}).get("initialization")
+    if method == "kaiming_A_zero_B":
+        return "initial_zero_B_frozen_base"
+    if method == "nf4_residual_svd" and identity.get("format") == "cosmos.adapter-model.v3":
+        return "residual_initialized_untrained_adapter"
+    raise ValueError("untrained scoring requires an explicit supported adapter initialization identity")
+
+
 def validate_choices(choices: tuple[str, ...]) -> None:
     if not 2 <= len(choices) <= len(LETTERS) or choices != LETTERS[: len(choices)]:
         raise ValueError(
@@ -619,7 +631,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             "complete": True,
             "arm": args.arm,
             "checkpoint": str(Path(args.checkpoint).resolve()) if args.checkpoint else None,
-            "adapter_state": "reloaded_checkpoint" if saved is not None else "initial_zero_B_frozen_base",
+            "adapter_state": adapter_state_label(identity, reloaded=saved is not None),
             "metrics": aggregate(report_rows),
             "selection_sha256": _json_digest(selection),
             "selected_content_sha256": selection["selected_content_sha256"],

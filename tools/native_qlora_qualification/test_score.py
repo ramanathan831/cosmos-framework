@@ -20,6 +20,18 @@ heldout = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(heldout)
 
 
+def test_untrained_residual_state_is_not_reported_as_zero_b_frozen_base():
+    zero = {"adapter": {"initialization": "kaiming_A_zero_B"}}
+    residual = {"format": "cosmos.adapter-model.v3", "adapter": {"initialization": "nf4_residual_svd"}}
+    assert heldout.adapter_state_label(zero, reloaded=False) == "initial_zero_B_frozen_base"
+    assert heldout.adapter_state_label(residual, reloaded=False) == "residual_initialized_untrained_adapter"
+    assert heldout.adapter_state_label(residual, reloaded=True) == "reloaded_checkpoint"
+    with pytest.raises(ValueError, match="explicit supported"):
+        heldout.adapter_state_label({}, reloaded=False)
+    with pytest.raises(ValueError, match="explicit supported"):
+        heldout.adapter_state_label({"adapter": {"initialization": "nf4_residual_svd"}}, reloaded=False)
+
+
 def row(identifier="item0", answer="C"):
     return {
         "id": identifier,
@@ -343,6 +355,7 @@ def test_run_binds_verified_portable_processor_and_reports_same_contract(
         def __init__(self):
             self.identity = {
                 "base": base_identity,
+                "adapter": {"initialization": "kaiming_A_zero_B"},
                 "initial_adapters": {},
                 "quantized_tensors": {},
             }
