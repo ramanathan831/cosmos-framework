@@ -158,6 +158,35 @@ torchrun --standalone --nproc-per-node=1 \
 
 Run the BF16 control with `sft_qwen3_vl_8b_lora.py`, a distinct output name and identical overrides. The paired seed policy is 17, 42 and 123; set the environment, training, adapter-initialization and validation seeds together before each launch. The recorded study reused the audited seed-42 pair and ran fresh pairs for 17 and 123. Reproducing these commands creates new evidence and does not turn that historical reuse into a fresh trial. Eight processed temporal slots and a 4,096-token limit are configuration values, not measured frame uniqueness or a training-length distribution.
 
+## Experimental residual initialization
+
+The opt-in `nf4_residual_svd` initializer compensates for the **actual fixed NF4 base** before training. It is implemented but still requires accelerator, task-quality, complete-cost and recovery qualification. Ordinary zero-B LoRA remains the default; no quality or speed improvement is established by enabling this option.
+
+For each of the 252 language matrices, explicit preparation approximates `FP32(source_BF16) - FP32(dequantize(actual_NF4))` with FP32 factors such that `(alpha / rank) * B @ A` approximates the residual. The actual dequantization is BF16. The solver uses a seeded randomized reduced SVD, oversampling 16 and two power iterations. It processes one source matrix and its actual dequantization at a time; it never materializes the full dense model on the GPU. The NF4 packed weights and quantization metadata remain unchanged. Recorded Frobenius errors are weight-space diagnostics; BF16 arithmetic, activation distributions and downstream layers still require model-output and task checks.
+
+Use the sealed runtime and determinism environment above. On its owned single GPU, prepare a new immutable factor directory before launching training:
+
+```bash
+export QLORA_INITIALIZER="$QLORA_WORK/nf4_residual_rank32_seed42"
+torchrun --standalone --nproc-per-node=1 \
+    -m cosmos_framework.posttrain.scripts.prepare_qlora_initialization \
+    --model "$SFT_MODEL_PATH" --output "$QLORA_INITIALIZER" \
+    --rank 32 --alpha 64 --seed 42
+export QLORA_INITIALIZER_SHA256="$(sha256sum "$QLORA_INITIALIZER/manifest.json" | cut -d' ' -f1)"
+```
+
+Append these overrides to the selected native NF4 training command, with matching rank, alpha and initialization seed:
+
+```bash
+model.model_config.adapter.initialization=nf4_residual_svd \
+model.model_config.adapter.initialization_artifact="$QLORA_INITIALIZER/manifest.json" \
+model.model_config.adapter.initialization_artifact_sha256="$QLORA_INITIALIZER_SHA256"
+```
+
+The manifest is committed last and binds all factor files, exact source and quantized-state fingerprints, targets, configuration, algorithm and runtime/build identity. Incomplete, changed or incompatible bundles fail. Keep the complete bundle alongside adapter and resume artifacts: this first implementation requires its verified factors during reconstruction, even when trained adapter weights will subsequently be restored. Construction and resume only read the cache; they never repeat the decomposition. Relocating an identical bundle is allowed, but changing its content, seed or runtime identity requires separate qualification.
+
+This option uses `cosmos.adapter-model.v3` identity and initially requires FP32 adapter computation. Existing zero-B identities remain unchanged. A nonzero compensating adapter is an **initialized, untrained adapter**, not the frozen zero-B reference. Reload parity compares the same initialized/trained configuration with itself. Charge preparation, calibration, loading and artifact costs to the NF4 recipe when comparing total compute and time to quality.
+
 ## Experimental performance controls
 
 These opt-in controls are implemented for the single-device native adapter path. On the sealed `a406ea1d32c95277c57ac8e7ec274784bed3aaf7` runtime, **14 real CUDA tests and 13 four-update native lifecycle cases passed**. Each lifecycle case compared uninterrupted training with its own fresh-process resume, then compared DCP and portable reloads on text, image and video inputs. Adapter/optimizer state and controlled reload outputs matched with `atol=0, rtol=0`; this is parity within each recorded configuration, not equality between different execution settings. The [lifecycle and input-shape evidence](evidence/native_qlora_lifecycle_a406ea1.json) records the exact configurations, source digests and measurement limits.
@@ -180,7 +209,7 @@ The model options and selective policy are defined by [Qwen3VLModelConfig and na
 
 [build_sft_preprocessing](../../cosmos_framework/posttrain/data/packer/sft_preprocess.py) keys cache entries by processor/target semantics and verified media content, returns independent CPU copies, and rejects preprocessing that consumes RNG state. Cache contents are disposable and rebuilt after resume. The byte limit covers retained cache entries, including tensor backing storage; queued results, decoder buffers, worker runtime and filesystem cache require additional host memory. [train_step](../../cosmos_framework/posttrain/entrypoints/sft.py) reads only the current accumulation window. The [trainer's input-window and checkpoint guards](../../cosmos_framework/posttrain/roles/trainer/llm.py) require its optimizer update and ordered consumption to finish before publishing a checkpoint; failed or unfinished prefetch cannot publish an advanced data cursor.
 
-Changing model execution controls writes a `cosmos.adapter-model.v2` identity containing the complete execution policy and observed math-precision settings. Unchanged model defaults retain the legacy identity. Batch and preprocessing settings are bound separately to the training identity, while caching preserves the processor/masking identity. [execution_config_from_identity and validate_execution_policy_identity](../../cosmos_framework/posttrain/model/quantization/loader.py) reconstruct and validate recorded model options before loading; missing or incompatible settings fail. Reloading an optimized artifact must preserve its recorded policy, and exact resume must also preserve its training configuration.
+For zero-B initialization, changing model execution controls writes a `cosmos.adapter-model.v2` identity containing the complete execution policy and observed math-precision settings; unchanged model defaults retain the legacy identity. Residual initialization uses `cosmos.adapter-model.v3` and retains the same execution-policy contract. Batch and preprocessing settings are bound separately to the training identity, while caching preserves the processor/masking identity. [execution_config_from_identity and validate_execution_policy_identity](../../cosmos_framework/posttrain/model/quantization/loader.py) reconstruct and validate recorded model options before loading; missing or incompatible settings fail. Reloading an optimized artifact must preserve its recorded policy, and exact resume must also preserve its training configuration.
 
 For a bounded diagnostic trace, set these variables before the native launch:
 
