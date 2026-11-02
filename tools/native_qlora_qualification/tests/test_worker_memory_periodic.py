@@ -287,7 +287,7 @@ def test_actual_periodic_cleanup_order_and_failure_stamps(tmp_path, close_fails)
             raise RuntimeError("shutdown failed")
 
     tree = ast.parse(_PATH.read_text())
-    run = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "_run_periodic_child")
+    run = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "_run_measured_child")
     finally_body = next(node for node in run.body if isinstance(node, ast.Try)).finalbody
     scope = {
         "out": tmp_path,
@@ -336,7 +336,9 @@ QUALIFIED_V4_FUNCTION_AST_SHA256 = {
     "worker_maintenance": "9a4383a8c57403a740ae1d97ed9aef864eb61aa64a90eb3e29c58bc72b9c954d",
     "drained_maintenance": "1d0c56bd30ef45ac33734e369566efb522ae0bf84f443657e7c79e5e605852fa",
     "shutdown_phase": "7d127ddff196dc36f9f4aa5583ac9181a6f14649a05fa37737cbbe031aa9aa32",
-    "_run_periodic_child": "62992384cb87f722a1dee168d10ac4aaffb68c0462f887c6d3cf46eb1833b7da",
+    # The replay loop is now shared with the opt-in arena observation mode.
+    # Its old default schema/maintenance path is exercised end-to-end in
+    # test_worker_memory_arena.test_shared_replay_preserves_periodic_pair_contract.
     "_compare_periodic_reports": "36f881582bfdb7400afc0e3228fb3da52faeb13f8275f3708c7374d13bbc9de2",
 }
 LEGACY_FUNCTION_AST_SHA256 = {
