@@ -163,15 +163,16 @@ def make_objective(
             weights = metadata.sample_weights or [1.0] * len(trajectories)
             if any(weight not in (0.0, 1.0) for weight in weights):
                 raise ValueError("SFT validation_weight must be 0 or 1")
-            samples = []
-            for trajectory in trajectories:
-                if len(trajectory.transitions) != 1:
-                    raise ValueError("SFT requires exactly one transition per trajectory")
-                target = trajectory.transitions[0].targets
-                if not isinstance(target, SFTTarget):
-                    raise TypeError("SFT requires Transition.targets to be an SFTTarget")
-                samples.append(packer.sft_process_sample(target))
-            batch = dict(packer.sft_collate_fn(samples, packer.sft_compute_max_len(samples), _IGNORE_LABEL))
+            with profile_range("sft.preprocess_and_collate"):
+                samples = []
+                for trajectory in trajectories:
+                    if len(trajectory.transitions) != 1:
+                        raise ValueError("SFT requires exactly one transition per trajectory")
+                    target = trajectory.transitions[0].targets
+                    if not isinstance(target, SFTTarget):
+                        raise TypeError("SFT requires Transition.targets to be an SFTTarget")
+                    samples.append(packer.sft_process_sample(target))
+                batch = dict(packer.sft_collate_fn(samples, packer.sft_compute_max_len(samples), _IGNORE_LABEL))
             for key in ("input_ids", "labels", "attention_mask"):
                 value = batch.get(key)
                 if not isinstance(value, torch.Tensor) or value.ndim != 2 or value.device.type != "cpu":
@@ -198,19 +199,20 @@ def make_objective(
             sequence_count = int(valid.any(dim=1).sum().item())
             net = getattr(model, "net", model)
             device = next(net.parameters()).device
-            batch["input_ids"] = input_ids.to(device)  # [B,L]
-            prepared = prepare_policy_capability(model, batch)
-            selected_forward = selected_sft_forward(model)
-            return (
-                net,
-                prepared,
-                input_ids,
-                labels[:, 1:].to(device),
-                token_count,
-                sequence_count,
-                valid.to(device),
-                selected_forward,
-            )
+            with profile_range("sft.transfers_and_policy_preparation"):
+                batch["input_ids"] = input_ids.to(device)  # [B,L]
+                prepared = prepare_policy_capability(model, batch)
+                selected_forward = selected_sft_forward(model)
+                return (
+                    net,
+                    prepared,
+                    input_ids,
+                    labels[:, 1:].to(device),
+                    token_count,
+                    sequence_count,
+                    valid.to(device),
+                    selected_forward,
+                )
 
         with profile_range("sft.prepare"):
             net, prepared, input_ids, labels, token_count, sequence_count, valid, selected_forward = run_rank_converged(

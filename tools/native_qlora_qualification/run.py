@@ -220,12 +220,16 @@ class Stages:
         (output / "stages").mkdir()
         write_json(output / "process-capability.json", self.process_capability)
         self.marker = output / "current-stage.txt"
-        self.marker.write_text("initialization\n")
+        from tools.native_qlora_qualification.monitor_stage import publish_stage
+
+        publish_stage(self.marker, "initialization", initialize=True)
 
     def run(self, name: str, command: list[str], *, env_extra: dict | None = None) -> None:
         stage = self.output / "stages" / name
         stage.mkdir()
-        self.marker.write_text(name + "\n")
+        from tools.native_qlora_qualification.monitor_stage import publish_stage
+
+        write_json(stage / "stage-publication.json", publish_stage(self.marker, name))
         write_json(stage / "command.json", command)
         env = dict(os.environ, COSMOS_QLORA_METRICS_FILE=str(stage / "memory.jsonl"), **(env_extra or {}))
         started = time.monotonic()

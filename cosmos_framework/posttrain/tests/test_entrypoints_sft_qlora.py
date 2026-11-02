@@ -17,6 +17,7 @@ import torch
 
 from cosmos_framework.posttrain.algorithm.primitives.objective import Objective, Reduction
 from cosmos_framework.posttrain.config.build import resolve_precision
+from cosmos_framework.posttrain.config.model import native_adapter_config_identity
 from cosmos_framework.posttrain.configs.sft_qwen3_vl_8b_qlora import make_config
 from cosmos_framework.posttrain.entrypoints import sft
 from cosmos_framework.posttrain.tests.test_checkpoint_adapter import TinyAdapterModel, _save, _trainer
@@ -74,7 +75,7 @@ def _checkpoint(config: Any, tmp_path: Path) -> SimpleNamespace:
     cfg = instantiate(config.model.model_config)
     trainer._adapter_checkpoint_codec().identity = {
         "base": dict(cfg.source_identity),
-        "adapter": asdict(cfg.adapter),
+        "adapter": native_adapter_config_identity(cfg.adapter),
         "quantization": asdict(cfg.quantized_base) if cfg.quantized_base is not None else None,
         "processor_contract": processor,
         "training_contract": training,
@@ -574,7 +575,7 @@ def test_native_entrypoint_resume_restores_real_cursor_optimizer_and_rng(tmp_pat
         cfg = config.model.model_config
         net._cosmos_adapter_checkpoint_codec.identity = {
             "base": dict(cfg.source_identity),
-            "adapter": asdict(cfg.adapter),
+            "adapter": native_adapter_config_identity(cfg.adapter),
             "quantization": asdict(cfg.quantized_base),
         }
         return SimpleNamespace(net=net)

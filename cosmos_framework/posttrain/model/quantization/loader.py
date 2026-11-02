@@ -93,12 +93,28 @@ def execution_config_from_identity(identity: dict[str, Any]) -> dict[str, Any]:
     construction. Math settings are checked against the process, never silently
     changed while another model may share it.
     """
-    from cosmos_framework.posttrain.config.model import native_adapter_execution_policy
+    from cosmos_framework.posttrain.config.model import QuantizedBaseTrainingConfig, native_adapter_execution_policy
 
     policy = identity.get("execution_policy")
     model_format = identity.get("format")
-    if model_format not in (None, "cosmos.adapter-model.v1", "cosmos.adapter-model.v2"):
+    if model_format not in (None, "cosmos.adapter-model.v1", "cosmos.adapter-model.v2", "cosmos.adapter-model.v3"):
         raise ValueError("unsupported native adapter model identity format")
+    if model_format == "cosmos.adapter-model.v3":
+        from cosmos_framework.posttrain.model.quantization.initialization import METHOD, validate_initialization_record
+
+        validate_initialization_record(identity.get("initialization"))
+        adapter = identity.get("adapter")
+        if (
+            not isinstance(adapter, dict)
+            or adapter.get("initialization") != METHOD
+            or adapter.get("initialization_artifact_sha256") != identity["initialization"]["artifact_manifest_sha256"]
+            or identity.get("quantization") != asdict(QuantizedBaseTrainingConfig())
+        ):
+            raise ValueError("residual initialization identity requires its exact adapter artifact and NF4 base")
+    elif "initialization" in identity or (
+        isinstance(identity.get("adapter"), dict) and identity["adapter"].get("initialization") == "nf4_residual_svd"
+    ):
+        raise ValueError("residual initialization requires model identity v3")
     if model_format == "cosmos.adapter-model.v2" and "execution_policy" not in identity:
         raise ValueError("native adapter model v2 requires complete execution_policy metadata")
     if model_format == "cosmos.adapter-model.v1" and "execution_policy" in identity:
@@ -133,6 +149,8 @@ def execution_config_from_identity(identity: dict[str, Any]) -> dict[str, Any]:
     if configured is None or {key: value for key, value in policy.items() if key != "math_precision"} != configured:
         raise ValueError("unsupported or incomplete adapter execution_policy")
     _validate_precision_record(policy.get("math_precision"))
+    if model_format == "cosmos.adapter-model.v3" and options["adapter_compute_dtype"] != "float32":
+        raise ValueError("residual initialization currently requires FP32 adapter computation")
     return options
 
 
@@ -374,12 +392,16 @@ def validate_runtime(cfg: Any, model_config: Any, pdims: Any) -> torch.device:
         or adapter.target_profile != PROFILE
         or adapter.bias != "none"
         or adapter.modules_to_save
-        or adapter.initialization != "kaiming_A_zero_B"
+        or adapter.initialization not in ("kaiming_A_zero_B", "nf4_residual_svd")
         or adapter.rank < 1
         or adapter.alpha <= 0
         or not 0 <= adapter.dropout < 1
     ):
         raise ValueError("unsupported native ordinary LoRA configuration")
+    if adapter.initialization == "nf4_residual_svd" and (
+        quantization is None or getattr(cfg, "adapter_compute_dtype", "float32") != "float32" or adapter.rank > 1024
+    ):
+        raise ValueError("residual initialization requires NF4, FP32 adapter compute and rank at most 1024")
     if not dist.is_initialized() or dist.get_world_size() != 1 or int(os.environ.get("WORLD_SIZE", "1")) != 1:
         raise ValueError("native adapter qualification requires torchrun with exactly one process")
     if pdims is not None:
@@ -430,6 +452,17 @@ class NativeAdapterLifecycle:
         self.runtime_precision = runtime_precision_policy()
         self.execution_policy = resolved_execution_policy(cfg)
         self.quantized = cfg.quantized_base is not None
+        self.initialization_artifact = None
+        if cfg.adapter.initialization == "nf4_residual_svd":
+            from cosmos_framework.posttrain.model.quantization.initialization import InitializationArtifact
+
+            self.initialization_artifact = InitializationArtifact(
+                cfg.adapter.initialization_artifact,
+                cfg.adapter.initialization_artifact_sha256,
+                adapter=cfg.adapter,
+                source_identity=self.source_identity,
+                quantization=cfg.quantized_base,
+            )
         self.canary = None
         if self.quantized:
             from cosmos_framework.posttrain.model.quantization.bnb import kernel_preflight
@@ -511,6 +544,8 @@ class NativeAdapterLifecycle:
                     module_name = name.removesuffix(".weight")
                     if self.quantized and module_name in self.targets:
                         self.targets[module_name].load_dense_weight_once(source, self.device)
+                        if self.initialization_artifact is not None:
+                            self.initialization_artifact.apply(module_name, self.targets[module_name], source)
                     else:
                         self.source_slots[name].tensor.copy_(source)
                     del source
@@ -520,9 +555,12 @@ class NativeAdapterLifecycle:
         if not self.loaded:
             raise RuntimeError("cannot finalize adapters before every frozen base tensor is loaded")
         generator = torch.Generator(device=self.device).manual_seed(self.cfg.adapter.initialization_seed)
+        if self.initialization_artifact is not None:
+            self.initialization_artifact.assert_complete()
         parameters: dict[str, nn.Parameter] = {}
         for name, module in sorted(self.targets.items()):
-            module.reset_adapter_parameters(generator=generator)
+            if self.initialization_artifact is None:
+                module.reset_adapter_parameters(generator=generator)
             parameters.update({f"{name}.{key}": value for key, value in module.adapter_parameters().items()})
         expected_ids = {id(parameter) for parameter in parameters.values()}
         if len(parameters) != 504 or len(expected_ids) != 504:
@@ -554,11 +592,13 @@ class NativeAdapterLifecycle:
             if not (self.quantized and name.removesuffix(".weight") in self.targets)
         }
         buffer_records = {name: tensor_digest(slot.tensor) for name, slot in sorted(self.buffer_slots.items())}
+        from cosmos_framework.posttrain.config.model import native_adapter_config_identity
+
         metadata = {
             "format": "cosmos.adapter-model.v1",
             "base": self.source_identity,
             "model_format": "cosmos_native_qwen3_vl",
-            "adapter": asdict(self.cfg.adapter),
+            "adapter": native_adapter_config_identity(self.cfg.adapter),
             "quantization": asdict(self.cfg.quantized_base) if self.quantized else None,
             "targets": {name: list(shape) for name, shape in sorted(canonical_targets().items())},
             "excluded_frozen_tensors": frozen,
@@ -592,6 +632,9 @@ class NativeAdapterLifecycle:
         if self.execution_policy is not None:
             metadata["format"] = "cosmos.adapter-model.v2"
             metadata["execution_policy"] = self.execution_policy
+        if self.initialization_artifact is not None:
+            metadata["format"] = "cosmos.adapter-model.v3"
+            metadata["initialization"] = self.initialization_artifact.identity()
         # Plain mappings keep references without registering a second model subtree.
         net._cosmos_adapter_parameters = parameters
         net._native_adapter_parameter_names = tuple(parameters)

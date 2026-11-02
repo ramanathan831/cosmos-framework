@@ -110,6 +110,24 @@ class NativeLoraLinear4bit(NativeLoRAMixin, bnb.nn.Linear4bit):
             if not isinstance(value, torch.Tensor) or value.is_meta or value.device != weight.device:
                 raise RuntimeError("all NF4 and nested scale metadata must reside on the owned device")
 
+    @torch.no_grad()
+    def effective_weight_for_initialization(self) -> torch.Tensor:
+        """Dequantize only this actual attached matrix for explicit preparation.
+
+        The returned BF16 tensor is temporary. Neither packed storage nor nested
+        QuantState is replaced, requantized, or inferred from another backend.
+        Model construction and checkpoint restore never call this method.
+        """
+        self.validate_quantization_state()
+        effective = bnb.functional.dequantize_4bit(self.weight.data, self.weight.quant_state)
+        if (
+            effective.dtype != torch.bfloat16
+            or effective.device != self.weight.device
+            or tuple(effective.shape) != self.logical_shape
+        ):
+            raise RuntimeError("actual NF4 dequantization differs from its logical BF16 matrix")
+        return effective
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if x.dtype != torch.bfloat16 or x.device != self.weight.device:
             raise ValueError("native NF4 expects BF16 activations on its owned CUDA device")

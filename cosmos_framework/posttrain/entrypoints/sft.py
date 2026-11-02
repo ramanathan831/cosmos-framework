@@ -230,6 +230,7 @@ def _preflight_adapter_resume(
         return
     from cosmos_framework.posttrain.checkpoint.adapter import read_adapter_metadata
     from cosmos_framework.posttrain.config.build import select_policy_backend
+    from cosmos_framework.posttrain.config.model import native_adapter_config_identity
     from cosmos_framework.posttrain.model.quantization.loader import validate_execution_policy_identity
     from cosmos_framework.posttrain.utils.identity import canonical_config_value
     from cosmos_framework.utils.lazy_config import instantiate
@@ -239,7 +240,7 @@ def _preflight_adapter_resume(
         checkpoint.resume_checkpoint,
         expected_identity={
             "base": canonical_config_value(cfg.source_identity),
-            "adapter": asdict(cfg.adapter),
+            "adapter": native_adapter_config_identity(cfg.adapter),
             "quantization": asdict(cfg.quantized_base) if cfg.quantized_base is not None else None,
             "processor_contract": processor_identity,
             "training_contract": training_identity,

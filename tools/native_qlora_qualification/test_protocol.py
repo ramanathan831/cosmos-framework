@@ -32,6 +32,14 @@ def test_paired_arms_change_only_base_recipe_and_label():
         {"frames": 7},
         {"prefetch": 1},
         {"video_min_pixels": 999999},
+        {"initialization": "unknown"},
+        {"initialization_artifact": "/unexpected/manifest.json"},
+        {"initialization": "nf4_residual_svd"},
+        {
+            "initialization": "nf4_residual_svd",
+            "initialization_artifact": "relative/manifest.json",
+            "initialization_artifact_sha256": "a" * 64,
+        },
     ],
 )
 def test_invalid_experiments_fail_before_launch(changes):
@@ -49,3 +57,21 @@ def test_budget_counts_failed_jobs_and_outstanding_reservations():
         assert_budget(records, next_gpu_hours=43)
     with pytest.raises(ValueError, match="duplicate"):
         assert_budget(records + records, next_gpu_hours=0)
+
+
+def test_residual_experiment_is_explicit_and_baseline_serialization_unchanged():
+    baseline = Experiment("nf4_control", "nf4")
+    assert not any(key.startswith("initialization") for key in baseline.as_dict())
+    assert not any("initialization_artifact" in value for value in baseline.overrides())
+    residual = dataclasses.replace(
+        baseline,
+        name="nf4_residual",
+        initialization="nf4_residual_svd",
+        initialization_artifact="/prepared/manifest.json",
+        initialization_artifact_sha256="a" * 64,
+    )
+    assert residual.as_dict()["initialization"] == "nf4_residual_svd"
+    assert 'model.model_config.adapter.initialization="nf4_residual_svd"' in residual.overrides()
+    assert 'model.model_config.adapter.initialization_artifact="/prepared/manifest.json"' in residual.overrides()
+    with pytest.raises(ValueError, match="requires NF4"):
+        dataclasses.replace(residual, arm="bf16")

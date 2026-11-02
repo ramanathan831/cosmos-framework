@@ -54,7 +54,7 @@ from cosmos_framework.posttrain.utils.identity import json_identity_equal, norma
 from cosmos_framework.posttrain.utils.log import info0
 from cosmos_framework.posttrain.utils.profile import ProfileRecord, live_cuda_tensor_summary
 from cosmos_framework.posttrain.utils.residency import HostOffload, make_offload
-from cosmos_framework.posttrain.utils.training_profile import profile_range
+from cosmos_framework.posttrain.utils.training_profile import ensure_profile_model, profile_backward, profile_range
 
 if TYPE_CHECKING:
     from cosmos_framework.posttrain.checkpoint.store import CheckpointStore
@@ -741,6 +741,7 @@ class LLMTrainer(BaseTrainer):
                 cache.skip_chunk()
             return self._outcome_metrics("discarded")
         net = self._net()
+        ensure_profile_model(net)
         self._prepare_update_model()
         # The π_old record -> replay transition is NOT done here. It happens ONCE per collected batch
         # in `begin_replay_window()`, which the driver calls on EVERY cell after the ahead pass. Doing
@@ -760,7 +761,7 @@ class LLMTrainer(BaseTrainer):
         # The reduction owns normalize+backprop (TOKEN_SUM: as-is at grad_accum==1, else the
         # chunk SUM recovered via the objective's own divisor; MEAN: /grad_accum).
         denom = metrics.get(OBJECTIVE_WEIGHT_SUM)
-        with profile_range("trainer.backward"):
+        with profile_backward():
             reduce_backward(loss, self.objective.reduction, self.grad_accum, denom)
         self._accum += 1
         self._denom_accum += float(denom or 0.0)

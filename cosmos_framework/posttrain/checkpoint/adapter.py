@@ -141,7 +141,11 @@ def read_adapter_metadata(
     ):
         from cosmos_framework.posttrain.model.quantization.loader import execution_config_from_identity
 
-        if identity.get("format") not in ("cosmos.adapter-model.v1", "cosmos.adapter-model.v2"):
+        if identity.get("format") not in (
+            "cosmos.adapter-model.v1",
+            "cosmos.adapter-model.v2",
+            "cosmos.adapter-model.v3",
+        ):
             raise ValueError("native adapter metadata requires a supported model identity format")
         execution_config_from_identity(identity)
     for name, descriptor in metadata["parameters"].items():

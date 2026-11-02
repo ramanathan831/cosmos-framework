@@ -370,10 +370,26 @@ def probe_commands(experiment: Experiment, output: Path, checkpoint: Path, data:
     return commands
 
 
+def trace_environment(window: str | None, output: Path) -> dict[str, str]:
+    """Explicit bounded diagnostics; inherited profiler environment is never admitted."""
+    if window is None:
+        return {}
+    if window not in {"early", "steady"}:
+        raise ValueError("trace window must be early or steady")
+    return {
+        "COSMOS_SFT_PROFILE_DIR": str(output / "trace"),
+        "COSMOS_SFT_PROFILE_WAIT": "0" if window == "early" else "5",
+        "COSMOS_SFT_PROFILE_WARMUP": "1",
+        "COSMOS_SFT_PROFILE_ACTIVE": "2",
+    }
+
+
 def execute(args: argparse.Namespace) -> None:
     experiment = Experiment.read(args.spec)
     validate_experiment(experiment)
     output = Path(args.output).absolute()
+    trace_window = getattr(args, "trace_window", None)
+    trace_env = trace_environment(trace_window, output)
     output.mkdir(parents=True, exist_ok=False)
     started = time.monotonic()
     stages = Stages(output, Path(args.time_binary), timeout_seconds=args.stage_timeout)
@@ -409,6 +425,7 @@ def execute(args: argparse.Namespace) -> None:
                 "spec_sha256": file_sha256(args.spec),
                 "kernel_gate_sha256": file_sha256(args.kernel_gate),
                 "tools": {p.name: file_sha256(p) for p in script.parent.glob("*.py")},
+                **({"diagnostic_profile": trace_window, "execution_selection_eligible": False} if trace_window else {}),
                 "runtime_stress_only": True,
                 "quality_evidence": False,
                 "started_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
@@ -451,6 +468,7 @@ def execute(args: argparse.Namespace) -> None:
                 *experiment.overrides(),
                 "rl.resume=off",
             ],
+            env_extra=trace_env,
         )
         checkpoint = final_checkpoint(output, experiment, receipt)
         from cosmos_framework.posttrain.checkpoint.manager import CheckpointManager
@@ -517,7 +535,11 @@ def execute(args: argparse.Namespace) -> None:
                 report["training_budget"] = budget_eligibility(report["training_memory"])
         except (OSError, ValueError, KeyError, TypeError) as error:
             report["memory_evidence_failure"] = f"{type(error).__name__}: {error}"
-        eligible = passed and report.get("training_budget", {}).get("eligible_for_higher_microbatch") is True
+        eligible = (
+            not trace_window
+            and passed
+            and report.get("training_budget", {}).get("eligible_for_higher_microbatch") is True
+        )
         write_json(
             output / "completion.json",
             {
@@ -528,6 +550,7 @@ def execute(args: argparse.Namespace) -> None:
                 "outcomes": stages.outcomes,
                 **report,
                 "eligible_for_higher_microbatch": eligible,
+                **({"diagnostic_profile": trace_window, "execution_selection_eligible": False} if trace_window else {}),
                 "complete_elapsed_seconds": time.monotonic() - started,
                 "finished_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
                 "quality_qualified": False,
@@ -553,6 +576,11 @@ def main() -> None:
     for key in ("build", "kernel-gate", "time-binary"):
         parser.add_argument("--" + key)
     parser.add_argument("--stage-timeout", type=int, default=3600)
+    parser.add_argument(
+        "--trace-window",
+        choices=("early", "steady"),
+        help="Diagnostic20-update trace; ineligible for execution selection",
+    )
     args = parser.parse_args()
     if args.stage_timeout <= 0:
         parser.error("stage timeout must be positive")

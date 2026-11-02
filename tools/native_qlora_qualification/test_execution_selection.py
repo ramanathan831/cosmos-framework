@@ -1262,3 +1262,27 @@ def test_v7_profile_cannot_backfill_the_unversioned_legacy_contract(tmp_path):
     del fixture.inputs["producer_profile"]
     with pytest.raises(select.InvalidExecutionSelection, match="pinned v5"):
         select.producer_profile(fixture.evidence(), identity)
+
+
+@pytest.mark.parametrize("source", ["contract", "completion"])
+def test_diagnostic_native_trace_cannot_enter_execution_selection(tmp_path, monkeypatch, source):
+    f = fixture(tmp_path, monkeypatch)
+    root = "cells/runtime_none_nf4_b1"
+    path = root + "/" + source + ".json"
+    value = f.read(path)
+    value["diagnostic_profile"] = "early"
+    f.put(path, value)
+    completion_path = root + "/completion.json"
+    completed = f.read(completion_path)
+    with pytest.raises(ValueError, match="diagnostic traces"):
+        select.cell(
+            f.evidence(),
+            {"path": root, "completion_sha256": f.inputs["files"][completion_path]},
+            Experiment(**completed["experiment"]),
+            "unused-before-profile-rejection",
+            plan={},
+            build={},
+            allocation="123",
+            profile={},
+            tools={},
+        )

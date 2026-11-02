@@ -37,6 +37,9 @@ class Experiment:
     save_every: int = 50
     validation_every: int = 50
     validation_samples: int = 64
+    initialization: str = "kaiming_A_zero_B"
+    initialization_artifact: str = ""
+    initialization_artifact_sha256: str = ""
 
     def __post_init__(self) -> None:
         if not isinstance(self.name, str) or not re.fullmatch(r"[a-z0-9][a-z0-9_]{0,95}", self.name):
@@ -77,6 +80,21 @@ class Experiment:
             raise ValueError("unsupported adapter math or logits mode")
         if type(self.prefetch) is not bool or type(self.compile_language_model) is not bool:
             raise ValueError("prefetch and compile must be booleans")
+        if self.initialization not in {"kaiming_A_zero_B", "nf4_residual_svd"}:
+            raise ValueError("unsupported native adapter initialization")
+        if not isinstance(self.initialization_artifact, str) or not isinstance(
+            self.initialization_artifact_sha256, str
+        ):
+            raise ValueError("initializer path and SHA256 must be strings")
+        if self.initialization == "kaiming_A_zero_B":
+            if self.initialization_artifact or self.initialization_artifact_sha256:
+                raise ValueError("zero-B initialization forbids a residual initializer artifact")
+        elif (
+            self.arm != "nf4"
+            or not Path(self.initialization_artifact).is_absolute()
+            or re.fullmatch(r"[0-9a-f]{64}", self.initialization_artifact_sha256) is None
+        ):
+            raise ValueError("residual initialization requires NF4 and an absolute SHA256-bound artifact")
 
     @classmethod
     def read(cls, path: str | Path) -> Experiment:
@@ -134,10 +152,22 @@ class Experiment:
             "rl.processor_kwargs.videos_kwargs.size.shortest_edge": self.video_min_pixels,
             "rl.processor_kwargs.videos_kwargs.size.longest_edge": self.video_max_pixels,
         }
+        if self.initialization != "kaiming_A_zero_B":
+            values.update(
+                {
+                    "model.model_config.adapter.initialization": self.initialization,
+                    "model.model_config.adapter.initialization_artifact": self.initialization_artifact,
+                    "model.model_config.adapter.initialization_artifact_sha256": self.initialization_artifact_sha256,
+                }
+            )
         return [f"{key}={json.dumps(value, separators=(',', ':'))}" for key, value in values.items()]
 
     def as_dict(self) -> dict:
-        return dataclasses.asdict(self)
+        result = dataclasses.asdict(self)
+        if self.initialization == "kaiming_A_zero_B":
+            for name in ("initialization", "initialization_artifact", "initialization_artifact_sha256"):
+                del result[name]
+        return result
 
 
 def file_sha256(path: str | Path) -> str:

@@ -15,6 +15,7 @@ from cosmos_framework.posttrain.config.model import (
     NativePolicyBuildSpec,
     QuantizedBaseTrainingConfig,
     Qwen3VLModelConfig,
+    native_adapter_config_identity,
 )
 from cosmos_framework.posttrain.config.rl import OptimizerConfig
 
@@ -48,11 +49,53 @@ def _root(model_cfg):
         {"bias": "all"},
         {"modules_to_save": ["lm_head"]},
         {"initialization_seed": -1},
+        {"initialization_artifact": "/unexpected/bundle"},
+        {"initialization_artifact_sha256": "a" * 64},
+        {"initialization": "nf4_residual_svd"},
+        {
+            "initialization": "nf4_residual_svd",
+            "initialization_artifact": "relative/bundle",
+            "initialization_artifact_sha256": "a" * 64,
+        },
+        {
+            "initialization": "nf4_residual_svd",
+            "initialization_artifact": "/absolute/bundle",
+            "initialization_artifact_sha256": "not-a-sha",
+        },
     ],
 )
 def test_adapter_rejects_unsupported_training_contract(override):
     with pytest.raises(ValueError, match="NativeLoRAConfig"):
         NativeLoRAConfig(**override)
+
+
+def test_residual_initialization_identity_is_content_bound_and_preserves_legacy():
+    baseline = NativeLoRAConfig()
+    legacy = asdict(baseline)
+    del legacy["initialization_artifact"]
+    del legacy["initialization_artifact_sha256"]
+    assert native_adapter_config_identity(baseline) == legacy
+    options = {
+        "initialization": "nf4_residual_svd",
+        "initialization_artifact_sha256": "a" * 64,
+    }
+    first = NativeLoRAConfig(initialization_artifact="/first/bundle", **options)
+    moved = NativeLoRAConfig(initialization_artifact="/second/bundle", **options)
+    assert native_adapter_config_identity(first) == native_adapter_config_identity(moved)
+    assert native_adapter_config_identity(first)["initialization_artifact_sha256"] == "a" * 64
+    with pytest.raises(ValueError, match="frozen NF4 base"):
+        Qwen3VLModelConfig(attn_impl="sdpa", adapter=first)
+    with pytest.raises(ValueError, match="FP32 adapter computation"):
+        Qwen3VLModelConfig(
+            attn_impl="sdpa",
+            adapter=first,
+            quantized_base=QuantizedBaseTrainingConfig(),
+            adapter_compute_dtype="bfloat16",
+        )
+    assert (
+        Qwen3VLModelConfig(attn_impl="sdpa", adapter=first, quantized_base=QuantizedBaseTrainingConfig()).adapter
+        is first
+    )
 
 
 @pytest.mark.parametrize(

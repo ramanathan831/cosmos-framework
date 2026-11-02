@@ -422,8 +422,10 @@ def cell(
         and completion.get("failure") is None,
         "runtime cell failed or is incomplete",
     )
+    require(not completion.get("diagnostic_profile"), "diagnostic traces cannot select execution settings")
     require(completion["experiment"] == spec.as_dict(), "runtime completion configuration differs")
     contract = evidence.read(child(root, "contract.json"))
+    require(not contract.get("diagnostic_profile"), "diagnostic traces cannot select execution settings")
     require(
         contract.get("experiment") == spec.as_dict()
         and contract.get("spec_sha256") == spec_sha

@@ -30,6 +30,7 @@ from cosmos_framework.posttrain.data.datasets.sft import sha256_file
 from cosmos_framework.posttrain.data.packer.sft import QwenSFTDataPacker, SFTPolicyInput, build_sft_packer
 from cosmos_framework.posttrain.schema import SFTTarget
 from cosmos_framework.posttrain.utils.identity import canonical_json_sha256, project_typed_json_value
+from cosmos_framework.posttrain.utils.training_profile import profile_cpu_range
 
 
 def _cpu_bytes(value: Any) -> int:
@@ -175,7 +176,8 @@ class _CachedVideoProcessor:
             {"processor": self._identity, "call": project_typed_json_value(values, context="video cache settings")},
             context="video preprocessing cache key",
         )
-        cached = self._cache.get(key)
+        with profile_cpu_range("sft.video_cache_lookup_copy"):
+            cached = self._cache.get(key)
         if cached is not None:
             return cached
         result = _deterministic_call(self._processor, **kwargs)
@@ -231,7 +233,8 @@ class _PreprocessingCache:
 
     def process(self, target: SFTTarget) -> SFTPolicyInput:
         key = self.key(target, verify=True)
-        cached = self.samples.get(key)
+        with profile_cpu_range("sft.sample_cache_lookup_copy"):
+            cached = self.samples.get(key)
         if cached is not None:
             return cached
         result = _deterministic_call(self.packer.sft_process_sample, target)
@@ -290,7 +293,8 @@ def _process_worker(target: SFTTarget) -> tuple[SFTPolicyInput, dict[str, Any]]:
     if _WORKER_CACHE is None:
         raise RuntimeError("preprocessing worker was not initialized")
     started = time.perf_counter()
-    result = _WORKER_CACHE.process(target)
+    with profile_cpu_range("sft.worker_prepare"):
+        result = _WORKER_CACHE.process(target)
     elapsed = time.perf_counter() - started
     if torch.cuda.is_initialized():
         raise RuntimeError("SFT preprocessing initialized CUDA in the CPU worker")
@@ -384,7 +388,8 @@ class SFTPreprocessingPipeline:
     def _consume_future(self, future) -> SFTPolicyInput:
         try:
             started = time.perf_counter()
-            sample, self.preprocessing_stats = future.result(timeout=300)
+            with profile_cpu_range("sft.prefetch_wait"):
+                sample, self.preprocessing_stats = future.result(timeout=300)
             self._wait_seconds += time.perf_counter() - started
             self._wait_calls += 1
             self.preprocessing_stats["timing"].update(wait_calls=self._wait_calls, wait_seconds=self._wait_seconds)

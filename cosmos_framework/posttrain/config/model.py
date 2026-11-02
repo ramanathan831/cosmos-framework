@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import math
 import os
+import re
 from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass, field
 from typing import Any
@@ -173,6 +174,10 @@ class NativeLoRAConfig:
     modules_to_save: tuple[str, ...] = ()
     initialization: str = "kaiming_A_zero_B"
     initialization_seed: int = 42
+    # The explicit preparation command publishes this immutable factor bundle.
+    # Its location is operational; only its content hash belongs in model identity.
+    initialization_artifact: str = ""
+    initialization_artifact_sha256: str = ""
 
     def __post_init__(self) -> None:
         required = {
@@ -180,7 +185,6 @@ class NativeLoRAConfig:
             "parameter_dtype": "float32",
             "target_profile": "qwen3_vl_8b_language_v1",
             "bias": "none",
-            "initialization": "kaiming_A_zero_B",
         }
         for name, expected in required.items():
             if getattr(self, name) != expected:
@@ -200,6 +204,33 @@ class NativeLoRAConfig:
         self.modules_to_save = ()
         if type(self.initialization_seed) is not int or not 0 <= self.initialization_seed < 2**63:
             raise ValueError("NativeLoRAConfig.initialization_seed must be an integer in [0, 2**63)")
+        if self.initialization not in ("kaiming_A_zero_B", "nf4_residual_svd"):
+            raise ValueError("NativeLoRAConfig.initialization supports kaiming_A_zero_B|nf4_residual_svd")
+        if not isinstance(self.initialization_artifact, str) or not isinstance(
+            self.initialization_artifact_sha256, str
+        ):
+            raise ValueError("NativeLoRAConfig initialization artifact path and SHA256 must be strings")
+        if self.initialization == "kaiming_A_zero_B":
+            if self.initialization_artifact or self.initialization_artifact_sha256:
+                raise ValueError("NativeLoRAConfig zero-B initialization forbids a residual factor artifact")
+        elif (
+            not os.path.isabs(self.initialization_artifact)
+            or re.fullmatch(r"[0-9a-f]{64}", self.initialization_artifact_sha256) is None
+        ):
+            raise ValueError("NativeLoRAConfig residual initialization requires an absolute artifact path and SHA256")
+
+
+def native_adapter_config_identity(adapter: NativeLoRAConfig) -> dict[str, Any]:
+    """Keep legacy identity unchanged and bind optional initialization by content.
+
+    Moving an identical initializer bundle must not change the numerical model.
+    New fields with empty defaults must not invalidate existing zero-B artifacts.
+    """
+    identity = asdict(adapter)
+    identity.pop("initialization_artifact")
+    if adapter.initialization == "kaiming_A_zero_B":
+        identity.pop("initialization_artifact_sha256")
+    return identity
 
 
 @dataclass
@@ -356,6 +387,18 @@ class Qwen3VLModelConfig:
                 raise ValueError("quantized_base requires an adapter; frozen-base full fine-tuning is unsupported")
             if self.quantized_base.target_profile != self.adapter.target_profile:
                 raise ValueError("quantized_base and adapter target profiles must match")
+        if (
+            self.adapter is not None
+            and self.adapter.initialization == "nf4_residual_svd"
+            and self.quantized_base is None
+        ):
+            raise ValueError("native residual initialization requires its frozen NF4 base")
+        if (
+            self.adapter is not None
+            and self.adapter.initialization == "nf4_residual_svd"
+            and self.adapter_compute_dtype != "float32"
+        ):
+            raise ValueError("native residual initialization currently requires FP32 adapter computation")
 
 
 # ---------------------------------------------------------------------------
