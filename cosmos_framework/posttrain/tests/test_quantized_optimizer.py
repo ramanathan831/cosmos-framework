@@ -219,3 +219,27 @@ def test_frozen_selection_stays_out():
     net.weight.requires_grad_(False)
     opt = build_optimizer(net, OptimizerConfig(train_keys=["weight", "bias"]))
     assert opt.param_groups[0]["params"] == [net.bias]
+
+
+def test_paged_buffer_lifetime_follows_storage_aliases():
+    import gc
+
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA required")
+    net = torch.nn.Linear(512, 256, device="cuda", bias=False)
+    opt = build_optimizer(net, OptimizerConfig(name="paged_adamw_8bit"))
+    net.weight.grad = torch.ones_like(net.weight)
+    opt.step()
+    buffer = opt.state[net.weight]["state1"]
+    owner = buffer._cosmos_managed_owner
+    alias = buffer.detach()
+    saved = opt.state_dict()
+    assert not hasattr(saved["state"][0]["state1"], "is_paged")
+    del buffer, opt
+    gc.collect()
+    assert owner() is not None
+    # The detached storage alias is still valid after optimizer destruction.
+    torch.testing.assert_close(alias, saved["state"][0]["state1"])
+    del alias
+    gc.collect()
+    assert owner() is None

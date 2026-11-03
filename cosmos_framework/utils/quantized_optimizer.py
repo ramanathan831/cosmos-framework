@@ -12,7 +12,7 @@ import importlib.metadata
 import logging
 from collections import defaultdict
 from copy import deepcopy
-from types import SimpleNamespace
+from types import MethodType, SimpleNamespace
 
 import torch
 
@@ -20,7 +20,53 @@ VERSION = "0.49.2"
 NAMES = ("adamw_bnb_8bit", "paged_adamw_8bit")
 
 
-def require_backend():
+def _owned_state_buffer(optimizer, parameter, dtype=torch.float32):
+    """Upstream managed layout, with a deleter owned by the exported buffer.
+
+    bnb 0.49.2 functional.get_paged creates a numpy view of cudaMallocManaged
+    memory without a free callback. The ndarray here owns that callback; PyTorch
+    frombuffer retains it until the LAST storage alias dies, including detach().
+    """
+    if not optimizer.is_paged or parameter.numel() < 100000:
+        return torch.zeros_like(parameter, dtype=dtype, device=parameter.device)
+    import ctypes
+    import weakref
+
+    import numpy as np
+    from bitsandbytes import functional as functional
+    from bitsandbytes.cextension import lib
+
+    free = lib._lib.cudaFree  # pinned native ABI; fail rather than leak on missing symbol
+    free.argtypes = [ctypes.c_void_p]
+    free.restype = ctypes.c_int
+    device = parameter.device
+    size = parameter.numel() * dtype.itemsize
+    with torch.cuda.device(device):
+        pointer = lib.cget_managed_ptr(ctypes.c_size_t(size))
+    if not pointer:
+        raise MemoryError("bitsandbytes managed allocation returned null")
+    array = np.ctypeslib.as_array(ctypes.cast(pointer, ctypes.POINTER(ctypes.c_uint8)), shape=(size,))
+
+    def release():
+        with torch.cuda.device(device):
+            error = free(ctypes.c_void_p(pointer))
+        if error:
+            import warnings
+
+            warnings.warn(f"cudaFree of managed optimizer state failed: {error}", ResourceWarning)
+
+    owner = weakref.finalize(array, release)
+    owner.atexit = False  # CUDA context teardown owns process-exit cleanup
+    buffer = torch.frombuffer(array, dtype=dtype, count=parameter.numel()).view(parameter.shape)
+    buffer.is_paged = True
+    buffer.page_deviceid = parameter.device.index
+    buffer._cosmos_managed_owner = weakref.ref(array)
+    functional.fill(buffer, 0)
+    optimizer.page_mng.paged_tensors.append(buffer)
+    return buffer
+
+
+def require_backend(*, paged=False):
     try:
         version = importlib.metadata.version("bitsandbytes")
     except importlib.metadata.PackageNotFoundError as exc:
@@ -34,6 +80,21 @@ def require_backend():
 
     if not getattr(lib, "compiled_with_cuda", False):
         raise RuntimeError("bitsandbytes CUDA kernels are unavailable")
+    # Exercise the selected CUDA allocation/update path before model construction.
+    # No RNG use and no model update: this scratch tensor is discarded immediately.
+    probe = torch.nn.Parameter(torch.ones(131072 if paged else 4096, device="cuda"))
+    probe.grad = torch.zeros_like(probe)
+    optimizer = bnb.optim.AdamW8bit([probe], is_paged=paged)
+    optimizer.mng = SimpleNamespace(index2config={}, module_weight_config_triple=[])
+    optimizer.page_mng = SimpleNamespace(paged_tensors=[])
+    optimizer.get_state_buffer = MethodType(_owned_state_buffer, optimizer)
+    try:
+        optimizer.step()
+        torch.cuda.synchronize()
+    except Exception as exc:
+        raise RuntimeError("bitsandbytes CUDA optimizer kernel/allocation preflight failed") from exc
+    finally:
+        del optimizer.get_state_buffer  # avoid a bound-method/self cycle retaining the probe
     return bnb
 
 
@@ -79,10 +140,12 @@ def build_quantized_optimizer(net, params, config):
         invalid = set(g) & {"fused", "foreach", "capturable", "amsgrad", "master_weights", "percentile_clipping"}
         if invalid:
             raise ValueError(f"unsupported bitsandbytes group options: {sorted(invalid)}")
-    bnb = require_backend()
+    with torch.cuda.device(selected[0].device):
+        bnb = require_backend(paged=config.name == NAMES[1])
 
     class CosmosAdamW8bit(bnb.optim.AdamW8bit):
         cosmos_quantized_optimizer = True
+        get_state_buffer = _owned_state_buffer
 
         def __init__(self):
             super().__init__(

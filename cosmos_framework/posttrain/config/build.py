@@ -686,7 +686,7 @@ def refuse_rounding_or_unavailable_optimizer(config: Any, opt_cfg: OptimizerConf
             raise ValueError("bitsandbytes requires consolidated checkpoints and no optimizer offload")
         from cosmos_framework.utils.quantized_optimizer import require_backend
 
-        require_backend()
+        require_backend(paged=opt_cfg.name == "paged_adamw_8bit")
     selection = select_policy_backend(config)
     if opt_cfg.name in ("adamw_bnb_8bit", "paged_adamw_8bit"):
         parallelism = (
