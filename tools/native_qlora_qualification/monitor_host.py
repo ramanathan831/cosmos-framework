@@ -31,8 +31,11 @@ except ImportError:  # Direct monitor.py invocation from the sealed tool directo
 
 LEGACY_METHOD = "proc-identity-state-read-attempts-v1"
 EXIT_OWNER_METHOD = "proc-identity-state-read-attempts-v2"
-METHOD = "proc-identity-state-read-attempts-v3"
+PROCESS_IDENTITY_METHOD = "proc-identity-state-read-attempts-v3"
+METHOD = "proc-identity-state-read-attempts-v4"
 IDENTITY_SEMANTICS = "pid_start_pidfd_owned_ancestry"
+THREAD_MM_PROTOCOL = "proc-live-thread-shared-mm-v1"
+MAX_TASK_ENTRIES = 4096
 MAX_ATTEMPTS = 3
 MAX_COLLECTION_SECONDS = 0.75
 MAX_EXIT_WAIT_MILLISECONDS = 350
@@ -256,6 +259,209 @@ def _exit_wait_eligible(record: dict) -> bool:
     )
 
 
+def _thread_mm_eligible(record: dict) -> bool:
+    """A narrowly identified dead leader, not a generic unreadable process."""
+    _, errors, transition = classify_process(record, owner_is_identity=False)
+    return (
+        not transition
+        and errors == ["live_or_unknown_memory_unreadable"]
+        and "exit_wait" not in record
+        and all(record[name].get("value", {}).get("state") == "Z" for name in ("stat_before", "stat_after"))
+        and "error" not in record["status"]
+        and record["rollup"].get("error", {}).get("errno") == errno.ESRCH
+        and _released(record["poll_before"]) is False
+        and _released(record["poll_after"]) is False
+    )
+
+
+def _timed_read(function) -> dict:
+    result = {"begin_unix_seconds": time.time(), "begin_monotonic_seconds": time.monotonic()}
+    try:
+        result["value"] = function()
+    except (OSError, ValueError, IndexError) as error:
+        result["error"] = _error(error)
+    result.update(end_unix_seconds=time.time(), end_monotonic_seconds=time.monotonic())
+    return result
+
+
+def _thread_read(directory_fd: int, name: str) -> dict:
+    """Read through one held proc task directory, never a re-resolved TID path."""
+
+    def read():
+        fd = os.open(name, os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW, dir_fd=directory_fd)
+        with os.fdopen(fd) as stream:
+            text = stream.read()
+        if name == "stat":
+            tail = text.rsplit(")", 1)[1].split()
+            return {"pid": int(text.split("(", 1)[0]), "state": tail[0], "start_ticks": int(tail[19])}
+        value = {}
+        for line in text.splitlines():
+            key, _, raw = line.partition(":")
+            if name == "status" and key in ("Pid", "Tgid"):
+                value[key] = int(raw.strip())
+            elif name == "status" and key == "State":
+                value[key] = raw.split()[0]
+            elif key in (("VmRSS", "VmHWM") if name == "status" else ("Rss", "Pss")):
+                parts = raw.split()
+                if len(parts) != 2 or parts[1] != "kB" or int(parts[0]) < 0:
+                    raise ValueError("invalid thread memory field")
+                value[key] = int(parts[0]) * 1024
+        return value
+
+    return _timed_read(read)
+
+
+def _thread_mm(pid: int, pidfd: int, deadline: float) -> dict:
+    """One actual shared-mm observation, counted once for the owned TGID.
+
+    Linux5.15 CLONE_THREAD requires CLONE_VM; both proc paths use the same
+    smaps_rollup operations. A nonleader exec changes its TID via de_thread;
+    the held directory and before/after identities make that a failed read.
+    https://github.com/torvalds/linux/blob/v5.15/kernel/fork.c#L1836-L1849
+    https://github.com/torvalds/linux/blob/v5.15/fs/proc/base.c#L3325-L3365
+    https://github.com/torvalds/linux/blob/v5.15/fs/exec.c#L1035-L1083
+    This is non-atomic sampled memory, not an address-space snapshot.
+    """
+    proof = {"protocol": THREAD_MM_PROTOCOL, "deadline_monotonic_seconds": deadline}
+    directory_fd = None
+
+    def open_task():
+        nonlocal directory_fd
+        if time.monotonic() >= deadline:
+            raise TimeoutError("thread observation deadline exhausted")
+        # One candidate only: a disappearing/dead first member fails closed;
+        # no scan for a more favorable memory result or summing shared mm.
+        with os.scandir(f"/proc/{pid}/task") as entries:
+            tids = []
+            for entry in entries:
+                if not entry.name.isdigit() or len(tids) >= MAX_TASK_ENTRIES:
+                    raise ValueError("invalid or excessive task inventory")
+                tids.append(int(entry.name))
+        tids.sort()
+        if pid not in tids or len(tids) < 2:
+            raise ValueError("no retained thread-group member")
+        tid = next(value for value in tids if value != pid)
+        directory_fd = os.open(f"/proc/{pid}/task/{tid}", os.O_RDONLY | os.O_DIRECTORY | os.O_CLOEXEC | os.O_NOFOLLOW)
+        stat = os.fstat(directory_fd)
+        return {"task_ids": tids, "tid": tid, "device": stat.st_dev, "inode": stat.st_ino}
+
+    proof["directory"] = _timed_read(open_task)
+    try:
+        if "value" in proof["directory"]:
+            for key, name in (
+                ("stat_before", "stat"),
+                ("status_before", "status"),
+                ("rollup", "smaps_rollup"),
+                ("status_after", "status"),
+                ("stat_after", "stat"),
+            ):
+                proof[key] = _thread_read(directory_fd, name)
+
+            def directory_identity():
+                stat = os.fstat(directory_fd)
+                return {"device": stat.st_dev, "inode": stat.st_ino}
+
+            proof["directory_after"] = _timed_read(directory_identity)
+    finally:
+        if directory_fd is not None:
+            os.close(directory_fd)
+    proof["leader_after"] = read_proc(pid, "stat")
+    proof["poll_after"] = _poll(pidfd)
+    return proof
+
+
+def _thread_mm_memory(record: dict, *, collection_start: float, discovery_after: dict) -> dict:
+    """Validate all retained acquisition evidence before substituting any field."""
+    proof = record["thread_mm"]
+    order = (
+        "directory",
+        "stat_before",
+        "status_before",
+        "rollup",
+        "status_after",
+        "stat_after",
+        "directory_after",
+        "leader_after",
+        "poll_after",
+    )
+    if (
+        not _thread_mm_eligible(record)
+        or not isinstance(proof, dict)
+        or set(proof) != {"protocol", "deadline_monotonic_seconds", *order}
+        or proof["protocol"] != THREAD_MM_PROTOCOL
+        or proof["deadline_monotonic_seconds"] != collection_start + MAX_COLLECTION_SECONDS
+        or not all(_receipt_valid(proof[key]) and "error" not in proof[key] for key in order)
+    ):
+        raise ValueError("unproven live-thread memory read")
+    reads = [record["poll_after"], *(proof[key] for key in order), discovery_after]
+    if (
+        any(a["end_monotonic_seconds"] > b["begin_monotonic_seconds"] for a, b in zip(reads, reads[1:]))
+        or proof["poll_after"]["end_monotonic_seconds"] > proof["deadline_monotonic_seconds"]
+        or _released(proof["poll_after"]) is not False
+    ):
+        raise ValueError("invalid live-thread read interval")
+    expected = record["pin"]["identity"]
+    for read in (proof["leader_after"], discovery_after):
+        value = read.get("value", {})
+        if (
+            not _valid_identity(value, owner_is_identity=False)
+            or _identity(value, owner_is_identity=False) != _identity(expected, owner_is_identity=False)
+            or value.get("state") != "Z"
+        ):
+            raise ValueError("thread-group leader changed during memory read")
+    directory = proof["directory"]["value"]
+    tid, tids = directory.get("tid"), directory.get("task_ids")
+    if (
+        type(tid) is not int
+        or tid == expected["pid"]
+        or not isinstance(tids, list)
+        or not 2 <= len(tids) <= MAX_TASK_ENTRIES
+        or any(type(value) is not int or value <= 0 for value in tids)
+        or tids != sorted(set(tids))
+        or expected["pid"] not in tids
+        or tid != next(value for value in tids if value != expected["pid"])
+        or any(type(directory.get(k)) is not int or directory[k] < 0 for k in ("device", "inode"))
+        or proof["directory_after"]["value"] != {k: directory[k] for k in ("device", "inode")}
+    ):
+        raise ValueError("invalid held task directory")
+    before, after = (proof[key]["value"] for key in ("stat_before", "stat_after"))
+    if (
+        any(
+            type(value.get("pid")) is not int
+            or value["pid"] != tid
+            or type(value.get("start_ticks")) is not int
+            or value["start_ticks"] <= 0
+            or value.get("state") not in ("R", "S", "D", "I")
+            for value in (before, after)
+        )
+        or before["start_ticks"] != after["start_ticks"]
+    ):
+        raise ValueError("live thread identity changed")
+    for key in ("status_before", "status_after"):
+        value = proof[key]["value"]
+        if (
+            type(value.get("Pid")) is not int
+            or value["Pid"] != tid
+            or type(value.get("Tgid")) is not int
+            or value["Tgid"] != expected["pid"]
+            or value.get("State") not in ("R", "S", "D", "I")
+            or type(value.get("VmRSS")) is not int
+            or value["VmRSS"] < 0
+        ):
+            raise ValueError("live thread group or memory status changed")
+    rollup = proof["rollup"]["value"]
+    if any(type(rollup.get(k)) is not int or rollup[k] < 0 for k in ("Pss", "Rss")):
+        raise ValueError("unreadable live-thread rollup")
+    status = proof["status_before"]["value"]
+    return {
+        "VmRSS": status["VmRSS"],
+        "Pss_rollup": rollup["Pss"],
+        "Rss_rollup": rollup["Rss"],
+        "memory_source": "verified_live_thread_shared_mm",
+        "memory_tid": tid,
+    }
+
+
 def _validate_exit_wait(record: dict, *, method: str, collection_start: float) -> None:
     """Optional v3 acquisition detail; historical reads retain identical semantics."""
     wait = record.get("exit_wait")
@@ -264,7 +470,7 @@ def _validate_exit_wait(record: dict, *, method: str, collection_start: float) -
             raise ValueError("timed pidfd poll lacks its initial read and budget")
         return
     if (
-        method != METHOD
+        method not in (PROCESS_IDENTITY_METHOD, METHOD)
         or not isinstance(wait, dict)
         or set(wait) != {"initial_poll", "deadline_monotonic_seconds", "retry_reserve_seconds"}
         or wait["retry_reserve_seconds"] != EXIT_WAIT_RETRY_RESERVE_SECONDS
@@ -290,15 +496,15 @@ def _validate_exit_wait(record: dict, *, method: str, collection_start: float) -
 def summarize_collection(receipt: dict) -> dict:
     """Fail closed and independently derive the final attempt's legacy fields."""
     method = receipt.get("protocol")
-    if method not in (LEGACY_METHOD, EXIT_OWNER_METHOD, METHOD):
+    if method not in (LEGACY_METHOD, EXIT_OWNER_METHOD, PROCESS_IDENTITY_METHOD, METHOD):
         raise ValueError("unsupported host collection protocol")
-    owner_is_identity = method != METHOD
-    if method == METHOD:
+    owner_is_identity = method not in (PROCESS_IDENTITY_METHOD, METHOD)
+    if not owner_is_identity:
         if receipt.get("identity_semantics") != IDENTITY_SEMANTICS:
             raise ValueError("missing pidfd-bound process identity semantics")
     elif "identity_semantics" in receipt:
         raise ValueError("v3 identity semantics cannot be relabeled as v1/v2")
-    final_polls_required = method in (EXIT_OWNER_METHOD, METHOD)
+    final_polls_required = method in (EXIT_OWNER_METHOD, PROCESS_IDENTITY_METHOD, METHOD)
     if final_polls_required and receipt.get("uid_semantics") != "proc_inode_owner":
         raise ValueError("missing proc inode ownership semantics")
     attempts = receipt.get("attempts")
@@ -423,6 +629,16 @@ def summarize_collection(receipt: dict) -> dict:
             values, errors, changed = classify_process(
                 record, released_after_discovery=final_released is True, owner_is_identity=owner_is_identity
             )
+            if "thread_mm" in record:
+                if method != METHOD:
+                    raise ValueError("live-thread evidence cannot be relabeled as an older method")
+                try:
+                    values = _thread_mm_memory(
+                        record, collection_start=first_start, discovery_after=attempt["discovery_after"][pid]
+                    )
+                    errors = []
+                except (ValueError, KeyError, TypeError, StopIteration):
+                    errors.append("unproven_live_thread_memory")
             memory[pid] = values
             hard_errors.extend(errors)
             process_errors.extend(errors)
@@ -462,7 +678,12 @@ def summarize_collection(receipt: dict) -> dict:
 
 def _validate_sample(sample: dict) -> dict:
     """Validate each version without trusting producer totals or upgrading old evidence."""
-    if sample.get("host_process_memory_method") not in (LEGACY_METHOD, EXIT_OWNER_METHOD, METHOD):
+    if sample.get("host_process_memory_method") not in (
+        LEGACY_METHOD,
+        EXIT_OWNER_METHOD,
+        PROCESS_IDENTITY_METHOD,
+        METHOD,
+    ):
         raise ValueError("unsupported host memory method")
     receipt = sample.get("host_collection", {})
     if receipt.get("protocol") != sample["host_process_memory_method"]:
@@ -500,7 +721,10 @@ class HostSampler:
     between samples. RSS/status and PSS/rollup reads are not simultaneous.
     """
 
-    def __init__(self, root_pid: int, stage_file: Path, *, exclude_pid: int | None = None):
+    def __init__(self, root_pid: int, stage_file: Path, *, exclude_pid: int | None = None, method: str = METHOD):
+        if method not in (PROCESS_IDENTITY_METHOD, METHOD):
+            raise ValueError("unsupported host acquisition method")
+        self.method = method
         self.root_pid, self.stage_file = root_pid, stage_file
         self.exclude_pid = os.getpid() if exclude_pid is None else exclude_pid
         self.backend = _PidfdBackend()
@@ -590,7 +814,7 @@ class HostSampler:
     def collect(self) -> dict:
         started = time.monotonic()
         receipt = {
-            "protocol": METHOD,
+            "protocol": self.method,
             "uid_semantics": "proc_inode_owner",
             "identity_semantics": IDENTITY_SEMANTICS,
             "root_pid": self.root_pid,
@@ -611,7 +835,9 @@ class HostSampler:
             records = {}
             for pid in sorted(selected):
                 record = self._process(pid)
-                if len(receipt["attempts"]) < MAX_ATTEMPTS - 1:
+                if self.method == METHOD and _thread_mm_eligible(record):
+                    record["thread_mm"] = _thread_mm(pid, self.tracked[pid]["fd"], started + MAX_COLLECTION_SECONDS)
+                elif len(receipt["attempts"]) < MAX_ATTEMPTS - 1:
                     self._wait_for_exit(pid, record, started + MAX_COLLECTION_SECONDS)
                 records[str(pid)] = record
             after = self._discover()
@@ -642,7 +868,7 @@ class HostSampler:
         receipt["stage_publish"] = _read_stage(self.stage_file)
         derived = summarize_collection(receipt)
         record = {
-            "host_process_memory_method": METHOD,
+            "host_process_memory_method": self.method,
             "host_collection": receipt,
             "stage": receipt["attempts"][0]["stage_before"].get("value", "unreadable"),
         }

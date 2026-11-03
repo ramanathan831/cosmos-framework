@@ -5,6 +5,7 @@
 import copy
 import ctypes
 import json
+import os
 import select
 import shutil
 import subprocess
@@ -709,7 +710,7 @@ int main(void) { pthread_t thread; pthread_create(&thread, NULL, worker, NULL); 
     binary = tmp_path / "leader_exit"
     subprocess.run([compiler, "-pthread", "-O0", str(source), "-o", str(binary)], check=True, timeout=15)
     process = subprocess.Popen([str(binary)], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-    value = host.HostSampler(process.pid, tmp_path / "stage")
+    value = host.HostSampler(process.pid, tmp_path / "stage", method=host.PROCESS_IDENTITY_METHOD)
     try:
         assert process.stdout.readline() == b"ready\n"
         deadline = time.monotonic() + 5
@@ -923,7 +924,7 @@ int main(void) { pthread_t t; if (pthread_create(&t, NULL, worker, NULL)) return
     binary = tmp_path / "delayed_exit"
     subprocess.run([compiler, "-pthread", "-O0", str(source), "-o", str(binary)], check=True, timeout=15)
     process = subprocess.Popen([str(binary)], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-    sampler = host.HostSampler(process.pid, tmp_path / "stage")
+    sampler = host.HostSampler(process.pid, tmp_path / "stage", method=host.PROCESS_IDENTITY_METHOD)
     read, fired = host.read_proc, False
     try:
         assert process.stdout.readline() == b"ready\n"
@@ -1021,3 +1022,224 @@ def test_exit_wait_receipt_cannot_invent_a_budget_or_eligibility(sampler, damage
         method = host.EXIT_OWNER_METHOD
     with pytest.raises(ValueError, match="exit.wait|exit wait"):
         host._validate_exit_wait(record, method=method, collection_start=attempt["begin_monotonic_seconds"])
+
+
+@pytest.fixture(scope="module")
+def live_thread_binary(tmp_path_factory):
+    root = tmp_path_factory.mktemp("actual_live_thread_mm")
+    source, binary = root / "leader.c", root / "leader"
+    source.write_text(r"""
+#define _GNU_SOURCE
+#include <pthread.h>
+#include <stdatomic.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/mman.h>
+#include <sys/syscall.h>
+#include <unistd.h>
+static atomic_int ready, leaving;
+static pid_t tid;
+static void *worker(void *unused) {
+  (void)unused; tid=(pid_t)syscall(SYS_gettid); atomic_store(&ready,1);
+  while(!atomic_load(&leaving)) usleep(1000);
+  char c; if(read(0,&c,1)!=1) _exit(11);
+  if(c=='E') { execl("/bin/sleep","sleep","5",NULL); _exit(12); }
+  return NULL;
+}
+int main(void) {
+  size_t n=16UL*1024*1024;
+  volatile char *p=mmap(NULL,n,PROT_READ|PROT_WRITE,MAP_PRIVATE|MAP_ANONYMOUS,-1,0);
+  if(p==MAP_FAILED)return 13;
+  for(size_t i=0;i<n;i+=4096)p[i]=1;
+  pthread_t t;if(pthread_create(&t,NULL,worker,NULL))return 14;
+  while(!atomic_load(&ready))usleep(1000);
+  printf("%d %d\n",getpid(),tid);fflush(stdout);
+  char c;if(read(0,&c,1)!=1)return 15;
+  atomic_store(&leaving,1);pthread_exit(NULL);
+}
+""")
+    compiler = shutil.which("cc")
+    assert compiler, "actual live-thread memory validation requires a C compiler"
+    subprocess.run([compiler, "-pthread", "-O0", str(source), "-o", str(binary)], check=True, timeout=15)
+    return binary
+
+
+@pytest.fixture
+def live_thread(live_thread_binary, tmp_path):
+    process = subprocess.Popen([str(live_thread_binary)], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    sampler = host.HostSampler(process.pid, tmp_path / "stage")
+    try:
+        pid, tid = map(int, process.stdout.readline().split())
+        assert pid == process.pid and tid != pid
+        # Bind the process before its leader exits; retain that original pin.
+        assert sampler.collect()["host_pss_complete"]
+        process.stdin.write(b"X")
+        process.stdin.flush()
+        deadline = time.monotonic() + 3
+        while host.read_proc(pid, "stat").get("value", {}).get("state") != "Z":
+            assert time.monotonic() < deadline
+            time.sleep(0.001)
+        yield sampler, process, tid
+    finally:
+        sampler.close()
+        if process.poll() is None:
+            process.kill()
+        process.wait(timeout=5)
+        process.stdin.close()
+        process.stdout.close()
+
+
+def test_actual_live_thread_mm_reads_shared_address_space_once(live_thread, request):
+    sampler, process, tid = live_thread
+    descriptors = len(os.listdir("/proc/self/fd"))
+    sample = sampler.collect()
+    assert host.validate_sample(sample)["host_pss_complete"]
+    assert len(os.listdir("/proc/self/fd")) == descriptors
+    assert sample["host_collection"]["protocol"] == host.METHOD
+    assert len(sample["host_collection"]["attempts"]) == 1
+    item = sample["host_collection"]["attempts"][0]["processes"][str(process.pid)]
+    assert item["rollup"]["error"]["errno"] == 3
+    assert item["poll_before"]["events"] == item["poll_after"]["events"] == []
+    proof = item["thread_mm"]
+    assert proof["poll_after"]["events"] == []
+    assert proof["status_before"]["value"]["Tgid"] == process.pid
+    assert proof["status_before"]["value"]["Pid"] == tid
+    assert sample["selected_host_pss_sum_bytes"] == proof["rollup"]["value"]["Pss"] >= 16 * 1024**2
+    assert set(sample["process_host_memory"]) == {str(process.pid)}
+    assert sample["process_host_memory"][str(process.pid)]["memory_tid"] == tid
+    assert "address_space_released" not in sample["process_host_memory"][str(process.pid)]
+    # The same retained leader read is still incomplete under the old method.
+    old = copy.deepcopy(sample["host_collection"])
+    old["protocol"] = host.PROCESS_IDENTITY_METHOD
+    del old["attempts"][0]["processes"][str(process.pid)]["thread_mm"]
+    assert not host.summarize_collection(old)["host_pss_complete"]
+    request.node.user_properties.append(("actual_live_thread_shared_mm", json.dumps(sample, sort_keys=True)))
+
+
+@pytest.mark.parametrize(
+    "damage",
+    [
+        "tgid",
+        "tid",
+        "birth",
+        "zombie",
+        "directory",
+        "pidfd",
+        "leader_exec",
+        "permission",
+        "rollup_missing",
+        "deadline",
+        "order",
+        "stage",
+        "initial_permission",
+        "initial_live",
+        "missing_directory",
+        "duplicate_tasks",
+        "too_many_tasks",
+    ],
+)
+def test_live_thread_mm_rejects_changed_or_incomplete_proof(live_thread, damage):
+    sampler, process, tid = live_thread
+    sample = sampler.collect()
+    assert sample["host_pss_complete"]
+    receipt = sample["host_collection"]
+    attempt = receipt["attempts"][0]
+    record = attempt["processes"][str(process.pid)]
+    proof = record["thread_mm"]
+    if damage == "tgid":
+        proof["status_after"]["value"]["Tgid"] += 1
+    elif damage == "tid":
+        proof["stat_after"]["value"]["pid"] += 1
+    elif damage == "birth":
+        proof["stat_after"]["value"]["start_ticks"] += 1
+    elif damage == "zombie":
+        proof["stat_after"]["value"]["state"] = "Z"
+    elif damage == "directory":
+        proof["directory_after"]["value"]["inode"] += 1
+    elif damage == "pidfd":
+        proof["poll_after"]["events"] = [select.POLLIN]
+    elif damage == "leader_exec":
+        proof["leader_after"]["value"]["state"] = "R"
+    elif damage == "permission":
+        proof["rollup"].pop("value")
+        proof["rollup"]["error"] = {"errno": 13, "type": "PermissionError"}
+    elif damage == "rollup_missing":
+        del proof["rollup"]["value"]["Pss"]
+    elif damage == "deadline":
+        proof["deadline_monotonic_seconds"] += 1
+    elif damage == "order":
+        proof["rollup"]["begin_monotonic_seconds"] = 0
+    elif damage == "stage":
+        attempt["stage_after"]["value"] = "other"
+    elif damage == "initial_permission":
+        record["rollup"]["error"]["errno"] = 13
+    elif damage == "initial_live":
+        record["stat_before"]["value"]["state"] = "S"
+    elif damage == "missing_directory":
+        del proof["directory"]
+    elif damage == "duplicate_tasks":
+        proof["directory"]["value"]["task_ids"].append(tid)
+    else:
+        proof["directory"]["value"]["task_ids"] = list(range(1, host.MAX_TASK_ENTRIES + 2))
+    result = host.summarize_collection(receipt)
+    assert not result["host_pss_complete"]
+    assert (
+        "stage_changed_or_unreadable" in result["host_collection_errors"]
+        if damage == "stage"
+        else "unproven_live_thread_memory" in result["host_collection_errors"]
+    )
+
+
+@pytest.mark.parametrize("method", [host.LEGACY_METHOD, host.EXIT_OWNER_METHOD, host.PROCESS_IDENTITY_METHOD])
+def test_live_thread_proof_cannot_be_relabelled_as_old_method(live_thread, method):
+    sampler, _, _ = live_thread
+    receipt = sampler.collect()["host_collection"]
+    receipt["protocol"] = method
+    with pytest.raises(ValueError):
+        host.summarize_collection(receipt)
+
+
+@pytest.mark.parametrize("action", [b"Q", b"E"])
+def test_actual_thread_exit_or_exec_during_read_fails_closed(live_thread, monkeypatch, action):
+    sampler, process, _ = live_thread
+    original = host._thread_read
+    fired = False
+
+    def read(fd, name):
+        nonlocal fired
+        result = original(fd, name)
+        if name == "smaps_rollup" and not fired:
+            fired = True
+            assert result["value"]["Pss"] >= 16 * 1024**2
+            process.stdin.write(action)
+            process.stdin.flush()
+            deadline = time.monotonic() + 3
+            if action == b"Q":
+                process.wait(timeout=3)
+            else:
+                while host.read_proc(process.pid, "stat").get("value", {}).get("state") == "Z":
+                    assert time.monotonic() < deadline
+                    time.sleep(0.001)
+        return result
+
+    monkeypatch.setattr(host, "_thread_read", read)
+    sample = sampler.collect()
+    assert fired
+    assert not host.validate_sample(sample)["host_pss_complete"]
+    assert "unproven_live_thread_memory" in sample["host_collection_errors"]
+
+
+def test_live_thread_failed_directory_open_closes_and_retains_error(live_thread, monkeypatch):
+    sampler, _, _ = live_thread
+    original = os.open
+
+    def opened(path, *args, **kwargs):
+        if "/task/" in str(path):
+            raise PermissionError(13, "fixture")
+        return original(path, *args, **kwargs)
+
+    monkeypatch.setattr(host.os, "open", opened)
+    descriptors = len(os.listdir("/proc/self/fd"))
+    sample = sampler.collect()
+    assert not host.validate_sample(sample)["host_pss_complete"]
+    assert len(os.listdir("/proc/self/fd")) == descriptors
