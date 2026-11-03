@@ -19,6 +19,7 @@ import statistics
 import time
 import zipfile
 from collections import Counter
+from functools import partial
 from pathlib import Path
 
 import pytest
@@ -63,21 +64,40 @@ def require_device(name, memory_bytes, capability, bf16):
         raise ValueError("saved-dequant diagnostic requires the qualified A100 80GB with BF16 kernels")
 
 
-def verify_sources(build):
+def implementation_pins():
+    mode = os.environ.get("COSMOS_SAVED_DEQUANT_IMPLEMENTATION", "fixture")
+    if mode == "fixture":
+        return False, BUILD_RECEIPT_SHA, WHEEL_SHA
+    if mode != "native":
+        raise ValueError("saved-dequant implementation must be fixture or native")
+    pins = tuple(
+        os.environ[name] for name in ("COSMOS_SAVED_DEQUANT_BUILD_RECEIPT_SHA", "COSMOS_SAVED_DEQUANT_WHEEL_SHA")
+    )
+    if any(len(value) != 64 or any(c not in "0123456789abcdef" for c in value) for value in pins):
+        raise ValueError("native fixture requires externally pinned build and wheel SHA256")
+    return True, *pins
+
+
+def verify_sources(build, *, build_receipt_sha=BUILD_RECEIPT_SHA, wheel_sha=WHEEL_SHA, production=False):
     """Parent verifies the whole build; independently bind the touched source here."""
     build = Path(build).resolve()
     receipt = build / "receipt.json"
-    assert digest(receipt) == BUILD_RECEIPT_SHA
+    assert digest(receipt) == build_receipt_sha
     wheels = list(build.glob("*.whl"))
-    assert len(wheels) == 1 and digest(wheels[0]) == WHEEL_SHA
-    paths = {str(receipt): BUILD_RECEIPT_SHA, str(wheels[0]): WHEEL_SHA}
+    assert len(wheels) == 1 and digest(wheels[0]) == wheel_sha
+    paths = {str(receipt): build_receipt_sha, str(wheels[0]): wheel_sha}
+    native_modules = NATIVE_MODULES + (
+        ("cosmos_framework.posttrain.config.model", "cosmos_framework.posttrain.model.quantization.loader")
+        if production
+        else ()
+    )
     with zipfile.ZipFile(wheels[0]) as archive:
-        for name in NATIVE_MODULES:
+        for name in native_modules:
             relative = name.replace(".", "/") + ".py"
             path = build / "site" / relative
             assert path.read_bytes() == archive.read(relative), name
             paths[str(path)] = digest(path)
-    for name in NATIVE_MODULES:
+    for name in native_modules:
         module = importlib.import_module(name)
         expected = build / "site" / (name.replace(".", "/") + ".py")
         assert Path(module.__file__).resolve() == expected.resolve(), name
@@ -156,7 +176,7 @@ def saved_forward(module, x, native_forward, dequantize):
     return base + module.adapter_delta(x, output_dtype=base.dtype)
 
 
-def make_pair(device):
+def make_pair(device, *, production=False):
     import bitsandbytes as bnb
 
     from cosmos_framework.configs.base.defaults.activation_checkpointing import ActivationCheckpointingConfig
@@ -190,28 +210,43 @@ def make_pair(device):
             )
             a = torch.randn(32, in_features, generator=generator) * 0.01
             b = torch.randn(out_features, 32, generator=generator) * 0.01
-            for index, cls in enumerate((NativeLoraLinear4bit, SavedWeight)):
+            candidate = NativeLoraLinear4bit if production else SavedWeight
+            for index, cls in enumerate((NativeLoraLinear4bit, candidate)):
+                options = {"quantized_linear_execution": "checkpointed_dequant"} if production and index else {}
                 module = cls(
                     torch.nn.Linear(in_features, out_features, bias=False, device="meta"),
                     NativeLoRAConfig(rank=32, alpha=64),
                     QuantizedBaseTrainingConfig(),
+                    **options,
                 )
                 module.load_dense_weight_once(source.clone(), device)
                 module.lora_A.weight = torch.nn.Parameter(a.to(device).clone())
                 module.lora_B.weight = torch.nn.Parameter(b.to(device).clone())
-                module.fixture_full_checkpoint = False
+                if not production:
+                    module.fixture_full_checkpoint = False
                 layers[index].append(module)
             del source
         for index in range(2):
             pairs[index].append(Block(layers[index]))
     stacks = []
-    for blocks in pairs:
+    for arm, blocks in enumerate(pairs):
         require_policy("full")
         wrapped = [_apply_full_ac(block, ActivationCheckpointingConfig(mode="full")) for block in blocks]
         assert_wrappers(wrapped)
-        for block in blocks:
-            for module in block.layers:
-                module.fixture_full_checkpoint = True
+        if production and arm:
+            from cosmos_framework.posttrain.model.quantization.bnb import checkpointed_dequant_contexts
+
+            for wrapper, block in zip(wrapped, blocks, strict=True):
+                wrapper.checkpoint_fn = partial(
+                    cp.checkpoint,
+                    **wrapper.checkpoint_fn.keywords,
+                    context_fn=partial(checkpointed_dequant_contexts, tuple(block.layers)),
+                )
+        elif not production:
+            for block in blocks:
+                for module in block.layers:
+                    module.fixture_full_checkpoint = True
+        assert_wrappers(wrapped)
         stacks.append(torch.nn.Sequential(*wrapped))
     return stacks, pairs
 
@@ -224,7 +259,69 @@ def assert_wrappers(wrapped):
         assert block.checkpoint_impl == CheckpointImpl.NO_REENTRANT
         fn = block.checkpoint_fn
         assert fn.func is cp.checkpoint and not fn.args
-        assert fn.keywords == {"use_reentrant": False, "preserve_rng_state": True, "determinism_check": "default"}
+        expected = {"use_reentrant": False, "preserve_rng_state": True, "determinism_check": "default"}
+        if "context_fn" in fn.keywords:
+            context = fn.keywords["context_fn"]
+            assert type(context) is partial
+            from cosmos_framework.posttrain.model.quantization.bnb import checkpointed_dequant_contexts
+
+            members = tuple(block._checkpoint_wrapped_module.layers)
+            assert context.func is checkpointed_dequant_contexts
+            assert context.args == (members,) and not context.keywords
+            assert len(members) == 7 and all(m.quantized_linear_execution == "checkpointed_dequant" for m in members)
+            expected["context_fn"] = context
+        assert fn.keywords == expected
+
+
+def production_guards(blocks, x):
+    """Exercise the actual CUDA class, including inference and rejected raw calls."""
+    from cosmos_framework.posttrain.config.model import NativeLoRAConfig, QuantizedBaseTrainingConfig
+    from cosmos_framework.posttrain.model.quantization.bnb import (
+        NativeLoraLinear4bit,
+        checkpointed_dequant_contexts,
+        kernel_preflight,
+    )
+
+    left, right = blocks[0][0].layers[0], blocks[1][0].layers[0]
+    assert type(left) is type(right) is NativeLoraLinear4bit
+    assert right.quantized_linear_execution == "checkpointed_dequant"
+    for grad in (False, True):
+        with pytest.raises(RuntimeError, match="block scope"):
+            right(x.detach().requires_grad_(grad))
+    with checkpointed_dequant_contexts(tuple(blocks[1][1].layers))[0]:
+        with pytest.raises(RuntimeError, match="block scope"):
+            right(x)
+    with torch.no_grad():
+        torch.testing.assert_close(right(x), left(x), rtol=0, atol=0)
+    left.eval()
+    right.eval()
+    try:
+        with torch.no_grad():
+            torch.testing.assert_close(right(x[:, :1]), left(x[:, :1]), rtol=0, atol=0)
+    finally:
+        left.train()
+        right.train()
+    base = torch.nn.Linear(128, 128, bias=False, device="meta")
+    for options in (
+        {"quantized_linear_execution": "unknown"},
+        {"quantized_linear_execution": "checkpointed_dequant", "adapter_compute_dtype": torch.bfloat16},
+    ):
+        with pytest.raises(ValueError):
+            NativeLoraLinear4bit(base, NativeLoRAConfig(rank=32, alpha=64), QuantizedBaseTrainingConfig(), **options)
+    with pytest.raises(ValueError, match="eager full"):
+        kernel_preflight(
+            x.device,
+            NativeLoRAConfig(rank=32, alpha=64),
+            QuantizedBaseTrainingConfig(),
+            quantized_linear_execution="checkpointed_dequant",
+            compile_model=True,
+        )
+    return {
+        "actual_native_class": True,
+        "raw_and_foreign_scope_rejected": True,
+        "no_grad_batch_and_eval_single_vector_exact": True,
+        "invalid_execution_bf16_adapter_and_compile_rejected": True,
+    }
 
 
 def adapters(net):
@@ -421,7 +518,13 @@ def test_actual_saved_dequant_full_checkpoint_cuda(record_property):
         pytest.skip("explicit allocated saved-dequant mechanism diagnostic only")
     assert torch.cuda.is_available(), "opt-in qualification requires real CUDA; never skip or fall back"
     assert torch.__version__ == "2.11.0+cu128"
-    sources = verify_sources(os.environ["COSMOS_SAVED_DEQUANT_BUILD"])
+    production, build_sha, wheel_sha = implementation_pins()
+    sources = verify_sources(
+        os.environ["COSMOS_SAVED_DEQUANT_BUILD"],
+        build_receipt_sha=build_sha,
+        wheel_sha=wheel_sha,
+        production=production,
+    )
     from cosmos_framework.posttrain.utils.determinism import enable_determinism
 
     enable_determinism(strict=True)
@@ -444,11 +547,17 @@ def test_actual_saved_dequant_full_checkpoint_cuda(record_property):
         "self_sha256": digest(__file__),
         "correctness": [],
     }
+    if production:
+        report.update(
+            protocol="cosmos.native-checkpointed-dequant-cuda.v1",
+            scope="Production native class/context on two synthetic blocks; not full-model lifecycle, task quality, or end-to-end speed qualification.",
+            quantized_linear_execution="checkpointed_dequant",
+        )
     destination = Path(os.environ["COSMOS_SAVED_DEQUANT_REPORT"])
     assert not destination.exists()
     try:
         with torch.random.fork_rng(devices=[device.index]):
-            stacks, blocks = make_pair(device)
+            stacks, blocks = make_pair(device, production=production)
             frozen = [frozen_state(arm) for arm in blocks]
             assert frozen[0][0] == frozen[1][0]
             x = torch.randn(1, 128, 4096, generator=torch.Generator().manual_seed(42), dtype=torch.bfloat16).to(device)
@@ -457,8 +566,20 @@ def test_actual_saved_dequant_full_checkpoint_cuda(record_property):
             with torch.no_grad():
                 torch.testing.assert_close(right(x[:, :1]), left(x[:, :1]), rtol=0, atol=0)
             report["native_single_vector_inference_exact"] = True
+            if production:
+                report["production_guards"] = production_guards(blocks, x)
             for grad, early in ((True, True), (False, True), (True, False)):
                 report["correctness"].append(correct_pair(stacks, blocks, x, input_grad=grad, early_stop=early))
+            if production:
+                comparisons = [
+                    item
+                    for variant in report["correctness"]
+                    for step_report in variant["steps"]
+                    for value in step_report["comparisons"].values()
+                    for item in (value if isinstance(value, list) else [value])
+                ]
+                assert len(comparisons) == 519 and all(item["exact"] for item in comparisons)
+                report["exact_comparison_count"] = len(comparisons)
             report["timings"] = timings(stacks, x)
             for arm, original in zip(blocks, frozen, strict=True):
                 assert frozen_state(arm) == original, "packed bytes/QuantState/nested aliases changed"

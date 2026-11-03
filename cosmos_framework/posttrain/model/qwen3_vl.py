@@ -15,6 +15,7 @@ import weakref
 from collections.abc import Callable, Iterable, Iterator, Mapping
 from contextlib import contextmanager, nullcontext
 from dataclasses import dataclass
+from functools import partial
 from typing import TYPE_CHECKING, Any, cast
 
 import torch
@@ -865,6 +866,10 @@ def build_qwen3_vl_model(cfg: "Qwen3VLModelConfig", pdims: Any = None) -> Qwen3V
 
         shim = NativeVLMShim()
         slots = apply_ac(shim, activation_checkpointing)
+        if getattr(cfg, "quantized_linear_execution", "bnb") == "checkpointed_dequant":
+            if adapter_lifecycle is None or parallel_dims is not None or compile_language:
+                raise ValueError("checkpointed dequantization requires the eager single-device adapter lifecycle")
+            _bind_checkpointed_dequant_contexts(net, slots, activation_checkpointing, adapter_lifecycle.targets)
         if compile_language:
             layers = net.model.language_model.layers
             language_slots = [slot for slot in slots if slot[0] is layers]
@@ -915,6 +920,95 @@ def build_qwen3_vl_model(cfg: "Qwen3VLModelConfig", pdims: Any = None) -> Qwen3V
         initialize_on_meta=True,
         sft_logits_mode=getattr(cfg, "sft_logits_mode", "full"),
     )
+
+
+def _bind_checkpointed_dequant_contexts(
+    net: nn.Module,
+    slots: list[tuple[nn.Module, str, nn.Module]],
+    ac: Any,
+    targets: Mapping[str, nn.Module],
+) -> None:
+    """Bind exact per-block ownership to the native full-checkpoint contexts.
+
+    A context around the outer model would neither prove checkpoint coverage nor
+    reliably reach autograd recomputation. Instead, torch enters these contexts
+    inside each original forward and recompute. No module/parameter is replaced,
+    and the context captures only the already-owned packed linears, never their
+    temporary dense weights. Validate the entire graph before changing a wrapper.
+    """
+    from torch.distributed.algorithms._checkpoint.checkpoint_wrapper import CheckpointImpl, CheckpointWrapper
+    from torch.utils.checkpoint import checkpoint
+
+    from cosmos_framework.posttrain.model.quantization.bnb import (
+        NativeLoraLinear4bit,
+        checkpointed_dequant_contexts,
+    )
+    from cosmos_framework.posttrain.model.quantization.loader import canonical_targets
+
+    if ac.mode != "full":
+        raise ValueError("checkpointed dequantization requires full nonreentrant activation checkpointing")
+    if ac.preserve_rng_state is not True or ac.determinism_check != "default":
+        raise ValueError("checkpointed dequantization requires the recorded RNG and determinism settings")
+    expected = canonical_targets()
+    if set(targets) != set(expected) or len({id(module) for module in targets.values()}) != 252:
+        raise ValueError("checkpointed dequantization requires all 252 distinct canonical targets")
+    layers = net.model.language_model.layers
+    language_slots = [(attribute, block) for parent, attribute, block in slots if parent is layers]
+    if (
+        len(layers) != 36
+        or len(language_slots) != 36
+        or {key for key, _ in language_slots} != {str(index) for index in range(36)}
+    ):
+        raise ValueError("checkpointed dequantization requires all 36 distinct language block slots")
+    expected_kwargs = {
+        "use_reentrant": False,
+        "preserve_rng_state": ac.preserve_rng_state,
+        "determinism_check": ac.determinism_check,
+    }
+    updates = []
+    for attribute, block in language_slots:
+        if (
+            getattr(layers, attribute) is not block
+            or type(block) is not CheckpointWrapper
+            or block.checkpoint_impl is not CheckpointImpl.NO_REENTRANT
+            or type(block.checkpoint_fn) is not partial
+            or block.checkpoint_fn.func is not checkpoint
+            or block.checkpoint_fn.args
+            or block.checkpoint_fn.keywords != expected_kwargs
+        ):
+            raise ValueError("checkpointed dequantization requires the unchanged native nonreentrant wrapper")
+        inner = block._checkpoint_wrapped_module
+        if any(isinstance(module, CheckpointWrapper) for module in inner.modules()):
+            raise ValueError("checkpointed dequantization forbids nested checkpoint wrappers")
+        prefix = f"model.language_model.layers.{attribute}."
+        members = tuple(targets[name] for name in sorted(expected) if name.startswith(prefix))
+        for name in (name for name in expected if name.startswith(prefix)):
+            module = targets[name]
+            if (
+                type(module) is not NativeLoraLinear4bit
+                or module.quantized_linear_execution != "checkpointed_dequant"
+                or module.logical_shape != expected[name]
+                or inner.get_submodule(name.removeprefix(prefix)) is not module
+            ):
+                raise ValueError("checkpointed dequantization target ownership or execution differs")
+        occurrences = [
+            module
+            for _, module in inner.named_modules(remove_duplicate=False)
+            if isinstance(module, NativeLoraLinear4bit)
+        ]
+        if len(occurrences) != 7 or {id(module) for module in occurrences} != {id(module) for module in members}:
+            raise ValueError("checkpointed dequantization block has an extra or misplaced target")
+        updates.append(
+            (block, partial(checkpoint, **expected_kwargs, context_fn=partial(checkpointed_dequant_contexts, members)))
+        )
+    occurrences = [
+        module for _, module in net.named_modules(remove_duplicate=False) if isinstance(module, NativeLoraLinear4bit)
+    ]
+    if len(occurrences) != 252 or {id(module) for module in occurrences} != {id(module) for module in targets.values()}:
+        raise ValueError("checkpointed dequantization found a target outside the verified language blocks")
+    # Assignment cannot invoke user code: every destination is the exact torch wrapper.
+    for block, checkpoint_fn in updates:
+        block.checkpoint_fn = checkpoint_fn
 
 
 _WRAPPER_PREFIXES: tuple[str, ...] = ("_orig_mod.", "_checkpoint_wrapped_module.")

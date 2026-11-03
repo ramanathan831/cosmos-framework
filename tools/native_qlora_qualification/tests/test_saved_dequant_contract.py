@@ -170,3 +170,27 @@ def test_absolute_tolerance_cannot_hide_large_relative_gradient_error():
     with pytest.raises(AssertionError):
         diagnostic.difference(actual, expected, rtol=0.03, atol=2e-5)
     assert diagnostic.difference(expected.clone(), expected, rtol=0.03, atol=2e-5)["exact"]
+
+
+def test_historical_mode_keeps_original_pins(monkeypatch):
+    monkeypatch.delenv("COSMOS_SAVED_DEQUANT_IMPLEMENTATION", raising=False)
+    monkeypatch.setenv("COSMOS_SAVED_DEQUANT_BUILD_RECEIPT_SHA", "ignored")
+    monkeypatch.setenv("COSMOS_SAVED_DEQUANT_WHEEL_SHA", "ignored")
+    assert diagnostic.implementation_pins() == (False, diagnostic.BUILD_RECEIPT_SHA, diagnostic.WHEEL_SHA)
+
+
+def test_production_mode_requires_explicit_external_pins(monkeypatch):
+    monkeypatch.setenv("COSMOS_SAVED_DEQUANT_IMPLEMENTATION", "native")
+    monkeypatch.delenv("COSMOS_SAVED_DEQUANT_BUILD_RECEIPT_SHA", raising=False)
+    monkeypatch.delenv("COSMOS_SAVED_DEQUANT_WHEEL_SHA", raising=False)
+    with pytest.raises(KeyError):
+        diagnostic.implementation_pins()
+    monkeypatch.setenv("COSMOS_SAVED_DEQUANT_BUILD_RECEIPT_SHA", "a" * 64)
+    monkeypatch.setenv("COSMOS_SAVED_DEQUANT_WHEEL_SHA", "b" * 64)
+    assert diagnostic.implementation_pins() == (True, "a" * 64, "b" * 64)
+    monkeypatch.setenv("COSMOS_SAVED_DEQUANT_WHEEL_SHA", "B" * 64)
+    with pytest.raises(ValueError, match="externally pinned"):
+        diagnostic.implementation_pins()
+    monkeypatch.setenv("COSMOS_SAVED_DEQUANT_IMPLEMENTATION", "unknown")
+    with pytest.raises(ValueError, match="fixture or native"):
+        diagnostic.implementation_pins()

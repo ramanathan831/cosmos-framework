@@ -304,15 +304,51 @@ NATIVE_ADAPTER_SAC_SAVE_OPS: tuple[str, ...] = (
 )
 
 
+def validate_quantized_linear_execution(cfg: Any) -> None:
+    """Reject unqualified dense-weight lifetimes before loading a native base."""
+    execution = getattr(cfg, "quantized_linear_execution", "bnb")
+    if execution not in ("bnb", "checkpointed_dequant"):
+        raise ValueError("model_qwen3_vl.quantized_linear_execution must be bnb|checkpointed_dequant")
+    if execution == "bnb":
+        return
+    adapter = getattr(cfg, "adapter", None)
+    quantization = getattr(cfg, "quantized_base", None)
+    if adapter is None or quantization is None or getattr(quantization, "format", None) != "nf4":
+        raise ValueError("checkpointed_dequant requires an explicit native LoRA adapter and frozen NF4 base")
+    if (
+        cfg.activation_checkpointing != "full"
+        or getattr(cfg, "adapter_compute_dtype", "float32") != "float32"
+        or getattr(cfg, "sft_logits_mode", "full") != "full"
+        or getattr(cfg, "compile_language_model", False) is not False
+    ):
+        raise ValueError(
+            "checkpointed_dequant requires full nonreentrant activation checkpointing, "
+            "FP32 adapter compute, full logits and no language compilation"
+        )
+    if getattr(quantization, "excluded_language_layers", ()):
+        raise ValueError("checkpointed_dequant with excluded language layers is not supported")
+    if getattr(adapter, "initialization", None) != "kaiming_A_zero_B":
+        raise ValueError("checkpointed_dequant requires kaiming_A_zero_B; residual initialization is not supported")
+
+
 def native_adapter_execution_policy(cfg: Any) -> dict[str, Any] | None:
     """Describe opt-in execution changes without invalidating legacy default artifacts."""
     mode = cfg.activation_checkpointing
     adapter_compute_dtype = getattr(cfg, "adapter_compute_dtype", "float32")
     logits_mode = getattr(cfg, "sft_logits_mode", "full")
     compile_language = getattr(cfg, "compile_language_model", False)
-    if mode == "full" and adapter_compute_dtype == "float32" and logits_mode == "full" and not compile_language:
+    quantized_execution = getattr(cfg, "quantized_linear_execution", "bnb")
+    if quantized_execution not in ("bnb", "checkpointed_dequant"):
+        raise ValueError("model_qwen3_vl.quantized_linear_execution must be bnb|checkpointed_dequant")
+    if (
+        mode == "full"
+        and adapter_compute_dtype == "float32"
+        and logits_mode == "full"
+        and not compile_language
+        and quantized_execution == "bnb"
+    ):
         return None
-    return {
+    policy = {
         "protocol": "cosmos.native-adapter-execution.v1",
         "activation_checkpointing": {
             "mode": mode,
@@ -331,6 +367,15 @@ def native_adapter_execution_policy(cfg: Any) -> dict[str, Any] | None:
             "fail_on_recompile_limit_hit": True,
         },
     }
+    if quantized_execution == "checkpointed_dequant":
+        policy["protocol"] = "cosmos.native-adapter-execution.v2"
+        policy["quantized_linear"] = {
+            "protocol": "cosmos.checkpointed-dequant.v1",
+            "mode": "checkpointed_dequant",
+            "scope": "full_nonreentrant_language_block",
+            "inference": "bnb",
+        }
+    return policy
 
 
 @dataclass
@@ -357,6 +402,7 @@ class Qwen3VLModelConfig:
     adapter_compute_dtype: str = "float32"
     sft_logits_mode: str = "full"
     compile_language_model: bool = False
+    quantized_linear_execution: str = "bnb"
     fsdp_reduce_dtype: str = "float32"
     adapter: NativeLoRAConfig | None = None
     quantized_base: QuantizedBaseTrainingConfig | None = None
@@ -429,6 +475,7 @@ class Qwen3VLModelConfig:
             and self.adapter_compute_dtype != "float32"
         ):
             raise ValueError("native residual initialization currently requires FP32 adapter computation")
+        validate_quantized_linear_execution(self)
 
 
 # ---------------------------------------------------------------------------

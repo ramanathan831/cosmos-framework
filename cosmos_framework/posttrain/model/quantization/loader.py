@@ -23,7 +23,7 @@ import torch
 import torch.distributed as dist
 import torch.nn as nn
 
-from cosmos_framework.posttrain.config.model import quantization_config_identity
+from cosmos_framework.posttrain.config.model import quantization_config_identity, validate_quantized_linear_execution
 from cosmos_framework.utils.generator.lora import LoraInjectedLinear, NativeLoRAMixin
 
 PROFILE = "qwen3_vl_8b_language_v1"
@@ -151,6 +151,24 @@ def execution_config_from_identity(identity: dict[str, Any]) -> dict[str, Any]:
             or type(options["compile_language_model"]) is not bool
         ):
             raise ValueError("unsupported adapter execution options")
+        if policy.get("protocol") == "cosmos.native-adapter-execution.v2":
+            options["quantized_linear_execution"] = policy["quantized_linear"]["mode"]
+            adapter = identity.get("adapter")
+            if (
+                model_format != "cosmos.adapter-model.v2"
+                or options["quantized_linear_execution"] != "checkpointed_dequant"
+                or identity.get("quantization") != quantization_config_identity(QuantizedBaseTrainingConfig())
+                or not isinstance(adapter, dict)
+                or adapter.get("initialization") != "kaiming_A_zero_B"
+            ):
+                raise ValueError("checkpointed_dequant requires model v2 with an ordinary adapter and full NF4 base")
+            validate_quantized_linear_execution(
+                SimpleNamespace(
+                    **options,
+                    adapter=SimpleNamespace(**adapter),
+                    quantized_base=QuantizedBaseTrainingConfig(),
+                )
+            )
         configured = native_adapter_execution_policy(SimpleNamespace(**options))
     except (KeyError, TypeError, ValueError, AttributeError) as error:
         raise ValueError("unsupported or incomplete adapter execution_policy") from error
@@ -164,6 +182,7 @@ def execution_config_from_identity(identity: dict[str, Any]) -> dict[str, Any]:
 
 def validate_execution_policy_identity(cfg: Any, identity: dict[str, Any]) -> None:
     """Reject changed/missing execution or math settings before allocating a base."""
+    validate_quantized_linear_execution(cfg)
     execution_config_from_identity(identity)
     quantization = getattr(cfg, "quantized_base", None)
     if identity.get("format") == "cosmos.adapter-model.v4" or getattr(quantization, "excluded_language_layers", ()):
@@ -418,6 +437,7 @@ def _safetensor_inventory(directory: Path) -> dict[str, tuple[Path, tuple[int, .
 
 def validate_runtime(cfg: Any, model_config: Any, pdims: Any) -> torch.device:
     """Reject unsupported rows before any base-model allocation."""
+    validate_quantized_linear_execution(cfg)
     adapter, quantization = cfg.adapter, cfg.quantized_base
     if adapter is None:
         raise ValueError("quantized base training requires ordinary native LoRA")
@@ -521,6 +541,7 @@ class NativeAdapterLifecycle:
     """Construction hooks retaining canonical names and final live parameter owners."""
 
     def __init__(self, cfg: Any, model_config: Any, pdims: Any) -> None:
+        validate_quantized_linear_execution(cfg)
         from cosmos_framework.posttrain.model.quantization.source import validate_adapter_source
         from cosmos_framework.posttrain.utils.qlora_metrics import record_qlora_phase
 
@@ -553,6 +574,7 @@ class NativeAdapterLifecycle:
                 cfg.quantized_base,
                 adapter_compute_dtype=self.adapter_compute_dtype,
                 compile_model=getattr(cfg, "compile_language_model", False),
+                quantized_linear_execution=getattr(cfg, "quantized_linear_execution", "bnb"),
             )
         self.targets: dict[str, NativeLoRAMixin] = {}
         self.slots: dict[str, TensorSlot] = {}
@@ -577,6 +599,7 @@ class NativeAdapterLifecycle:
                     self.cfg.adapter,
                     self.cfg.quantized_base,
                     adapter_compute_dtype=self.adapter_compute_dtype,
+                    quantized_linear_execution=getattr(self.cfg, "quantized_linear_execution", "bnb"),
                 )
             else:
                 replacement = LoraInjectedLinear(

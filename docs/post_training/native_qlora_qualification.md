@@ -59,6 +59,8 @@ The development target was locked before new accelerator outcomes: at least 540 
 
 The authorized data search found no additional independent recording groups. The exposed regression, development and formerly untouched diagnostic sets remain unavailable for an untouched final test. More seeds or questions from the same recordings cannot resolve this dependency. The product objective remains open while implementation, development experiments and measurement repairs continue.
 
+The [saved-dequantization mechanism experiment](evidence/native_qlora_saved_dequant_105d314.json) completed its real CUDA gate and prospective effort screen. Two synthetic language blocks at 128 tokens produced 519 exact output/gradient/updated-adapter comparisons, at most one 368 MiB block of live dense storage, and an 11.63% lower median warm update time with a 275.52 MiB higher allocated peak. Its single ABBA sequence is a mechanism measurement, not a WTS or end-to-end speed result; the last host sample remains incomplete. The allocation consumed 240 GPU-seconds and 3,840 allocated CPU-seconds. The [native opt-in implementation](native_qlora.md#experimental-checkpointed-dequantization) now bounds execution to verified full non-reentrant language-block scopes and records it in artifact metadata. Its own full-model accelerator training, fresh reload, recovery and comparative timing are still required.
+
 ## Capability and precision boundary
 
 The candidate is dense `Qwen/Qwen3-VL-8B-Instruct`, revision `0c351dd01ed87e9c1b53cbc748cba10e6187ff3b`, using the native posttrain SFT entrypoint on one Linux x86-64 A100 80GB with one torchrun process. An installed quantizer, inference quantization, or an accepted configuration alone does not establish this training capability.

@@ -241,6 +241,16 @@ export COSMOS_SFT_PROFILE_ACTIVE=2
 
 [NativeStepProfiler](../../cosmos_framework/posttrain/utils/training_profile.py) records one window measured in optimizer updates, with preparation, forward, loss, backward and optimizer ranges. It writes runtime settings, a compressed Chrome trace and an operator summary beneath `rank_0`; an existing rank directory is refused. Leave `COSMOS_SFT_PROFILE_DIR` unset to disable profiling. Trace timings are diagnostic: measure comparative throughput in separate untraced runs, including compilation/loading costs and actual GPU and host peaks.
 
+### Experimental checkpointed dequantization
+
+`model.model_config.quantized_linear_execution=checkpointed_dequant` opts into a bounded training execution change; the default remains `bnb`. It dequantizes each actual attached NF4 matrix to BF16 and lets the ordinary linear operation participate in autograd. Full non-reentrant block checkpointing discards and reconstructs saved weights, allowing backward to reuse the reconstructed weight instead of invoking a second dequantization. Packed weights and quantization metadata remain frozen. There is no persistent dense-weight cache or new fused kernel.
+
+The native builder verifies all 36 language-block wrappers and all 252 target objects before enabling the block scopes. An optimized training forward outside its owning checkpoint scope fails. This initial implementation requires one device, full activation checkpointing, ordinary zero-B LoRA, FP32 adapter arithmetic, full logits and eager execution. Selective or disabled checkpointing, compilation, residual initialization and language-block exclusions are rejected combinations. A backward exception aborts training; recovery uses a fresh process and a completed checkpoint. No-grad/inference execution retains the original bitsandbytes path.
+
+The [completed CUDA mechanism experiment](evidence/native_qlora_saved_dequant_105d314.json) tested two synthetic blocks at 128 tokens on an A100 80GB. All 519 output/gradient/updated-adapter comparisons were exact. Median warm update time fell from 26.787 to 23.671 ms (11.63%), with a 275.52 MiB higher allocated peak and at most one 368 MiB block of live dense storage. Both packed test models were resident, and the last host sample remained incomplete. This passed the predeclared implementation-effort screen; it establishes neither full-model memory nor a WTS or end-to-end speed benefit. Native full-model training, reload, recovery and timing qualification remain pending.
+
+This option uses `cosmos.native-adapter-execution.v2` within the existing model-v2 artifact envelope, recording its block scope and unchanged inference dispatch. Default artifacts and earlier execution-v1 identities remain unchanged. Reload restores and validates the recorded option before allocation; missing or contradictory policies fail. Use a distinct output when qualifying the option and do not reinterpret an earlier default checkpoint as its result.
+
 ## Reload, resume, and portable artifacts
 
 Run outputs include a timestamped attempt beneath the configured project/group/job. Use the committed checkpoint path reported by the native run; full checkpoints are under its `checkpoints/iter_*` directory. Saves occur at completed optimizer-update boundaries, through the existing synchronous local DCP commit/recovery path.

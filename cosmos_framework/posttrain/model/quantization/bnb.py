@@ -4,8 +4,11 @@
 
 from __future__ import annotations
 
+from contextlib import contextmanager
+from contextvars import ContextVar
+from functools import partial
 from importlib.metadata import version
-from typing import Any
+from typing import Any, Iterator
 
 import torch
 import torch.nn as nn
@@ -17,6 +20,40 @@ if version("bitsandbytes") != "0.49.2":
     raise RuntimeError("native NF4 training requires bitsandbytes==0.49.2; no backend fallback is permitted")
 
 import bitsandbytes as bnb
+
+_CHECKPOINTED_DEQUANT_OWNERS: ContextVar[frozenset[int]] = ContextVar(
+    "native_checkpointed_dequant_owners", default=frozenset()
+)
+
+
+@contextmanager
+def _checkpointed_dequant_scope(owners: frozenset[int]) -> Iterator[None]:
+    if _CHECKPOINTED_DEQUANT_OWNERS.get():
+        raise RuntimeError("nested checkpointed dequantization block scopes are unsupported")
+    token = _CHECKPOINTED_DEQUANT_OWNERS.set(owners)
+    try:
+        yield
+    finally:
+        _CHECKPOINTED_DEQUANT_OWNERS.reset(token)
+
+
+def checkpointed_dequant_contexts(modules: tuple[nn.Module, ...]):
+    """Contexts for one verified full nonreentrant language-block checkpoint.
+
+    The wrapper must supply this as its ``context_fn``, so both original forward
+    and recomputation enter the same narrowly owned scope. No dense weight is
+    cached on a module. A backward exception remains fatal to the training
+    process; this interface does not implement an in-process retry protocol.
+    """
+    if not modules or any(
+        not isinstance(module, NativeLoraLinear4bit) or module.quantized_linear_execution != "checkpointed_dequant"
+        for module in modules
+    ):
+        raise ValueError("checkpointed dequantization scope requires its exact candidate linears")
+    owners = frozenset(id(module) for module in modules)
+    if len(owners) != len(modules):
+        raise ValueError("checkpointed dequantization scope contains duplicate linears")
+    return _checkpointed_dequant_scope(owners), _checkpointed_dequant_scope(owners)
 
 
 class NativeLoraLinear4bit(NativeLoRAMixin, bnb.nn.Linear4bit):
@@ -34,7 +71,15 @@ class NativeLoraLinear4bit(NativeLoRAMixin, bnb.nn.Linear4bit):
         quantization: Any,
         *,
         adapter_compute_dtype: torch.dtype = torch.float32,
+        quantized_linear_execution: str = "bnb",
     ) -> None:
+        if type(quantized_linear_execution) is not str or quantized_linear_execution not in {
+            "bnb",
+            "checkpointed_dequant",
+        }:
+            raise ValueError("unsupported native quantized linear execution")
+        if quantized_linear_execution == "checkpointed_dequant" and adapter_compute_dtype != torch.float32:
+            raise ValueError("checkpointed dequantization requires FP32 adapters")
         if adapter_compute_dtype not in (torch.float32, torch.bfloat16):
             raise ValueError("native adapter compute dtype must be float32 or bfloat16")
         if not base.weight.is_meta or base.bias is not None:
@@ -65,6 +110,7 @@ class NativeLoraLinear4bit(NativeLoRAMixin, bnb.nn.Linear4bit):
         self._lora_alpha = adapter.alpha
         self._lora_use_rslora = False
         self._adapter_compute_dtype = adapter_compute_dtype
+        self.quantized_linear_execution = quantized_linear_execution
         self.logical_shape = (base.out_features, base.in_features)
 
     @torch.no_grad()
@@ -131,7 +177,25 @@ class NativeLoraLinear4bit(NativeLoRAMixin, bnb.nn.Linear4bit):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if x.dtype != torch.bfloat16 or x.device != self.weight.device:
             raise ValueError("native NF4 expects BF16 activations on its owned CUDA device")
-        base = super().forward(x)
+        if self.quantized_linear_execution == "checkpointed_dequant" and self.training and torch.is_grad_enabled():
+            if id(self) not in _CHECKPOINTED_DEQUANT_OWNERS.get():
+                raise RuntimeError("checkpointed dequantization requires its full nonreentrant block scope")
+            # Detach only dequantization. F.linear participates in autograd so
+            # checkpoint saved-tensor hooks discard/recompute its actual BF16
+            # weight. Retaining it on this module would defeat block AC.
+            with torch.no_grad():
+                weight = bnb.functional.dequantize_4bit(self.weight.data, self.weight.quant_state)
+            if (
+                weight.dtype != torch.bfloat16
+                or weight.device != x.device
+                or tuple(weight.shape) != self.logical_shape
+                or weight.requires_grad
+            ):
+                raise RuntimeError("checkpointed dequantization changed the logical frozen BF16 weight")
+            base = F.linear(x, weight)
+        else:
+            # Keep upstream no-grad and single-vector inference behavior.
+            base = super().forward(x)
         return base + self.adapter_delta(x, output_dtype=base.dtype)
 
 
@@ -142,6 +206,7 @@ def kernel_preflight(
     *,
     adapter_compute_dtype: torch.dtype = torch.float32,
     compile_model: bool = False,
+    quantized_linear_execution: str = "bnb",
 ) -> dict[str, Any]:
     """Exercise real NF4 forward/input backward and several FP32 adapter updates.
 
@@ -150,6 +215,8 @@ def kernel_preflight(
     """
     from cosmos_framework.posttrain.model.quantization.loader import quantized_state_record, tensor_digest
 
+    if quantized_linear_execution == "checkpointed_dequant" and compile_model:
+        raise ValueError("checkpointed dequantization requires eager full checkpointing")
     if compile_model and torch._dynamo.config.suppress_errors:
         raise ValueError("native NF4 compile qualification forbids suppress_errors and silent eager fallback")
     with torch.random.fork_rng(devices=[device.index]):
@@ -160,12 +227,19 @@ def kernel_preflight(
             adapter,
             quantization,
             adapter_compute_dtype=adapter_compute_dtype,
+            quantized_linear_execution=quantized_linear_execution,
         )
         module.lora_A.weight = nn.Parameter(torch.empty(adapter.rank, 128, dtype=torch.float32, device=device))
         module.lora_B.weight = nn.Parameter(torch.empty(128, adapter.rank, dtype=torch.float32, device=device))
         module.load_dense_weight_once(weight, device)
         module.reset_adapter_parameters(generator=torch.Generator(device=device).manual_seed(9817))
         forward = torch.compile(module, dynamic=True, fullgraph=False) if compile_model else module
+        if quantized_linear_execution == "checkpointed_dequant":
+            from torch.distributed.algorithms._checkpoint.checkpoint_wrapper import checkpoint_wrapper
+
+            forward = checkpoint_wrapper(
+                module, preserve_rng_state=True, context_fn=partial(checkpointed_dequant_contexts, (module,))
+            )
         if compile_model:
             from cosmos_framework.posttrain.utils.native_compile import guard_native_compiled_call
 
@@ -224,7 +298,7 @@ def kernel_preflight(
         ):
             raise RuntimeError("same-device Params4bit placement changed quantized storage/state")
         torch.cuda.synchronize(device)
-        return {
+        result = {
             "backend": "bitsandbytes",
             "version": bnb.__version__,
             "steps": 3,
@@ -233,3 +307,6 @@ def kernel_preflight(
             "forward_max_abs": float((actual - expected).abs().max().item()),
             "input_gradient_max_abs": float((actual_grad - expected_grad).abs().max().item()),
         }
+        if quantized_linear_execution != "bnb":
+            result["quantized_linear_execution"] = quantized_linear_execution
+        return result
