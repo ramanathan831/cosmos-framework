@@ -45,16 +45,24 @@ def observed_forward(self, batch):
 
 
 def before(opt, args, kwargs):
-    torch.cuda.synchronize()
-    timers[id(opt)] = time.perf_counter()
+    timer = timers.setdefault(id(opt), {"depth": 0})
+    if timer["depth"] == 0:
+        torch.cuda.synchronize()
+        timer["start"] = time.perf_counter()
+    timer["depth"] += 1
 
 
 def after(opt, args, kwargs):
+    timer = timers[id(opt)]
+    timer["depth"] -= 1
+    if timer["depth"]:
+        return
+    del timers[id(opt)]
     torch.cuda.synchronize()
     row = {
         "kind": "optimizer",
         "backend": type(opt).__name__,
-        "optimizer_seconds": time.perf_counter() - timers.pop(id(opt)),
+        "optimizer_seconds": time.perf_counter() - timer["start"],
         "peak_allocated": torch.cuda.max_memory_allocated(),
         "peak_reserved": torch.cuda.max_memory_reserved(),
         "device_used": torch.cuda.device_memory_used(),

@@ -291,3 +291,61 @@ def test_only_native_sft_advertises_quantized_optimizers():
         RunConfig(optimizer=config)
     with pytest.raises(ValueError, match="force_finite_grads"):
         OptimizerConfig(name="adamw_bnb_8bit", force_finite_grads=False)
+
+
+def test_strategy_and_checkpoint_refusal_precedes_backend_allocation(monkeypatch):
+    from types import SimpleNamespace
+
+    from cosmos_framework.posttrain.config.build import refuse_rounding_or_unavailable_optimizer
+    from cosmos_framework.posttrain.config.sft import SFTConfig
+    from cosmos_framework.utils import quantized_optimizer
+
+    def unexpected_backend(**kwargs):
+        raise AssertionError("unsupported runtime must fail before backend allocation")
+
+    monkeypatch.setattr(quantized_optimizer, "require_backend", unexpected_backend)
+    config = SimpleNamespace(
+        rl=SFTConfig(optimizer=OptimizerConfig(name="adamw_bnb_8bit"), checkpoint_format="consolidated")
+    )
+    monkeypatch.setenv("WORLD_SIZE", "2")
+    with pytest.raises(ValueError, match="single CUDA"):
+        refuse_rounding_or_unavailable_optimizer(config, config.rl.optimizer)
+    monkeypatch.setenv("WORLD_SIZE", "1")
+    config.rl.checkpoint_format = "dcp"
+    with pytest.raises(ValueError, match="consolidated"):
+        refuse_rounding_or_unavailable_optimizer(config, config.rl.optimizer)
+
+
+def test_empty_and_noncontiguous_trainables_fail():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA required")
+    for tensor in (torch.empty(0, device="cuda"), torch.ones(8, 16, device="cuda").T):
+        net = torch.nn.Module()
+        net.register_parameter("weight", torch.nn.Parameter(tensor))
+        with pytest.raises(ValueError, match="nonempty contiguous"):
+            build_optimizer(net, OptimizerConfig(name="adamw_bnb_8bit"))
+
+
+def test_native_timing_hook_handles_nested_backend_steps(monkeypatch, tmp_path):
+    import runpy
+    from pathlib import Path
+
+    from torch.optim.optimizer import register_optimizer_step_post_hook, register_optimizer_step_pre_hook
+
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA required")
+    monkeypatch.setenv("RESULTS", str(tmp_path))
+    probe = runpy.run_path(str(Path(__file__).resolve().parents[3] / "tools/quantized_optimizers/native_probe.py"))
+    before = register_optimizer_step_pre_hook(probe["before"])
+    after = register_optimizer_step_post_hook(probe["after"])
+    try:
+        net = torch.nn.Linear(128, 128, device="cuda")
+        opt = build_optimizer(net, OptimizerConfig(name="adamw_bnb_8bit"))
+        net.weight.grad = torch.ones_like(net.weight)
+        opt.step()
+    finally:
+        before.remove()
+        after.remove()
+    rows = [json.loads(line) for line in (tmp_path / "native.telemetry.jsonl").read_text().splitlines()]
+    assert len([row for row in rows if row["backend"] == "CosmosAdamW8bit"]) == 1
+    assert not probe["timers"]

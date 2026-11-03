@@ -11,7 +11,7 @@ import numpy as np
 from scipy.stats import t
 
 root = Path(__file__).resolve().parents[2] / "docs/posttrain/evidence/quantized_optimizers"
-data = json.loads((root / "diagnostic.json").read_text())
+data = json.loads((root / "diagnostic_final.json").read_text())
 summary = {}
 fig, axes = plt.subplots(1, 2, figsize=(12, 4))
 for name in ("adamw", "adamw_bnb_8bit", "paged_adamw_8bit", "bnb32_diagnostic"):

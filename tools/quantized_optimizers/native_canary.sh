@@ -14,6 +14,15 @@ cd "$SOURCE"
 mkdir -p "$RESULTS"
 python -c 'import importlib.metadata; print("\n".join(sorted(f"{d.metadata["Name"]}=={d.version}" for d in importlib.metadata.distributions())))' > "$RESULTS/dependencies.txt"
 nvidia-smi -q > "$RESULTS/device.txt"
+if [[ -n "${SEEDS:-}" ]]; then
+  root_results=$RESULTS
+  for seed in $SEEDS; do
+    SEEDS='' SEED="$seed" RESULTS="$root_results/seed$seed" bash "$SOURCE/tools/quantized_optimizers/native_canary.sh"
+  done
+  exit 0
+fi
+monitor_pid=''
+trap 'if [[ -n "$monitor_pid" ]]; then kill "$monitor_pid" 2>/dev/null || true; wait "$monitor_pid" 2>/dev/null || true; fi' EXIT
 arms=(adamw adamw_bnb_8bit paged_adamw_8bit)
 if [[ "${SEED:-17}" == 29 ]]; then arms=(adamw_bnb_8bit paged_adamw_8bit adamw); fi
 if [[ "${SEED:-17}" == 43 ]]; then arms=(paged_adamw_8bit adamw adamw_bnb_8bit); fi
@@ -35,6 +44,10 @@ for arm in "${arms[@]}"; do
   if [[ "${CALIBRATING:-0}" == 1 && "$arm" != adamw ]]; then extra=(rl.optimizer.bnb_min_8bit_size=16384); fi
   if [[ "$arm" == adamw ]]; then impl=fused; fi
   date -u +%FT%TZ > "$RESULTS/$arm.start"
+  if [[ -n "${SLURM_JOB_GPUS:-}" ]]; then
+    nvidia-smi --id="$SLURM_JOB_GPUS" --query-gpu=timestamp,index,memory.used,memory.total,utilization.gpu,power.draw --format=csv --loop-ms=250 > "$RESULTS/$arm.device_samples.csv" 2> "$RESULTS/$arm.device_samples.err" &
+    monitor_pid=$!
+  fi
   entry=(-m cosmos_framework.posttrain.entrypoints.sft)
   if [[ "${TELEMETRY:-0}" == 1 ]]; then entry=("$SOURCE/tools/quantized_optimizers/native_probe.py"); fi
   torchrun --standalone --nproc-per-node=1 "${entry[@]}" \
@@ -42,8 +55,9 @@ for arm in "${arms[@]}"; do
     "job.name=$arm" "rl.seed=${SEED:-17}" "rl.max_steps=${STEPS:-3}" "rl.grad_accum=$accum" "rl.micro_batch_size=$micro" rl.save_every=0 \
     rl.max_length=4096 "rl.optimizer.train_keys=${TRAIN_KEYS:-[layers.31.]}" "${extra[@]}" \
     "rl.optimizer.name=$arm" "rl.optimizer.impl=$impl" \
-    "rl.validation.max_samples=${VAL_SAMPLES:-2}" "rl.validation.every_steps=${VAL_EVERY:-${STEPS:-3}}" \
+    "rl.validation.batch_size=${VAL_BATCH:-1}" "rl.validation.max_samples=${VAL_SAMPLES:-2}" "rl.validation.every_steps=${VAL_EVERY:-${STEPS:-3}}" \
     "rl.processor_kwargs.videos_kwargs.num_frames=${FRAMES:-4}" \
     > "$RESULTS/$arm.log" 2>&1
   date -u +%FT%TZ > "$RESULTS/$arm.end"
+  if [[ -n "$monitor_pid" ]]; then kill "$monitor_pid" 2>/dev/null || true; wait "$monitor_pid" 2>/dev/null || true; monitor_pid=''; fi
 done
