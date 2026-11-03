@@ -235,6 +235,28 @@ def test_missing_reset_or_other_process_cannot_establish_loading_interval():
     assert "loading" not in memory_summary(rows, [], runtime())["phases"]
 
 
+@pytest.mark.parametrize("end,phase", [("scoring_complete", "scoring"), ("scoring_failed", "scoring_incomplete")])
+def test_scoring_memory_is_separate_from_setup_and_retains_failed_scope(end, phase):
+    rows = [
+        boundary("adapter_loading_complete", 1, 900),
+        boundary("scoring_start", 3, 500),
+        boundary(end, 8, 700, reset=False),
+    ]
+    result = memory_summary(rows, [sample(i) for i in range(2, 9)], runtime())
+    assert set(result["phases"]) == {"scoring_setup", phase}
+    assert result["phases"]["scoring_setup"]["allocator_peak_allocated_bytes"] == 500
+    assert result["phases"]["scoring_setup"]["interval_seconds"]["sum"] == 2
+    assert result["phases"][phase]["allocator_peak_allocated_bytes"] == 700
+    assert result["phases"][phase]["interval_seconds"]["sum"] == 5
+    assert result["allocator_peak_allocated_bytes"] == 900
+
+
+def test_scoring_peak_is_not_established_without_its_same_process_reset():
+    for start in [boundary("scoring_start", 1, 10, reset=False), boundary("scoring_start", 1, 10, pid=2)]:
+        result = memory_summary([start, boundary("scoring_complete", 3, 700, reset=False)], [], runtime())
+        assert "scoring" not in result["phases"]
+
+
 @pytest.mark.parametrize("damage", ["sentinel", "negative", "identity", "capacity", "ownership"])
 def test_invalid_nvml_cannot_establish_memory_gate(damage):
     row = sample(1)

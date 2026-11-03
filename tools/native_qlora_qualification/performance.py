@@ -339,6 +339,12 @@ def phase_name(before: str, after: str) -> str:
         return "loading"
     if (before, after) == ("adapter_loading_complete", "trainer_ready"):
         return "trainer_setup"
+    if (before, after) == ("adapter_loading_complete", "scoring_start"):
+        return "scoring_setup"
+    if (before, after) == ("scoring_start", "scoring_complete"):
+        return "scoring"
+    if (before, after) == ("scoring_start", "scoring_failed"):
+        return "scoring_incomplete"
     if (before, after) == ("trainer_ready", "initial_validation"):
         return "initial_validation"
     if (before, after) == ("checkpoint_begin", "checkpoint_complete"):

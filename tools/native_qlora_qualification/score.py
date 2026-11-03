@@ -5,6 +5,12 @@
 Run separately for each frozen or adapter-loaded arm under torchrun world-size 1.
 The default selects at most 256 rows with seed 2026 before constructing the model.
 This is teacher-forced next-token scoring, not free-generation task accuracy.
+
+Opt-in allocator events measure scoring separately from model/reload setup.
+The scoring interval includes every row, row-file fsync, final integrity checks
+and preprocessing-cache close; it excludes summary construction/serialization
+and process-group teardown. Allocator peaks include the resident model, not just growth,
+and do not establish whole-device or complete host-memory peaks.
 """
 
 from __future__ import annotations
@@ -551,6 +557,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     )
     from cosmos_framework.posttrain.utils.identity import canonical_config_value
     from cosmos_framework.posttrain.utils.native_compile import native_compile_diagnostics
+    from cosmos_framework.posttrain.utils.qlora_metrics import record_qlora_phase
     from cosmos_framework.utils import misc
     from cosmos_framework.utils.config import load_config
 
@@ -564,6 +571,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     enable_determinism(strict=True)
     init_local_process_group()
     preprocessing = None
+    scoring_started = scoring_finished = False
+    scoring_error = None
     try:
         misc.set_random_seed(rl.seed, by_rank=False)
         model_source, trust = sft_policy_source(config)
@@ -616,6 +625,10 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         identity = {key: value for key, value in codec.identity.items() if key != "training_contract"}
         _write_json(output / "model_identity.json", identity)
         report_rows = []
+        # Loading has its own reset boundaries. Keep these two scoring events
+        # adjacent so the existing consumer can identify the complete interval.
+        record_qlora_phase("scoring_start", reset_peak=True)
+        scoring_started = True
         with (output / "scores.jsonl").open("x", encoding="utf-8") as stream:
             for index, (row, selected) in enumerate(zip(rows, frozen, strict=True), 1):
                 media_digest(selected["media_path"])
@@ -655,6 +668,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 "elapsed_scope": "elapsed_seconds includes selection/media hashing, model/reload, all scoring, integrity checks and cache close; excludes final report serialization and process-group teardown",
             }
             preprocessing = None
+        record_qlora_phase("scoring_complete")
+        scoring_finished = True
         report = {
             "protocol": PROTOCOL,
             "complete": True,
@@ -699,12 +714,27 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         }
         _write_json(output / "summary.json", report)
         return {"output": str(output), "metrics": report["metrics"], "complete": True}
+    except BaseException as error:
+        scoring_error = error
+        raise
     finally:
-        try:
-            if preprocessing is not None:
-                preprocessing.close()
-        finally:
-            destroy_process_group_if_initialized()
+        cleanup = []
+        if preprocessing is not None:
+            cleanup.append(("preprocessing cache close", preprocessing.close))
+        if scoring_started and not scoring_finished:
+            cleanup.append(("failed scoring memory record", lambda: record_qlora_phase("scoring_failed")))
+        cleanup.append(("process-group teardown", destroy_process_group_if_initialized))
+        primary_error = scoring_error
+        for label, operation in cleanup:
+            try:
+                operation()
+            except BaseException as error:
+                if primary_error is None:
+                    primary_error = error
+                elif hasattr(primary_error, "add_note"):
+                    primary_error.add_note(f"Additional {label} failure: {error!r}")
+        if scoring_error is None and primary_error is not None:
+            raise primary_error
 
 
 def main() -> None:
