@@ -688,6 +688,14 @@ def refuse_rounding_or_unavailable_optimizer(config: Any, opt_cfg: OptimizerConf
 
         require_backend()
     selection = select_policy_backend(config)
+    if opt_cfg.name in ("adamw_bnb_8bit", "paged_adamw_8bit"):
+        parallelism = (
+            getattr(config.model_hf, "parallelism", None)
+            if selection.backend == "hf"
+            else getattr(selection.native_spec, "parallelism", None)
+        )
+        if parallelism is not None and (parallelism.dp_replicate not in (1, -1) or parallelism.dp_shard not in (1, -1)):
+            raise ValueError("bitsandbytes optimizers require single-device parallelism; FSDP/HSDP unsupported")
     if selection.backend == "hf":
         storage = str(resolve_precision(config).master)
         seat = "the HF seat (rl.master_dtype, else rl.param_dtype, else model_hf.dtype)"
