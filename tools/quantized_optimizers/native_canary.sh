@@ -8,7 +8,7 @@ export SFT_MODEL_PATH="$ASSETS/models/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53c
 export SFT_DATA_ROOT="$ASSETS/data/canary"
 cd "$SOURCE"
 mkdir -p "$RESULTS"
-python -m pip freeze > "$RESULTS/dependencies.txt"
+python -c 'import importlib.metadata; print("\n".join(sorted(f"{d.metadata["Name"]}=={d.version}" for d in importlib.metadata.distributions())))' > "$RESULTS/dependencies.txt"
 nvidia-smi -q > "$RESULTS/device.txt"
 for arm in adamw adamw_bnb_8bit paged_adamw_8bit; do
   export IMAGINAIRE_OUTPUT_ROOT="$RESULTS/$arm"
