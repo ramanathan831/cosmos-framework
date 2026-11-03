@@ -141,7 +141,7 @@ def build_quantized_optimizer(net, params, config):
             result = super().step()
             count = sum(bool(s) for s in self.state.values())
             if count != self._reported_states:
-                logging.getLogger(__name__).info("Quantized optimizer state: %s", self.state_report())
+                logging.getLogger("posttrain").info("Quantized optimizer state: %s", self.state_report())
                 self._reported_states = count
             return result
 
