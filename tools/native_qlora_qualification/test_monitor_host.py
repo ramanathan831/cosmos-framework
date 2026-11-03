@@ -1243,3 +1243,117 @@ def test_live_thread_failed_directory_open_closes_and_retains_error(live_thread,
     sample = sampler.collect()
     assert not host.validate_sample(sample)["host_pss_complete"]
     assert len(os.listdir("/proc/self/fd")) == descriptors
+
+
+def _controlled_thread_exit(live_thread, monkeypatch, *, error=3, mismatch=False, release=True):
+    """Inject a bounded ESRCH read; use the real held pidfd for final release."""
+    sampler, process, _ = live_thread
+    read, discover = host._thread_read, sampler._discover
+    discoveries = 0
+
+    def failed_rollup(fd, name):
+        result = read(fd, name)
+        if name == "smaps_rollup":
+            assert result["value"]["Pss"] >= 16 * 1024**2
+            result.pop("value")
+            result["error"] = {"errno": error, "type": "ProcessLookupError" if error == 3 else "PermissionError"}
+        elif name == "status":
+            result["value"].pop("VmRSS", None)
+            if mismatch:
+                result["value"]["Tgid"] += 1
+        return result
+
+    def after_read():
+        nonlocal discoveries
+        result = discover()
+        discoveries += 1
+        if discoveries == 2 and release:
+            process.stdin.write(b"Q")
+            process.stdin.flush()
+            process.wait(timeout=3)
+            assert process.returncode == 0
+        return result
+
+    monkeypatch.setattr(host, "_thread_read", failed_rollup)
+    monkeypatch.setattr(sampler, "_discover", after_read)
+    return sampler.collect(), process.pid
+
+
+def test_actual_pidfd_exit_after_esrch_thread_read_requires_new_collection(live_thread, monkeypatch, request):
+    sample, pid = _controlled_thread_exit(live_thread, monkeypatch)
+    receipt = sample["host_collection"]
+    assert receipt["protocol"] == host.METHOD
+    assert len(receipt["attempts"]) == 2
+    first, second = receipt["attempts"]
+    failed = first["processes"][str(pid)]
+    assert failed["thread_mm"]["rollup"]["error"]["errno"] == 3
+    assert host._released(failed["thread_mm"]["poll_after"]) is False
+    assert host._released(first["post_discovery_polls"][str(pid)]) is True
+    assert second["begin_monotonic_seconds"] <= first["begin_monotonic_seconds"] + host.MAX_COLLECTION_SECONDS
+    assert host.validate_sample(sample)["host_pss_complete"]
+    assert sample["process_host_memory"][str(pid)]["address_space_released"] is True
+    assert sample["selected_host_pss_sum_bytes"] == 0
+    # The failed attempt itself never becomes a memory observation.
+    single = copy.deepcopy(receipt)
+    single["attempts"] = single["attempts"][:1]
+    single["final_attempt"] = 0
+    result = host.summarize_collection(single)
+    assert not result["host_pss_complete"]
+    assert result["process_host_memory"][str(pid)] == {}
+    assert result["host_observed_complete_attempt_pss_peak_bytes"] is None
+    # v4 remains incomplete and cannot accept the new retry provenance.
+    single["protocol"] = host.LIVE_THREAD_METHOD
+    old = host.summarize_collection(single)
+    assert not old["host_pss_complete"] and "unproven_live_thread_memory" in old["host_collection_errors"]
+    receipt_old = copy.deepcopy(receipt)
+    receipt_old["protocol"] = host.LIVE_THREAD_METHOD
+    with pytest.raises(ValueError, match="retry lacks a proven membership transition"):
+        host.summarize_collection(receipt_old)
+    request.node.user_properties.append(("actual_pidfd_thread_exit_recollection", json.dumps(sample, sort_keys=True)))
+
+
+@pytest.mark.parametrize("damage", ["permission", "mismatch", "no_release"])
+def test_thread_exit_recollection_refuses_unproven_reads(live_thread, monkeypatch, damage):
+    sample, _ = _controlled_thread_exit(
+        live_thread,
+        monkeypatch,
+        error=13 if damage == "permission" else 3,
+        mismatch=damage == "mismatch",
+        release=damage != "no_release",
+    )
+    assert len(sample["host_collection"]["attempts"]) == 1
+    assert not host.validate_sample(sample)["host_pss_complete"]
+    assert "unproven_live_thread_memory" in sample["host_collection_errors"]
+
+
+@pytest.mark.parametrize(
+    "damage", ["late_release", "pidfd_unknown", "birth", "directory", "thread_poll", "rollup_unknown"]
+)
+def test_thread_exit_retry_receipt_cannot_hide_tampering(live_thread, monkeypatch, damage):
+    sample, pid = _controlled_thread_exit(live_thread, monkeypatch)
+    assert sample["host_pss_complete"]
+    receipt = sample["host_collection"]
+    first = receipt["attempts"][0]
+    proof = first["processes"][str(pid)]["thread_mm"]
+    if damage == "late_release":
+        final = first["post_discovery_polls"][str(pid)]
+        final["end_monotonic_seconds"] = first["begin_monotonic_seconds"] + host.MAX_COLLECTION_SECONDS
+        with pytest.raises(ValueError, match="in-budget"):
+            host._thread_mm_memory(
+                first["processes"][str(pid)],
+                collection_start=first["begin_monotonic_seconds"],
+                discovery_after=first["discovery_after"][str(pid)],
+                released_poll=final,
+            )
+    elif damage == "pidfd_unknown":
+        first["post_discovery_polls"][str(pid)]["events"] = [select.POLLERR]
+    elif damage == "birth":
+        proof["stat_after"]["value"]["start_ticks"] += 1
+    elif damage == "directory":
+        proof["directory_after"]["value"]["inode"] += 1
+    elif damage == "thread_poll":
+        proof["poll_after"]["events"] = [select.POLLIN]
+    else:
+        proof["rollup"]["error"]["errno"] = 5
+    with pytest.raises(ValueError):
+        host.summarize_collection(receipt)

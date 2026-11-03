@@ -32,7 +32,8 @@ except ImportError:  # Direct monitor.py invocation from the sealed tool directo
 LEGACY_METHOD = "proc-identity-state-read-attempts-v1"
 EXIT_OWNER_METHOD = "proc-identity-state-read-attempts-v2"
 PROCESS_IDENTITY_METHOD = "proc-identity-state-read-attempts-v3"
-METHOD = "proc-identity-state-read-attempts-v4"
+LIVE_THREAD_METHOD = "proc-identity-state-read-attempts-v4"
+METHOD = "proc-identity-state-read-attempts-v5"
 IDENTITY_SEMANTICS = "pid_start_pidfd_owned_ancestry"
 THREAD_MM_PROTOCOL = "proc-live-thread-shared-mm-v1"
 MAX_TASK_ENTRIES = 4096
@@ -370,8 +371,15 @@ def _thread_mm(pid: int, pidfd: int, deadline: float) -> dict:
     return proof
 
 
-def _thread_mm_memory(record: dict, *, collection_start: float, discovery_after: dict) -> dict:
-    """Validate all retained acquisition evidence before substituting any field."""
+def _thread_mm_memory(
+    record: dict, *, collection_start: float, discovery_after: dict, released_poll: dict | None = None
+) -> dict:
+    """Read actual shared-mm values, or prove a v5 exit transition with NO memory.
+
+    A failed ESRCH rollup can only justify a new collection after the same held
+    process pidfd actually reports release. All task/leader identity reads stay
+    mandatory. Returning an empty mapping never completes the failed attempt.
+    """
     proof = record["thread_mm"]
     order = (
         "directory",
@@ -390,7 +398,14 @@ def _thread_mm_memory(record: dict, *, collection_start: float, discovery_after:
         or set(proof) != {"protocol", "deadline_monotonic_seconds", *order}
         or proof["protocol"] != THREAD_MM_PROTOCOL
         or proof["deadline_monotonic_seconds"] != collection_start + MAX_COLLECTION_SECONDS
-        or not all(_receipt_valid(proof[key]) and "error" not in proof[key] for key in order)
+        or not all(
+            _receipt_valid(proof[key])
+            and (
+                "error" not in proof[key]
+                or (released_poll is not None and key == "rollup" and proof[key]["error"].get("errno") == errno.ESRCH)
+            )
+            for key in order
+        )
     ):
         raise ValueError("unproven live-thread memory read")
     reads = [record["poll_after"], *(proof[key] for key in order), discovery_after]
@@ -400,6 +415,15 @@ def _thread_mm_memory(record: dict, *, collection_start: float, discovery_after:
         or _released(proof["poll_after"]) is not False
     ):
         raise ValueError("invalid live-thread read interval")
+    if released_poll is not None and (
+        not _receipt_valid(released_poll)
+        or _released(released_poll) is not True
+        or discovery_after["end_monotonic_seconds"] > released_poll["begin_monotonic_seconds"]
+        or released_poll["end_monotonic_seconds"] + EXIT_WAIT_RETRY_RESERVE_SECONDS
+        > proof["deadline_monotonic_seconds"]
+        or proof["rollup"].get("error", {}).get("errno") != errno.ESRCH
+    ):
+        raise ValueError("thread read lacks an in-budget same-pidfd exit transition")
     expected = record["pin"]["identity"]
     for read in (proof["leader_after"], discovery_after):
         value = read.get("value", {})
@@ -445,10 +469,14 @@ def _thread_mm_memory(record: dict, *, collection_start: float, discovery_after:
             or type(value.get("Tgid")) is not int
             or value["Tgid"] != expected["pid"]
             or value.get("State") not in ("R", "S", "D", "I")
-            or type(value.get("VmRSS")) is not int
-            or value["VmRSS"] < 0
+            or (
+                not (released_poll is not None and "VmRSS" not in value)
+                and (type(value.get("VmRSS")) is not int or value["VmRSS"] < 0)
+            )
         ):
             raise ValueError("live thread group or memory status changed")
+    if released_poll is not None:
+        return {}  # No PSS/RSS/zero inferred for this failed read interval.
     rollup = proof["rollup"]["value"]
     if any(type(rollup.get(k)) is not int or rollup[k] < 0 for k in ("Pss", "Rss")):
         raise ValueError("unreadable live-thread rollup")
@@ -470,7 +498,7 @@ def _validate_exit_wait(record: dict, *, method: str, collection_start: float) -
             raise ValueError("timed pidfd poll lacks its initial read and budget")
         return
     if (
-        method not in (PROCESS_IDENTITY_METHOD, METHOD)
+        method not in (PROCESS_IDENTITY_METHOD, LIVE_THREAD_METHOD, METHOD)
         or not isinstance(wait, dict)
         or set(wait) != {"initial_poll", "deadline_monotonic_seconds", "retry_reserve_seconds"}
         or wait["retry_reserve_seconds"] != EXIT_WAIT_RETRY_RESERVE_SECONDS
@@ -496,15 +524,15 @@ def _validate_exit_wait(record: dict, *, method: str, collection_start: float) -
 def summarize_collection(receipt: dict) -> dict:
     """Fail closed and independently derive the final attempt's legacy fields."""
     method = receipt.get("protocol")
-    if method not in (LEGACY_METHOD, EXIT_OWNER_METHOD, PROCESS_IDENTITY_METHOD, METHOD):
+    if method not in (LEGACY_METHOD, EXIT_OWNER_METHOD, PROCESS_IDENTITY_METHOD, LIVE_THREAD_METHOD, METHOD):
         raise ValueError("unsupported host collection protocol")
-    owner_is_identity = method not in (PROCESS_IDENTITY_METHOD, METHOD)
+    owner_is_identity = method not in (PROCESS_IDENTITY_METHOD, LIVE_THREAD_METHOD, METHOD)
     if not owner_is_identity:
         if receipt.get("identity_semantics") != IDENTITY_SEMANTICS:
             raise ValueError("missing pidfd-bound process identity semantics")
     elif "identity_semantics" in receipt:
         raise ValueError("v3 identity semantics cannot be relabeled as v1/v2")
-    final_polls_required = method in (EXIT_OWNER_METHOD, PROCESS_IDENTITY_METHOD, METHOD)
+    final_polls_required = method in (EXIT_OWNER_METHOD, PROCESS_IDENTITY_METHOD, LIVE_THREAD_METHOD, METHOD)
     if final_polls_required and receipt.get("uid_semantics") != "proc_inode_owner":
         raise ValueError("missing proc inode ownership semantics")
     attempts = receipt.get("attempts")
@@ -630,7 +658,7 @@ def summarize_collection(receipt: dict) -> dict:
                 record, released_after_discovery=final_released is True, owner_is_identity=owner_is_identity
             )
             if "thread_mm" in record:
-                if method != METHOD:
+                if method not in (LIVE_THREAD_METHOD, METHOD):
                     raise ValueError("live-thread evidence cannot be relabeled as an older method")
                 try:
                     values = _thread_mm_memory(
@@ -638,7 +666,18 @@ def summarize_collection(receipt: dict) -> dict:
                     )
                     errors = []
                 except (ValueError, KeyError, TypeError, StopIteration):
-                    errors.append("unproven_live_thread_memory")
+                    try:
+                        if method != METHOD:
+                            raise ValueError("historical live-thread method retains failed read")
+                        values = _thread_mm_memory(
+                            record,
+                            collection_start=first_start,
+                            discovery_after=attempt["discovery_after"][pid],
+                            released_poll=final_polls[pid],
+                        )
+                        errors, changed = [], True
+                    except (ValueError, KeyError, TypeError, StopIteration):
+                        errors.append("unproven_live_thread_memory")
             memory[pid] = values
             hard_errors.extend(errors)
             process_errors.extend(errors)
@@ -682,6 +721,7 @@ def _validate_sample(sample: dict) -> dict:
         LEGACY_METHOD,
         EXIT_OWNER_METHOD,
         PROCESS_IDENTITY_METHOD,
+        LIVE_THREAD_METHOD,
         METHOD,
     ):
         raise ValueError("unsupported host memory method")
@@ -722,7 +762,7 @@ class HostSampler:
     """
 
     def __init__(self, root_pid: int, stage_file: Path, *, exclude_pid: int | None = None, method: str = METHOD):
-        if method not in (PROCESS_IDENTITY_METHOD, METHOD):
+        if method not in (PROCESS_IDENTITY_METHOD, LIVE_THREAD_METHOD, METHOD):
             raise ValueError("unsupported host acquisition method")
         self.method = method
         self.root_pid, self.stage_file = root_pid, stage_file
@@ -835,7 +875,7 @@ class HostSampler:
             records = {}
             for pid in sorted(selected):
                 record = self._process(pid)
-                if self.method == METHOD and _thread_mm_eligible(record):
+                if self.method in (LIVE_THREAD_METHOD, METHOD) and _thread_mm_eligible(record):
                     record["thread_mm"] = _thread_mm(pid, self.tracked[pid]["fd"], started + MAX_COLLECTION_SECONDS)
                 elif len(receipt["attempts"]) < MAX_ATTEMPTS - 1:
                     self._wait_for_exit(pid, record, started + MAX_COLLECTION_SECONDS)
