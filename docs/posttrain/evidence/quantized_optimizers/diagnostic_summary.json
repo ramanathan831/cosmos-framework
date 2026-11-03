@@ -1,0 +1,42 @@
+{
+  "adamw": {
+    "training_ms": 1.510192067362368,
+    "speed_ratio": 1.0,
+    "speed_ratio_ci95": [
+      1.0,
+      1.0
+    ],
+    "torch_peak_mib": 281.2529296875,
+    "speed_gate": false
+  },
+  "adamw_bnb_8bit": {
+    "training_ms": 2.7759976591914897,
+    "speed_ratio": 0.5439994971867179,
+    "speed_ratio_ci95": [
+      0.5395253876943515,
+      0.5484736066790843
+    ],
+    "torch_peak_mib": 185.7529296875,
+    "speed_gate": false
+  },
+  "paged_adamw_8bit": {
+    "training_ms": 3.0509952579935393,
+    "speed_ratio": 0.49494762981249724,
+    "speed_ratio_ci95": [
+      0.47890236613470494,
+      0.5109928934902895
+    ],
+    "torch_peak_mib": 153.7529296875,
+    "speed_gate": false
+  },
+  "bnb32_diagnostic": {
+    "training_ms": 1.802270597157379,
+    "speed_ratio": 0.8379002366818381,
+    "speed_ratio_ci95": [
+      0.8113496996783913,
+      0.8644507736852849
+    ],
+    "torch_peak_mib": 281.2509765625,
+    "speed_gate": false
+  }
+}

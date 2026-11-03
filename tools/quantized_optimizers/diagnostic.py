@@ -15,6 +15,8 @@ from cosmos_framework.posttrain.config.rl import OptimizerConfig
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", required=True)
+    parser.add_argument("--width", type=int, default=2048)
+    parser.add_argument("--depth", type=int, default=4)
     args = parser.parse_args()
     torch.set_num_threads(8)
     rows = []
@@ -26,9 +28,11 @@ def main():
                 if time.monotonic() - start > 900:
                     raise RuntimeError("diagnostic wall budget exhausted")
                 torch.manual_seed(seed)
-                net = torch.nn.Sequential(*[torch.nn.Linear(2048, 2048, bias=False, device="cuda") for _ in range(4)])
-                x = torch.randn(64, 2048, device="cuda")
-                y = torch.randn(64, 2048, device="cuda")
+                net = torch.nn.Sequential(
+                    *[torch.nn.Linear(args.width, args.width, bias=False, device="cuda") for _ in range(args.depth)]
+                )
+                x = torch.randn(64, args.width, device="cuda")
+                y = torch.randn(64, args.width, device="cuda")
                 if name == "bnb32_diagnostic":
                     import bitsandbytes
 
@@ -80,6 +84,8 @@ def main():
                     json.dump(
                         dict(
                             torch=torch.__version__,
+                            width=args.width,
+                            depth=args.depth,
                             gpu=torch.cuda.get_device_name(),
                             elapsed_seconds=time.monotonic() - start,
                             rows=rows,

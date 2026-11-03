@@ -187,9 +187,12 @@ def test_cuda_exceptions_are_local_and_restore_is_transactional():
     second = build_optimizer(b, OptimizerConfig(name="adamw_bnb_8bit"))
     for net, opt in [(a, first), (b, second)]:
         net.weight.grad = torch.ones_like(net.weight)
+        net.bias.grad = torch.ones_like(net.bias)
         opt.step()
     assert first.state[a.weight]["state1"].dtype == torch.float32
     assert second.state[b.weight]["state1"].dtype == torch.uint8
+    assert second.state[b.bias]["state1"].dtype == torch.float32
+    assert second.state_report()["exceptions"]["bias"] == "small_tensor"
     saved = second.state_dict()
     broken = copy.deepcopy(saved)
     broken["state"][0]["absmax1"] = torch.zeros(1)

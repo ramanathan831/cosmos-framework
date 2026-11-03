@@ -1,0 +1,7 @@
+diff --git a/cosmos_framework/posttrain/config/build.py b/cosmos_framework/posttrain/config/build.py
+index 1e20aa5..73129b9 100644
+--- a/cosmos_framework/posttrain/config/build.py
++++ b/cosmos_framework/posttrain/config/build.py
+@@ -687 +687 @@ def _validate_native_adapter_optimizer(opt_cfg: OptimizerConfig) -> None:
+-    if opt_cfg.name != "adamw" or opt_cfg.impl != "fused":
++    if not ((opt_cfg.name == "adamw" and opt_cfg.impl == "fused") or (opt_cfg.name in ("adamw_bnb_8bit", "paged_adamw_8bit") and not opt_cfg.impl)):

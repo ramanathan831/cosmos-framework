@@ -1,0 +1,250 @@
+[
+  {
+    "base": "bf16",
+    "optimizer": "adamw",
+    "losses": [
+      0.2012220323085785,
+      0.2002197802066803,
+      0.19912365078926086,
+      0.1979151964187622,
+      0.19659337401390076
+    ],
+    "state": null
+  },
+  {
+    "base": "bf16",
+    "optimizer": "adamw_bnb_8bit",
+    "losses": [
+      0.2012220323085785,
+      0.20021972060203552,
+      0.19912220537662506,
+      0.19791513681411743,
+      0.19659149646759033
+    ],
+    "state": {
+      "backend": {
+        "format": "cosmos_bnb_v1",
+        "backend": "bitsandbytes",
+        "version": "0.49.2",
+        "name": "adamw_bnb_8bit",
+        "storage": "float32",
+        "topology": "single_cuda",
+        "min_8bit_size": 4096,
+        "fp32_state_names": [],
+        "groups": [
+          {
+            "names": [
+              "lora_A.weight",
+              "lora_B.weight"
+            ],
+            "shapes": [
+              [
+                32,
+                512
+              ],
+              [
+                512,
+                32
+              ]
+            ],
+            "name": null,
+            "betas": [
+              0.9,
+              0.999
+            ],
+            "eps": 1e-08,
+            "weight_decay": 0.0
+          }
+        ]
+      },
+      "trainable_elements": 32768,
+      "quantized_elements": 32768,
+      "fp32_elements": 0,
+      "moment_bytes": 65536,
+      "metadata_bytes": 3072,
+      "paged_moment_bytes": 0,
+      "uninitialized_elements": 0,
+      "exceptions": {}
+    }
+  },
+  {
+    "base": "bf16",
+    "optimizer": "paged_adamw_8bit",
+    "losses": [
+      0.2012220323085785,
+      0.20021972060203552,
+      0.19912220537662506,
+      0.19791513681411743,
+      0.19659149646759033
+    ],
+    "state": {
+      "backend": {
+        "format": "cosmos_bnb_v1",
+        "backend": "bitsandbytes",
+        "version": "0.49.2",
+        "name": "paged_adamw_8bit",
+        "storage": "float32",
+        "topology": "single_cuda",
+        "min_8bit_size": 4096,
+        "fp32_state_names": [],
+        "groups": [
+          {
+            "names": [
+              "lora_A.weight",
+              "lora_B.weight"
+            ],
+            "shapes": [
+              [
+                32,
+                512
+              ],
+              [
+                512,
+                32
+              ]
+            ],
+            "name": null,
+            "betas": [
+              0.9,
+              0.999
+            ],
+            "eps": 1e-08,
+            "weight_decay": 0.0
+          }
+        ]
+      },
+      "trainable_elements": 32768,
+      "quantized_elements": 32768,
+      "fp32_elements": 0,
+      "moment_bytes": 65536,
+      "metadata_bytes": 3072,
+      "paged_moment_bytes": 0,
+      "uninitialized_elements": 0,
+      "exceptions": {}
+    }
+  },
+  {
+    "base": "nf4",
+    "optimizer": "adamw",
+    "losses": [
+      0.20208977162837982,
+      0.20109626650810242,
+      0.19998425245285034,
+      0.1987755447626114,
+      0.197455495595932
+    ],
+    "state": null
+  },
+  {
+    "base": "nf4",
+    "optimizer": "adamw_bnb_8bit",
+    "losses": [
+      0.20208977162837982,
+      0.2010963261127472,
+      0.1999843865633011,
+      0.19877353310585022,
+      0.1974537968635559
+    ],
+    "state": {
+      "backend": {
+        "format": "cosmos_bnb_v1",
+        "backend": "bitsandbytes",
+        "version": "0.49.2",
+        "name": "adamw_bnb_8bit",
+        "storage": "float32",
+        "topology": "single_cuda",
+        "min_8bit_size": 4096,
+        "fp32_state_names": [],
+        "groups": [
+          {
+            "names": [
+              "lora_A.weight",
+              "lora_B.weight"
+            ],
+            "shapes": [
+              [
+                32,
+                512
+              ],
+              [
+                512,
+                32
+              ]
+            ],
+            "name": null,
+            "betas": [
+              0.9,
+              0.999
+            ],
+            "eps": 1e-08,
+            "weight_decay": 0.0
+          }
+        ]
+      },
+      "trainable_elements": 32768,
+      "quantized_elements": 32768,
+      "fp32_elements": 0,
+      "moment_bytes": 65536,
+      "metadata_bytes": 3072,
+      "paged_moment_bytes": 0,
+      "uninitialized_elements": 0,
+      "exceptions": {}
+    }
+  },
+  {
+    "base": "nf4",
+    "optimizer": "paged_adamw_8bit",
+    "losses": [
+      0.20208977162837982,
+      0.2010963261127472,
+      0.1999843865633011,
+      0.19877353310585022,
+      0.1974537968635559
+    ],
+    "state": {
+      "backend": {
+        "format": "cosmos_bnb_v1",
+        "backend": "bitsandbytes",
+        "version": "0.49.2",
+        "name": "paged_adamw_8bit",
+        "storage": "float32",
+        "topology": "single_cuda",
+        "min_8bit_size": 4096,
+        "fp32_state_names": [],
+        "groups": [
+          {
+            "names": [
+              "lora_A.weight",
+              "lora_B.weight"
+            ],
+            "shapes": [
+              [
+                32,
+                512
+              ],
+              [
+                512,
+                32
+              ]
+            ],
+            "name": null,
+            "betas": [
+              0.9,
+              0.999
+            ],
+            "eps": 1e-08,
+            "weight_decay": 0.0
+          }
+        ]
+      },
+      "trainable_elements": 32768,
+      "quantized_elements": 32768,
+      "fp32_elements": 0,
+      "moment_bytes": 65536,
+      "metadata_bytes": 3072,
+      "paged_moment_bytes": 0,
+      "uninitialized_elements": 0,
+      "exceptions": {}
+    }
+  }
+]

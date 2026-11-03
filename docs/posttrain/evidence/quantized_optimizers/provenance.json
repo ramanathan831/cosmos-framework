@@ -1,0 +1,36 @@
+{
+  "upstream_main": "e644a833bf909af9c23a02a5c1069967dc501111",
+  "implementation_kernel_run": "d5207b5",
+  "qlora_component": "a7fd524242f4f06ac488a3d96d331b1f46e2b385",
+  "integration": "caf42ffc859e333ebd99737fb0d419e61c396c4f",
+  "integration_optimizer_component": "2131a42",
+  "pr334": "closed; never reopened",
+  "budget_gpu_hours": 8,
+  "local_canary_max_gpu_hours": 0.25,
+  "local_diagnostics_seconds": [
+    13.736660049064085,
+    13.494587125023827
+  ],
+  "slurm": [
+    {
+      "job": "37927579",
+      "source": "2131a42",
+      "state": "FAILED",
+      "elapsed_gpu_seconds": 40,
+      "reason": "runtime has no pip; failed before training"
+    }
+  ],
+  "final_release": "NOT QUALIFIED",
+  "missing_gates": [
+    "untouched recording-disjoint final evaluation",
+    "three-seed real task quality and time-to-quality",
+    "paging under memory pressure",
+    "native multimodal CLI canary pending completion"
+  ],
+  "file_sha256": {
+    "diagnostic_initial.json": "9b95057a581f1b5a6c092c910c9e419caf825c855f7d25e9bcfb1f6582b7c4e0",
+    "adapter_canary.json": "65c2b9c8db9e557e73ce0edeac59cab001b0513f5c06fc081a8e6ec34293932a",
+    "diagnostic_summary.json": "099e12473d179e3cda13dade07b5dafcc2282f24d0e02a799c8800b277e29eaa",
+    "diagnostic.json": "0a91020b3b187b17b6e975268c9ec10be57a08ab471871e46e276ea7b35c913c"
+  }
+}
