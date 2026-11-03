@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: OpenMDW-1.1
 """Bounded deterministic CPU preprocessing over one optimizer-update window.
 
-The driver owns data order and cursor advancement. A spawned worker receives
+The driver owns data order and cursor advancement. Spawned CPU workers receive
 only the already selected rows of the current update, never a dataset/cursor or
 model. Cache contents are disposable: misses and fresh-process resume have the
 same semantics as hits. Video entries retain processor metadata and timestamps.
@@ -19,7 +19,7 @@ import time
 from collections import OrderedDict, deque
 from collections.abc import Mapping
 from concurrent.futures import ProcessPoolExecutor
-from dataclasses import asdict, dataclass, fields, is_dataclass
+from dataclasses import asdict, dataclass, fields, is_dataclass, replace
 from pathlib import Path
 from typing import Any
 
@@ -255,6 +255,7 @@ class _WorkerSpec:
     identity: dict[str, Any]
     cache_bytes: int
     media_hashes: dict[str, str]
+    cpu_affinity: tuple[int, ...] = ()
 
 
 _WORKER_CACHE: _PreprocessingCache | None = None
@@ -262,11 +263,36 @@ _WORKER_PROCESSING_CALLS = 0
 _WORKER_PROCESSING_SECONDS = 0.0
 
 
+def _restrict_worker_threads(cpus: tuple[int, ...]) -> None:
+    """Restrict existing import-time threads and their future descendants.
+
+    FFmpeg may still create several threads. This bounds their usable CPUs, not
+    their number or decoder heap size. The default one-worker path is unchanged.
+    """
+    if not cpus or not set(cpus) <= os.sched_getaffinity(0):
+        raise ValueError("preprocessing worker CPU partition is outside its inherited affinity")
+    tasks = Path("/proc/self/task")
+    for _ in range(4):
+        for task in tasks.iterdir():
+            try:
+                os.sched_setaffinity(int(task.name), cpus)
+            except ProcessLookupError:
+                pass
+        try:
+            if all(os.sched_getaffinity(int(task.name)) == set(cpus) for task in tasks.iterdir()):
+                return
+        except ProcessLookupError:
+            pass
+    raise RuntimeError("could not bind all preprocessing worker threads to their CPU partition")
+
+
 def _initialize_worker(spec: _WorkerSpec) -> None:
     global _WORKER_CACHE, _WORKER_PROCESSING_CALLS, _WORKER_PROCESSING_SECONDS
     os.environ["CUDA_VISIBLE_DEVICES"] = ""
     os.environ["HF_HUB_OFFLINE"] = "1"
     os.environ["TRANSFORMERS_OFFLINE"] = "1"
+    if spec.cpu_affinity:
+        _restrict_worker_threads(spec.cpu_affinity)
     torch.set_num_threads(1)
     if torch.cuda.is_initialized():
         raise RuntimeError("spawned SFT preprocessing workers must never initialize CUDA")
@@ -309,21 +335,50 @@ def _process_worker(target: SFTTarget) -> tuple[SFTPolicyInput, dict[str, Any]]:
 class SFTPreprocessingPipeline:
     """A transparent packer facade with ordered, bounded intra-update prefetch."""
 
-    def __init__(self, packer: QwenSFTDataPacker, spec: _WorkerSpec, *, prefetch: bool, max_pending: int) -> None:
+    def __init__(
+        self, packer: QwenSFTDataPacker, spec: _WorkerSpec, *, prefetch: bool, max_pending: int, workers: int = 1
+    ) -> None:
         self._packer, self._spec, self._max_pending = packer, spec, max_pending
         self._cache = _PreprocessingCache(
             packer, cache_bytes=0 if prefetch else spec.cache_bytes, media_hashes=spec.media_hashes
         )
-        self._executor = (
+        worker_specs = [spec]
+        if workers != 1:
+            if not sys.platform.startswith("linux") or not hasattr(os, "sched_getaffinity"):
+                raise ValueError("parallel SFT preprocessing requires Linux CPU affinity support")
+            cpus = sorted(os.sched_getaffinity(0))
+            if len(cpus) < workers:
+                raise ValueError("parallel SFT preprocessing requires at least one allowed CPU per worker")
+            worker_specs = [
+                replace(
+                    spec,
+                    cache_bytes=spec.cache_bytes // workers + (index < spec.cache_bytes % workers),
+                    cpu_affinity=tuple(cpus[index::workers]),
+                )
+                for index in range(workers)
+            ]
+        self.worker_cpu_affinities = tuple(item.cpu_affinity for item in worker_specs)
+        self._executors = [
             ProcessPoolExecutor(
                 max_workers=1,
                 mp_context=multiprocessing.get_context("spawn"),
                 initializer=_initialize_worker,
-                initargs=(spec,),
+                initargs=(item,),
             )
+            for item in worker_specs
             if prefetch
-            else None
-        )
+        ]
+        # Preserve the original single-worker diagnostic interface.
+        self._executor = self._executors[0] if self._executors else None
+        self._next_worker = 0
+        self._worker_stats = [
+            {
+                "samples": _ByteLRU(item.cache_bytes // 4).stats(),
+                "videos": _ByteLRU(item.cache_bytes - item.cache_bytes // 4).stats(),
+                "timing": {"processing_calls": 0, "processing_seconds": 0.0},
+            }
+            for item in worker_specs
+        ]
         self._pending: deque = deque()
         self._window_active, self._closed, self._failed = False, False, False
         # Disposable execution counters, intentionally absent from cache keys,
@@ -357,7 +412,37 @@ class SFTPreprocessingPipeline:
             raise ValueError("prepare_window requires preprocessing_prefetch=True")
         records = [(self._cache.key(target), copy.deepcopy(target)) for target in targets]
         self._window_active = True
-        self._pending.extend((key, self._executor.submit(_process_worker, target)) for key, target in records)
+        try:
+            for key, target in records:
+                worker, future = self._submit(target)
+                self._pending.append((key, worker, future))
+        except BaseException:
+            self._failed = True
+            raise
+
+    def _submit(self, target: SFTTarget):
+        worker = self._next_worker % len(self._executors)
+        if len(self._executors) > 1:
+            # Related questions on identical media share a worker's video cache.
+            # No-media rows use deterministic round robin. Neither policy owns
+            # the input cursor or changes ordered consumption.
+            content = self._cache.media.target(target, verify=False)
+            media = [
+                part[key]["sha256"]
+                for message in content["messages"]
+                if isinstance(message.get("content"), list)
+                for part in message["content"]
+                if isinstance(part, dict) and part.get("type") in {"image", "video"}
+                for key in (part["type"], "url", "path")
+                if key in part
+            ]
+            if media:
+                worker = int(canonical_json_sha256(media, context="preprocessing worker media"), 16) % len(
+                    self._executors
+                )
+        future = self._executors[worker].submit(_process_worker, target)
+        self._next_worker += 1
+        return worker, future
 
     def sft_process_sample(self, target: SFTTarget) -> SFTPolicyInput:
         if self._closed or self._failed:
@@ -366,10 +451,15 @@ class SFTPreprocessingPipeline:
         if self._window_active:
             if not self._pending or self._pending[0][0] != key:
                 raise ValueError("SFT preprocessing must consume exactly the prepared row order")
-            _, future = self._pending.popleft()
-            return self._consume_future(future)
+            _, worker, future = self._pending.popleft()
+            return self._consume_future(future, worker)
         if self._executor is not None:
-            return self._consume_future(self._executor.submit(_process_worker, copy.deepcopy(target)))
+            try:
+                worker, future = self._submit(copy.deepcopy(target))
+                return self._consume_future(future, worker)
+            except BaseException:
+                self._failed = True
+                raise
         started = time.perf_counter()
         result = self._cache.process(target)
         self._processing_seconds += time.perf_counter() - started
@@ -385,11 +475,18 @@ class SFTPreprocessingPipeline:
         }
         return result
 
-    def _consume_future(self, future) -> SFTPolicyInput:
+    def _consume_future(self, future, worker: int) -> SFTPolicyInput:
         try:
             started = time.perf_counter()
             with profile_cpu_range("sft.prefetch_wait"):
-                sample, self.preprocessing_stats = future.result(timeout=300)
+                sample, stats = future.result(timeout=300)
+            self._worker_stats[worker] = stats
+            # A reply contains that worker's cumulative counters. Replace its
+            # last observation and sum workers, never sum successive replies.
+            self.preprocessing_stats = {
+                kind: {name: sum(item[kind][name] for item in self._worker_stats) for name in stats[kind]}
+                for kind in ("samples", "videos", "timing")
+            }
             self._wait_seconds += time.perf_counter() - started
             self._wait_calls += 1
             self.preprocessing_stats["timing"].update(wait_calls=self._wait_calls, wait_seconds=self._wait_seconds)
@@ -408,15 +505,16 @@ class SFTPreprocessingPipeline:
         if self._closed:
             return
         self._closed = True
-        for _, future in self._pending:
+        for _, _, future in self._pending:
             future.cancel()
         self._pending.clear()
-        if self._executor is not None:
+        if self._executors:
             # Python 3.10--3.12 lack terminate_workers(). Capture the owned
-            # single spawned process before shutdown clears this implementation
+            # spawned processes before shutdown clears this implementation
             # detail, and bound decoder failure cleanup instead of blocking exit.
-            processes = list((self._executor._processes or {}).values())
-            self._executor.shutdown(wait=False, cancel_futures=True)
+            processes = [process for executor in self._executors for process in (executor._processes or {}).values()]
+            for executor in self._executors:
+                executor.shutdown(wait=False, cancel_futures=True)
             deadline = time.monotonic() + 5
             for process in processes:
                 process.join(timeout=max(0, deadline - time.monotonic()))
@@ -436,6 +534,7 @@ def build_sft_preprocessing(
     prefetch: bool,
     media_hashes: Mapping[str, str],
     max_pending: int,
+    workers: int = 1,
 ) -> SFTPreprocessingPipeline:
     if not isinstance(packer, QwenSFTDataPacker):
         raise TypeError("bounded preprocessing currently supports the native Qwen SFT packer")
@@ -448,6 +547,10 @@ def build_sft_preprocessing(
         or max_pending < 1
     ):
         raise ValueError("preprocessing requires a bool prefetch flag and positive pending-row bound")
+    if type(workers) is not int or workers not in (1, 2):
+        raise ValueError("preprocessing workers supports only 1 or 2")
+    if workers != 1 and (not prefetch or max_pending < workers):
+        raise ValueError("two preprocessing workers require prefetch and a pending-row bound of at least two")
     if not Path(name_or_path).is_dir():
         raise ValueError("preprocessing workers require a prepared local processor snapshot")
     spec = _WorkerSpec(
@@ -460,4 +563,4 @@ def build_sft_preprocessing(
         cache_bytes,
         dict(media_hashes),
     )
-    return SFTPreprocessingPipeline(packer, spec, prefetch=prefetch, max_pending=max_pending)
+    return SFTPreprocessingPipeline(packer, spec, prefetch=prefetch, max_pending=max_pending, workers=workers)

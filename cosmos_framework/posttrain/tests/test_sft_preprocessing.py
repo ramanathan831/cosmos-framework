@@ -175,17 +175,18 @@ def test_cache_refuses_stochastic_preprocessing_and_restores_rng(tmp_path, sourc
     assert cache.samples.bytes == 0
 
 
-def _local_pipeline(tmp_path, *, prefetch):
+def _local_pipeline(tmp_path, *, prefetch, workers=1, cache_bytes=100_000):
     local_tokenizer().save_pretrained(tmp_path)
     (tmp_path / "config.json").write_text(json.dumps({"model_type": "qwen2"}))
     packer = build_sft_packer(str(tmp_path), max_length=128)
     pipeline = build_sft_preprocessing(
         packer,
         name_or_path=str(tmp_path),
-        cache_bytes=100_000,
+        cache_bytes=cache_bytes,
         prefetch=prefetch,
         media_hashes={},
         max_pending=2,
+        workers=workers,
     )
     return packer, pipeline
 

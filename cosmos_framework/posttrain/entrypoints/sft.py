@@ -301,6 +301,7 @@ def build_trainer(config: Any, rl: SFTConfig, data: Any, validation: Any | None,
                 prefetch=rl.preprocessing_prefetch,
                 media_hashes=media_hashes,
                 max_pending=rl.micro_batch_size * rl.grad_accum,
+                workers=rl.preprocessing_workers,
             ),
             "SFT deterministic preprocessing setup",
         )
@@ -326,6 +327,14 @@ def build_trainer(config: Any, rl: SFTConfig, data: Any, validation: Any | None,
             "prefetch": rl.preprocessing_prefetch,
             "window_examples": rl.micro_batch_size * rl.grad_accum,
         }
+        if rl.preprocessing_workers != 1:
+            objective.identity["preprocessing"].update(
+                protocol="cosmos.sft-preprocessing.v2",
+                workers=rl.preprocessing_workers,
+                dispatch="media_sha256_or_round_robin_v1",
+                affinity="partition_inherited_all_worker_threads_v1",
+                cache_budget="sum_of_worker_limits",
+            )
     adapter_contract = _adapter_run_contract(config, packer, objective.identity)
     if adapter_contract is not None:
         _preflight_adapter_resume(config, checkpoint, *adapter_contract)
