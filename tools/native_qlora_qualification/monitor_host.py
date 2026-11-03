@@ -34,7 +34,8 @@ EXIT_OWNER_METHOD = "proc-identity-state-read-attempts-v2"
 PROCESS_IDENTITY_METHOD = "proc-identity-state-read-attempts-v3"
 LIVE_THREAD_METHOD = "proc-identity-state-read-attempts-v4"
 THREAD_EXIT_METHOD = "proc-identity-state-read-attempts-v5"
-METHOD = "proc-identity-state-read-attempts-v6"
+THREAD_WAIT_METHOD = "proc-identity-state-read-attempts-v6"
+METHOD = "proc-identity-state-read-attempts-v7"
 IDENTITY_SEMANTICS = "pid_start_pidfd_owned_ancestry"
 THREAD_MM_PROTOCOL = "proc-live-thread-shared-mm-v1"
 MAX_TASK_ENTRIES = 4096
@@ -373,7 +374,12 @@ def _thread_mm(pid: int, pidfd: int, deadline: float) -> dict:
 
 
 def _thread_mm_identity(
-    record: dict, *, collection_start: float, discovery_after: dict, allow_failed_rollup: bool = False
+    record: dict,
+    *,
+    collection_start: float,
+    discovery_after: dict,
+    allow_failed_rollup: bool = False,
+    allow_discovery_enoent: bool = False,
 ) -> dict:
     """Validate the held thread/leader proof, optionally allowing only an ESRCH rollup."""
     proof = record["thread_mm"]
@@ -413,6 +419,17 @@ def _thread_mm_identity(
         raise ValueError("invalid live-thread read interval")
     expected = record["pin"]["identity"]
     for read in (proof["leader_after"], discovery_after):
+        if (
+            read is discovery_after
+            and allow_failed_rollup
+            and allow_discovery_enoent
+            and _receipt_valid(read)
+            and read.get("error") == {"type": "FileNotFoundError", "errno": errno.ENOENT}
+        ):
+            # Only a v7 caller with an actual same-pidfd release may accept
+            # disappearance AFTER our own identity-valid leader read. This
+            # supplies no memory; the entire attempt must be recollected.
+            continue
         value = read.get("value", {})
         if (
             not _valid_identity(value, owner_is_identity=False)
@@ -466,14 +483,30 @@ def _thread_mm_identity(
 
 
 def _thread_mm_memory(
-    record: dict, *, collection_start: float, discovery_after: dict, released_poll: dict | None = None
+    record: dict,
+    *,
+    collection_start: float,
+    discovery_after: dict,
+    released_poll: dict | None = None,
+    allow_discovery_enoent: bool = False,
 ) -> dict:
-    """Read shared-mm values, or prove a v5/v6 exit transition with NO memory."""
+    """Read shared-mm values, or prove an exit transition with NO memory."""
+    if allow_discovery_enoent and (
+        released_poll is None
+        or not _receipt_valid(released_poll)
+        or _released(released_poll) is not True
+        or not _receipt_valid(discovery_after)
+        or discovery_after["end_monotonic_seconds"] > released_poll["begin_monotonic_seconds"]
+        or released_poll["end_monotonic_seconds"] + EXIT_WAIT_RETRY_RESERVE_SECONDS
+        > collection_start + MAX_COLLECTION_SECONDS
+    ):
+        raise ValueError("discovery disappearance lacks an in-budget same-pidfd release")
     proof = _thread_mm_identity(
         record,
         collection_start=collection_start,
         discovery_after=discovery_after,
         allow_failed_rollup=released_poll is not None,
+        allow_discovery_enoent=allow_discovery_enoent,
     )
     if released_poll is not None:
         if (
@@ -523,7 +556,7 @@ def _validate_exit_wait(record: dict, *, method: str, collection_start: float) -
             raise ValueError("timed pidfd poll lacks its initial read and budget")
         return
     if (
-        method not in (PROCESS_IDENTITY_METHOD, LIVE_THREAD_METHOD, THREAD_EXIT_METHOD, METHOD)
+        method not in (PROCESS_IDENTITY_METHOD, LIVE_THREAD_METHOD, THREAD_EXIT_METHOD, THREAD_WAIT_METHOD, METHOD)
         or not isinstance(wait, dict)
         or set(wait) != {"initial_poll", "deadline_monotonic_seconds", "retry_reserve_seconds"}
         or wait["retry_reserve_seconds"] != EXIT_WAIT_RETRY_RESERVE_SECONDS
@@ -548,11 +581,11 @@ def _validate_exit_wait(record: dict, *, method: str, collection_start: float) -
 
 def _validate_thread_exit_waits(attempt: dict, *, method: str, collection_start: float) -> None:
     waits = attempt.get("thread_exit_waits", {})
-    if "thread_exit_waits" in attempt and method != METHOD:
+    if "thread_exit_waits" in attempt and method not in (THREAD_WAIT_METHOD, METHOD):
         raise ValueError("thread exit wait cannot be relabeled as an older method")
     if not isinstance(waits, dict) or not set(waits) <= set(attempt["processes"]):
         raise ValueError("invalid thread exit wait ownership")
-    if method != METHOD:
+    if method not in (THREAD_WAIT_METHOD, METHOD):
         return
     for pid, final in attempt["post_discovery_polls"].items():
         wait = waits.get(pid)
@@ -594,10 +627,17 @@ def summarize_collection(receipt: dict) -> dict:
         PROCESS_IDENTITY_METHOD,
         LIVE_THREAD_METHOD,
         THREAD_EXIT_METHOD,
+        THREAD_WAIT_METHOD,
         METHOD,
     ):
         raise ValueError("unsupported host collection protocol")
-    owner_is_identity = method not in (PROCESS_IDENTITY_METHOD, LIVE_THREAD_METHOD, THREAD_EXIT_METHOD, METHOD)
+    owner_is_identity = method not in (
+        PROCESS_IDENTITY_METHOD,
+        LIVE_THREAD_METHOD,
+        THREAD_EXIT_METHOD,
+        THREAD_WAIT_METHOD,
+        METHOD,
+    )
     if not owner_is_identity:
         if receipt.get("identity_semantics") != IDENTITY_SEMANTICS:
             raise ValueError("missing pidfd-bound process identity semantics")
@@ -608,6 +648,7 @@ def summarize_collection(receipt: dict) -> dict:
         PROCESS_IDENTITY_METHOD,
         LIVE_THREAD_METHOD,
         THREAD_EXIT_METHOD,
+        THREAD_WAIT_METHOD,
         METHOD,
     )
     if final_polls_required and receipt.get("uid_semantics") != "proc_inode_owner":
@@ -736,7 +777,7 @@ def summarize_collection(receipt: dict) -> dict:
                 record, released_after_discovery=final_released is True, owner_is_identity=owner_is_identity
             )
             if "thread_mm" in record:
-                if method not in (LIVE_THREAD_METHOD, THREAD_EXIT_METHOD, METHOD):
+                if method not in (LIVE_THREAD_METHOD, THREAD_EXIT_METHOD, THREAD_WAIT_METHOD, METHOD):
                     raise ValueError("live-thread evidence cannot be relabeled as an older method")
                 try:
                     values = _thread_mm_memory(
@@ -745,13 +786,14 @@ def summarize_collection(receipt: dict) -> dict:
                     errors = []
                 except (ValueError, KeyError, TypeError, StopIteration):
                     try:
-                        if method not in (THREAD_EXIT_METHOD, METHOD):
+                        if method not in (THREAD_EXIT_METHOD, THREAD_WAIT_METHOD, METHOD):
                             raise ValueError("historical live-thread method retains failed read")
                         values = _thread_mm_memory(
                             record,
                             collection_start=first_start,
                             discovery_after=attempt["discovery_after"][pid],
                             released_poll=final_polls[pid],
+                            allow_discovery_enoent=method == METHOD,
                         )
                         errors, changed = [], True
                     except (ValueError, KeyError, TypeError, StopIteration):
@@ -801,6 +843,7 @@ def _validate_sample(sample: dict) -> dict:
         PROCESS_IDENTITY_METHOD,
         LIVE_THREAD_METHOD,
         THREAD_EXIT_METHOD,
+        THREAD_WAIT_METHOD,
         METHOD,
     ):
         raise ValueError("unsupported host memory method")
@@ -841,7 +884,7 @@ class HostSampler:
     """
 
     def __init__(self, root_pid: int, stage_file: Path, *, exclude_pid: int | None = None, method: str = METHOD):
-        if method not in (PROCESS_IDENTITY_METHOD, LIVE_THREAD_METHOD, THREAD_EXIT_METHOD, METHOD):
+        if method not in (PROCESS_IDENTITY_METHOD, LIVE_THREAD_METHOD, THREAD_EXIT_METHOD, THREAD_WAIT_METHOD, METHOD):
             raise ValueError("unsupported host acquisition method")
         self.method = method
         self.root_pid, self.stage_file = root_pid, stage_file
@@ -953,7 +996,12 @@ class HostSampler:
             records = {}
             for pid in sorted(selected):
                 record = self._process(pid)
-                if self.method in (LIVE_THREAD_METHOD, THREAD_EXIT_METHOD, METHOD) and _thread_mm_eligible(record):
+                if self.method in (
+                    LIVE_THREAD_METHOD,
+                    THREAD_EXIT_METHOD,
+                    THREAD_WAIT_METHOD,
+                    METHOD,
+                ) and _thread_mm_eligible(record):
                     record["thread_mm"] = _thread_mm(pid, self.tracked[pid]["fd"], started + MAX_COLLECTION_SECONDS)
                 elif len(receipt["attempts"]) < MAX_ATTEMPTS - 1:
                     self._wait_for_exit(pid, record, started + MAX_COLLECTION_SECONDS)
@@ -967,7 +1015,7 @@ class HostSampler:
                 initial = _poll(self.tracked[pid]["fd"])
                 final_polls[str(pid)] = initial
                 if (
-                    self.method == METHOD
+                    self.method in (THREAD_WAIT_METHOD, METHOD)
                     and len(receipt["attempts"]) < MAX_ATTEMPTS - 1
                     and _released(initial) is False
                     and _thread_exit_wait_eligible(

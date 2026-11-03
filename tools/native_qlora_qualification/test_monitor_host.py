@@ -4,6 +4,7 @@
 
 import copy
 import ctypes
+import errno
 import json
 import os
 import select
@@ -1246,7 +1247,9 @@ def test_live_thread_failed_directory_open_closes_and_retains_error(live_thread,
     assert len(os.listdir("/proc/self/fd")) == descriptors
 
 
-def _controlled_thread_exit(live_thread, monkeypatch, *, error=3, mismatch=False, release=True):
+def _controlled_thread_exit(
+    live_thread, monkeypatch, *, error=3, mismatch=False, release=True, reap_before_discovery=False
+):
     """Inject a bounded ESRCH read; use the real held pidfd for final release."""
     sampler, process, _ = live_thread
     read, discover = host._thread_read, sampler._discover
@@ -1266,13 +1269,16 @@ def _controlled_thread_exit(live_thread, monkeypatch, *, error=3, mismatch=False
 
     def after_read():
         nonlocal discoveries
-        result = discover()
         discoveries += 1
+        if not reap_before_discovery:
+            result = discover()
         if discoveries == 2 and release:
             process.stdin.write(b"Q")
             process.stdin.flush()
             process.wait(timeout=3)
             assert process.returncode == 0
+        if reap_before_discovery:
+            result = discover()
         return result
 
     monkeypatch.setattr(host, "_thread_read", failed_rollup)
@@ -1492,3 +1498,118 @@ def test_thread_exit_wait_receipt_cannot_invent_readiness_or_time(live_thread, m
         final["end_monotonic_seconds"] = wait["deadline_monotonic_seconds"]
     with pytest.raises(ValueError):
         host.summarize_collection(sample["host_collection"])
+
+
+def test_actual_reaped_thread_group_requires_whole_recollection(live_thread, monkeypatch, request):
+    """Control ESRCH; actually exit/reap after the verified leader read, before discovery."""
+    sample, pid = _controlled_thread_exit(live_thread, monkeypatch, reap_before_discovery=True)
+    receipt = sample["host_collection"]
+    assert receipt["protocol"] == host.METHOD
+    assert len(receipt["attempts"]) == 2
+    first, second = receipt["attempts"]
+    record = first["processes"][str(pid)]
+    proof = record["thread_mm"]
+    discovery, final = first["discovery_after"][str(pid)], first["post_discovery_polls"][str(pid)]
+    assert proof["leader_after"]["value"]["state"] == "Z"
+    assert proof["rollup"]["error"]["errno"] == errno.ESRCH
+    assert discovery["error"] == {"type": "FileNotFoundError", "errno": errno.ENOENT}
+    assert host._released(proof["poll_after"]) is False and host._released(final) is True
+    assert final["end_monotonic_seconds"] + host.EXIT_WAIT_RETRY_RESERVE_SECONDS <= proof["deadline_monotonic_seconds"]
+    assert final["end_monotonic_seconds"] <= second["begin_monotonic_seconds"] <= proof["deadline_monotonic_seconds"]
+    assert host.validate_sample(sample)["host_pss_complete"]
+    assert sample["process_host_memory"][str(pid)]["address_space_released"] is True
+    failed = copy.deepcopy(receipt)
+    failed["attempts"] = [first]
+    failed["final_attempt"] = 0
+    derived = host.summarize_collection(failed)
+    assert not derived["host_pss_complete"] and derived["process_host_memory"][str(pid)] == {}
+    assert derived["host_observed_complete_attempt_pss_peak_bytes"] is None
+    for method in (host.LIVE_THREAD_METHOD, host.THREAD_EXIT_METHOD, host.THREAD_WAIT_METHOD):
+        failed["protocol"] = method
+        old = host.summarize_collection(failed)
+        assert not old["host_pss_complete"] and "unproven_live_thread_memory" in old["host_collection_errors"]
+        relabeled = copy.deepcopy(receipt)
+        relabeled["protocol"] = method
+        with pytest.raises(ValueError, match="retry lacks a proven membership transition"):
+            host.summarize_collection(relabeled)
+    request.node.user_properties.append(("actual_reaped_thread_group_recollection", json.dumps(sample, sort_keys=True)))
+
+
+@pytest.mark.parametrize("method", [host.THREAD_EXIT_METHOD, host.THREAD_WAIT_METHOD])
+def test_old_collectors_keep_reaped_thread_discovery_incomplete(live_thread, monkeypatch, method):
+    live_thread[0].method = method
+    sample, _ = _controlled_thread_exit(live_thread, monkeypatch, reap_before_discovery=True)
+    assert len(sample["host_collection"]["attempts"]) == 1
+    assert not host.validate_sample(sample)["host_pss_complete"]
+    assert "unproven_live_thread_memory" in sample["host_collection_errors"]
+
+
+@pytest.mark.parametrize(
+    "damage",
+    [
+        "discovery_permission",
+        "discovery_esrch",
+        "discovery_missing",
+        "discovery_type",
+        "discovery_identity",
+        "leader_missing",
+        "leader_birth",
+        "leader_exec",
+        "thread_birth",
+        "tgid",
+        "directory",
+        "rollup_permission",
+        "no_release",
+        "unknown_poll",
+        "late_release",
+        "reversed_reads",
+        "outside_deadline",
+    ],
+)
+def test_reaped_thread_retry_requires_exact_identity_release_and_deadline(live_thread, monkeypatch, damage):
+    sample, pid = _controlled_thread_exit(live_thread, monkeypatch, reap_before_discovery=True)
+    assert host.validate_sample(sample)["host_pss_complete"]
+    receipt = sample["host_collection"]
+    first = receipt["attempts"][0]
+    record = first["processes"][str(pid)]
+    proof = record["thread_mm"]
+    discovery, final = first["discovery_after"][str(pid)], first["post_discovery_polls"][str(pid)]
+    if damage == "discovery_permission":
+        discovery["error"] = {"type": "PermissionError", "errno": errno.EACCES}
+    elif damage == "discovery_esrch":
+        discovery["error"] = {"type": "ProcessLookupError", "errno": errno.ESRCH}
+    elif damage == "discovery_missing":
+        del first["discovery_after"][str(pid)]
+    elif damage == "discovery_type":
+        discovery["error"]["type"] = "UnknownError"
+    elif damage == "discovery_identity":
+        discovery.pop("error")
+        discovery["value"] = copy.deepcopy(proof["leader_after"]["value"])
+        discovery["value"]["start_ticks"] += 1
+    elif damage == "leader_missing":
+        proof["leader_after"].pop("value")
+        proof["leader_after"]["error"] = {"type": "FileNotFoundError", "errno": errno.ENOENT}
+    elif damage == "leader_birth":
+        proof["leader_after"]["value"]["start_ticks"] += 1
+    elif damage == "leader_exec":
+        proof["leader_after"]["value"]["state"] = "R"
+    elif damage == "thread_birth":
+        proof["stat_after"]["value"]["start_ticks"] += 1
+    elif damage == "tgid":
+        proof["status_after"]["value"]["Tgid"] += 1
+    elif damage == "directory":
+        proof["directory_after"]["value"]["inode"] += 1
+    elif damage == "rollup_permission":
+        proof["rollup"]["error"] = {"type": "PermissionError", "errno": errno.EACCES}
+    elif damage == "no_release":
+        final["events"] = []
+    elif damage == "unknown_poll":
+        final["events"] = [select.POLLERR]
+    elif damage == "late_release":
+        final["end_monotonic_seconds"] = proof["deadline_monotonic_seconds"]
+    elif damage == "reversed_reads":
+        discovery["begin_monotonic_seconds"] = proof["leader_after"]["begin_monotonic_seconds"] - 0.001
+    else:
+        proof["deadline_monotonic_seconds"] += 1
+    with pytest.raises(ValueError):
+        host.summarize_collection(receipt)
