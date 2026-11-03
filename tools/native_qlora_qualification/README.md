@@ -90,4 +90,24 @@ The promoted periodic replay, maintenance and shutdown functions preserve the qu
 
 `monitor_host.py` records raw process identity, memory reads, errors and bounded retry attempts. Its version 3 receipt uses admitted ancestry, PID, birth time and a held process pidfd as identity; mutable `/proc` inode ownership remains diagnostic metadata. Known descendants remain tracked after reparenting. A zombie leader alone does not prove whole-process exit. Exit-compatible unreadability may wait at most 350 ms on the same pidfd, retaining the initial poll and reserving 250 ms for a complete retry within the original 750 ms budget. Permission errors, unexplained reads, PID reuse and stage races remain incomplete; a still-live group never becomes zero memory. Synchronous proc reads and scheduling are not hard real-time bounded. Legacy receipts retain their original interpretation and incomplete flags. The [actual 61-test host proof](../../docs/post_training/evidence/native_qlora_collector_wait_94289a2.json) does not change model arithmetic, repair historical measurements or qualify a new training configuration.
 
+Version 4 can read the shared address space through one verified live thread when a zombie process leader's memory read returns `ESRCH` while the held pidfd still reports a live process. It binds the thread to the same thread group, birth identity and held task-directory descriptor, and verifies identities and exit state again after reading. The address space is counted once, not once per thread. Permission failures, exec/exit races and missing identity evidence remain incomplete. Actual positive, exit and exec fixtures must pass on the target kernel before relying on this fallback; the [completed CPU evidence](../../docs/post_training/evidence/native_qlora_parallel_cpu_105d314.json) is separately scoped. Historical version 3 samples cannot gain this missing proof retrospectively.
+
+### Checkpointed dequantization experiment
+
+The opt-in [CUDA fixture](tests/test_saved_dequant_cuda.py) evaluates a test-only alternative to the pinned bitsandbytes backward path: dequantize a frozen matrix and use ordinary `F.linear` inside the actual native full non-reentrant checkpoint wrapper. Checkpoint hooks own the temporary dense tensors; the fixture never caches them on modules. It tests two synthetic blocks with the seven real language-matrix shapes, nonzero FP32 adapters, input gradients, three optimizer updates, frozen quantization state, and actual storage lifetime. The original inference path is retained. No attention, dataset, full VLM, native feature flag or end-to-end speed claim is involved.
+
+Run only in the recorded A100 80GB allocation with the exact sealed native build and backend sources pinned in the fixture. Verify build/import placement with the existing runner first. Supply a new report path in an existing output directory:
+
+```bash
+export COSMOS_RUN_SAVED_DEQUANT_CUDA=1
+export COSMOS_SAVED_DEQUANT_BUILD="$BUILD"
+export COSMOS_SAVED_DEQUANT_REPORT="$NEW_REPORT"
+export CUBLAS_WORKSPACE_CONFIG=:4096:8
+export PYTHONHASHSEED=42
+python -m pytest --noconftest -c /dev/null -q \
+  "$WORKFLOW_SOURCE/tools/native_qlora_qualification/tests/test_saved_dequant_cuda.py::test_actual_saved_dequant_full_checkpoint_cuda"
+```
+
+The explicit opt-in requires one real passing CUDA case; a skipped test does not qualify it. The report separates instrumented lifetime/correctness checks from uninstrumented ABBA timings with two warmup and five measured updates per round, two rounds per arm. Both packed test models remain resident, so their allocator peaks are not full-model training footprints. Failed backward terminates the process; in-process retry is unsupported. No-checkpointing, selective checkpointing and compilation are excluded from this mechanism. Any later native integration still needs its own full-model quality, memory, reload/recovery and repeated end-to-end comparison.
+
 Multi-GPU training, other model families, other quantizers and other adapter methods remain outside this qualification.
