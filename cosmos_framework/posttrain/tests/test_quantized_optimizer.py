@@ -135,7 +135,10 @@ def test_native_sft_transaction(name, tmp_path):
             return SimpleNamespace(logits=self.head(self.embedding(input_ids)))
 
     packer = MemoryPacker()
-    batch = [packer.add(list(range(64)), [-100] * 8 + list(range(8, 64)))]
+    batches = [
+        [packer.add(list(range(offset, offset + 64)), [-100] * 8 + list(range(offset + 8, offset + 64)))]
+        for offset in range(7)
+    ]
     cfg = OptimizerConfig(name=name, lr=0.001, warmup_steps=3)
 
     def build():
@@ -151,16 +154,16 @@ def test_native_sft_transaction(name, tmp_path):
         )
 
     trainer = build()
-    for _ in range(4):
-        trainer.train(batch)
+    for index in range(4):
+        trainer.train(batches[index])
     before_state = trainer.opt.state_dict()
     before_scheduler = copy.deepcopy(trainer.lr_scheduler.state_dict())
     before_weights = [p.detach().clone() for p in trainer.model.parameters()]
     before_step = trainer._trainer_state()["optimizer_step"]
-    assert trainer.train(batch)["optim/update_outcome"] == "accumulating"
+    assert trainer.train(batches[4])["optim/update_outcome"] == "accumulating"
     hook = next(trainer.model.parameters()).register_hook(lambda grad: grad * float("nan"))
     try:
-        refused = trainer.train(batch)
+        refused = trainer.train(batches[5])
     finally:
         hook.remove()
     assert refused["optim/skip_reason"] == "nonfinite_gradient"
@@ -173,16 +176,20 @@ def test_native_sft_transaction(name, tmp_path):
             actual = after_state["state"][index][key]
             assert torch.equal(value, actual) if isinstance(value, torch.Tensor) else value == actual
     path = str(tmp_path / "iter_000002")
-    trainer.save(path, data_state={"cursor": 4})
+    trainer.save(path, data_state={"cursor": 6})
     expected_rng = torch.cuda.get_rng_state()
+    expected_cpu_rng = torch.get_rng_state()
     restored = build()
     restored.load(path)
     assert torch.equal(torch.cuda.get_rng_state(), expected_rng)
-    assert restored.checkpoint_manager.load_component(path, "data") == {"cursor": 4}
+    assert torch.equal(torch.get_rng_state(), expected_cpu_rng)
+    resumed_cursor = restored.checkpoint_manager.load_component(path, "data")["cursor"]
+    assert resumed_cursor == 6
     assert restored.iteration() == trainer.iteration()
-    for _ in range(4):
-        trainer.train(batch)
-        restored.train(batch)
+    for index in range(6, 10):
+        trainer.train(batches[index % len(batches)])
+        restored.train(batches[resumed_cursor % len(batches)])
+        resumed_cursor += 1
     for a, b in zip(trainer.model.parameters(), restored.model.parameters()):
         assert torch.equal(a, b)
     assert trainer.lr_scheduler.state_dict() == restored.lr_scheduler.state_dict()
@@ -349,3 +356,32 @@ def test_native_timing_hook_handles_nested_backend_steps(monkeypatch, tmp_path):
     rows = [json.loads(line) for line in (tmp_path / "native.telemetry.jsonl").read_text().splitlines()]
     assert len([row for row in rows if row["backend"] == "CosmosAdamW8bit"]) == 1
     assert not probe["timers"]
+
+
+@pytest.mark.parametrize("name", ["adamw_bnb_8bit", "paged_adamw_8bit"])
+def test_mainline_bf16_base_lora_uses_only_fp32_adapters(name):
+    from cosmos_framework.utils.generator.lora import LoraInjectedLinear
+
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA required")
+    torch.manual_seed(29)
+    base = torch.nn.Linear(1024, 1024, bias=False, dtype=torch.bfloat16, device="cuda")
+    base.weight.requires_grad_(False)
+    net = LoraInjectedLinear(base, 128, 128, adapter_dtype=torch.float32)
+    torch.nn.init.zeros_(net.lora_B.weight)
+    frozen = net.weight.detach().clone()
+    cfg = OptimizerConfig(name=name, lr=1e-3)
+    opt = build_optimizer(net, cfg)
+    assert {id(p) for group in opt.param_groups for p in group["params"]} == {
+        id(net.lora_A.weight),
+        id(net.lora_B.weight),
+    }
+    x = torch.randn(4, 16, 1024, device="cuda", dtype=torch.bfloat16)
+    for _ in range(5):
+        opt.zero_grad()
+        net(x).float().square().mean().backward()
+        opt.step()
+    assert torch.equal(frozen, net.weight)
+    assert net.lora_B.weight.count_nonzero() > 0
+    assert opt.state_report()["quantized_elements"] == 262144
+    assert bool(opt.state_report()["paged_moment_bytes"]) == (name == "paged_adamw_8bit")
