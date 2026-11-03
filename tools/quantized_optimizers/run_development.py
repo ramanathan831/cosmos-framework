@@ -8,6 +8,7 @@ within the campaign's three-job cap. This driver never submits jobs itself.
 import json
 import os
 import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -17,6 +18,27 @@ plan = [(17, a) for a in ("adamw", "adamw_bnb_8bit", "paged_adamw_8bit")]
 plan += [(29, a) for a in ("adamw_bnb_8bit", "paged_adamw_8bit", "adamw")]
 plan += [(43, a) for a in ("paged_adamw_8bit", "adamw", "adamw_bnb_8bit")]
 started = time.monotonic()
+if not (root / "runtime_optimizer_tests.passed").exists():
+    env = dict(os.environ, PYTHONPATH=os.environ["SOURCE"], PYTHONDONTWRITEBYTECODE="1", OMP_NUM_THREADS="8")
+    with (root / "runtime_optimizer_tests.log").open("w") as log:
+        tested = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "pytest",
+                "cosmos_framework/posttrain/tests/test_quantized_optimizer.py",
+                "--confcutdir=cosmos_framework/posttrain/tests",
+                "--override-ini=addopts=",
+                "--junitxml=" + str(root / "runtime_optimizer_tests.xml"),
+            ],
+            cwd=os.environ["SOURCE"],
+            env=env,
+            stdout=log,
+            stderr=subprocess.STDOUT,
+        )
+    if tested.returncode:
+        raise RuntimeError("native runtime optimizer CUDA tests failed before model training")
+    (root / "runtime_optimizer_tests.passed").write_text("passed\n")
 for seed, arm in plan:
     output = root / f"seed{seed}" / arm
     if (output / "complete.json").exists():
