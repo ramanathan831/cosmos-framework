@@ -2,7 +2,7 @@
 
 A completed arm is never rerun. Failed attempts are retained and stop this driver.
 An allocation may end with pending arms; those still require a later allocation
-within the campaign's three-job cap. This driver never submits jobs itself.
+within the recorded allocation and GPU-minute caps. This driver never submits jobs itself.
 """
 
 import json
@@ -43,7 +43,7 @@ for seed, arm in plan:
     output = root / f"seed{seed}" / arm
     if (output / "complete.json").exists():
         continue
-    if int(os.environ.get("WORK_SECONDS", "3500")) - (time.monotonic() - started) < 600:
+    if int(os.environ.get("WORK_SECONDS", "3500")) - (time.monotonic() - started) < 900:
         (root / "pending.json").write_text(json.dumps({"next_seed": seed, "next_arm": arm}) + "\n")
         break
     if output.exists():

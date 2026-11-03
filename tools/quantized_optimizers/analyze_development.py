@@ -6,6 +6,7 @@ Never substitute incomplete trials or synthetic losses for held-out task results
 
 import argparse
 import csv
+import gzip
 import io
 import json
 import re
@@ -37,7 +38,9 @@ def main():
     p.add_argument("raw", type=Path)
     p.add_argument("output", type=Path)
     args = p.parse_args()
-    raw = json.loads(args.raw.read_text())
+    read = gzip.open if args.raw.suffix == ".gz" else open
+    with read(args.raw, "rt") as stream:
+        raw = json.load(stream)
     arms = ("adamw", "adamw_bnb_8bit", "paged_adamw_8bit")
     runs = {}
     for key, content in raw.items():
@@ -79,7 +82,18 @@ def main():
                 pass
         start = raw.get(prefix + arm + ".start")
         end = raw.get(prefix + arm + ".end")
-        seconds = sum(r.get("timer/e2e_step_s", 0) for r in rows)
+        training_rows = [r for r in rows if "timer/e2e_step_s" in r]
+        seconds = sum(r["timer/e2e_step_s"] for r in training_rows)
+        timing_blocks = [
+            {
+                "first_step": block[0]["step"],
+                "last_step": block[-1]["step"],
+                "seconds": sum(row["timer/e2e_step_s"] for row in block),
+                "sequences": sum(row["train/valid_sequence_count"] for row in block),
+            }
+            for index in range(5)
+            if len(block := training_rows[5 + index * 7 : 12 + index * 7]) == 7
+        ]
         run = {
             "seed": seed,
             "arm": arm,
@@ -93,7 +107,23 @@ def main():
             "training_sequences": sum(sequences),
             "supervised_tokens_per_update": tokens,
             "sequences_per_second": sum(sequences) / seconds if seconds else None,
+            "timing_blocks_after_five_updates": timing_blocks,
+            "timing_block_note": "paired windows within the same run; not independent trial restarts",
             "optimizer_seconds": [u["optimizer_seconds"] for u in updates],
+            "stage_seconds": {
+                "preprocess_train_and_val": sum(r["seconds"] for r in telemetry if r["kind"] == "preprocess"),
+                "collate_train_and_val": sum(r["seconds"] for r in telemetry if r["kind"] == "collate"),
+                "forward_train": sum(
+                    r["seconds"] for r in telemetry if r["kind"] == "forward_time" and r["grad_enabled"]
+                ),
+                "forward_val": sum(
+                    r["seconds"] for r in telemetry if r["kind"] == "forward_time" and not r["grad_enabled"]
+                ),
+                "backward": sum(r["seconds"] for r in telemetry if r["kind"] == "backward"),
+                "optimizer": sum(u["optimizer_seconds"] for u in updates),
+            },
+            "collectives": "single rank; no multi-rank gradient communication",
+            "checkpoint_writes": "disabled in comparison recipe; recovery validated separately",
             "torch_peak_bytes": max((u["peak_allocated"] for u in updates), default=None),
             "sampled_device_peak_mib": max(gpu_peaks, default=None),
             "sampled_process_gpu_peak_bytes": max(
