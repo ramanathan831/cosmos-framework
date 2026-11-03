@@ -57,6 +57,8 @@ for arm in "${arms[@]}"; do
     "rl.optimizer.name=$arm" "rl.optimizer.impl=$impl" \
     "rl.validation.batch_size=${VAL_BATCH:-1}" "rl.validation.max_samples=${VAL_SAMPLES:-2}" "rl.validation.every_steps=${VAL_EVERY:-${STEPS:-3}}" \
     "rl.processor_kwargs.videos_kwargs.num_frames=${FRAMES:-4}" \
+    "rl.processor_kwargs.videos_kwargs.size.longest_edge=${VIDEO_PIXELS:-65536}" \
+    "rl.processor_kwargs.videos_kwargs.size.shortest_edge=${VIDEO_MIN_PIXELS:-4096}" \
     > "$RESULTS/$arm.log" 2>&1
   date -u +%FT%TZ > "$RESULTS/$arm.end"
   if [[ -n "$monitor_pid" ]]; then kill "$monitor_pid" 2>/dev/null || true; wait "$monitor_pid" 2>/dev/null || true; monitor_pid=''; fi

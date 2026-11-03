@@ -6,7 +6,6 @@
     29,
     43
   ],
-  "max_new_gpu_jobs": 3,
   "minutes_per_job": 60,
   "concurrency": 1,
   "model": "Qwen/Qwen3-VL-8B-Instruct@0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
@@ -50,5 +49,12 @@
   ],
   "capacity_selection": "Before substantive training, try descending microbatches 4,2,1 separately for each arm; retain OOM failures, abort on other failures. Same effective batch 4 and model/data/precision. Freeze chosen batches across seeds; never select using quality outcomes.",
   "validation_batch_size": 4,
-  "execution_amendment": "After a telemetry hook failure in capacity calibration, before any full development trial: batch the same 16 validation rows in fours for every arm. Retain all quality/performance thresholds and three-allocation cap. Pack seeds into the two remaining allocations; preserve failure cost and any incomplete trials."
+  "execution_amendment": "After a telemetry hook failure in capacity calibration, before any full development trial: batch the same 16 validation rows in fours for every arm. Retain all quality/performance thresholds and three-allocation cap. Pack seeds into the two remaining allocations; preserve failure cost and any incomplete trials.",
+  "video_total_pixel_budget": {
+    "min": 262144,
+    "max": 1048576
+  },
+  "media_amendment": "Before any full comparison, actual capacity telemetry showed inherited settings produced 64x96 frames. Cancel unallocated replacement 37930554 (zero GPU hours); repeat calibration with larger media budget and verify actual shapes before substantive training. Original low-resolution probes remain diagnostic evidence.",
+  "max_new_gpu_allocations": 3,
+  "allocation_accounting": "The three-allocation cap counts the failed allocated calibration plus two remaining allocated jobs. The canceled pending job consumed zero GPU time; it is preserved separately."
 }

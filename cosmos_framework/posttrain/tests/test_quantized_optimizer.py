@@ -83,18 +83,23 @@ c=OptimizerConfig(**s['cfg']);o=build_optimizer(n,c);lr=build_lr_scheduler(o,c)
 o.load_state_dict(s['opt']);lr.load_state_dict(s['scheduler'])
 assert n.unused not in o.state
 assert bool(o.state_report()['paged_moment_bytes']) == (c.name == 'paged_adamw_8bit')
-for _ in range(4):
+for index in range(4):
+ if index == 2: n.unused.grad=torch.ones_like(n.unused)
  n.weight.grad=torch.ones_like(n.weight);n.bias.grad=torch.ones_like(n.bias);o.step();lr.step()
 torch.save({'net':n.state_dict(),'opt':o.state_dict(),'scheduler':lr.state_dict()},sys.argv[2])
 """
     output = tmp_path / "continued.pt"
     subprocess.run([sys.executable, "-c", code, str(ckpt), str(output)], check=True)
-    for _ in range(4):
+    for index in range(4):
+        if index == 2:
+            net.unused.grad = torch.ones_like(net.unused)
         opt.step()
         scheduler.step()
     resumed = torch.load(output, weights_only=False)
     assert torch.equal(net.weight.cpu(), resumed["net"]["weight"].cpu())
     assert torch.equal(net.bias.cpu(), resumed["net"]["bias"].cpu())
+    assert torch.equal(net.unused.cpu(), resumed["net"]["unused"].cpu())
+    assert opt.state[net.unused]["step"] == 2
     assert scheduler.state_dict() == resumed["scheduler"]
     assert saved["state"][0]["step"] == 3  # snapshot remains immutable
     broken = copy.deepcopy(saved)
