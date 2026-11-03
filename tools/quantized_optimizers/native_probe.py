@@ -12,11 +12,16 @@ from pathlib import Path
 import torch
 from torch.optim.optimizer import register_optimizer_step_post_hook, register_optimizer_step_pre_hook
 
+import cosmos_framework.posttrain.roles.trainer.llm as trainer_module
+from cosmos_framework.posttrain.data.packer.sft import QwenSFTDataPacker
 from cosmos_framework.posttrain.entrypoints.sft import main
 from cosmos_framework.posttrain.model.hf import HFModel
 
 out = Path(os.environ["RESULTS"]) / (os.environ.get("PROBE_ARM", "native") + ".telemetry.jsonl")
 forward = HFModel.forward_policy_batch
+process_sample = QwenSFTDataPacker.sft_process_sample
+collate = QwenSFTDataPacker.sft_collate_fn
+backward = trainer_module.reduce_backward
 counts = {"forward": 0}
 timers = {}
 
@@ -41,7 +46,35 @@ def observed_forward(self, batch):
             row["sequence_lengths"] = batch["attention_mask"].sum(dim=-1).tolist()
         record(row)
     counts["forward"] += 1
-    return forward(self, batch)
+    torch.cuda.synchronize()
+    started = time.perf_counter()
+    result = forward(self, batch)
+    torch.cuda.synchronize()
+    record({"kind": "forward_time", "grad_enabled": torch.is_grad_enabled(), "seconds": time.perf_counter() - started})
+    return result
+
+
+def observed_process_sample(*args, **kwargs):
+    started = time.perf_counter()
+    result = process_sample(*args, **kwargs)
+    record({"kind": "preprocess", "seconds": time.perf_counter() - started})
+    return result
+
+
+def observed_collate(*args, **kwargs):
+    started = time.perf_counter()
+    result = collate(*args, **kwargs)
+    record({"kind": "collate", "seconds": time.perf_counter() - started})
+    return result
+
+
+def observed_backward(*args, **kwargs):
+    torch.cuda.synchronize()
+    started = time.perf_counter()
+    result = backward(*args, **kwargs)
+    torch.cuda.synchronize()
+    record({"kind": "backward", "seconds": time.perf_counter() - started})
+    return result
 
 
 def before(opt, args, kwargs):
@@ -102,6 +135,9 @@ def after(opt, args, kwargs):
 
 if __name__ == "__main__":
     HFModel.forward_policy_batch = observed_forward
+    QwenSFTDataPacker.sft_process_sample = observed_process_sample
+    QwenSFTDataPacker.sft_collate_fn = observed_collate
+    trainer_module.reduce_backward = observed_backward
     pre = register_optimizer_step_pre_hook(before)
     post = register_optimizer_step_post_hook(after)
     try:
@@ -110,3 +146,6 @@ if __name__ == "__main__":
         pre.remove()
         post.remove()
         HFModel.forward_policy_batch = forward
+        QwenSFTDataPacker.sft_process_sample = process_sample
+        QwenSFTDataPacker.sft_collate_fn = collate
+        trainer_module.reduce_backward = backward
