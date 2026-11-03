@@ -291,8 +291,6 @@ class OptimizerConfig:
     muon_rms_match: float = 0.2
 
     def __post_init__(self) -> None:
-        if self.name == "adamw_8bit":
-            self.name = "adamw_bnb_8bit"
         if type(self.bnb_min_8bit_size) is not int or self.bnb_min_8bit_size < 1:
             raise ValueError("bnb_min_8bit_size must be a positive integer")
         if any(not isinstance(n, str) or not n for n in self.bnb_fp32_state_names):

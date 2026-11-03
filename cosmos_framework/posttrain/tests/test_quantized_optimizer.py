@@ -14,7 +14,9 @@ from cosmos_framework.posttrain.config.rl import OptimizerConfig
 
 
 def test_config():
-    assert asdict(OptimizerConfig(name="adamw_8bit"))["name"] == "adamw_bnb_8bit"
+    assert asdict(OptimizerConfig(name="adamw_bnb_8bit"))["name"] == "adamw_bnb_8bit"
+    with pytest.raises(ValueError):
+        OptimizerConfig(name="adamw_8bit")
     for kwargs in ({"impl": "fused"}, {"bnb_min_8bit_size": 0}, {"bnb_fp32_state_names": ["x", "x"]}):
         with pytest.raises(ValueError):
             OptimizerConfig(name="adamw_bnb_8bit", **kwargs)
