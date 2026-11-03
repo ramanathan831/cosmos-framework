@@ -17,16 +17,22 @@ nvidia-smi -q > "$RESULTS/device.txt"
 arms=(adamw adamw_bnb_8bit paged_adamw_8bit)
 if [[ "${SEED:-17}" == 29 ]]; then arms=(adamw_bnb_8bit paged_adamw_8bit adamw); fi
 if [[ "${SEED:-17}" == 43 ]]; then arms=(paged_adamw_8bit adamw adamw_bnb_8bit); fi
+if [[ -n "${ARM_ONLY:-}" ]]; then arms=("$ARM_ONLY"); fi
+if [[ "${DEPLOYMENT:-0}" == 1 && -n "${CAPACITY_FILE:-}" && ! -f "$CAPACITY_FILE" ]]; then
+  python "$SOURCE/tools/quantized_optimizers/calibrate_capacity.py"
+fi
 for arm in "${arms[@]}"; do
   export PROBE_ARM="$arm"
   export IMAGINAIRE_OUTPUT_ROOT="$RESULTS/$arm"
   impl=''
   micro=1; accum=1; extra=()
   if [[ "${DEPLOYMENT:-0}" == 1 ]]; then
-    micro=4
-    if [[ "$arm" == adamw ]]; then micro=1; accum=4; fi
+    micro=$(python -c 'import json,os; print(json.load(open(os.environ["CAPACITY_FILE"]))[os.environ["PROBE_ARM"]]["micro_batch"])')
+    accum=$((4 / micro))
     if [[ "$arm" != adamw ]]; then extra=(rl.optimizer.bnb_min_8bit_size=16384); fi
   fi
+  micro=${MICRO_OVERRIDE:-$micro}; accum=${ACCUM_OVERRIDE:-$accum}
+  if [[ "${CALIBRATING:-0}" == 1 && "$arm" != adamw ]]; then extra=(rl.optimizer.bnb_min_8bit_size=16384); fi
   if [[ "$arm" == adamw ]]; then impl=fused; fi
   date -u +%FT%TZ > "$RESULTS/$arm.start"
   entry=(-m cosmos_framework.posttrain.entrypoints.sft)

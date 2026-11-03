@@ -1,17 +1,37 @@
 {
   "status": "preregistered before multi-question training",
   "purpose": "development only; final evaluation groups unavailable",
-  "seeds": [17, 29, 43],
+  "seeds": [
+    17,
+    29,
+    43
+  ],
   "max_new_gpu_jobs": 3,
   "minutes_per_job": 60,
   "concurrency": 1,
   "model": "Qwen/Qwen3-VL-8B-Instruct@0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
-  "trainable_layers": [24,25,26,27,28,29,30,31],
+  "trainable_layers": [
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31
+  ],
   "storage": "float32",
   "compute": "bfloat16 autocast",
   "effective_batch": 4,
-  "fused_baseline": {"micro_batch": 1, "accumulation": 4},
-  "eight_bit_arms": {"micro_batch": 4, "accumulation": 1, "min_8bit_size": 16384},
+  "fused_baseline": {
+    "micro_batch": "largest fitting among 4,2,1, selected by separate two-update capacity canaries",
+    "accumulation": "4 / micro_batch"
+  },
+  "eight_bit_arms": {
+    "micro_batch": "same capacity-selection rule as fused baseline",
+    "accumulation": "4 / micro_batch",
+    "min_8bit_size": 16384
+  },
   "steps": 40,
   "validation_every": 5,
   "validation_samples": 16,
@@ -23,5 +43,10 @@
   "equal_budget_quality": "last completed validation at or before the minimum final measured training-plus-validation time across all arms/seeds; no interpolation/extrapolation",
   "statistics": "95% paired t interval across seed means; no final release claim on reused development groups",
   "precision_exception_rationale": "FP32 states for small norm tensors cost little memory; no changed weight storage or invented master copies",
-  "stop_conditions": ["OOM or correctness failure: stop dependent comparisons, fix and reassess", "do not exceed three new one-hour allocations or overall eight GPU-hour budget", "never reinterpret reused groups as final test data"]
+  "stop_conditions": [
+    "OOM or correctness failure: stop dependent comparisons, fix and reassess",
+    "do not exceed three new one-hour allocations or overall eight GPU-hour budget",
+    "never reinterpret reused groups as final test data"
+  ],
+  "capacity_selection": "Before substantive training, try descending microbatches 4,2,1 separately for each arm; retain OOM failures, abort on other failures. Same effective batch 4 and model/data/precision. Freeze chosen batches across seeds; never select using quality outcomes."
 }

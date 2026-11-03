@@ -73,15 +73,22 @@ def after(opt, args, kwargs):
         row["state_bytes"] = sum(
             v.numel() * v.element_size() for s in opt.state.values() for v in s.values() if isinstance(v, torch.Tensor)
         )
-    import pynvml
+    try:
+        import pynvml
 
-    pynvml.nvmlInit()
-    row["process_gpu_bytes"] = sum(
-        p.usedGpuMemory
-        for i in range(pynvml.nvmlDeviceGetCount())
-        for p in pynvml.nvmlDeviceGetComputeRunningProcesses(pynvml.nvmlDeviceGetHandleByIndex(i))
-        if p.pid == os.getpid()
-    )
+        pynvml.nvmlInit()
+        row["process_gpu_bytes"] = (
+            sum(
+                p.usedGpuMemory
+                for i in range(pynvml.nvmlDeviceGetCount())
+                for p in pynvml.nvmlDeviceGetComputeRunningProcesses(pynvml.nvmlDeviceGetHandleByIndex(i))
+                if p.pid == os.getpid()
+            )
+            or None
+        )  # Container PID namespaces may prevent NVML PID matching.
+    except Exception as error:
+        row["process_gpu_bytes"] = None
+        row["nvml_error"] = str(error)
     record(row)
 
 
