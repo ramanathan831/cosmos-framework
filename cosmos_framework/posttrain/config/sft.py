@@ -121,6 +121,8 @@ SFT_MOE_LBL_METHODS = ("local", "global")
 class SFTConfig(HFRunConfig):
     """One step is one optimizer update; batch size is per rank and microbatch."""
 
+    supports_quantized_optimizer = True
+
     data: SFTDatasetConfig = field(default_factory=SFTDatasetConfig)
     validation: SFTValidationConfig = field(default_factory=SFTValidationConfig)
     micro_batch_size: int = 1

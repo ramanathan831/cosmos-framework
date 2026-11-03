@@ -37,7 +37,7 @@ from dataclasses import asdict, dataclass, field
 from fractions import Fraction
 from numbers import Real
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, ClassVar, Literal
 
 from cosmos_framework.posttrain.algorithm.reward import RULE_REWARDS
 from cosmos_framework.posttrain.config.placement import normalize_gpu_placement
@@ -1319,7 +1319,15 @@ class RunConfig:
     # into the shared default.
     optimizer: OptimizerConfig = field(default_factory=OptimizerConfig)
 
+    supports_quantized_optimizer: ClassVar[bool] = False
+
     def __post_init__(self) -> None:
+        for optimizer in (self.optimizer, getattr(self, "critic_optimizer", None)):
+            if (
+                getattr(optimizer, "name", None) in ("adamw_bnb_8bit", "paged_adamw_8bit")
+                and not self.supports_quantized_optimizer
+            ):
+                raise ValueError("quantized optimizers are currently supported only by native SFT")
         if isinstance(self.max_steps, bool) or not isinstance(self.max_steps, int) or self.max_steps < 0:
             raise ValueError(f"max_steps must be a non-negative integer, got {self.max_steps!r}")
         if isinstance(self.save_every, bool) or not isinstance(self.save_every, int) or self.save_every < 0:

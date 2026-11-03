@@ -256,3 +256,15 @@ def test_paged_buffer_lifetime_follows_storage_aliases(monkeypatch):
     assert owner() is None
     assert len(results) >= 4  # scratch preflight + two live moments
     assert results == [0] * len(results)  # real cudaFree succeeded for every allocation
+
+
+def test_only_native_sft_advertises_quantized_optimizers():
+    from cosmos_framework.posttrain.config.rl import RunConfig
+    from cosmos_framework.posttrain.config.sft import SFTConfig
+
+    config = OptimizerConfig(name="adamw_bnb_8bit")
+    SFTConfig(optimizer=config)
+    with pytest.raises(ValueError, match="only by native SFT"):
+        RunConfig(optimizer=config)
+    with pytest.raises(ValueError, match="force_finite_grads"):
+        OptimizerConfig(name="adamw_bnb_8bit", force_finite_grads=False)
