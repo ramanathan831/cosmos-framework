@@ -10,6 +10,7 @@ import select
 import shutil
 import subprocess
 import sys
+import threading
 import time
 from contextlib import contextmanager
 from pathlib import Path
@@ -1357,3 +1358,137 @@ def test_thread_exit_retry_receipt_cannot_hide_tampering(live_thread, monkeypatc
         proof["rollup"]["error"]["errno"] = 5
     with pytest.raises(ValueError):
         host.summarize_collection(receipt)
+
+
+def _delayed_thread_exit(live_thread, monkeypatch, *, release=True, damage=None, method=host.METHOD):
+    """Only the ESRCH read is injected; the wait observes an actual delayed pidfd release."""
+    sampler, process, _ = live_thread
+    sampler.method = method
+    poll, thread_mm = host._poll, host._thread_mm
+    timers, waits = [], []
+    proof_done = False
+
+    def observed_thread(*args):
+        nonlocal proof_done
+        proof = thread_mm(*args)
+        proof_done = True
+        if damage == "birth":
+            proof["stat_after"]["value"]["start_ticks"] += 1
+        elif damage == "directory":
+            proof["directory_after"]["value"]["inode"] += 1
+        elif damage == "leader":
+            proof["leader_after"]["value"]["start_ticks"] += 1
+        elif damage == "deadline":
+            # Consume the original budget; never invent a later deadline.
+            time.sleep(host.MAX_COLLECTION_SECONDS - host.EXIT_WAIT_RETRY_RESERVE_SECONDS + 0.02)
+        return proof
+
+    def stop():
+        process.stdin.write(b"Q")
+        process.stdin.flush()
+
+    def observed_poll(fd, *, timeout_milliseconds=0):
+        if timeout_milliseconds:
+            assert proof_done and fd == sampler.tracked[process.pid]["fd"]
+            assert host._released(poll(fd)) is False
+            waits.append(timeout_milliseconds)
+            if release:
+                timer = threading.Timer(0.025, stop)
+                timers.append(timer)
+                timer.start()
+        result = poll(fd, timeout_milliseconds=timeout_milliseconds)
+        if damage == "unknown_poll" and proof_done:
+            result["events"] = [select.POLLERR]
+        return result
+
+    monkeypatch.setattr(host, "_thread_mm", observed_thread)
+    monkeypatch.setattr(host, "_poll", observed_poll)
+    try:
+        sample, pid = _controlled_thread_exit(
+            live_thread,
+            monkeypatch,
+            error=13 if damage == "permission" else 3,
+            mismatch=damage == "tgid",
+            release=False,
+        )
+    finally:
+        for timer in timers:
+            timer.join(timeout=3)
+            assert not timer.is_alive()
+    if waits and release:
+        assert process.wait(timeout=3) == 0
+    return sample, pid, waits
+
+
+def test_actual_thread_exit_wait_recollects_only_after_same_pidfd_release(live_thread, monkeypatch, request):
+    sample, pid, waits = _delayed_thread_exit(live_thread, monkeypatch)
+    assert len(waits) == 1 and 0 < waits[0] <= host.MAX_EXIT_WAIT_MILLISECONDS
+    receipt = sample["host_collection"]
+    assert receipt["protocol"] == host.METHOD
+    assert len(receipt["attempts"]) == 2
+    first, second = receipt["attempts"]
+    wait = first["thread_exit_waits"][str(pid)]
+    assert host._released(wait["initial_poll"]) is False
+    assert host._released(first["post_discovery_polls"][str(pid)]) is True
+    assert first["processes"][str(pid)]["thread_mm"]["rollup"]["error"]["errno"] == 3
+    final = first["post_discovery_polls"][str(pid)]
+    assert final["end_monotonic_seconds"] + host.EXIT_WAIT_RETRY_RESERVE_SECONDS <= wait["deadline_monotonic_seconds"]
+    assert final["end_monotonic_seconds"] <= second["begin_monotonic_seconds"] <= wait["deadline_monotonic_seconds"]
+    assert host.validate_sample(sample)["host_pss_complete"]
+    assert sample["process_host_memory"][str(pid)]["address_space_released"] is True
+    first_only = copy.deepcopy(receipt)
+    first_only["attempts"] = [first]
+    first_only["final_attempt"] = 0
+    derived = host.summarize_collection(first_only)
+    assert not derived["host_pss_complete"]
+    assert derived["process_host_memory"][str(pid)] == {}
+    assert derived["host_observed_complete_attempt_pss_peak_bytes"] is None
+    for old_method in (host.LIVE_THREAD_METHOD, host.THREAD_EXIT_METHOD):
+        first_only["protocol"] = old_method
+        with pytest.raises(ValueError, match="older method"):
+            host.summarize_collection(first_only)
+    request.node.user_properties.append(("actual_delayed_thread_pidfd_wait", json.dumps(sample, sort_keys=True)))
+
+
+@pytest.mark.parametrize("method", [host.THREAD_EXIT_METHOD, host.METHOD])
+def test_thread_exit_wait_without_release_preserves_missing_memory(live_thread, monkeypatch, method):
+    sample, pid, waits = _delayed_thread_exit(live_thread, monkeypatch, release=False, method=method)
+    assert len(waits) == (1 if method == host.METHOD else 0)
+    assert len(sample["host_collection"]["attempts"]) == 1
+    assert not host.validate_sample(sample)["host_pss_complete"]
+    assert sample["process_host_memory"][str(pid)] == {"rollup_unavailable": True}
+    assert "unproven_live_thread_memory" in sample["host_collection_errors"]
+
+
+@pytest.mark.parametrize("damage", ["permission", "tgid", "birth", "directory", "leader", "deadline", "unknown_poll"])
+def test_thread_exit_wait_requires_complete_identity_and_original_budget(live_thread, monkeypatch, damage):
+    sample, _, waits = _delayed_thread_exit(live_thread, monkeypatch, damage=damage)
+    assert waits == []
+    assert len(sample["host_collection"]["attempts"]) == 1
+    assert not host.validate_sample(sample)["host_pss_complete"]
+
+
+@pytest.mark.parametrize(
+    "damage", ["missing_wait", "initial_ready", "unknown_final", "extended_deadline", "reserve", "timeout", "late"]
+)
+def test_thread_exit_wait_receipt_cannot_invent_readiness_or_time(live_thread, monkeypatch, damage):
+    sample, pid, _ = _delayed_thread_exit(live_thread, monkeypatch)
+    first = sample["host_collection"]["attempts"][0]
+    wait = first["thread_exit_waits"][str(pid)]
+    final = first["post_discovery_polls"][str(pid)]
+    if damage == "missing_wait":
+        del first["thread_exit_waits"]
+    elif damage == "initial_ready":
+        wait["initial_poll"]["events"] = [select.POLLIN]
+    elif damage == "unknown_final":
+        final["events"] = [select.POLLERR]
+    elif damage == "extended_deadline":
+        wait["deadline_monotonic_seconds"] += 1
+    elif damage == "reserve":
+        wait["retry_reserve_seconds"] = 0
+    elif damage == "timeout":
+        final["timeout_milliseconds"] = host.MAX_EXIT_WAIT_MILLISECONDS + 1
+    else:
+        final["end_monotonic_seconds"] = wait["deadline_monotonic_seconds"]
+    with pytest.raises(ValueError):
+        host.summarize_collection(sample["host_collection"])
