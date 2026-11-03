@@ -15,16 +15,19 @@ mkdir -p "$RESULTS"
 python -c 'import importlib.metadata; print("\n".join(sorted(f"{d.metadata["Name"]}=={d.version}" for d in importlib.metadata.distributions())))' > "$RESULTS/dependencies.txt"
 nvidia-smi -q > "$RESULTS/device.txt"
 for arm in adamw adamw_bnb_8bit paged_adamw_8bit; do
+  export PROBE_ARM="$arm"
   export IMAGINAIRE_OUTPUT_ROOT="$RESULTS/$arm"
   impl=''
   if [[ "$arm" == adamw ]]; then impl=fused; fi
   date -u +%FT%TZ > "$RESULTS/$arm.start"
-  torchrun --standalone --nproc-per-node=1 -m cosmos_framework.posttrain.entrypoints.sft \
+  entry=(-m cosmos_framework.posttrain.entrypoints.sft)
+  if [[ "${TELEMETRY:-0}" == 1 ]]; then entry=("$SOURCE/tools/quantized_optimizers/native_probe.py"); fi
+  torchrun --standalone --nproc-per-node=1 "${entry[@]}" \
     --config cosmos_framework/posttrain/configs/sft_quantized_optimizer.py -- \
     "job.name=$arm" "rl.seed=${SEED:-17}" "rl.max_steps=${STEPS:-3}" rl.grad_accum=1 rl.save_every=0 \
     rl.max_length=4096 'rl.optimizer.train_keys=[layers.31.]' \
     "rl.optimizer.name=$arm" "rl.optimizer.impl=$impl" \
-    rl.validation.max_samples=2 rl.validation.every_steps=3 \
+    "rl.validation.max_samples=${VAL_SAMPLES:-2}" "rl.validation.every_steps=${STEPS:-3}" \
     'rl.processor_kwargs.videos_kwargs.num_frames=4' \
     > "$RESULTS/$arm.log" 2>&1
   date -u +%FT%TZ > "$RESULTS/$arm.end"

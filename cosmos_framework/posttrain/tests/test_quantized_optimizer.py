@@ -221,11 +221,22 @@ def test_frozen_selection_stays_out():
     assert opt.param_groups[0]["params"] == [net.bias]
 
 
-def test_paged_buffer_lifetime_follows_storage_aliases():
+def test_paged_buffer_lifetime_follows_storage_aliases(monkeypatch):
     import gc
 
     if not torch.cuda.is_available():
         pytest.skip("CUDA required")
+    from bitsandbytes.cextension import lib
+
+    actual_free = lib._lib.cudaFree
+    results = []
+
+    def recorded_free(pointer):
+        result = actual_free(pointer)
+        results.append(result)
+        return result
+
+    monkeypatch.setattr(lib._lib, "cudaFree", recorded_free)
     net = torch.nn.Linear(512, 256, device="cuda", bias=False)
     opt = build_optimizer(net, OptimizerConfig(name="paged_adamw_8bit"))
     net.weight.grad = torch.ones_like(net.weight)
@@ -243,3 +254,5 @@ def test_paged_buffer_lifetime_follows_storage_aliases():
     del alias
     gc.collect()
     assert owner() is None
+    assert len(results) >= 4  # scratch preflight + two live moments
+    assert results == [0] * len(results)  # real cudaFree succeeded for every allocation

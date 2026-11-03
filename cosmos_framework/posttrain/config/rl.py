@@ -301,6 +301,8 @@ class OptimizerConfig:
             self.bnb_min_8bit_size != 4096 or self.bnb_fp32_state_names
         ):
             raise ValueError("bnb state options require a bitsandbytes optimizer")
+        if self.name in ("adamw_bnb_8bit", "paged_adamw_8bit") and not self.force_finite_grads:
+            raise ValueError("bitsandbytes optimizers require force_finite_grads=True")
         if self.name not in OPTIMIZER_NAMES:
             raise ValueError(f"OptimizerConfig.name={self.name!r} must be one of {OPTIMIZER_NAMES}")
         if self.name == "muon":
