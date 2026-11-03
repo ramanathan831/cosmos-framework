@@ -115,7 +115,7 @@ torchrun --standalone --nproc-per-node=1 \
 
 Run the equivalent control with `--config cosmos_framework/posttrain/configs/sft_qwen3_vl_8b_lora.py`, a distinct `job.name`, and identical overrides. Its frozen base is BF16. Both recipes use rank 16, alpha 32, FP32 adapters and fused AdamW, BF16 compute, SDPA, and full native non-reentrant activation checkpointing. They preserve native media processing and assistant-token loss masks.
 
-The allowlist contains 252 language attention/MLP matrices; vision, projectors, embeddings, output head, and normalization parameters remain frozen BF16. NF4 uses packed UINT8 storage, block size 64, and nested scale quantization. Optimizer membership is exactly the 504 adapter tensors. A failed capability or kernel check has no dense fallback.
+The default allowlist quantizes 252 language attention/MLP matrices; vision, projectors, embeddings, output head, and normalization parameters remain frozen BF16. NF4 uses packed UINT8 storage, block size 64, and nested scale quantization. Optimizer membership is exactly the 504 adapter tensors. A failed capability or kernel check has no dense fallback.
 
 The default comparison recipe is 300 updates, accumulation 8, sequence limit 4096, and image area budget 65,536–262,144 pixels. The pinned Transformers 5.8.1 Qwen3-VL video processor bounds the total `T × H × W`: eight frames use budgets 32,768–524,288, equivalent to 4,096–65,536 pixels per frame before resize rounding. Change both total budgets when changing frame count, and record the actual resized dimensions and visual-token count. A short canary changes those schedule/batch settings and is a separate experiment. Do not extend it by changing its horizon during exact resume.
 
@@ -160,7 +160,7 @@ Run the BF16 control with `sft_qwen3_vl_8b_lora.py`, a distinct output name and 
 
 ## Experimental residual initialization
 
-The opt-in `nf4_residual_svd` initializer compensates for the **actual fixed NF4 base** before training. It is implemented but still requires accelerator, task-quality, complete-cost and recovery qualification. Ordinary zero-B LoRA remains the default; no quality or speed improvement is established by enabling this option.
+The opt-in `nf4_residual_svd` initializer compensates for the **actual fixed NF4 base** before training. Its accelerator preparation, 20-update training and fresh-process reload checks are recorded in the [ongoing qualification](native_qlora_qualification.md#ongoing-improvement-campaign); matched task-quality, complete-cost and recovery qualification remain open. Ordinary zero-B LoRA remains the default; no quality or speed improvement is established by enabling this option.
 
 For each of the 252 language matrices, explicit preparation approximates `FP32(source_BF16) - FP32(dequantize(actual_NF4))` with FP32 factors such that `(alpha / rank) * B @ A` approximates the residual. The actual dequantization is BF16. The solver uses a seeded randomized reduced SVD, oversampling 16 and two power iterations. It processes one source matrix and its actual dequantization at a time; it never materializes the full dense model on the GPU. The NF4 packed weights and quantization metadata remain unchanged. Recorded Frobenius errors are weight-space diagnostics; BF16 arithmetic, activation distributions and downstream layers still require model-output and task checks.
 
@@ -186,6 +186,20 @@ model.model_config.adapter.initialization_artifact_sha256="$QLORA_INITIALIZER_SH
 The manifest is committed last and binds all factor files, exact source and quantized-state fingerprints, targets, configuration, algorithm and runtime/build identity. Incomplete, changed or incompatible bundles fail. Keep the complete bundle alongside adapter and resume artifacts: this first implementation requires its verified factors during reconstruction, even when trained adapter weights will subsequently be restored. Construction and resume only read the cache; they never repeat the decomposition. Relocating an identical bundle is allowed, but changing its content, seed or runtime identity requires separate qualification.
 
 This option uses `cosmos.adapter-model.v3` identity and initially requires FP32 adapter computation. Existing zero-B identities remain unchanged. A nonzero compensating adapter is an **initialized, untrained adapter**, not the frozen zero-B reference. Reload parity compares the same initialized/trained configuration with itself. Charge preparation, calibration, loading and artifact costs to the NF4 recipe when comparing total compute and time to quality.
+
+## Experimental language-block exclusions
+
+The optional `model.model_config.quantized_base.excluded_language_layers` accepts at most two distinct integer block IDs from 0 through 35. For example, append this override to the native NF4 launch:
+
+```bash
+'model.model_config.quantized_base.excluded_language_layers=[6,15]'
+```
+
+Each excluded block keeps its seven language projections in the original frozen BF16 source precision. All 252 LoRA targets and 504 FP32 adapter parameters remain trainable; exclusions change base representation, not adapter coverage. The loader materializes these dense weights directly and quantizes only the remaining matrices, giving 245 or 238 NF4 matrices for one or two exclusions. Vision, projector, embedding, head and normalization exclusions remain unchanged. This option cannot be combined with residual initialization.
+
+The [configuration and loader tests](../../cosmos_framework/posttrain/tests/test_quantized_exclusions.py) cover exact resolved coverage, optimizer membership, frozen-state checks, legacy identity preservation and incompatible reload/resume refusal. Nonempty exclusions use `cosmos.adapter-model.v4`, recording the dense and quantized target sets explicitly; an empty list preserves existing identities. Reload and resume must reconstruct the same exclusions before allocating the base.
+
+This is a bounded development option, not a qualified recipe. The [training-only sensitivity diagnostic](native_qlora_qualification.md#ongoing-improvement-campaign) motivates blocks 6 and 15, but their accuracy effects are not additive evidence. Actual mixed-base training, memory, fresh-process reload, interruption/recovery and grouped development evaluation are required before promotion. The example does not claim better task quality or speed.
 
 ## Experimental performance controls
 

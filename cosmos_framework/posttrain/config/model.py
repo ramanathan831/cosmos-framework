@@ -251,6 +251,8 @@ class QuantizedBaseTrainingConfig:
     compute_dtype: str = "bfloat16"
     target_profile: str = "qwen3_vl_8b_language_v1"
     offload: str = "none"
+    # Keep at most two complete language blocks dense; their LoRA targets remain.
+    excluded_language_layers: tuple[int, ...] = ()
 
     def __post_init__(self) -> None:
         required = {
@@ -270,6 +272,27 @@ class QuantizedBaseTrainingConfig:
             raise ValueError("QuantizedBaseTrainingConfig.block_size supports only 64")
         if self.nested is not True:
             raise ValueError("QuantizedBaseTrainingConfig.nested must be True")
+        layers = self.excluded_language_layers
+        if (
+            not isinstance(layers, Sequence)
+            or isinstance(layers, (str, bytes))
+            or len(layers) > 2
+            or any(type(layer) is not int or not 0 <= layer < 36 for layer in layers)
+            or len(set(layers)) != len(layers)
+        ):
+            raise ValueError("excluded_language_layers requires at most two distinct integer block IDs in [0, 35]")
+        self.excluded_language_layers = tuple(sorted(layers))
+
+
+def quantization_config_identity(quantization: QuantizedBaseTrainingConfig | None) -> dict[str, Any] | None:
+    """Retain legacy NF4 identities exactly; bind nonempty dense-block choices."""
+    if quantization is None:
+        return None
+    quantization.__post_init__()
+    identity = asdict(quantization)
+    if not quantization.excluded_language_layers:
+        identity.pop("excluded_language_layers")
+    return identity
 
 
 # Native adapter SAC must match the names dispatched by torch's SDPA backend,
@@ -393,6 +416,13 @@ class Qwen3VLModelConfig:
             and self.quantized_base is None
         ):
             raise ValueError("native residual initialization requires its frozen NF4 base")
+        if (
+            self.adapter is not None
+            and self.adapter.initialization == "nf4_residual_svd"
+            and self.quantized_base is not None
+            and self.quantized_base.excluded_language_layers
+        ):
+            raise ValueError("residual initialization with excluded language layers is not supported")
         if (
             self.adapter is not None
             and self.adapter.initialization == "nf4_residual_svd"

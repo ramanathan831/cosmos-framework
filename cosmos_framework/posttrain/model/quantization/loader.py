@@ -13,7 +13,7 @@ import hashlib
 import json
 import os
 import platform
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from importlib.metadata import version
 from pathlib import Path
 from types import MethodType, SimpleNamespace
@@ -23,6 +23,7 @@ import torch
 import torch.distributed as dist
 import torch.nn as nn
 
+from cosmos_framework.posttrain.config.model import quantization_config_identity
 from cosmos_framework.utils.generator.lora import LoraInjectedLinear, NativeLoRAMixin
 
 PROFILE = "qwen3_vl_8b_language_v1"
@@ -97,8 +98,15 @@ def execution_config_from_identity(identity: dict[str, Any]) -> dict[str, Any]:
 
     policy = identity.get("execution_policy")
     model_format = identity.get("format")
-    if model_format not in (None, "cosmos.adapter-model.v1", "cosmos.adapter-model.v2", "cosmos.adapter-model.v3"):
+    if model_format not in (
+        None,
+        "cosmos.adapter-model.v1",
+        "cosmos.adapter-model.v2",
+        "cosmos.adapter-model.v3",
+        "cosmos.adapter-model.v4",
+    ):
         raise ValueError("unsupported native adapter model identity format")
+    validate_quantization_coverage_identity(identity)
     if model_format == "cosmos.adapter-model.v3":
         from cosmos_framework.posttrain.model.quantization.initialization import METHOD, validate_initialization_record
 
@@ -108,7 +116,7 @@ def execution_config_from_identity(identity: dict[str, Any]) -> dict[str, Any]:
             not isinstance(adapter, dict)
             or adapter.get("initialization") != METHOD
             or adapter.get("initialization_artifact_sha256") != identity["initialization"]["artifact_manifest_sha256"]
-            or identity.get("quantization") != asdict(QuantizedBaseTrainingConfig())
+            or identity.get("quantization") != quantization_config_identity(QuantizedBaseTrainingConfig())
         ):
             raise ValueError("residual initialization identity requires its exact adapter artifact and NF4 base")
     elif "initialization" in identity or (
@@ -157,6 +165,11 @@ def execution_config_from_identity(identity: dict[str, Any]) -> dict[str, Any]:
 def validate_execution_policy_identity(cfg: Any, identity: dict[str, Any]) -> None:
     """Reject changed/missing execution or math settings before allocating a base."""
     execution_config_from_identity(identity)
+    quantization = getattr(cfg, "quantized_base", None)
+    if identity.get("format") == "cosmos.adapter-model.v4" or getattr(quantization, "excluded_language_layers", ()):
+        expected = json.loads(json.dumps(quantization_config_identity(quantization)))
+        if identity.get("quantization") != expected:
+            raise ValueError("adapter checkpoint quantization exclusions differ from configuration")
     if identity.get("execution_policy") != resolved_execution_policy(cfg):
         raise ValueError("adapter checkpoint execution policy or runtime math precision differs from configuration")
 
@@ -177,6 +190,66 @@ def canonical_targets() -> dict[str, tuple[int, int]]:
         for layer in range(36)
         for projection, shape in shapes.items()
     }
+
+
+def quantization_coverage(quantization: Any, targets: dict[str, Any]) -> dict[str, Any]:
+    """Partition complete adapter targets without changing their names or trainability."""
+    layers = tuple(getattr(quantization, "excluded_language_layers", ()))
+    # Revalidate even callers that changed an already-created config object.
+    if quantization is not None:
+        quantization_config_identity(quantization)
+        layers = quantization.excluded_language_layers
+    dense = set()
+    canonical = canonical_targets()
+    for layer in layers:
+        prefix = f"model.language_model.layers.{layer}."
+        expected = {name for name in canonical if name.startswith(prefix)}
+        actual = {name for name in targets if name.startswith(prefix)}
+        if len(expected) != 7 or actual != expected:
+            raise ValueError("excluded language layer does not match all seven exact canonical targets")
+        dense.update(expected)
+    return {
+        "protocol": "cosmos.native-quantization-coverage.v1",
+        "quantized_targets": sorted(set(targets) - dense) if quantization is not None else [],
+        "dense_language_targets": sorted(dense if quantization is not None else targets),
+    }
+
+
+def validate_quantization_coverage_identity(identity: dict[str, Any]) -> None:
+    """Admit explicit mixed-base v4 only; legacy model identities remain unchanged."""
+    from cosmos_framework.posttrain.config.model import QuantizedBaseTrainingConfig
+
+    quantization = identity.get("quantization")
+    if identity.get("format") != "cosmos.adapter-model.v4":
+        if "quantization_coverage" in identity or (
+            isinstance(quantization, dict) and "excluded_language_layers" in quantization
+        ):
+            raise ValueError("language-layer exclusions require model identity v4")
+        return
+    if not isinstance(quantization, dict):
+        raise ValueError("mixed-base v4 requires complete NF4 quantization metadata")
+    try:
+        cfg = QuantizedBaseTrainingConfig(**quantization)
+    except (TypeError, ValueError) as error:
+        raise ValueError("invalid mixed-base quantization configuration") from error
+    if not cfg.excluded_language_layers or quantization != json.loads(json.dumps(quantization_config_identity(cfg))):
+        raise ValueError("mixed-base v4 requires canonical nonempty exclusions")
+    expected = quantization_coverage(cfg, canonical_targets())
+    frozen = identity.get("excluded_frozen_tensors")
+    packed = identity.get("quantized_tensors")
+    if (
+        identity.get("quantization_coverage") != expected
+        or identity.get("targets") != {name: list(shape) for name, shape in sorted(canonical_targets().items())}
+        or not isinstance(packed, dict)
+        or set(packed) != set(expected["quantized_targets"])
+        or not isinstance(frozen, dict)
+        or not {name + ".weight" for name in expected["dense_language_targets"]} <= set(frozen)
+        or {name + ".weight" for name in expected["quantized_targets"]} & set(frozen)
+        or not isinstance(identity.get("adapter"), dict)
+        or identity["adapter"].get("initialization") != "kaiming_A_zero_B"
+        or "initialization" in identity
+    ):
+        raise ValueError("mixed-base identity coverage, frozen inventory or initialization differs")
 
 
 def resolve_targets(net: nn.Module) -> dict[str, nn.Linear]:
@@ -398,10 +471,17 @@ def validate_runtime(cfg: Any, model_config: Any, pdims: Any) -> torch.device:
         or not 0 <= adapter.dropout < 1
     ):
         raise ValueError("unsupported native ordinary LoRA configuration")
+    if quantization is not None:
+        quantization_config_identity(quantization)
     if adapter.initialization == "nf4_residual_svd" and (
-        quantization is None or getattr(cfg, "adapter_compute_dtype", "float32") != "float32" or adapter.rank > 1024
+        quantization is None
+        or getattr(cfg, "adapter_compute_dtype", "float32") != "float32"
+        or adapter.rank > 1024
+        or quantization.excluded_language_layers
     ):
-        raise ValueError("residual initialization requires NF4, FP32 adapter compute and rank at most 1024")
+        raise ValueError(
+            "residual initialization requires full NF4 coverage, FP32 adapter compute and rank at most 1024"
+        )
     if not dist.is_initialized() or dist.get_world_size() != 1 or int(os.environ.get("WORLD_SIZE", "1")) != 1:
         raise ValueError("native adapter qualification requires torchrun with exactly one process")
     if pdims is not None:
@@ -483,10 +563,13 @@ class NativeAdapterLifecycle:
         for parameter in net.parameters():
             parameter.requires_grad_(False)
         targets = resolve_targets(net)
+        self.coverage = quantization_coverage(self.cfg.quantized_base, targets)
+        self.quantized_targets = {}
+        quantized_names = set(self.coverage["quantized_targets"])
         for name, base in targets.items():
             if not base.weight.is_meta:
                 raise ValueError("native adapters must be inserted before base materialization")
-            if self.quantized:
+            if name in quantized_names:
                 from cosmos_framework.posttrain.model.quantization.bnb import NativeLoraLinear4bit
 
                 replacement = NativeLoraLinear4bit(
@@ -507,6 +590,8 @@ class NativeAdapterLifecycle:
             parent, _, attribute = name.rpartition(".")
             net.get_submodule(parent).register_module(attribute, replacement)
             self.targets[name] = replacement
+            if name in quantized_names:
+                self.quantized_targets[name] = replacement
         self.slots = parameter_slots(net)
         self.buffer_slots = {
             f"{name}.{attribute}" if name else attribute: TensorSlot(owner, attribute)
@@ -528,7 +613,7 @@ class NativeAdapterLifecycle:
                 raise ValueError(f"base source logical shape/BF16 dtype mismatch: {name}: {shape}, {dtype}")
 
     def materialize(self, net: nn.Module) -> None:
-        skip = {f"{name}.weight" for name in self.targets} if self.quantized else set()
+        skip = {f"{name}.weight" for name in self.quantized_targets}
         materialize_slots(self.slots, self.buffers, device=self.device, skip=skip)
 
     @torch.no_grad()
@@ -542,7 +627,7 @@ class NativeAdapterLifecycle:
                 for name in sorted(reader.keys()):
                     source = reader.get_tensor(name)
                     module_name = name.removesuffix(".weight")
-                    if self.quantized and module_name in self.targets:
+                    if module_name in self.quantized_targets:
                         self.targets[module_name].load_dense_weight_once(source, self.device)
                         if self.initialization_artifact is not None:
                             self.initialization_artifact.apply(module_name, self.targets[module_name], source)
@@ -565,7 +650,7 @@ class NativeAdapterLifecycle:
         expected_ids = {id(parameter) for parameter in parameters.values()}
         if len(parameters) != 504 or len(expected_ids) != 504:
             raise RuntimeError("native LoRA must have exactly 504 distinct trainable A/B parameters")
-        quantized_ids = {id(module.weight) for module in self.targets.values()} if self.quantized else set()
+        quantized_ids = {id(module.weight) for module in self.quantized_targets.values()}
         for parameter in net.parameters():
             is_adapter = id(parameter) in expected_ids
             expected_dtype = (
@@ -581,15 +666,13 @@ class NativeAdapterLifecycle:
         for buffer in net.buffers():
             if buffer.is_meta or buffer.device != self.device:
                 raise RuntimeError("native adapter construction left an unmaterialized/misplaced buffer")
-        quantized_records = (
-            {name: quantized_state_record(module) for name, module in sorted(self.targets.items())}
-            if self.quantized
-            else {}
-        )
+        quantized_records = {
+            name: quantized_state_record(module) for name, module in sorted(self.quantized_targets.items())
+        }
         frozen = {
             name: tensor_digest(slot.tensor)
             for name, slot in sorted(self.source_slots.items())
-            if not (self.quantized and name.removesuffix(".weight") in self.targets)
+            if name.removesuffix(".weight") not in self.quantized_targets
         }
         buffer_records = {name: tensor_digest(slot.tensor) for name, slot in sorted(self.buffer_slots.items())}
         from cosmos_framework.posttrain.config.model import native_adapter_config_identity
@@ -599,7 +682,7 @@ class NativeAdapterLifecycle:
             "base": self.source_identity,
             "model_format": "cosmos_native_qwen3_vl",
             "adapter": native_adapter_config_identity(self.cfg.adapter),
-            "quantization": asdict(self.cfg.quantized_base) if self.quantized else None,
+            "quantization": quantization_config_identity(self.cfg.quantized_base),
             "targets": {name: list(shape) for name, shape in sorted(canonical_targets().items())},
             "excluded_frozen_tensors": frozen,
             "base_buffers": buffer_records,
@@ -635,6 +718,10 @@ class NativeAdapterLifecycle:
         if self.initialization_artifact is not None:
             metadata["format"] = "cosmos.adapter-model.v3"
             metadata["initialization"] = self.initialization_artifact.identity()
+        if getattr(self.cfg.quantized_base, "excluded_language_layers", ()):
+            metadata["format"] = "cosmos.adapter-model.v4"
+            metadata["quantization_coverage"] = self.coverage
+            validate_quantization_coverage_identity(json.loads(json.dumps(metadata)))
         # Plain mappings keep references without registering a second model subtree.
         net._cosmos_adapter_parameters = parameters
         net._native_adapter_parameter_names = tuple(parameters)

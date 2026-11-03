@@ -7,14 +7,17 @@ from __future__ import annotations
 import copy
 import hashlib
 import sys
-from dataclasses import asdict
 from types import SimpleNamespace
 
 import pytest
 import torch
 from safetensors.torch import load_file, save_file
 
-from cosmos_framework.posttrain.config.model import NativeLoRAConfig, QuantizedBaseTrainingConfig
+from cosmos_framework.posttrain.config.model import (
+    NativeLoRAConfig,
+    QuantizedBaseTrainingConfig,
+    quantization_config_identity,
+)
 from cosmos_framework.posttrain.model.quantization import initialization as init
 from cosmos_framework.posttrain.model.quantization import loader
 from cosmos_framework.utils.generator.lora import LoraInjectedLinear
@@ -124,7 +127,7 @@ def cached(tmp_path, monkeypatch):
         "algorithm": copy.deepcopy(init.ALGORITHM),
         "base": {"revision": "fixed-source"},
         "adapter": init._adapter_record(config),
-        "quantization": asdict(quantization),
+        "quantization": quantization_config_identity(quantization),
         "targets": {"layer": list(shape)},
         "runtime": {"identity": {"fixture": "cpu"}, "elapsed_seconds": 0.0, "scope": "CPU fixture"},
         "matrices": {
@@ -301,7 +304,7 @@ def test_v3_identity_binds_artifact_and_preserves_legacy_default_policy(cached):
         "format": "cosmos.adapter-model.v3",
         "initialization": cached.artifact.identity(),
         "adapter": {"initialization": init.METHOD, "initialization_artifact_sha256": cached.artifact.sha256},
-        "quantization": asdict(cached.quantization),
+        "quantization": quantization_config_identity(cached.quantization),
     }
     assert loader.execution_config_from_identity(identity) == loader.execution_config_from_identity(
         {"format": "cosmos.adapter-model.v1"}
@@ -455,7 +458,7 @@ def test_native_load_finalize_and_checkpoint_rebuild_reuse_all_cached_factors_wi
             "algorithm": init.ALGORITHM,
             "base": {"fixture": "source"},
             "adapter": init._adapter_record(adapter),
-            "quantization": asdict(quant),
+            "quantization": quantization_config_identity(quant),
             "targets": {k: list(v) for k, v in sorted(targets.items())},
             "matrices": records,
             "runtime": {"identity": {"fixture": "cpu"}, "elapsed_seconds": 0.0, "scope": "CPU fixture"},
@@ -472,6 +475,7 @@ def test_native_load_finalize_and_checkpoint_rebuild_reuse_all_cached_factors_wi
         )
         lifecycle.device, lifecycle.loaded, lifecycle.quantized = torch.device("cpu"), False, True
         lifecycle.targets = dict(net.items())
+        lifecycle.quantized_targets = dict(lifecycle.targets)
         lifecycle.inventory = loader._safetensor_inventory(snapshot)
         lifecycle.source_slots = {name + ".weight": loader.TensorSlot(module, "weight") for name, module in net.items()}
         lifecycle.source_identity, lifecycle.buffer_slots = {"fixture": "source"}, {}

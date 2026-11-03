@@ -21,12 +21,13 @@ import os
 import platform
 import tempfile
 import time
-from dataclasses import asdict
 from importlib.metadata import version
 from pathlib import Path
 from typing import Any
 
 import torch
+
+from cosmos_framework.posttrain.config.model import quantization_config_identity
 
 METHOD = "nf4_residual_svd"
 ARTIFACT_PROTOCOL = "cosmos.native-nf4-residual-initialization.v1"
@@ -238,6 +239,9 @@ class InitializationArtifact:
     ) -> None:
         from cosmos_framework.posttrain.model.quantization.loader import canonical_targets
 
+        if getattr(quantization, "excluded_language_layers", ()):
+            raise ValueError("residual initialization with excluded language layers is not supported")
+
         supplied = Path(path)
         if supplied.is_symlink() or not supplied.is_file() or supplied.name != "manifest.json":
             raise ValueError("residual initialization requires a committed manifest.json artifact")
@@ -268,7 +272,7 @@ class InitializationArtifact:
             or m["adapter"] != _plain(_adapter_record(adapter))
             or m["adapter"].get("initialization") != METHOD
             or quantization is None
-            or m["quantization"] != _plain(asdict(quantization))
+            or m["quantization"] != _plain(quantization_config_identity(quantization))
             or m["targets"] != targets
             or not isinstance(m["matrices"], dict)
             or set(m["matrices"]) != set(targets)
@@ -434,6 +438,10 @@ def prepare_initialization_artifact(
     last with an atomic, non-overwriting hard link. Failed partial outputs have
     no committed manifest and cannot be reused as a successful preparation.
     """
+    if cfg.adapter.initialization not in ("kaiming_A_zero_B", METHOD) or cfg.quantized_base is None:
+        raise ValueError("residual preparation requires explicit native NF4 residual initialization")
+    if cfg.quantized_base.excluded_language_layers:
+        raise ValueError("residual preparation with excluded language layers is not supported")
     from safetensors import safe_open
     from safetensors.torch import save_file
 
@@ -448,8 +456,6 @@ def prepare_initialization_artifact(
     )
     from cosmos_framework.posttrain.model.quantization.source import validate_adapter_source
 
-    if cfg.adapter.initialization not in ("kaiming_A_zero_B", METHOD) or cfg.quantized_base is None:
-        raise ValueError("residual preparation requires explicit native NF4 residual initialization")
     base = validate_adapter_source(cfg)
     device = validate_runtime(cfg, model_config, pdims)
     if not 1 <= cfg.adapter.rank <= 1024:
@@ -538,7 +544,7 @@ def prepare_initialization_artifact(
         "algorithm": _plain(ALGORITHM),
         "base": base,
         "adapter": _adapter_record(cfg.adapter),
-        "quantization": asdict(cfg.quantized_base),
+        "quantization": quantization_config_identity(cfg.quantized_base),
         "targets": {name: list(shape) for name, shape in targets.items()},
         "matrices": matrices,
         "runtime": {

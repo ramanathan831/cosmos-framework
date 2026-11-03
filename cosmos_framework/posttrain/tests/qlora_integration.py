@@ -426,6 +426,16 @@ def _restore_probe_execution(config: Any, identity: dict[str, Any], overrides: l
         if f"model.model_config.{name}" in explicit and getattr(cfg, name) != value:
             raise ValueError(f"explicit adapter reload override {name} differs from the checkpoint")
         setattr(cfg, name, value)
+    if identity.get("format") == "cosmos.adapter-model.v4":
+        if cfg.quantized_base is None:
+            raise ValueError("mixed-base reload requires an NF4 recipe")
+        layers = identity["quantization"]["excluded_language_layers"]
+        key = "model.model_config.quantized_base.excluded_language_layers"
+        if {key, "model.model_config.quantized_base"} & explicit and tuple(
+            cfg.quantized_base.excluded_language_layers
+        ) != tuple(layers):
+            raise ValueError("explicit adapter reload exclusions differ from the checkpoint")
+        cfg.quantized_base.excluded_language_layers = list(layers)
     validate_execution_policy_identity(instantiate(cfg), identity)
 
 

@@ -145,6 +145,7 @@ def read_adapter_metadata(
             "cosmos.adapter-model.v1",
             "cosmos.adapter-model.v2",
             "cosmos.adapter-model.v3",
+            "cosmos.adapter-model.v4",
         ):
             raise ValueError("native adapter metadata requires a supported model identity format")
         execution_config_from_identity(identity)

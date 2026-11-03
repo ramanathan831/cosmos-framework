@@ -244,6 +244,7 @@ def test_stream_loader_copies_into_final_slots_without_full_state_dict(tmp_path)
     lifecycle.loaded = False
     lifecycle.quantized = False
     lifecycle.targets = {}
+    lifecycle.quantized_targets = {}
     lifecycle.source_slots = parameter_slots(net)
     lifecycle.inventory = _safetensor_inventory(tmp_path)
     net.state_dict = lambda *args, **kwargs: pytest.fail("full-model state_dict extraction is prohibited")

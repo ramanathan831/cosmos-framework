@@ -3,13 +3,12 @@
 """Entrypoint-bound preprocessing identity and real CPU DCP admission."""
 
 import copy
-from dataclasses import asdict
 from types import SimpleNamespace
 from unittest.mock import Mock
 
 import pytest
 
-from cosmos_framework.posttrain.config.model import native_adapter_config_identity
+from cosmos_framework.posttrain.config.model import native_adapter_config_identity, quantization_config_identity
 from cosmos_framework.posttrain.configs.sft_qwen3_vl_8b_qlora import make_config
 from cosmos_framework.posttrain.entrypoints import sft
 from cosmos_framework.posttrain.tests.test_checkpoint_adapter import _save, _trainer
@@ -104,7 +103,7 @@ def test_real_preprocessing_checkpoint_accepts_same_workers_and_refuses_changed_
     trainer._adapter_checkpoint_codec().identity = {
         "base": dict(model_config.source_identity),
         "adapter": native_adapter_config_identity(model_config.adapter),
-        "quantization": asdict(model_config.quantized_base),
+        "quantization": quantization_config_identity(model_config.quantized_base),
         "processor_contract": processor,
         "training_contract": training,
     }
@@ -139,7 +138,7 @@ def test_legacy_hash_routing_checkpoint_is_rejected_before_backbone(wiring, tmp_
     trainer._adapter_checkpoint_codec().identity = {
         "base": dict(model_config.source_identity),
         "adapter": native_adapter_config_identity(model_config.adapter),
-        "quantization": asdict(model_config.quantized_base),
+        "quantization": quantization_config_identity(model_config.quantized_base),
         "processor_contract": processor,
         "training_contract": training,
     }
