@@ -208,6 +208,11 @@ class OptimizerConfig:
       Fine for fp32 nets (toys/tests); do NOT use for real bf16 posttraining.
     - "fusedadam" — apex-fused AdamW with fp32 master weights + fp32 moments
       (`utils/fused_adam.py`). Requires apex + GPU (training containers ship it).
+    - "adamw_bnb_8bit" / "paged_adamw_8bit" — bitsandbytes 0.49.2 blockwise
+      eight-bit moments, with managed memory only for the paged name. Native SFT,
+      one CUDA device, ordinary FP32 trainables, consolidated checkpoints. Small
+      tensors and exact-name `bnb_fp32_state_names` exceptions retain FP32 moments.
+      Neither backend supplies master weights for BF16-stored trainables.
     - "muon" — the shared `MuonWithAuxAdamW`: Muon for hidden `nn.Linear` weights and explicitly
       declared stacked MoE expert matrices, with its auxiliary fused AdamW route for embeddings,
       output heads, routers, norms, biases, convolutions and other parameters. Fused expert gate/up

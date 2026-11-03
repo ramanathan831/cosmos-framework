@@ -175,12 +175,14 @@ def build_quantized_optimizer(net, params, config):
                 "storage": "float32",
                 "topology": "single_cuda",
                 "min_8bit_size": config.bnb_min_8bit_size,
+                "warmup_steps": config.warmup_steps,
                 "fp32_state_names": sorted(exceptions),
                 "groups": [
                     {
                         "names": g["param_names"],
                         "shapes": [list(p.shape) for p in g["params"]],
                         "name": g.get("name"),
+                        "initial_lr": g["lr"],
                         "betas": tuple(g["betas"]),
                         "eps": g["eps"],
                         "weight_decay": g["weight_decay"],

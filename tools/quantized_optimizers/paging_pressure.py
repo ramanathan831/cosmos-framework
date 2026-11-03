@@ -48,10 +48,14 @@ def child(arm, pressure):
             torch.cuda.synchronize()
         row["ballast_bytes"] = 0 if ballast is None else ballast.numel()
         row["free_after_ballast"] = torch.cuda.mem_get_info()[0]
+        import pynvml
+
+        pynvml.nvmlInit()
         for index in range(3):
             started = time.perf_counter()
-            opt.step()
-            torch.cuda.synchronize()
+            with torch.cuda.nvtx.range(f"optimizer_update_{index}"):
+                opt.step()
+                torch.cuda.synchronize()
             row["samples"].append(
                 {
                     "index": index,
@@ -60,6 +64,15 @@ def child(arm, pressure):
                     "torch_peak": torch.cuda.max_memory_allocated(),
                     "torch_reserved": torch.cuda.memory_reserved(),
                     "device_used": torch.cuda.device_memory_used(),
+                    "process_gpu_bytes": sum(
+                        process.usedGpuMemory
+                        for device in range(pynvml.nvmlDeviceGetCount())
+                        for process in pynvml.nvmlDeviceGetComputeRunningProcesses(
+                            pynvml.nvmlDeviceGetHandleByIndex(device)
+                        )
+                        if process.pid == os.getpid()
+                    )
+                    or None,
                     "host": {
                         line.split(":", 1)[0]: line.split(":", 1)[1].strip()
                         for line in Path("/proc/self/status").read_text().splitlines()

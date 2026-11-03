@@ -101,6 +101,10 @@ torch.save({'net':n.state_dict(),'opt':o.state_dict(),'scheduler':lr.state_dict(
     broken["cosmos_quantized_optimizer"]["name"] = "adamw"
     with pytest.raises(ValueError, match="identity"):
         opt.load_state_dict(broken)
+    changed = copy.deepcopy(cfg)
+    changed.lr *= 2
+    with pytest.raises(ValueError, match="identity"):
+        build_optimizer(net, changed).load_state_dict(saved)
     (tmp_path / "report.json").write_text(json.dumps(report))
 
 
@@ -149,6 +153,25 @@ def test_native_sft_transaction(name, tmp_path):
     trainer = build()
     for _ in range(4):
         trainer.train(batch)
+    before_state = trainer.opt.state_dict()
+    before_scheduler = copy.deepcopy(trainer.lr_scheduler.state_dict())
+    before_weights = [p.detach().clone() for p in trainer.model.parameters()]
+    before_step = trainer._trainer_state()["optimizer_step"]
+    assert trainer.train(batch)["optim/update_outcome"] == "accumulating"
+    hook = next(trainer.model.parameters()).register_hook(lambda grad: grad * float("nan"))
+    try:
+        refused = trainer.train(batch)
+    finally:
+        hook.remove()
+    assert refused["optim/skip_reason"] == "nonfinite_gradient"
+    assert trainer._trainer_state()["optimizer_step"] == before_step
+    assert trainer.lr_scheduler.state_dict() == before_scheduler
+    assert all(torch.equal(a, b) for a, b in zip(before_weights, trainer.model.parameters()))
+    after_state = trainer.opt.state_dict()
+    for index, state in before_state["state"].items():
+        for key, value in state.items():
+            actual = after_state["state"][index][key]
+            assert torch.equal(value, actual) if isinstance(value, torch.Tensor) else value == actual
     path = str(tmp_path / "iter_000002")
     trainer.save(path, data_state={"cursor": 4})
     expected_rng = torch.cuda.get_rng_state()
