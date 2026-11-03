@@ -6,7 +6,7 @@
     29,
     43
   ],
-  "minutes_per_job": 60,
+  "minutes_per_job": 30,
   "concurrency": 1,
   "model": "Qwen/Qwen3-VL-8B-Instruct@0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
   "trainable_layers": [
@@ -44,7 +44,7 @@
   "precision_exception_rationale": "FP32 states for small norm tensors cost little memory; no changed weight storage or invented master copies",
   "stop_conditions": [
     "OOM or correctness failure: stop dependent comparisons, fix and reassess",
-    "do not exceed three new one-hour allocations or overall eight GPU-hour budget",
+    "Do not exceed five more 30-minute allocations, 180 development GPU minutes including failures, or the overall eight GPU-hour campaign budget",
     "never reinterpret reused groups as final test data"
   ],
   "capacity_selection": "Before substantive training, try descending microbatches 4,2,1 separately for each arm; retain OOM failures, abort on other failures. Same effective batch 4 and model/data/precision. Freeze chosen batches across seeds; never select using quality outcomes.",
@@ -55,13 +55,15 @@
     "max": 1048576
   },
   "media_amendment": "Before any full comparison, actual capacity telemetry showed inherited settings produced 64x96 frames. Cancel unallocated replacement 37930554 (zero GPU hours); repeat calibration with larger media budget and verify actual shapes before substantive training. Original low-resolution probes remain diagnostic evidence.",
-  "max_new_gpu_allocations": 3,
-  "allocation_accounting": "The three-allocation cap counts the failed allocated calibration plus two remaining allocated jobs. The canceled pending job consumed zero GPU time; it is preserved separately.",
+  "max_new_gpu_allocations": 6,
+  "allocation_accounting": "Failed calibration 37929866 consumed 673 GPU-seconds. Canceled pending job 37930554 consumed zero. At most five subsequent 30-minute allocations: the original three-GPU-hour development ceiling and eight-GPU-hour campaign ceiling are unchanged.",
   "actual_shape_canary_gate": {
     "temporal_grid_min": 4,
     "spatial_patch_product_min": 128,
     "sequence_length_min": 512,
     "mean_supervised_tokens_per_sequence_min": 64,
     "scope": "all capacity canary training forwards/updates; full-run shapes/counts reported without extrapolation"
-  }
+  },
+  "max_development_gpu_minutes": 180,
+  "allocation_amendment": "Before full comparisons, the one-hour normal job had no start estimate after extended priority queuing. Repack unused development GPU minutes into shorter serial slots; preserve all seeds, steps, rows, thresholds and failure accounting. Stop after five more allocations or 180 development GPU minutes, whichever occurs first."
 }

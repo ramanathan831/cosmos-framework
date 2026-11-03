@@ -21,7 +21,7 @@ for seed, arm in plan:
     output = root / f"seed{seed}" / arm
     if (output / "complete.json").exists():
         continue
-    if 3500 - (time.monotonic() - started) < 600:
+    if int(os.environ.get("WORK_SECONDS", "3500")) - (time.monotonic() - started) < 600:
         (root / "pending.json").write_text(json.dumps({"next_seed": seed, "next_arm": arm}) + "\n")
         break
     if output.exists():
