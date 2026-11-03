@@ -2,6 +2,10 @@
 set -euo pipefail
 : "${SOURCE:?}" "${ASSETS:?}" "${RESULTS:?}"
 export PATH="$ASSETS/environment/bin:/usr/local/bin:/usr/bin:/bin"
+if [[ -n "${RUNTIME_ARCHIVE:-}" ]]; then
+  RUNTIME_OVERLAY=$(mktemp -d /tmp/cosmos-optimizer-runtime.XXXXXX)
+  tar -xzf "$RUNTIME_ARCHIVE" -C "$RUNTIME_OVERLAY"
+fi
 export PYTHONPATH="$SOURCE${RUNTIME_OVERLAY:+:$RUNTIME_OVERLAY}" PYTHONDONTWRITEBYTECODE=1
 export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 WANDB_MODE=disabled OMP_NUM_THREADS=8
 export SFT_MODEL_PATH="$ASSETS/models/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b"
