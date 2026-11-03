@@ -16,5 +16,5 @@ scontrol show job "$SLURM_JOB_ID" > "$RESULTS/job.txt"
 trap 'status=$?; echo "$status" > "$RESULTS/exit-code.txt"' EXIT
 srun --kill-on-bad-exit=1 --container-image="$CONTAINER_IMAGE" \
   --container-mounts=/lustre:/lustre --container-workdir="$SOURCE" --container-writable \
-  --container-env=SOURCE,ASSETS,RESULTS \
+  --container-env=SOURCE,ASSETS,RESULTS,RUNTIME_OVERLAY,STEPS,SEED \
   bash "$SOURCE/tools/quantized_optimizers/native_canary.sh"
