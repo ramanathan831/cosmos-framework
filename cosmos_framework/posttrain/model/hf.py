@@ -174,6 +174,7 @@ class HFModel(nn.Module):
         master_dtype: torch.dtype | None = None,
         reduce_dtype: torch.dtype = torch.float32,
         mixed_precision_mode: str = "fsdp",
+        synchronize_multimodal_forward: bool = True,
     ) -> None:
         """Build the HF body on meta and declare its shard/load plans.
 
@@ -318,10 +319,18 @@ class HFModel(nn.Module):
         # happen BEFORE setup()/parallelize() so FSDP captures the patched forward. Import is
         # guarded on the qwen3_vl model_type so the LLM path never imports the VLM monkey_patch.
         if hf_config.model_type == "qwen3_vl" and hasattr(self.model, "model"):
+            import transformers
+
             from cosmos_framework.utils.generator.monkey_patch import patch_qwen3_vl_forward
 
-            patch_qwen3_vl_forward(self.model.model)
-            logger.info("HFModel: applied patch_qwen3_vl_forward for text-only batch support")
+            if transformers.__version__.startswith("4.57.") or synchronize_multimodal_forward:
+                patch_qwen3_vl_forward(self.model.model)
+                logger.info("HFModel: applied patch_qwen3_vl_forward for text-only batch support")
+            else:
+                # Native SFT requires Transformers >=5.8.1. Its ordinary single-device
+                # forward needs no cross-rank visual-call synchronization; the 4.57-only
+                # patch has a different API and must not be applied to this model.
+                logger.info("HFModel: using native unsharded Qwen3-VL forward")
         elif hf_config.model_type == "qwen3_5":
             # Keep the Transformers 5 import behind the family gate; RL retains its TF4 runtime.
             # Install before FSDP captures forwards so mixed-media ranks share a vision schedule.
@@ -601,6 +610,7 @@ def build_hf_model(
         master_dtype=getattr(torch, precision.master),
         reduce_dtype=getattr(torch, precision.reduce),
         mixed_precision_mode=precision.mode,
+        synchronize_multimodal_forward=bool(pdims is not None and (pdims.dp_shard_enabled or pdims.dp_replicate > 1)),
     )
     model.setup(pdims)
     return model
