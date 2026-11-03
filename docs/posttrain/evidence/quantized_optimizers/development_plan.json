@@ -56,5 +56,12 @@
   },
   "media_amendment": "Before any full comparison, actual capacity telemetry showed inherited settings produced 64x96 frames. Cancel unallocated replacement 37930554 (zero GPU hours); repeat calibration with larger media budget and verify actual shapes before substantive training. Original low-resolution probes remain diagnostic evidence.",
   "max_new_gpu_allocations": 3,
-  "allocation_accounting": "The three-allocation cap counts the failed allocated calibration plus two remaining allocated jobs. The canceled pending job consumed zero GPU time; it is preserved separately."
+  "allocation_accounting": "The three-allocation cap counts the failed allocated calibration plus two remaining allocated jobs. The canceled pending job consumed zero GPU time; it is preserved separately.",
+  "actual_shape_canary_gate": {
+    "temporal_grid_min": 4,
+    "spatial_patch_product_min": 128,
+    "sequence_length_min": 512,
+    "mean_supervised_tokens_per_sequence_min": 64,
+    "scope": "all capacity canary training forwards/updates; full-run shapes/counts reported without extrapolation"
+  }
 }

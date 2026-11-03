@@ -33,6 +33,23 @@ for arm in ("adamw", "adamw_bnb_8bit", "paged_adamw_8bit"):
         )
         (folder / "returncode.txt").write_text(str(run.returncode) + "\n")
         if run.returncode == 0:
+            if int(env.get("VIDEO_PIXELS", "65536")) > 65536:
+                telemetry = [
+                    json.loads(line) for line in (folder / (arm + ".telemetry.jsonl")).read_text().splitlines()
+                ]
+                training = [row for row in telemetry if row["kind"] == "forward" and row["grad_enabled"]]
+                if not training or any(
+                    not row.get("video_grid_thw")
+                    or any(t < 4 or h * w < 128 for t, h, w in row["video_grid_thw"])
+                    or min(row["sequence_lengths"]) < 512
+                    for row in training
+                ):
+                    raise RuntimeError(f"actual media/sequence shape gate failed: {folder}")
+                files = list((folder / arm).rglob("metrics.jsonl"))
+                rows = [json.loads(line) for line in files[0].read_text().splitlines()]
+                updates = [row for row in rows if "train/valid_token_count" in row]
+                if any(row["train/valid_token_count"] < 64 * row["train/valid_sequence_count"] for row in updates):
+                    raise RuntimeError(f"substantive target-token canary failed: {folder}")
             result[arm] = {"micro_batch": micro, "accumulation": 4 // micro, "evidence": str(folder)}
             break
         log = (folder / (arm + ".log")).read_text()
