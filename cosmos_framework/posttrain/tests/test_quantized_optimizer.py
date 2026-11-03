@@ -106,3 +106,111 @@ def test_reject_cpu_and_missing_selector():
     cfg = OptimizerConfig(name="adamw_bnb_8bit")
     with pytest.raises(ValueError, match="CUDA FP32"):
         build_optimizer(torch.nn.Linear(4, 4), cfg)
+
+
+@pytest.mark.parametrize("name", ["adamw_bnb_8bit", "paged_adamw_8bit"])
+def test_native_sft_transaction(name, tmp_path):
+    from types import SimpleNamespace
+
+    from cosmos_framework.posttrain.algorithm.sft import make_objective
+    from cosmos_framework.posttrain.roles.trainer.llm import LLMTrainer
+    from cosmos_framework.posttrain.tests.helpers.sft_objective import MemoryPacker, Policy
+
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA required")
+
+    class Net(torch.nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.embedding = torch.nn.Embedding(512, 256, device="cuda")
+            self.head = torch.nn.Linear(256, 512, device="cuda")
+
+        def forward(self, input_ids, attention_mask):
+            return SimpleNamespace(logits=self.head(self.embedding(input_ids)))
+
+    packer = MemoryPacker()
+    batch = [packer.add(list(range(64)), [-100] * 8 + list(range(8, 64)))]
+    cfg = OptimizerConfig(name=name, lr=0.001, warmup_steps=3)
+
+    def build():
+        policy = Policy(Net())
+        opt = build_optimizer(policy, cfg)
+        return LLMTrainer(
+            policy,
+            make_objective(packer),
+            opt,
+            grad_accum=2,
+            lr_scheduler=build_lr_scheduler(opt, cfg),
+            max_grad_norm=1.0,
+        )
+
+    trainer = build()
+    for _ in range(4):
+        trainer.train(batch)
+    path = str(tmp_path / "iter_000002")
+    trainer.save(path, data_state={"cursor": 4})
+    expected_rng = torch.cuda.get_rng_state()
+    restored = build()
+    restored.load(path)
+    assert torch.equal(torch.cuda.get_rng_state(), expected_rng)
+    assert restored.checkpoint_manager.load_component(path, "data") == {"cursor": 4}
+    assert restored.iteration() == trainer.iteration()
+    for _ in range(4):
+        trainer.train(batch)
+        restored.train(batch)
+    for a, b in zip(trainer.model.parameters(), restored.model.parameters()):
+        assert torch.equal(a, b)
+    assert trainer.lr_scheduler.state_dict() == restored.lr_scheduler.state_dict()
+
+
+def test_missing_dependency(monkeypatch):
+    import importlib.metadata
+
+    from cosmos_framework.utils.quantized_optimizer import require_backend
+
+    def missing(_):
+        raise importlib.metadata.PackageNotFoundError("bitsandbytes")
+
+    monkeypatch.setattr(importlib.metadata, "version", missing)
+    with pytest.raises(ImportError, match="quantized-optimizers"):
+        require_backend()
+
+
+def test_cuda_exceptions_are_local_and_restore_is_transactional():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA required")
+    a = torch.nn.Linear(128, 128, device="cuda")
+    b = torch.nn.Linear(128, 128, device="cuda")
+    first = build_optimizer(a, OptimizerConfig(name="adamw_bnb_8bit", bnb_fp32_state_names=["weight"]))
+    second = build_optimizer(b, OptimizerConfig(name="adamw_bnb_8bit"))
+    for net, opt in [(a, first), (b, second)]:
+        net.weight.grad = torch.ones_like(net.weight)
+        opt.step()
+    assert first.state[a.weight]["state1"].dtype == torch.float32
+    assert second.state[b.weight]["state1"].dtype == torch.uint8
+    saved = second.state_dict()
+    broken = copy.deepcopy(saved)
+    broken["state"][0]["absmax1"] = torch.zeros(1)
+    previous = second.state
+    with pytest.raises(ValueError, match="shape/dtype"):
+        second.load_state_dict(broken)
+    assert second.state is previous
+    b.weight.grad = torch.ones_like(b.weight).to_sparse()
+    with pytest.raises(ValueError, match="sparse"):
+        second.step()
+    assert second.state[b.weight]["step"] == 1
+    for cfg in [
+        OptimizerConfig(name="adamw_bnb_8bit", bnb_fp32_state_names=["missing"]),
+        OptimizerConfig(name="adamw_bnb_8bit", bnb_fp32_state_names=["bias", "missing"]),
+    ]:
+        with pytest.raises(ValueError, match="unmatched"):
+            build_optimizer(b, cfg)
+    with pytest.raises(ValueError, match="FP32"):
+        build_optimizer(b.to(torch.bfloat16), OptimizerConfig(name="adamw_bnb_8bit"))
+
+
+def test_frozen_selection_stays_out():
+    net = torch.nn.Linear(2, 2)
+    net.weight.requires_grad_(False)
+    opt = build_optimizer(net, OptimizerConfig(train_keys=["weight", "bias"]))
+    assert opt.param_groups[0]["params"] == [net.bias]

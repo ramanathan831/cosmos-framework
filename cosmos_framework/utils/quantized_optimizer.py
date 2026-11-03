@@ -132,13 +132,12 @@ def build_quantized_optimizer(net, params, config):
             if closure is not None:
                 raise ValueError("quantized optimizer closures are unsupported")
             # Precheck the WHOLE update, before moments or clocks can change.
-            for group in self.param_groups:
-                for p in group["params"]:
-                    if p.grad is not None:
-                        if p.grad.is_sparse:
-                            raise ValueError("quantized optimizer does not support sparse gradients")
-                        if not torch.isfinite(p.grad).all():
-                            raise FloatingPointError("nonfinite gradients: quantized update refused without mutation")
+            grads = [p.grad for g in self.param_groups for p in g["params"] if p.grad is not None]
+            if any(g.is_sparse for g in grads):
+                raise ValueError("quantized optimizer does not support sparse gradients")
+            # A single host decision and no full-size boolean intermediates.
+            if grads and not torch.isfinite(torch.stack(torch._foreach_norm(grads, float("inf")))).all():
+                raise FloatingPointError("nonfinite gradients: quantized update refused without mutation")
             result = super().step()
             count = sum(bool(s) for s in self.state.values())
             if count != self._reported_states:

@@ -697,7 +697,9 @@ def refuse_rounding_or_unavailable_optimizer(config: Any, opt_cfg: OptimizerConf
     else:
         return
     name = getattr(opt_cfg, "name", "adamw")
-    if name in ("adamw", "adamw_bnb_8bit", "paged_adamw_8bit") and storage != "float32":
+    if name in ("adamw_bnb_8bit", "paged_adamw_8bit") and storage != "float32":
+        raise ValueError(f"{name} requires FP32 trainable storage on {seat}; bitsandbytes has no FP32 master weights")
+    if name == "adamw" and storage != "float32":
         raise ValueError(
             f"OptimizerConfig(name='adamw') with parameter storage in {storage} on {seat} keeps its moments and "
             "update in that dtype, so most updates at lr 1e-5 round to zero; store parameters in float32 "

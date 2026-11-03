@@ -1477,6 +1477,12 @@ class LLMTrainer(BaseTrainer):
                 # does not materialize moments. The reset keeps a pristine checkpoint pristine even
                 # when it is loaded into a trainer that has already stepped, or was written before
                 # the emptied-state save.
+                if "cosmos_quantized_optimizer" in opt_sd and not getattr(
+                    self.opt, "cosmos_quantized_optimizer", False
+                ):
+                    raise ValueError(
+                        "quantized optimizer checkpoint requires the same optimizer family for exact resume"
+                    )
                 self.opt.load_state_dict(opt_sd)
                 if pristine:
                     self.reset_optimizer_to_pristine()
