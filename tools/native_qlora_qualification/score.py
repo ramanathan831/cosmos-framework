@@ -448,6 +448,9 @@ def aggregate(rows: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
+    cache_bytes = getattr(args, "preprocessing_cache_bytes", 0)
+    if type(cache_bytes) is not int or cache_bytes < 0:
+        raise ValueError("preprocessing cache bytes must be a nonnegative integer")
     if os.environ.get("WORLD_SIZE") != "1" or os.environ.get("RANK") != "0" or os.environ.get("LOCAL_RANK") != "0":
         raise ValueError("launch with torchrun --standalone --nproc-per-node=1; only rank zero/world one is supported")
     receipt = {
@@ -560,6 +563,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         raise ValueError("heldout comparison requires deterministic=True and ordinary dense token-mean CE")
     enable_determinism(strict=True)
     init_local_process_group()
+    preprocessing = None
     try:
         misc.set_random_seed(rl.seed, by_rank=False)
         model_source, trust = sft_policy_source(config)
@@ -587,6 +591,21 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         if saved is None and adapters_before != codec.identity["initial_adapters"]:
             raise RuntimeError("frozen-baseline arm must use exact initial adapters")
         model.net.eval()
+        if cache_bytes:
+            from cosmos_framework.posttrain.data.packer.sft_preprocess import build_sft_preprocessing
+
+            # The processor contract above remains that of the native packer.
+            # Omit workers: the original supported native build predates that
+            # keyword and is already single-worker; later builds default to one.
+            preprocessing = build_sft_preprocessing(
+                packer,
+                name_or_path=model_source,
+                cache_bytes=cache_bytes,
+                prefetch=False,
+                media_hashes={path: value["sha256"] for path, value in media.items()},
+                max_pending=1,
+            )
+            packer = preprocessing
         objective = make_objective(
             packer,
             ce_exponent=rl.ce_exponent,
@@ -626,6 +645,16 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             raise RuntimeError("data source changed during evaluation")
         for path in media:
             media_digest(path)
+        cache_report = None
+        if preprocessing is not None:
+            preprocessing.close()
+            cache_report = {
+                "policy": {"cache_bytes": cache_bytes, "prefetch": False, "workers": 1, "max_pending": 1},
+                "stats": preprocessing.preprocessing_stats,
+                "memory_scope": "bounded retained CPU cache entries, not total host memory",
+                "elapsed_scope": "elapsed_seconds includes selection/media hashing, model/reload, all scoring, integrity checks and cache close; excludes final report serialization and process-group teardown",
+            }
+            preprocessing = None
         report = {
             "protocol": PROTOCOL,
             "complete": True,
@@ -656,6 +685,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             "device": torch.cuda.get_device_name(),
             "world_size": 1,
             "elapsed_seconds": time.monotonic() - start,
+            **({"preprocessing_cache": cache_report} if cache_report is not None else {}),
             "metric_contract": {
                 "restricted_choice": "argmax over the actual question's two to four contiguous A/B[/C[/D]] token logits at the first assistant answer position",
                 "strict_first_token": "full-vocabulary argmax equals the gold letter token",
@@ -670,7 +700,11 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         _write_json(output / "summary.json", report)
         return {"output": str(output), "metrics": report["metrics"], "complete": True}
     finally:
-        destroy_process_group_if_initialized()
+        try:
+            if preprocessing is not None:
+                preprocessing.close()
+        finally:
+            destroy_process_group_if_initialized()
 
 
 def main() -> None:
@@ -694,6 +728,12 @@ def main() -> None:
     parser.add_argument("--split", choices=("development", "regression", "untouched_diagnostic", "final"))
     parser.add_argument("--selection-receipt")
     parser.add_argument("--selection-receipt-sha256")
+    parser.add_argument(
+        "--preprocessing-cache-bytes",
+        type=int,
+        default=0,
+        help="opt-in retained CPU preprocessing cache bound; zero preserves uncached scoring (no prefetch/workers)",
+    )
     parser.add_argument(
         "--seed",
         type=int,
