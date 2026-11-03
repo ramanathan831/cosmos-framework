@@ -289,7 +289,7 @@ def test_shared_cuda_fixture_requires_exact_native_candidate_context(native_back
 
 @pytest.mark.GPU
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="requires real CUDA kernels")
-def test_actual_checkpointed_dequant_kernel_canary(record_property, monkeypatch):
+def test_actual_checkpointed_dequant_kernel_canary(record_property):
     """Real NF4/AC canary, not full-model lifecycle or end-to-end qualification."""
     import json
 
@@ -301,11 +301,7 @@ def test_actual_checkpointed_dequant_kernel_canary(record_property, monkeypatch)
     warn_only = torch.is_deterministic_algorithms_warn_only_enabled()
     cudnn_deterministic = torch.backends.cudnn.deterministic
     cudnn_benchmark = torch.backends.cudnn.benchmark
-    for key in ("FLASH_ATTENTION_DETERMINISTIC", "CUBLAS_WORKSPACE_CONFIG"):
-        if key in os.environ:
-            monkeypatch.setenv(key, os.environ[key])
-        else:
-            monkeypatch.delenv(key, raising=False)
+    environment = {key: os.environ.get(key) for key in ("FLASH_ATTENTION_DETERMINISTIC", "CUBLAS_WORKSPACE_CONFIG")}
     try:
         enable_determinism(strict=True)
         device = torch.device("cuda", torch.cuda.current_device())
@@ -326,3 +322,43 @@ def test_actual_checkpointed_dequant_kernel_canary(record_property, monkeypatch)
         torch.use_deterministic_algorithms(enabled, warn_only=warn_only)
         torch.backends.cudnn.deterministic = cudnn_deterministic
         torch.backends.cudnn.benchmark = cudnn_benchmark
+        for key, value in environment.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
+
+
+@pytest.mark.parametrize("initial", [None, "original"])
+def test_cuda_canary_failure_restores_determinism_controls_without_device_use(native_backend, monkeypatch, initial):
+    backend, _ = native_backend
+    monkeypatch.setitem(sys.modules, "cosmos_framework.posttrain.model.quantization.bnb", backend)
+    keys = ("FLASH_ATTENTION_DETERMINISTIC", "CUBLAS_WORKSPACE_CONFIG")
+    for key in keys:
+        if initial is None:
+            monkeypatch.delenv(key, raising=False)
+        else:
+            monkeypatch.setenv(key, initial)
+    monkeypatch.setattr(torch.cuda, "is_initialized", lambda: False)
+    monkeypatch.setattr(torch.cuda, "current_device", lambda: 0)
+    monkeypatch.setattr(torch.cuda, "get_rng_state", lambda *_: torch.get_rng_state())
+
+    def fail(*args, **kwargs):
+        raise RuntimeError("before CUDA use")
+
+    monkeypatch.setattr(backend, "kernel_preflight", fail)
+    before = (
+        torch.are_deterministic_algorithms_enabled(),
+        torch.is_deterministic_algorithms_warn_only_enabled(),
+        torch.backends.cudnn.deterministic,
+        torch.backends.cudnn.benchmark,
+    )
+    with pytest.raises(RuntimeError, match="before CUDA use"):
+        test_actual_checkpointed_dequant_kernel_canary(lambda *_: pytest.fail("no successful CUDA report"))
+    assert tuple(os.environ.get(key) for key in keys) == (initial, initial)
+    assert before == (
+        torch.are_deterministic_algorithms_enabled(),
+        torch.is_deterministic_algorithms_warn_only_enabled(),
+        torch.backends.cudnn.deterministic,
+        torch.backends.cudnn.benchmark,
+    )
