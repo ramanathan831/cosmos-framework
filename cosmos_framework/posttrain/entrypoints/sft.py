@@ -328,10 +328,13 @@ def build_trainer(config: Any, rl: SFTConfig, data: Any, validation: Any | None,
             "window_examples": rl.micro_batch_size * rl.grad_accum,
         }
         if rl.preprocessing_workers != 1:
+            from cosmos_framework.posttrain.data.packer.sft_preprocess import MEDIA_OWNER_CAPACITY
+
             objective.identity["preprocessing"].update(
-                protocol="cosmos.sft-preprocessing.v2",
+                protocol="cosmos.sft-preprocessing.v3",
                 workers=rl.preprocessing_workers,
-                dispatch="media_sha256_or_round_robin_v1",
+                dispatch="window_least_assigned_sticky_lru_v1",
+                media_owner_capacity=MEDIA_OWNER_CAPACITY,
                 affinity="partition_inherited_all_worker_threads_v1",
                 cache_budget="sum_of_worker_limits",
             )

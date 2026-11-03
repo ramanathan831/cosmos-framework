@@ -32,6 +32,8 @@ from cosmos_framework.posttrain.schema import SFTTarget
 from cosmos_framework.posttrain.utils.identity import canonical_json_sha256, project_typed_json_value
 from cosmos_framework.posttrain.utils.training_profile import profile_cpu_range
 
+MEDIA_OWNER_CAPACITY = 1024
+
 
 def _cpu_bytes(value: Any) -> int:
     """Conservative retained-size accounting; reject GPU/autograd-owned cache values."""
@@ -371,6 +373,13 @@ class SFTPreprocessingPipeline:
         # Preserve the original single-worker diagnostic interface.
         self._executor = self._executors[0] if self._executors else None
         self._next_worker = 0
+        # Ownership is disposable, bounded execution state, like the tensor
+        # caches. Pin owners within one update even if the persistent LRU evicts
+        # them; a later window may reassign an evicted key. Any resulting cache
+        # miss changes execution cost only, never the prepared sample.
+        self._media_owners: OrderedDict[str, int] = OrderedDict()
+        self._window_owners: dict[str, int] = {}
+        self._window_assignments = [0] * workers
         self._worker_stats = [
             {
                 "samples": _ByteLRU(item.cache_bytes // 4).stats(),
@@ -411,6 +420,7 @@ class SFTPreprocessingPipeline:
         if self._executor is None:
             raise ValueError("prepare_window requires preprocessing_prefetch=True")
         records = [(self._cache.key(target), copy.deepcopy(target)) for target in targets]
+        self._clear_window_routing()
         self._window_active = True
         try:
             for key, target in records:
@@ -418,14 +428,22 @@ class SFTPreprocessingPipeline:
                 self._pending.append((key, worker, future))
         except BaseException:
             self._failed = True
+            self._clear_window_routing()
             raise
+
+    def _clear_window_routing(self) -> None:
+        self._window_owners.clear()
+        self._window_assignments[:] = [0] * len(self._window_assignments)
 
     def _submit(self, target: SFTTarget):
         worker = self._next_worker % len(self._executors)
         if len(self._executors) > 1:
             # Related questions on identical media share a worker's video cache.
-            # No-media rows use deterministic round robin. Neither policy owns
-            # the input cursor or changes ordered consumption.
+            # Balance unseen media by submitted row count within this update,
+            # without moving already-owned media or changing consumption order.
+            # Outside an update, new/no-media rows retain round-robin routing.
+            if self._window_active:
+                worker = min(range(len(self._executors)), key=lambda i: (self._window_assignments[i], i))
             content = self._cache.media.target(target, verify=False)
             media = [
                 part[key]["sha256"]
@@ -437,9 +455,16 @@ class SFTPreprocessingPipeline:
                 if key in part
             ]
             if media:
-                worker = int(canonical_json_sha256(media, context="preprocessing worker media"), 16) % len(
-                    self._executors
-                )
+                key = canonical_json_sha256(media, context="preprocessing worker media")
+                worker = self._window_owners.get(key, self._media_owners.get(key, worker))
+                if self._window_active:
+                    self._window_owners[key] = worker
+                self._media_owners[key] = worker
+                self._media_owners.move_to_end(key)
+                while len(self._media_owners) > MEDIA_OWNER_CAPACITY:
+                    self._media_owners.popitem(last=False)
+            if self._window_active:
+                self._window_assignments[worker] += 1
         future = self._executors[worker].submit(_process_worker, target)
         self._next_worker += 1
         return worker, future
@@ -459,6 +484,7 @@ class SFTPreprocessingPipeline:
                 return self._consume_future(future, worker)
             except BaseException:
                 self._failed = True
+                self._clear_window_routing()
                 raise
         started = time.perf_counter()
         result = self._cache.process(target)
@@ -494,17 +520,21 @@ class SFTPreprocessingPipeline:
             return sample
         except BaseException:
             self._failed = True
+            self._clear_window_routing()
             raise
 
     def finish_window(self) -> None:
         if self._failed or not self._window_active or self._pending:
             raise RuntimeError("preprocessing window must be completely consumed before an optimizer boundary")
         self._window_active = False
+        self._clear_window_routing()
 
     def close(self) -> None:
         if self._closed:
             return
         self._closed = True
+        self._clear_window_routing()
+        self._media_owners.clear()
         for _, _, future in self._pending:
             future.cancel()
         self._pending.clear()

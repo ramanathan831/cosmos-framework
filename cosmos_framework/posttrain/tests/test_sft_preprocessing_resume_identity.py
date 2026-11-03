@@ -94,8 +94,10 @@ def test_real_preprocessing_checkpoint_accepts_same_workers_and_refuses_changed_
     assert wiring.preprocessing.call_args.kwargs["workers"] == saved_workers
     if saved_workers == 2:
         preprocessing = training["objective"]["preprocessing"]
-        assert preprocessing["protocol"] == "cosmos.sft-preprocessing.v2"
+        assert preprocessing["protocol"] == "cosmos.sft-preprocessing.v3"
         assert preprocessing["workers"] == 2
+        assert preprocessing["dispatch"] == "window_least_assigned_sticky_lru_v1"
+        assert preprocessing["media_owner_capacity"] == 1024
 
     trainer = _trainer()
     model_config = instantiate(config.model.model_config)
@@ -121,3 +123,28 @@ def test_real_preprocessing_checkpoint_accepts_same_workers_and_refuses_changed_
     assert wiring.preprocessing.call_args.kwargs["workers"] == new_workers
     assert wiring.contracts[-1][0] == processor
     assert wiring.contracts[-1][1]["objective"]["preprocessing"] != training["objective"]["preprocessing"]
+
+
+def test_legacy_hash_routing_checkpoint_is_rejected_before_backbone(wiring, tmp_path):
+    config = _config()
+    config.rl.preprocessing_workers = 2
+    with pytest.raises(_BeforeBackbone):
+        wiring.invoke(config)
+    processor, training = copy.deepcopy(wiring.contracts[-1])
+    legacy = training["objective"]["preprocessing"]
+    legacy.update(protocol="cosmos.sft-preprocessing.v2", dispatch="media_sha256_or_round_robin_v1")
+    legacy.pop("media_owner_capacity")
+    trainer = _trainer()
+    model_config = instantiate(config.model.model_config)
+    trainer._adapter_checkpoint_codec().identity = {
+        "base": dict(model_config.source_identity),
+        "adapter": native_adapter_config_identity(model_config.adapter),
+        "quantization": asdict(model_config.quantized_base),
+        "processor_contract": processor,
+        "training_contract": training,
+    }
+    checkpoint = SimpleNamespace(manager=trainer.checkpoint_manager, resume_checkpoint=str(_save(trainer, tmp_path)))
+    wiring.backbone.reset_mock()
+    with pytest.raises(ValueError, match="training_contract.*preprocessing"):
+        wiring.invoke(config, checkpoint)
+    wiring.backbone.assert_not_called()

@@ -78,7 +78,10 @@ def _case(processor, rl, rows, media_hashes, workers):
     parent_rng, parent_cpus = worker_memory.rng_hash(), sorted(os.sched_getaffinity(0))
     processes = []
     try:
-        initial = [pool.submit(_worker_state).result(timeout=180) for pool in pipeline._executors]
+        # Production submits each window without awaiting individual workers.
+        # Start all workers before awaiting the diagnostic state RPCs as well.
+        initial_futures = [pool.submit(_worker_state) for pool in pipeline._executors]
+        initial = [future.result(timeout=180) for future in initial_futures]
         setup_seconds = time.monotonic() - started
         assert len({item["pid"] for item in initial}) == workers
         assert all(item["processing_calls"] == 0 for item in initial)

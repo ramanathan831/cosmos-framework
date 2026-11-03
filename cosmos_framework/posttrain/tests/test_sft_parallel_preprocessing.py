@@ -3,6 +3,7 @@
 """Ordered two-worker preparation, total cache/CPU bounds and fail-closed cleanup."""
 
 import copy
+import hashlib
 import os
 import random
 from concurrent.futures import Future
@@ -124,6 +125,90 @@ def test_distinct_questions_on_identical_media_share_worker_and_total_budget(tmp
         pending = [future for _, _, future in pipeline._pending]
         pipeline.close()
     assert all(future.cancelled() for future in pending)
+
+
+def _routing_pipeline(tmp_path, monkeypatch, rows=8):
+    monkeypatch.setattr(prep, "ProcessPoolExecutor", _Pool)
+    monkeypatch.setattr(prep.os, "sched_getaffinity", lambda _pid: {2, 3, 4, 5})
+    _, pipeline = _local_pipeline(tmp_path, prefetch=True, workers=2)
+    pipeline._max_pending = rows
+    targets, hashes = [], {}
+    for index in range(rows):
+        path = tmp_path / f"media-{index}.mp4"
+        path.write_bytes(f"distinct fixture media {index}".encode())
+        target = _text_row(str(index))
+        target.messages[0]["content"] = [{"type": "video", "video": str(path)}]
+        targets.append(target)
+        hashes[str(path)] = hashlib.sha256(path.read_bytes()).hexdigest()
+    pipeline._cache.media = prep._MediaIdentity(hashes)
+    return pipeline, targets
+
+
+def _complete_routing_window(pipeline, rows):
+    for index, (_, worker, future) in enumerate(pipeline._pending):
+        future.set_result(_reply(pipeline, worker, index + 1, {"ordinal": index}))
+    assert [pipeline.sft_process_sample(row) for row in rows] == [{"ordinal": i} for i in range(len(rows))]
+    pipeline.finish_window()
+    assert not pipeline._window_owners and pipeline._window_assignments == [0, 0]
+
+
+def test_unseen_media_balance_each_window_without_changing_order_or_existing_owners(tmp_path, monkeypatch):
+    pipeline, rows = _routing_pipeline(tmp_path, monkeypatch)
+    try:
+        pipeline.prepare_window(rows)
+        assert [worker for _, worker, _ in pipeline._pending] == [0, 1] * 4
+        assert pipeline._window_assignments == [4, 4]
+        owners = dict(pipeline._media_owners)
+        _complete_routing_window(pipeline, rows)
+        # Reverse consumption order cannot migrate established media owners.
+        pipeline.prepare_window(rows[::-1])
+        assert [worker for _, worker, _ in pipeline._pending] == [1, 0] * 4
+        assert dict(pipeline._media_owners) == owners
+        _complete_routing_window(pipeline, rows[::-1])
+    finally:
+        pipeline.close()
+    assert not pipeline._media_owners and not pipeline._window_owners
+
+
+def test_same_window_owner_survives_lru_eviction_and_later_reassignment_is_bounded(tmp_path, monkeypatch):
+    monkeypatch.setattr(prep, "MEDIA_OWNER_CAPACITY", 2)
+    pipeline, rows = _routing_pipeline(tmp_path, monkeypatch, rows=4)
+    window = [rows[0], rows[1], rows[2], rows[0]]
+    try:
+        pipeline.prepare_window(window)
+        assert [worker for _, worker, _ in pipeline._pending] == [0, 1, 0, 0]
+        assert len(pipeline._media_owners) == 2 and len(pipeline._window_owners) == 3
+        _complete_routing_window(pipeline, window)
+        # B was evicted. A retains its owner; B may be reassigned at this new
+        # update boundary, with unchanged ordered samples and cache byte limits.
+        pipeline.prepare_window([rows[1], rows[0]])
+        assert [worker for _, worker, _ in pipeline._pending] == [0, 0]
+        assert len(pipeline._media_owners) == 2
+        _complete_routing_window(pipeline, [rows[1], rows[0]])
+    finally:
+        pipeline.close()
+
+
+def test_no_media_balances_current_window_and_failed_submission_clears_transient_owners(tmp_path, monkeypatch):
+    pipeline, rows = _routing_pipeline(tmp_path, monkeypatch)
+    try:
+        text = [_text_row(str(i)) for i in range(8)]
+        pipeline.prepare_window(text)
+        assert [worker for _, worker, _ in pipeline._pending] == [0, 1] * 4
+        assert not pipeline._media_owners
+        _complete_routing_window(pipeline, text)
+
+        def fail(*args):
+            raise BrokenProcessPool("owned worker failed")
+
+        pipeline._executors[1].submit = fail
+        with pytest.raises(BrokenProcessPool):
+            pipeline.prepare_window(rows)
+        assert pipeline._failed and not pipeline._window_owners and pipeline._window_assignments == [0, 0]
+        with pytest.raises(RuntimeError, match="failed"):
+            pipeline.sft_process_sample(rows[0])
+    finally:
+        pipeline.close()
 
 
 def test_real_dead_worker_poisoned_window_cannot_complete_or_start_another(tmp_path):
