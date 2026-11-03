@@ -547,7 +547,7 @@ def build_optimizer(
     if opt_cfg.train_keys:
         keys = tuple(opt_cfg.train_keys)
         for name, p in net.named_parameters():
-            if any(k in name for k in keys):
+            if any(k in name for k in keys) and p.requires_grad:
                 params.append(p)
             else:
                 p.requires_grad_(False)
@@ -588,6 +588,10 @@ def build_optimizer(
             },
         ]
     name = getattr(opt_cfg, "name", "adamw")
+    if name in ("adamw_bnb_8bit", "paged_adamw_8bit"):
+        from cosmos_framework.utils.quantized_optimizer import build_quantized_optimizer
+
+        return build_quantized_optimizer(net, params, opt_cfg)
     if name == "fusedadam":
         # fp32 master weights + fp32 moments (bf16-net correctness — see OptimizerConfig
         # docstring). cosmos-rl reference construction: capturable=True, master_weights=True.
@@ -672,6 +676,17 @@ def refuse_rounding_or_unavailable_optimizer(config: Any, opt_cfg: OptimizerConf
     """
     import importlib.util
 
+    if opt_cfg.name in ("adamw_bnb_8bit", "paged_adamw_8bit"):
+        import os
+
+        rl = config.rl
+        if int(os.environ.get("WORLD_SIZE", "1")) != 1:
+            raise ValueError("bitsandbytes optimizers currently require a single CUDA device; FSDP/HSDP unsupported")
+        if rl.checkpoint_format != "consolidated" or getattr(rl, "colocated_offload", False):
+            raise ValueError("bitsandbytes requires consolidated checkpoints and no optimizer offload")
+        from cosmos_framework.utils.quantized_optimizer import require_backend
+
+        require_backend()
     selection = select_policy_backend(config)
     if selection.backend == "hf":
         storage = str(resolve_precision(config).master)
@@ -682,7 +697,7 @@ def refuse_rounding_or_unavailable_optimizer(config: Any, opt_cfg: OptimizerConf
     else:
         return
     name = getattr(opt_cfg, "name", "adamw")
-    if name == "adamw" and storage != "float32":
+    if name in ("adamw", "adamw_bnb_8bit", "paged_adamw_8bit") and storage != "float32":
         raise ValueError(
             f"OptimizerConfig(name='adamw') with parameter storage in {storage} on {seat} keeps its moments and "
             "update in that dtype, so most updates at lr 1e-5 round to zero; store parameters in float32 "

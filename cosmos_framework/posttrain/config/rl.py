@@ -63,7 +63,7 @@ def _normalize_checkpoint_components(
 OPTIMIZER_IMPLS: tuple[str, ...] = ("fused", "foreach", "for-loop")
 """torch kernel choices for `OptimizerConfig.impl` — cosmos-rl's `optm_impl` values verbatim."""
 
-OPTIMIZER_NAMES: tuple[str, ...] = ("adamw", "fusedadam", "muon")
+OPTIMIZER_NAMES: tuple[str, ...] = ("adamw", "fusedadam", "muon", "adamw_bnb_8bit", "paged_adamw_8bit")
 """Optimizer CLASSES `OptimizerConfig.name` selects (its docstring describes each); `build_optimizer` dispatches on them."""
 
 FIXED_NORMALISER_OPTIMIZER_EPS_CEILING: float = 1e-7
@@ -230,6 +230,9 @@ class OptimizerConfig:
     `HFRunConfig`) the parameter is already fp32 and plain `adamw` gets fp32 moments for free —
     matching cosmos-rl exactly and dropping the apex dependency."""
 
+    bnb_min_8bit_size: int = 4096
+    bnb_fp32_state_names: list[str] = field(default_factory=list)
+
     name: str = "adamw"
     # torch kernel selection for `name="adamw"`, mirroring cosmos-rl's `optm_impl`.
     # "" (DEFAULT) ⇒ pass NEITHER `fused` nor `foreach`, letting torch choose — byte-identical to
@@ -288,6 +291,18 @@ class OptimizerConfig:
     muon_rms_match: float = 0.2
 
     def __post_init__(self) -> None:
+        if self.name == "adamw_8bit":
+            self.name = "adamw_bnb_8bit"
+        if type(self.bnb_min_8bit_size) is not int or self.bnb_min_8bit_size < 1:
+            raise ValueError("bnb_min_8bit_size must be a positive integer")
+        if any(not isinstance(n, str) or not n for n in self.bnb_fp32_state_names):
+            raise ValueError("bnb_fp32_state_names must contain exact nonempty parameter names")
+        if len(set(self.bnb_fp32_state_names)) != len(self.bnb_fp32_state_names):
+            raise ValueError("duplicate bnb_fp32_state_names")
+        if self.name not in ("adamw_bnb_8bit", "paged_adamw_8bit") and (
+            self.bnb_min_8bit_size != 4096 or self.bnb_fp32_state_names
+        ):
+            raise ValueError("bnb state options require a bitsandbytes optimizer")
         if self.name not in OPTIMIZER_NAMES:
             raise ValueError(f"OptimizerConfig.name={self.name!r} must be one of {OPTIMIZER_NAMES}")
         if self.name == "muon":

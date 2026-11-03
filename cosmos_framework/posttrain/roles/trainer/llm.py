@@ -977,6 +977,8 @@ class LLMTrainer(BaseTrainer):
         return moved
 
     def offload(self) -> float:
+        if getattr(self.opt, "cosmos_quantized_optimizer", False):
+            raise ValueError("quantized optimizer state offload is unsupported; paging is a separate capacity mode")
         """Release the complete trainer after publication so rollout can use the card.
 
         Returns:

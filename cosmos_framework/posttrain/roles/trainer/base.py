@@ -300,6 +300,9 @@ class BaseTrainer(ABC):
         checkpoint_store: Mapping[str, Any] | CheckpointStore | None = None,
         checkpoint_manager: CheckpointManager | None = None,
     ) -> None:
+        if getattr(optimizer, "cosmos_quantized_optimizer", False):
+            if (checkpoint_manager.checkpoint_format if checkpoint_manager else checkpoint_format) != "consolidated":
+                raise ValueError("quantized optimizer requires the consolidated checkpoint transaction path")
         self.opt = optimizer
         self.grad_accum = max(1, int(grad_accum))
         # TOKEN_SUM + grad_accum>1 is not refused here: `backward` (algorithm/primitives/objective.py)
