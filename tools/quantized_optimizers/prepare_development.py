@@ -20,6 +20,28 @@ def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def decode_annotation(row):
+    """Keep the annotation's instruction footer out of the final option's answer."""
+    question = row["conversations"][0]["value"].replace("\\n", "\n").replace("<video>", "").strip()
+    footer = "Answer with the option's letter from the given choices directly."
+    if question.endswith(footer):
+        question = question[: -len(footer)].rstrip()
+    matches = list(re.finditer(r"(?:^|\n)\s*([A-Z]):\s*", question))
+    letters = [m[1] for m in matches]
+    if letters not in (["A", "B"], ["A", "B", "C"], ["A", "B", "C", "D"]):
+        raise ValueError("annotation requires ordered contiguous options A through B/C/D")
+    options = {
+        m[1]: question[m.end() : matches[i + 1].start() if i + 1 < len(matches) else len(question)].strip()
+        for i, m in enumerate(matches)
+    }
+    if any(not text or footer in text for text in options.values()):
+        raise ValueError("empty option or misplaced annotation instruction")
+    answer = row["conversations"][1]["value"].strip()
+    if answer not in options:
+        raise ValueError("gold letter is not among the annotation options")
+    return question[: matches[0].start()].strip(), options, answer
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--raw", type=Path, required=True)
@@ -54,16 +76,8 @@ def main():
             lookup = {"messages": [{"content": [{"type": "video", "video": str(raw / "videos" / video)}]}]}
             if row_component(lookup, inventory)["group"] not in connected[split]:
                 continue  # normal_trimmed contains multiple independent recordings
-            question = row["conversations"][0]["value"].replace("\\n", "\n").replace("<video>", "").strip()
-            matches = list(re.finditer(r"(?:^|\n)\s*([A-Z]):\s*", question))
-            options = {
-                m.group(1): question[
-                    m.end() : matches[i + 1].start() if i + 1 < len(matches) else len(question)
-                ].strip()
-                for i, m in enumerate(matches)
-            }
-            answer = options[row["conversations"][1]["value"].strip()]
-            question = question[: matches[0].start()].strip()
+            question, options, letter = decode_annotation(row)
+            answer = options[letter]
             if question in selected[(split, video)] and selected[(split, video)][question] != answer:
                 raise ValueError(f"conflicting full-video labels for {video}")
             selected[(split, video)][question] = answer
