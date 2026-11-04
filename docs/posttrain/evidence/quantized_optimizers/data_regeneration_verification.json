@@ -1,0 +1,15 @@
+{
+  "method": "Repaired original canary selection, regenerated from read-only annotation bytes using the original fsw media paths. Local read redirection only; source/video paths and contents unchanged.",
+  "result": {
+    "train": {
+      "byte_identical": true,
+      "sha256": "dac521711ca5969fa0465fa461c959ab7687eb7f32433d34fba2a45149ffa487",
+      "rows": 173
+    },
+    "validation": {
+      "byte_identical": true,
+      "sha256": "52d6bd8cc4a53ab520e100e72359001c9ae1a976a521dab7dd7738a7567619a2",
+      "rows": 56
+    }
+  }
+}

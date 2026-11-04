@@ -17,7 +17,7 @@ bitsandbytes 0.49.2. Per-run dependency inventories, device reports, resolved
 configs and native metrics are retained in the compressed evidence archives.
 
 `ASSETS` is the read-only QLoRA asset root containing the pinned model,
-`environment/bin/python`, `data/canary`, `data/full`, and the WTS source media.
+`environment/bin/python`, `data/canary` and `data/full`. `WTS_SOURCE_ROOT` is the separate original WTS media root, taken from the inventory paths.
 Only campaign-owned output directories may be written. Reuse is authorized;
 the evaluation pool has been inspected previously and is not historically untouched.
 
@@ -38,7 +38,7 @@ python -m tools.quantized_optimizers.recording_split \
   --validation "$ASSETS/data/canary/validation.jsonl" \
   --output "$CAMPAIGN/repaired-prior"
 python -m tools.quantized_optimizers.prepare_development \
-  --raw "$ASSETS/data/wts_train" --validation-raw "$ASSETS/data/wts_eval" \
+  --raw "$WTS_SOURCE_ROOT/wts_train" --validation-raw "$WTS_SOURCE_ROOT/wts_eval" \
   --prior "$CAMPAIGN/repaired-prior" \
   --media-inventory "$ASSETS/data/full/media_inventory.jsonl" \
   --output "$CAMPAIGN/derived-clean"
