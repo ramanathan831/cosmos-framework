@@ -3,15 +3,16 @@
   "mainline_nodes": {
     "17": "batch-block4-0052",
     "29": "batch-block4-0052",
-    "43": "batch-block4-2042"
+    "43": "First available A100-SXM4-80GB in polar/grizzly; pin any continuation to actual allocated node"
   },
   "factorial_nodes": {
     "17": "batch-block1-2092",
     "29": "batch-block1-2092",
-    "43": "batch-block4-2042"
+    "43": "First available A100-SXM4-80GB in polar/grizzly; pin any continuation to actual allocated node"
   },
-  "capacity_and_final_scoring_recovery": "batch-block4-2042; fresh process, same pinned A100-SXM4-80GB and runtime; final scoring is not a training-time measurement",
+  "capacity_and_final_scoring_recovery": "First available A100-SXM4-80GB in polar/grizzly excluding active campaign nodes; fresh process, same pinned runtime; final scoring is not a training-time measurement",
   "controls": "Whole paired seed groups remain sequential on one node, one GPU,8 CPUs,128GiB; require GPU model at startup; record CPU affinity for new allocations. No concurrent campaign jobs on the same node.",
   "concurrency": "At most2 campaign GPUs on distinct nodes; held owned jobs prevent races while independent phases advance.",
-  "unchanged": "8GPU-hour total;240mainline/170factorial/30capacity ceilings; every quality/speed/memory threshold; seeds,model,trainables,data,steps,schedules,precision."
+  "unchanged": "8GPU-hour total;240mainline/170factorial/30capacity ceilings; every quality/speed/memory threshold; seeds,model,trainables,data,steps,schedules,precision.",
+  "eligibility": "Scheduler inventory verified polar contains batch-block4 and grizzly batch-block1 only. Startup GPU-model assertion remains mandatory; no inference of compatibility from the node name alone."
 }
