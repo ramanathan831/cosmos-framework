@@ -82,6 +82,8 @@ def main():
                 pass
         start = raw.get(prefix + arm + ".start")
         end = raw.get(prefix + arm + ".end")
+        for point in curve:
+            point["wall_seconds"] = parse_time(point["time"]) - parse_time(start) if start else None
         training_rows = [r for r in rows if "timer/e2e_step_s" in r]
         seconds = sum(r["timer/e2e_step_s"] for r in training_rows)
         timing_blocks = [
@@ -153,11 +155,14 @@ def main():
     pairs = {}
     if complete:
         budget = min(r["curve"][-1]["seconds"] for r in runs.values())
+        wall_budget = min(r["wall_seconds"] for r in runs.values())
         for r in runs.values():
             point = [p for p in r["curve"] if p["seconds"] <= budget][-1]
             r["equal_budget_nll"] = point["nll"]
             r["equal_budget_validation_step"] = point["step"]
             r["equal_budget_training_sequences"] = int(point["step"]) * 4
+            available = [p for p in r["curve"] if p["wall_seconds"] is not None and p["wall_seconds"] <= wall_budget]
+            r["equal_wall_budget_point"] = available[-1] if available else None
         for arm in arms[1:]:
             base = [runs[s, "adamw"] for s in (17, 29, 43)]
             other = [runs[s, arm] for s in (17, 29, 43)]
@@ -203,6 +208,20 @@ def main():
                 ),
             }
             pair = pairs[arm]
+            pair["wall_target_time_ratio"] = interval(
+                [
+                    b["wall_target_seconds"] / a["wall_target_seconds"]
+                    for b, a in zip(base, other)
+                    if a["wall_target_seconds"] and b["wall_target_seconds"]
+                ]
+            )
+            pair["equal_wall_budget_nll_improvement"] = interval(
+                [
+                    b["equal_wall_budget_point"]["nll"] - a["equal_wall_budget_point"]["nll"]
+                    for b, a in zip(base, other)
+                    if a["equal_wall_budget_point"] and b["equal_wall_budget_point"]
+                ]
+            )
             pair["state_memory_saving"] = interval(
                 [
                     1 - (a["state"]["moment_bytes"] + a["state"]["metadata_bytes"]) / b["state"]["state_bytes"]
@@ -221,22 +240,32 @@ def main():
                 "training_speed": pair["throughput_ratio"]["ci95"][0] > 1.05,
                 "time_to_quality_speed": ttq["n"] == 3 and ttq["ci95"][0] > 1.05,
                 "equal_budget_quality_gain": pair["equal_budget_nll_improvement"]["ci95"][0] > 0,
+                "wall_time_to_quality_speed": pair["wall_target_time_ratio"]["n"] == 3
+                and pair["wall_target_time_ratio"]["ci95"][0] > 1.05,
+                "equal_wall_budget_quality_gain": pair["equal_wall_budget_nll_improvement"]["n"] == 3
+                and pair["equal_wall_budget_nll_improvement"]["ci95"][0] > 0,
+                "recording_separation": json.loads(raw.get("quality_data_audit.json", "{}")).get("quality_gate")
+                == "PASS_RECORDING_SEPARATION_ONLY",
                 "state_memory": pair["state_memory_saving"]["ci95"][0] >= 0.60,
                 "original_task_accuracy": None,
                 "uninstrumented_speed_confirmation": None,
             }
     else:
-        budget = None
+        budget = wall_budget = None
     output = {
         "release": "NOT QUALIFIED: instrumented development evidence; mainline task-score and uninstrumented speed gates remain unmet",
         "complete_three_seed_development": complete,
         "equal_budget_seconds": budget,
+        "equal_wall_budget_seconds_including_initialization": wall_budget,
+        "data_integrity": json.loads(raw.get("quality_data_audit.json", "{}")),
         "paired": pairs,
         "runs": list(runs.values()),
     }
     args.output.mkdir(parents=True, exist_ok=True)
     (args.output / "native_development_summary.json").write_text(json.dumps(output, indent=2) + "\n")
-    fig, axes = plt.subplots(1, 3, figsize=(18, 4.8))
+    fig, grid = plt.subplots(2, 2, figsize=(13, 9))
+    axes = [grid[0, 0], grid[1, 0], grid[1, 1]]
+    wall_ax = grid[0, 1]
     for arm in arms:
         group = [r for r in runs.values() if r["arm"] == arm and r["complete"]]
         if not group:
@@ -247,9 +276,12 @@ def main():
             times = np.mean([[p["seconds"] for p in r["curve"]] for r in group], axis=0)
             losses = np.array([[p["nll"] for p in r["curve"]] for r in group])
             axes[0].plot(times, losses.mean(axis=0), label=label)
+            wall_times = np.mean([[p["wall_seconds"] for p in r["curve"]] for r in group], axis=0)
+            wall_ax.plot(wall_times, losses.mean(axis=0), label=label)
             if len(group) > 1:
                 ci = t.ppf(0.975, len(group) - 1) * losses.std(axis=0, ddof=1) / len(group) ** 0.5
                 axes[0].fill_between(times, losses.mean(axis=0) - ci, losses.mean(axis=0) + ci, alpha=0.15)
+                wall_ax.fill_between(wall_times, losses.mean(axis=0) - ci, losses.mean(axis=0) + ci, alpha=0.15)
         x = interval([r["torch_peak_bytes"] / 2**30 for r in group])
         y = interval([r["sequences_per_second"] for r in group])
         axes[1].errorbar(
@@ -292,7 +324,12 @@ def main():
         ylabel="Training video sequences/s",
         title="Native SFT development, 95% seed intervals",
     )
-    for ax in axes:
+    wall_ax.set(
+        xlabel="Wall seconds from process launch (initialization included)",
+        ylabel="Validation token NLL",
+        title="Actual elapsed training budget; 95% seed intervals",
+    )
+    for ax in [*axes, wall_ax]:
         ax.legend(fontsize=8)
     fig.tight_layout()
     fig.savefig(args.output / "native_development.png", dpi=180)

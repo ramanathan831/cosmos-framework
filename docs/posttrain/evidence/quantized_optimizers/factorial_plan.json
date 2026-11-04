@@ -15,7 +15,7 @@
   "adapter": {
     "rank": 16,
     "alpha": 32,
-    "targets": "seven language projections, all 32 layers",
+    "targets": "seven language projections, all36 layers in pinned Qwen3-VL-8B snapshot",
     "storage": "float32",
     "compute": "float32 adapters; BF16 frozen dense base/compute; default upstream NF4 arithmetic"
   },
@@ -52,7 +52,7 @@
   "stop": "abort dependent work on correctness failure; no unbounded retries, no threshold changes; incomplete comparisons remain incomplete",
   "overall_gpu_hours_ceiling": 8,
   "additional_mainline_capacity_followup_max_gpu_minutes": 30,
-  "mainline_followup": "If isolation has no speed win, canary last 16 ordinary FP32 decoder layers under the same memory budget. Baseline and nonpaged both try microbatches 4,2,1 at effective batch 4; disable no safeguards. Promote to three paired seeds only if canary profiling supports a plausible end-to-end win. Do not change quality thresholds.",
+  "mainline_followup": "If isolation has no speed win, canary ordinary FP32 decoder blocks16\u201331 under the same memory budget. Baseline and nonpaged both try microbatches 4,2,1 at effective batch 4; disable no safeguards. Promote to three paired seeds only if canary profiling supports a plausible end-to-end win. Do not change quality thresholds.",
   "preallocation_state_estimate": {
     "trainable_elements": 38797312,
     "derivation": "rank16 * sum(in+out) for q,k,v,o,gate,up,down = 1212416 per layer; 32 layers; frozen base excluded",
@@ -84,5 +84,15 @@
     "unchanged": "8 total GPU hours; phase cost ceilings; three paired seeds; every numeric gate; data exposure; models and optimizers; failures included."
   },
   "data_integrity_repair_before_full_runs": "Use recording-clean-v4:173 training clips; evaluation unchanged56 multi-question and16 original-task rows. Remove all shared connected recording/video components from training, plus three normal clips outside prior selected recordings. Four-cell canaries remain compatibility-only on prior data.",
-  "budget_reallocation": "60 minutes of planned capacity follow-up moved to mandatory mainline data-integrity reruns. Factorial150 and total8GPU hours unchanged."
+  "budget_reallocation": "60 minutes of planned capacity follow-up moved to mandatory mainline data-integrity reruns. Factorial150 and total8GPU hours unchanged.",
+  "preallocation_estimate_correction": {
+    "reason": "Initial estimate assumed32 language layers; actual pinned config and allocation contain36. Preserve the original estimate above as an estimate, not measured evidence.",
+    "trainable_elements": 43646976,
+    "fp32_moment_bytes": 349175808,
+    "fp32_state_with_step_counters_bytes": 349177824,
+    "eight_bit_moment_bytes": 87293952,
+    "eight_bit_metadata_bytes": 1366016,
+    "measured_state_saving_bytes": 260517856,
+    "master_copy_bytes": 0
+  }
 }
