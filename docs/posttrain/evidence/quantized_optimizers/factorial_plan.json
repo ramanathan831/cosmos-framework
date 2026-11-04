@@ -94,5 +94,14 @@
     "eight_bit_metadata_bytes": 1366016,
     "measured_state_saving_bytes": 260517856,
     "master_copy_bytes": 0
-  }
+  },
+  "final_scoring_separation_amendment": {
+    "reason": "Original16 task rows shared development groups. Preserve old scores as development; final scores use16 metadata-selected groups from the approved full QLoRA evaluation pool, disjoint from46 train and16 development groups.",
+    "selection_manifest": "final_recording_selection.json",
+    "selected_before_final_outcomes": true,
+    "prior_inspection": "Previously inspected full QLoRA evaluation pool; no untouched-data claim.",
+    "unchanged": "Same model checkpoints,16 scoring rows, statistical tests, thresholds, training schedule, seeds and150GPU-minute phase cap.",
+    "reuse": "Fresh-process score existing checkpoints; never retrain completed cells to change evaluation."
+  },
+  "wall_clock_additional_gates": "Include process launch to validation, initialization, checkpoint costs; require the same >1.05 lower95% speed threshold and positive equal-wall-budget NLL improvement before either claim. Training+validation-only clocks retained as diagnostics; no threshold relaxed."
 }
