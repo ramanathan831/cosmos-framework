@@ -357,10 +357,31 @@ def main():
         )
         dataset = JSONLSFTDataset(str(args.data))
         corpus = attach_prepared_corpus(packer, rl.prepared_corpus, [dataset])
+        # Final scoring has no training timing claim. Read the immutable files
+        # sequentially before the native loaders, as the paired training launcher
+        # already does, avoiding slow demand paging on the shared filesystem.
+        from tools.quantized_optimizers.run_deployment import read_model_files
+
+        read_model_files(args.output)
+        print("Scoring: immutable pretrained files read", flush=True)
         model = build_backbone(config)
+        print("Scoring: native model built", flush=True)
         provenance = None
         if args.checkpoint:
             manager = CheckpointManager()
+
+            path = Path(args.checkpoint) / "model.pt"
+            read_started = time.monotonic()
+            checksum = hashlib.sha256()
+            with path.open("rb") as stream:
+                for block in iter(lambda: stream.read(8 * 1024 * 1024), b""):
+                    checksum.update(block)
+            (args.output / "checkpoint-read.json").write_text(
+                json.dumps(
+                    {"path": str(path), "sha256": checksum.hexdigest(), "seconds": time.monotonic() - read_started}
+                )
+                + "\n"
+            )
 
             def load():
                 state = manager.load_component(args.checkpoint, "model")
@@ -369,6 +390,7 @@ def main():
                 model.net.load_state_dict(state["net"], strict=True)
 
             _, provenance = manager.load_checkpoint(args.checkpoint, load)
+            print("Scoring: committed dense model restored", flush=True)
         model.net.requires_grad_(False)
         objective = make_objective(
             packer,

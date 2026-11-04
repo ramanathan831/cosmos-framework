@@ -177,8 +177,8 @@ def launch(root, name, arm, seed, *, prepared, canary, handle, deadline):
 def main():
     root = Path(os.environ["RESULTS"])
     mode = os.environ["MODE"]
-    if mode not in ("canary", "trials", "recovery"):
-        raise ValueError("MODE must be canary, trials or recovery")
+    if mode not in ("canary", "trials", "recovery", "train_only", "score_only"):
+        raise ValueError("unsupported deployment mode")
     started = time.monotonic()
     deadline = started + int(os.environ["WORK_SECONDS"])
     preparation = Path(os.environ["PREPARATION"])
@@ -215,6 +215,7 @@ def main():
     write(
         root / f"runtime-{os.environ['SLURM_JOB_ID']}.json",
         {
+            "mode": mode,
             "versions": {name: importlib.metadata.version(name) for name in ("torch", "transformers", "bitsandbytes")},
             "node": os.environ["SLURM_JOB_NODELIST"],
             "gpu_uuid": os.environ["MONITOR_GPU_UUID"],
@@ -230,6 +231,10 @@ def main():
         from tools.quantized_optimizers.run_recovery import run
 
         run(root, staging, deadline)
+    elif mode == "score_only":
+        from tools.quantized_optimizers.finish_deployment import score
+
+        score(root, staging, deadline)
     elif mode == "canary":
         outputs = []
         for name, arm, corpus in (
@@ -285,56 +290,12 @@ def main():
                     deadline=deadline,
                 )
         write(root / "training_complete.json", {"seed": seed, "elapsed_seconds": time.monotonic() - started})
-        identities = {}
-        for restart in range(3):
-            for arm in ("adamw", "adamw_bnb_8bit"):
-                output = root / f"restart{restart}_{arm}"
-                checkpoint = json.loads((output / "complete.json").read_text())["checkpoint"]
-                bounded_command(
-                    [
-                        sys.executable,
-                        "-m",
-                        "tools.quantized_optimizers.checkpoint_digest",
-                        checkpoint,
-                        str(output / "checkpoint_digest.json"),
-                    ],
-                    output / "checkpoint_digest.log",
-                    deadline,
-                )
-                identities[restart, arm] = json.loads((output / "checkpoint_digest.json").read_text())
-        matches = {
-            f"restart{restart}_{arm}_{key}": identities[0, arm][key] == identities[restart, arm][key]
-            for restart in (1, 2)
-            for arm in ("adamw", "adamw_bnb_8bit")
-            for key in ("model", "optim", "rng", "scheduler", "data", "optimizer_step")
-        }
-        write(root / "restart_parity.json", matches)
-        if not all(matches.values()):
-            raise RuntimeError("deterministic paired restarts changed model/optimizer/control state")
-        # Fixed restart0 only; selection was sealed before preparation or training.
-        for arm in ("frozen", "adamw", "adamw_bnb_8bit") if seed == 17 else ("adamw", "adamw_bnb_8bit"):
-            command = [
-                "torchrun",
-                "--standalone",
-                "--nproc-per-node=1",
-                "-m",
-                "tools.quantized_optimizers.score_dense",
-                "--data",
-                str(preparation / "final-selection/validation.jsonl"),
-                "--selection",
-                str(preparation / "final-selection/manifest.json"),
-                "--output",
-                str(root / f"final_{arm}"),
-                "--seed",
-                str(seed),
-            ]
-            if arm != "frozen":
-                checkpoint = json.loads((root / f"restart0_{arm}/complete.json").read_text())["checkpoint"]
-                command.extend(["--checkpoint", checkpoint])
-            bounded_command(
-                command, root / f"final_{arm}.log", deadline, env=dict(os.environ, SFT_PREPARED_CORPUS=str(staging))
-            )
-        write(root / "complete.json", {"seed": seed, "elapsed_seconds": time.monotonic() - started})
+        if mode == "train_only":
+            return
+        from tools.quantized_optimizers.finish_deployment import score, verify
+
+        verify(root, deadline)
+        score(root, staging, deadline)
 
 
 if __name__ == "__main__":
