@@ -1,0 +1,10 @@
+{
+  "source": "cf543fa",
+  "command": "pytest -q tools/quantized_optimizers/test_deployment.py cosmos_framework/posttrain/tests/test_prepared_sft.py cosmos_framework/posttrain/tests/test_config_optimizer_impl.py cosmos_framework/posttrain/tests/test_config_optimizer_decay_groups.py cosmos_framework/posttrain/tests/test_config_sft.py -k not_shipped_sft_recipes",
+  "passed": 59,
+  "skipped": 2,
+  "failed": 1,
+  "failure": "test_default_recipe_supervises_the_opener_the_student_emits_after_the_served_prefix_with_tools: local Transformers4 environment lacks torchvision",
+  "action": "Run the suite in pinned native Transformers5 environment, CPU job37951393. No installation or changes to read-only QLoRA environment.",
+  "local_cuda_seconds": 0
+}

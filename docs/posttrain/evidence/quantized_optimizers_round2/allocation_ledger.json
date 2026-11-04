@@ -99,13 +99,21 @@
       "gpus": 1,
       "source": "d35aa73",
       "node": "batch-block4-1034"
+    },
+    {
+      "job": "37951393",
+      "phase": "pinned native CPU regression",
+      "state": "PENDING",
+      "gpus": 0,
+      "source": "dfde22d",
+      "wall_reservation_seconds": 300
     }
   ],
   "unsubmitted_seed_reservations": {
     "43": 2600
   },
   "admitted_gpu_seconds_including_all_planned_seeds_and_local_reserve": 8887,
-  "admitted_cpu_wall_seconds": 1181,
+  "admitted_cpu_wall_seconds": 1481,
   "rule": "Refresh terminal actuals and full nonterminal reservations before any new admission; retain all failures.",
   "reservation_adjustment": "Retain438GPU-seconds of launcher/control failures; reserve720 for strict canary,2600for each unchanged six-run seed group,42local. Total9000unchanged. Any returned allocation time stays available for dependent checks."
 }

@@ -30,12 +30,24 @@ def main():
         raise ValueError("expected one verified preparation receipt")
     preparation = preparations[0]["total_seconds_with_independent_exact_replay"]
     runs = {}
+    exposures, runtimes = {}, {}
     model_files = None
     for seed in SEEDS:
+        runtime_paths = [k for k in raw if k.startswith(f"seed{seed}/runtime-")]
+        if len(runtime_paths) != 1:
+            raise ValueError("seed group must have exactly one allocation identity")
+        runtimes[seed] = json.loads(raw[runtime_paths[0]])
         restart_parity = json.loads(raw[f"seed{seed}/restart_parity.json"])
         if not restart_parity or not all(restart_parity.values()):
             raise ValueError("restart correctness gate failed")
         exposure = json.loads(raw[f"seed{seed}/exposure.json"])["rows"]
+        exposures[seed] = {
+            "sequences": len(exposure),
+            "sequence_lengths": [x["sequence_length"] for x in exposure],
+            "supervised_tokens": [x["supervised_tokens"] for x in exposure],
+            "media_shapes": sorted({json.dumps(x["media_shapes"], sort_keys=True) for x in exposure}),
+            "video_grids": sorted({json.dumps(x["video_grid_thw"]) for x in exposure}),
+        }
         for restart in range(3):
             for arm in ARMS:
                 prefix = f"seed{seed}/restart{restart}_{arm}/"
@@ -79,6 +91,9 @@ def main():
                     "restart": restart,
                     "arm": arm,
                     "training_seconds": seconds,
+                    "validation_seconds": sum(row.get("timer/validation_s", 0) for row in rows),
+                    "launch_seconds_after_last_validation": complete["elapsed_seconds"] - curve[-1]["launch_seconds"],
+                    "model_file_read_seconds": json.loads(raw[prefix + "model-file-reads.json"])["seconds"],
                     "sequences_per_second": sequences / seconds,
                     "launch_completion_seconds": complete["elapsed_seconds"],
                     "supervised_tokens": sum(row.get("train/valid_token_count", 0) for row in rows),
@@ -95,9 +110,17 @@ def main():
                     ),
                     "host_pss_peak_bytes": max(row["process_tree_pss"] for row in samples),
                     "checkpoint_tensor_state_bytes": identities["state_bytes"],
+                    "observed_sm_clock_mhz_range": [
+                        min(x["sm_mhz"] for x in samples),
+                        max(x["sm_mhz"] for x in samples),
+                    ],
                 }
                 if sum(x["supervised_tokens"] for x in exposure) != runs[seed, restart, arm]["supervised_tokens"]:
                     raise ValueError("actual supervised token count differs from reconstructed native exposure")
+    if len({v["source_archive_sha256"] for v in runtimes.values()}) != 1:
+        raise ValueError("comparison seeds used different training source archives")
+    if len({json.dumps(v["versions"], sort_keys=True) for v in runtimes.values()}) != 1:
+        raise ValueError("comparison seeds used different dependencies")
     paired = {}
     for clock in ("native_seconds", "launch_seconds", "cold_seconds"):
         per_seed_speed, per_seed_equal, restart_values = [], [], []
@@ -229,6 +252,24 @@ def main():
         1
         - runs[17, 0, ARMS[1]]["checkpoint_tensor_state_bytes"] / runs[17, 0, ARMS[0]]["checkpoint_tensor_state_bytes"]
     )
+    memory = {}
+    for metric in ("device_peak_bytes", "process_gpu_peak_bytes", "host_pss_peak_bytes"):
+        if any(run[metric] is None for run in runs.values()):
+            raise ValueError(f"missing memory measurement: {metric}")
+        memory[metric] = {
+            arm: interval([float(np.mean([runs[s, r, arm][metric] for r in range(3)])) for s in SEEDS]) for arm in ARMS
+        }
+        memory[metric]["paired_reduction_fraction"] = interval(
+            [
+                float(np.mean([1 - runs[s, r, ARMS[1]][metric] / runs[s, r, ARMS[0]][metric] for r in range(3)]))
+                for s in SEEDS
+            ]
+        )
+    allocation = {name: json.loads(raw[f"canary-v7/{name}/state.json"]) for name in ("prepared_fused", "prepared_8bit")}
+    allocation = {
+        name: {k: value[k] for k in ("state_report", "peak_allocated", "peak_reserved")}
+        for name, value in allocation.items()
+    }
     gates = {
         "development_nll": development_nll_ratio["ci95"][1] <= 1.01,
         "task_nll": nll_ratio["ci95"][1] <= 1.01 and bootstrap["nll_ratio"]["ci95"][1] <= 1.01,
@@ -254,6 +295,10 @@ def main():
         "task_accuracy_drop": accuracy_drop,
         "crossed_recording_seed_bootstrap": bootstrap,
         "checkpoint_tensor_state_saving": saving,
+        "allocation_canary": allocation,
+        "memory": memory,
+        "exposure": exposures,
+        "runtimes": runtimes,
         "gates": gates,
         "release_qualified": all(gates.values()),
         "runs": list(runs.values()),
@@ -263,17 +308,22 @@ def main():
             "Device peaks are 250ms NVML sampled lower bounds; host PSS excludes unmapped host allocations.",
             "Quality at equal time uses the last completed validation, without interpolation or extra tuning.",
             "Model score is teacher-forced, not free generation.",
+            "Launch time after the last validation includes checkpoint writing and teardown; it is not a synchronized checkpoint-only timer.",
+            "Model-file reads are identical controls included in each launch clock; shared filesystem contention is retained.",
         ],
     }
     (args.output / "summary.json").write_text(json.dumps(report, indent=2) + "\n")
     fig, axes = plt.subplots(1, 2, figsize=(11, 4))
     for arm, label in zip(ARMS, ("Fused FP32 AdamW + recomputation", "8-bit AdamW, no recomputation"), strict=True):
         for step_index in range(9):
-            points = [runs[s, 0, arm]["curve"][step_index] for s in SEEDS]
-            x, y = interval([p["launch_seconds"] for p in points]), interval([p["nll"] for p in points])
+            x, y = (
+                interval([float(np.mean([runs[s, r, arm]["curve"][step_index][key] for r in range(3)])) for s in SEEDS])
+                for key in ("launch_seconds", "nll")
+            )
             axes[0].errorbar(
                 x["mean"],
                 y["mean"],
+                xerr=[[x["mean"] - x["ci95"][0]], [x["ci95"][1] - x["mean"]]],
                 yerr=[[y["mean"] - y["ci95"][0]], [y["ci95"][1] - y["mean"]]],
                 fmt="o",
                 color="C0" if arm == ARMS[0] else "C1",
