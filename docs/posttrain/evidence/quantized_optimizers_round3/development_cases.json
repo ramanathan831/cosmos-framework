@@ -1,0 +1,95 @@
+{
+  "purpose": "development diagnosis",
+  "cases": [
+    {
+      "name": "substantive_lr1e5",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_deployment.py",
+        "--",
+        "job.name=substantive_lr1e5",
+        "rl.seed=17",
+        "rl.max_steps=20",
+        "rl.save_every=20",
+        "rl.keep_optim_last=0",
+        "rl.optimizer.name=adamw",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096",
+        "model_hf.grad_ckpt=true",
+        "rl.optimizer.lr=1e-05",
+        "rl.ce_exponent=0.0",
+        "rl.data.path={data}/train.jsonl"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      }
+    },
+    {
+      "name": "mixed_lr1e5",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_deployment.py",
+        "--",
+        "job.name=mixed_lr1e5",
+        "rl.seed=17",
+        "rl.max_steps=20",
+        "rl.save_every=20",
+        "rl.keep_optim_last=0",
+        "rl.optimizer.name=adamw",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096",
+        "model_hf.grad_ckpt=true",
+        "rl.optimizer.lr=1e-05",
+        "rl.ce_exponent=1.0",
+        "rl.data.path={data}/train-mixed.jsonl"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      }
+    },
+    {
+      "name": "mixed_lr3e6",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_deployment.py",
+        "--",
+        "job.name=mixed_lr3e6",
+        "rl.seed=17",
+        "rl.max_steps=20",
+        "rl.save_every=20",
+        "rl.keep_optim_last=0",
+        "rl.optimizer.name=adamw",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096",
+        "model_hf.grad_ckpt=true",
+        "rl.optimizer.lr=3e-06",
+        "rl.ce_exponent=1.0",
+        "rl.data.path={data}/train-mixed.jsonl"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      }
+    }
+  ]
+}
