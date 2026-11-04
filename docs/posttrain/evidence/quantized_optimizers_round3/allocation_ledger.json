@@ -52,13 +52,13 @@
     },
     {
       "job": "37971294",
-      "state": "PENDING",
-      "elapsed_seconds": 0,
+      "state": "COMPLETED",
+      "elapsed_seconds": 297,
       "effective_wall_limit_seconds": 1200,
       "gpu_count_requested": 1,
-      "charged_or_reserved_gpu_seconds": 1200,
+      "charged_or_reserved_gpu_seconds": 297,
       "charged_or_reserved_cpu_wall_seconds": 0,
-      "node": "None assigned"
+      "node": "batch-block4-1034"
     },
     {
       "job": "37972117",
@@ -102,8 +102,48 @@
     },
     {
       "job": "37972618",
+      "state": "COMPLETED",
+      "elapsed_seconds": 948,
+      "effective_wall_limit_seconds": 1800,
+      "gpu_count_requested": 1,
+      "charged_or_reserved_gpu_seconds": 948,
+      "charged_or_reserved_cpu_wall_seconds": 0,
+      "node": "batch-block4-1034"
+    },
+    {
+      "job": "37972799",
+      "state": "COMPLETED",
+      "elapsed_seconds": 1342,
+      "effective_wall_limit_seconds": 2400,
+      "gpu_count_requested": 1,
+      "charged_or_reserved_gpu_seconds": 1342,
+      "charged_or_reserved_cpu_wall_seconds": 0,
+      "node": "batch-block4-1034"
+    },
+    {
+      "job": "37973484",
+      "state": "CANCELLED by 41852",
+      "elapsed_seconds": 0,
+      "effective_wall_limit_seconds": 1500,
+      "gpu_count_requested": 1,
+      "charged_or_reserved_gpu_seconds": 0,
+      "charged_or_reserved_cpu_wall_seconds": 0,
+      "node": "None assigned"
+    },
+    {
+      "job": "37973612",
+      "state": "CANCELLED",
+      "elapsed_seconds": 0,
+      "effective_wall_limit_seconds": 1500,
+      "gpu_count_requested": 1,
+      "charged_or_reserved_gpu_seconds": 0,
+      "charged_or_reserved_cpu_wall_seconds": 0,
+      "node": "None assigned"
+    },
+    {
+      "job": "37974045",
       "state": "RUNNING",
-      "elapsed_seconds": 377,
+      "elapsed_seconds": 1065,
       "effective_wall_limit_seconds": 1800,
       "gpu_count_requested": 1,
       "charged_or_reserved_gpu_seconds": 1800,
@@ -111,32 +151,32 @@
       "node": "batch-block4-1034"
     },
     {
-      "job": "37972799",
-      "state": "PENDING",
-      "elapsed_seconds": 0,
-      "effective_wall_limit_seconds": 2400,
-      "gpu_count_requested": 1,
-      "charged_or_reserved_gpu_seconds": 2400,
-      "charged_or_reserved_cpu_wall_seconds": 0,
-      "node": "None assigned"
+      "job": "37974953",
+      "state": "RUNNING",
+      "elapsed_seconds": 412,
+      "effective_wall_limit_seconds": 600,
+      "gpu_count_requested": 0,
+      "charged_or_reserved_gpu_seconds": 0,
+      "charged_or_reserved_cpu_wall_seconds": 600,
+      "node": "cpu-00049"
     },
     {
-      "job": "37973484",
+      "job": "37975697",
       "state": "PENDING",
       "elapsed_seconds": 0,
-      "effective_wall_limit_seconds": 1500,
+      "effective_wall_limit_seconds": 1200,
       "gpu_count_requested": 1,
-      "charged_or_reserved_gpu_seconds": 1500,
+      "charged_or_reserved_gpu_seconds": 1200,
       "charged_or_reserved_cpu_wall_seconds": 0,
       "node": "None assigned"
     }
   ],
-  "as_of_utc": "2026-11-04T19:49:06.345223+00:00",
+  "as_of_utc": "2026-11-04T20:46:00.320429+00:00",
   "unsubmitted_final_reservation_seconds": 12600,
   "total_gpu_cap_seconds": 28800,
   "cpu_wall_cap_seconds": 7200,
-  "total_with_reserved_final": 20980,
-  "cpu_actual_or_reserved_seconds": 3127,
+  "total_with_reserved_final": 19667,
+  "cpu_actual_or_reserved_seconds": 3787,
   "failures": {
     "37970581": "New recovery diagnostic failed to resolve native worker cursor handle after update41; checkpoint40 completed. Fixed by2e44bfa.",
     "37971293": "Canceled before reaching the same diagnostic failure.",
@@ -148,5 +188,8 @@
     "second": 8632
   },
   "local_test_gpu_seconds_charged": 60,
-  "local_test_note": "Root pytest setup overrides CUDA_VISIBLE_DEVICES even for CPU-labelled tests. Conservatively charge60GPU-seconds for49.88s of local pytest runtimes, including42 kernel tests passing in26.20s on A100 with Torch2.10.0+cu130/Transformers4.57.6/bnb0.49.2. Remote pinned regression remains required. Future CPU-only invocations exclude the root conftest."
+  "local_test_note": "Root pytest setup overrides CUDA_VISIBLE_DEVICES even for CPU-labelled tests. Conservatively charge60GPU-seconds for49.88s of local pytest runtimes, including42 kernel tests passing in26.20s on A100 with Torch2.10.0+cu130/Transformers4.57.6/bnb0.49.2. Remote pinned regression remains required. Future CPU-only invocations exclude the root conftest.",
+  "unsubmitted_conditional_cpu_full_trials_reservation_seconds": 3360,
+  "cpu_total_including_conditional_reservation": 7147,
+  "local_cpu_check_reservation_seconds": 60
 }
