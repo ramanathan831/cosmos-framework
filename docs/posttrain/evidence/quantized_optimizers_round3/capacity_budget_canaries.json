@@ -10,10 +10,35 @@
         "-m",
         "pytest",
         "cosmos_framework/posttrain/tests/test_quantized_optimizer.py",
+        "cosmos_framework/posttrain/tests/test_hf_full_state_initialization.py",
         "--confcutdir=cosmos_framework/posttrain/tests",
         "--override-ini=addopts=",
         "-q"
       ]
+    },
+    {
+      "name": "direct_checkpoint_score",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.score_dense",
+        "--data",
+        "{data}/dev-task.jsonl",
+        "--selection",
+        "{data}/dev-task-manifest.json",
+        "--output",
+        "{case}/scores",
+        "--seed",
+        "17",
+        "--substantive-data",
+        "{data}/validation.jsonl",
+        "--checkpoint",
+        "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-quantized-optimizers-deployment-20261104/seed17/restart0_adamw/native/cosmos3_reasoner/optimizer_deployment/restart0_adamw/20261103235442/checkpoints/iter_000040"
+      ],
+      "read_model": false,
+      "compare_scores_to": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/diagnosis-v2/historical_fused40/scores/scores.jsonl"
     },
     {
       "name": "fused_full",
@@ -203,5 +228,5 @@
       }
     }
   ],
-  "interpretation": "Four-update capacity probes select a feasible fused baseline; failures retained. Elapsed60/reserve10 canaries prove native stopping and fresh scoring of actual earlier checkpoints, not final quality/performance claims."
+  "interpretation": "Four-update capacity probes select a feasible fused baseline; failures retained. Elapsed60/reserve10 canaries prove native stopping and fresh scoring of actual earlier checkpoints, not final quality/performance claims. Direct model initialization must match all historical-development per-question scores and input hashes exactly."
 }

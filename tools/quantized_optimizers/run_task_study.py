@@ -60,6 +60,13 @@ def run(root, staging, handle, deadline):
         write(output / "attempt.json", {"returncode": code, "elapsed_seconds": time.monotonic() - before})
         if code and not case.get("allow_failure", False):
             raise RuntimeError(f"development case failed: {case['name']}")
+        if not code and "compare_scores_to" in case:
+            previous = Path(case["compare_scores_to"].format_map(mapping))
+            old = [json.loads(line) for line in previous.read_text().splitlines()]
+            current = [json.loads(line) for line in (output / "scores/scores.jsonl").read_text().splitlines()]
+            if current != old:
+                raise ValueError("direct checkpoint scoring changed per-question predictions or inputs")
+            write(output / "score_parity.json", {"exact_rows": len(current), "reference": str(previous), "match": True})
         if not code and "score_checkpoint" in case:
             checkpoints = list((output / "native").rglob("model.pt"))
             if len(checkpoints) != 1:

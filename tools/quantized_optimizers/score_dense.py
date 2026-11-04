@@ -364,10 +364,7 @@ def main():
         # already does, avoiding slow demand paging on the shared filesystem.
         from tools.quantized_optimizers.run_deployment import read_model_files
 
-        read_model_files(args.output)
-        print("Scoring: immutable pretrained files read", flush=True)
-        model = build_backbone(config)
-        print("Scoring: native model built", flush=True)
+        model = None
         provenance = None
         if args.checkpoint:
             manager = CheckpointManager()
@@ -386,13 +383,19 @@ def main():
             )
 
             def load():
+                nonlocal model
                 state = manager.load_component(args.checkpoint, "model")
                 if state is None:
                     raise ValueError("committed checkpoint has no dense model")
-                model.net.load_state_dict(state["net"], strict=True)
+                model = build_backbone(config, hf_model_state=state["net"])
 
             _, provenance = manager.load_checkpoint(args.checkpoint, load)
             print("Scoring: committed dense model restored", flush=True)
+        else:
+            read_model_files(args.output)
+            print("Scoring: immutable pretrained files read", flush=True)
+            model = build_backbone(config)
+        print("Scoring: native model built", flush=True)
         model.net.requires_grad_(False)
         objective = make_objective(
             packer,

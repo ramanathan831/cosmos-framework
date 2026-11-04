@@ -461,7 +461,7 @@ class HFModel(nn.Module):
             recurse=True,
         )
 
-    def setup(self, pdims: ParallelDims | None) -> None:
+    def setup(self, pdims: ParallelDims | None, *, initial_state: dict[str, torch.Tensor] | None = None) -> None:
         """Run the load-bearing lifecycle: parallelize -> materialize -> tie -> load [-> ckpt].
 
         The ordering is required (mirrors cosmos3 ``_init_vlm``): FSDP2 wrap first so
@@ -469,11 +469,39 @@ class HFModel(nn.Module):
         (the tie must exist before the load so the shared pointer is filled once), then
         stripe the pretrained safetensors into each rank's shard. Single device (pdims
         None) short-circuits parallelize/striping inside the primitives and still works.
+
+        ``initial_state`` is an already verified complete model checkpoint, not
+        an optimizer checkpoint or partial adapter. It requires the unsharded
+        path and exact keys/shapes/dtypes; the caller owns checkpoint transaction
+        verification. It replaces pretrained weight I/O, never construction of
+        architecture-specific nonpersistent buffers.
         """
+        if initial_state is not None:
+            if pdims is not None:
+                raise ValueError("direct full HF state initialization requires an unsharded model")
+            expected = self.net.state_dict()
+            if set(initial_state) != set(expected):
+                raise ValueError("direct full HF state initialization requires every model key and no extras")
+            for name, target in expected.items():
+                source = initial_state[name]
+                if (
+                    not isinstance(source, torch.Tensor)
+                    or hasattr(source, "to_local")
+                    or source.device.type == "meta"
+                    or source.shape != target.shape
+                    or source.dtype != target.dtype
+                ):
+                    raise ValueError(f"direct full HF state shape/dtype/ownership mismatch: {name}")
         parallelize(self.net, self.shard_plan, pdims)
         self._materialize_meta()
         self.tie_embeddings()
-        load_weights(self.net, self.ckpt_path, self.load_plan, pdims)
+        if initial_state is None:
+            load_weights(self.net, self.ckpt_path, self.load_plan, pdims)
+        else:
+            # A verified complete checkpoint supplies the weights directly. Do
+            # not read, upcast and transfer pretrained tensors only to overwrite
+            # every one. Construction still initializes nonpersistent buffers.
+            self.net.load_state_dict(initial_state, strict=True)
         if self.grad_ckpt:
             self.apply_gradient_checkpointing()
 
@@ -604,13 +632,18 @@ class HFModel(nn.Module):
 
 
 def build_hf_model(
-    hf_cfg: "HFModelConfig", pdims: ParallelDims | None = None, precision: "Precision | None" = None
+    hf_cfg: "HFModelConfig",
+    pdims: ParallelDims | None = None,
+    precision: "Precision | None" = None,
+    *,
+    initial_state: dict[str, torch.Tensor] | None = None,
 ) -> HFModel:
     """Build the HuggingFace model body and run its model-owned FSDP lifecycle.
 
     Args:
         hf_cfg: the model spec (identity / attn / grad-ckpt, plus the deprecated dtype fields).
         pdims: this actor's `ParallelDims`, or None for single device.
+        initial_state: optional complete ordinary model state; see `HFModel.setup`.
         precision: the resolved `Precision` from `resolve_precision(config)`, which splits STORAGE
             (`rl.master_dtype`, what the optimizer and master weights live in) from COMPUTE
             (`rl.param_dtype`, what FSDP casts to for forward/backward). `None` ⇒ derive it from
@@ -646,5 +679,8 @@ def build_hf_model(
         mixed_precision_mode=precision.mode,
         synchronize_multimodal_forward=bool(pdims is not None and (pdims.dp_shard_enabled or pdims.dp_replicate > 1)),
     )
-    model.setup(pdims)
+    if initial_state is None:
+        model.setup(pdims)
+    else:
+        model.setup(pdims, initial_state=initial_state)
     return model
