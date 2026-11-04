@@ -1,0 +1,52 @@
+{
+  "recorded_utc": "2026-11-04T18:49:32.394270+00:00",
+  "starting_head": "1d250b47068a1fa71c3932988c1e7e6f90a47734",
+  "authorization": "User requested bounded outcome-improvement campaign using approved QLoRA train/eval; local commits only. Original QLoRA checkout and PR334 untouched.",
+  "historical_evidence_verified": {
+    "quantized_optimizers": {
+      "verified_files": 76,
+      "manifest_sha256": "c7f4ddf7cd88f1b97e0c1a2ab28af003b9ad6887a568443f076949b041347ce2"
+    },
+    "quantized_optimizers_round2": {
+      "verified_files": 22,
+      "manifest_sha256": "a571dff0bba7fbc4f95251217445935fd47054833c24f47fa2e42593bc6b3c76"
+    }
+  },
+  "budget": {
+    "gpu_seconds": 28800,
+    "cpu_wall_seconds": 7200,
+    "maximum_concurrent_gpus": 2,
+    "reservations": {
+      "dense_recovery_two_arms": 3600,
+      "final_three_paired_seed_comparisons_and_equal_time_scoring": 12600,
+      "development_diagnosis_and_recipe_controls": 7200,
+      "failure_and_dependency_headroom": 5400
+    },
+    "admission": "Charge terminal elapsed GPU-seconds plus effective rounded Slurm TimeLimit for pending/running jobs, plus reserved unsubmitted final/recovery work; failures count. All times use whole minutes. No automatic cap increase."
+  },
+  "first_actions": [
+    "Correct annotated option-footer contamination; regenerate only in new directory.",
+    "Run original dense recipe reference44/resume40to44 fused and nonpaged with explicit keep_optim_last=0. Compare all trainables/optimizer state, scheduler/update, RNG/cursor at each resumed update and full final model.",
+    "On training/development only, score frozen and historical trained model, diagnose task format and learning curves before paired recipe selection."
+  ],
+  "fixed_gates": {
+    "paired_seeds": 3,
+    "ci": 0.95,
+    "nll_ratio_upper_max": 1.01,
+    "task_accuracy_degradation_upper_max": 0.01,
+    "speed_ratio_lower_min_exclusive": 1.05,
+    "optimizer_state_saving_min": 0.6,
+    "equal_budget_quality_improvement_lower_min_exclusive": 0,
+    "positive_adaptation_lower_min_exclusive": 0,
+    "time_to_quality_target": "0.95 times paired fused initial validation NLL; unchanged prior criterion",
+    "recording_bootstrap_repetitions": 10000,
+    "bootstrap_seed": 2026
+  },
+  "final_protocol": "Lock exact recipes, elapsed budgets, quality target, cadence, checkpoint capture and costs after development evidence and before any new final scoring. Minimum3 paired seeds; repeated timings do not multiply independent quality samples. Retain original16-example final manifest as exposed comparison. Audit additional group availability using metadata only.",
+  "stop_conditions": [
+    "No large comparative campaign until dense recovery passes both arms.",
+    "No final scoring before protocol freeze; no final scores for recipe selection.",
+    "Do not admit any allocation that consumes the reserved dependent evaluation budget.",
+    "If no complete next experiment fits, preserve unmet gates and executable next intervention with estimated cost."
+  ]
+}

@@ -12,6 +12,27 @@ from tools.quantized_optimizers.state_digest import digest, tensor_digest
 
 original = entry.build_trainer
 captured = {}
+original_step = entry.train_step
+
+
+def capture_completed_step(data, policy, rl):
+    metrics = original_step(data, policy, rl)
+    step = int(metrics["optim/optimizer_step"])
+    if 41 <= step <= 44:
+        trainer = captured["trainer"]
+        # Correctness-only instrumentation after scheduler/update/cursor advancement.
+        # Read live state without making an eager, full CPU optimizer snapshot.
+        record = {
+            "step": step,
+            "trainables": digest({n: p for n, p in trainer._net().named_parameters() if p.requires_grad}),
+            "optimizer": digest(torch.optim.Optimizer.state_dict(trainer.opt)),
+            "scheduler": digest(trainer.lr_scheduler.state_dict()),
+            "update": digest(trainer._update_state_dict()),
+            "cursor": digest(data.state_dict()),
+            "rng": digest(collect_rng_state()),
+        }
+        captured.setdefault("completed_update_states", []).append(record)
+    return metrics
 
 
 def capture(config, rl, data, validation, checkpoint):
@@ -38,6 +59,8 @@ def capture(config, rl, data, validation, checkpoint):
 
 if __name__ == "__main__":
     entry.build_trainer = capture
+    if os.environ.get("RECOVERY_ARM"):
+        entry.train_step = capture_completed_step
     entry.main()
     trainer = captured["trainer"]
     # State after the same native loop/finalization. Fingerprint each component
@@ -53,6 +76,7 @@ if __name__ == "__main__":
         "cursor_state": cursor,
         "rng": digest(collect_rng_state()),
         "update_probes": captured.get("update_probes"),
+        "completed_update_states": captured.get("completed_update_states"),
         "state_report": trainer.opt.state_report()
         if hasattr(trainer.opt, "state_report")
         else {

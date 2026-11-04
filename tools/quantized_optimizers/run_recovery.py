@@ -96,6 +96,9 @@ def run(root, staging, deadline):
     matches["next_and_subsequent_live_updates"] = results["reference"]["update_probes"][-4:] == results["resumed"][
         "update_probes"
     ] and [row["step"] for row in results["resumed"]["update_probes"]] == [41, 42, 43, 44]
+    matches["all_completed_update_states"] = results["reference"]["completed_update_states"] == results["resumed"][
+        "completed_update_states"
+    ] and [row["step"] for row in results["resumed"]["completed_update_states"]] == [41, 42, 43, 44]
     write(root / "parity.json", matches)
     if not all(matches.values()):
         raise ValueError(f"fresh-process40to44recovery failed: {matches}")
