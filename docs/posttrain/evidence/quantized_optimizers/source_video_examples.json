@@ -1,0 +1,18 @@
+[
+  {
+    "split": "train",
+    "id": "20230707_19_CN8_T1/overhead_view/20230707_19_CN8_T1_Camera1_0.mp4",
+    "width": 1920,
+    "height": 1080,
+    "frames": 2088,
+    "fps": "30"
+  },
+  {
+    "split": "validation",
+    "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+    "width": 1920,
+    "height": 1080,
+    "frames": 2240,
+    "fps": "30"
+  }
+]

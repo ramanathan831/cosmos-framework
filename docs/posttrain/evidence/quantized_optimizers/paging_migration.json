@@ -1,0 +1,112 @@
+{
+  "scope": "instrumented synthetic pressure diagnostic; not speed qualification",
+  "time_unit": "ns",
+  "duration_sum_note": "event durations may overlap; sums are not wall time",
+  "cpu_faults": "no CPU page-fault table emitted",
+  "updates": [
+    {
+      "label": "optimizer_update_0",
+      "elapsed_ns": 491782319,
+      "copies": [
+        {
+          "direction": "Unified Host-to-Device",
+          "cause": "User prefetch",
+          "events": 238,
+          "bytes": 499122176,
+          "duration_sum_ns": 21479424
+        },
+        {
+          "direction": "Unified Host-to-Device",
+          "cause": "Page fault",
+          "events": 1170,
+          "bytes": 37654528,
+          "duration_sum_ns": 4153785
+        },
+        {
+          "direction": "Unified Host-to-Device",
+          "cause": "Speculative prefecth",
+          "events": 1127,
+          "bytes": 230780928,
+          "duration_sum_ns": 11380722
+        },
+        {
+          "direction": "Unified Device-to-Host",
+          "cause": "Eviction",
+          "events": 443,
+          "bytes": 929038336,
+          "duration_sum_ns": 41152417
+        }
+      ],
+      "gpu_fault_events": 1127,
+      "gpu_fault_count": 26471,
+      "gpu_fault_duration_sum_ns": 359094765
+    },
+    {
+      "label": "optimizer_update_1",
+      "elapsed_ns": 197737677,
+      "copies": [
+        {
+          "direction": "Unified Host-to-Device",
+          "cause": "User prefetch",
+          "events": 128,
+          "bytes": 268435456,
+          "duration_sum_ns": 12922177
+        },
+        {
+          "direction": "Unified Host-to-Device",
+          "cause": "Page fault",
+          "events": 493,
+          "bytes": 16654336,
+          "duration_sum_ns": 1781294
+        },
+        {
+          "direction": "Unified Host-to-Device",
+          "cause": "Speculative prefecth",
+          "events": 467,
+          "bytes": 94810112,
+          "duration_sum_ns": 4687351
+        },
+        {
+          "direction": "Unified Device-to-Host",
+          "cause": "Eviction",
+          "events": 256,
+          "bytes": 536870912,
+          "duration_sum_ns": 23863969
+        }
+      ],
+      "gpu_fault_events": 697,
+      "gpu_fault_count": 21056,
+      "gpu_fault_duration_sum_ns": 168696517
+    },
+    {
+      "label": "optimizer_update_2",
+      "elapsed_ns": 195505004,
+      "copies": [
+        {
+          "direction": "Unified Host-to-Device",
+          "cause": "Page fault",
+          "events": 842,
+          "bytes": 27930624,
+          "duration_sum_ns": 3020917
+        },
+        {
+          "direction": "Unified Host-to-Device",
+          "cause": "Speculative prefecth",
+          "events": 812,
+          "bytes": 171233280,
+          "duration_sum_ns": 8388646
+        },
+        {
+          "direction": "Unified Device-to-Host",
+          "cause": "Eviction",
+          "events": 256,
+          "bytes": 536870912,
+          "duration_sum_ns": 23691264
+        }
+      ],
+      "gpu_fault_events": 684,
+      "gpu_fault_count": 20760,
+      "gpu_fault_duration_sum_ns": 166908423
+    }
+  ]
+}

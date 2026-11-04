@@ -1,0 +1,39 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.14, pytest-9.0.2, pluggy-1.6.0
+rootdir: /localhome/local-rarunachalam/cosmos-framework-optimizer-qlora-integration
+configfile: .pytest.toml
+plugins: anyio-4.9.0, regressions-2.10.0, env-1.5.0, custom-exit-code-0.3.0, hydra-core-1.3.2, datadir-1.8.0, xdist-3.8.0, cov-7.0.0, instafail-0.5.0, typeguard-4.5.1
+collected 23 items
+
+cosmos_framework/posttrain/tests/test_adapter_consolidated_quantized.py . [  4%]
+.                                                                        [  8%]
+cosmos_framework/posttrain/tests/test_checkpoint_adapter.py ............ [ 60%]
+.........                                                                [100%]
+
+=============================== warnings summary ===============================
+cosmos_framework/posttrain/tests/test_checkpoint_adapter.py: 17 warnings
+  /localhome/local-rarunachalam/qlora-wts-qualification-20261030/unintended-local-uv-venv-94289a2/lib/python3.13/site-packages/torch/distributed/checkpoint/utils.py:483: UserWarning: torch.distributed is disabled, unavailable or uninitialized, assuming the intent is to save in a single process.
+    return func(*args, **kwargs)
+
+cosmos_framework/posttrain/tests/test_checkpoint_adapter.py::test_adapter_dcp_resume_matches_uninterrupted_run_and_preserves_base
+cosmos_framework/posttrain/tests/test_checkpoint_adapter.py::test_pristine_save_does_not_initialize_optimizer_and_restores_pristine
+cosmos_framework/posttrain/tests/test_checkpoint_adapter.py::test_frozen_state_proof_runs_at_checkpoint_boundaries_and_control_refresh_preserves_identity
+cosmos_framework/posttrain/tests/test_checkpoint_adapter.py::test_publish_portable_artifact_from_dcp_needs_no_base_and_detects_changed_bytes
+cosmos_framework/posttrain/tests/test_checkpoint_adapter.py::test_weight_reload_does_not_require_training_contract_but_resume_does
+  /localhome/local-rarunachalam/qlora-wts-qualification-20261030/unintended-local-uv-venv-94289a2/lib/python3.13/site-packages/torch/distributed/checkpoint/utils.py:483: UserWarning: torch.distributed is disabled, unavailable or uninitialized, assuming the intent is to load in a single process.
+    return func(*args, **kwargs)
+
+cosmos_framework/posttrain/tests/test_checkpoint_adapter.py::test_adapter_reload_rejects_incomplete_or_incompatible_checkpoint[shape]
+  /localhome/local-rarunachalam/qlora-wts-qualification-20261030/unintended-local-uv-venv-94289a2/lib/python3.13/site-packages/torch/distributed/checkpoint/state_dict_saver.py:449: UserWarning: Detected an existing checkpoint in /tmp/pytest-of-local-rarunachalam/pytest-730/test_adapter_reload_rejects_in4/checkpoints/iter_000001/model, overwriting since self.overwrite=True. Past version 2.5 of PyTorch, `overwrite` will default to False. Set this variable to True to maintain this functionality or False to raise when an existing checkpoint is found.
+    local_plan = storage_writer.prepare_local_plan(local_plan)
+
+cosmos_framework/posttrain/tests/test_checkpoint_adapter.py::test_adapter_reload_rejects_incomplete_or_incompatible_checkpoint[dtype]
+  /localhome/local-rarunachalam/qlora-wts-qualification-20261030/unintended-local-uv-venv-94289a2/lib/python3.13/site-packages/torch/distributed/checkpoint/state_dict_saver.py:449: UserWarning: Detected an existing checkpoint in /tmp/pytest-of-local-rarunachalam/pytest-730/test_adapter_reload_rejects_in5/checkpoints/iter_000001/model, overwriting since self.overwrite=True. Past version 2.5 of PyTorch, `overwrite` will default to False. Set this variable to True to maintain this functionality or False to raise when an existing checkpoint is found.
+    local_plan = storage_writer.prepare_local_plan(local_plan)
+
+cosmos_framework/posttrain/tests/test_checkpoint_adapter.py::test_adapter_reload_rejects_incomplete_or_incompatible_checkpoint[extra]
+  /localhome/local-rarunachalam/qlora-wts-qualification-20261030/unintended-local-uv-venv-94289a2/lib/python3.13/site-packages/torch/distributed/checkpoint/state_dict_saver.py:449: UserWarning: Detected an existing checkpoint in /tmp/pytest-of-local-rarunachalam/pytest-730/test_adapter_reload_rejects_in6/checkpoints/iter_000001/model, overwriting since self.overwrite=True. Past version 2.5 of PyTorch, `overwrite` will default to False. Set this variable to True to maintain this functionality or False to raise when an existing checkpoint is found.
+    local_plan = storage_writer.prepare_local_plan(local_plan)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 23 passed, 25 warnings in 24.14s =======================

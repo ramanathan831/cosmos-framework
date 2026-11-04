@@ -1,0 +1,23 @@
+{
+  "upstream": "e644a833bf909af9c23a02a5c1069967dc501111",
+  "files": {
+    "pyproject.toml": {
+      "upstream_sha256": "4acc203f8632e5b2a572d4bdf9de6139b2cdd0f3b359a9f29f0806689b056f72",
+      "feature_sha256": "009c4cf827ec61dd2d0cc6c5034a349d5167569b374a85a648ba8be497df9954"
+    },
+    "uv.lock": {
+      "upstream_sha256": "2e2f1631ab824ff551e1e7f88ad98c26ec044c23686c910344a0bfa07f1abb06",
+      "feature_sha256": "254ec6986f11e86a064f21eb22289a48207457b5dd8183291f7214095b8ef074"
+    },
+    "docker/posttrain/environment/pyproject.toml": {
+      "upstream_sha256": "4e2f737d67be1eef97c9006d5300dcbea7be924b7fb802dd8b2cd241f75a3e77",
+      "feature_sha256": "34ab3112709c09c04a0277a049dca9cc8082b4a35607b8cb318ea55fb6431d6b"
+    },
+    "docker/posttrain/environment/uv.lock": {
+      "upstream_sha256": "68ebe708a70eff3a99a4aa36398005ece2ee826e7248e85baf1f5177c69691ea",
+      "feature_sha256": "86dd224c42ac34359f8aa77e0be3ce5e7d3eb3a73cc603b6a7f7f504b7d45986"
+    }
+  },
+  "backend": "bitsandbytes==0.49.2",
+  "runtime_dependencies": "full installed lists in each native raw trial dependencies.txt; wheel/runtime source identity in provenance.json"
+}

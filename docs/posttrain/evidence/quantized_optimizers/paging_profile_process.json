@@ -1,0 +1,94 @@
+{
+  "arm": "paged_adamw_8bit",
+  "pressure": true,
+  "torch": "2.10.0+cu130",
+  "bitsandbytes": "0.49.2",
+  "device": "NVIDIA A100-SXM4-80GB",
+  "pid": 995568,
+  "samples": [
+    {
+      "index": 0,
+      "step_seconds": 0.49190430785529315,
+      "torch_allocated": 84146128896,
+      "torch_peak": 84146128896,
+      "torch_reserved": 84160806912,
+      "device_used": 85897641984,
+      "process_gpu_bytes": 84706066432,
+      "host": {
+        "VmHWM": "1451184 kB",
+        "VmRSS": "1451184 kB"
+      }
+    },
+    {
+      "index": 1,
+      "step_seconds": 0.1977655200753361,
+      "torch_allocated": 84146128896,
+      "torch_peak": 84146145792,
+      "torch_reserved": 84160806912,
+      "device_used": 85897641984,
+      "process_gpu_bytes": 84706066432,
+      "host": {
+        "VmHWM": "1463396 kB",
+        "VmRSS": "1463396 kB"
+      }
+    },
+    {
+      "index": 2,
+      "step_seconds": 0.19553061295300722,
+      "torch_allocated": 84146128896,
+      "torch_peak": 84146145792,
+      "torch_reserved": 84160806912,
+      "device_used": 85897641984,
+      "process_gpu_bytes": 84706066432,
+      "host": {
+        "VmHWM": "1475192 kB",
+        "VmRSS": "1475192 kB"
+      }
+    }
+  ],
+  "free_before_ballast": 82258296832,
+  "total_memory": 85093777408,
+  "ballast_bytes": 81989861376,
+  "free_after_ballast": 268042240,
+  "state": {
+    "backend": {
+      "format": "cosmos_bnb_v1",
+      "backend": "bitsandbytes",
+      "version": "0.49.2",
+      "name": "paged_adamw_8bit",
+      "storage": "float32",
+      "topology": "single_cuda",
+      "min_8bit_size": 4096,
+      "fp32_state_names": [],
+      "groups": [
+        {
+          "names": [
+            "weight"
+          ],
+          "shapes": [
+            [
+              268435456
+            ]
+          ],
+          "name": null,
+          "betas": [
+            0.9,
+            0.999
+          ],
+          "eps": 1e-08,
+          "weight_decay": 0.0
+        }
+      ]
+    },
+    "trainable_elements": 268435456,
+    "quantized_elements": 268435456,
+    "fp32_elements": 0,
+    "moment_bytes": 536870912,
+    "metadata_bytes": 8390656,
+    "paged_moment_bytes": 536870912,
+    "uninitialized_elements": 0,
+    "exceptions": {}
+  },
+  "finite_parameter_sample": true,
+  "status": "completed"
+}

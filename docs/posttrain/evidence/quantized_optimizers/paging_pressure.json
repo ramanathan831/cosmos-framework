@@ -1,0 +1,311 @@
+[
+  {
+    "returncode": 0,
+    "stderr": "[posttrain|I|r0] 2026-11-03 22:40:38 Quantized optimizer state: {'backend': {'format': 'cosmos_bnb_v1', 'backend': 'bitsandbytes', 'version': '0.49.2', 'name': 'adamw_bnb_8bit', 'storage': 'float32', 'topology': 'single_cuda', 'min_8bit_size': 4096, 'fp32_state_names': [], 'groups': [{'names': ['weight'], 'shapes': [[268435456]], 'name': None, 'betas': (0.9, 0.999), 'eps': 1e-08, 'weight_decay': 0.0}]}, 'trainable_elements': 268435456, 'quantized_elements': 268435456, 'fp32_elements': 0, 'moment_bytes': 536870912, 'metadata_bytes': 8390656, 'paged_moment_bytes': 0, 'uninitialized_elements': 0, 'exceptions': {}}\n",
+    "elapsed": 4.598316989839077,
+    "result": {
+      "arm": "adamw_bnb_8bit",
+      "pressure": false,
+      "torch": "2.10.0+cu130",
+      "bitsandbytes": "0.49.2",
+      "device": "NVIDIA A100-SXM4-80GB",
+      "pid": 994348,
+      "samples": [
+        {
+          "index": 0,
+          "step_seconds": 0.0511171140242368,
+          "torch_allocated": 2692745216,
+          "torch_peak": 2692745216,
+          "torch_reserved": 2707423232,
+          "device_used": 4039442432,
+          "host": {
+            "VmHWM": "872080 kB",
+            "VmRSS": "872080 kB"
+          }
+        },
+        {
+          "index": 1,
+          "step_seconds": 0.015864080982282758,
+          "torch_allocated": 2692745216,
+          "torch_peak": 2692762112,
+          "torch_reserved": 2707423232,
+          "device_used": 4039442432,
+          "host": {
+            "VmHWM": "872136 kB",
+            "VmRSS": "872136 kB"
+          }
+        },
+        {
+          "index": 2,
+          "step_seconds": 0.01582573913037777,
+          "torch_allocated": 2692745216,
+          "torch_peak": 2692762112,
+          "torch_reserved": 2707423232,
+          "device_used": 4039442432,
+          "host": {
+            "VmHWM": "872172 kB",
+            "VmRSS": "872172 kB"
+          }
+        }
+      ],
+      "free_before_ballast": 82419843072,
+      "total_memory": 85093777408,
+      "ballast_bytes": 0,
+      "free_after_ballast": 82419843072,
+      "state": {
+        "backend": {
+          "format": "cosmos_bnb_v1",
+          "backend": "bitsandbytes",
+          "version": "0.49.2",
+          "name": "adamw_bnb_8bit",
+          "storage": "float32",
+          "topology": "single_cuda",
+          "min_8bit_size": 4096,
+          "fp32_state_names": [],
+          "groups": [
+            {
+              "names": [
+                "weight"
+              ],
+              "shapes": [
+                [
+                  268435456
+                ]
+              ],
+              "name": null,
+              "betas": [
+                0.9,
+                0.999
+              ],
+              "eps": 1e-08,
+              "weight_decay": 0.0
+            }
+          ]
+        },
+        "trainable_elements": 268435456,
+        "quantized_elements": 268435456,
+        "fp32_elements": 0,
+        "moment_bytes": 536870912,
+        "metadata_bytes": 8390656,
+        "paged_moment_bytes": 0,
+        "uninitialized_elements": 0,
+        "exceptions": {}
+      },
+      "finite_parameter_sample": true,
+      "status": "completed"
+    }
+  },
+  {
+    "returncode": 0,
+    "stderr": "[posttrain|I|r0] 2026-11-03 22:40:43 Quantized optimizer state: {'backend': {'format': 'cosmos_bnb_v1', 'backend': 'bitsandbytes', 'version': '0.49.2', 'name': 'paged_adamw_8bit', 'storage': 'float32', 'topology': 'single_cuda', 'min_8bit_size': 4096, 'fp32_state_names': [], 'groups': [{'names': ['weight'], 'shapes': [[268435456]], 'name': None, 'betas': (0.9, 0.999), 'eps': 1e-08, 'weight_decay': 0.0}]}, 'trainable_elements': 268435456, 'quantized_elements': 268435456, 'fp32_elements': 0, 'moment_bytes': 536870912, 'metadata_bytes': 8390656, 'paged_moment_bytes': 536870912, 'uninitialized_elements': 0, 'exceptions': {}}\n",
+    "elapsed": 4.474346008850262,
+    "result": {
+      "arm": "paged_adamw_8bit",
+      "pressure": false,
+      "torch": "2.10.0+cu130",
+      "bitsandbytes": "0.49.2",
+      "device": "NVIDIA A100-SXM4-80GB",
+      "pid": 994502,
+      "samples": [
+        {
+          "index": 0,
+          "step_seconds": 0.21094021201133728,
+          "torch_allocated": 2155874304,
+          "torch_peak": 2155874304,
+          "torch_reserved": 2170552320,
+          "device_used": 4171563008,
+          "host": {
+            "VmHWM": "872444 kB",
+            "VmRSS": "872444 kB"
+          }
+        },
+        {
+          "index": 1,
+          "step_seconds": 0.014394838130101562,
+          "torch_allocated": 2155874304,
+          "torch_peak": 2155891200,
+          "torch_reserved": 2170552320,
+          "device_used": 4171563008,
+          "host": {
+            "VmHWM": "872508 kB",
+            "VmRSS": "872508 kB"
+          }
+        },
+        {
+          "index": 2,
+          "step_seconds": 0.011511134915053844,
+          "torch_allocated": 2155874304,
+          "torch_peak": 2155891200,
+          "torch_reserved": 2170552320,
+          "device_used": 4171563008,
+          "host": {
+            "VmHWM": "872524 kB",
+            "VmRSS": "872524 kB"
+          }
+        }
+      ],
+      "free_before_ballast": 82287722496,
+      "total_memory": 85093777408,
+      "ballast_bytes": 0,
+      "free_after_ballast": 82287722496,
+      "state": {
+        "backend": {
+          "format": "cosmos_bnb_v1",
+          "backend": "bitsandbytes",
+          "version": "0.49.2",
+          "name": "paged_adamw_8bit",
+          "storage": "float32",
+          "topology": "single_cuda",
+          "min_8bit_size": 4096,
+          "fp32_state_names": [],
+          "groups": [
+            {
+              "names": [
+                "weight"
+              ],
+              "shapes": [
+                [
+                  268435456
+                ]
+              ],
+              "name": null,
+              "betas": [
+                0.9,
+                0.999
+              ],
+              "eps": 1e-08,
+              "weight_decay": 0.0
+            }
+          ]
+        },
+        "trainable_elements": 268435456,
+        "quantized_elements": 268435456,
+        "fp32_elements": 0,
+        "moment_bytes": 536870912,
+        "metadata_bytes": 8390656,
+        "paged_moment_bytes": 536870912,
+        "uninitialized_elements": 0,
+        "exceptions": {}
+      },
+      "finite_parameter_sample": true,
+      "status": "completed"
+    }
+  },
+  {
+    "returncode": 0,
+    "stderr": "",
+    "elapsed": 4.611218709964305,
+    "result": {
+      "arm": "adamw_bnb_8bit",
+      "pressure": true,
+      "torch": "2.10.0+cu130",
+      "bitsandbytes": "0.49.2",
+      "device": "NVIDIA A100-SXM4-80GB",
+      "pid": 994615,
+      "samples": [],
+      "free_before_ballast": 82419843072,
+      "total_memory": 85093777408,
+      "ballast_bytes": 82151407616,
+      "free_after_ballast": 268107776,
+      "status": "failed",
+      "error_type": "OutOfMemoryError",
+      "error": "CUDA out of memory. Tried to allocate 256.00 MiB. GPU 0 has a total capacity of 79.25 GiB of which 253.69 MiB is free. Including non-PyTorch memory, this process has 78.99 GiB memory in use. Of the allocated memory 78.51 GiB is allocated by PyTorch, and 2.00 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+    }
+  },
+  {
+    "returncode": 0,
+    "stderr": "[posttrain|I|r0] 2026-11-03 22:40:53 Quantized optimizer state: {'backend': {'format': 'cosmos_bnb_v1', 'backend': 'bitsandbytes', 'version': '0.49.2', 'name': 'paged_adamw_8bit', 'storage': 'float32', 'topology': 'single_cuda', 'min_8bit_size': 4096, 'fp32_state_names': [], 'groups': [{'names': ['weight'], 'shapes': [[268435456]], 'name': None, 'betas': (0.9, 0.999), 'eps': 1e-08, 'weight_decay': 0.0}]}, 'trainable_elements': 268435456, 'quantized_elements': 268435456, 'fp32_elements': 0, 'moment_bytes': 536870912, 'metadata_bytes': 8390656, 'paged_moment_bytes': 536870912, 'uninitialized_elements': 0, 'exceptions': {}}\n",
+    "elapsed": 5.271506221964955,
+    "result": {
+      "arm": "paged_adamw_8bit",
+      "pressure": true,
+      "torch": "2.10.0+cu130",
+      "bitsandbytes": "0.49.2",
+      "device": "NVIDIA A100-SXM4-80GB",
+      "pid": 994708,
+      "samples": [
+        {
+          "index": 0,
+          "step_seconds": 0.42418267601169646,
+          "torch_allocated": 84175489024,
+          "torch_peak": 84175489024,
+          "torch_reserved": 84190167040,
+          "device_used": 85897576448,
+          "host": {
+            "VmHWM": "872540 kB",
+            "VmRSS": "872540 kB"
+          }
+        },
+        {
+          "index": 1,
+          "step_seconds": 0.16832903190515935,
+          "torch_allocated": 84175489024,
+          "torch_peak": 84175505920,
+          "torch_reserved": 84190167040,
+          "device_used": 85897576448,
+          "host": {
+            "VmHWM": "872604 kB",
+            "VmRSS": "872604 kB"
+          }
+        },
+        {
+          "index": 2,
+          "step_seconds": 0.1685597850009799,
+          "torch_allocated": 84175489024,
+          "torch_peak": 84175505920,
+          "torch_reserved": 84190167040,
+          "device_used": 85897576448,
+          "host": {
+            "VmHWM": "872616 kB",
+            "VmRSS": "872616 kB"
+          }
+        }
+      ],
+      "free_before_ballast": 82287722496,
+      "total_memory": 85093777408,
+      "ballast_bytes": 82019287040,
+      "free_after_ballast": 268107776,
+      "state": {
+        "backend": {
+          "format": "cosmos_bnb_v1",
+          "backend": "bitsandbytes",
+          "version": "0.49.2",
+          "name": "paged_adamw_8bit",
+          "storage": "float32",
+          "topology": "single_cuda",
+          "min_8bit_size": 4096,
+          "fp32_state_names": [],
+          "groups": [
+            {
+              "names": [
+                "weight"
+              ],
+              "shapes": [
+                [
+                  268435456
+                ]
+              ],
+              "name": null,
+              "betas": [
+                0.9,
+                0.999
+              ],
+              "eps": 1e-08,
+              "weight_decay": 0.0
+            }
+          ]
+        },
+        "trainable_elements": 268435456,
+        "quantized_elements": 268435456,
+        "fp32_elements": 0,
+        "moment_bytes": 536870912,
+        "metadata_bytes": 8390656,
+        "paged_moment_bytes": 536870912,
+        "uninitialized_elements": 0,
+        "exceptions": {}
+      },
+      "finite_parameter_sample": true,
+      "status": "completed"
+    }
+  }
+]
