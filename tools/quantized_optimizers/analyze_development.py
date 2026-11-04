@@ -154,7 +154,10 @@ def main():
     if complete:
         budget = min(r["curve"][-1]["seconds"] for r in runs.values())
         for r in runs.values():
-            r["equal_budget_nll"] = [p["nll"] for p in r["curve"] if p["seconds"] <= budget][-1]
+            point = [p for p in r["curve"] if p["seconds"] <= budget][-1]
+            r["equal_budget_nll"] = point["nll"]
+            r["equal_budget_validation_step"] = point["step"]
+            r["equal_budget_training_sequences"] = int(point["step"]) * 4
         for arm in arms[1:]:
             base = [runs[s, "adamw"] for s in (17, 29, 43)]
             other = [runs[s, arm] for s in (17, 29, 43)]
@@ -165,7 +168,29 @@ def main():
                     if a["target_seconds"] and b["target_seconds"]
                 ]
             )
+            controls = []
+            for b, a in zip(base, other):
+                token_counts_equal = a["supervised_tokens_per_update"] == b["supervised_tokens_per_update"]
+
+                def shapes(run):
+                    return [
+                        (f.get("sequence_lengths"), f.get("video_grid_thw"))
+                        for f in run["forward_shapes"]
+                        if f["grad_enabled"]
+                    ]
+
+                shape_order_equal = shapes(a) == shapes(b)
+                controls.append(
+                    {
+                        "seed": a["seed"],
+                        "supervised_token_order_equal": token_counts_equal,
+                        "training_shape_order_equal": shape_order_equal,
+                    }
+                )
+                if not token_counts_equal or not shape_order_equal:
+                    raise ValueError(f"paired training controls differ for seed {a['seed']} {arm}")
             pairs[arm] = {
+                "controls": controls,
                 "final_nll_ratio": interval(
                     [a["curve"][-1]["nll"] / b["curve"][-1]["nll"] for b, a in zip(base, other)]
                 ),
@@ -180,7 +205,7 @@ def main():
     else:
         budget = None
     output = {
-        "release": "NOT QUALIFIED: reused development groups; no generated task-score evaluation",
+        "release": "NOT QUALIFIED: instrumented development evidence; mainline task-score and uninstrumented speed gates remain unmet",
         "complete_three_seed_development": complete,
         "equal_budget_seconds": budget,
         "paired": pairs,
@@ -188,12 +213,12 @@ def main():
     }
     args.output.mkdir(parents=True, exist_ok=True)
     (args.output / "native_development_summary.json").write_text(json.dumps(output, indent=2) + "\n")
-    fig, axes = plt.subplots(1, 2, figsize=(13, 4.8))
+    fig, axes = plt.subplots(1, 3, figsize=(18, 4.8))
     for arm in arms:
         group = [r for r in runs.values() if r["arm"] == arm and r["complete"]]
         if not group:
             continue
-        label = "torch fused FP32 baseline" if arm == "adamw" else arm
+        label = ("torch fused FP32 baseline" if arm == "adamw" else arm) + f" (n={len(group)})"
         lengths = {len(r["curve"]) for r in group}
         if len(lengths) == 1:
             times = np.mean([[p["seconds"] for p in r["curve"]] for r in group], axis=0)
@@ -213,6 +238,27 @@ def main():
             capsize=4,
             label=label,
         )
+        process_peaks = [
+            r["sampled_process_gpu_peak_bytes"] / 2**30
+            for r in group
+            if r["sampled_process_gpu_peak_bytes"] is not None
+        ]
+        if len(process_peaks) == len(group):
+            physical = interval(process_peaks)
+            axes[2].errorbar(
+                physical["mean"],
+                y["mean"],
+                xerr=physical["ci95"][1] - physical["mean"] if physical["ci95"] else None,
+                yerr=y["ci95"][1] - y["mean"] if y["ci95"] else None,
+                fmt="o",
+                capsize=4,
+                label=label,
+            )
+    axes[2].set(
+        xlabel="Sampled process GPU peak GiB (NVML)",
+        ylabel="Training video sequences/s",
+        title="Process samples after updates; peaks are lower bounds",
+    )
     axes[0].set(
         xlabel="Training + validation seconds (initialization excluded)",
         ylabel="Development token NLL",
