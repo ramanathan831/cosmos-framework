@@ -1,0 +1,143 @@
+{
+  "purpose": "User-approved reused data, recording-disjoint within campaign; prior inspection retained",
+  "input_sha256": {
+    "train": "cdf5299b85b7161d41e7c6a4317f239f59508a7543e7b6321872f7e4f9b8c8e8",
+    "validation": "52d6bd8cc4a53ab520e100e72359001c9ae1a976a521dab7dd7738a7567619a2",
+    "inventory": "13477150f1dcd6326f5a7f5bf06ac1f1b972683fd9bedafd3bf03311494cd261"
+  },
+  "output_sha256": {
+    "train": "dac521711ca5969fa0465fa461c959ab7687eb7f32433d34fba2a45149ffa487",
+    "validation": "52d6bd8cc4a53ab520e100e72359001c9ae1a976a521dab7dd7738a7567619a2"
+  },
+  "rows": {
+    "train_before": 180,
+    "train_after": 173,
+    "validation": 56
+  },
+  "removed_training_rows": [
+    {
+      "id": "20230728_37_CN38_T2/overhead_view/20230728_37_CN38_T2_Camera1_0.mp4",
+      "reason": "overlaps_evaluation",
+      "group": "27f82f28b45c45daeed1f4d4532fa2f0d04920107b82c1f22fcd707c60c7542b",
+      "recording": "20230728_37",
+      "sha256": "36465d4454c258cd2c4417d2c23cdd58064861fe21922551023c3df7a5f8e2e6"
+    },
+    {
+      "id": "20230728_37_CN38_T2/overhead_view/20230728_37_CN38_T2_Camera2_3.mp4",
+      "reason": "overlaps_evaluation",
+      "group": "27f82f28b45c45daeed1f4d4532fa2f0d04920107b82c1f22fcd707c60c7542b",
+      "recording": "20230728_37",
+      "sha256": "b873fd68a9e88d255c32e32dd49674803be2733a15339543293a5645d30d74e7"
+    },
+    {
+      "id": "20230728_37_CN38_T2/overhead_view/20230728_37_CN38_T2_Camera3_1.mp4",
+      "reason": "overlaps_evaluation",
+      "group": "27f82f28b45c45daeed1f4d4532fa2f0d04920107b82c1f22fcd707c60c7542b",
+      "recording": "20230728_37",
+      "sha256": "baf1ab35bd35f83da9c67ca2222414fdd523578ee1113c608f7a6eca766ac93b"
+    },
+    {
+      "id": "20230728_37_CN38_T2/overhead_view/20230728_37_CN38_T2_Camera4_2.mp4",
+      "reason": "overlaps_evaluation",
+      "group": "27f82f28b45c45daeed1f4d4532fa2f0d04920107b82c1f22fcd707c60c7542b",
+      "recording": "20230728_37",
+      "sha256": "903e4b80b4a16551c4edb76b2c359913846a3f5bf997b7c4561ba8f12a46c798"
+    },
+    {
+      "id": "normal_trimmed/20231013_101824_normal_192.168.0.11_1_event_2/overhead_view/20231013_101824_normal_192.168.0.11_1_event_2.mp4",
+      "reason": "outside_prior_train_groups",
+      "group": "3ae8c7a611ee614d75d8945bee5e87df4a07c9593fc12e61e0065df49769c9bc",
+      "recording": "20231013_101824",
+      "sha256": "9e54a08d8656d27ffc313464380a83c972c3cc7422742f8d780e0d8d25cda73c"
+    },
+    {
+      "id": "normal_trimmed/20231013_101824_normal_192.168.0.17_4_event_0/overhead_view/20231013_101824_normal_192.168.0.17_4_event_0.mp4",
+      "reason": "outside_prior_train_groups",
+      "group": "3ae8c7a611ee614d75d8945bee5e87df4a07c9593fc12e61e0065df49769c9bc",
+      "recording": "20231013_101824",
+      "sha256": "d28dd9451185fbbd23d913641f6ad5fe58b93bc6c1577f79a7fc465cdd495b51"
+    },
+    {
+      "id": "normal_trimmed/20231013_101845_normal_192.168.0.12_4_event_0/overhead_view/20231013_101845_normal_192.168.0.12_4_event_0.mp4",
+      "reason": "outside_prior_train_groups",
+      "group": "45cd9be3c2b695a0a8c5e0c730aa33d8c97b329b7207aba3b3bfa582d461e7da",
+      "recording": "20231013_101845",
+      "sha256": "84e10fe358263d54dc3fdc400e5e9ae2f02f30c7001c58465a12d6ce693e7a16"
+    }
+  ],
+  "connected_groups": {
+    "train": [
+      "0a5cba399212e01604a15834143b95c4ee97fbb2f8e8e3c338af3e9d966659df",
+      "0bac75773030d56c8fa2efa2e986d394b11f4a4a39a7b2b03a326e59555ce56b",
+      "0c61c2ebad1bd337aaa6bc5df429cdb1592f5bfc5d3efcda2e27cb9ba09ab2fe",
+      "0dbb7472f6f4833900e25e875d8e0d9740080d0472493013258ad976e1a8a248",
+      "158520770dd7259beac65b8c43427af2f6bb5ed73e7863a85d9c567529535d2e",
+      "1638e5d98c287839ca49135d4c4503768d9228f62c079ad59f763350b1db4c15",
+      "16b8cf3290e637c3fd7e9241665c47ea298b5aa4da3833da13130cc4fd050588",
+      "1a9c5631576707e00b516b2aa14b8d43f3ecf325399b05f55fefaf0775e4b013",
+      "2decaaed8b38a8779347802f12f1ead5f774eaa33db5d4393451945e68cc8dd1",
+      "3a9f90e3a0b4bb2d3e80f425383d9fbb282068a8bca87ded72c7c1fefc285f21",
+      "3f13da173105b263d76203930f3414372016bd8b9312a3857aad5214441ad9b8",
+      "485c3fb6d07b28440b5de591841dc9bc1f16f445961aac4b0b2fa2a08922c949",
+      "488eb843423056d3e9f22e3e37e832779fbbfca4aa3be439b08c9aa3429f3be1",
+      "55bdc007b33a414761bfbfccbf2d284696cad3f16a07c15bcc0244c38ba5431d",
+      "5d09ddd07e588b1ba1afc9d69e3574eef4c8cef124d3be75d22c2568ff90b01d",
+      "5d975fbdfb578da84b95932e5cbe4ae0925b15a33d80882a65967b9fabc8f910",
+      "6bf673a77957441310215cf24422dd7961c9c3d9bc7fb60a4a2d36ac303d6e06",
+      "6fb6a541fa639d950f6e6390a2c0cf40b5c78aa8dee143de846074d93f1fcbf3",
+      "74842e2f54f4e6bea8d5ea8ad2ffe33a451a3dedad38c2ce3f492a6213999562",
+      "7c050459ecefcc08c2b8766f292d2202bba70356d289b966f2bf976eb447bd34",
+      "7ce527295be956c7ac31327f8a171fffdeb5bba2600e7f2ee264d869504d073d",
+      "7fc908793389ce93c3e7ffb1329d97e262da8d6e56f181ae4344435b60af6276",
+      "84024181a8bca1342116846ba0db5726b983406fca0e2d656018b051f8a5ab08",
+      "86ac9368951c65e5b0827557c5c80b161e5a80a595cb3455df801dd4b482a5ff",
+      "883ca92fc3cda7b65db86c379b8353fb52ad35f2558d61b93fdc54cec1a7297d",
+      "937002d3d93ed6328137c90d562626bdce0cdec8394b4b9f97cfc8adbdf8928f",
+      "9370aca73ffdbce7477cbc5c2a9a86de7d447d486e427bae3588f1e21e19795b",
+      "944b6415db527b23d3ec8f0de1e1dd81915743b1d9fdc9cea13679fdf65ff88d",
+      "9b3b96762a67eb83660a1be4738ecbb9505c34cc470bfde986fbdb912c3f92b8",
+      "9ff87622c0028c10883d960b550bf49a9c22ff8315ff21846485a93eb8a2f60f",
+      "ac83679bcedac538e3ea27b3c53909cfb0c9530fe7e94fb9d750378122787ccc",
+      "acea140d392d81a0b347755afdbf24e70fff7e25e04335143d4264f9b6ba6beb",
+      "b05d6dca717c005bcd1d0b08bbc9ab92978dcc0183d745de63fd4ae5743d410b",
+      "b149b987e3b363cd9906f2c6527df8b3be42ad14961a8619a81cf4c0269952a4",
+      "bc6facc0a532b45f0a5964b528a8235ecd4fdc32dd1cea38932a7fe21b1f9eca",
+      "bc9d1cff295f11d15de7db9c95cd15cc700e8876f2bf652ad56cfbe85918412a",
+      "be632786f319779971c58ea24368c6757a153ebb45da4a44e58e48252885dc47",
+      "c2e5d235de28e81ab463718dece0ff9bf53baad5fb104d3c02b4b2633922f75c",
+      "cba1c8a65eda98d3f3ef1e9440cb4af284aad36236eb65ba806ea4b44216d1fc",
+      "e374f5f9f5a30e27f7dd0f11f70ad29e14b9545c952b3b82f53075807b44c0f7",
+      "e6d93564da4ddd7cd1117140457d6ec053b6b18f528a004297a5d477c757a5c5",
+      "edece2568c632c943ff4e39f3cb11f290225f5bbdea1525e5c82a43892d9ba93",
+      "f048494619d647128a420cbb16370902d0c58b7af451a64d36a2b55ef0d51bb6",
+      "f080e05e9da1530c59f9ad280d1584fba9a44b74e260bf81702c8f430940ee26",
+      "fbb62cacbfb88d241a7b2135b711824985cb574cd0b8553fce73b99937e5fc06",
+      "fd38abe280cf3df7938b2a61bbdc4a1cb8420bc42be8a621bbf0196c63a63574"
+    ],
+    "validation": [
+      "22964d01e64fd00aa19bda21635410da2ee6f1bd5abbc70a4dcee10b4759ab12",
+      "241d877397d0b7582f3748694d8e3ccc688048759ee63ff3ffbdd7e1fac5b86c",
+      "278a6ad8187fdd147780d9101ab69585f5130f18544da6129ac204ca59fe2a28",
+      "27f82f28b45c45daeed1f4d4532fa2f0d04920107b82c1f22fcd707c60c7542b",
+      "2f51036488c0f7ef14d19f3542a7688334305d28d55982acffdd0ababf04d554",
+      "31d0ac6025b45169da2a71f17547d477fc80b55a4f4f906e749666e15039eaa8",
+      "399f707d0b158d6f42f96cdd1c48b85cde87fa1ac43bab32dc9260d30eb125ca",
+      "42803681d649be5d5b86be2368c8aabf71ae69d7fd1faf0532c7ce925e210e9d",
+      "4e63457d4cf2008c69bc201146b9e672f99b2bdbc47d08b7d9ea760df0dac1b8",
+      "5e744e68e77b548cf1339048d66549e9b9cc2e9a57973941f09832cbb70f3702",
+      "6737a28337457c81f34b4400674bd6c2e7498b00cc9c3300a59dada1e6873716",
+      "ac0518ab15c8c92ef1eaf7dece582f3f6748500de0332c10409ef047262c1570",
+      "ca76a47dbfce0a4294eefe628ed5025e49440ed1034d7b169d97307d6c520fa4",
+      "cf86015cfbacf8c24e68fc573a3fe252326e14c30574afc45a03d1102dd97a40",
+      "e22f919712bbd0753a9090085c19bd7fe92e3649db70edbc77ee8fc7e966c9bf",
+      "e6f36f57c750f8ba2c663399e291c9bddb28e0cff983cf28ad0215fe1329dbee"
+    ]
+  },
+  "overlap_after": [],
+  "grouping": "date + recording identifier, joined by exact video SHA256 across the full inventory; trial/camera/scenario removed",
+  "validation_bytes_unchanged": true,
+  "prior_selection_sha256": {
+    "train": "1fc2bee1174f620629910abc9806ecb6c58dfc876c0e332c151d5a44cc643fae",
+    "validation": "56943fdbbd52e7927a0ab59daffb6858bed039b3fd018b6f08798d09c4ef824b"
+  }
+}

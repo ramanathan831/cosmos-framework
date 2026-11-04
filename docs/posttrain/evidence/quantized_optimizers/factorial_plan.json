@@ -51,7 +51,7 @@
   "max_gpu_minutes_including_canaries_and_failures": 150,
   "stop": "abort dependent work on correctness failure; no unbounded retries, no threshold changes; incomplete comparisons remain incomplete",
   "overall_gpu_hours_ceiling": 8,
-  "additional_mainline_capacity_followup_max_gpu_minutes": 90,
+  "additional_mainline_capacity_followup_max_gpu_minutes": 30,
   "mainline_followup": "If isolation has no speed win, canary last 16 ordinary FP32 decoder layers under the same memory budget. Baseline and nonpaged both try microbatches 4,2,1 at effective batch 4; disable no safeguards. Promote to three paired seeds only if canary profiling supports a plausible end-to-end win. Do not change quality thresholds.",
   "preallocation_state_estimate": {
     "trainable_elements": 38797312,
@@ -82,5 +82,7 @@
     "max_concurrent_gpus": 2,
     "reason": "Allow independent mainline and integration phases on distinct fixed A100 nodes to reduce elapsed campaign time. Each comparison keeps a fixed node/GPU class, CPU and memory request; no concurrent campaign allocations on the same node.",
     "unchanged": "8 total GPU hours; phase cost ceilings; three paired seeds; every numeric gate; data exposure; models and optimizers; failures included."
-  }
+  },
+  "data_integrity_repair_before_full_runs": "Use recording-clean-v4:173 training clips; evaluation unchanged56 multi-question and16 original-task rows. Remove all shared connected recording/video components from training, plus three normal clips outside prior selected recordings. Four-cell canaries remain compatibility-only on prior data.",
+  "budget_reallocation": "60 minutes of planned capacity follow-up moved to mandatory mainline data-integrity reruns. Factorial150 and total8GPU hours unchanged."
 }
