@@ -1,0 +1,35 @@
+# Requirement-to-evidence map
+
+This map separates implementation correctness, development selection and the
+locked final comparison. The first two campaigns remain unchanged. The final
+outcome gates below are pending until every dependent scoring job completes;
+development observations cannot pass those gates.
+
+| Requirement | Evidence and present scope |
+|---|---|
+| Native backend independent of model quantization | `adamw_bnb_8bit` and `paged_adamw_8bit` in the typed posttrain configuration/factory; ordinary Qwen3-VL release target. [Support contract](../../quantized_optimizers.md#design-and-supported-interface). Legacy generator/reasoner/TOML factories are not advertised. |
+| Preserve intended update precision | Ordinary contiguous CUDA FP32 trainables and gradients, BF16 forward compute, eight-bit moments with FP32 metadata/exceptions. BF16/FP16 trainables without masters fail explicitly. No silent backend fallback. |
+| Dependency and parameter contracts | Pinned lazy bitsandbytes 0.49.2; exact canonical selectors, stable LR/decay groups, tied identity deduplication and frozen exclusion. Real kernel tests cover optional dependency behavior, state allocation, LR groups, unused states and whole-update nonfinite refusal. |
+| Supported distribution | Single GPU, ordinary local Parameters only. Multi-rank, DTensor/FSDP, optimizer offload and DCP paths fail; no unsupported distributed claim follows from existing high-precision regressions. |
+| Dense interruption and exact recovery | [Fused raw evidence](recovery_fused_raw.json.gz) and [eight-bit raw evidence](recovery_8bit_raw.json.gz): uninterrupted 44 versus fresh-process 40→44, every update 41–44, all live parameters, moments/scales/maps, scheduler, RNG, data cursor and clocks. Both complete. Midpoint retained with `keep_optim_last=0`. |
+| Transaction and paging ownership | Restore metadata staged before mutation. Four new CUDA failure cases cover partial state copy and metadata failure for paged/nonpaged modes; existing tests cover independent snapshots, allocation lifetime and restored paging. Pinned [capacity regression](capacity_budget_raw.json.gz): 49 tests pass. |
+| Adapter compatibility | Earlier BF16/NF4 factorial and fresh-process adapter continuation remain [separate integration evidence](../quantized_optimizers/qualification_summary.json). No QLoRA source is merged into the feature. Current changes do not alter that integration checkout. |
+| Diagnose poor adaptation | [Task audit](task_audit.json) fixes evaluation-only footer contamination of substantive development answers; historical letter scoring is unaffected. [Per-question diagnosis](diagnosis_per_question.json) retains old frozen/trained behavior. Original multi-question answer-text training and single-choice letter scoring remain explicit. |
+| Strong high-precision development baseline | [Development curves](development_curves.json): shared mixed objective and row weighting, LR 1e-5, 15 updates selected before final scoring; fused development accuracy 87.5% versus 46.875% frozen. Update 20 worsens NLL. [Paired screen](paired_development15_summary.json) gives both optimizers the same recipe. |
+| Strong feasible memory baseline | Full fused activation checkpointing selected after 12/15-layer selective checkpointing and microbatch 2/accumulation 2 and microbatch 1/accumulation 4 without recomputation fail with OOM. [Capacity results](capacity_budget_summary.json), [paired probes](paired_development15_raw.json.gz), [microbatch-one raw evidence](micro1_capacity_raw.json.gz). Failures remain charged. |
+| Shared loading improvement | [Loading validation](loading_validation_summary.json): CPU conversion bottleneck moved to CUDA after transferring stored 16-bit values; exhaustive finite/Inf/signed-zero parity and matching NaN positions, seven pinned tests, exact parity of 128 development observations per optimizer. Direct committed-model initialization reproduces 32 prior scores exactly. |
+| Prepared-input correctness and cold clock | [Full preparation receipt](parallel_full_summary.json): all 751 rows/562 targets, independent native replay and exact reference equality, CUDA uninitialized, 1,990 seconds including setup. One full measurement; three full cold replications are **not established**. |
+| Preserve matched-update results | Both historical campaigns retained. New matched 15-update comparison is separately locked in [final protocol](final_protocol.json); no old result replaced. |
+| Actual equal-time quality | Actual committed checkpoints under 60-second training and 390-second prepared product budgets, fresh-process scoring of each eligible state. Required validation and checkpoint/scoring overhead are charged under the declared clock. Late/missing states are censored. Final results pending. |
+| Positive adaptation and unchanged quality guards | Three paired seeds; task-NLL upper bound ≤1.01, accuracy degradation upper bound ≤0.01, positive accuracy-improvement bootstrap bound versus frozen. Recording families are bootstrap units. Final results pending. |
+| Equal-budget held-out quality gain | Positive lower bound for fused-minus-eight-bit task NLL in both paired-seed and crossed seed/recording analyses, with accuracy guard. Separate training/product endpoints. Final results pending. |
+| End-to-end time to quality | Fixed development target 1.7987394576095224; three timing restarts per seed; lower 95% speed bound >1.05. Prepared and composed cold clocks separate. Missing target remains censored. Final results pending. |
+| State versus total memory | Historical measured state 24,697,144,000→6,271,567,872 bytes. Saved memory is spent on activations. Current continuous device/process and host RSS/PSS traces include training/checkpoint and separate fresh scoring; final aggregation pending. |
+| Paging capacity scope | Existing real pressure and all-resident canaries, ownership and recovery tests remain. Two full-model pressure updates do not establish sustained paging speed/quality; no such claim is made. |
+| Evaluation exposure | [Fixed selection](final_selection.json): 128 questions in 32 families disjoint from repaired train/development, but all families historically exposed. Metadata-only selection retains both old 16-question subsets. Authorized comparative benchmark; no independent replication claim. |
+| Finite resource budget/publication boundary | [Ledger](allocation_ledger.json) charges actual terminal elapsed time including failures and reserves full effective wall limits. 28,800 GPU-seconds / 7,200 CPU-wall seconds. Local commits only; no push/publication, PR #334 stays closed and the original QLoRA checkout is untouched. |
+
+The runnable native task recipe and exact Slurm reproduction commands are in the
+[implementation document](../../quantized_optimizers.md#outcome-improvement-campaign)
+and [qualification README](../../../../tools/quantized_optimizers/README.md).
+Optimizer training results establish no inference-latency benefit.

@@ -463,10 +463,10 @@ allow 28,800 GPU-seconds and 7,200 CPU-wall seconds, including failed allocation
 Local commits are authorized; no push or new PR publication is authorized.
 
 The dense recovery gap described in the round-two handoff above is now closed.
-Both fused and nonpaged eight-bit native reference44/resume40→44 pairs passed:
+Both fused and nonpaged eight-bit native reference 44/resume 40→44 pairs passed:
 every live parameter, moment/scale/map, scheduler/update counter, RNG and data
-cursor matches after updates41,42,43,44, and the complete final model matches.
-The reference retains both40 and44 with `keep_optim_last=0`; resume performs no
+cursor matches after updates 41, 42, 43 and 44, and the complete final model matches.
+The reference retains both 40 and 44 with `keep_optim_last=0`; resume performs no
 unrecorded update. The original failed diagnostic attempts remain in the ledger.
 See the [fused](evidence/quantized_optimizers_round3/recovery_fused_raw.json.gz)
 and [eight-bit](evidence/quantized_optimizers_round3/recovery_8bit_raw.json.gz) raw evidence.
@@ -476,11 +476,11 @@ after live moments had been replaced. Metadata is now staged before live mutatio
 Real CUDA failure-injection tests cover both partial moment copying and group
 metadata failure in paged and nonpaged modes, preserving original allocation
 ownership, state/group identity and the next update. The pinned regression suite
-passes49 tests; seven additional weight-loading tests also pass.
+passes 49 tests; seven additional weight-loading tests also pass.
 
 The task audit found an annotation conversion defect: the final option could
-include the evaluation-only instruction footer. It affected870 of2,676 gold
-answer texts and all56 substantive development rows. Training173-row bytes were
+include the evaluation-only instruction footer. It affected 870 of 2,676 gold
+answer texts and all 56 substantive development rows. Training 173-row bytes were
 unchanged; the historical single-letter task scorer was unaffected. Those old
 accuracy/NLL results are retained. Answer-position alignment, ordered class/token
 mapping, end-token handling, loss masks, actual video inputs, model identity and
@@ -491,10 +491,10 @@ answer text; task scoring asks one original question and requires its letter.
 The selected shared recipe retains every substantive target and adds one original
 single-choice question per training video. `ce_exponent=1` gives equal row weight;
 this jointly changes objective mix and weighting, rather than isolating either
-factor. The high-precision development control reached87.5% accuracy at update15,
-versus46.875% frozen. Development NLL worsened by update20, so the duration remains15.
-At15, eight-bit/fused development task NLL is0.519571/0.522715 and both accuracies
-are87.5%. These are development observations, not final quality qualification.
+factor. The high-precision development control reached 87.5% accuracy at update 15,
+versus 46.875% frozen. Development NLL worsened by update 20, so the duration remains 15.
+At 15, eight-bit/fused development task NLL is 0.519571/0.522715 and both accuracies
+are 87.5%. These are development observations, not final quality qualification.
 The [complete curves](evidence/quantized_optimizers_round3/development_curves.json)
 and [paired screen](evidence/quantized_optimizers_round3/paired_development15_summary.json)
 retain the substantive-only and lower-LR controls.
@@ -512,31 +512,34 @@ torchrun --standalone --nproc-per-node=1 \
 The data directory contains `train-mixed.jsonl` and repaired `validation.jsonl`.
 Omit `SFT_PREPARED_CORPUS` to use native raw preprocessing. The fused control adds
 `-- rl.optimizer.name=adamw rl.optimizer.impl=fused rl.optimizer.bnb_min_8bit_size=4096 model_hf.grad_ckpt=true`.
-The recipe trains3,087,142,912 ordinary FP32 elements with BF16 forward compute,
-effective batch4 and the same40-update cosine horizon. It does not select QLoRA.
+The recipe trains 3,087,142,912 ordinary FP32 elements with BF16 forward compute,
+effective batch 4 and the same 40-update cosine horizon. It does not select QLoRA.
 
-Loading profiles located90 of95 seconds in CPU conversion of memory-mapped
+Loading profiles located 90 of 95 seconds in CPU conversion of memory-mapped
 BF16/FP16 checkpoint weights to FP32. Ordinary CUDA loads now transfer stored
 16-bit tensors before widening on device; sharded and other dtype paths retain
-their conversion behavior. Exhaustive16-bit kernel checks preserve all finite,
+their conversion behavior. Exhaustive 16-bit kernel checks preserve all finite,
 infinite and signed-zero values exactly and retain NaN positions. Both optimizers
-then reproduced all128 native development observations (32 questions at0/5/10/15)
-exactly, including inputs and predictions. Subsequent full-model loads took6–8 seconds.
+then reproduced all 128 native development observations (32 questions at 0/5/10/15)
+exactly, including inputs and predictions. Subsequent full-model loads took 6–8 seconds.
 Model-only scoring also initializes directly from the committed complete state,
-avoiding a redundant pretrained load;32 prior scores match exactly.
+avoiding a redundant pretrained load; 32 prior scores match exactly.
 
-The fused capacity probes retained all failures:12-layer and15-layer selective
-checkpointing, microbatch2/accumulation2 and microbatch1/accumulation4 without
+The fused capacity probes retained all failures: 12-layer and 15-layer selective
+checkpointing, microbatch 2/accumulation 2 and microbatch 1/accumulation 4 without
 recomputation all ran out of memory. The final baseline therefore uses full native
-checkpointing. A32-target CPU preparation canary preserves every tensor/token/label
-and reduces processing187→136 seconds with four workers on the same eight CPUs.
-One complete full-corpus measurement is reserved; the measured worker rate does
-not permit three full preparations within the unchanged CPU cap. It cannot
-establish repeated full-preparation speed evidence.
+checkpointing. A 32-target CPU preparation canary preserves every tensor/token/label
+and reduces processing 187→136 seconds with four workers on the same eight CPUs.
+The complete full-corpus run verified 751 logical rows and 562 independently
+replayed targets, exactly matching the qualified corpus. It took 1,990 CPU-wall
+seconds including setup. The measured worker rate does not permit three full
+preparations within the unchanged CPU cap; this single measurement cannot
+establish repeated full-preparation speed evidence. The locked cold clock uses
+that measured cost for both arms.
 
 The [final protocol](evidence/quantized_optimizers_round3/final_protocol.json),
-locked before final scoring, uses seeds17/29/43, three paired target timing
-restarts, matched15-update checkpoints,60-second training/validation budgets and
+locked before final scoring, uses seeds 17/29/43, three paired target timing
+restarts, matched 15-update checkpoints, 60-second training/validation budgets and
 390-second prepared product budgets. Product clocks include container/source
 setup, model/input verification, initialization, validation, consistent full
 checkpointing and fresh-process scoring. Actual late or absent states are censored;
@@ -544,11 +547,11 @@ validation overruns cannot be hidden behind an earlier optimizer update. Cold
 clocks additionally include the measured qualified CPU preparation and disclose
 that component's replication limit.
 
-The fixed final manifest contains128 questions, four from each of32 recording
-families disjoint from repaired training/development. All32 families were already
-exposed in previous work; the manifest retains both previous16-question selections.
+The fixed final manifest contains 128 questions, four from each of 32 recording
+families disjoint from repaired training/development. All 32 families were already
+exposed in previous work; the manifest retains both previous 16-question selections.
 Extra questions were selected by metadata hashes before scoring. Bootstrap units
-are recording families and paired seeds, not the128 correlated questions. The
+are recording families and paired seeds, not the 128 correlated questions. The
 user-authorized reused-pool comparison and any independent replication claim remain
 separate. No final outcome is inferred from the development gains above.
 
