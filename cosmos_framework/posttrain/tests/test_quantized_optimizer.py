@@ -325,6 +325,62 @@ def test_cuda_exceptions_are_local_and_restore_is_transactional():
         build_optimizer(b.to(torch.bfloat16), OptimizerConfig(name="adamw_bnb_8bit"))
 
 
+@pytest.mark.parametrize("name", ["adamw_bnb_8bit", "paged_adamw_8bit"])
+@pytest.mark.parametrize("failure", ["moment_copy", "group_snapshot"])
+def test_failed_restore_keeps_live_values_and_next_update(name, failure, monkeypatch):
+    import cosmos_framework.utils.quantized_optimizer as backend
+
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA allocation and copy failure gate")
+    net = torch.nn.Linear(512, 256, bias=False, device="cuda")
+    control_net = copy.deepcopy(net)
+    cfg = OptimizerConfig(name=name, lr=0.001)
+    opt, control = (build_optimizer(model, cfg) for model in (net, control_net))
+    for index in range(2):
+        for model, optimizer in ((net, opt), (control_net, control)):
+            model.weight.grad = torch.full_like(model.weight, float(index + 1))
+            optimizer.step()
+        if index == 0:
+            saved = opt.state_dict()
+    state, groups, pages = opt.state, opt.param_groups, opt.page_mng.paged_tensors
+    before = opt.state_dict()
+    with monkeypatch.context() as patch:
+        if failure == "moment_copy":
+            original = torch.Tensor.copy_
+
+            def fail_copy(target, value, *args, **kwargs):
+                result = original(target, value, *args, **kwargs)
+                if target.dtype == torch.uint8 and target.numel() == net.weight.numel():
+                    raise RuntimeError("injected moment copy failure after writing replacement storage")
+                return result
+
+            patch.setattr(torch.Tensor, "copy_", fail_copy)
+        else:
+            original = backend._snapshot
+
+            def fail_snapshot(value):
+                if value is saved["param_groups"][0]:
+                    raise RuntimeError("injected group snapshot failure")
+                return original(value)
+
+            patch.setattr(backend, "_snapshot", fail_snapshot)
+        with pytest.raises(RuntimeError, match="injected"):
+            opt.load_state_dict(saved)
+    assert opt.state is state and opt.param_groups is groups and opt.page_mng.paged_tensors is pages
+    after = opt.state_dict()
+    for key, value in before["state"][0].items():
+        actual = after["state"][0][key]
+        assert torch.equal(value, actual) if isinstance(value, torch.Tensor) else value == actual
+    assert before["param_groups"] == after["param_groups"]
+    for model, optimizer in ((net, opt), (control_net, control)):
+        model.weight.grad = torch.full_like(model.weight, 3.0)
+        optimizer.step()
+    assert torch.equal(net.weight, control_net.weight)
+    for key, value in opt.state_dict()["state"][0].items():
+        actual = control.state_dict()["state"][0][key]
+        assert torch.equal(value, actual) if isinstance(value, torch.Tensor) else value == actual
+
+
 def test_frozen_selection_stays_out():
     net = torch.nn.Linear(2, 2)
     net.weight.requires_grad_(False)

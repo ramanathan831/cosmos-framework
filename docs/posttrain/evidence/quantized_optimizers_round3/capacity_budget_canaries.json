@@ -3,6 +3,19 @@
   "prepared_verified_rows": 623,
   "cases": [
     {
+      "name": "optimizer_cuda_regression",
+      "read_model": false,
+      "argv": [
+        "python",
+        "-m",
+        "pytest",
+        "cosmos_framework/posttrain/tests/test_quantized_optimizer.py",
+        "--confcutdir=cosmos_framework/posttrain/tests",
+        "--override-ini=addopts=",
+        "-q"
+      ]
+    },
+    {
       "name": "fused_full",
       "argv": [
         "torchrun",

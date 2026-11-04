@@ -268,6 +268,11 @@ def build_quantized_optimizer(net, params, config):
                 for key in ("betas", "eps", "weight_decay"):
                     if old[key] != new[key]:
                         raise ValueError(f"quantized optimizer {key} mismatch")
+            # Stage group metadata before replacing any live state. A failed
+            # host allocation/copy must not leave new moments with old groups.
+            restored_groups = [
+                dict(_snapshot(old), params=new["params"]) for old, new in zip(saved["param_groups"], live_groups)
+            ]
             previous, pages = self.state, self.page_mng.paged_tensors
             self.state, self.page_mng.paged_tensors = defaultdict(dict), []
             try:
@@ -299,9 +304,7 @@ def build_quantized_optimizer(net, params, config):
             except Exception:
                 self.state, self.page_mng.paged_tensors = previous, pages
                 raise
-            self.param_groups = [
-                dict(_snapshot(old), params=new["params"]) for old, new in zip(saved["param_groups"], live_groups)
-            ]
+            self.param_groups = restored_groups
             self.initialized = True
             self._reported_states = -1
 
