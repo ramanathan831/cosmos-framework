@@ -371,6 +371,119 @@ The additional dense continuation launcher now sets `rl.keep_optim_last=0` befor
 its reference run, which saves at both 40 and 44. The resumed four-update phase uses
 `rl.save_every=0` to avoid an unnecessary export. Its interrupted v10 attempt omitted
 retention and was canceled before any training optimizer update. This extra large-workload
-continuation remains unqualified; a corrected complete rerun does not fit the
-remaining six-minute budget. Existing small native CUDA recovery tests and the
-separate full adapter integration recovery evidence retain their original scope.
+continuation did not fit the round-two remaining six-minute budget. The round-three
+fused and nonpaged reference/resume pairs now pass every update41–44 comparison;
+their raw evidence is separate from the historical timing runs. Existing small
+native CUDA and full adapter integration recovery retain their original scope.
+
+## Third campaign: actual budget checkpoints
+
+The runtime archive for the locked final comparison is local commit `cb9d4f3`.
+The protocol and expanded command lists are in
+`docs/posttrain/evidence/quantized_optimizers_round3/final_protocol.json` and
+`final_specs/seed{17,29,43}.json`. They preserve the original numerical gates,
+use the shared development-selected `sft_optimizer_task.py` recipe and score
+each actual committed checkpoint in a fresh process. Final scoring is part of
+each GPU reservation. No analysis substitutes an update15/40 checkpoint for a
+different elapsed budget.
+
+Generate repaired and mixed training/development inputs using the authorized
+annotations and the existing repaired recording split:
+
+```sh
+python -m tools.quantized_optimizers.prepare_task_diagnosis \
+  --old-train "$OLD_TRAIN" --old-dev "$OLD_DEV" \
+  --train-annotations "$TRAIN_ANNOTATIONS" --eval-annotations "$EVAL_ANNOTATIONS" \
+  --full-eval "$FULL_EVAL" --inventory "$MEDIA_INVENTORY" \
+  --fixed-final "$ROUND2_FINAL_JSONL" --output "$NEW_DATA_DIRECTORY"
+
+python -m tools.quantized_optimizers.select_outcome_evaluation \
+  --inventory "$MEDIA_INVENTORY" --full-eval "$FULL_EVAL" \
+  --development-manifest "$NEW_DATA_DIRECTORY/manifest.json" \
+  --previous-selection "$ROUND1_SELECTION" --previous-selection "$ROUND2_SELECTION" \
+  --output "$NEW_EVALUATION_DIRECTORY"
+```
+
+Input/output identities are recorded in the third campaign's `data_manifest.json`
+and `final_selection.json`. The original173-row train data are byte-identical;
+mixed data add one original single-choice row per video. The fixed final manifest
+contains128 questions across32 recording families, including both historical
+16-question selections. It is explicitly a reused-pool comparison.
+
+For exact replay on the recorded cluster, use the immutable existing input
+artifacts below and a **new** output root. The supplied specs contain those input
+paths; rebasing inputs elsewhere requires a separately identified protocol.
+Archive the frozen runtime and expand the existing protocol before submission:
+
+```sh
+git archive --format=tar.gz -o /shared/source-final.tgz cb9d4f3
+python -m tools.quantized_optimizers.plan_outcomes \
+  docs/posttrain/evidence/quantized_optimizers_round3/final_protocol.json \
+  /shared/new-final-specs
+```
+
+The following is the actual allocation pattern. `R` is the existing shared user
+project directory; `ASSETS` remains read-only. The final GPU reservation is
+3×4,500 seconds within the unchanged28,800-second campaign cap; at most two owned
+GPUs run, on distinct nodes. Effective Slurm limits and failed allocations count.
+
+```sh
+ROOT="$R/cosmos-optimizer-outcomes-20261104T1850"
+REPLAY="$R/new-optimizer-outcome-replay"
+export SOURCE="$ROOT/recovery-launch" SOURCE_ARCHIVE=/shared/source-final.tgz
+export ASSETS="$R/cosmos-qlora-wts-20261028T234324Z"
+export PRIOR="$R/cosmos-quantized-optimizers-20261103"
+export PREPARATION="$ROOT/prepare-evaluation-v1" TASK_DATA_ROOT="$ROOT/data"
+export CONTAINER_IMAGE="$R/cosmos-automl-focused-20261012/image-conversion/cosmos-framework-focused.sqsh"
+export MODE=study WORK_SECONDS=4380
+
+export RESULTS="$REPLAY/final-seed17" TASK_SPEC=/shared/new-final-specs/seed17.json
+mkdir -p "$RESULTS"
+j17=$(sbatch --parsable --partition=interactive_singlenode \
+  --nodelist=batch-block4-1034 --time=75 --export=ALL \
+  --output="$RESULTS/slurm-%j.log" tools/quantized_optimizers/deployment.sbatch)
+
+export RESULTS="$REPLAY/final-seed29" TASK_SPEC=/shared/new-final-specs/seed29.json
+mkdir -p "$RESULTS"
+sbatch --partition=interactive_singlenode --nodelist=batch-block4-1017 \
+  --time=75 --export=ALL --output="$RESULTS/slurm-%j.log" \
+  tools/quantized_optimizers/deployment.sbatch
+
+export RESULTS="$REPLAY/final-seed43" TASK_SPEC=/shared/new-final-specs/seed43.json
+mkdir -p "$RESULTS"
+sbatch --partition=interactive_singlenode --nodelist=batch-block4-1034 \
+  --dependency="afterany:$j17" --time=75 --export=ALL \
+  --output="$RESULTS/slurm-%j.log" tools/quantized_optimizers/deployment.sbatch
+```
+
+`run_task_study` records model-file hashes, complete setup clocks, source/dependency
+identities, native task curves, actual checkpoint provenance and external device/
+process/host memory for both training and final scoring. A target run stops only
+after an observed post-update validation; a budget run records its actual completed
+update and validation boundary. Late or absent states remain censored. The same
+delivery-reserve calibration rule applies to both optimizers.
+
+`prepare_parallel.sbatch` can run the qualified CPU canary or a full preparation
+with `MODE=full_one`, `REFERENCE_CORPUS` pointing at the independently verified
+corpus, and `FINAL_DATA` pointing at the fixed128-row JSONL. Workers use the native
+packer and replay each unique target independently before publication. The full
+run requests eight CPUs,16 GiB and40 minutes. The CPU cap is7,200 wall seconds;
+the observed canary costs only permit one full measurement in this campaign,
+not three full preparation timing repetitions.
+
+After all dependent jobs terminate, collect textual evidence without model tensors:
+
+```sh
+python -m tools.quantized_optimizers.collect_evidence "$REPLAY" /shared/outcomes-raw.json.gz
+python -m tools.quantized_optimizers.analyze_outcomes /shared/outcomes-raw.json.gz \
+  docs/posttrain/evidence/quantized_optimizers_round3/final_protocol.json \
+  docs/posttrain/evidence/quantized_optimizers_round3/final_selection.json \
+  /shared/outcomes-analysis --cold-preparation-seconds "$QUALIFIED_FULL_CPU_ELAPSED"
+```
+
+The cold component is the completed qualified preparation's allocation time,
+including setup. Its single measurement limits cold-pipeline replication claims;
+it is not a claim about an empty OS page cache. The analysis preserves matched
+updates, equal training time and equal product budget separately, uses three
+paired quality seeds and bootstraps recording families, and retains both original
+16-question summaries. This optimizer work makes no inference-latency claim.
