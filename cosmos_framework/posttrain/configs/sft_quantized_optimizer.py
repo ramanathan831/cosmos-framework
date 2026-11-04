@@ -4,8 +4,11 @@
 
 SFT_MODEL_PATH and SFT_DATA_ROOT identify immutable local artifacts. Override
 rl.optimizer.name=adamw rl.optimizer.impl=fused for the high-precision control,
-or rl.optimizer.name=paged_adamw_8bit for the capacity mode. This recipe is not
-quality/performance qualification evidence.
+or rl.optimizer.name=paged_adamw_8bit for the capacity mode. Train the last eight
+decoder blocks (about 1.54B parameters), with frozen ordinary base weights. The
+measured A100 80GB workload uses microbatch four and eight 256x480 video frames.
+This recipe is not a speed or quality-gain claim. Enable rl.save_every explicitly
+when durable checkpoints are needed; consolidated saves include the dense model.
 """
 
 import os
@@ -19,5 +22,15 @@ def make_config():
     config.model_hf.parallelism.dp_shard = 1
     config.rl.checkpoint_format = "consolidated"
     config.rl.optimizer.name = "adamw_bnb_8bit"
+    config.rl.optimizer.train_keys = [f"layers.{index}." for index in range(24, 32)]
+    config.rl.optimizer.bnb_min_8bit_size = 16384
+    config.rl.micro_batch_size = 4
+    config.rl.grad_accum = 1
+    config.rl.max_steps = 40
+    config.rl.save_every = 0
+    config.rl.validation.every_steps = 5
+    config.rl.validation.max_samples = 16
+    config.rl.validation.batch_size = 4
+    config.rl.processor_kwargs["videos_kwargs"]["size"] = {"shortest_edge": 262144, "longest_edge": 1048576}
     config.job.group = "quantized_optimizer"
     return config
