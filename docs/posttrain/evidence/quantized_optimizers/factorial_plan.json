@@ -52,5 +52,15 @@
   "stop": "abort dependent work on correctness failure; no unbounded retries, no threshold changes; incomplete comparisons remain incomplete",
   "overall_gpu_hours_ceiling": 8,
   "additional_mainline_capacity_followup_max_gpu_minutes": 90,
-  "mainline_followup": "If isolation has no speed win, canary last 16 ordinary FP32 decoder layers under the same memory budget. Baseline and nonpaged both try microbatches 4,2,1 at effective batch 4; disable no safeguards. Promote to three paired seeds only if canary profiling supports a plausible end-to-end win. Do not change quality thresholds."
+  "mainline_followup": "If isolation has no speed win, canary last 16 ordinary FP32 decoder layers under the same memory budget. Baseline and nonpaged both try microbatches 4,2,1 at effective batch 4; disable no safeguards. Promote to three paired seeds only if canary profiling supports a plausible end-to-end win. Do not change quality thresholds.",
+  "preallocation_state_estimate": {
+    "trainable_elements": 38797312,
+    "derivation": "rank16 * sum(in+out) for q,k,v,o,gate,up,down = 1212416 per layer; 32 layers; frozen base excluded",
+    "fp32_moment_bytes": 310378496,
+    "eight_bit_moment_bytes": 77594624,
+    "eight_bit_metadata_bytes": 1214464,
+    "predicted_saving_bytes": 231569408,
+    "master_copy_bytes": 0,
+    "caveat": "verify actual final trainable membership and allocated dtypes; total training memory saving will be much smaller than state-only percentage"
+  }
 }
