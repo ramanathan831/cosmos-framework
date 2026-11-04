@@ -119,6 +119,35 @@ def test_reject_cpu_and_missing_selector():
         build_optimizer(torch.nn.Linear(4, 4), cfg)
 
 
+def test_cuda_paging_preserves_updates_with_large_fp32_exception():
+    if not torch.cuda.is_available():
+        pytest.skip("real CUDA required")
+    count = 131072
+    initial = torch.linspace(-0.2, 0.3, count, device="cuda")
+    models, optimizers = [], []
+    for name in ("adamw_bnb_8bit", "paged_adamw_8bit"):
+        model = torch.nn.Module()
+        model.register_parameter("quantized", torch.nn.Parameter(initial.clone()))
+        model.register_parameter("exception", torch.nn.Parameter(initial.clone()))
+        optimizer = build_optimizer(model, OptimizerConfig(name=name, lr=1e-3, bnb_fp32_state_names=["exception"]))
+        models.append(model)
+        optimizers.append(optimizer)
+    for step in range(6):
+        if step == 4:
+            # Rebuild both uint8 and FP32 managed arrays, without a model update.
+            optimizers[1].load_state_dict(optimizers[1].state_dict())
+        gradient = (initial * (step + 1)).cos()
+        for model, optimizer in zip(models, optimizers):
+            for parameter in model.parameters():
+                parameter.grad = gradient.clone()
+            optimizer.step()
+        assert all(torch.equal(a, b) for a, b in zip(models[0].parameters(), models[1].parameters()))
+    report = optimizers[1].state_report()
+    assert report["quantized_elements"] == report["fp32_elements"] == count
+    assert report["paged_moment_bytes"] == count * (2 + 8)
+    assert report["exceptions"] == {"exception": "explicit"}
+
+
 @pytest.mark.parametrize("name", ["adamw_bnb_8bit", "paged_adamw_8bit"])
 def test_native_sft_transaction(name, tmp_path):
     from types import SimpleNamespace
