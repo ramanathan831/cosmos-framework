@@ -49,12 +49,24 @@ def main():
     TerminationWatch._local_reason = reason
     entry.main()
     task.finish()
-    report = policy.report(time.monotonic())
     checkpoints = list(Path(os.environ["IMAGINAIRE_OUTPUT_ROOT"]).rglob("model.pt"))
-    report["committed_model_paths"] = [str(path.parent) for path in checkpoints]
-    report["spec"] = spec
     if len(checkpoints) != 1:
         raise ValueError(f"budget run must produce one actual native model checkpoint, found {checkpoints}")
+    from cosmos_framework.posttrain.checkpoint.manager import CheckpointManager
+
+    manager = CheckpointManager()
+    checkpoint = str(checkpoints[0].parent)
+    provenance = manager.checkpoint_provenance(checkpoint)
+    trainer = manager.load_component(checkpoint, "trainer")
+    if not policy.updates or trainer["optimizer_step"] != policy.updates[-1]["step"]:
+        raise ValueError("committed checkpoint does not represent the last observed completed update")
+    if provenance != manager.checkpoint_provenance(checkpoint):
+        raise ValueError("budget checkpoint changed during verification")
+    report = policy.report(time.monotonic())
+    report["committed_model_paths"] = [checkpoint]
+    report["committed_optimizer_step"] = trainer["optimizer_step"]
+    report["checkpoint_provenance"] = provenance
+    report["spec"] = spec
     (task.root / "budget.json").write_text(json.dumps(report, indent=2, allow_nan=False) + "\n")
 
 

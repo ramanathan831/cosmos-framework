@@ -10,13 +10,14 @@
 #SBATCH --time=45
 #SBATCH --no-requeue
 set -euo pipefail
+export ALLOCATION_START_NS=$(date +%s%N)
 : "${SOURCE:?}" "${SOURCE_ARCHIVE:?}" "${ASSETS:?}" "${RESULTS:?}" "${CONTAINER_IMAGE:?}" "${PRIOR:?}" "${PREPARATION:?}"
 mkdir -p "$RESULTS"
 scontrol show job "$SLURM_JOB_ID" > "$RESULTS/job-$SLURM_JOB_ID.txt"
 trap 'status=$?; echo "$status" > "$RESULTS/exit-code-$SLURM_JOB_ID.txt"' EXIT
 srun --kill-on-bad-exit=1 --container-image="$CONTAINER_IMAGE" \
  --container-mounts=/lustre:/lustre --container-workdir="$SOURCE" --container-writable \
- --container-env=SOURCE,SOURCE_ARCHIVE,ASSETS,RESULTS,PRIOR,PREPARATION,MODE,TRIAL_SEED,SLURM_JOB_ID,SLURM_JOB_NODELIST,WORK_SECONDS,RECOVERY_ARM,TASK_SPEC,TASK_DATA_ROOT \
+ --container-env=SOURCE,SOURCE_ARCHIVE,ASSETS,RESULTS,PRIOR,PREPARATION,MODE,TRIAL_SEED,SLURM_JOB_ID,SLURM_JOB_NODELIST,WORK_SECONDS,RECOVERY_ARM,TASK_SPEC,TASK_DATA_ROOT,ALLOCATION_START_NS \
  bash -c '
  set -euo pipefail
  SOURCE=$(mktemp -d /tmp/cosmos-optimizer-deployment.XXXXXX); export SOURCE

@@ -180,6 +180,9 @@ def main():
     if mode not in ("canary", "trials", "recovery", "train_only", "score_only", "study"):
         raise ValueError("unsupported deployment mode")
     started = time.monotonic()
+    bootstrap_seconds = (
+        (time.time_ns() - int(os.environ["ALLOCATION_START_NS"])) / 1e9 if "ALLOCATION_START_NS" in os.environ else None
+    )
     deadline = started + int(os.environ["WORK_SECONDS"])
     preparation = Path(os.environ["PREPARATION"])
     receipt = json.loads((preparation / "prepared-corpus/preparation_receipt.json").read_text())
@@ -245,6 +248,9 @@ def main():
             "source_archive_sha256": hashlib.sha256(Path(os.environ["SOURCE_ARCHIVE"]).read_bytes()).hexdigest(),
             "prepared_corpus_sha256": receipt["corpus_sha256"],
             "staging_seconds": stage_seconds,
+            "allocation_bootstrap_seconds": bootstrap_seconds,
+            "setup_seconds": stage_seconds + bootstrap_seconds if bootstrap_seconds is not None else None,
+            "setup_contract": "Batch-shell start through container/source setup, CUDA preflight and prepared-corpus staging; excludes scheduler queue time. Charged once to every independently delivered product run.",
             "preparation_cpu_seconds": receipt["total_seconds_with_independent_exact_replay"],
         },
     )
