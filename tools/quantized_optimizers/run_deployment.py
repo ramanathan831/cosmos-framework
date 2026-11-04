@@ -177,13 +177,14 @@ def launch(root, name, arm, seed, *, prepared, canary, handle, deadline):
 def main():
     root = Path(os.environ["RESULTS"])
     mode = os.environ["MODE"]
-    if mode not in ("canary", "trials", "recovery", "train_only", "score_only"):
+    if mode not in ("canary", "trials", "recovery", "train_only", "score_only", "study"):
         raise ValueError("unsupported deployment mode")
     started = time.monotonic()
     deadline = started + int(os.environ["WORK_SECONDS"])
     preparation = Path(os.environ["PREPARATION"])
     receipt = json.loads((preparation / "prepared-corpus/preparation_receipt.json").read_text())
-    if receipt["cuda_initialized"] or receipt["exact_raw_prepared_rows"] != 245:
+    expected_rows = 623 if mode == "study" else 245
+    if receipt["cuda_initialized"] or receipt["exact_raw_prepared_rows"] != expected_rows:
         raise ValueError("missing complete CPU parity receipt")
     # Slurm can leave JOB_GPUS empty on the batch shell while binding the srun
     # device correctly. Resolve CUDA's actual device in an exiting preflight
@@ -227,7 +228,11 @@ def main():
             "preparation_cpu_seconds": receipt["total_seconds_with_independent_exact_replay"],
         },
     )
-    if mode == "recovery":
+    if mode == "study":
+        from tools.quantized_optimizers.run_task_study import run
+
+        run(root, staging, handle, deadline)
+    elif mode == "recovery":
         from tools.quantized_optimizers.run_recovery import run
 
         run(root, staging, deadline)

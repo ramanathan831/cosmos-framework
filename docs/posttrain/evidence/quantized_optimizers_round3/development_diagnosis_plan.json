@@ -1,0 +1,48 @@
+{
+  "purpose": "development diagnosis",
+  "selection": "32 questions, two metadata-selected questions per repaired development group. No final data.",
+  "cases": [
+    {
+      "name": "frozen",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.score_dense",
+        "--data",
+        "{data}/dev-task.jsonl",
+        "--selection",
+        "{data}/dev-task-manifest.json",
+        "--output",
+        "{case}/scores",
+        "--seed",
+        "17",
+        "--substantive-data",
+        "{data}/validation.jsonl"
+      ]
+    },
+    {
+      "name": "historical_fused40",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.score_dense",
+        "--data",
+        "{data}/dev-task.jsonl",
+        "--selection",
+        "{data}/dev-task-manifest.json",
+        "--output",
+        "{case}/scores",
+        "--seed",
+        "17",
+        "--substantive-data",
+        "{data}/validation.jsonl",
+        "--checkpoint",
+        "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-quantized-optimizers-deployment-20261104/seed17/restart0_adamw/native/cosmos3_reasoner/optimizer_deployment/restart0_adamw/20261103235442/checkpoints/iter_000040"
+      ]
+    }
+  ]
+}

@@ -312,6 +312,7 @@ def main():
     parser.add_argument("--selection", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--checkpoint")
+    parser.add_argument("--substantive-data", type=Path)
     parser.add_argument("--seed", type=int, required=True)
     args = parser.parse_args()
     if os.environ.get("WORLD_SIZE") != "1":
@@ -356,7 +357,8 @@ def main():
             mask_think_opener=rl.mask_think_opener,
         )
         dataset = JSONLSFTDataset(str(args.data))
-        corpus = attach_prepared_corpus(packer, rl.prepared_corpus, [dataset])
+        substantive = JSONLSFTDataset(str(args.substantive_data)) if args.substantive_data else None
+        corpus = attach_prepared_corpus(packer, rl.prepared_corpus, [dataset] + ([substantive] if substantive else []))
         # Final scoring has no training timing claim. Read the immutable files
         # sequentially before the native loaders, as the paired training launcher
         # already does, avoiding slow demand paging on the shared filesystem.
@@ -416,6 +418,21 @@ def main():
             os.fsync(stream.fileno())
         if versions != {name: parameter._version for name, parameter in model.net.named_parameters()}:
             raise RuntimeError("evaluation mutated model parameters")
+        if substantive is not None:
+            from cosmos_framework.posttrain.roles.trainer.validation.sft import evaluate_sft_batch
+            from cosmos_framework.posttrain.schema import ObsBundle, SFTTarget, Trajectory, Transition
+
+            extra = []
+            for index in range(min(16, len(substantive))):
+                row = substantive[index]
+                target = SFTTarget(messages=row["messages"])
+                metrics = evaluate_sft_batch(
+                    model, objective, [Trajectory(transitions=[Transition(obs=ObsBundle(), targets=target)])]
+                )
+                extra.append(
+                    {"id": row["id"], "loss": float(metrics["sft_loss"]), "tokens": int(metrics["sft_valid_tokens"])}
+                )
+            (args.output / "substantive.json").write_text(json.dumps(extra, indent=2) + "\n")
         report = {
             "complete": True,
             "seed": args.seed,

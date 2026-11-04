@@ -16,7 +16,7 @@ scontrol show job "$SLURM_JOB_ID" > "$RESULTS/job-$SLURM_JOB_ID.txt"
 trap 'status=$?; echo "$status" > "$RESULTS/exit-code-$SLURM_JOB_ID.txt"' EXIT
 srun --kill-on-bad-exit=1 --container-image="$CONTAINER_IMAGE" \
  --container-mounts=/lustre:/lustre --container-workdir="$SOURCE" --container-writable \
- --container-env=SOURCE,SOURCE_ARCHIVE,ASSETS,RESULTS,PRIOR,PREPARATION,MODE,TRIAL_SEED,SLURM_JOB_ID,SLURM_JOB_NODELIST,WORK_SECONDS,RECOVERY_ARM \
+ --container-env=SOURCE,SOURCE_ARCHIVE,ASSETS,RESULTS,PRIOR,PREPARATION,MODE,TRIAL_SEED,SLURM_JOB_ID,SLURM_JOB_NODELIST,WORK_SECONDS,RECOVERY_ARM,TASK_SPEC,TASK_DATA_ROOT \
  bash -c '
  set -euo pipefail
  SOURCE=$(mktemp -d /tmp/cosmos-optimizer-deployment.XXXXXX); export SOURCE
@@ -25,7 +25,7 @@ srun --kill-on-bad-exit=1 --container-image="$CONTAINER_IMAGE" \
  export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 WANDB_MODE=disabled OMP_NUM_THREADS=8
  export CUBLAS_WORKSPACE_CONFIG=:4096:8 PYTHONHASHSEED=42
  export SFT_MODEL_PATH="$ASSETS/models/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b"
- export SFT_DATA_ROOT="$PRIOR/recording-clean-v4"
+ export SFT_DATA_ROOT="${TASK_DATA_ROOT:-$PRIOR/recording-clean-v4}"
  cd "$SOURCE"
  exec python -m tools.quantized_optimizers.run_deployment
  '
