@@ -1,0 +1,72 @@
+{
+  "purpose": "development diagnosis",
+  "prepared_verified_rows": 623,
+  "cases": [
+    {
+      "name": "mixed15_adamw",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_deployment.py",
+        "--",
+        "job.name=mixed15_adamw",
+        "rl.seed=17",
+        "rl.max_steps=15",
+        "rl.save_every=15",
+        "rl.keep_optim_last=0",
+        "rl.optimizer.name=adamw",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096",
+        "model_hf.grad_ckpt=true",
+        "rl.optimizer.lr=1e-05",
+        "rl.ce_exponent=1.0",
+        "rl.data.path={data}/train-mixed.jsonl"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl",
+        "PROFILE_WEIGHT_LOADING": "1"
+      }
+    },
+    {
+      "name": "mixed15_adamw_bnb_8bit",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_deployment.py",
+        "--",
+        "job.name=mixed15_adamw_bnb_8bit",
+        "rl.seed=17",
+        "rl.max_steps=15",
+        "rl.save_every=15",
+        "rl.keep_optim_last=0",
+        "rl.optimizer.name=adamw_bnb_8bit",
+        "rl.optimizer.impl=",
+        "rl.optimizer.bnb_min_8bit_size=16384",
+        "model_hf.grad_ckpt=false",
+        "rl.optimizer.lr=1e-05",
+        "rl.ce_exponent=1.0",
+        "rl.data.path={data}/train-mixed.jsonl"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl",
+        "PROFILE_WEIGHT_LOADING": "1"
+      }
+    }
+  ],
+  "recorded_utc": "2026-11-04T20:38:20.687302+00:00",
+  "reason": "Mixed1e-5 has best dev NLL at15 and87.5%accuracy. Screen8-bit at this matched point before final evaluation. Measured load_weights varied9.49/190.79/170.75seconds despite matched13second file hashes; profile get_tensor, CPU conversion and synchronized GPU transfers to locate the cause.",
+  "timing_claim": false,
+  "profile_note": "Adds synchronization; excluded from performance estimates. Final choices remain development-only."
+}

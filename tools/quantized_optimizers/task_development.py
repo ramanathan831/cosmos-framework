@@ -155,6 +155,10 @@ def install():
 
     timed(builders, "build_backbone", "build_backbone")
     timed(hf, "load_weights", "load_weights")
+    if os.environ.get("PROFILE_WEIGHT_LOADING") == "1":
+        from tools.quantized_optimizers.profile_loading import install as install_loading_profile
+
+        install_loading_profile(hf, root / "loading.jsonl")
     timed(prepared, "attach_prepared_corpus", "prepared_verification")
     timed(datasets.JSONLSFTDataset, "__init__", "dataset_identity")
     algorithm.make_objective = objective
