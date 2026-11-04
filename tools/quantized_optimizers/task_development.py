@@ -29,6 +29,22 @@ def record(name, value):
         stream.write(json.dumps(value, allow_nan=False) + "\n")
 
 
+def timed(owner, name, phase):
+    original = getattr(owner, name)
+
+    def measured(*args, **kwargs):
+        before = time.monotonic()
+        try:
+            return original(*args, **kwargs)
+        finally:
+            record(
+                "phases.jsonl",
+                {"phase": phase, "seconds": time.monotonic() - before, "elapsed_seconds": time.monotonic() - started},
+            )
+
+    setattr(owner, name, measured)
+
+
 def objective(packer, **kwargs):
     from cosmos_framework.posttrain.data.datasets.sft import JSONLSFTDataset
     from cosmos_framework.posttrain.data.packer.prepared_sft import attach_prepared_corpus
@@ -69,6 +85,7 @@ def build(*args, **kwargs):
         return result
 
     trainer.save = save
+    timed(trainer.opt, "state_dict", "optimizer_snapshot")
     return trainer
 
 
@@ -117,6 +134,15 @@ def step(*args, **kwargs):
 
 
 if __name__ == "__main__":
+    import cosmos_framework.posttrain.config.build as builders
+    import cosmos_framework.posttrain.data.datasets.sft as datasets
+    import cosmos_framework.posttrain.data.packer.prepared_sft as prepared
+    import cosmos_framework.posttrain.model.hf as hf
+
+    timed(builders, "build_backbone", "build_backbone")
+    timed(hf, "load_weights", "load_weights")
+    timed(prepared, "attach_prepared_corpus", "prepared_verification")
+    timed(datasets.JSONLSFTDataset, "__init__", "dataset_identity")
     algorithm.make_objective = objective
     entry.build_trainer = build
     entry._evaluate = evaluate

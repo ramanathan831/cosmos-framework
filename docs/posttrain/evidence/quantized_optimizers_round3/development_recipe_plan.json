@@ -10,19 +10,22 @@
       "name": "substantive_lr1e5",
       "train": "train.jsonl",
       "lr": 1e-05,
-      "steps": 20
+      "steps": 20,
+      "ce_exponent": 0.0
     },
     {
       "name": "mixed_lr1e5",
       "train": "train-mixed.jsonl",
       "lr": 1e-05,
-      "steps": 20
+      "steps": 20,
+      "ce_exponent": 1.0
     },
     {
       "name": "mixed_lr3e6",
       "train": "train-mixed.jsonl",
       "lr": 3e-06,
-      "steps": 20
+      "steps": 20,
+      "ce_exponent": 1.0
     }
   ],
   "shared_controls": {
@@ -44,5 +47,10 @@
   },
   "selection": "Prefer lowest development gold-answer NLL among candidates with task accuracy at least frozen; report all curves and substantive NLL. If no candidate meets this, do not claim adaptation; inspect supported failure hypotheses within remaining budget. Both optimizers use selected shared settings.",
   "baseline_capacity_checks": "At most two four-update fused canaries selecting exact HF checkpoint layer modules, plus microbatch2/accumulation2 if useful. Compare with full checkpointing; retain failures and select fastest feasible baseline before final protocol.",
-  "no_final_scoring": true
+  "no_final_scoring": true,
+  "weighting_amendment_before_any_new_task_outcomes": {
+    "recorded_utc": "2026-11-04T19:04:43.080436+00:00",
+    "evidence": "Native SFT ce_exponent=0 uses a global token mean. Equal counts of single-letter and substantive rows would not give equal objective weight. Existing ce_exponent=1 gives equal weight per row without new loss code.",
+    "decision": "Mixed candidates use ce_exponent=1; substantive control retains0. This is an explicit shared recipe change, not an optimizer-only isolation result."
+  }
 }

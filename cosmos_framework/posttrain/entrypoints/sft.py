@@ -193,6 +193,11 @@ def build_trainer(config: Any, rl: SFTConfig, data: Any, validation: Any | None,
         "precision": asdict(resolve_precision(config)),
         **({"prepared_corpus": prepared.identity} if prepared is not None else {}),
         **({"strict_determinism": True} if rl.strict_determinism else {}),
+        **(
+            {"gradient_checkpoint_modules": list(config.model_hf.grad_ckpt_modules)}
+            if getattr(getattr(config, "model_hf", None), "grad_ckpt_modules", ())
+            else {}
+        ),
     }
     misc.set_random_seed(seed=rl.seed, by_rank=False)
     model = build_backbone(config)

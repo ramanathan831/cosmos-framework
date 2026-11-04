@@ -23,7 +23,8 @@ def run(root, staging, handle, deadline):
         env.update({key: value.format_map(mapping) for key, value in case.get("env", {}).items()})
         write(output / "command.json", {"argv": argv, "overrides": case.get("env", {}), "purpose": spec["purpose"]})
         before = time.monotonic()
-        read_model_files(output)
+        if case.get("read_model", True):
+            read_model_files(output)
         with (output / "process.log").open("x") as log:
             process = subprocess.Popen(argv, env=env, stdout=log, stderr=subprocess.STDOUT)
             stop = threading.Event()
@@ -39,6 +40,6 @@ def run(root, staging, handle, deadline):
                 stop.set()
                 thread.join()
         write(output / "attempt.json", {"returncode": code, "elapsed_seconds": time.monotonic() - before})
-        if code:
+        if code and not case.get("allow_failure", False):
             raise RuntimeError(f"development case failed: {case['name']}")
     write(root / "complete.json", {"cases": [case["name"] for case in spec["cases"]]})
