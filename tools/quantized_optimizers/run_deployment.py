@@ -208,6 +208,23 @@ def main():
         seed = int(os.environ["TRIAL_SEED"])
         if seed not in (17, 29, 43):
             raise ValueError("unplanned seed")
+        bounded_command(
+            [
+                sys.executable,
+                "-m",
+                "tools.quantized_optimizers.inspect_exposure",
+                "--data",
+                str(Path(os.environ["SFT_DATA_ROOT"]) / "train.jsonl"),
+                "--corpus",
+                str(staging),
+                "--seed",
+                str(seed),
+                "--output",
+                str(root / "exposure.json"),
+            ],
+            root / "exposure.log",
+            deadline,
+        )
         for restart in range(3):
             arms = ("adamw", "adamw_bnb_8bit")
             if (restart + (0 if seed == 17 else 1 if seed == 29 else 2)) % 2:

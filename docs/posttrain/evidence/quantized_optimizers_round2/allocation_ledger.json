@@ -1,0 +1,16 @@
+{
+  "gpu_cap_seconds": 9000,
+  "cpu_preparation_cap_seconds": 1800,
+  "local_gpu_reserved_seconds": 180,
+  "local_gpu_used_seconds": 0,
+  "records": [
+    {"job": null, "phase": "CPU preparation", "state": "SUBMISSION_REJECTED", "reason": "GPU partition requires GPU specification", "gpu_seconds": 0, "cpu_wall_seconds": 0},
+    {"job": "37949431", "phase": "CPU preparation v1", "state": "FAILED", "cpu_wall_seconds": 181, "gpus": 0, "failure": "coarse-timestamp media mutation escaped stat-only check"},
+    {"job": "37949524", "phase": "CPU preparation v2", "state": "RUNNING", "wall_reservation_seconds": 1560, "gpus": 0, "source": "b3b4f88"},
+    {"job": "37949598", "phase": "native prepared-input canary v3", "state": "PENDING", "wall_reservation_seconds": 720, "gpus": 1, "source": "46cd36b", "dependency": "afterok:37949524"}
+  ],
+  "unsubmitted_seed_reservations": {"17": 2700, "29": 2700, "43": 2700},
+  "admitted_gpu_seconds_including_all_planned_seeds_and_local_reserve": 9000,
+  "admitted_cpu_wall_seconds": 1741,
+  "rule": "Refresh terminal actuals and full nonterminal reservations before any new admission; retain all failures."
+}
