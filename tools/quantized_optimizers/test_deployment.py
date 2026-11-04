@@ -62,3 +62,42 @@ def test_strict_determinism_requests_kernels_and_keeps_legacy_default(monkeypatc
     finally:
         torch.use_deterministic_algorithms(old[0], warn_only=old[1])
         torch.backends.cudnn.deterministic, torch.backends.cudnn.benchmark = old[2:]
+
+
+def test_recovery_probe_records_each_clock_once_and_checks_nested_step_agreement(monkeypatch):
+    """CPU control test only; dense CUDA continuation is a separate execution gate."""
+    from types import SimpleNamespace
+
+    from tools.quantized_optimizers import prepared_canary as canary
+
+    # Initialize the parent wrapper as happens during the real backend preflight.
+    torch.optim.AdamW([torch.nn.Parameter(torch.ones(1))])
+
+    class WrappedAdamW(torch.optim.AdamW):
+        mutate_after_inner = False
+
+        @torch.no_grad()
+        def step(self, closure=None):
+            result = super().step(closure)
+            if self.mutate_after_inner:
+                self.param_groups[0]["params"][0].add_(1)
+            return result
+
+    net = torch.nn.Linear(3, 2, bias=False)
+    optimizer = WrappedAdamW(net.parameters())
+    monkeypatch.setattr(canary, "captured", {})
+    monkeypatch.setattr(canary, "original", lambda *_args: SimpleNamespace(_net=lambda: net, opt=optimizer))
+    monkeypatch.setenv("RECOVERY_ARM", "adamw")
+    canary.capture(None, None, None, None, None)
+    try:
+        for _ in range(4):
+            net.weight.grad = torch.ones_like(net.weight)
+            optimizer.step()
+        records = canary.captured["update_probes"]
+        assert [row["step"] for row in records] == [1, 2, 3, 4]
+        assert len({row["sha256"] for row in records}) == 4
+        optimizer.mutate_after_inner = True
+        with pytest.raises(RuntimeError, match="after its inner update"):
+            optimizer.step()
+    finally:
+        canary.captured["probe_handle"].remove()
