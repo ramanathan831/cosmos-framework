@@ -72,6 +72,7 @@ class BudgetPolicy:
             "budget_seconds": self.seconds,
             "reserve_seconds": self.reserve_seconds,
             "cold_offset_seconds": self.cold_offset_seconds,
+            "loop_start_clock_seconds": self.elapsed(self.loop_monotonic) if self.loop_monotonic is not None else None,
             "updates": self.updates,
             "target_hit": self.target_hit,
             "training_checkpoint_eligible": last is not None and last["clock_seconds"] <= self.seconds,
