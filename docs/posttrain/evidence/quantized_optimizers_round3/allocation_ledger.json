@@ -1,0 +1,22 @@
+{
+  "jobs": [
+    {
+      "job": "37970579",
+      "purpose": "fused dense recovery",
+      "gpu_reservation_seconds": 1800,
+      "node": "batch-block4-1051"
+    },
+    {
+      "job": "37970581",
+      "purpose": "nonpaged8bit dense recovery",
+      "gpu_reservation_seconds": 1800,
+      "node": "batch-block4-1034"
+    }
+  ],
+  "source_commit": "6fc40f6",
+  "source_archive_sha256": "9ea01b5ec7427dc3cd59089868692b5c070bcbbd8b5785ea369d6c9277d01130",
+  "unsubmitted_final_reservation_seconds": 12600,
+  "total_gpu_cap_seconds": 28800,
+  "admission_reserved_seconds": 16200,
+  "cpu_reserved_seconds": 2700
+}
