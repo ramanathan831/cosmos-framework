@@ -63,10 +63,46 @@
         "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl",
         "PROFILE_WEIGHT_LOADING": "1"
       }
+    },
+    {
+      "name": "fused_checkpoint15",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_deployment.py",
+        "--",
+        "job.name=fused_checkpoint15",
+        "rl.seed=17",
+        "rl.max_steps=4",
+        "rl.save_every=0",
+        "rl.keep_optim_last=0",
+        "rl.optimizer.name=adamw",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096",
+        "model_hf.grad_ckpt=true",
+        "rl.optimizer.lr=1e-05",
+        "rl.ce_exponent=1.0",
+        "rl.data.path={data}/train-mixed.jsonl",
+        "rl.validation.enabled=false",
+        "rl.micro_batch_size=4",
+        "rl.grad_accum=1",
+        "model_hf.grad_ckpt_modules=[model.language_model.layers.16,model.language_model.layers.17,model.language_model.layers.18,model.language_model.layers.19,model.language_model.layers.20,model.language_model.layers.21,model.language_model.layers.22,model.language_model.layers.23,model.language_model.layers.24,model.language_model.layers.25,model.language_model.layers.26,model.language_model.layers.27,model.language_model.layers.28,model.language_model.layers.29,model.language_model.layers.30]"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "allow_failure": true
     }
   ],
   "recorded_utc": "2026-11-04T20:38:20.687302+00:00",
   "reason": "Mixed1e-5 has best dev NLL at15 and87.5%accuracy. Screen8-bit at this matched point before final evaluation. Measured load_weights varied9.49/190.79/170.75seconds despite matched13second file hashes; profile get_tensor, CPU conversion and synchronized GPU transfers to locate the cause.",
   "timing_claim": false,
-  "profile_note": "Adds synchronization; excluded from performance estimates. Final choices remain development-only."
+  "profile_note": "Adds synchronization; excluded from performance estimates. Final choices remain development-only.",
+  "capacity_followup": "12-layer checkpoint and micro2/acc2 without recomputation both OOM on A100 80GB. Execute the second and final pre-admitted selective-checkpoint probe with 15 layers; failure remains evidence."
 }
