@@ -1,0 +1,96 @@
+{
+  "purpose": "development diagnosis",
+  "prepared_verified_rows": 751,
+  "recorded_utc": "2026-11-04T22:02:42.128797+00:00",
+  "reason": "Close the baseline search gap between separately tested selective recomputation and smaller microbatches: combine micro2/acc2 with12 or8 checkpointed trainable layers. Prior micro4/selective and micro2/no-recomputation cases OOM. This bounded development-only check does not change the frozen final protocol.",
+  "source": "cb9d4f3",
+  "reservation_seconds": 900,
+  "dependency": "After every locked final seed allocation, so exploration cannot delay dependent final scoring.",
+  "selection_rule": "Retain exact same effective batch4, initial weights, trainable layers16..31, seed17, data order, mixed objective, schedule, clipping and15 updates. Feasible candidate must complete and meet1.01 development NLL guard; a faster candidate would require new paired qualification before any strongest-baseline claim. This single development allocation cannot establish a release win.",
+  "cases": [
+    {
+      "name": "fused_full_micro4",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=fused_full_micro4",
+        "rl.seed=17",
+        "rl.optimizer.name=adamw",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096",
+        "model_hf.grad_ckpt=true",
+        "rl.micro_batch_size=4",
+        "rl.grad_accum=1",
+        "model_hf.grad_ckpt_modules=[]"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "allow_failure": false
+    },
+    {
+      "name": "fused_selective12_micro2",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=fused_selective12_micro2",
+        "rl.seed=17",
+        "rl.optimizer.name=adamw",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096",
+        "model_hf.grad_ckpt=true",
+        "rl.micro_batch_size=2",
+        "rl.grad_accum=2",
+        "model_hf.grad_ckpt_modules=[model.language_model.layers.16,model.language_model.layers.17,model.language_model.layers.18,model.language_model.layers.19,model.language_model.layers.20,model.language_model.layers.21,model.language_model.layers.22,model.language_model.layers.23,model.language_model.layers.24,model.language_model.layers.25,model.language_model.layers.26,model.language_model.layers.27]"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "allow_failure": true
+    },
+    {
+      "name": "fused_selective8_micro2",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=fused_selective8_micro2",
+        "rl.seed=17",
+        "rl.optimizer.name=adamw",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096",
+        "model_hf.grad_ckpt=true",
+        "rl.micro_batch_size=2",
+        "rl.grad_accum=2",
+        "model_hf.grad_ckpt_modules=[model.language_model.layers.16,model.language_model.layers.17,model.language_model.layers.18,model.language_model.layers.19,model.language_model.layers.20,model.language_model.layers.21,model.language_model.layers.22,model.language_model.layers.23]"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "allow_failure": true
+    }
+  ]
+}

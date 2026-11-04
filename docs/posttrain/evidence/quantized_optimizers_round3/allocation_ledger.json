@@ -299,5 +299,7 @@
   "local_cpu_check_reservation_seconds": 60,
   "final_reservation_update": "75min per seed \u00d73, including every dependent128-row scoring process, frozen reference and exact exposure inspection; based on180\u2013214s training plus~120s scoring per case. Reserve900more seconds within unchanged28800cap before admission; no threshold changes.",
   "unsubmitted_preparation_profile_reservation_seconds": 0,
-  "unsubmitted_decoder_thread_canary_reservation_seconds": 600
+  "unsubmitted_decoder_thread_canary_reservation_seconds": 600,
+  "unsubmitted_combined_baseline_probe_gpu_seconds": 900,
+  "total_with_reserved_final_and_development": 21471
 }

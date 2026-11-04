@@ -1,0 +1,184 @@
+{
+  "job": "37978043",
+  "elapsed_cpu_wall_seconds": 445,
+  "source_commit": "70159fa",
+  "correctness": {
+    "exact_reference_targets": 32,
+    "independent_native_replays": 32,
+    "cuda_initialized": false
+  },
+  "receipt": {
+    "workers": 4,
+    "threads_per_worker": 2,
+    "cpu_affinity": [
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67
+    ],
+    "preparation_seconds": 150.57991789502557,
+    "total_seconds_with_independent_exact_replay": 288.7419970189803,
+    "exact_raw_prepared_rows": 32,
+    "independently_replayed_unique_targets": 32,
+    "total_verified_rows": 32,
+    "raw_native_calls": 64,
+    "reference_exact_unique_targets": 32,
+    "reference_corpus_sha256": "ea2e64893ab3d7da0f4c8be33001ae99c96dfd2c54fe293449c29255cd1f2d70",
+    "corpus_sha256": "70be8ff57c674ae3eacab0c4196543cdc9f113f01705b133426b8049e1764c3d",
+    "payload_bytes": 377943712,
+    "cuda_initialized": false,
+    "source_paths": [
+      "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/parallel-profile-v1/trial4.canary.jsonl"
+    ],
+    "worker_compute_seconds_sum": 352.2709087191033,
+    "source_sha256": "e7601e357fa26af900dc3ff3d6fc8fff617dce94863a2238bfa9d8cd73a55893"
+  },
+  "top_profile_functions": [
+    {
+      "function": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/torch/_ops.py:864:__call__",
+      "primitive_calls": 320,
+      "calls": 320,
+      "own_seconds": 0.00164443,
+      "cumulative_seconds": 333.56864220400007
+    },
+    {
+      "function": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/torchcodec/decoders/_video_decoder.py:349:get_frames_at",
+      "primitive_calls": 64,
+      "calls": 64,
+      "own_seconds": 0.0021231830000000007,
+      "cumulative_seconds": 328.82711821300006
+    },
+    {
+      "function": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/torchcodec/_core/ops.py:243:get_frames_at_indices",
+      "primitive_calls": 64,
+      "calls": 64,
+      "own_seconds": 0.001005402,
+      "cumulative_seconds": 328.820070795
+    },
+    {
+      "function": "/tmp/cosmos-optimizer-parallel.UxgGNj/cosmos_framework/posttrain/data/packer/prepared_sft.py:64:deterministic_sample",
+      "primitive_calls": 56,
+      "calls": 60,
+      "own_seconds": 0.038727751000000005,
+      "cumulative_seconds": 302.1552796530001
+    },
+    {
+      "function": "/tmp/cosmos-optimizer-parallel.UxgGNj/cosmos_framework/posttrain/data/packer/sft.py:481:sft_process_sample",
+      "primitive_calls": 56,
+      "calls": 60,
+      "own_seconds": 0.074384924,
+      "cumulative_seconds": 302.10874995600005
+    },
+    {
+      "function": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/transformers/models/qwen3_vl/processing_qwen3_vl.py:78:__call__",
+      "primitive_calls": 56,
+      "calls": 60,
+      "own_seconds": 0.022129375000000003,
+      "cumulative_seconds": 301.78178407
+    },
+    {
+      "function": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/transformers/video_processing_utils.py:177:__call__",
+      "primitive_calls": 56,
+      "calls": 60,
+      "own_seconds": 0.041890796,
+      "cumulative_seconds": 300.98923678700004
+    },
+    {
+      "function": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/transformers/video_processing_utils.py:327:preprocess",
+      "primitive_calls": 56,
+      "calls": 60,
+      "own_seconds": 0.006123134,
+      "cumulative_seconds": 300.94852101300006
+    },
+    {
+      "function": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/transformers/video_processing_utils.py:258:_decode_and_sample_videos",
+      "primitive_calls": 56,
+      "calls": 60,
+      "own_seconds": 0.0007175440000000001,
+      "cumulative_seconds": 295.94093149900004
+    },
+    {
+      "function": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/transformers/video_processing_utils.py:820:fetch_videos",
+      "primitive_calls": 56,
+      "calls": 120,
+      "own_seconds": 0.0010906250000000004,
+      "cumulative_seconds": 295.93660546499996
+    },
+    {
+      "function": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/transformers/video_utils.py:631:load_video",
+      "primitive_calls": 56,
+      "calls": 60,
+      "own_seconds": 0.3445834510000001,
+      "cumulative_seconds": 295.93557372399994
+    },
+    {
+      "function": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/transformers/video_utils.py:567:read_video_torchcodec",
+      "primitive_calls": 56,
+      "calls": 60,
+      "own_seconds": 0.042968361999999996,
+      "cumulative_seconds": 295.60670053
+    },
+    {
+      "function": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/torch/library.py:1080:register",
+      "primitive_calls": 128,
+      "calls": 128,
+      "own_seconds": 0.0018693840000000002,
+      "cumulative_seconds": 156.65477760800002
+    },
+    {
+      "function": "/tmp/cosmos-optimizer-parallel.UxgGNj/cosmos_framework/posttrain/data/packer/sft.py:236:validation_semantics_identity",
+      "primitive_calls": 32,
+      "calls": 32,
+      "own_seconds": 0.18978260600000002,
+      "cumulative_seconds": 29.896005396999996
+    },
+    {
+      "function": "/tmp/cosmos-optimizer-parallel.UxgGNj/cosmos_framework/posttrain/roles/rollout/validation.py:45:_tokenizer_semantics_identity",
+      "primitive_calls": 32,
+      "calls": 32,
+      "own_seconds": 0.6900010289999999,
+      "cumulative_seconds": 29.376807712999998
+    },
+    {
+      "function": "/tmp/cosmos-optimizer-parallel.UxgGNj/cosmos_framework/posttrain/utils/identity.py:170:canonical_json_sha256",
+      "primitive_calls": 160,
+      "calls": 160,
+      "own_seconds": 0.0010240350000000002,
+      "cumulative_seconds": 10.939735341
+    },
+    {
+      "function": "/tmp/cosmos-optimizer-parallel.UxgGNj/cosmos_framework/posttrain/utils/identity.py:162:canonical_json_bytes",
+      "primitive_calls": 192,
+      "calls": 192,
+      "own_seconds": 0.000923198,
+      "cumulative_seconds": 10.849767850000001
+    },
+    {
+      "function": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/python/cpython-3.12.12-linux-x86_64-gnu/lib/python3.12/json/__init__.py:183:dumps",
+      "primitive_calls": 1664,
+      "calls": 1664,
+      "own_seconds": 0.004419919,
+      "cumulative_seconds": 10.848268037
+    },
+    {
+      "function": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/python/cpython-3.12.12-linux-x86_64-gnu/lib/python3.12/json/encoder.py:183:encode",
+      "primitive_calls": 1664,
+      "calls": 1664,
+      "own_seconds": 0.003434864000000001,
+      "cumulative_seconds": 10.843053008
+    },
+    {
+      "function": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/python/cpython-3.12.12-linux-x86_64-gnu/lib/python3.12/json/encoder.py:205:iterencode",
+      "primitive_calls": 1664,
+      "calls": 1664,
+      "own_seconds": 10.838494873,
+      "cumulative_seconds": 10.838494873
+    }
+  ],
+  "interpretation": "Video frame decoding dominates the observed worker profile. Cumulative function times overlap and sum across worker processes; they are not additive wall-time components. Instrumentation and a different CPU node prohibit using this profile as a matched speed trial.",
+  "bounded_next_intervention": "decoder_thread_plan.json"
+}
