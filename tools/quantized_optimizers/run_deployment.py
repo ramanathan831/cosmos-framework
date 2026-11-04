@@ -6,6 +6,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -18,6 +19,16 @@ CONFIG = "cosmos_framework/posttrain/configs/sft_optimizer_deployment.py"
 
 def write(path, value):
     path.write_text(json.dumps(value, indent=2, allow_nan=False) + "\n")
+
+
+def bounded_command(command, log_path, deadline, env=None):
+    remaining = deadline - time.monotonic()
+    if remaining < 30:
+        raise RuntimeError("work deadline leaves no time for dependent verification")
+    with log_path.open("x") as log:
+        result = subprocess.run(command, env=env, stdout=log, stderr=subprocess.STDOUT, timeout=remaining)
+    if result.returncode:
+        raise RuntimeError(f"dependent verification failed: {log_path}")
 
 
 def monitor(handle, process, output, stop):
@@ -92,6 +103,7 @@ def launch(root, name, arm, seed, *, prepared, canary, handle, deadline):
         command.extend(["rl.max_steps=4", "rl.save_every=0", "rl.validation.every_steps=4"])
     write(output / "command.json", {"argv": command, "prepared_corpus": prepared})
     start = time.monotonic()
+    start_ns = time.time_ns()
     with (output / "train.log").open("x") as log:
         process = subprocess.Popen(command, env=env, stdout=log, stderr=subprocess.STDOUT)
         stop = threading.Event()
@@ -109,7 +121,14 @@ def launch(root, name, arm, seed, *, prepared, canary, handle, deadline):
     elapsed = time.monotonic() - start
     write(
         output / "attempt.json",
-        {"returncode": status, "elapsed_seconds": elapsed, "seed": seed, "arm": arm, "canary_instrumented": canary},
+        {
+            "returncode": status,
+            "elapsed_seconds": elapsed,
+            "start_time_ns": start_ns,
+            "seed": seed,
+            "arm": arm,
+            "canary_instrumented": canary,
+        },
     )
     if status:
         raise RuntimeError(f"native arm failed: {output}")
@@ -207,6 +226,56 @@ def main():
                     deadline=deadline,
                 )
         write(root / "training_complete.json", {"seed": seed, "elapsed_seconds": time.monotonic() - started})
+        identities = {}
+        for restart in range(3):
+            for arm in ("adamw", "adamw_bnb_8bit"):
+                output = root / f"restart{restart}_{arm}"
+                checkpoint = json.loads((output / "complete.json").read_text())["checkpoint"]
+                bounded_command(
+                    [
+                        sys.executable,
+                        "-m",
+                        "tools.quantized_optimizers.checkpoint_digest",
+                        checkpoint,
+                        str(output / "checkpoint_digest.json"),
+                    ],
+                    output / "checkpoint_digest.log",
+                    deadline,
+                )
+                identities[restart, arm] = json.loads((output / "checkpoint_digest.json").read_text())
+        matches = {
+            f"restart{restart}_{arm}_{key}": identities[0, arm][key] == identities[restart, arm][key]
+            for restart in (1, 2)
+            for arm in ("adamw", "adamw_bnb_8bit")
+            for key in ("model", "optim", "rng", "scheduler", "data", "optimizer_step")
+        }
+        write(root / "restart_parity.json", matches)
+        if not all(matches.values()):
+            raise RuntimeError("deterministic paired restarts changed model/optimizer/control state")
+        # Fixed restart0 only; selection was sealed before preparation or training.
+        for arm in ("frozen", "adamw", "adamw_bnb_8bit") if seed == 17 else ("adamw", "adamw_bnb_8bit"):
+            command = [
+                "torchrun",
+                "--standalone",
+                "--nproc-per-node=1",
+                "-m",
+                "tools.quantized_optimizers.score_dense",
+                "--data",
+                str(preparation / "final-selection/validation.jsonl"),
+                "--selection",
+                str(preparation / "final-selection/manifest.json"),
+                "--output",
+                str(root / f"final_{arm}"),
+                "--seed",
+                str(seed),
+            ]
+            if arm != "frozen":
+                checkpoint = json.loads((root / f"restart0_{arm}/complete.json").read_text())["checkpoint"]
+                command.extend(["--checkpoint", checkpoint])
+            bounded_command(
+                command, root / f"final_{arm}.log", deadline, env=dict(os.environ, SFT_PREPARED_CORPUS=str(staging))
+            )
+        write(root / "complete.json", {"seed": seed, "elapsed_seconds": time.monotonic() - started})
 
 
 if __name__ == "__main__":

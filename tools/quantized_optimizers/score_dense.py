@@ -167,8 +167,8 @@ def score_prediction(scores: Any, answer_position: int, candidates: dict[str, in
         "strict_first_token_letter": reverse.get(first_token),
         "strict_first_token_correct": first_token == gold_id,
         "valid_first_letter": first_token in reverse,
-        "answer_nll": float(torch.logsumexp(scores, dim=0) - scores[gold_id]),
-        "restricted_choice_nll": float(torch.logsumexp(choice_scores, dim=0) - scores[gold_id]),
+        "answer_nll": float(-scores.log_softmax(dim=0)[gold_id]),
+        "restricted_choice_nll": float(-choice_scores.log_softmax(dim=0)[choices.index(answer)]),
         "candidate_logits": dict(zip(choices, choice_scores.cpu().tolist(), strict=True)),
         "restricted_choice_tied_max": int((choice_scores == choice_scores.max()).sum()) > 1,
         "strict_first_token_tied_max": int((scores == scores.max()).sum()) > 1,
@@ -366,7 +366,7 @@ def main():
                 state = manager.load_component(args.checkpoint, "model")
                 if state is None:
                     raise ValueError("committed checkpoint has no dense model")
-                model.net.load_state_dict(state, strict=True)
+                model.net.load_state_dict(state["net"], strict=True)
 
             _, provenance = manager.load_checkpoint(args.checkpoint, load)
         model.net.requires_grad_(False)
