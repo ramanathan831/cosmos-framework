@@ -234,35 +234,35 @@
     {
       "job": "37977248",
       "name": "optimizer-outcome-s17",
-      "state": "RUNNING",
-      "elapsed_seconds": 2718,
+      "state": "COMPLETED",
+      "elapsed_seconds": 3749,
       "effective_wall_limit_seconds": 4500,
       "gpu_count_requested": 1,
-      "charged_or_reserved_gpu_seconds": 4500,
+      "charged_or_reserved_gpu_seconds": 3749,
       "charged_or_reserved_cpu_wall_seconds": 0,
       "node": "batch-block4-1034"
     },
     {
       "job": "37977250",
       "name": "optimizer-outcome-s29",
-      "state": "PENDING",
-      "elapsed_seconds": 0,
+      "state": "RUNNING",
+      "elapsed_seconds": 3538,
       "effective_wall_limit_seconds": 4500,
       "gpu_count_requested": 1,
       "charged_or_reserved_gpu_seconds": 4500,
       "charged_or_reserved_cpu_wall_seconds": 0,
-      "node": "None assigned"
+      "node": "batch-block4-1017"
     },
     {
       "job": "37977251",
       "name": "optimizer-outcome-s43",
-      "state": "PENDING",
-      "elapsed_seconds": 0,
+      "state": "RUNNING",
+      "elapsed_seconds": 1011,
       "effective_wall_limit_seconds": 4500,
       "gpu_count_requested": 1,
       "charged_or_reserved_gpu_seconds": 4500,
       "charged_or_reserved_cpu_wall_seconds": 0,
-      "node": "None assigned"
+      "node": "batch-block4-0102"
     },
     {
       "job": "37978043",
@@ -298,11 +298,11 @@
       "node": "None assigned"
     }
   ],
-  "as_of_utc": "2026-11-04T22:09:18.792810+00:00",
+  "as_of_utc": "2026-11-04T23:24:20.417852+00:00",
   "unsubmitted_final_reservation_seconds": 0,
   "total_gpu_cap_seconds": 28800,
   "cpu_wall_cap_seconds": 7200,
-  "total_with_reserved_final": 21471,
+  "total_with_reserved_final": 20720,
   "cpu_actual_or_reserved_seconds": 6895,
   "failures": {
     "37970581": "New recovery diagnostic failed to resolve native worker cursor handle after update41; checkpoint40 completed. Fixed by2e44bfa.",
@@ -323,5 +323,5 @@
   "unsubmitted_preparation_profile_reservation_seconds": 0,
   "unsubmitted_decoder_thread_canary_reservation_seconds": 0,
   "unsubmitted_combined_baseline_probe_gpu_seconds": 0,
-  "total_with_reserved_final_and_development": 21471
+  "total_with_reserved_final_and_development": 20720
 }

@@ -451,10 +451,17 @@ sbatch --partition=interactive_singlenode --nodelist=batch-block4-1017 \
 
 export RESULTS="$REPLAY/final-seed43" TASK_SPEC=/shared/new-final-specs/seed43.json
 mkdir -p "$RESULTS"
-sbatch --partition=interactive_singlenode --nodelist=batch-block4-1034 \
+sbatch --partition=interactive_singlenode,polar --nodelist=batch-block4-0102 \
   --dependency="afterany:$j17" --time=75 --export=ALL \
   --output="$RESULTS/slurm-%j.log" tools/quantized_optimizers/deployment.sbatch
 ```
+
+Seed43 was moved as a wholly unstarted allocation after its original node filled
+and a second requested node became unavailable. It ran on `batch-block4-0102`;
+no trial or score was discarded. The source archive, exact A100-SXM4-80GB device
+check, eight-CPU allocation, dependency and frozen protocol were retained. The
+[scheduling receipt](../../docs/posttrain/evidence/quantized_optimizers_round3/scheduling_notes.json)
+records those changes. Queue delay is excluded from the declared product clock.
 
 `run_task_study` records model-file hashes, complete setup clocks, source/dependency
 identities, native task curves, actual checkpoint provenance and external device/

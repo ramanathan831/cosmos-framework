@@ -530,10 +530,13 @@ exactly, including inputs and predictions. Subsequent full-model loads took 6–
 Model-only scoring also initializes directly from the committed complete state,
 avoiding a redundant pretrained load; 32 prior scores match exactly.
 
-The fused capacity probes retained all failures: 12-layer and 15-layer selective
-checkpointing, microbatch 2/accumulation 2 and microbatch 1/accumulation 4 without
-recomputation all ran out of memory. The final baseline therefore uses full native
-checkpointing. A 32-target CPU preparation canary preserves every tensor/token/label
+The fused capacity probes retained all failures: microbatch-four 12-layer and
+15-layer selective checkpointing, microbatch 2/accumulation 2 and microbatch
+1/accumulation 4 without recomputation all ran out of memory. The locked final
+baseline uses full native checkpointing. A separate development probe combines
+microbatch 2/accumulation 2 with selective checkpointing; the strongest feasible
+baseline remains unresolved until that probe completes. A 32-target CPU preparation
+canary preserves every tensor/token/label
 and reduces processing 187→136 seconds with four workers on the same eight CPUs.
 The complete full-corpus run verified 751 logical rows and 562 independently
 replayed targets, exactly matching the qualified corpus. It took 1,990 CPU-wall
