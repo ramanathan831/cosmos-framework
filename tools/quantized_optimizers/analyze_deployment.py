@@ -331,6 +331,7 @@ def main():
             "Model score is teacher-forced, not free generation.",
             "Launch time after the last validation includes checkpoint writing and teardown; it is not a synchronized checkpoint-only timer.",
             "Model-file reads are identical controls included in each launch clock; shared filesystem contention is retained.",
+            "Validation launch timestamps have one-second resolution; native step timers and total launch completion use high-resolution clocks.",
         ],
     }
     (args.output / "summary.json").write_text(json.dumps(report, indent=2) + "\n")

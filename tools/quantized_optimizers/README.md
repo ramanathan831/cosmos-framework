@@ -293,7 +293,7 @@ raw/prepared equality canary passes all six state comparisons.
 ```sh
 export SOURCE=/shared/new-optimizer-deployment-campaign
 export SOURCE_ARCHIVE="$SOURCE/source.tgz"
-git archive --format=tar.gz --output="$SOURCE_ARCHIVE" d35aa73
+git archive --format=tar.gz --output="$SOURCE_ARCHIVE" f54620d
 export ASSETS=/shared/read-only-qlora-assets
 export PRIOR=/shared/read-only-first-optimizer-campaign
 export CONTAINER_IMAGE=/shared/pinned-runtime.sqsh
@@ -309,10 +309,30 @@ sbatch --time=12 --output="$RESULTS/slurm-%j.log" tools/quantized_optimizers/dep
 
 # Only after canary complete.json and parity.json pass; repeat for seeds29,43,
 # at most two GPUs on distinct nodes. All six runs for one seed stay in this job.
-export RESULTS="$SOURCE/seed17" MODE=trials WORK_SECONDS=2480 TRIAL_SEED=17
+# The split stages avoid reserving a GPU for checkpoint-value hashing.
+export RESULTS="$SOURCE/seed17" MODE=train_only WORK_SECONDS=1880 TRIAL_SEED=17
 mkdir -p "$RESULTS"
-sbatch --time=43:20 --output="$RESULTS/slurm-%j.log" tools/quantized_optimizers/deployment.sbatch
+TRAIN_JOB=$(sbatch --parsable --time=33:20 --output="$RESULTS/slurm-%j.log" \
+  tools/quantized_optimizers/deployment.sbatch)
+export TARGET="$RESULTS" RESULTS="$SOURCE/seed17-checkpoint-verification"
+mkdir -p "$RESULTS"
+VERIFY_JOB=$(sbatch --parsable --dependency="afterok:$TRAIN_JOB" \
+  --output="$RESULTS/slurm-%j.log" tools/quantized_optimizers/verify_deployment_cpu.sbatch)
+export RESULTS="$TARGET" MODE=score_only WORK_SECONDS=340
+sbatch --time=6:40 --dependency="afterok:$VERIFY_JOB" \
+  --output="$RESULTS/slurm-%j.log" tools/quantized_optimizers/deployment.sbatch
 ```
+
+The recorded first two seeds used source `d35aa73` and combined training,
+checkpoint verification and scoring in 43m20s allocations. All twelve training
+runs and all 48 repeat-checkpoint comparisons passed, but scoring startup exceeded
+the work deadlines. Those failed attempts remain charged. Completed score commits
+were checked and retained; only the missing score was run separately. The third
+seed uses `f54620d` and the split stages above. A committed source-compatibility
+receipt proves the native package tree, training-launch function and scoring
+mathematics are identical. Sequential file reads before scoring's native loaders
+change loading cost only. Every split-stage allocation must still fit the finite
+campaign ledger; dependencies alone do not reserve budget or establish a pass.
 
 Restrict each GPU submission to the site's verified A100-SXM4-80GB nodes using
 its recorded node policy. The job resolves the allocated physical GPU UUID for
