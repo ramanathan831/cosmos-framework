@@ -23,8 +23,10 @@ def main():
     for path in sorted(root.rglob("*")):
         if not path.is_file() or path.suffix not in suffixes or path.resolve() == args.output.resolve():
             continue
-        if not path.resolve().is_relative_to(root):
-            raise ValueError(f"evidence symlink escapes campaign root: {path}")
+        try:
+            path.resolve().relative_to(root)
+        except ValueError as error:
+            raise ValueError(f"evidence symlink escapes campaign root: {path}") from error
         if path.stat().st_size > 8 * 1024 * 1024:
             raise ValueError(f"oversized evidence requires explicit review: {path}")
         value = path.read_bytes()
