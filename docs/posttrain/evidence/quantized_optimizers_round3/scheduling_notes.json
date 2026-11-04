@@ -1,0 +1,37 @@
+{
+  "recorded_utc": "2026-11-04T22:31:14.161348+00:00",
+  "completed_seed17": {
+    "job": "37977248",
+    "elapsed_gpu_seconds": 3749,
+    "training_runs": 12,
+    "score_files": 13,
+    "actual_state_input_clock_checks": "All seed17 cases passed the final analyzer integrity checks; cross-seed inference has not been computed."
+  },
+  "seed29": {
+    "job": "37977250",
+    "status": "running",
+    "node": "batch-block4-1017",
+    "changes": null
+  },
+  "pending_migrations": [
+    {
+      "job": "37977251",
+      "seed": 43,
+      "old_node": "batch-block4-1034",
+      "new_node": "batch-block5-04154",
+      "old_partition": "interactive_singlenode",
+      "new_partition": "polar4",
+      "effective_wall_limit_seconds": 4500
+    },
+    {
+      "job": "37978670",
+      "purpose": "combined baseline development probe after all final allocations",
+      "old_node": "batch-block4-1034",
+      "new_node": "batch-block5-04154",
+      "old_partition": "interactive_singlenode",
+      "new_partition": "polar4",
+      "effective_wall_limit_seconds": 900
+    }
+  ],
+  "basis": "Seed17 completed; its original node is now allocated across all GPUs and memory. The new node is idle with248 logical CPUs, two sockets/62cores each,1878738MiB scheduler memory, and the same cluster location/OS. polar4 permits this account, has no preemption and supports the unchanged wall limits. Move only wholly unstarted groups, preserving all paired arms/restarts within one allocation. Native preflight must still confirm the exact A100-SXM4-80GB device before model construction; otherwise the run fails and is charged. No threshold, recipe, budget, source archive, CPU/memory request, seed or final manifest changes. At most two owned GPUs; development probe remains dependent on all final allocations."
+}
