@@ -4,7 +4,7 @@
   "recorded_utc": "2026-11-04T22:02:42.128797+00:00",
   "reason": "Close the baseline search gap between separately tested selective recomputation and smaller microbatches: combine micro2/acc2 with12 or8 checkpointed trainable layers. Prior micro4/selective and micro2/no-recomputation cases OOM. This bounded development-only check does not change the frozen final protocol.",
   "source": "cb9d4f3",
-  "reservation_seconds": 900,
+  "reservation_seconds": 1200,
   "dependency": "After every locked final seed allocation, so exploration cannot delay dependent final scoring.",
   "selection_rule": "Retain exact same effective batch4, initial weights, trainable layers16..31, seed17, data order, mixed objective, schedule, clipping and15 updates. Feasible candidate must complete and meet1.01 development NLL guard; a faster candidate would require new paired qualification before any strongest-baseline claim. This single development allocation cannot establish a release win.",
   "cases": [
@@ -92,5 +92,8 @@
       },
       "allow_failure": true
     }
-  ]
+  ],
+  "original_reservation_seconds": 900,
+  "work_seconds": 1080,
+  "reservation_revision_reason": "Completed three-case development allocation37982776 took812seconds. The previously submitted780-second internal deadline can be too short if both selective candidates are feasible. Replace wholly unstarted900-second reservation37978670 with1200seconds/1080work before any baseline trial starts; unchanged source/cases/guards and dependency. All canceled reservations remain recorded."
 }
