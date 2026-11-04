@@ -537,6 +537,16 @@ preparations within the unchanged CPU cap; this single measurement cannot
 establish repeated full-preparation speed evidence. The locked cold clock uses
 that measured cost for both arms.
 
+The follow-up CPU profile locates most worker time in native TorchCodec frame
+decoding. Pinned Transformers requests automatic FFmpeg threading. A bounded,
+hash-counterbalanced 32-target canary tested one thread per decoder against that
+native setting and required a separate raw replay plus exact reference equality.
+All input checks passed, but candidate throughput was only about 0.46 of native
+at the median target. The intervention was rejected; defaults, the qualified
+corpus and final clocks remain unchanged. The [negative result](evidence/quantized_optimizers_round3/decoder_thread_summary.json)
+and all allocation costs are retained. Instrumented profiling and this single
+canary do not establish a full-pipeline speed estimate.
+
 The [final protocol](evidence/quantized_optimizers_round3/final_protocol.json),
 locked before final scoring, uses seeds 17/29/43, three paired target timing
 restarts, matched 15-update checkpoints, 60-second training/validation budgets and
