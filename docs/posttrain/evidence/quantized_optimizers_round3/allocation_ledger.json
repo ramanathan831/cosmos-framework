@@ -296,13 +296,24 @@
       "charged_or_reserved_gpu_seconds": 900,
       "charged_or_reserved_cpu_wall_seconds": 0,
       "node": "None assigned"
+    },
+    {
+      "job": "37982776",
+      "name": "optimizer-r3-short-schedule",
+      "state": "PENDING",
+      "elapsed_seconds": 0,
+      "effective_wall_limit_seconds": 1080,
+      "gpu_count_requested": 1,
+      "charged_or_reserved_gpu_seconds": 1080,
+      "charged_or_reserved_cpu_wall_seconds": 0,
+      "node": "None assigned"
     }
   ],
-  "as_of_utc": "2026-11-04T23:24:20.417852+00:00",
+  "as_of_utc": "2026-11-04T23:33:17.298011+00:00",
   "unsubmitted_final_reservation_seconds": 0,
   "total_gpu_cap_seconds": 28800,
   "cpu_wall_cap_seconds": 7200,
-  "total_with_reserved_final": 20720,
+  "total_with_reserved_final": 21800,
   "cpu_actual_or_reserved_seconds": 6895,
   "failures": {
     "37970581": "New recovery diagnostic failed to resolve native worker cursor handle after update41; checkpoint40 completed. Fixed by2e44bfa.",
@@ -324,5 +335,5 @@
   "unsubmitted_decoder_thread_canary_reservation_seconds": 0,
   "unsubmitted_combined_baseline_probe_gpu_seconds": 0,
   "total_with_reserved_final_and_development": 21800,
-  "unsubmitted_short_schedule_probe_gpu_seconds": 1080
+  "unsubmitted_short_schedule_probe_gpu_seconds": 0
 }
