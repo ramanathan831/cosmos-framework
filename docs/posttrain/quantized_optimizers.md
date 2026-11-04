@@ -81,6 +81,11 @@ storage. They preserve uint8 states, maps, scales, counters and group configurat
 managed pointers and Python allocation attributes are not serialized. This also
 provides an immutable source for the existing checkpoint transaction.
 
+Ordinary-parameter full checkpoints remain synchronous: the model state aliases
+live device tensors, so the native trainer declines asynchronous publication even
+when the optimizer snapshot is independent. Qualification charges the complete
+save. The current matrix does not claim background full-model checkpointing.
+
 Exact restoration validates backend/version, canonical type, precision policy,
 names/shapes, group order and hyperparameters. It initializes only states present
 in the checkpoint, without a hidden optimizer update, and restores managed
