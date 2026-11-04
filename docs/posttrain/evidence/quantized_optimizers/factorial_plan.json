@@ -48,7 +48,7 @@
     "state_saving_min": 0.6
   },
   "canaries": "two updates and actual native save/load/scoring before full comparisons; failed attempts retained",
-  "max_gpu_minutes_including_canaries_and_failures": 150,
+  "max_gpu_minutes_including_canaries_and_failures": 170,
   "stop": "abort dependent work on correctness failure; no unbounded retries, no threshold changes; incomplete comparisons remain incomplete",
   "overall_gpu_hours_ceiling": 8,
   "additional_mainline_capacity_followup_max_gpu_minutes": 30,
@@ -110,5 +110,14 @@
     "reason": "Isolation shows preprocessing dominates, while memory saving could allow disabling activation recomputation; test that deployment mechanism fairly for both optimizers.",
     "budget": "30 GPU minutes including failures, within unchanged total8GPUhours; stop admission with<480seconds of1680work allowance.",
     "promotion": "No speed/quality claim from canaries. Full three-paired-seed follow-up only if plausible measured end-to-end benefit and remaining total budget allows all required gates."
+  },
+  "budget_amendment_before_final_scores": {
+    "previous_factorial_minutes": 150,
+    "factorial_minutes": 170,
+    "source": "20 minutes from the previously unassigned28.05 minutes inside the existing8GPU-hour ceiling",
+    "reason": "Recording-disjoint final scoring requires rescoring existing completed checkpoints. Measured BF16 full cells take about9 minutes each including fresh-process scoring; fund the unchanged12cells and2recovery gates without omitting correctness or changing quality thresholds.",
+    "unchanged": "8GPUhours overall;240mainline minutes;30capacity minutes;three paired seeds;12training cells;no extra tuning/final evaluation reuse; all quality/speed/memory bounds.",
+    "worst_case_total_gpu_minutes": 471.95,
+    "remaining_unassigned_minutes": 8.05
   }
 }
