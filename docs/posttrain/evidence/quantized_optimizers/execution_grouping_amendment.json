@@ -20,5 +20,20 @@
     "work_seconds": 3150,
     "reason": "Observed complete arms take665\u2013963 seconds. Reserve55 minutes for the same three unstarted arms and preserve900-second admission guard, avoiding an extra allocated continuation slot.",
     "admission": "9490 charged +1500 seed29 reserve +3300 seed43 reserve =14290 <=14400 mainline seconds; overall reserved27613 <=28800 seconds. No additional trial or threshold change."
+  },
+  "short_single_node_partition": {
+    "recorded_utc": "2026-11-04T04:06:50.858272+00:00",
+    "partition": "interactive_singlenode",
+    "site_policy": {
+      "AllowAccounts": "ALL",
+      "AllowQos": "ALL",
+      "MaxNodes": 1,
+      "MaxTime": "04:00:00",
+      "MaxJobsPerUser": 1,
+      "UsageFactor": 1.0,
+      "PreemptMode": "OFF"
+    },
+    "purpose": "Attended bounded single-node engineering qualification after extended normal-partition priority queueing. May move one owned pending allocation at a time; never alter other jobs or site limits.",
+    "unchanged": "Existing job IDs, immutable source and environment, GPU/node pairing,8CPUs,128GiB, GPU-hour budget, trial plan and numeric gates. Retain normal partition for an independent second phase if it starts."
   }
 }
