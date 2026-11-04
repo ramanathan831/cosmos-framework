@@ -1,7 +1,7 @@
 {
   "gpu_cap_seconds": 9000,
   "cpu_preparation_cap_seconds": 1800,
-  "local_gpu_reserved_seconds": 42,
+  "local_gpu_reserved_seconds": 0,
   "local_gpu_used_seconds": 0,
   "records": [
     {
@@ -90,7 +90,8 @@
       "source": "d35aa73",
       "node": "batch-block4-1051",
       "gpu_seconds": 2528,
-      "failure": "qualification launcher deadline; all six training runs and repeat hashes complete, committed score subsets retained"
+      "failure": "qualification launcher deadline; all six training runs and repeat hashes complete, committed score subsets retained",
+      "effective_wall_limit_seconds": 2640
     },
     {
       "job": "37950908",
@@ -100,7 +101,8 @@
       "source": "d35aa73",
       "node": "batch-block4-1034",
       "gpu_seconds": 2521,
-      "failure": "qualification launcher deadline; all six training runs and repeat hashes complete, committed score subsets retained"
+      "failure": "qualification launcher deadline; all six training runs and repeat hashes complete, committed score subsets retained",
+      "effective_wall_limit_seconds": 2640
     },
     {
       "job": "37951393",
@@ -119,13 +121,14 @@
       "source": "d35aa73",
       "excluded_other_active_node": "batch-block4-1034",
       "gpu_seconds": 0,
-      "reason": "unstarted third seed held while dependent evaluation scheduling was repaired"
+      "reason": "unstarted third seed held while dependent evaluation scheduling was repaired",
+      "effective_wall_limit_seconds": 2640
     },
     {
       "job": "37952083",
       "phase": "seed43 unchanged training only",
       "gpus": 1,
-      "wall_reservation_seconds": 2000,
+      "wall_reservation_seconds": 2040,
       "dependency": null,
       "state": "RUNNING",
       "source": "f54620d",
@@ -155,15 +158,17 @@
       "job": "37952090",
       "phase": "seed43 final task scoring",
       "gpus": 1,
-      "wall_reservation_seconds": 400,
+      "wall_reservation_seconds": 420,
       "dependency": "afterok:37952088",
       "state": "PENDING",
       "source": "f54620d"
     }
   ],
   "unsubmitted_seed_reservations": {},
-  "admitted_gpu_seconds_including_all_planned_seeds_and_local_reserve": 8758,
+  "admitted_gpu_seconds_including_all_planned_seeds_and_local_reserve": 8776,
   "admitted_cpu_wall_seconds": 1785,
   "rule": "Refresh terminal actuals and full nonterminal reservations before any new admission; retain all failures.",
-  "reservation_adjustment": "Retain438GPU-seconds of launcher/control failures; reserve720 for strict canary,2600for each unchanged six-run seed group,42local. Total9000unchanged. Any returned allocation time stays available for dependent checks."
+  "reservation_adjustment": "Retain438GPU-seconds of launcher/control failures; reserve720 for strict canary,2600for each unchanged six-run seed group,42local. Total9000unchanged. Any returned allocation time stays available for dependent checks.",
+  "local_reservation_retired_reason": "All local control tests are CPU-only and complete; no additional local CUDA work is planned.",
+  "rounding_audit": "Slurm rounded43:20 to44minutes,33:20 to34minutes,and6:40 to7minutes. Earlier peak planned reservation was9007seconds,7over the stated9000cap; the unstarted third combined job was canceled and actual spend never exceeded the cap. Corrected effective limits are used for all remaining admissions."
 }

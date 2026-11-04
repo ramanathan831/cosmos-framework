@@ -1,0 +1,17 @@
+{
+  "issue": "requested seconds were incorrectly treated as effective Slurm wall limits",
+  "requested_to_effective_seconds": {
+    "2600": 2640,
+    "2000": 2040,
+    "400": 420,
+    "250": 300
+  },
+  "maximum_original_planned_reservation_seconds": 9007,
+  "cap_seconds": 9000,
+  "reserved_overage_seconds": 7,
+  "actual_spend_over_cap": false,
+  "failure_retained": true,
+  "correction": "Use scontrol effective TimeLimit and integer-minute requests; never infer full reservation from requested seconds. No cap increase.",
+  "current_effective_gpu_admission_seconds": 8776,
+  "local_unspent_reserve_retired": 42
+}
