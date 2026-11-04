@@ -1152,6 +1152,8 @@ def build_backbone(config: Any, world_size: int = 1, pdims: Any = None, *, hf_mo
         return build_native_policy(config, pdims)[0]
 
     policy_world = pdims.world_size if pdims is not None else world_size_or_1()
+    if hf_model_state is not None and (int(policy_world) != 1 or pdims is not None):
+        raise ValueError("hf_model_state requires an ordinary unsharded single-device model")
     parallelism = resolve_policy_parallelism(config, int(policy_world))
     if pdims is None:
         pdims = resolve_pdims(parallelism=parallelism)
