@@ -95,5 +95,8 @@
   ],
   "original_reservation_seconds": 900,
   "work_seconds": 1080,
-  "reservation_revision_reason": "Completed three-case development allocation37982776 took812seconds. The previously submitted780-second internal deadline can be too short if both selective candidates are feasible. Replace wholly unstarted900-second reservation37978670 with1200seconds/1080work before any baseline trial starts; unchanged source/cases/guards and dependency. All canceled reservations remain recorded."
+  "reservation_revision_reason": "Completed three-case development allocation37982776 took812seconds. The previously submitted780-second internal deadline can be too short if both selective candidates are feasible. Replace wholly unstarted900-second reservation37978670 with1200seconds/1080work before any baseline trial starts; unchanged source/cases/guards and dependency. All canceled reservations remain recorded.",
+  "replacement_job": "37983881",
+  "canceled_unallocated_job": "37978670",
+  "results_directory": "combined-baseline-v2"
 }

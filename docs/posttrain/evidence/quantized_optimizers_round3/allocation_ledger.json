@@ -289,11 +289,11 @@
     {
       "job": "37978670",
       "name": "optimizer-r3-baseline-combo",
-      "state": "PENDING",
+      "state": "CANCELLED before allocation",
       "elapsed_seconds": 0,
       "effective_wall_limit_seconds": 900,
       "gpu_count_requested": 1,
-      "charged_or_reserved_gpu_seconds": 900,
+      "charged_or_reserved_gpu_seconds": 0,
       "charged_or_reserved_cpu_wall_seconds": 0,
       "node": "None assigned"
     },
@@ -307,13 +307,24 @@
       "charged_or_reserved_gpu_seconds": 812,
       "charged_or_reserved_cpu_wall_seconds": 0,
       "node": "batch-block4-1017"
+    },
+    {
+      "job": "37983881",
+      "name": "optimizer-r3-baseline-combo",
+      "state": "PENDING",
+      "elapsed_seconds": 0,
+      "effective_wall_limit_seconds": 1200,
+      "gpu_count_requested": 1,
+      "charged_or_reserved_gpu_seconds": 1200,
+      "charged_or_reserved_cpu_wall_seconds": 0,
+      "node": "None assigned"
     }
   ],
-  "as_of_utc": "2026-11-04T23:54:04.078048+00:00",
+  "as_of_utc": "2026-11-04T23:58:36.417824+00:00",
   "unsubmitted_final_reservation_seconds": 0,
   "total_gpu_cap_seconds": 28800,
   "cpu_wall_cap_seconds": 7200,
-  "total_with_reserved_final": 20770,
+  "total_with_reserved_final": 21070,
   "cpu_actual_or_reserved_seconds": 6955,
   "failures": {
     "37970581": "New recovery diagnostic failed to resolve native worker cursor handle after update41; checkpoint40 completed. Fixed by2e44bfa.",
@@ -337,5 +348,5 @@
   "total_with_reserved_final_and_development": 21070,
   "unsubmitted_short_schedule_probe_gpu_seconds": 0,
   "local_cpu_check_note": "Conservative120-second CPU-only allowance covers local controls, lint and final evidence analysis. Root-conftest GPU checks remain separately charged60GPU-seconds. No additional CPU allocation admitted.",
-  "unsubmitted_combined_baseline_reservation_extension_seconds": 300
+  "unsubmitted_combined_baseline_reservation_extension_seconds": 0
 }
