@@ -56,6 +56,7 @@ for arm in "${arms[@]}"; do
     "job.name=$arm" "rl.seed=${SEED:-17}" "rl.max_steps=${STEPS:-3}" "rl.grad_accum=$accum" "rl.micro_batch_size=$micro" rl.save_every=0 \
     rl.max_length=4096 "rl.optimizer.train_keys=${TRAIN_KEYS:-[layers.31.]}" "${extra[@]}" \
     "rl.optimizer.name=$arm" "rl.optimizer.impl=$impl" \
+    "model_hf.grad_ckpt=${GRAD_CKPT:-true}" \
     "rl.validation.batch_size=${VAL_BATCH:-1}" "rl.validation.max_samples=${VAL_SAMPLES:-2}" "rl.validation.every_steps=${VAL_EVERY:-${STEPS:-3}}" \
     "rl.processor_kwargs.videos_kwargs.num_frames=${FRAMES:-4}" \
     "rl.processor_kwargs.videos_kwargs.size.longest_edge=${VIDEO_PIXELS:-65536}" \

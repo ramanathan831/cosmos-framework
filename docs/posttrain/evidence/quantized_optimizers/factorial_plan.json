@@ -103,5 +103,12 @@
     "unchanged": "Same model checkpoints,16 scoring rows, statistical tests, thresholds, training schedule, seeds and150GPU-minute phase cap.",
     "reuse": "Fresh-process score existing checkpoints; never retrain completed cells to change evaluation."
   },
-  "wall_clock_additional_gates": "Include process launch to validation, initialization, checkpoint costs; require the same >1.05 lower95% speed threshold and positive equal-wall-budget NLL improvement before either claim. Training+validation-only clocks retained as diagnostics; no threshold relaxed."
+  "wall_clock_additional_gates": "Include process launch to validation, initialization, checkpoint costs; require the same >1.05 lower95% speed threshold and positive equal-wall-budget NLL improvement before either claim. Training+validation-only clocks retained as diagnostics; no threshold relaxed.",
+  "capacity_followup_detail_before_runs": {
+    "trainable_layers": "16 through31, ordinary FP32; unchanged8-frame substantive WTS training data",
+    "settings": "Both fused baseline and nonpaged8bit try grad_ckpt false, then true; largest fitting micro4,2,1, effectivebatch4. Two actualupdates per successful setting; retain OOMs. No final task data used.",
+    "reason": "Isolation shows preprocessing dominates, while memory saving could allow disabling activation recomputation; test that deployment mechanism fairly for both optimizers.",
+    "budget": "30 GPU minutes including failures, within unchanged total8GPUhours; stop admission with<480seconds of1680work allowance.",
+    "promotion": "No speed/quality claim from canaries. Full three-paired-seed follow-up only if plausible measured end-to-end benefit and remaining total budget allows all required gates."
+  }
 }
