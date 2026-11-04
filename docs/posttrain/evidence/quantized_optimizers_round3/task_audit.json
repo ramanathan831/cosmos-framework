@@ -1,0 +1,48 @@
+{
+  "recorded_utc": "2026-11-04T19:32:27.678232+00:00",
+  "verified_defect": {
+    "source": "prepare_development.py final option text included the evaluation-only trailing instruction",
+    "raw_training_annotations": 5555,
+    "contaminated_training_annotation_answers": 0,
+    "raw_evaluation_annotations": 2676,
+    "contaminated_evaluation_annotation_answers": 870,
+    "repaired_development_rows": 56,
+    "training_bytes_unchanged": true,
+    "historical_task_scoring_affected": false,
+    "scope": "Contaminated substantive development loss and its target; single-letter task scoring never decoded option text."
+  },
+  "task_relation": {
+    "original_training": "8\u201322 numbered questions with answer text, not option letters. Variable substantive lengths; all assistant-body and end tokens supervised.",
+    "task_evaluation": "One original multiple-choice question and a single-letter answer; first answer position predicted from previous logits. Restricted-choice accuracy and full-vocabulary gold-answer NLL remain separate.",
+    "mixed_candidate": "One substantive row and one metadata-selected original single-question task per training video. Explicit ce_exponent=1 gives equal per-row loss weight; this is a changed shared objective, not an optimizer-isolation claim."
+  },
+  "audited_code": {
+    "masking": "sft.py packer assistant bodies and end tokens, loss shift once, attention/label masks applied",
+    "scorer": "answer_alignment verifies native assistant header, stable one-token A/B/C/D mapping and gold identity; score_prediction separates full-vocab answer NLL from choice-only normalization",
+    "frozen": "Pinned native Qwen3-VL weights, same FP32 storage/BF16 compute, input manifests/processor; no optimizer instantiated in dense scorer",
+    "checkpoint": "dense scorer validates committed transaction then strictly loads model net before freezing; no optimizer dependency for model-only scoring"
+  },
+  "counts": {
+    "train-mixed.jsonl": {
+      "rows": 346,
+      "task_rows": 173,
+      "letter_counts": {
+        "C": 46,
+        "A": 44,
+        "B": 52,
+        "D": 31
+      }
+    },
+    "dev-task.jsonl": {
+      "rows": 32,
+      "task_rows": 32,
+      "letter_counts": {
+        "D": 10,
+        "C": 9,
+        "B": 5,
+        "A": 8
+      }
+    }
+  },
+  "historical_scope": "Both previous evidence manifests verified byte-for-byte; no prior result or threshold overwritten. The second-campaign NLL mean regression is0.618%, while4.260% is the upper confidence bound."
+}

@@ -47,16 +47,17 @@ def timed(owner, name, phase):
 
 def objective(packer, **kwargs):
     from cosmos_framework.posttrain.data.datasets.sft import JSONLSFTDataset
-    from cosmos_framework.posttrain.data.packer.prepared_sft import attach_prepared_corpus
+    from cosmos_framework.posttrain.data.packer.prepared_sft import PreparedSFTCorpus
 
-    data = Path(os.environ["SFT_DATA_ROOT"])
     captured["task_dataset"] = JSONLSFTDataset(os.environ["TASK_DEVELOPMENT_DATA"])
-    attach_prepared_corpus(
-        packer,
-        os.environ["SFT_PREPARED_CORPUS"],
-        [JSONLSFTDataset(str(data / name)) for name in ("train.jsonl", "train-mixed.jsonl", "validation.jsonl")]
-        + [captured["task_dataset"]],
-    )
+    # The native builder already bound and verified train/validation sources.
+    # Bind only the added task source, retaining all verified media stamps.
+    previous = packer.sft_process_sample.__self__
+    additional = PreparedSFTCorpus(packer, os.environ["SFT_PREPARED_CORPUS"], [captured["task_dataset"]])
+    if previous.identity != additional.identity:
+        raise ValueError("development sources must share the same immutable corpus")
+    additional.media_stamps.update(previous.media_stamps)
+    packer.sft_process_sample = additional.process
     captured["packer"] = packer
     return original_objective(packer, **kwargs)
 
@@ -115,7 +116,17 @@ def evaluate(units, rl, model_step, reasons):
             "metrics": aggregate(scored),
         },
     )
-    return report
+    from dataclasses import replace
+
+    task = aggregate(scored)
+    return replace(
+        report,
+        metrics={
+            **report.metrics,
+            "val/task_answer_nll": task["answer_nll"],
+            "val/task_accuracy": task["restricted_choice_accuracy"],
+        },
+    )
 
 
 def step(*args, **kwargs):
@@ -133,7 +144,7 @@ def step(*args, **kwargs):
     return result
 
 
-if __name__ == "__main__":
+def install():
     import cosmos_framework.posttrain.config.build as builders
     import cosmos_framework.posttrain.data.datasets.sft as datasets
     import cosmos_framework.posttrain.data.packer.prepared_sft as prepared
@@ -147,6 +158,10 @@ if __name__ == "__main__":
     entry.build_trainer = build
     entry._evaluate = evaluate
     entry.train_step = step
+
+
+if __name__ == "__main__":
+    install()
     entry.main()
     (root / "complete.json").write_text(
         json.dumps({"complete": True, "elapsed_seconds": time.monotonic() - started}) + "\n"
