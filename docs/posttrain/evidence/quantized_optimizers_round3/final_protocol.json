@@ -1,0 +1,150 @@
+{
+  "locked_before_evaluation": "2026-11-04T21:21:20.128782+00:00",
+  "purpose": "Authorized comparative outcome qualification; preserve all historical results. No historically untouched/independent replication claim.",
+  "runtime_source_before_protocol_commit": "d739589",
+  "paired_seeds": [
+    17,
+    29,
+    43
+  ],
+  "timing_restarts": 3,
+  "recipe": {
+    "config": "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+    "max_updates": 15,
+    "lr": 1e-05,
+    "ce_exponent": 1,
+    "trainable_layers": "16..31",
+    "trainable_elements": 3087142912,
+    "trainable_storage": "FP32",
+    "forward_compute": "BF16 autocast",
+    "model_quantization": false,
+    "microbatch": 4,
+    "gradient_accumulation": 1,
+    "cosine_horizon": 40,
+    "warmup_steps": 2,
+    "weight_decay": 0.01,
+    "training_objective": "Retain original substantive multi-question targets and add one original single-choice question per video. Equal per-row weighting is a shared recipe change; retain original isolation results."
+  },
+  "fused_checkpoint_modules": [],
+  "baseline_selection": "Torch fused FP32 AdamW with full native activation checkpointing.12-layer and15-layer checkpoint subsets, micro2/acc2 andmicro1/acc4 without checkpointing all OOM; retain these failures. Nonpaged8-bit uses no recomputation. No paged speed claim.",
+  "selection_evidence": [
+    "development_recipe_plan.json",
+    "development_curves.json",
+    "paired_development15_summary.json",
+    "loading_validation_summary.json",
+    "capacity_budget_summary.json",
+    "micro1_capacity_raw.json.gz"
+  ],
+  "validation_quality_target": 1.7987394576095224,
+  "target_definition": "Unchanged0.95\u00d7initial fused validation NLL criterion, applied to audited gold-answer task NLL. Numeric target fixed from development32 rows before final scoring. Original substantive-task40-update results retained separately.",
+  "validation": {
+    "before_training": true,
+    "every_updates": 5,
+    "task_rows": 32,
+    "task_recording_groups": 16,
+    "substantive_rows": 16,
+    "final_manifest_never_used_for_stopping": true
+  },
+  "evaluation": {
+    "data": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/validation.jsonl",
+    "manifest": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/manifest.json",
+    "manifest_sha256": "3f7d5013d231f21c44878f94b9f9deb880a636761dae56a002c0532733fe6e58",
+    "data_sha256": "a21c55a7ddbaba22f7d9a34af178e5462adc2fc427ff22070aba411b7fbda9ba",
+    "questions": 128,
+    "recording_families": 32,
+    "questions_per_family": 4,
+    "historical_exposure": "All32 eligible recording families outside repaired training/development were used in earlier final selections. Retain all32 prior questions and report both historical16-row subsets. Extra questions were chosen by metadata hash before new scores; they do not create unexposed recording families."
+  },
+  "budgets": {
+    "training": {
+      "adamw": {
+        "seconds": 60,
+        "reserve_seconds": 10
+      },
+      "adamw_bnb_8bit": {
+        "seconds": 60,
+        "reserve_seconds": 10
+      }
+    },
+    "end_to_end": {
+      "adamw": {
+        "seconds": 390,
+        "reserve_seconds": 210
+      },
+      "adamw_bnb_8bit": {
+        "seconds": 390,
+        "reserve_seconds": 180
+      }
+    },
+    "target": {
+      "adamw": {
+        "seconds": 600,
+        "reserve_seconds": 210
+      },
+      "adamw_bnb_8bit": {
+        "seconds": 600,
+        "reserve_seconds": 180
+      }
+    }
+  },
+  "calibration": {
+    "measured_setup_seconds": 61.71676281708312,
+    "matched15_launch_to_training_export_seconds": {
+      "adamw": 214.19991128705442,
+      "adamw_bnb_8bit": 189.81802233390044
+    },
+    "max_checkpoint_seconds": {
+      "adamw": 69.49686586298048,
+      "adamw_bnb_8bit": 43.20060944801662
+    },
+    "max32_question_fresh_score_seconds": {
+      "adamw": 89.1722262169933,
+      "adamw_bnb_8bit": 88.63880781596527
+    },
+    "extra128_row_scoring_allowance_seconds": 32,
+    "delivery_reserve_rule": "ceil to5seconds of1.10\u00d7(maximum observed arm checkpoint time + maximum observed arm32-row scoring time +32seconds for96 additional forwards/source verification). Same rule for both arms; measured actual costs and overruns remain reportable.",
+    "product_budget_basis": "390seconds accommodates initialization plus useful adaptation and the expanded final scoring. Development32-row quantized330s canary delivered at329.64s; it is not reused as a final estimate. Matched15 is selected from best development NLL, not longer startup amortization.",
+    "training_budget_basis": "60s/10s reserve canary produced actual fused10 andquantized12 checkpoints. Final eligibility additionally requires completion of required validation within60s. No interpolation or later-state substitution."
+  },
+  "clock_contract": {
+    "training": "Native loop entry through completed update/validation boundary; checkpoint and held-out scoring outside this clock but measured separately. A validation overrun censors the budget comparison.",
+    "prepared_product": "Batch-shell/container/source setup, device preflight and prepared-corpus staging charged to each delivered run, then model verification, initialization, native train/development validation, full consistent checkpoint, checkpoint identity validation, fresh-process128-row scoring. Scheduler queue time excluded.",
+    "cold_product": "Composed CPU input preparation followed by the prepared product clock. Same qualified measured CPU preparation cost C added to both arms; equal cold budget is C+390. No inference from a development curve.",
+    "cold_preparation_job": "37976182",
+    "cold_preparation_cost_rule": "Use completed full_one SlurmElapsedRaw (including CPU container/setup) only after receipt proves all751logical rows/562unique targets, independent native replay, exact qualified-reference equality and no CUDA. If incomplete, cold comparisons remain censored; no substitution chosen from final results.",
+    "cold_limitation": "One full CPU preparation measurement; repeated GPU product timings are conditional on that shared cost. No empty-OS-cache or independent full cold-pipeline replication claim. Three full CPU preparations did not fit observed costs within the unchanged7200s cap."
+  },
+  "checkpoint_policy": "Native full consolidated checkpoint at actual stop or natural15-update limit; keep_optim_last=0. Validate committed trainer clock against recorded completed updates and immutable checkpoint provenance. Score that committed model in a fresh process. Target stop requires observed post-update validation. Missing/late states are censored, never replaced by another state.",
+  "statistical_procedure": {
+    "quality_seed_n": 3,
+    "timing_seed_aggregation": "Mean of3 paired restart ratios within each seed, then95% Student t interval across3seed means. Timing restarts are not extra quality seeds.",
+    "quality": "95% Student t across3paired seed NLL ratios/accuracy differences. Also10000 crossed seed/recording-family bootstrap draws, RNGseed2026; average4questions within each family before resampling32families. Both NLL/accuracy guard intervals must pass.",
+    "equal_budget_gain": "Positive lower95% bound on baseline-minus8bit held-out gold-answer NLL in both paired-seed and recording bootstrap analyses, with accuracy guard. Any ineligible arm censors the paired estimate.",
+    "adaptation": "Positive recording-bootstrap lower bound on task accuracy relative to the frozen model, reported separately for both trained arms.",
+    "multiplicity": "All requested gates are conjunctive; no cherry-picking passing endpoint, seed or historical subset. No tuning from these final scores."
+  },
+  "gates": {
+    "paired_seeds": 3,
+    "ci": 0.95,
+    "nll_ratio_upper_max": 1.01,
+    "task_accuracy_degradation_upper_max": 0.01,
+    "speed_ratio_lower_min_exclusive": 1.05,
+    "optimizer_state_saving_min": 0.6,
+    "equal_budget_quality_improvement_lower_min_exclusive": 0,
+    "positive_adaptation_lower_min_exclusive": 0,
+    "time_to_quality_target": "0.95 times paired fused initial validation NLL; unchanged prior criterion",
+    "recording_bootstrap_repetitions": 10000,
+    "bootstrap_seed": 2026
+  },
+  "resources": {
+    "gpu_cap_seconds": 28800,
+    "cpu_wall_cap_seconds": 7200,
+    "final_allocation_seconds_per_seed": 4500,
+    "work_seconds_per_seed": 4380,
+    "maximum_concurrent_owned_gpus": 2,
+    "hardware": "A100-SXM4-80GB,8CPUs,128GiB requested host memory per GPU allocation; paired arms/restarts share one allocation/device/affinity. At most two seed allocations, on distinct nodes; third depends on first completion.",
+    "cost_estimate": "12training/scoring cases per seed: approximately180\u2013214s train/export plus~120s scoring; up to4010s at upper calibration plus shared setup/exposure/frozen reference. Reserve4500s to avoid undersized allocations; all failures count."
+  },
+  "source_policy": "One immutable runtime archive across all final seeds and all arms. Record archiveSHA256, native tree provenance, model shard hashes, dependency versions, prepared corpus identity, actual sequence/media/token exposure, device and host memory. No push/publication.",
+  "failure_policy": "Keep failed/censored comparisons and inspect actionable defects. Any new tuning uses training/development only and needs a new locked comparison; do not repeatedly consume final groups for tuning. Never relax thresholds. Preserve budget headroom and all failed allocation costs."
+}

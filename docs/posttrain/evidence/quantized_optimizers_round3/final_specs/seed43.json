@@ -1,0 +1,481 @@
+{
+  "purpose": "locked comparative qualification",
+  "locked_before_evaluation": "2026-11-04T21:21:20.128782+00:00",
+  "protocol_sha256": "aff3b3d9e32418a784f894de24e645bf72692fb18d2e5f9603c0a3d0d5faad65",
+  "seed": 43,
+  "prepared_verified_rows": 751,
+  "cases": [
+    {
+      "name": "training_exposure",
+      "read_model": false,
+      "argv": [
+        "python",
+        "-m",
+        "tools.quantized_optimizers.inspect_exposure",
+        "--data",
+        "{data}/train-mixed.jsonl",
+        "--corpus",
+        "{prepared}",
+        "--seed",
+        "43",
+        "--output",
+        "{case}/exposure.json"
+      ],
+      "env": {
+        "CUDA_VISIBLE_DEVICES": ""
+      }
+    },
+    {
+      "name": "matched_adamw",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=matched_adamw",
+        "rl.seed=43",
+        "rl.optimizer.name=adamw",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096",
+        "model_hf.grad_ckpt=true",
+        "rl.emergency_checkpoint_components=full"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "score_checkpoint": {
+        "data": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/validation.jsonl",
+        "selection": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/manifest.json",
+        "seed": 43
+      },
+      "design": "matched",
+      "optimizer": "adamw",
+      "seed": 43
+    },
+    {
+      "name": "matched_adamw_bnb_8bit",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=matched_adamw_bnb_8bit",
+        "rl.seed=43",
+        "rl.optimizer.name=adamw_bnb_8bit",
+        "rl.optimizer.impl=",
+        "rl.optimizer.bnb_min_8bit_size=16384",
+        "model_hf.grad_ckpt=false",
+        "rl.emergency_checkpoint_components=full"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "score_checkpoint": {
+        "data": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/validation.jsonl",
+        "selection": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/manifest.json",
+        "seed": 43
+      },
+      "design": "matched",
+      "optimizer": "adamw_bnb_8bit",
+      "seed": 43
+    },
+    {
+      "name": "training_adamw_bnb_8bit",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.budgeted_sft",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=training_adamw_bnb_8bit",
+        "rl.seed=43",
+        "rl.optimizer.name=adamw_bnb_8bit",
+        "rl.optimizer.impl=",
+        "rl.optimizer.bnb_min_8bit_size=16384",
+        "model_hf.grad_ckpt=false",
+        "rl.emergency_checkpoint_components=full"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "score_checkpoint": {
+        "data": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/validation.jsonl",
+        "selection": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/manifest.json",
+        "seed": 43
+      },
+      "design": "training",
+      "optimizer": "adamw_bnb_8bit",
+      "seed": 43,
+      "budget": {
+        "seconds": 60,
+        "reserve_seconds": 10,
+        "kind": "training"
+      }
+    },
+    {
+      "name": "training_adamw",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.budgeted_sft",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=training_adamw",
+        "rl.seed=43",
+        "rl.optimizer.name=adamw",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096",
+        "model_hf.grad_ckpt=true",
+        "rl.emergency_checkpoint_components=full"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "score_checkpoint": {
+        "data": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/validation.jsonl",
+        "selection": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/manifest.json",
+        "seed": 43
+      },
+      "design": "training",
+      "optimizer": "adamw",
+      "seed": 43,
+      "budget": {
+        "seconds": 60,
+        "reserve_seconds": 10,
+        "kind": "training"
+      }
+    },
+    {
+      "name": "end_to_end_adamw",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.budgeted_sft",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=end_to_end_adamw",
+        "rl.seed=43",
+        "rl.optimizer.name=adamw",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096",
+        "model_hf.grad_ckpt=true",
+        "rl.emergency_checkpoint_components=full"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "score_checkpoint": {
+        "data": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/validation.jsonl",
+        "selection": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/manifest.json",
+        "seed": 43
+      },
+      "design": "end_to_end",
+      "optimizer": "adamw",
+      "seed": 43,
+      "budget": {
+        "seconds": 390,
+        "reserve_seconds": 210,
+        "kind": "end_to_end"
+      }
+    },
+    {
+      "name": "end_to_end_adamw_bnb_8bit",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.budgeted_sft",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=end_to_end_adamw_bnb_8bit",
+        "rl.seed=43",
+        "rl.optimizer.name=adamw_bnb_8bit",
+        "rl.optimizer.impl=",
+        "rl.optimizer.bnb_min_8bit_size=16384",
+        "model_hf.grad_ckpt=false",
+        "rl.emergency_checkpoint_components=full"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "score_checkpoint": {
+        "data": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/validation.jsonl",
+        "selection": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/manifest.json",
+        "seed": 43
+      },
+      "design": "end_to_end",
+      "optimizer": "adamw_bnb_8bit",
+      "seed": 43,
+      "budget": {
+        "seconds": 390,
+        "reserve_seconds": 180,
+        "kind": "end_to_end"
+      }
+    },
+    {
+      "name": "target_restart0_adamw_bnb_8bit",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.budgeted_sft",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=target_restart0_adamw_bnb_8bit",
+        "rl.seed=43",
+        "rl.optimizer.name=adamw_bnb_8bit",
+        "rl.optimizer.impl=",
+        "rl.optimizer.bnb_min_8bit_size=16384",
+        "model_hf.grad_ckpt=false",
+        "rl.emergency_checkpoint_components=full"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "score_checkpoint": {
+        "data": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/validation.jsonl",
+        "selection": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/manifest.json",
+        "seed": 43
+      },
+      "design": "target_restart0",
+      "optimizer": "adamw_bnb_8bit",
+      "seed": 43,
+      "budget": {
+        "seconds": 600,
+        "reserve_seconds": 180,
+        "kind": "target",
+        "quality_target": 1.7987394576095224
+      }
+    },
+    {
+      "name": "target_restart0_adamw",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.budgeted_sft",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=target_restart0_adamw",
+        "rl.seed=43",
+        "rl.optimizer.name=adamw",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096",
+        "model_hf.grad_ckpt=true",
+        "rl.emergency_checkpoint_components=full"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "score_checkpoint": {
+        "data": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/validation.jsonl",
+        "selection": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/manifest.json",
+        "seed": 43
+      },
+      "design": "target_restart0",
+      "optimizer": "adamw",
+      "seed": 43,
+      "budget": {
+        "seconds": 600,
+        "reserve_seconds": 210,
+        "kind": "target",
+        "quality_target": 1.7987394576095224
+      }
+    },
+    {
+      "name": "target_restart1_adamw",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.budgeted_sft",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=target_restart1_adamw",
+        "rl.seed=43",
+        "rl.optimizer.name=adamw",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096",
+        "model_hf.grad_ckpt=true",
+        "rl.emergency_checkpoint_components=full"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "score_checkpoint": {
+        "data": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/validation.jsonl",
+        "selection": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/manifest.json",
+        "seed": 43
+      },
+      "design": "target_restart1",
+      "optimizer": "adamw",
+      "seed": 43,
+      "budget": {
+        "seconds": 600,
+        "reserve_seconds": 210,
+        "kind": "target",
+        "quality_target": 1.7987394576095224
+      }
+    },
+    {
+      "name": "target_restart1_adamw_bnb_8bit",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.budgeted_sft",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=target_restart1_adamw_bnb_8bit",
+        "rl.seed=43",
+        "rl.optimizer.name=adamw_bnb_8bit",
+        "rl.optimizer.impl=",
+        "rl.optimizer.bnb_min_8bit_size=16384",
+        "model_hf.grad_ckpt=false",
+        "rl.emergency_checkpoint_components=full"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "score_checkpoint": {
+        "data": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/validation.jsonl",
+        "selection": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/manifest.json",
+        "seed": 43
+      },
+      "design": "target_restart1",
+      "optimizer": "adamw_bnb_8bit",
+      "seed": 43,
+      "budget": {
+        "seconds": 600,
+        "reserve_seconds": 180,
+        "kind": "target",
+        "quality_target": 1.7987394576095224
+      }
+    },
+    {
+      "name": "target_restart2_adamw_bnb_8bit",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.budgeted_sft",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=target_restart2_adamw_bnb_8bit",
+        "rl.seed=43",
+        "rl.optimizer.name=adamw_bnb_8bit",
+        "rl.optimizer.impl=",
+        "rl.optimizer.bnb_min_8bit_size=16384",
+        "model_hf.grad_ckpt=false",
+        "rl.emergency_checkpoint_components=full"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "score_checkpoint": {
+        "data": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/validation.jsonl",
+        "selection": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/manifest.json",
+        "seed": 43
+      },
+      "design": "target_restart2",
+      "optimizer": "adamw_bnb_8bit",
+      "seed": 43,
+      "budget": {
+        "seconds": 600,
+        "reserve_seconds": 180,
+        "kind": "target",
+        "quality_target": 1.7987394576095224
+      }
+    },
+    {
+      "name": "target_restart2_adamw",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.budgeted_sft",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=target_restart2_adamw",
+        "rl.seed=43",
+        "rl.optimizer.name=adamw",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096",
+        "model_hf.grad_ckpt=true",
+        "rl.emergency_checkpoint_components=full"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "score_checkpoint": {
+        "data": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/validation.jsonl",
+        "selection": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/manifest.json",
+        "seed": 43
+      },
+      "design": "target_restart2",
+      "optimizer": "adamw",
+      "seed": 43,
+      "budget": {
+        "seconds": 600,
+        "reserve_seconds": 210,
+        "kind": "target",
+        "quality_target": 1.7987394576095224
+      }
+    }
+  ]
+}

@@ -1,0 +1,131 @@
+{
+  "job": "37976023",
+  "elapsed_gpu_seconds": 1013,
+  "source": "7bd2e05",
+  "complete": true,
+  "cases": {
+    "weight_loading_kernels": {
+      "attempt": {
+        "returncode": 0,
+        "elapsed_seconds": 8.275412486982532
+      }
+    },
+    "mixed15_adamw": {
+      "attempt": {
+        "returncode": 0,
+        "elapsed_seconds": 214.19991128705442
+      },
+      "native_parity": {
+        "exact_rows": 128,
+        "reference": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/paired-development15-v1/mixed15_adamw/diagnostics/task_rows.jsonl",
+        "match": true
+      },
+      "phases": [
+        {
+          "phase": "load_weights",
+          "seconds": 8.302761716069654,
+          "elapsed_seconds": 51.07824862306006
+        },
+        {
+          "phase": "optimizer_snapshot",
+          "seconds": 0.00033825705759227276,
+          "elapsed_seconds": 114.52182018198073
+        },
+        {
+          "phase": "checkpoint",
+          "seconds": 56.39350441098213,
+          "elapsed_seconds": 170.90862500597723
+        }
+      ]
+    },
+    "mixed15_adamw_bnb_8bit": {
+      "attempt": {
+        "returncode": 0,
+        "elapsed_seconds": 189.81802233390044
+      },
+      "native_parity": {
+        "exact_rows": 128,
+        "reference": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/paired-development15-v1/mixed15_adamw_bnb_8bit/diagnostics/task_rows.jsonl",
+        "match": true
+      },
+      "phases": [
+        {
+          "phase": "load_weights",
+          "seconds": 6.102235872996971,
+          "elapsed_seconds": 50.49421240796801
+        },
+        {
+          "phase": "optimizer_snapshot",
+          "seconds": 0.9138926661107689,
+          "elapsed_seconds": 106.43181013700087
+        },
+        {
+          "phase": "checkpoint",
+          "seconds": 38.91279764298815,
+          "elapsed_seconds": 144.42608148499858
+        }
+      ]
+    },
+    "target_adamw": {
+      "attempt": {
+        "returncode": 0,
+        "elapsed_seconds": 180.91126180894207
+      },
+      "phases": [
+        {
+          "phase": "load_weights",
+          "seconds": 6.41781685303431,
+          "elapsed_seconds": 48.4583609260153
+        },
+        {
+          "phase": "optimizer_snapshot",
+          "seconds": 0.00029967701993882656,
+          "elapsed_seconds": 81.16129327903036
+        },
+        {
+          "phase": "checkpoint",
+          "seconds": 69.49686586298048,
+          "elapsed_seconds": 150.65328806906473
+        }
+      ],
+      "delivered_seconds": 327.00972948010565,
+      "scoring_seconds": 84.37562612292822,
+      "end_to_end_eligible": null,
+      "committed_optimizer_step": 5,
+      "target": {
+        "step": 5,
+        "nll": 0.8287633526779246,
+        "clock_seconds": 170.45094028112032
+      }
+    },
+    "end_to_end_adamw_bnb_8bit": {
+      "attempt": {
+        "returncode": 0,
+        "elapsed_seconds": 179.2813711790368
+      },
+      "phases": [
+        {
+          "phase": "load_weights",
+          "seconds": 7.987746738013811,
+          "elapsed_seconds": 55.842054628999904
+        },
+        {
+          "phase": "optimizer_snapshot",
+          "seconds": 1.411633605021052,
+          "elapsed_seconds": 106.64879438199569
+        },
+        {
+          "phase": "checkpoint",
+          "seconds": 43.20060944801662,
+          "elapsed_seconds": 148.43309450603556
+        }
+      ],
+      "delivered_seconds": 329.6444434360277,
+      "scoring_seconds": 88.63880781596527,
+      "end_to_end_eligible": true,
+      "committed_optimizer_step": 10,
+      "target": null
+    }
+  },
+  "regression": "7 weight-loading tests passed in pinned CUDA runtime; every FP16/BF16 value tested, NaN positions retained and all finite/Inf/signed-zero results bit-exact. Each optimizer reproduced all128 development observations (32questions\u00d74checkpoints)."
+}
