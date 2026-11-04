@@ -5,14 +5,14 @@
     "cpus": 8,
     "host_memory_gib": 40,
     "cuda_visible_devices": "",
-    "canary_allocation_seconds": 420,
-    "reserved_three_full_trials_seconds": 3600,
+    "canary_allocation_seconds": 600,
+    "reserved_three_full_trials_seconds": 3420,
     "previous_cpu_allocations_seconds": 3127,
     "total_cpu_cap_seconds": 7200
   },
   "canary": {
-    "unique_targets": 12,
-    "selection": "First12 SHA256 target keys from the same authorized sources; no task scores used.",
+    "unique_targets": 32,
+    "selection": "First32 SHA256 target keys from the same authorized sources; no task scores used.",
     "configurations": [
       {
         "workers": 1,
@@ -35,5 +35,6 @@
     "sources": "All751 logical rows / deduplicated immutable target identities; exact per-target replay remains required.",
     "same_cpu_node_and_affinity": true,
     "classification": "Cold input preparation; does not assert an empty operating-system file cache."
-  }
+  },
+  "pre_execution_amendment": "Use32 targets and10minutes so spawn/tokenizer setup does not dominate a12-target process-pool probe; reserve57minutes for full trials within the unchanged7200CPU-second cap. No preparation canary has run."
 }
