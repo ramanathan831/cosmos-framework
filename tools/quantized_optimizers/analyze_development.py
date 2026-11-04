@@ -202,6 +202,29 @@ def main():
                     [b["equal_budget_nll"] - a["equal_budget_nll"] for b, a in zip(base, other)]
                 ),
             }
+            pair = pairs[arm]
+            pair["state_memory_saving"] = interval(
+                [
+                    1 - (a["state"]["moment_bytes"] + a["state"]["metadata_bytes"]) / b["state"]["state_bytes"]
+                    for b, a in zip(base, other)
+                ]
+            )
+            pair["sampled_process_gpu_memory_saving"] = interval(
+                [
+                    1 - a["sampled_process_gpu_peak_bytes"] / b["sampled_process_gpu_peak_bytes"]
+                    for b, a in zip(base, other)
+                    if a["sampled_process_gpu_peak_bytes"] and b["sampled_process_gpu_peak_bytes"]
+                ]
+            )
+            pair["gates"] = {
+                "validation_nll": pair["final_nll_ratio"]["ci95"][1] <= 1.01,
+                "training_speed": pair["throughput_ratio"]["ci95"][0] > 1.05,
+                "time_to_quality_speed": ttq["n"] == 3 and ttq["ci95"][0] > 1.05,
+                "equal_budget_quality_gain": pair["equal_budget_nll_improvement"]["ci95"][0] > 0,
+                "state_memory": pair["state_memory_saving"]["ci95"][0] >= 0.60,
+                "original_task_accuracy": None,
+                "uninstrumented_speed_confirmation": None,
+            }
     else:
         budget = None
     output = {
