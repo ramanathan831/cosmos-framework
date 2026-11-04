@@ -7,7 +7,7 @@ from pathlib import Path
 import torch
 
 from cosmos_framework.posttrain.checkpoint.manager import CheckpointManager
-from tools.quantized_optimizers.state_digest import digest
+from tools.quantized_optimizers.state_digest import digest, tensor_digest
 
 
 def main():
@@ -15,9 +15,17 @@ def main():
     parser.add_argument("checkpoint")
     parser.add_argument("output", type=Path)
     parser.add_argument("--model-only", action="store_true")
+    parser.add_argument("--parameter", help="Read one live-update proof tensor; full exact restoration remains native")
     args = parser.parse_args()
     manager = CheckpointManager()
     report = {"checkpoint_provenance": manager.checkpoint_provenance(args.checkpoint)}
+    if args.parameter:
+        value = torch.load(Path(args.checkpoint) / "model.pt", map_location="cpu", weights_only=True, mmap=True)
+        report["parameter"] = {"name": args.parameter, "sha256": tensor_digest(value["net"][args.parameter])}
+        if manager.checkpoint_provenance(args.checkpoint) != report["checkpoint_provenance"]:
+            raise ValueError("checkpoint identity changed during the live-update proof read")
+        args.output.write_text(json.dumps(report, indent=2) + "\n")
+        return
     if args.model_only:
         value = manager.load_component(args.checkpoint, "model")
         report["model"] = digest(value["net"])

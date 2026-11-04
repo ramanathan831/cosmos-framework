@@ -74,19 +74,27 @@ def run(root, staging, deadline):
                     "-m",
                     "tools.quantized_optimizers.checkpoint_digest",
                     str(checkpoints[0]),
-                    str(root / "checkpoint40_model.json"),
-                    "--model-only",
+                    str(root / "checkpoint40_parameter.json"),
+                    "--parameter",
+                    results[phase]["update_probes"][0]["name"],
                 ],
                 root / "checkpoint40_model.log",
                 deadline,
             )
-            if json.loads((root / "checkpoint40_model.json").read_text())["model"] == results[phase]["model"]:
+            probes = {row["step"]: row for row in results[phase]["update_probes"]}
+            saved = json.loads((root / "checkpoint40_parameter.json").read_text())["parameter"]
+            if saved != {k: probes[40][k] for k in ("name", "sha256")}:
+                raise ValueError("checkpoint40 parameter differs from the native live parameter at40")
+            if probes[40]["sha256"] == probes[44]["sha256"]:
                 raise ValueError("four continuation updates did not change model values")
         cursor = results[phase]["cursor_state"]["states"]["0"]
         if cursor["epoch"] != 2 or cursor["position"] != 3:
             raise ValueError("continuation did not cross the declared173-row epoch boundary")
     keys = ("model", "optimizer", "scheduler", "update", "cursor", "rng")
     matches = {key: results["reference"][key] == results["resumed"][key] for key in keys}
+    matches["next_and_subsequent_live_updates"] = results["reference"]["update_probes"][-4:] == results["resumed"][
+        "update_probes"
+    ] and [row["step"] for row in results["resumed"]["update_probes"]] == [41, 42, 43, 44]
     write(root / "parity.json", matches)
     if not all(matches.values()):
         raise ValueError(f"fresh-process40to44recovery failed: {matches}")
