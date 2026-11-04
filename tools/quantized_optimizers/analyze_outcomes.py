@@ -280,6 +280,7 @@ def analyze(raw, protocol, selection, protocol_sha256, cold_preparation_seconds)
     return {
         "protocol_sha256": protocol_sha256,
         "complete_training_runs": len(runs),
+        "frozen_metrics": frozen_summary["metrics"],
         "quality": quality,
         "time_to_quality": timing,
         "repeated_native_throughput_ratio": throughput,
@@ -301,31 +302,38 @@ def analyze(raw, protocol, selection, protocol_sha256, cold_preparation_seconds)
 def plots(report, output):
     runs = report["runs"]
     colors = {ARMS[0]: "#475569", ARMS[1]: "#0d9488"}
-    labels = {ARMS[0]: "Fused FP32 AdamW", ARMS[1]: "Eight-bit AdamW, no recomputation"}
-    fig, ax = plt.subplots(figsize=(9, 5))
+    labels = {ARMS[0]: "Fused FP32 AdamW, full recomputation", ARMS[1]: "Eight-bit AdamW, no recomputation"}
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
     for arm in ARMS:
         for design, marker in (("matched", "o"), ("training", "s"), ("end_to_end", "^")):
             if not report["quality"][design]["all_checkpoints_eligible"]:
                 continue
             selected = [r for r in runs if r["arm"] == arm and r["design"] == design]
             x = interval([r["prepared_delivery_seconds"] for r in selected])
-            y = interval([r["metrics"]["answer_nll"] for r in selected])
-            ax.errorbar(
-                x["mean"],
-                y["mean"],
-                xerr=x["mean"] - x["ci95"][0],
-                yerr=y["mean"] - y["ci95"][0],
-                fmt=marker,
-                color=colors[arm],
-                capsize=3,
-                label=f"{labels[arm]} · {design}",
-            )
-    ax.set(
-        xlabel="Seconds from prepared launch to scored committed checkpoint",
-        ylabel="Held-out gold-answer NLL (lower is better)",
-        title="Actual states · 3 paired seeds · 95% t intervals\n128 questions /32 reused recording groups; censored states remain in the report",
+            for ax, key in zip(axes, ("answer_nll", "restricted_choice_accuracy"), strict=True):
+                y = interval([r["metrics"][key] for r in selected])
+                ax.errorbar(
+                    x["mean"],
+                    y["mean"],
+                    xerr=x["mean"] - x["ci95"][0],
+                    yerr=y["mean"] - y["ci95"][0],
+                    fmt=marker,
+                    color=colors[arm],
+                    capsize=3,
+                    label=f"{labels[arm]} · {design}",
+                )
+    for ax, key, label in zip(
+        axes,
+        ("answer_nll", "restricted_choice_accuracy"),
+        ("Gold-answer NLL (lower is better)", "Restricted-choice accuracy (higher is better)"),
+        strict=True,
+    ):
+        ax.axhline(report["frozen_metrics"][key], color="#a16207", linestyle="--", label="Frozen reference")
+        ax.set(xlabel="Seconds from prepared launch to scored checkpoint", ylabel=label)
+    fig.suptitle(
+        "Actual states · 3 paired seeds · 95% t intervals\n128 questions / 32 reused recording groups; censored states remain in the report"
     )
-    ax.legend(fontsize=8)
+    axes[0].legend(fontsize=7)
     fig.tight_layout()
     fig.savefig(output / "quality_time.png", dpi=160)
     plt.close(fig)
@@ -352,7 +360,7 @@ def plots(report, output):
             )
             axis.set(xlabel="Native training sequences/s", ylabel="GiB", title=title)
     axes[0].legend(fontsize=8)
-    fig.suptitle("Matched15 updates · effective batch4 · A10080GB · 3 seeds,95% t intervals")
+    fig.suptitle("Matched 15 updates · effective batch 4 · A100 80 GB · 3 seeds, 95% t intervals")
     fig.tight_layout()
     fig.savefig(output / "memory_throughput.png", dpi=160)
     plt.close(fig)
