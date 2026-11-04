@@ -15,6 +15,7 @@ import pstats
 import tempfile
 import time
 from concurrent.futures import ProcessPoolExecutor
+from contextlib import contextmanager
 from dataclasses import asdict
 from pathlib import Path
 
@@ -47,12 +48,41 @@ def make_packer(config_path):
     )
 
 
-def worker_init(config_path, threads, directory, profile):
-    global _PACKER, _DIRECTORY, _PROFILE
+def worker_init(config_path, threads, directory, profile, decoder_threads):
+    global _PACKER, _DIRECTORY, _PROFILE, _DECODER_THREADS
     torch.set_num_threads(threads)
     _, _PACKER = make_packer(config_path)
     _DIRECTORY = Path(directory)
     _PROFILE = profile
+    _DECODER_THREADS = decoder_threads
+
+
+@contextmanager
+def capped_cpu_decoder(threads):
+    """Process-local development override; restore the native decoder before replay."""
+    import importlib.metadata
+
+    import torchcodec.decoders as decoders
+
+    if importlib.metadata.version("transformers") != "5.8.1":
+        raise ValueError("decoder thread intervention requires the inspected Transformers5.8.1 source")
+    original = decoders.VideoDecoder
+    calls = []
+
+    def create(*args, **kwargs):
+        device = torch.device(kwargs.get("device") or torch.get_default_device())
+        if device.type != "cpu" or kwargs.get("seek_mode") != "exact" or kwargs.get("num_ffmpeg_threads") != 0:
+            raise ValueError("unexpected decoder contract; refuse to change device, seek or sampling")
+        calls.append(1)
+        return original(*args, **dict(kwargs, num_ffmpeg_threads=threads))
+
+    decoders.VideoDecoder = create
+    try:
+        yield
+        if not calls:
+            raise ValueError("candidate did not exercise the native torchcodec video decoder")
+    finally:
+        decoders.VideoDecoder = original
 
 
 def worker_target(target):
@@ -75,11 +105,27 @@ def worker_target(target):
 
 def process_target(target):
     started = time.monotonic()
-    first = deterministic_sample(_PACKER, target)
+    timing = None
+    if _DECODER_THREADS is None:
+        first = deterministic_sample(_PACKER, target)
+        second = deterministic_sample(_PACKER, target)
+    else:
+        # Counterbalance decode order without consulting timings or task scores.
+        order = ["candidate", "control"] if int(target_key(target)[-1], 16) % 2 else ["control", "candidate"]
+        samples, seconds = {}, {}
+        for mode in order:
+            before = time.monotonic()
+            if mode == "candidate":
+                with capped_cpu_decoder(_DECODER_THREADS):
+                    samples[mode] = deterministic_sample(_PACKER, target)
+            else:
+                samples[mode] = deterministic_sample(_PACKER, target)
+            seconds[mode] = time.monotonic() - before
+        first, second = samples["candidate"], samples["control"]
+        timing = {"target": target_key(target), "order": order, "seconds": seconds}
     path = _DIRECTORY / (target_key(target) + ".pt")
     torch.save(asdict(first), path)
-    # A second native decode/resize/tokenization, not a cached-payload comparison.
-    second = deterministic_sample(_PACKER, target)
+    # Both are independent native decodes; control uses the original thread setting.
     if not same(asdict(second), torch.load(path, weights_only=True, mmap=True)):
         raise ValueError("independent native CPU replay changed the prepared target")
     if torch.cuda.is_initialized():
@@ -89,6 +135,7 @@ def process_target(target):
         "seconds": time.monotonic() - started,
         "packer": _PACKER.validation_semantics_identity(),
         "cuda_initialized": False,
+        "decoder_pair": timing,
     }
 
 
@@ -100,6 +147,7 @@ def main():
     parser.add_argument("--workers", type=int, choices=(1, 2, 4), required=True)
     parser.add_argument("--sample-targets", type=int)
     parser.add_argument("--profile", action="store_true", help="Development CPU profile; not a timing trial")
+    parser.add_argument("--decoder-threads", type=int, choices=(1, 2), help="CPU development canary with native replay")
     parser.add_argument("--reference-corpus", type=Path, required=True)
     args = parser.parse_args()
     if os.environ.get("CUDA_VISIBLE_DEVICES") != "":
@@ -129,7 +177,7 @@ def main():
             max_workers=args.workers,
             mp_context=multiprocessing.get_context("spawn"),
             initializer=worker_init,
-            initargs=(args.config, 8 // args.workers, temporary, args.profile),
+            initargs=(args.config, 8 // args.workers, temporary, args.profile, args.decoder_threads),
         )
         native = packer.sft_process_sample
 
@@ -177,9 +225,14 @@ def main():
         "cuda_initialized": False,
         "source_paths": paths,
         "worker_compute_seconds_sum": sum(r["seconds"] for r in receipts.values()),
+        "decoder_threads": args.decoder_threads,
         "source_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
     }
     (args.output / "preparation_receipt.json").write_text(json.dumps(result, indent=2) + "\n")
+    if args.decoder_threads is not None:
+        (args.output / "decoder_pairs.json").write_text(
+            json.dumps([receipt["decoder_pair"] for receipt in receipts.values()], indent=2) + "\n"
+        )
     if args.profile:
         combined = {}
         for receipt in receipts.values():

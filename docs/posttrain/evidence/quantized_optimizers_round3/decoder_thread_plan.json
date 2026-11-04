@@ -1,0 +1,19 @@
+{
+  "recorded_utc": "2026-11-04T21:58:14.625758+00:00",
+  "purpose": "Development-only decoder thread-limit intervention justified by observed CPU profile and pinned source. No final outcomes used.",
+  "source_observation": "Transformers5.8.1 read_video_torchcodec explicitly passes num_ffmpeg_threads=0; four independent workers run under eight-CPU affinity. torchcodec documents one decoder thread for parallel decoder instances.",
+  "selection": "Same first32 target SHA256 keys as prior preparation canary; no score-based selection.",
+  "cpus": 8,
+  "host_memory_gib": 16,
+  "node": "cpu-00048",
+  "workers": 4,
+  "torch_threads_per_worker": 2,
+  "candidate_ffmpeg_threads": 1,
+  "control_ffmpeg_threads": 0,
+  "paired_order": "Hash-key parity counterbalances candidate/control ordering per target. Both use exact seek and unchanged frame sampling.",
+  "correctness_gate": "Every candidate tensor/token/label must equal a separate raw native default-thread replay and the qualified prepared reference; preserve CPU RNG and reject CUDA initialization.",
+  "reservation_seconds": 600,
+  "cpu_total_including_reservation": 7154,
+  "remaining_after_reservation": 46,
+  "scope": "Single development canary; per-target times are not independent full-pipeline repetitions. Cannot revise the locked1990s final cold component or establish release speed by itself."
+}

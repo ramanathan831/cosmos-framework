@@ -11,11 +11,12 @@
 set -euo pipefail
 : "${SOURCE:?}" "${SOURCE_ARCHIVE:?}" "${ASSETS:?}" "${RESULTS:?}" "${CONTAINER_IMAGE:?}" "${MODE:?}" "${REFERENCE_CORPUS:?}" "${FINAL_DATA:?}"
 export PREPARATION_PROFILE=${PREPARATION_PROFILE:-0}
+export DECODER_THREADS=${DECODER_THREADS:-}
 scontrol show job "$SLURM_JOB_ID" > "$RESULTS/job-$SLURM_JOB_ID.txt"
 trap 'status=$?; echo "$status" > "$RESULTS/exit-code-$SLURM_JOB_ID.txt"' EXIT
 srun --kill-on-bad-exit=1 --container-image="$CONTAINER_IMAGE" \
  --container-mounts=/lustre:/lustre --container-workdir="$SOURCE" --container-writable \
- --container-env=SOURCE,SOURCE_ARCHIVE,ASSETS,RESULTS,MODE,REFERENCE_CORPUS,FINAL_DATA,PREPARATION_PROFILE bash -c '
+ --container-env=SOURCE,SOURCE_ARCHIVE,ASSETS,RESULTS,MODE,REFERENCE_CORPUS,FINAL_DATA,PREPARATION_PROFILE,DECODER_THREADS bash -c '
  set -euo pipefail
  CAMPAIGN="$SOURCE"
  SOURCE=$(mktemp -d /tmp/cosmos-optimizer-parallel.XXXXXX); export SOURCE
@@ -36,6 +37,7 @@ srun --kill-on-bad-exit=1 --container-image="$CONTAINER_IMAGE" \
    extra=(); workers=4
    if [[ "$MODE" == canary* ]]; then workers=$trial; extra+=(--sample-targets 32); fi
    if [[ "$PREPARATION_PROFILE" == 1 ]]; then extra+=(--profile); fi
+   if [[ -n "$DECODER_THREADS" ]]; then extra+=(--decoder-threads "$DECODER_THREADS"); fi
    python -m tools.quantized_optimizers.parallel_prepare \
     --config cosmos_framework/posttrain/configs/sft_optimizer_deployment.py \
     --workers "$workers" --reference-corpus "$REFERENCE_CORPUS" \
