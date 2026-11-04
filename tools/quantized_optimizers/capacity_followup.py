@@ -23,7 +23,10 @@ if os.environ.get("CAPACITY_PRESSURE_ONLY", "0") == "1":
     settings = [setting for setting in settings if setting[2]]
 for checkpointing, arm, pressure in settings:
     for micro in (1,) if pressure else (4, 2, 1):
-        if limit - (time.monotonic() - started) < 480:
+        # Measured full-model pressure attempts take under two minutes each;
+        # keep a four-minute reserve. The broader batch search retains eight.
+        reserve = 240 if pressure else 480
+        if limit - (time.monotonic() - started) < reserve:
             (root / "pending.json").write_text(
                 json.dumps({"arm": arm, "checkpointing": checkpointing, "micro": micro, "native_pressure": pressure})
                 + "\n"
@@ -69,26 +72,34 @@ for checkpointing, arm, pressure in settings:
             "status": status,
             "folder": str(folder),
         }
-        if status == "pass":
-            files = list((folder / arm).rglob("metrics.jsonl"))
-            if len(files) != 1:
-                raise RuntimeError("missing/ambiguous native metrics")
-            rows = [json.loads(line) for line in files[0].read_text().splitlines()]
-            updates = [row for row in rows if "train/valid_token_count" in row]
-            if rows[-1]["optim/optimizer_step"] != 2 or rows[-1]["optim/nonfinite_skips_total"]:
-                raise RuntimeError("incomplete or skipped capacity updates")
-            if any(row["train/valid_token_count"] < 64 * row["train/valid_sequence_count"] for row in updates):
-                raise RuntimeError("insufficient actual supervised tokens")
-            telemetry = [json.loads(line) for line in (folder / (arm + ".telemetry.jsonl")).read_text().splitlines()]
-            forwards = [row for row in telemetry if row["kind"] == "forward" and row["grad_enabled"]]
-            if not forwards or any(
-                not row.get("video_grid_thw")
-                or min(row["sequence_lengths"]) < 512
-                or any(t < 4 or h * w < 128 for t, h, w in row["video_grid_thw"])
-                for row in forwards
-            ):
-                raise RuntimeError("actual media/sequence gate failed")
-            result["training_seconds"] = sum(row["timer/e2e_step_s"] for row in updates)
+        try:
+            if status == "pass":
+                files = list((folder / arm).rglob("metrics.jsonl"))
+                if len(files) != 1:
+                    raise RuntimeError("missing/ambiguous native metrics")
+                rows = [json.loads(line) for line in files[0].read_text().splitlines()]
+                updates = [row for row in rows if "train/valid_token_count" in row]
+                if rows[-1]["optim/optimizer_step"] != 2 or rows[-1]["optim/nonfinite_skips_total"]:
+                    raise RuntimeError("incomplete or skipped capacity updates")
+                if any(row["train/valid_token_count"] < 64 * row["train/valid_sequence_count"] for row in updates):
+                    raise RuntimeError("insufficient actual supervised tokens")
+                telemetry = [
+                    json.loads(line) for line in (folder / (arm + ".telemetry.jsonl")).read_text().splitlines()
+                ]
+                forwards = [row for row in telemetry if row["kind"] == "forward" and row["grad_enabled"]]
+                if not forwards or any(
+                    not row.get("video_grid_thw")
+                    or min(row["sequence_lengths"]) < 512
+                    or any(t < 4 or h * w < 128 for t, h, w in row["video_grid_thw"])
+                    for row in forwards
+                ):
+                    raise RuntimeError("actual media/sequence gate failed")
+                result["training_seconds"] = sum(row["timer/e2e_step_s"] for row in updates)
+        except Exception as error:
+            result.update(status="qualification_failure", reason=str(error))
+            results.append(result)
+            (root / "results.json").write_text(json.dumps(results, indent=2) + "\n")
+            raise
         results.append(result)
         (root / "results.json").write_text(json.dumps(results, indent=2) + "\n")
         if status == "failure":
