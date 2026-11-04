@@ -19,6 +19,7 @@ import numpy as np
 from tools.quantized_optimizers.analyze_development import interval
 from tools.quantized_optimizers.outcome_statistics import paired_quality
 from tools.quantized_optimizers.plan_outcomes import ARMS
+from tools.quantized_optimizers.score_dense import aggregate
 
 
 def analyze(raw, protocol, selection, protocol_sha256, cold_preparation_seconds):
@@ -38,6 +39,14 @@ def analyze(raw, protocol, selection, protocol_sha256, cold_preparation_seconds)
         return [json.loads(line) for line in raw[key].splitlines()]
 
     frozen = lines(find(17, "/frozen/score/scores.jsonl"))
+    frozen_summary = json.loads(raw[find(17, "/frozen/score/summary.json")])
+    if (
+        not frozen_summary["complete"]
+        or frozen_summary["checkpoint"] is not None
+        or frozen_summary["selection_sha256"] != protocol["evaluation"]["manifest_sha256"]
+        or frozen_summary["metrics"] != aggregate(frozen)
+    ):
+        raise ValueError("frozen reference identity or aggregate mismatch")
     ids = [row["id"] for row in selection["rows"]]
     if [(row["id"], row["group"]) for row in frozen] != [(row["id"], row["group"]) for row in selection["rows"]]:
         raise ValueError("frozen score does not match locked final manifest")
@@ -97,6 +106,29 @@ def analyze(raw, protocol, selection, protocol_sha256, cold_preparation_seconds)
                 score_rows = lines(prefix + "score/scores.jsonl")
                 if [row["id"] for row in score_rows] != ids:
                     raise ValueError("comparison changes the fixed task manifest")
+                if (
+                    summary["selection_sha256"] != protocol["evaluation"]["manifest_sha256"]
+                    or summary["checkpoint"] != delivered["checkpoint"]
+                    or summary["metrics"] != aggregate(score_rows)
+                ):
+                    raise ValueError("scored checkpoint/manifest/aggregate mismatch")
+                for key in ("corpus_sha256", "objective_identity", "processor_identity", "metric_contract", "versions"):
+                    if summary[key] != frozen_summary[key]:
+                        raise ValueError(f"scoring contract differs from frozen reference: {key}")
+                for reference, scored in zip(frozen, score_rows, strict=True):
+                    for key in (
+                        "group",
+                        "gold",
+                        "candidate_token_ids",
+                        "media_sha256",
+                        "input_sha256",
+                        "sequence_length",
+                        "native_supervised_tokens",
+                        "answer_token_position",
+                        "prediction_logit_position",
+                    ):
+                        if reference[key] != scored[key]:
+                            raise ValueError(f"scoring input/label differs from frozen reference: {key}")
                 scores[seed, design, arm] = score_rows
                 memory = lines(prefix + "memory.jsonl")
                 score_memory = lines(prefix + "score-memory.jsonl")
