@@ -307,9 +307,10 @@
       "phase": "recording-clean mainline",
       "source": "0e8e3a2",
       "allocation_minutes": 25,
-      "state": "PENDING",
+      "state": "COMPLETED",
       "dependency": null,
-      "node": "batch-block4-0052"
+      "node": "batch-block4-0052",
+      "elapsed_gpu_seconds": 927
     },
     {
       "job": "37939494",
@@ -413,7 +414,9 @@
       "source": "fe7929c7a2fbfa34da119546f8479d728f933a9e",
       "node": "batch-block4-2071",
       "dependency": null,
-      "state": "RUNNING"
+      "state": "COMPLETED",
+      "elapsed_gpu_seconds": 1640,
+      "reason": "Both correctness-only references matched original final state; both8-to16 fresh-process recovery gates bitwise passed; final scores for all5 existing cells completed."
     },
     {
       "job": "37943880",
@@ -422,7 +425,9 @@
       "source": "fe7929c7a2fbfa34da119546f8479d728f933a9e",
       "node": "batch-block1-2092",
       "dependency": "afterok:37943877:37939266",
-      "state": "PENDING"
+      "state": "CANCELLED",
+      "elapsed_gpu_seconds": 0,
+      "reason": "Pending workflow replacement keeps original checkpoint pruning in quality/performance trials; retain optimizer midpoints only in separate correctness replays."
     },
     {
       "job": "37943905",
@@ -431,16 +436,36 @@
       "source": "db4ba624eef8c2809a59533633ec6b73197cc43f",
       "node": "batch-block4-2071",
       "dependency": "afterany:37943877",
-      "state": "PENDING"
+      "state": "FAILED",
+      "elapsed_gpu_seconds": 283,
+      "reason": "Paged native full-model2updates and validation completed after gradient cleanup; harness failed unchanged64token minimum on second training row (41tokens). Nonpaged moment allocation stillOOM. Rawfailure preserved."
     },
     {
       "job": "37943911",
       "phase": "recording-clean mainline seed43",
       "allocation_minutes": 55,
       "source": "0e8e3a2a0a10229f111fbebb389aece37697db68",
-      "node": "eligible A100; excludes original paired nodes",
+      "node": "batch-block4-2042",
       "dependency": "afterany:37943905",
-      "state": "PENDING"
+      "state": "RUNNING"
+    },
+    {
+      "job": "37945829",
+      "phase": "recording-clean factorial seed29",
+      "source": "d4a41e76159ec8ab81525a38fc038b18743485e4",
+      "allocation_minutes": 40,
+      "state": "PENDING",
+      "node": "batch-block1-2092",
+      "dependency": "afterok:37939266"
+    },
+    {
+      "job": "37945944",
+      "phase": "native pressure pair with substantive single-example targets",
+      "source": "dfce2fb5a0e1445976abd13ce2ec781d68a9b8c4",
+      "allocation_minutes": 10,
+      "state": "PENDING",
+      "node": "batch-block4-2071",
+      "dependency": "afterany:37943911"
     }
   ],
   "final_release": "NOT QUALIFIED",
@@ -468,7 +493,7 @@
     "result": "speed gate failed; bnb8 total 4.728ms vs fused baseline 2.919ms",
     "file": "diagnostic_large_tensor.json"
   },
-  "integration_current": "fe7929c7a2fbfa34da119546f8479d728f933a9e",
+  "integration_current": "188379861a9d43cb99c57b2b083ada8684aca272",
   "integration_current_optimizer_module": "b15fe47",
   "evaluation_authorization": "User explicitly approved reusing existing QLoRA train and eval; previous inspection history preserved.",
   "source_environment_pins": {
@@ -504,7 +529,7 @@
     "source_archive_sha256": "98eb09fac746d482fb99fd4d2870ef0310b292670daee8771beaa5a55443dd7a",
     "wheel_sha256": "a1f8c9fcc4afca317bb8147a37345d42d269baf93da91293bdcf410f90b5b049",
     "integration_only_changes": "native adapter consolidated checkpoint bridge and canonical backend identity; no changes to quantization arithmetic; portable export reload without optimizer import",
-    "state": "All four canaries completed; five of twelve full cells trained. Final scoring and native8-to16 recovery remain pending. Current factorial ceiling170 GPU minutes.",
+    "state": "Both large-model exact8-to16 continuation gates passed after separate deterministic reference replay recovered pruned midpoints. Five original cells final-scored; remaining7 training cells pending.",
     "local_tests": "23 checkpoint +2 extended portable export tests;88 native runtime tests;6 analysis/scoped-driver tests"
   },
   "execution_amendment": "At most two campaign GPUs on distinct nodes. All arms within each paired seed use one verified A100 node; partially complete seed29 stays on its original node. Whole unstarted seed43 and capacity may move; no outcome-based reruns.",
@@ -586,5 +611,23 @@
     "main_phase_ceiling": 14400,
     "factorial_phase_actual_and_reserved": 9880,
     "factorial_phase_ceiling": 10200
+  },
+  "admission_receipt_20261104T0527Z": {
+    "terminal_gpu_seconds_including_local_upper_bound": 19935,
+    "main43_reserved_seconds": 3300,
+    "factorial29_reserved_seconds": 2400,
+    "pressure_reserved_seconds": 600,
+    "total_charged_and_reserved_seconds": 26235,
+    "overall_ceiling_seconds": 28800,
+    "factorial43": "Not yet admitted:2700second reservation exceeds currently available2565seconds; wait for returned time and record any phase reallocation before submission."
+  },
+  "integration_current_shared_validation_fix": "e9a3f442cb88226d4c6fd35cdcab004f5fe7f0ba cherry-picked as188379861a9d43cb99c57b2b083ada8684aca272; preserve QLoRA metric/profiler imports when resolving import-order conflict",
+  "integration_local_final_tests": "56passed1skipped (Transformers5-only tiny model),43.72seconds; includes current shared validation cleanup, CUDA quantized optimizer tests and adapter consolidated checkpoint bridge.",
+  "scoped_factorial_execution": {
+    "workflow_source": "a02e75793e889aa8bb3fde26b0a9c578ee3f10d6",
+    "archive_sha256": "ba8ee52b2971acf49e7c4bd67e7d1f2b5509ef52b0b94857ef4ed2f10b835a0e",
+    "precondition": "Both frozen final-score markers match fixed data hash and both recovery markers are exact=True. Global preparation already terminal; no global writer may run concurrently.",
+    "ownership": "Only different SEED_ONLY scopes may overlap on distinct nodes; shared paths read-only, per-seed scoring/training/progress and per-job execution files disjoint. At most2 campaign GPUs.",
+    "tests": "10 workflow tests passed; strengthened read-only seeded-driver test rerun8passed."
   }
 }

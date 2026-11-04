@@ -1,0 +1,25 @@
+{
+  "job": "37945944",
+  "source": "dfce2fb5a0e1445976abd13ce2ec781d68a9b8c4",
+  "archive_sha256": "ef2cd16461bb2ac67f5baa64cdce96bf3030700fd96819ee3bd6d012ededb08a",
+  "seed": 29,
+  "training_rows": [
+    87,
+    152
+  ],
+  "answer_text_tokens": [
+    116,
+    120
+  ],
+  "selection": "Smallest existing campaign seed whose first two training rows meet unchanged64token minimum; tokenizer only, no evaluation outcomes. Seed17 rows78/48 had105/40texttokens; native106/41supervised tokens. Seed43 first2textcounts92/116.",
+  "unchanged_gate": 64,
+  "capacity_charged_seconds": 1181,
+  "new_reserved_seconds": 600,
+  "capacity_ceiling_seconds": 1800,
+  "total_terminal_seconds": 19008,
+  "other_reserved_seconds": 7200,
+  "total_with_new_reservation": 26808,
+  "overall_ceiling_seconds": 28800,
+  "pressure_arm_admission_reserve_seconds": 240,
+  "measured_pressure_note": "New run only full-model two-arm pair; original broad capacity searches retain480second guard. Separate old token-gate failure remains a failure."
+}

@@ -1,0 +1,8 @@
+{
+  "replacement_job": "37945829",
+  "replaced_pending_job": "37943880",
+  "source": "d4a41e76159ec8ab81525a38fc038b18743485e4",
+  "archive_sha256": "9170ea4cc4b5d850d67a4872e0c83435301cbe48813d752aecdc3440d44e6d1e",
+  "reason": "Keep original checkpoint pruning in quality/performance trials; keep_optim_last0 is only for separate correctness references and recovery. No new training had run with altered retention.",
+  "same_reserved_seconds": 2400
+}

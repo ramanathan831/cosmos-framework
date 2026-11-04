@@ -149,10 +149,10 @@ artifact. Never apply the entire QLoRA branch to the primary optimizer branch.
 Training uses the unchanged package/config/probe from
 `ad88888d500903a36c89da37a84e4bcd8176f9d3` and wheel SHA256
 `a1f8c9fcc4afca317bb8147a37345d42d269baf93da91293bdcf410f90b5b049`.
-Workflow source `fe7929c7a2fbfa34da119546f8479d728f933a9e` adds final scoring,
+Workflow source `a02e75793e889aa8bb3fde26b0a9c578ee3f10d6` adds final scoring,
 recovery, whole-seed scheduling and separate admission reserves: 900 seconds
 for training, 420 seconds for scoring. Prior scoring took 122–161 seconds. Its archive SHA256 is
-`8bb9f911cdbe91a6ec74bf5ebd255b45df58fdf4a9eacdbfd89d6435f523f314`.
+`ba8ee52b2971acf49e7c4bd67e7d1f2b5509ef52b0b94857ef4ed2f10b835a0e`.
 The installed training wheel, configuration and probe retain the recorded training
 identity. The archive also includes a dataclass field-order compatibility fix;
 the immutable wheel takes precedence for runtime package imports.
@@ -160,7 +160,7 @@ the immutable wheel takes precedence for runtime package imports.
 From the disposable integration worktree, with the shared variables above:
 
 ```sh
-export SOURCE_ARCHIVE="$CAMPAIGN/factorial-source-fe7929c.tgz"
+export SOURCE_ARCHIVE="$CAMPAIGN/factorial-source-a02e757.tgz"
 export RESULTS="$CAMPAIGN/factorial-clean-v4"
 export SCORE_DATA="$CAMPAIGN/final-v5.jsonl"
 export WHEEL="$CAMPAIGN/factorial-build-da43258/cosmos_framework-1.2.2-py3-none-any.whl"
@@ -178,14 +178,20 @@ three seeds and BF16/NF4 bases crossed with fused FP32/nonpaged eight-bit states
 Native full checkpoints at updates 8 and 16 enable fresh-process continuation;
 the next eight updates, tensors, optimizer metadata, scheduler, cursor and RNG
 are compared bitwise. Set `rl.keep_optim_last=0`: the default consolidated retention
-prunes older optimizer components. The workflow now sets this explicitly. Where
+prunes older optimizer components. Only correctness reference/recovery runs set this explicitly; quality/timing
+trials retain the original pruning behavior for matched controls. Where
 the original midpoint was already pruned, a separate correctness-only 16-update
 reference replay must match the original final model/moments/data before its
 retained midpoint is eligible. These repeats never replace quality/timing trials. Completed training is reused for final scoring. Old
 development scores and their completion markers are preserved separately.
 `FACTORIAL_SCORE_ONLY=1` runs frozen references, recovery and final scoring of
-already-completed cells without starting new training. Do not run this concurrently
-with a factorial training driver: both own the same global reference/recovery paths.
+already-completed cells without starting new training. Run global preparation
+and scoring serially. After both frozen references and exact recovery markers
+are complete, different `FACTORIAL_SEED_ONLY` scopes may run on distinct nodes
+within the two-GPU limit: shared artifacts are then read-only and outputs belong
+to separate seeds. The scoped driver refuses incomplete shared preparation.
+For the initial full comparison, leave `FACTORIAL_SEED_ONLY` unset until these
+shared gates have been prepared; use one unscoped driver at a time.
 Unset `FACTORIAL_SEED_ONLY` for this scoring phase and reserve 45 minutes
 with `WORK_SECONDS=2550`. The whole seed43 factorial group also requires a
 45-minute reservation, `FACTORIAL_SEED_ONLY=43`, and `FACTORIAL_SCORE_ONLY=0`.

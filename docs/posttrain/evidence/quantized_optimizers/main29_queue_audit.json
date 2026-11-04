@@ -1,0 +1,11 @@
+{
+  "job": "37939266",
+  "partition": "polar",
+  "state_when_changed": "PENDING",
+  "node": "batch-block4-0052",
+  "evidence": "Configured8GPUs, allocated6; node CPU/memory also available. Multi-partition job reported interactive partition QOSMaxJobsPerUserLimit while another owned interactive job ran. Remove interactive eligibility and use normal priority polar partition with its published policy.",
+  "unchanged": "same node, source, trial, walltime and CPU/memory; total campaign concurrency <=2; no running allocation QoS change",
+  "normal_only_result": "PENDING Priority; removing interactive eligibility did not produce an allocation. Multi-partition reason alone was insufficient to diagnose fallback behavior.",
+  "final_partition": "interactive_singlenode,polar",
+  "reason_restored": "Retain authorized interactive eligibility when current scoring allocation completes; no priority, QoS or running-job mutation."
+}

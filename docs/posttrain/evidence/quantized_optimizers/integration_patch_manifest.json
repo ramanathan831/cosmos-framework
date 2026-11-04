@@ -1,10 +1,10 @@
 {
   "base_merge": "a652405f141eb609528871292a29048922197944",
-  "integration_head": "fe7929c7a2fbfa34da119546f8479d728f933a9e",
-  "workflow_archive_source": "fe7929c7a2fbfa34da119546f8479d728f933a9e",
+  "integration_head": "188379861a9d43cb99c57b2b083ada8684aca272",
+  "workflow_archive_source": "a02e75793e889aa8bb3fde26b0a9c578ee3f10d6",
   "training_runtime_source": "ad88888d500903a36c89da37a84e4bcd8176f9d3",
   "qlora_component": "a7fd524242f4f06ac488a3d96d331b1f46e2b385",
-  "patch_sha256": "484e81cf7a3b24527aa1bc3913ee221eb5ae1ab6d63ce5dbfc9a51325daf80b8",
+  "patch_sha256": "3589022dd9c666918ba06aa747043f27661d24c0d30ce359a57454efaf200b5f",
   "validation": "git apply --cached --check --unidiff-zero against temporary index at base_merge passed",
   "exclusions": {
     "paths": [
@@ -13,7 +13,8 @@
       "cosmos_framework/posttrain/configs/sft_quantized_optimizer.py",
       "docs"
     ],
-    "reason": "Shared primary constructor fix de93e3e, early validation cc93696, CLI test386d839 and current mainline recipe are not integration-only."
+    "reason": "Shared primary constructor fix de93e3e, early validation cc93696, CLI test386d839 and current mainline recipe are not integration-only.",
+    "reversed_shared_commit": "1883798 (primary e9a3f44) in temporary index, code paths only; preserve integration adapter-contract and consolidated-checkpoint changes in same files"
   },
   "scope": "Adapter consolidated-checkpoint bridge, tests and factorial tools only. Mainline runtime has no dependency on this patch."
 }

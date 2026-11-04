@@ -1,0 +1,14 @@
+{
+  "scoring_recovery_job": "37943877",
+  "factorial_seed29_job": "37943880",
+  "source": "fe7929c7a2fbfa34da119546f8479d728f933a9e",
+  "archive_sha256": "8bb9f911cdbe91a6ec74bf5ebd255b45df58fdf4a9eacdbfd89d6435f523f314",
+  "actual_terminal_gpu_seconds": 17085,
+  "main29_reserved_seconds": 1500,
+  "new_reserved_seconds": 5100,
+  "total_reserved_and_charged": 23685,
+  "later_main43_reservation": 3300,
+  "later_capacity_reservation": 600,
+  "overall_ceiling": 28800,
+  "purpose": "Retain missing midpoint optimizer through separate exact correctness-only reference replay; original final scoring references and training cells untouched."
+}

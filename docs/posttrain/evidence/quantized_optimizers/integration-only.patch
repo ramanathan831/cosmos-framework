@@ -972,10 +972,10 @@ index 3f88c5f..d8cf9ad 100644
 +        ObservedPolicy.forward_policy_batch = forward
 diff --git a/tools/quantized_optimizers/run_factorial.py b/tools/quantized_optimizers/run_factorial.py
 new file mode 100644
-index 0000000..9caa4a6
+index 0000000..a5e6a37
 --- /dev/null
 +++ b/tools/quantized_optimizers/run_factorial.py
-@@ -0,0 +1,240 @@
+@@ -0,0 +1,254 @@
 +"""Bounded disposable integration comparison; completed arms are never rerun."""
 +
 +import hashlib
@@ -1018,6 +1018,21 @@ index 0000000..9caa4a6
 +if not canary and "SCORE_DATA" not in os.environ:
 +    raise ValueError("full comparisons require an explicit recording-disjoint SCORE_DATA")
 +score_sha = hashlib.sha256(score_data.read_bytes()).hexdigest()
++
++# Scoped seeds may run on distinct nodes after the shared preparation is complete.
++# In this state the global branches below only validate/read immutable markers;
++# training, scoring, execution receipts and progress writes belong to one seed.
++if seed_only is not None:
++    for base in ("bf16", "nf4"):
++        frozen = root / "frozen" / base / "final_score.complete.json"
++        recovery = root / "recovery" / base / "complete.json"
++        if (
++            not frozen.is_file()
++            or not recovery.is_file()
++            or json.loads(frozen.read_text()).get("data_sha256") != score_sha
++            or json.loads(recovery.read_text()).get("exact") is not True
++        ):
++            raise RuntimeError("scoped seed execution requires completed shared final references and exact recovery")
 +
 +
 +def enough_time(required_seconds=900):
@@ -1159,7 +1174,6 @@ index 0000000..9caa4a6
 +                    config,
 +                    "--",
 +                    "rl.save_every=" + ("2" if canary else "8"),
-+                    "rl.keep_optim_last=0",
 +                ],
 +                env=env,
 +                stdout=log,
@@ -1278,10 +1292,10 @@ index 0000000..e46b710
 +        assert not result["all_gates_pass"]
 diff --git a/tools/quantized_optimizers/test_factorial_driver.py b/tools/quantized_optimizers/test_factorial_driver.py
 new file mode 100644
-index 0000000..52c73c2
+index 0000000..0bec2ce
 --- /dev/null
 +++ b/tools/quantized_optimizers/test_factorial_driver.py
-@@ -0,0 +1,70 @@
+@@ -0,0 +1,118 @@
 +"""A scoring split repair must reuse training and preserve earlier evidence."""
 +
 +import hashlib
@@ -1321,6 +1335,7 @@ index 0000000..52c73c2
 +    def invoke(command, **kwargs):
 +        # Stop at the next new training cell after testing the three rescoring calls.
 +        if "tools.native_qlora_qualification.score" not in command:
++            assert not any(arg.startswith("rl.keep_optim_last=") for arg in command)
 +            raise StopIteration
 +        calls.append(command)
 +        Path(command[command.index("--output") + 1]).mkdir()
@@ -1352,6 +1367,53 @@ index 0000000..52c73c2
 +    assert (folder / "score/scores.jsonl").read_text() == "preserve development evidence\n"
 +    marker = json.loads((folder / "final_score.complete.json").read_text())
 +    assert marker["data_sha256"] == hashlib.sha256(data.read_bytes()).hexdigest()
++
++
++@pytest.mark.parametrize("ready", [False, True])
++def test_scoped_seed_requires_and_preserves_shared_artifacts(tmp_path, monkeypatch, ready):
++    data = tmp_path / "evaluation.jsonl"
++    data.write_text("{}\n")
++    root = tmp_path / "results"
++    root.mkdir()
++    for name in ("RESULTS", "SOURCE", "ASSETS", "SCORE_DATA"):
++        monkeypatch.setenv(name, str(data if name == "SCORE_DATA" else root))
++    monkeypatch.setenv("FACTORIAL_CANARY", "0")
++    monkeypatch.setenv("FACTORIAL_SCORE_ONLY", "0")
++    monkeypatch.setenv("FACTORIAL_SEED_ONLY", "43")
++    monkeypatch.setenv("WORK_SECONDS", "2550")
++    markers = {}
++    if ready:
++        for base in ("bf16", "nf4"):
++            original = root / "seed17" / (base + "_adamw_bnb_8bit") / "complete.json"
++            original.parent.mkdir(parents=True)
++            original.write_text('{"already_trained": true}\n')
++            markers[original] = original.read_bytes()
++            for path, value in [
++                (
++                    root / "frozen" / base / "final_score.complete.json",
++                    {"data_sha256": hashlib.sha256(data.read_bytes()).hexdigest()},
++                ),
++                (root / "recovery" / base / "complete.json", {"exact": True}),
++            ]:
++                path.parent.mkdir(parents=True)
++                path.write_text(json.dumps(value))
++                markers[path] = path.read_bytes()
++    calls = []
++
++    def invoke(command, *, env, **kwargs):
++        calls.append(command)
++        assert "tools.native_qlora_qualification.score" not in command
++        assert env["FACTORIAL_SEED"] == "43"
++        assert str(root / "seed43") in env["RESULTS"]
++        raise StopIteration
++
++    monkeypatch.setattr("subprocess.run", invoke)
++    expected = StopIteration if ready else RuntimeError
++    with pytest.raises(expected):
++        runpy.run_path(str(Path(__file__).with_name("run_factorial.py")), run_name="__main__")
++    assert len(calls) == int(ready)
++    assert all(path.read_bytes() == value for path, value in markers.items())
++    assert not (root / "pending.json").exists()
 diff --git a/tools/quantized_optimizers/test_factorial_recovery.py b/tools/quantized_optimizers/test_factorial_recovery.py
 new file mode 100644
 index 0000000..5a52893
