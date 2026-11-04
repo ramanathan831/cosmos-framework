@@ -179,6 +179,10 @@ class AdapterCheckpointCodec:
         expected = self.metadata(optimizer)
         for key in ("protocol", "identity", "topology", "parameters"):
             saved_value, expected_value = metadata.get(key), expected[key]
+            if key == "identity" and isinstance(saved_value, Mapping):
+                from cosmos_framework.posttrain.model.quantization.loader import legacy_default_identity_for_read
+
+                expected_value = legacy_default_identity_for_read(dict(saved_value), expected_value)
             if key == "identity" and purpose == "reload":
                 # Dataset, batching, and schedule do not define the reloaded numerical model. All
                 # base, processor, quantization, adapter, dependency, and hardware identities do.

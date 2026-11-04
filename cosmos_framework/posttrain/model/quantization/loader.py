@@ -13,6 +13,7 @@ import hashlib
 import json
 import os
 import platform
+import warnings
 from dataclasses import dataclass
 from importlib.metadata import version
 from pathlib import Path
@@ -57,11 +58,11 @@ def runtime_precision_policy() -> dict[str, Any]:
     }
 
 
-def resolved_execution_policy(cfg: Any) -> dict[str, Any] | None:
-    """Bind opt-in execution settings to observed math policy; preserve legacy identity."""
+def resolved_execution_policy(cfg: Any, *, include_defaults: bool = False) -> dict[str, Any] | None:
+    """Bind settings to observed math policy; legacy callers may omit the default policy."""
     from cosmos_framework.posttrain.config.model import native_adapter_execution_policy
 
-    configured = native_adapter_execution_policy(cfg)
+    configured = native_adapter_execution_policy(cfg, include_defaults=include_defaults)
     return None if configured is None else {**configured, "math_precision": runtime_precision_policy()}
 
 
@@ -169,7 +170,7 @@ def execution_config_from_identity(identity: dict[str, Any]) -> dict[str, Any]:
                     quantized_base=QuantizedBaseTrainingConfig(),
                 )
             )
-        configured = native_adapter_execution_policy(SimpleNamespace(**options))
+        configured = native_adapter_execution_policy(SimpleNamespace(**options), include_defaults=True)
     except (KeyError, TypeError, ValueError, AttributeError) as error:
         raise ValueError("unsupported or incomplete adapter execution_policy") from error
     if configured is None or {key: value for key, value in policy.items() if key != "math_precision"} != configured:
@@ -189,8 +190,49 @@ def validate_execution_policy_identity(cfg: Any, identity: dict[str, Any]) -> No
         expected = json.loads(json.dumps(quantization_config_identity(quantization)))
         if identity.get("quantization") != expected:
             raise ValueError("adapter checkpoint quantization exclusions differ from configuration")
-    if identity.get("execution_policy") != resolved_execution_policy(cfg):
+    if identity.get("execution_policy") != resolved_execution_policy(
+        cfg, include_defaults="execution_policy" in identity
+    ):
         raise ValueError("adapter checkpoint execution policy or runtime math precision differs from configuration")
+
+
+def legacy_default_identity_for_read(saved: dict[str, Any], constructed: dict[str, Any]) -> dict[str, Any]:
+    """Project only an absent legacy policy; never claim historical precision was observed.
+
+    New saves always retain their constructed policy. Every other identity field
+    remains subject to the codec's exact comparison, including resume contracts.
+    """
+    legacy_format = saved.get("format")
+    expected_format = {
+        "cosmos.adapter-model.v1": "cosmos.adapter-model.v2",
+        "cosmos.adapter-model.v3": "cosmos.adapter-model.v3",
+        "cosmos.adapter-model.v4": "cosmos.adapter-model.v4",
+    }.get(legacy_format)
+    if (
+        expected_format is None
+        or "execution_policy" in saved
+        or constructed.get("format") != expected_format
+        or "execution_policy" not in constructed
+    ):
+        return constructed
+    # Validate both original schemas, including residual/exclusion identities.
+    old_options = execution_config_from_identity(saved)
+    new_options = execution_config_from_identity(constructed)
+    defaults = {
+        "activation_checkpointing": "full",
+        "adapter_compute_dtype": "float32",
+        "sft_logits_mode": "full",
+        "compile_language_model": False,
+    }
+    if old_options != defaults or new_options != defaults:
+        return constructed
+    warnings.warn(
+        "Legacy native adapter identity has no recorded runtime math precision; "
+        "exact reload/resume requires the externally preserved original precision settings.",
+        UserWarning,
+        stacklevel=2,
+    )
+    return {**{key: value for key, value in constructed.items() if key != "execution_policy"}, "format": legacy_format}
 
 
 def canonical_targets() -> dict[str, tuple[int, int]]:
@@ -551,7 +593,7 @@ class NativeAdapterLifecycle:
         self.cfg = cfg
         self.adapter_compute_dtype = getattr(torch, getattr(cfg, "adapter_compute_dtype", "float32"))
         self.runtime_precision = runtime_precision_policy()
-        self.execution_policy = resolved_execution_policy(cfg)
+        self.execution_policy = resolved_execution_policy(cfg, include_defaults=True)
         self.quantized = cfg.quantized_base is not None
         self.initialization_artifact = None
         if cfg.adapter.initialization == "nf4_residual_svd":

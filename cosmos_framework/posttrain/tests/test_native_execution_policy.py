@@ -41,6 +41,161 @@ def test_default_identity_retains_legacy_reload_without_fabricating_precision_hi
         validate_execution_policy_identity(_cfg(adapter_compute_dtype="bfloat16"), {})
 
 
+def test_new_default_policy_records_precision_and_existing_optimized_policy_is_unchanged():
+    cfg = _cfg()
+    recorded = resolved_execution_policy(cfg, include_defaults=True)
+    assert recorded["math_precision"] == runtime_precision_policy()
+    identity = {"format": "cosmos.adapter-model.v2", "execution_policy": recorded}
+    assert execution_config_from_identity(identity) == vars(cfg)
+    validate_execution_policy_identity(cfg, identity)
+    for overrides in ({"sft_logits_mode": "supervised"}, {"activation_checkpointing": "none"}):
+        cfg = _cfg(**overrides)
+        assert resolved_execution_policy(cfg, include_defaults=True) == resolved_execution_policy(cfg)
+
+
+@pytest.mark.parametrize("field", ["cuda_matmul_allow_tf32", "allow_bf16_reduced_precision_reduction"])
+def test_new_default_runtime_mismatch_rejected_by_reload_preflight(field, monkeypatch):
+    from cosmos_framework.posttrain.configs.sft_qwen3_vl_8b_qlora import make_config
+    from cosmos_framework.posttrain.model.quantization import loader
+    from cosmos_framework.posttrain.tests.qlora_integration import _restore_probe_execution
+
+    identity = {
+        "format": "cosmos.adapter-model.v2",
+        "execution_policy": resolved_execution_policy(_cfg(), include_defaults=True),
+    }
+    changed = deepcopy(runtime_precision_policy())
+    changed[field] = not changed[field]
+    monkeypatch.setattr(loader, "runtime_precision_policy", lambda: changed)
+    # The real probe preflight runs before build_backbone or any adapter tensor load.
+    with pytest.raises(ValueError, match="runtime math precision"):
+        _restore_probe_execution(make_config(), identity, [])
+
+
+@pytest.mark.parametrize("legacy", [False, True])
+def test_default_native_dcp_and_portable_roundtrip_with_explicit_legacy_scope(tmp_path, legacy):
+    import torch
+
+    from cosmos_framework.posttrain.checkpoint.adapter import load_adapter_weights, publish_adapter_artifact
+    from cosmos_framework.posttrain.tests.test_checkpoint_adapter import _parameters, _save, _trainer
+
+    policy = resolved_execution_policy(_cfg(), include_defaults=True)
+
+    def construct(*, old=False):
+        trainer = _trainer()
+        identity = trainer._adapter_checkpoint_codec().identity
+        identity["format"] = "cosmos.adapter-model.v1" if old else "cosmos.adapter-model.v2"
+        if not old:
+            identity["execution_policy"] = deepcopy(policy)
+        return trainer
+
+    source = construct(old=legacy)
+    source.train([None])
+    checkpoint = _save(source, tmp_path)
+    artifact = publish_adapter_artifact(str(checkpoint), str(tmp_path / "portable/checkpoints/iter_000001"))
+    saved = _parameters(source)
+    source.train([None])
+    expected = _parameters(source)
+    resumed = construct()
+    reloaded = construct()
+    if legacy:
+        with pytest.warns(UserWarning, match="no recorded runtime math precision"):
+            assert resumed.load(str(checkpoint)) == 1
+        with pytest.warns(UserWarning, match="no recorded runtime math precision"):
+            load_adapter_weights(artifact, reloaded._adapter_checkpoint_codec(), manager=reloaded.checkpoint_manager)
+    else:
+        assert resumed.load(str(checkpoint)) == 1
+        load_adapter_weights(artifact, reloaded._adapter_checkpoint_codec(), manager=reloaded.checkpoint_manager)
+    for name, parameter in _parameters(reloaded).items():
+        torch.testing.assert_close(parameter, saved[name], atol=0, rtol=0)
+    resumed.train([None])
+    for name, parameter in _parameters(resumed).items():
+        torch.testing.assert_close(parameter, expected[name], atol=0, rtol=0)
+    # A subsequent save records the current process's precision, never a fabricated old observation.
+    assert resumed._adapter_checkpoint_codec().identity["execution_policy"] == policy
+    assert set(resumed.opt.state) == set(resumed._adapter_checkpoint_codec().parameters.values())
+
+
+@pytest.mark.parametrize("purpose", ["reload", "resume"])
+@pytest.mark.parametrize(
+    "defect", ["nondefault", "base", "missing_math", "present_null", "missing_v2_policy", "null_v2_policy"]
+)
+def test_legacy_compatibility_does_not_hide_other_identity_or_policy_changes(purpose, defect):
+    from cosmos_framework.posttrain.tests.test_checkpoint_adapter import _trainer
+
+    trainer = _trainer()
+    codec = trainer._adapter_checkpoint_codec()
+    codec.identity.update(
+        format="cosmos.adapter-model.v2", execution_policy=resolved_execution_policy(_cfg(), include_defaults=True)
+    )
+    saved = codec.metadata(trainer.opt if purpose == "resume" else None)
+    saved["identity"]["format"] = "cosmos.adapter-model.v1"
+    saved["identity"].pop("execution_policy")
+    if defect == "nondefault":
+        codec.identity["execution_policy"] = resolved_execution_policy(_cfg(sft_logits_mode="supervised"))
+    elif defect == "base":
+        saved["identity"]["base"]["revision"] = "b" * 40
+    elif defect == "present_null":
+        saved["identity"]["execution_policy"] = None
+    else:
+        saved["identity"]["format"] = "cosmos.adapter-model.v2"
+        if defect == "missing_math":
+            saved["identity"]["execution_policy"] = deepcopy(codec.identity["execution_policy"])
+            del saved["identity"]["execution_policy"]["math_precision"]
+        elif defect == "null_v2_policy":
+            saved["identity"]["execution_policy"] = None
+    with pytest.raises(ValueError, match="identity differs"):
+        codec.validate_metadata(saved, trainer.opt if purpose == "resume" else None, purpose=purpose)
+
+
+def test_new_default_dcp_precision_mismatch_fails_before_tensor_restore(tmp_path, monkeypatch):
+    import torch
+
+    from cosmos_framework.posttrain.model.quantization import loader
+    from cosmos_framework.posttrain.tests.test_checkpoint_adapter import _parameters, _save, _trainer
+
+    source = _trainer()
+    source._adapter_checkpoint_codec().identity.update(
+        format="cosmos.adapter-model.v2", execution_policy=resolved_execution_policy(_cfg(), include_defaults=True)
+    )
+    source.train([None])
+    checkpoint = _save(source, tmp_path)
+    changed = deepcopy(runtime_precision_policy())
+    changed["allow_bf16_reduced_precision_reduction"] = not changed["allow_bf16_reduced_precision_reduction"]
+    monkeypatch.setattr(loader, "runtime_precision_policy", lambda: changed)
+    restored = _trainer()
+    restored._adapter_checkpoint_codec().identity.update(
+        format="cosmos.adapter-model.v2", execution_policy=resolved_execution_policy(_cfg(), include_defaults=True)
+    )
+    before = _parameters(restored)
+    monkeypatch.setattr(
+        restored.checkpoint_manager,
+        "load_dcp_component",
+        lambda *_args, **_kwargs: pytest.fail("precision mismatch must fail before restoring tensors"),
+    )
+    with pytest.raises(ValueError, match="identity differs"):
+        restored.load(str(checkpoint))
+    for name, parameter in _parameters(restored).items():
+        torch.testing.assert_close(parameter, before[name], atol=0, rtol=0)
+
+
+def test_legacy_precision_compatibility_does_not_authorize_cross_build_resume():
+    from cosmos_framework.posttrain.tests.test_checkpoint_adapter import _trainer
+
+    trainer = _trainer()
+    codec = trainer._adapter_checkpoint_codec()
+    codec.identity.update(
+        format="cosmos.adapter-model.v2", execution_policy=resolved_execution_policy(_cfg(), include_defaults=True)
+    )
+    codec.identity["training_contract"].update(code_revision="a" * 40, wheel_sha256="b" * 64)
+    saved = codec.metadata(trainer.opt)
+    saved["identity"]["format"] = "cosmos.adapter-model.v1"
+    saved["identity"].pop("execution_policy")
+    saved["identity"]["training_contract"]["code_revision"] = "c" * 40
+    with pytest.warns(UserWarning, match="no recorded runtime math precision"):
+        with pytest.raises(ValueError, match="identity differs"):
+            codec.validate_metadata(saved, trainer.opt, purpose="resume")
+
+
 @pytest.mark.parametrize(
     "identity",
     [

@@ -338,6 +338,38 @@ def test_v3_identity_binds_artifact_and_preserves_legacy_default_policy(cached):
         loader.execution_config_from_identity(identity)
 
 
+@pytest.mark.parametrize("purpose", ["reload", "resume"])
+def test_legacy_residual_precision_compatibility_preserves_artifact_identity(cached, purpose):
+    from cosmos_framework.posttrain.tests.test_checkpoint_adapter import _trainer
+
+    trainer = _trainer()
+    codec = trainer._adapter_checkpoint_codec()
+    codec.identity.update(
+        format="cosmos.adapter-model.v3",
+        initialization=cached.artifact.identity(),
+        adapter={"initialization": init.METHOD, "initialization_artifact_sha256": cached.artifact.sha256},
+        quantization=quantization_config_identity(cached.quantization),
+        execution_policy=loader.resolved_execution_policy(
+            SimpleNamespace(activation_checkpointing="full"), include_defaults=True
+        ),
+    )
+    optimizer = trainer.opt if purpose == "resume" else None
+    original = copy.deepcopy(codec.identity)
+    legacy = codec.metadata(optimizer)
+    legacy["identity"].pop("execution_policy")
+    with pytest.warns(UserWarning, match="no recorded runtime math precision"):
+        codec.validate_metadata(legacy, optimizer, purpose=purpose)
+    assert codec.identity == original
+    # A different, structurally valid residual artifact is never a precision-only difference.
+    changed = copy.deepcopy(legacy)
+    changed["identity"]["initialization"]["artifact_manifest_sha256"] = "b" * 64
+    changed["identity"]["adapter"]["initialization_artifact_sha256"] = "b" * 64
+    loader.execution_config_from_identity(changed["identity"])
+    with pytest.warns(UserWarning, match="no recorded runtime math precision"):
+        with pytest.raises(ValueError, match="identity differs"):
+            codec.validate_metadata(changed, optimizer, purpose=purpose)
+
+
 def test_explicit_preparation_uses_per_matrix_backend_and_publishes_cache_last(tmp_path, monkeypatch):
     """Synthetic transport fixture, not bitsandbytes/CUDA execution evidence."""
     from cosmos_framework.posttrain.model.quantization import source as source_module

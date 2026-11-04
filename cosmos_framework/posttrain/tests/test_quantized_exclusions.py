@@ -174,7 +174,8 @@ def test_actual_lifecycle_covers_all_adapters_and_only_materializes_exclusions(t
     assert set(optimizer.state) == set(parameters.values())
     net._cosmos_validate_frozen_base()
     identity = json.loads(json.dumps(net._cosmos_adapter_metadata))
-    assert identity["format"] == ("cosmos.adapter-model.v4" if layers else "cosmos.adapter-model.v1")
+    assert identity["format"] == ("cosmos.adapter-model.v4" if layers else "cosmos.adapter-model.v2")
+    assert identity["execution_policy"] == loader.resolved_execution_policy(life.cfg, include_defaults=True)
     assert len(identity["quantized_tensors"]) == 252 - 7 * len(layers)
     assert len(identity["excluded_frozen_tensors"]) == 7 * len(layers)
     if layers:
@@ -225,6 +226,28 @@ def test_checkpoint_rebuild_rejects_changed_exclusion_and_preserves_all_paramete
     other, _, _, _ = make_lifecycle_fixture(tmp_path, monkeypatch, (6,))
     with pytest.raises(ValueError, match="identity differs"):
         other._cosmos_adapter_checkpoint_codec.validate_metadata(left._cosmos_adapter_checkpoint_codec.metadata())
+
+
+@pytest.mark.parametrize("purpose", ["reload", "resume"])
+def test_legacy_mixed_precision_compatibility_preserves_exclusion_identity(tmp_path, monkeypatch, purpose):
+    net, _, _, _ = make_lifecycle_fixture(tmp_path, monkeypatch, (6, 15))
+    codec = net._cosmos_adapter_checkpoint_codec
+    optimizer = torch.optim.AdamW(net._cosmos_adapter_parameters.values()) if purpose == "resume" else None
+    original = copy.deepcopy(codec.identity)
+    legacy = codec.metadata(optimizer)
+    legacy["identity"].pop("execution_policy")
+    with pytest.warns(UserWarning, match="no recorded runtime math precision"):
+        codec.validate_metadata(legacy, optimizer, purpose=purpose)
+    assert codec.identity == original
+    # Both exclusion layouts are valid v4 identities, but are not interchangeable.
+    other, _, _, _ = make_lifecycle_fixture(tmp_path, monkeypatch, (6,))
+    changed = copy.deepcopy(legacy)
+    changed["identity"] = copy.deepcopy(other._cosmos_adapter_checkpoint_codec.identity)
+    changed["identity"].pop("execution_policy")
+    loader.execution_config_from_identity(changed["identity"])
+    with pytest.warns(UserWarning, match="no recorded runtime math precision"):
+        with pytest.raises(ValueError, match="identity differs"):
+            codec.validate_metadata(changed, optimizer, purpose=purpose)
 
 
 def test_nested_probe_restore_rejects_conflict_and_legacy_relabel(tmp_path, monkeypatch):

@@ -306,7 +306,7 @@ def test_actual_loader_routes_policy_to_canary_and_all_targets_without_changing_
 ):
     from cosmos_framework.posttrain.tests.test_quantized_exclusions import make_lifecycle_fixture
 
-    default, _, _, _ = make_lifecycle_fixture(tmp_path, monkeypatch)
+    default, default_life, _, _ = make_lifecycle_fixture(tmp_path, monkeypatch)
     net, life, calls = make_opt_in_fixture(tmp_path, monkeypatch, logits_mode=logits_mode)
     assert len(calls["preflight"]) == 1 and len(calls["constructor"]) == 252
     for options in calls["preflight"] + calls["constructor"]:
@@ -316,7 +316,8 @@ def test_actual_loader_routes_policy_to_canary_and_all_targets_without_changing_
     policy = actual.pop("execution_policy")
     assert actual.pop("format") == "cosmos.adapter-model.v2"
     previous = copy.deepcopy(default._cosmos_adapter_metadata)
-    assert previous.pop("format") == "cosmos.adapter-model.v1"
+    assert previous.pop("format") == "cosmos.adapter-model.v2"
+    assert previous.pop("execution_policy") == loader.resolved_execution_policy(default_life.cfg, include_defaults=True)
     assert actual == previous  # Packed identities, source, initialization, targets, strategy and all dtypes.
     assert policy == loader.resolved_execution_policy(life.cfg)
     assert len(net._cosmos_adapter_parameters) == 504

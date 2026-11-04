@@ -331,8 +331,8 @@ def validate_quantized_linear_execution(cfg: Any) -> None:
         raise ValueError("checkpointed_dequant requires kaiming_A_zero_B; residual initialization is not supported")
 
 
-def native_adapter_execution_policy(cfg: Any) -> dict[str, Any] | None:
-    """Describe opt-in execution changes without invalidating legacy default artifacts."""
+def native_adapter_execution_policy(cfg: Any, *, include_defaults: bool = False) -> dict[str, Any] | None:
+    """Describe execution, retaining the absent legacy-default policy for old readers."""
     mode = cfg.activation_checkpointing
     adapter_compute_dtype = getattr(cfg, "adapter_compute_dtype", "float32")
     logits_mode = getattr(cfg, "sft_logits_mode", "full")
@@ -341,7 +341,8 @@ def native_adapter_execution_policy(cfg: Any) -> dict[str, Any] | None:
     if quantized_execution not in ("bnb", "checkpointed_dequant"):
         raise ValueError("model_qwen3_vl.quantized_linear_execution must be bnb|checkpointed_dequant")
     if (
-        mode == "full"
+        not include_defaults
+        and mode == "full"
         and adapter_compute_dtype == "float32"
         and logits_mode == "full"
         and not compile_language
