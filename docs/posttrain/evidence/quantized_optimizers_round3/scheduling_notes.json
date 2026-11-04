@@ -33,5 +33,15 @@
       "effective_wall_limit_seconds": 900
     }
   ],
-  "basis": "Seed17 completed; its original node is now allocated across all GPUs and memory. The new node is idle with248 logical CPUs, two sockets/62cores each,1878738MiB scheduler memory, and the same cluster location/OS. polar4 permits this account, has no preemption and supports the unchanged wall limits. Move only wholly unstarted groups, preserving all paired arms/restarts within one allocation. Native preflight must still confirm the exact A100-SXM4-80GB device before model construction; otherwise the run fails and is charged. No threshold, recipe, budget, source archive, CPU/memory request, seed or final manifest changes. At most two owned GPUs; development probe remains dependent on all final allocations."
+  "basis": "Seed17 completed; its original node is now allocated across all GPUs and memory. The new node is idle with248 logical CPUs, two sockets/62cores each,1878738MiB scheduler memory, and the same cluster location/OS. polar4 permits this account, has no preemption and supports the unchanged wall limits. Move only wholly unstarted groups, preserving all paired arms/restarts within one allocation. Native preflight must still confirm the exact A100-SXM4-80GB device before model construction; otherwise the run fails and is charged. No threshold, recipe, budget, source archive, CPU/memory request, seed or final manifest changes. At most two owned GPUs; development probe remains dependent on all final allocations.",
+  "queue_alternatives": {
+    "recorded_utc": "2026-11-04T22:37:55.754255+00:00",
+    "jobs": [
+      "37977251",
+      "37978670"
+    ],
+    "partitions": "interactive_singlenode,polar4",
+    "node": "batch-block5-04154",
+    "reason": "polar4 has left the entire unstarted seed pending on priority without a start estimate. Both configured partitions include the same idle node and are nonpreempting. Permit either queue to schedule the existing single allocation; no duplicate job, altered request, or modified experiment. Keep development dependency intact."
+  }
 }
