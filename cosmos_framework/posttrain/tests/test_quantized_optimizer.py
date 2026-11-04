@@ -57,6 +57,30 @@ def test_invalid_backend_hyperparameters_fail_in_config(name, invalid):
 
 
 @pytest.mark.parametrize("name", ["adamw_bnb_8bit", "paged_adamw_8bit"])
+def test_native_recipe_overrides_and_resolved_identity(name, tmp_path, monkeypatch):
+    from hydra.errors import ConfigCompositionException
+
+    from cosmos_framework.posttrain.entrypoints.sft import validate_config_structure
+    from cosmos_framework.utils.config import load_config
+
+    monkeypatch.setenv("SFT_MODEL_PATH", str(tmp_path / "unallocated-model"))
+    monkeypatch.setenv("SFT_DATA_ROOT", str(tmp_path / "unopened-data"))
+    recipe = "cosmos_framework/posttrain/configs/sft_quantized_optimizer.py"
+    overrides = ["--", f"rl.optimizer.name={name}", "rl.optimizer.bnb_fp32_state_names=[some.weight]"]
+    resolved = asdict(validate_config_structure(load_config(recipe, overrides)).optimizer)
+    assert resolved["name"] == name
+    assert resolved["bnb_min_8bit_size"] == 16384
+    assert resolved["bnb_fp32_state_names"] == ["some.weight"]
+    # Exercise the actual CLI override/typed reconstruction path, without any
+    # model or data files and without loading optional CUDA backend kernels.
+    for invalid in ("rl.optimizer.lr=-1", "rl.optimizer.impl=fused", "rl.optimizer.name=adamw_8bit"):
+        with pytest.raises(ValueError):
+            load_config(recipe, overrides + [invalid])
+    with pytest.raises(ConfigCompositionException, match="foreach"):
+        load_config(recipe, overrides + ["rl.optimizer.foreach=true"])
+
+
+@pytest.mark.parametrize("name", ["adamw_bnb_8bit", "paged_adamw_8bit"])
 def test_gpu_resume_and_membership(name, tmp_path):
     if not torch.cuda.is_available():
         pytest.skip("CUDA kernel gate")

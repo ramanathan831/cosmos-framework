@@ -1,0 +1,12 @@
+{
+  "purpose": "Public native recipe, actual CLI override and resolved serialization checks; CPU only.",
+  "command": "CUDA_VISIBLE_DEVICES='' .venv/bin/python -m pytest cosmos_framework/posttrain/tests/test_quantized_optimizer.py -k native_recipe_overrides --confcutdir=cosmos_framework/posttrain/tests --override-ini=addopts=",
+  "result": "2 passed,36 deselected;3.83seconds",
+  "environment_fix": "Install multi-storage-client0.44.0 and its core dependencies into this clone own.venv, constrained by docker/posttrain/environment/uv.lock. No shared environment or original checkout changes.",
+  "setup_failures": [
+    "Local thin test environment lacked multi-storage-client.",
+    "COSMOS_TRAINING=0 is not a valid workaround for this recipe: PosttrainConfig imports the training LazyConfig API.",
+    "Installing multi-storage-client without its core dependencies lacked xattr; resolved with the pinned dependency set."
+  ],
+  "gpu_seconds": 0
+}
