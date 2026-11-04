@@ -1,0 +1,82 @@
+{
+  "job": "37975697",
+  "source": "828fad4",
+  "qualification": "development only; loading synchronization excludes these from timing claims",
+  "cases": {
+    "mixed15_adamw": {
+      "attempt": {
+        "returncode": 0,
+        "elapsed_seconds": 304.0134355169721
+      },
+      "curve": [
+        {
+          "step": 0,
+          "task_nll": 1.8934099553784447,
+          "accuracy": 0.46875
+        },
+        {
+          "step": 5,
+          "task_nll": 0.8287633526779246,
+          "accuracy": 0.65625
+        },
+        {
+          "step": 10,
+          "task_nll": 0.7208255437290063,
+          "accuracy": 0.8125
+        },
+        {
+          "step": 15,
+          "task_nll": 0.5227146533561609,
+          "accuracy": 0.875
+        }
+      ],
+      "loading_profile_seconds": {
+        "get_tensor": 0.06781467713881284,
+        "to_cpu": 90.06354319327511,
+        "to_cuda": 3.3374427394010127,
+        "copy_cuda": 0.06988801283296198
+      }
+    },
+    "mixed15_adamw_bnb_8bit": {
+      "attempt": {
+        "returncode": 0,
+        "elapsed_seconds": 205.36096943193115
+      },
+      "curve": [
+        {
+          "step": 0,
+          "task_nll": 1.8934099553784447,
+          "accuracy": 0.46875
+        },
+        {
+          "step": 5,
+          "task_nll": 0.8418323645310011,
+          "accuracy": 0.65625
+        },
+        {
+          "step": 10,
+          "task_nll": 0.7146900687948801,
+          "accuracy": 0.8125
+        },
+        {
+          "step": 15,
+          "task_nll": 0.5195713894881919,
+          "accuracy": 0.875
+        }
+      ],
+      "loading_profile_seconds": {
+        "get_tensor": 0.07118074153549969,
+        "to_cpu": 7.055251787533052,
+        "to_cuda": 3.670074160792865,
+        "copy_cuda": 0.06478997739031911
+      }
+    },
+    "fused_checkpoint15": {
+      "attempt": {
+        "returncode": 1,
+        "elapsed_seconds": 114.37531559809577
+      },
+      "failure": "CUDA OOM during second update after first update succeeded; retain full recomputation as feasible baseline."
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "purpose": "development diagnosis",
+  "prepared_verified_rows": 623,
+  "recorded_utc": "2026-11-04T21:02:21.212337+00:00",
+  "basis": "Both partial checkpoint probes and micro2/no-recomputation OOM. One smaller-microbatch probe tests the remaining obvious capacity alternative under identical effective batch4. Reserve360GPU-seconds without reducing final evaluation allocation. Select only if feasible and measured faster; no final outcomes used.",
+  "cases": [
+    {
+      "name": "fused_micro1",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_deployment.py",
+        "--",
+        "job.name=fused_micro1",
+        "rl.seed=17",
+        "rl.max_steps=4",
+        "rl.save_every=0",
+        "rl.keep_optim_last=0",
+        "rl.optimizer.name=adamw",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096",
+        "model_hf.grad_ckpt=false",
+        "rl.optimizer.lr=1e-05",
+        "rl.ce_exponent=1.0",
+        "rl.data.path={data}/train-mixed.jsonl",
+        "rl.validation.enabled=false",
+        "rl.micro_batch_size=1",
+        "rl.grad_accum=4",
+        "model_hf.grad_ckpt_modules=[]"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "allow_failure": true
+    }
+  ]
+}
