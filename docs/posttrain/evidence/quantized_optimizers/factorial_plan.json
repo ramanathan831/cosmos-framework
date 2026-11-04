@@ -75,5 +75,12 @@
     "accuracy_degradation_upper95_max": 0.01,
     "adaptation_over_own_frozen_base_accuracy_lower95_min_exclusive": 0,
     "note": "Retains the stricter project uncertainty/adaptation checks alongside the preregistered paired seed t intervals; no thresholds loosened."
+  },
+  "checkpoint_cadence_before_full_runs": 8,
+  "native_recovery": "For seed17 BF16 and NF4 eight-bit cells, relaunch a fresh native process from update8; compare all following updates, final adapter/moments/metadata, data cursor, RNG and scheduler bitwise. Cost remains inside 150 GPU-minute phase cap.",
+  "execution_amendment_before_factorial_training": {
+    "max_concurrent_gpus": 2,
+    "reason": "Allow independent mainline and integration phases on distinct fixed A100 nodes to reduce elapsed campaign time. Each comparison keeps a fixed node/GPU class, CPU and memory request; no concurrent campaign allocations on the same node.",
+    "unchanged": "8 total GPU hours; phase cost ceilings; three paired seeds; every numeric gate; data exposure; models and optimizers; failures included."
   }
 }
