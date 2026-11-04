@@ -1,0 +1,32 @@
+{
+  "checked_utc": "2026-11-04T03:32:32.475159+00:00",
+  "initial_upstream_main": "e644a833bf909af9c23a02a5c1069967dc501111",
+  "current_upstream_main": "d04e5067dd2f353fa8fab65fd99fcd86819e537d",
+  "upstream_delta": [
+    ".agents/skills/cookbooks/cosmos3/generator/action/README.md"
+  ],
+  "runtime_delta": [],
+  "dependencies": {
+    "pyproject.toml": "4acc203f8632e5b2a572d4bdf9de6139b2cdd0f3b359a9f29f0806689b056f72",
+    "uv.lock": "2e2f1631ab824ff551e1e7f88ad98c26ec044c23686c910344a0bfa07f1abb06",
+    "docker/posttrain/environment/pyproject.toml": "4e2f737d67be1eef97c9006d5300dcbea7be924b7fb802dd8b2cd241f75a3e77",
+    "docker/posttrain/environment/uv.lock": "68ebe708a70eff3a99a4aa36398005ece2ee826e7248e85baf1f5177c69691ea"
+  },
+  "public_work_audit": [
+    {
+      "url": "https://github.com/NVIDIA/cosmos-framework/pull/339",
+      "status": "draft",
+      "scope": "ModelOpt0.44.0 weight-quantization dependency extra; not a bitsandbytes optimizer implementation."
+    },
+    {
+      "url": "https://github.com/NVIDIA/cosmos-framework/pull/334",
+      "status": "closed",
+      "scope": "NF4 model-weight/adapter work; remains closed and independent."
+    },
+    {
+      "url": "https://github.com/NVIDIA/cosmos-framework/pulls",
+      "scope": "Public open-work listing inspected; targeted optimizer query unavailable. No equivalent backend in current main registry/factories."
+    }
+  ],
+  "merge_policy": "Merged current main documentation into the independent local feature branch; no PR publication, reopening or merge action."
+}
