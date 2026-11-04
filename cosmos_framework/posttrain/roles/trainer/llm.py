@@ -1120,6 +1120,15 @@ class LLMTrainer(BaseTrainer):
             self.get_bucket_plan()
         return be.stage_bucket(self.model, i, version=self.publication_version())
 
+    def release_completed_gradients(self) -> None:
+        """Release dead update buffers before a separate evaluation phase.
+
+        Callers must own a completed update boundary. Evaluation itself remains
+        state-preserving, and an in-progress accumulation is never discarded.
+        """
+        self._require_checkpoint_boundary()
+        self.opt.zero_grad(set_to_none=True)
+
     def evaluate_objective(self, batch: list[Trajectory]) -> dict[str, Any]:
         """Evaluate one held-out batch through the recipe-bound, state-preserving evaluator."""
         self._require_checkpoint_boundary()

@@ -142,7 +142,6 @@ def validate_config(config: Any) -> SFTConfig:
 
 
 def build_trainer(config: Any, rl: SFTConfig, data: Any, validation: Any | None, checkpoint: Any) -> Any:
-    from cosmos_framework.utils import misc
     from cosmos_framework.posttrain.algorithm.sft import make_objective
     from cosmos_framework.posttrain.config.build import (
         build_backbone,
@@ -155,6 +154,7 @@ def build_trainer(config: Any, rl: SFTConfig, data: Any, validation: Any | None,
     from cosmos_framework.posttrain.roles.trainer.validation.sft import evaluate_sft_batch
     from cosmos_framework.posttrain.roles.trainer.validation.state import ValidationState
     from cosmos_framework.posttrain.utils.dist import run_rank_converged, world_size_or_1
+    from cosmos_framework.utils import misc
 
     name_or_path, trust_remote_code = sft_policy_source(config)
     packer = run_rank_converged(
@@ -262,10 +262,10 @@ def held_out_census(data: Any, validation: Any) -> dict[str, Any]:
 
 def make_setup(config_path: str, opts: list[str]) -> Any:
     def setup() -> dict[str, Any]:
-        from cosmos_framework.utils.config import load_config
         from cosmos_framework.posttrain.control.checkpointing import CheckpointLifecycle
         from cosmos_framework.posttrain.roles.env.sft import build_sft_env
         from cosmos_framework.posttrain.utils.dist import rank_identical, rank_or_0, run_rank_converged, world_size_or_1
+        from cosmos_framework.utils.config import load_config
 
         config = load_config(config_path, ["--", *opts])
         rl = validate_config(config)
@@ -331,6 +331,10 @@ def evaluate(
     from cosmos_framework.posttrain.roles.rollout.validation import distributed_validation_rng, seed_validation_rng
     from cosmos_framework.posttrain.utils.dist import run_rank_converged
 
+    # Completed training gradients are dead; retaining them can make validation
+    # OOM even when both the model and optimizer fit. The evaluator below still
+    # preserves all state it receives, including gradients in direct API calls.
+    resolve(units["policy"].release_completed_gradients())
     source = units["validation"]
     state = run_rank_converged(lambda: resolve(source.state_dict()), "SFT validation source snapshot")
     with distributed_validation_rng("SFT validation"):
@@ -392,7 +396,6 @@ def _evaluate(
 
 
 def loop(units: dict[str, Any], config: Any, run_out_dir: str) -> dict[str, Any]:
-    from cosmos_framework.utils.lazy_config import instantiate
     from cosmos_framework.posttrain.control.checkpointing import CheckpointLifecycle
     from cosmos_framework.posttrain.control.termination import TerminationWatch
     from cosmos_framework.posttrain.control.validation import ValidationSchedule
@@ -406,6 +409,7 @@ def loop(units: dict[str, Any], config: Any, run_out_dir: str) -> dict[str, Any]
         reportable_metrics,
         start_best_effort,
     )
+    from cosmos_framework.utils.lazy_config import instantiate
 
     rl = instantiate(config.rl)
     data, policy = units["data"], units["policy"]

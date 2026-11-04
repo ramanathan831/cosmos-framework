@@ -254,15 +254,46 @@ def test_finite_evaluation_does_not_advance_source_or_rng(tmp_path: Path) -> Non
     assert trainer.iteration() == 0
 
 
+def test_validation_releases_only_completed_gradients_and_preserves_next_updates(tmp_path: Path) -> None:
+    from cosmos_framework.posttrain.control.validation.lifecycle import ValidationTrigger
+    from cosmos_framework.posttrain.entrypoints.sft import train_step
+
+    config, units, trainer = _runtime(tmp_path / "evaluated")
+    reference_config, reference_units, reference = _runtime(tmp_path / "reference")
+    config.rl.validation = SFTValidationConfig(batch_size=2)
+    units["validation"] = roles.env("validation", body=build_sft_env(config.rl.data, 7, training=False))
+    # A premature cleanup must leave accumulated gradients and clocks intact.
+    trainer.train(units["data"].get_samples(1).result())
+    reference.train(reference_units["data"].get_samples(1).result())
+    gradients = [p.grad.clone() for p in trainer.model.parameters()]
+    with pytest.raises(RuntimeError, match="completed update boundary"):
+        trainer.release_completed_gradients()
+    for p, expected in zip(trainer.model.parameters(), gradients, strict=True):
+        torch.testing.assert_close(p.grad, expected, rtol=0, atol=0)
+    trainer.train(units["data"].get_samples(1).result())
+    reference.train(reference_units["data"].get_samples(1).result())
+    assert all(p.grad is not None for p in trainer.model.parameters())
+    evaluate(units, config.rl, 1, frozenset({ValidationTrigger.PERIODIC}))
+    assert all(p.grad is None for p in trainer.model.parameters())
+    assert all(p.grad is not None for p in reference.model.parameters())
+    for _ in range(3):
+        actual = train_step(units["data"], units["policy"], config.rl)
+        expected = train_step(reference_units["data"], reference_units["policy"], reference_config.rl)
+        assert actual == expected
+    torch.testing.assert_close(trainer.model.state_dict(), reference.model.state_dict(), rtol=0, atol=0)
+    torch.testing.assert_close(trainer.opt.state_dict(), reference.opt.state_dict(), rtol=0, atol=0)
+    assert trainer.iteration() == reference.iteration() == 4
+
+
 def test_real_qwen_multimodal_recipe_cpu(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Exercise loading, actual processor/CE, local role binding, validation and DCP on a tiny model."""
     pytest.importorskip("transformers", minversion="5.8.1")
     from transformers import AutoModelForImageTextToText, Qwen3_5Config
 
-    from cosmos_framework.utils.config import load_config
     from cosmos_framework.posttrain.entrypoints.sft import run
     from cosmos_framework.posttrain.scripts.prepare_sft_example import prepare_example
     from cosmos_framework.posttrain.tests.helpers.sft_packer import local_processor, local_tokenizer
+    from cosmos_framework.utils.config import load_config
 
     monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
     monkeypatch.setattr("cosmos_framework.posttrain.utils.dist.init_local_process_group", lambda: None)
