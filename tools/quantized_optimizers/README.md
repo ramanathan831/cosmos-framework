@@ -261,3 +261,81 @@ identities, retains missing cells, and plots quality/time and memory/throughput
 with seed uncertainty. PyTorch peaks omit managed memory; process/device and host
 measurements accompany them. Synthetic `diagnostic.py` and `paging_pressure.py`
 provide kernel/allocation evidence, not task-quality evidence.
+
+## Bounded deployment follow-up
+
+The second campaign is separately preregistered in
+[`quantized_optimizers_round2/plan.json`](../../docs/posttrain/evidence/quantized_optimizers_round2/plan.json).
+It trains decoder blocks 16–31 with ordinary FP32 parameters/BF16 compute,
+compares fused AdamW with activation checkpointing against nonpaged eight-bit
+AdamW without it, and uses the same cosine schedule, microbatch four and 40
+updates. Three restarts per paired seed measure timing variation; seeds remain
+the statistical units. All checkpoints are retained, but final task scoring
+uses only the prespecified restart zero.
+
+`rl.prepared_corpus` optionally consumes immutable CPU inputs created by the
+native packer. It preserves collation and label semantics, refuses missing or
+changed entries, and binds the corpus digest into exact-resume identity.
+Preparation rejects RNG-consuming preprocessing and verifies every row against
+an independent raw replay. Ordinary recipes leave this setting empty.
+The common preparation gain is not an optimizer gain: include preparation cost
+when reporting a cold pipeline and identify prepared-corpus timing explicitly.
+
+Use a **new** campaign directory. `PRIOR` below is the read-only first campaign;
+`ASSETS` remains the read-only model/environment/data root. CPU preparation needs
+no GPU and must use a CPU partition on this site. The recorded plan admits at
+most 30 CPU-wall minutes across preparation attempts and 150 additional
+GPU-minutes across local checks, canaries, failed attempts, training and scoring.
+Refresh the ledger from Slurm before each admission; pending/running jobs count
+at their full wall reservation. Do not launch full trials until the native
+raw/prepared equality canary passes all six state comparisons.
+
+```sh
+export SOURCE=/shared/new-optimizer-deployment-campaign
+export SOURCE_ARCHIVE="$SOURCE/source.tgz"
+git archive --format=tar.gz --output="$SOURCE_ARCHIVE" 0823efb
+export ASSETS=/shared/read-only-qlora-assets
+export PRIOR=/shared/read-only-first-optimizer-campaign
+export CONTAINER_IMAGE=/shared/pinned-runtime.sqsh
+export RESULTS="$SOURCE/prepare-v1"
+mkdir -p "$RESULTS"
+sbatch --output="$RESULTS/slurm-%j.log" tools/quantized_optimizers/prepare_deployment.sbatch
+
+# After successful preparation (245 exact comparisons in the recorded dataset):
+export PREPARATION="$RESULTS"
+export RESULTS="$SOURCE/canary" MODE=canary WORK_SECONDS=650 TRIAL_SEED=17
+mkdir -p "$RESULTS"
+sbatch --time=12 --output="$RESULTS/slurm-%j.log" tools/quantized_optimizers/deployment.sbatch
+
+# Only after canary complete.json and parity.json pass; repeat for seeds29,43,
+# at most two GPUs on distinct nodes. All six runs for one seed stay in this job.
+export RESULTS="$SOURCE/seed17" MODE=trials WORK_SECONDS=2600 TRIAL_SEED=17
+mkdir -p "$RESULTS"
+sbatch --time=45 --output="$RESULTS/slurm-%j.log" tools/quantized_optimizers/deployment.sbatch
+```
+
+Restrict each GPU submission to the site's verified A100-SXM4-80GB nodes using
+its recorded node policy. The job resolves the allocated physical GPU UUID for
+external NVML monitoring, rejects another device model, and launches native SFT
+without the synchronizing probe used in the first development campaign. Final
+dense task scoring restores `model` only through the native checkpoint manager;
+it imports no QLoRA backend and restores no optimizer.
+
+The direct training command used by each eight-bit run is:
+
+```sh
+export SFT_MODEL_PATH="$ASSETS/models/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b"
+export SFT_DATA_ROOT="$PRIOR/recording-clean-v4"
+export SFT_PREPARED_CORPUS="$PREPARATION/prepared-corpus"
+export IMAGINAIRE_OUTPUT_ROOT=/shared/new-native-output
+
+torchrun --standalone --nproc-per-node=1 -m cosmos_framework.posttrain.entrypoints.sft \
+  --config cosmos_framework/posttrain/configs/sft_optimizer_deployment.py -- \
+  rl.seed=17 rl.optimizer.name=adamw_bnb_8bit rl.optimizer.impl= \
+  rl.optimizer.bnb_min_8bit_size=16384 model_hf.grad_ckpt=false
+```
+
+For the matched fused arm use `rl.optimizer.name=adamw`,
+`rl.optimizer.impl=fused`, `rl.optimizer.bnb_min_8bit_size=4096`, and
+`model_hf.grad_ckpt=true`. Preserve all other settings and data identities.
+Do not interpret CPU corpus tests or an allocated/queued job as qualification.
