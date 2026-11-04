@@ -424,6 +424,22 @@ CPU preparation completed for 32 training and eight validation examples per prof
 | Larger video                       |   2,131–2,172 |                 2 | 16 × 384 × 672                  |                2,016 | NF4: 20 updates at 1/2/4; BF16 at 1/2; own recovery at NF4 4/BF16 1    |
 | Longer target and larger video     |   4,059–4,096 |       1,236–1,335 | 16 × 384 × 672                  |                2,016 | Not run                                                                |
 
+### Genuine training-source conversations: CPU validation
+
+The [native `f5e40cf` CPU geometry evidence](evidence/native_qlora_genuine_geometry_f5e40cf.json) validates original questions, options and letter answers combined into single-video conversations from **four distinct training-source recording groups**. Each case contains two canary training and two canary validation conversations; both subsets come from the original training data and add no independent task data. One video appears on the first user turn, later turns are text only, and all assistant turns are supervised. The [native row validator](../../cosmos_framework/posttrain/scripts/validate_sft_rows.py) measured full expansion without truncation and checked assistant masks and media-grid/token consistency. All five cases and all 20 reported rows passed:
+
+| CPU case                      | Rows | Expanded tokens | Supervised tokens per row | Visual tokens per row |
+| ----------------------------- | ---: | --------------: | ------------------------: | --------------------: |
+| 16 turns, ordinary media      |    4 |         931–955 |                        32 |                   240 |
+| 20 turns, ordinary media      |    4 |     1,119–1,150 |                        40 |                   240 |
+| Single exchange, larger media |    4 |     2,152–2,154 |                         2 |                 2,016 |
+| 16 turns, larger media        |    4 |     2,743–2,767 |                        32 |                 2,016 |
+| 20 turns, larger media        |    4 |     2,931–2,962 |                        40 |                 2,016 |
+
+The predeclared rule selects **20 turns** because every row passes both media policies and the larger single-exchange case passes. This is a CPU prerequisite only: it does not establish 4K, GPU fitting/training, reload, recovery, quality, speed or memory support. Requested policies retain eight frames with video size bounds 32,768–524,288, or sixteen frames with bounds 65,536–4,194,304; image bounds remain 65,536–262,144. These are processor settings, not measured pixel dimensions, distinct frame counts, frame indices or grid values. The reports record one video and one video-grid record per row; those richer measurements remain unavailable. The historical synthetic runtime matrix above retains its separate scope.
+
+The successful allocation used two physical cores, four allocated CPUs and no GPU: **524 × 4 = 2,096 CPU-seconds**. All 97 source bindings, including the four original media files, passed allocated checks before and after validation. Actual Hydra 1.3.2/OmegaConf 2.3.0 matched the local five-case full-config proof. The first attempt failed before processor construction because this private fixture used quoted JSON dictionary keys; the retry used the existing [unquoted Hydra syntax](../../cosmos_framework/posttrain/tests/test_validate_sft_rows.py#L735), with identical dictionaries and no production parser change. Its **138 × 4 = 552 CPU-seconds** remain charged, giving **2,648 CPU-seconds total**. A 16 GiB allocation limit supplies no measured memory bound.
+
 ## Completed runtime and recovery matrix
 
 The [runtime artifact](evidence/native_qlora_runtime_matrix_55e7f14.json) records the completed and stopped attempts, all skips, phase measurements and their original completeness flags. An independent replay rederived 9,789 raw telemetry rows and verified 20 completed 20-update cells across the current and earlier attempts. The native package remains `55e7f14`; changes to the qualification workflow and collector are identified separately. These are rank-16/alpha-32, effective-batch-eight stress tests with full activation checkpointing unless explicitly labeled otherwise. Each completed cell has its own exact fresh-process text/image/video DCP and portable reload checks.
