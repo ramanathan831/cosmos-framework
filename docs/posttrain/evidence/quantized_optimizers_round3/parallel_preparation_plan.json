@@ -3,7 +3,7 @@
   "reason": "Cold preparation plus independent replay took2156.28s plus760.47s for the expanded corpus; this dominates short adaptation. Each immutable target can use the same native packer in a separate CPU process.",
   "resource_contract": {
     "cpus": 8,
-    "host_memory_gib": 40,
+    "host_memory_gib": 16,
     "cuda_visible_devices": "",
     "canary_allocation_seconds": 600,
     "reserved_three_full_trials_seconds": 3360,
@@ -39,5 +39,6 @@
     "classification": "Cold input preparation; does not assert an empty operating-system file cache."
   },
   "pre_execution_amendment": "Use32 targets and10minutes so spawn/tokenizer setup does not dominate a12-target process-pool probe; reserve57minutes for full trials within the unchanged7200CPU-second cap. No preparation canary has run.",
-  "pre_execution_cost_annotation": "Allow60seconds for local CPU-only checks in addition to the separate60GPU-seconds conservatively charged for tests whose root fixture restored CUDA visibility. Reserve56minutes for three full CPU trials; admission still depends on the canary. No threshold changed."
+  "pre_execution_cost_annotation": "Allow60seconds for local CPU-only checks in addition to the separate60GPU-seconds conservatively charged for tests whose root fixture restored CUDA visibility. Reserve56minutes for three full CPU trials; admission still depends on the canary. No threshold changed.",
+  "pre_execution_memory_amendment": "CPU00049 has sufficient cores but only17GiB unallocated scheduler memory. The pending32-target canary requests16GiB for both the1-worker and4-worker controls; neither has run. Workers stream individual payload files and never hold the full corpus in memory. Retain any memory failure; do not silently reduce worker count."
 }
