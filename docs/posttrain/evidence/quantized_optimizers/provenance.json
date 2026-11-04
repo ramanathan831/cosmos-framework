@@ -454,9 +454,11 @@
       "phase": "recording-clean factorial seed29",
       "source": "d4a41e76159ec8ab81525a38fc038b18743485e4",
       "allocation_minutes": 40,
-      "state": "PENDING",
+      "state": "COMPLETED",
       "node": "batch-block1-2092",
-      "dependency": "afterok:37939266"
+      "dependency": "afterok:37939266",
+      "elapsed_gpu_seconds": 1492,
+      "reason": "Remaining three seed29 cells trained and final-scored successfully; all four seed29 cells now complete."
     },
     {
       "job": "37945944",
@@ -466,6 +468,16 @@
       "state": "PENDING",
       "node": "batch-block4-2071",
       "dependency": "afterany:37943911"
+    },
+    {
+      "job": "37947047",
+      "phase": "recording-clean factorial seed43",
+      "source": "a02e75793e889aa8bb3fde26b0a9c578ee3f10d6",
+      "archive_sha256": "ba8ee52b2971acf49e7c4bd67e7d1f2b5509ef52b0b94857ef4ed2f10b835a0e",
+      "allocation_minutes": 45,
+      "state": "PENDING",
+      "node": "verified eligible A100; every seed43 arm in one allocation",
+      "dependency": "afterany:37945944"
     }
   ],
   "final_release": "NOT QUALIFIED",
@@ -508,7 +520,7 @@
     }
   },
   "development_budget": {
-    "max_gpu_minutes": 240,
+    "max_gpu_minutes": 230,
     "prior_failed_seconds": 673,
     "remaining_max_allocations": 5,
     "maximum_minutes_each": 45,
@@ -517,7 +529,7 @@
     "admission": "Terminal charged time plus full active/pending wall reservations plus proposed wall <=240 GPU minutes; same nine trials, not additional tuning trials."
   },
   "additional_work_budget": {
-    "factorial_max_gpu_minutes": 170,
+    "factorial_max_gpu_minutes": 180,
     "mainline_capacity_followup_max_gpu_minutes": 30,
     "overall_gpu_hours_unchanged": 8
   },
@@ -629,5 +641,26 @@
     "precondition": "Both frozen final-score markers match fixed data hash and both recovery markers are exact=True. Global preparation already terminal; no global writer may run concurrently.",
     "ownership": "Only different SEED_ONLY scopes may overlap on distinct nodes; shared paths read-only, per-seed scoring/training/progress and per-job execution files disjoint. At most2 campaign GPUs.",
     "tests": "10 workflow tests passed; strengthened read-only seeded-driver test rerun8passed."
+  },
+  "final_seed_admission": {
+    "utc": "2026-11-04T0554Z",
+    "mainline_terminal_seconds": 10417,
+    "main43_reserved_seconds": 3300,
+    "factorial_terminal_seconds": 7912,
+    "factorial43_proposed_seconds": 2700,
+    "capacity_terminal_seconds": 1181,
+    "pressure_reserved_seconds": 600,
+    "compatibility_seconds": 1017,
+    "local_upper_bound_seconds": 900,
+    "charged_and_reserved_seconds": 28027,
+    "overall_ceiling_seconds": 28800,
+    "phase_reallocation": {
+      "mainline_before_minutes": 240,
+      "mainline_after_minutes": 230,
+      "factorial_before_minutes": 170,
+      "factorial_after_minutes": 180,
+      "reason": "Transfer10minutes inside unchanged8hour ceiling to complete original12factorial cells; mainline charged+reserved13717seconds fits13800second revised ceiling; factorial10612fits10800."
+    },
+    "unchanged": "Same3seeds/12cells, immutable training wheel/config/probe, scoring groups, numerical quality/speed gates. No new tuning trials."
   }
 }

@@ -131,12 +131,19 @@ It does not submit extra allocations for this pressure pair.
 
 The original full-model paged attempt completed two updates but OOMed during
 validation while completed gradients remained live. A separate mainline fix
-releases gradients at the completed boundary before native SFT validation. Its
-scoped rerun uses `db4ba624eef8c2809a59533633ec6b73197cc43f`,
-`CAPACITY_PRESSURE_ONLY=1`, `CAPACITY_FOLLOWUP=1`, `WORK_SECONDS=780` and a
-15-minute wall limit on the same A100 node. Original capacity charged 898 seconds;
-898 + 900 remains within the unchanged 1,800-second capacity ceiling. It reruns
-only the nonpaged/paged full-model pair; the earlier failures remain evidence.
+releases gradients at the completed boundary before native SFT validation. The first
+scoped rerun (`db4ba624eef8c2809a59533633ec6b73197cc43f`) completed paged
+training and validation, but failed the unchanged 64-supervised-token minimum
+on its second training example. The final scoped pair uses
+`dfce2fb5a0e1445976abd13ce2ec781d68a9b8c4`, `CAPACITY_PRESSURE_ONLY=1`,
+`CAPACITY_FOLLOWUP=1`, `WORK_SECONDS=480`, `SEED=29` and a 10-minute wall limit
+on the same A100 node. Seed 29 is the smallest existing campaign seed whose
+first two training rows meet that minimum, selected by tokenizer counts without
+evaluation outcomes. Pressure-arm admission reserves 240 seconds; the measured
+previous maximum was 141 seconds. Other capacity searches retain 480 seconds.
+Charged capacity time was 1,181 seconds; adding the 600-second reservation stays
+within the unchanged 1,800-second ceiling. Only the full-model nonpaged/paged pair
+is rerun; OOMs and the token-gate failure remain evidence.
 
 ## Disposable factorial integration
 
@@ -201,9 +208,12 @@ to the ledger; a pending dependency alone does not reserve it within the budget.
 ## Budget, collection and analysis
 
 The total ceiling is eight GPU-hours, including failures. Current reservations
-are 240 mainline GPU-minutes, 170 factorial minutes, 30 capacity minutes,
+are 230 mainline GPU-minutes, 180 factorial minutes, 30 capacity minutes,
 1,017 seconds of earlier compatibility allocations and a conservative 15 local
-GPU-minutes. Their sum is 471.95 minutes. Amendments in the plan files preserve
+GPU-minutes. Their sum is 471.95 minutes. After seed29 completed in 1,492 seconds, the final
+seed43 allocation was admitted with 28,027 charged/reserved seconds against the
+28,800-second total. Ten unused mainline minutes moved to the factorial phase;
+the original trials and all thresholds are unchanged. Amendments in the plan files preserve
 the original limits and reasons; no quality/performance threshold changed.
 There are at most two concurrent phase allocations, on distinct nodes. Partially
 completed paired seeds stay on their original node; only complete unstarted seed
