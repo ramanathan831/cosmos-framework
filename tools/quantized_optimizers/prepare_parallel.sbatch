@@ -27,12 +27,13 @@ srun --kill-on-bad-exit=1 --container-image="$CONTAINER_IMAGE" \
  case "$MODE" in
    canary) trials="1 4" ;;
    canary_parallel) trials="4" ;;
+   full_one) trials="0" ;;
    trials) trials="0 1 2" ;;
    *) exit 2 ;;
  esac
  for trial in $trials; do
    extra=(); workers=4
-   if [ "$MODE" != trials ]; then workers=$trial; extra+=(--sample-targets 32); fi
+   if [[ "$MODE" == canary* ]]; then workers=$trial; extra+=(--sample-targets 32); fi
    python -m tools.quantized_optimizers.parallel_prepare \
     --config cosmos_framework/posttrain/configs/sft_optimizer_deployment.py \
     --workers "$workers" --reference-corpus "$REFERENCE_CORPUS" \

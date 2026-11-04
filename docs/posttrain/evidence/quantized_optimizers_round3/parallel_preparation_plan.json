@@ -46,5 +46,25 @@
     "parallel_only_canary_seconds": 720,
     "remaining_conditional_three_full_trials_seconds": 2640,
     "unchanged_cpu_total_reserved_seconds": 7147
+  },
+  "full_workload_admission": {
+    "recorded_utc": "2026-11-04T20:57:29.162361+00:00",
+    "serial_canary_preparation_seconds": 187.17614605394192,
+    "parallel_canary_preparation_seconds": 136.00228983489797,
+    "speed_ratio": 1.3762720192517879,
+    "exact_equal_unique_targets": 32,
+    "cuda_initialized": false,
+    "cpu_elapsed_allocations": [
+      2261,
+      866,
+      610,
+      322
+    ],
+    "local_cpu_allowance": 60,
+    "parallel_worker_compute_seconds_sum": 348.41276705265045,
+    "projected_worker_critical_path_seconds": 1529.7498053405434,
+    "decision": "Three full preparations do not fit the unchanged CPU cap at the observed worker rate. Admit one complete full-corpus measurement with40min reservation, including setup, source verification and headroom. This cannot establish repeated full-preparation speed evidence. Retain the original three-trial requirement as unmet; do not substitute three canaries.",
+    "full_allocation_seconds": 2400,
+    "total_cpu_reserved": 6519
   }
 }
