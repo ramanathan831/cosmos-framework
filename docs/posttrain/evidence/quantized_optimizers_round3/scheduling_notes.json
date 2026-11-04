@@ -43,5 +43,16 @@
     "partitions": "interactive_singlenode,polar4",
     "node": "batch-block5-04154",
     "reason": "polar4 has left the entire unstarted seed pending on priority without a start estimate. Both configured partitions include the same idle node and are nonpreempting. Permit either queue to schedule the existing single allocation; no duplicate job, altered request, or modified experiment. Keep development dependency intact."
+  },
+  "unavailable_node_recovery": {
+    "recorded_utc": "2026-11-04T23:03:35.933839+00:00",
+    "jobs": [
+      "37977251",
+      "37978670"
+    ],
+    "old_node": "batch-block5-04154",
+    "new_node": "batch-block4-0102",
+    "partitions": "interactive_singlenode,polar",
+    "reason": "Slurm reports the idle-looking requested node unavailable, and no runtime preflight or training case has started. New mixed node has seven unallocated GPUs,218 free logical CPUs and1714898MiB unallocated scheduler memory, on the same248-CPU architecture as the completed and running seeds. Preserve whole paired group, resource request, source, limits and dependent development order; native A10080GB preflight remains mandatory. Zero allocation cost for these pending migrations."
   }
 }
