@@ -1,0 +1,94 @@
+{
+  "generated_utc": "2026-11-04T09:39:10.954857+00:00",
+  "scope": "Tracked and reviewable follow-up artifacts, excluding this self-referential manifest. Raw archive retains per-input digests and failed attempts. First-campaign evidence is sealed separately.",
+  "files": {
+    "allocation_ledger.json": {
+      "bytes": 7429,
+      "sha256": "c149b21ae5fa10203a6e8eceba030d60cf56d85c06e1570ce7db839b67cfa40b"
+    },
+    "analysis_attempts.json": {
+      "bytes": 370,
+      "sha256": "ee2ecfe8a6fca40a9779df1c1adb301cfbe12c17f1d7fbd6a24dcd0be55a705a"
+    },
+    "deployment.png": {
+      "bytes": 127881,
+      "sha256": "9052836360de06800ed7d1315c45c9c50185ac97e55b50f318a38ae63a8b4bfe"
+    },
+    "deployment_raw.json.gz": {
+      "bytes": 959141,
+      "sha256": "2768a3a41d8907875e9ebe1ebb91d2ff748a912312957b71ac04c5cf6b1cb7ad"
+    },
+    "engineering_notes.md": {
+      "bytes": 10346,
+      "sha256": "7e32de3bcdb893d776155f4693e1b228e1bb281b2f89698e85b074c06516745a"
+    },
+    "final_accounting.json": {
+      "bytes": 4072,
+      "sha256": "b6a7c474f7f2ceaa6954364c8fb9f2dfccc1e2392c16a797129cb7a0f42d7673"
+    },
+    "final_selection.json": {
+      "bytes": 12108,
+      "sha256": "f54af998ed76713e13a7d8841150713a792a6a9a75bdd6f046436111ffedf5ab"
+    },
+    "final_task.png": {
+      "bytes": 84876,
+      "sha256": "dd6029ffc9038b62b57e9c7e91c0a3c9cdbde4e1347a9588d13942e746a0cb91"
+    },
+    "final_validation.json": {
+      "bytes": 993,
+      "sha256": "c667c9d7f049f843a9f6f63933c4573bed518068a8d9094ae0a575ed356ea9ba"
+    },
+    "local_checks.json": {
+      "bytes": 501,
+      "sha256": "abb2685c478e5de98a7f8b9eeb0318e63f5f173e56850ed10e5770409c82512d"
+    },
+    "local_regression.json": {
+      "bytes": 750,
+      "sha256": "bdae844f9824c7671b9f2a9db18ccd87e3e233654ea526d1b6f4eedec206cc4b"
+    },
+    "native_regression.json": {
+      "bytes": 614,
+      "sha256": "81a1c7e94a0402b85d6eff11bf164e897640e3ff5d56da0f90947e88216d2974"
+    },
+    "plan.json": {
+      "bytes": 4861,
+      "sha256": "3f50b5eecab0c4659677da03dcc391170192c1198008b873841888e35bd995e8"
+    },
+    "preparation_receipt.json": {
+      "bytes": 876,
+      "sha256": "7e112e203bed124426960af8ea9303fff547dd69b4969dcc3b7841f742789eae"
+    },
+    "proposed_pr.md": {
+      "bytes": 5628,
+      "sha256": "9eba7874c380ee87a699474884ff5ade74a60029c48f28d6caa32ce4f7af3127"
+    },
+    "qualification_summary.json": {
+      "bytes": 2517,
+      "sha256": "eaf04037d3bc792b59f940d77878a41f9be31cbc4ed115568e05799514f7c002"
+    },
+    "recovery_plan.json": {
+      "bytes": 1197,
+      "sha256": "03e5c9eae1350829bb7ff3859389ace8831b4c6cfc0b35fbf3a4f0eb5bb82e43"
+    },
+    "slurm_final_receipt.txt": {
+      "bytes": 1259,
+      "sha256": "6f4830dbd9feae6486030a21334da420dd5c36d46cd9f65f522766525e171587"
+    },
+    "slurm_rounding_audit.json": {
+      "bytes": 616,
+      "sha256": "5c825a281fb585d9ec83255d72ff9d402643398001efd7032bf747b68d213cd0"
+    },
+    "source_compatibility.json": {
+      "bytes": 3578,
+      "sha256": "703a79811ece07fdeb5a5c6d0bb1ce3763897b8d4fbae8be5e972187ffb311f5"
+    },
+    "source_identity.json": {
+      "bytes": 2011,
+      "sha256": "4869c2ecdd5176e6e0a385d7498de2129ec770ee2e6574e11e6f53cda48f3836"
+    },
+    "summary.json": {
+      "bytes": 137921,
+      "sha256": "a13f66a49763b86ac64c5cb417a337a96fa162990900b1ed525eff43b13ba3e8"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "status": "NOT QUALIFIED",
+  "product_objective_achieved": false,
+  "implemented_backend_names": [
+    "adamw_bnb_8bit",
+    "paged_adamw_8bit"
+  ],
+  "comparison_runs_complete": 18,
+  "paired_seeds": 3,
+  "paired_restarts_per_seed": 3,
+  "updates_per_run": 40,
+  "repeat_checkpoint_component_comparisons_passed": 72,
+  "final_score_files_complete": 7,
+  "canary_raw_prepared_state_components_equal": 6,
+  "numeric_gates": {
+    "development_nll": true,
+    "task_nll": false,
+    "task_accuracy": true,
+    "positive_adaptation": false,
+    "training_throughput": true,
+    "launch_time_to_quality": false,
+    "cold_time_to_quality": false,
+    "state_saving": true,
+    "equal_wall_budget_quality_gain": false
+  },
+  "extra_dense_fresh_process_resume": "Unqualified: canceled after 188 GPU-seconds before any training optimizer update after discovering midpoint retention omission; corrected but not rerun within the cap.",
+  "existing_correctness_evidence": "First campaign real-CUDA/native small transaction tests and separate large adapter integration recovery retain their original scopes.",
+  "release_blockers": [
+    "Final task NLL confidence exceeds 1.01",
+    "No demonstrated end-to-end time-to-quality win",
+    "No demonstrated equal-budget quality gain",
+    "Historically reused final pool, not independent untouched evaluation",
+    "Additional large ordinary dense fresh-process continuation incomplete"
+  ],
+  "budget": {
+    "gpu_seconds": 8632,
+    "gpu_cap_seconds": 9000,
+    "cpu_wall_seconds": 1678,
+    "cpu_cap_seconds": 1800
+  },
+  "all_owned_jobs_terminal": true,
+  "publication": "No PR opened, pushed, reopened or merged; PR334 left closed.",
+  "raw_archive_sha256": "2768a3a41d8907875e9ebe1ebb91d2ff748a912312957b71ac04c5cf6b1cb7ad",
+  "raw_file_hashes_verified": 389,
+  "analysis_source": "5611176f3977b5e8a8d44512916ec2b4130195ae",
+  "analysis_script_sha256": "1bced5772408644c313f1aad30569a5c6a7a861f2103cb5438e3a2b237bbd289",
+  "report": "../../quantized_optimizers.md",
+  "next_checks": [
+    "Corrected dense reference/resume pair with keep_optim_last=0 and sufficient time for native final exports; budget separately before submission.",
+    "Measure common loading/preparation bottlenecks, keep fixed failed thresholds, retain equal-time checkpoints, and use development data for further changes.",
+    "Obtain a sealed recording-disjoint final corpus outside previously inspected/used QLoRA groups, with gold annotations, media, and a content/recording manifest."
+  ]
+}

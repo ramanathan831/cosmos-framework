@@ -1,0 +1,31 @@
+{
+  "generated_utc": "2026-11-04T09:39:10.947404+00:00",
+  "runtime_source": "5611176f3977b5e8a8d44512916ec2b4130195ae",
+  "final_checks": {
+    "ruff_lint": "PASS",
+    "ruff_format": "PASS: 43 changed Python files",
+    "git_diff_check": "PASS",
+    "raw_archive_file_digests_verified": 389,
+    "all_jobs_terminal": true,
+    "recorded_source_file_digests_match": true,
+    "first_campaign_evidence_unchanged_since": "f0ce466f1dc4ad14aa51e97123f4d8a758a3733c"
+  },
+  "recorded_tests": {
+    "pinned_native_cpu": {
+      "passed": 73,
+      "skipped": 1,
+      "receipt": "native_regression.json"
+    },
+    "local_qualification_control": {
+      "passed": 7,
+      "source": "1a770a6",
+      "scope": "CPU controls, including nested optimizer-hook agreement; no accelerator qualification claim"
+    }
+  },
+  "analysis_environment": {
+    "python": "3.13.14 (main, Jun 23 2026, 15:18:27) [Clang 22.1.3 ]",
+    "numpy": "2.2.6",
+    "matplotlib": "3.11.2"
+  },
+  "release_qualified": false
+}

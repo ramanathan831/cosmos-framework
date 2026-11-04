@@ -1,0 +1,16 @@
+37949431|FAILED|181|cpu-00087|cpu=8,mem=32G,node=1|30|1:0
+37949524|COMPLETED|1000|cpu-00087|cpu=8,mem=32G,node=1|26|0:0
+37949598|FAILED|5|batch-block1-0062|billing=1,cpu=8,gres/gpu=1,mem=128G,node=1|12|1:0
+37950132|FAILED|102|batch-block1-0062|billing=1,cpu=8,gres/gpu=1,mem=128G,node=1|12|1:0
+37950356|CANCELLED by 41852|331|batch-block4-1051|billing=1,cpu=8,gres/gpu=1,mem=128G,node=1|12|0:0
+37950698|COMPLETED|607|batch-block4-2143|billing=1,cpu=8,gres/gpu=1,mem=128G,node=1|12|0:0
+37950870|CANCELLED by 41852|0|None assigned||44|0:0
+37950871|FAILED|2528|batch-block4-1051|billing=1,cpu=8,gres/gpu=1,mem=128G,node=1|44|1:0
+37950908|FAILED|2521|batch-block4-1034|billing=1,cpu=8,gres/gpu=1,mem=128G,node=1|44|1:0
+37951393|COMPLETED|184|cpu-00117|cpu=8,mem=32G,node=1|5|0:0
+37951607|CANCELLED by 41852|0|None assigned||44|0:0
+37952083|COMPLETED|1835|batch-block1-0062|billing=1,cpu=8,gres/gpu=1,mem=128G,node=1|34|0:0
+37952084|COMPLETED|222|batch-block1-0010|billing=1,cpu=8,gres/gpu=1,mem=128G,node=1|5|0:0
+37952088|COMPLETED|313|cpu-00072|cpu=8,mem=128G,node=1|7|0:0
+37952090|COMPLETED|293|batch-block4-1017|billing=1,cpu=8,gres/gpu=1,mem=128G,node=1|7|0:0
+37953580|CANCELLED by 41852|188|batch-block4-1017|billing=1,cpu=8,gres/gpu=1,mem=128G,node=1|9|0:0

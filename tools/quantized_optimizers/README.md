@@ -312,19 +312,20 @@ sbatch --time=12 --output="$RESULTS/slurm-%j.log" tools/quantized_optimizers/dep
 # The split stages avoid reserving a GPU for checkpoint-value hashing.
 export RESULTS="$SOURCE/seed17" MODE=train_only WORK_SECONDS=1880 TRIAL_SEED=17
 mkdir -p "$RESULTS"
-TRAIN_JOB=$(sbatch --parsable --time=33:20 --output="$RESULTS/slurm-%j.log" \
+TRAIN_JOB=$(sbatch --parsable --time=34 --output="$RESULTS/slurm-%j.log" \
   tools/quantized_optimizers/deployment.sbatch)
 export TARGET="$RESULTS" RESULTS="$SOURCE/seed17-checkpoint-verification"
 mkdir -p "$RESULTS"
 VERIFY_JOB=$(sbatch --parsable --dependency="afterok:$TRAIN_JOB" \
   --output="$RESULTS/slurm-%j.log" tools/quantized_optimizers/verify_deployment_cpu.sbatch)
 export RESULTS="$TARGET" MODE=score_only WORK_SECONDS=340
-sbatch --time=6:40 --dependency="afterok:$VERIFY_JOB" \
+sbatch --time=7 --dependency="afterok:$VERIFY_JOB" \
   --output="$RESULTS/slurm-%j.log" tools/quantized_optimizers/deployment.sbatch
 ```
 
 The recorded first two seeds used source `d35aa73` and combined training,
-checkpoint verification and scoring in 43m20s allocations. All twelve training
+checkpoint verification and scoring in requested 43m20s allocations (Slurm rounded
+these to 44 minutes). All twelve training
 runs and all 48 repeat-checkpoint comparisons passed, but scoring startup exceeded
 the work deadlines. Those failed attempts remain charged. Completed score commits
 were checked and retained; only the missing score was run separately. The third
@@ -360,3 +361,16 @@ For the matched fused arm use `rl.optimizer.name=adamw`,
 `rl.optimizer.impl=fused`, `rl.optimizer.bnb_min_8bit_size=4096`, and
 `model_hf.grad_ckpt=true`. Preserve all other settings and data identities.
 Do not interpret CPU corpus tests or an allocated/queued job as qualification.
+
+Use the effective `TimeLimit` returned by Slurm for admission, not requested seconds:
+Slurm rounded the campaign's fractional-minute requests upward. The retained audit
+records an earlier seven-second excess in planned reservations; actual GPU spending
+remained below the fixed cap. Subsequent examples use whole-minute requests.
+
+The additional dense continuation launcher now sets `rl.keep_optim_last=0` before
+its reference run, which saves at both 40 and 44. The resumed four-update phase uses
+`rl.save_every=0` to avoid an unnecessary export. Its interrupted v10 attempt omitted
+retention and was canceled before any training optimizer update. This extra large-workload
+continuation remains unqualified; a corrected complete rerun does not fit the
+remaining six-minute budget. Existing small native CUDA recovery tests and the
+separate full adapter integration recovery evidence retain their original scope.

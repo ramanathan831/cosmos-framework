@@ -4,8 +4,9 @@ The feature is implemented on independent branch `feat/quantized-optimizers`,
 based on upstream main `e644a833bf909af9c23a02a5c1069967dc501111` (fetched
 2026-11-03). Current main `d04e5067dd2f353fa8fab65fd99fcd86819e537d` was
 merged locally on 2026-11-04; its only delta is an action-cookbook documentation
-change, with no runtime or dependency-pin changes. **The requested product release is not qualified:** memory savings
-are measured, but speed and final task-quality confidence gates failed. All owned
+change, with no runtime or dependency-pin changes. **The requested product release is not qualified:** state-memory savings
+and a deployment training-loop throughput gain are measured, but end-to-end
+time-to-quality and final task-quality confidence gates failed. All owned
 training and evaluation jobs are terminal; the thresholds were not relaxed.
 
 Main had `adamw`, `fusedadam` and `muon`; comments referring to AdamW8bit described
@@ -131,7 +132,7 @@ canonical name including wrapper prefixes.
 
 ## Qualification protocol and data
 
-The fixed budget is eight GPU-hours including failures and local probes. Charge
+The first campaign's fixed budget is eight GPU-hours including failures and local probes. Charge
 terminal allocation elapsed time and reserve full wall limits for active/pending
 jobs before admitting work. At most two campaign GPUs run on distinct nodes. All
 arms within a paired seed use one verified A100-SXM4-80GB node and matched CPU/
@@ -325,27 +326,149 @@ local allowance totals **7h20m38s**, below eight GPU-hours. No owned job remains
 queued or running. The 39m22s remainder cannot reserve the next complete comparison;
 the budget is not described as exhausted.
 
-The next bounded experiment is to cache deterministic media preprocessing and
-compare the 16-block fused/checkpointed and eight-bit/non-checkpointed recipes on
-development data, preserving effective batch, trainables, exposure, precision,
-schedule and clipping. Reserve 150 GPU-minutes for six 40-update training cells
-(20 minutes each) and six task-score processes (5 minutes each), with a canary
-before admission. Preserve final dense checkpoints for task scoring. This is a
-proposal for a separate campaign, not an unrun result or a submitted job. A candidate
-win would still require independent paired timing restarts and adequate final
-evaluation at the unchanged gates. No training-speed, equal-budget quality-gain or
-inference-latency claim follows from this campaign's memory savings.
+## Completed deployment follow-up
+
+The authorized follow-up kept a separate **150 GPU-minute** cap and unchanged
+quality/performance thresholds. It trained decoder blocks 16–31: **3,087,142,912
+FP32 trainable elements**, with BF16 forward compute, eight real video frames,
+microbatch four, no accumulation, 40 updates and a matched cosine schedule.
+Fused FP32 AdamW uses activation checkpointing; nonpaged eight-bit AdamW uses the
+saved state memory to disable it. The earlier capacity checks established that
+fused AdamW without checkpointing does not fit this model even at microbatch one.
+This is the deployment comparison; the first campaign remains the optimizer
+isolation comparison. No QLoRA loading feature is used in this follow-up.
+
+Both arms consume the same immutable native CPU inputs. The optional
+`rl.prepared_corpus` interface verifies processor/source/media/content identities,
+rejects missing or modified entries, and binds the corpus digest into exact resume.
+The native packer independently reproduced all 245 prepared rows exactly. A real
+four-update raw/prepared fused canary then matched model, optimizer, scheduler,
+cursor, RNG and update state bit for bit. Preparation plus independent replay took
+812.126 CPU-wall seconds; that shared cost is included in the cold-pipeline clock.
+It is not attributed to optimizer quantization.
+
+The optional `rl.strict_determinism=true` requires `rl.deterministic=true` and
+requests deterministic kernels instead of warning-only behavior. The old default
+is preserved. Set `CUBLAS_WORKSPACE_CONFIG=:4096:8` and `PYTHONHASHSEED=42` in the
+launch environment. The initial warning-only canary was stopped and remains in
+cost accounting. Both timed arms use the same strict setting.
+
+All **18 native training runs** completed: three paired seeds, three paired
+process restarts per seed, two optimizers. Every run saved a full checkpoint and
+had zero skipped updates. All **72 repeat-checkpoint value comparisons** passed
+for model, optimizer, scheduler, data cursor, RNG and update count. Timing repeats
+are averaged within seed before the three-seed confidence interval; they do not
+inflate the quality sample count. All seven final score files are complete: one
+frozen reference and the two fixed restart-zero checkpoints for each seed.
+
+Per arm and restart, the three seeds process 480 video sequences and 45,993
+supervised tokens. Actual sequence lengths are 679–929, video payload shape is
+`[1920,1536]`, and the video grid is `[4,16,30]`, corresponding to eight 256×480
+frames. Each arm's three restarts repeat those exposures exactly. The final task
+uses 16 recording-disjoint groups, excluding training, development and the first
+campaign's final groups. These come from the user-approved historically inspected
+pool, so they are not an untouched test set. Final task scoring is teacher-forced.
+
+| Follow-up statistic | Estimate and 95% interval | Fixed gate |
+|---|---|---|
+| Native training throughput / fused | **1.329 [1.304, 1.353]** | Pass for this training-loop measurement |
+| Launch-to-completion ratio, full checkpoint included | 1.136 [0.702, 1.570] | No demonstrated end-to-end win |
+| Native time-to-quality ratio | 1.176 [0.824, 1.528] | Fail |
+| Launch time-to-quality ratio | 1.023 [0.243, 1.803] | Fail |
+| Cold-pipeline time-to-quality ratio | 0.993 [0.898, 1.088] | Fail |
+| Development NLL / fused | 1.00028 [0.99875, 1.00181] | Pass ≤1.01 |
+| Final task answer NLL / fused | **1.00618 [0.96976, 1.04260]** | Fail ≤1.01 |
+
+The crossed seed/recording bootstrap also fails final task NLL, with interval
+[0.98870, 1.02695]. Both optimizers have the same task accuracies by seed: 50%, 50%
+and 56.25%; their measured paired accuracy difference is zero. The frozen reference
+scores 68.75%. The adaptation interval is −43.75 to +10.42 percentage points, so
+positive adaptation is not established. These small, reused groups cannot establish
+an independent release-quality claim.
+
+At equal native training/validation time, the development NLL improvement is
+0.000061 with interval [−0.03474, 0.03487]. One slow-loading fused repeat had not
+completed its initial validation by the common launch/cold budget. Those equal-time
+comparisons are censored and fail the gain gate; missing quality is not imputed.
+Final task scores exist at matched update 40, not at both arms' equal-time stopping
+points. **No held-out equal-budget quality gain is claimed.**
+
+![Deployment development quality/time and sampled memory/throughput](evidence/quantized_optimizers_round2/deployment.png)
+
+![Final task quality at matched updates, with launch-time uncertainty](evidence/quantized_optimizers_round2/final_task.png)
+
+The allocation canary measures **24,697,144,000 state bytes fused versus
+6,271,567,872 eight-bit bytes**, including metadata and exceptions: about **74.61%
+less optimizer state**. Of the trainable elements, 3,087,007,744 have quantized
+moments and 135,168 retain FP32 state; none are uninitialized. The serialized-state
+count is slightly larger because copied quantization maps occur in multiple entries.
+There are no master copies beyond the FP32 trainable parameters.
+
+The saved memory is spent on avoiding recomputation. Across the full timing runs,
+sampled whole-device peaks average 73.06 GiB fused versus 72.78 GiB eight-bit; the
+paired reduction is 0.37% with interval [−1.68%, 2.43%], so total device-peak reduction
+is not established for this deployment configuration. Process GPU peaks are
+72.37 versus 72.10 GiB. Host process-tree PSS peaks increase from 6.17 to 10.66 GiB.
+The quantized adapter takes an eager independent CPU state snapshot for checkpoint
+correctness, which is consistent with this host-memory cost. PSS excludes unmapped
+filesystem cache; native cgroup readings and raw traces are retained. The earlier
+isolation comparison's measured device/process savings remain separate evidence.
+
+The pinned native CPU regression suite passes 73 tests with one optional skip;
+seven local qualification-control tests also pass. The earlier real-CUDA optimizer,
+small native transaction and large adapter integration recovery tests retain their
+scope. An additional dense 40→44 fresh-process check was canceled after 188 GPU-seconds,
+before any training optimizer update: its launcher omitted `keep_optim_last=0`, needed when
+native SFT also saves at the final step 44. The corrected launcher preserves the
+midpoint and avoids a redundant resumed export, but its full rerun is **not qualified**.
+It does not replace the completed timing or quality runs.
+
+All 16 follow-up Slurm allocations are terminal. Actual cost is **8,632 GPU-seconds
+(2h23m52s)**, including failed and canceled attempts, and 1,678 CPU-wall seconds
+against the 1,800-second CPU cap. Six minutes eight seconds remain under the GPU
+cap, which cannot reserve the complete additional recovery check. Slurm rounded
+fractional-minute requests upward; the retained audit records a seven-second excess
+in an earlier planned reservation total (9,007 versus 9,000 seconds), while actual
+spending remained below the cap. The ledger now uses effective wall limits.
+
+Two original combined allocations timed out during qualification after their
+training and repeat hashes completed. Completed score commits were validated and
+retained, and only the missing score was run separately. The final seed used
+separate training, CPU verification and GPU scoring allocations. Native source-tree,
+training-launch and scoring-math hashes prove the split did not change training or
+metrics. All negative results and unsuccessful attempts remain in the
+[machine-readable evidence](evidence/quantized_optimizers_round2/summary.json).
+
+The release remains blocked by final task-NLL confidence, end-to-end time-to-quality,
+absence of a demonstrated equal-budget quality gain, and independent final evaluation.
+The next correctness check is the corrected dense reference/resume pair with enough
+wall time for native final checkpoint writes; both optimizer controls still need
+that additional large-workload check. A further performance campaign should first
+address the measured common loading/preparation bottleneck and retain checkpoints
+at the prespecified equal-time stopping points. It must keep the failed thresholds
+unchanged and use development data for tuning. Independent release evaluation needs
+sealed recording/trajectory groups not previously inspected or used in the QLoRA
+pool, with gold annotations, original media and a content/recording manifest, sized
+to resolve the existing 1% quality margin. No training result here establishes lower
+inference latency.
 
 ## Reproduction and source identities
 
 [Qualification commands](../../tools/quantized_optimizers/README.md) cover data
 regeneration, immutable source archives, Slurm submission, collection and analysis.
-[Machine-readable qualification status](evidence/quantized_optimizers/qualification_summary.json)
-links each result, gate and remaining requirement.
+[First-campaign status](evidence/quantized_optimizers/qualification_summary.json)
+and [completed follow-up status](evidence/quantized_optimizers_round2/qualification_summary.json)
+link each result, gate and remaining requirement. The
+[current proposed PR](evidence/quantized_optimizers_round2/proposed_pr.md)
+describes the combined implementation and measured limitations; it has not been published.
 [Provenance](evidence/quantized_optimizers/provenance.json) retains every failed,
 canceled and completed allocation, dependency/source identities and budget receipts.
 The mainline and integration archives are separate; the integration-only patch is
 not part of the mainline runtime.
+The follow-up [source identities](evidence/quantized_optimizers_round2/source_identity.json),
+[artifact manifest](evidence/quantized_optimizers_round2/evidence_manifest.json) and
+[final allocation accounting](evidence/quantized_optimizers_round2/final_accounting.json)
+preserve the additional campaign independently of the sealed first campaign.
 
 The disposable integration uses QLoRA component
 `a7fd524242f4f06ac488a3d96d331b1f46e2b385`; it does not rely on the earlier reported

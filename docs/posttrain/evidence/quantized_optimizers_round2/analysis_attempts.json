@@ -1,0 +1,6 @@
+{
+  "initial_error": "ValueError: max() iterable argument is empty at equal-time last-validation lookup",
+  "cause": "seed43restart2 fused initial validation occurred after the paired common launch/cold budget",
+  "correction": "Retain this comparison as censored, emit null estimate/CI, and fail the gain gate. No imputation or threshold change.",
+  "gpu_seconds": 0
+}

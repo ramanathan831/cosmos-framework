@@ -18,7 +18,9 @@
       "state": "FAILED",
       "cpu_wall_seconds": 181,
       "gpus": 0,
-      "failure": "coarse-timestamp media mutation escaped stat-only check"
+      "failure": "coarse-timestamp media mutation escaped stat-only check",
+      "node": "cpu-00087",
+      "effective_wall_limit_seconds": 1800
     },
     {
       "job": "37949524",
@@ -26,7 +28,9 @@
       "state": "COMPLETED",
       "gpus": 0,
       "source": "b3b4f88",
-      "cpu_wall_seconds": 1000
+      "cpu_wall_seconds": 1000,
+      "node": "cpu-00087",
+      "effective_wall_limit_seconds": 1560
     },
     {
       "job": "37949598",
@@ -37,7 +41,9 @@
       "dependency": "afterok:37949524",
       "gpu_seconds": 5,
       "wall_seconds": 5,
-      "failure": "batch-shell UUID guard before container or training"
+      "failure": "batch-shell UUID guard before container or training",
+      "node": "batch-block1-0062",
+      "effective_wall_limit_seconds": 720
     },
     {
       "job": null,
@@ -54,17 +60,21 @@
       "source": "630a9e9f6de8733e41ab7f4a905e68cc769ae03d",
       "gpu_seconds": 102,
       "wall_seconds": 102,
-      "failure": "deterministic launch requires CUBLAS_WORKSPACE_CONFIG before CUDA initialization"
+      "failure": "deterministic launch requires CUBLAS_WORKSPACE_CONFIG before CUDA initialization",
+      "node": "batch-block1-0062",
+      "effective_wall_limit_seconds": 720
     },
     {
       "job": "37950356",
       "phase": "native prepared-input canary v6",
-      "state": "CANCELLED",
+      "state": "CANCELLED by 41852",
       "gpus": 1,
       "source": "873aac71baceccd38a48317d36b27e86f173d433",
       "gpu_seconds": 331,
       "wall_seconds": 331,
-      "failure": "stopped after four raw updates: native deterministic flag was warning-only, contrary to strict parity requirement"
+      "failure": "stopped after four raw updates: native deterministic flag was warning-only, contrary to strict parity requirement",
+      "node": "batch-block4-1051",
+      "effective_wall_limit_seconds": 720
     },
     {
       "job": "37950698",
@@ -73,14 +83,20 @@
       "gpus": 1,
       "source": "d35aa73",
       "gpu_seconds": 607,
-      "wall_seconds": 607
+      "wall_seconds": 607,
+      "node": "batch-block4-2143",
+      "effective_wall_limit_seconds": 720
     },
     {
       "job": "37950870",
       "phase": "seed17fixed-node admission",
-      "state": "CANCELLED",
+      "state": "CANCELLED by 41852",
       "gpu_seconds": 0,
-      "reason": "unstarted node unavailable until~2hours later; rerouted within established A100set"
+      "reason": "unstarted node unavailable until~2hours later; rerouted within established A100set",
+      "node": "None assigned",
+      "gpus": 0,
+      "effective_wall_limit_seconds": 2640,
+      "cpu_wall_seconds": 0
     },
     {
       "job": "37950871",
@@ -110,29 +126,34 @@
       "state": "COMPLETED",
       "gpus": 0,
       "source": "dfde22d",
-      "cpu_wall_seconds": 184
+      "cpu_wall_seconds": 184,
+      "node": "cpu-00117",
+      "effective_wall_limit_seconds": 300
     },
     {
       "job": "37951607",
       "phase": "seed43six paired native runs and final scoring",
-      "state": "CANCELLED",
+      "state": "CANCELLED by 41852",
       "dependency": "afterok:37950871",
-      "gpus": 1,
+      "gpus": 0,
       "source": "d35aa73",
       "excluded_other_active_node": "batch-block4-1034",
       "gpu_seconds": 0,
       "reason": "unstarted third seed held while dependent evaluation scheduling was repaired",
-      "effective_wall_limit_seconds": 2640
+      "effective_wall_limit_seconds": 2640,
+      "node": "None assigned",
+      "cpu_wall_seconds": 0
     },
     {
       "job": "37952083",
       "phase": "seed43 unchanged training only",
       "gpus": 1,
-      "wall_reservation_seconds": 2040,
       "dependency": null,
-      "state": "RUNNING",
+      "state": "COMPLETED",
       "source": "f54620d",
-      "node": "batch-block1-0062"
+      "node": "batch-block1-0062",
+      "effective_wall_limit_seconds": 2040,
+      "gpu_seconds": 1835
     },
     {
       "job": "37952084",
@@ -143,32 +164,52 @@
       "source": "f54620d",
       "gpu_seconds": 222,
       "wall_limit_seconds": 300,
-      "node": "batch-block1-0010"
+      "node": "batch-block1-0010",
+      "effective_wall_limit_seconds": 300
     },
     {
       "job": "37952088",
       "phase": "seed43 CPU checkpoint verification",
       "gpus": 0,
-      "wall_reservation_seconds": 420,
       "dependency": "afterok:37952083",
-      "state": "PENDING",
-      "source": "f54620d"
+      "state": "COMPLETED",
+      "source": "f54620d",
+      "node": "cpu-00072",
+      "effective_wall_limit_seconds": 420,
+      "cpu_wall_seconds": 313
     },
     {
       "job": "37952090",
       "phase": "seed43 final task scoring",
       "gpus": 1,
-      "wall_reservation_seconds": 420,
       "dependency": "afterok:37952088",
-      "state": "PENDING",
-      "source": "f54620d"
+      "state": "COMPLETED",
+      "source": "f54620d",
+      "node": "batch-block4-1017",
+      "effective_wall_limit_seconds": 420,
+      "gpu_seconds": 293
+    },
+    {
+      "job": "37953580",
+      "phase": "additional dense nonpaged44reference/40resume4",
+      "source": "76fea45",
+      "failure": "Canceled before the first training optimizer update after detecting missing keep_optim_last=0. Corrected helper3a91013 needs a fresh complete rerun.",
+      "state": "CANCELLED by 41852",
+      "node": "batch-block4-1017",
+      "gpus": 1,
+      "effective_wall_limit_seconds": 540,
+      "gpu_seconds": 188
     }
   ],
   "unsubmitted_seed_reservations": {},
-  "admitted_gpu_seconds_including_all_planned_seeds_and_local_reserve": 8776,
-  "admitted_cpu_wall_seconds": 1785,
+  "admitted_gpu_seconds_including_all_planned_seeds_and_local_reserve": 8632,
+  "admitted_cpu_wall_seconds": 1678,
   "rule": "Refresh terminal actuals and full nonterminal reservations before any new admission; retain all failures.",
   "reservation_adjustment": "Retain438GPU-seconds of launcher/control failures; reserve720 for strict canary,2600for each unchanged six-run seed group,42local. Total9000unchanged. Any returned allocation time stays available for dependent checks.",
   "local_reservation_retired_reason": "All local control tests are CPU-only and complete; no additional local CUDA work is planned.",
-  "rounding_audit": "Slurm rounded43:20 to44minutes,33:20 to34minutes,and6:40 to7minutes. Earlier peak planned reservation was9007seconds,7over the stated9000cap; the unstarted third combined job was canceled and actual spend never exceeded the cap. Corrected effective limits are used for all remaining admissions."
+  "rounding_audit": "Slurm rounded43:20 to44minutes,33:20 to34minutes,and6:40 to7minutes. Earlier peak planned reservation was9007seconds,7over the stated9000cap; the unstarted third combined job was canceled and actual spend never exceeded the cap. Corrected effective limits are used for all remaining admissions.",
+  "actual_gpu_seconds": 8632,
+  "actual_cpu_wall_seconds": 1678,
+  "remaining_gpu_seconds": 368,
+  "all_owned_jobs_terminal": true
 }

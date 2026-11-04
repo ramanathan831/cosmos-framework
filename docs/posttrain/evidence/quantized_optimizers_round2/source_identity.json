@@ -18,5 +18,11 @@
   "failed_launcher_canary_source": "46cd36b56e64df85526ad2fbe54b25c2bac8b8a2",
   "second_failed_launcher_source": "630a9e9f6de8733e41ab7f4a905e68cc769ae03d",
   "warning_only_canary_source": "873aac71baceccd38a48317d36b27e86f173d433",
-  "recovery_and_native_cpu_source": "dfde22d1a5662cb8df17cad36ec863facfe482f6"
+  "recovery_and_native_cpu_source": "dfde22d1a5662cb8df17cad36ec863facfe482f6",
+  "split_training_and_scoring_source": "f54620d587793b5325151744bc3e4d39b4fb9026",
+  "cancelled_dense_recovery_source": "76fea453ba4772277e11a9f7822dac39e42f01f6",
+  "recovery_retention_correction_source": "3a910136e29b45da312295198c51f582ffebec5b",
+  "analysis_source": "5611176f3977b5e8a8d44512916ec2b4130195ae",
+  "upstream_recheck_main": "d04e5067dd2f353fa8fab65fd99fcd86819e537d",
+  "integration_head_unchanged": "188379861a9d43cb99c57b2b083ada8684aca272"
 }

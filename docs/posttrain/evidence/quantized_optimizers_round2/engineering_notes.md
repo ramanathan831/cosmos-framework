@@ -119,3 +119,35 @@ on one allocation, with no outcome-based replacement. The extra50-second score
 wall allowance covered observed container setup, leaving its200-second work
 bound unchanged; it completed before either bound. All costs remain within the
 original9000GPU-second cap.
+
+### Terminal follow-up record
+
+All 18 native training runs completed 40 updates with zero skips, all 72 repeated
+checkpoint-component comparisons passed, and all seven fixed final score files
+completed. No owned allocation remains queued or running. The final receipt charges
+8,632 GPU-seconds and 1,678 CPU-wall seconds, including unsuccessful attempts.
+Slurm rounded fractional-minute wall requests upward; the retained admission audit
+records a seven-second excess in an earlier reservation total. Actual spending
+stayed within 9,000 GPU-seconds. Subsequent admission uses effective wall limits.
+
+Native-loop throughput improves by 1.329 times, with a 95% interval of
+[1.304, 1.353], and allocated optimizer state falls by 74.61%. The final task-NLL
+interval exceeds the fixed 1.01 bound, and end-to-end time-to-quality and
+equal-budget quality-gain gates fail. The analysis initially attempted a maximum
+over an empty equal-time validation set for one slow-loading baseline repeat.
+It now marks that comparison censored, without imputing quality or passing the
+gate. The original analysis failure is retained in analysis_attempts.json.
+
+The extra dense 40-to-44 fresh-process recovery attempt was canceled after
+188 GPU-seconds, before any training optimizer update. Its launcher omitted
+keep_optim_last=0, so native final-step saving would remove the step-40 midpoint.
+The corrected reference preserves both checkpoints and the resumed arm avoids a
+redundant final export. This full-workload rerun remains unqualified; 368 remaining
+GPU-seconds cannot reserve its complete reference/resume pair. Earlier CUDA/native
+and large adapter recovery checks retain their original scopes. A new complete
+recovery experiment needs a separately recorded budget before submission.
+
+The first campaign's sealed evidence and the separate QLoRA worktree are unchanged.
+The release remains unqualified; neither these historically reused evaluation
+groups nor the native-loop gain establishes the requested release-quality or
+end-to-end performance claim. The report and proposed PR retain all failed gates.

@@ -1,0 +1,159 @@
+{
+  "allocations": [
+    {
+      "job": "37949431",
+      "state": "FAILED",
+      "elapsed_seconds": 181,
+      "gpus": 0,
+      "node": "cpu-00087",
+      "effective_wall_limit_seconds": 1800,
+      "exit_code": "1:0"
+    },
+    {
+      "job": "37949524",
+      "state": "COMPLETED",
+      "elapsed_seconds": 1000,
+      "gpus": 0,
+      "node": "cpu-00087",
+      "effective_wall_limit_seconds": 1560,
+      "exit_code": "0:0"
+    },
+    {
+      "job": "37949598",
+      "state": "FAILED",
+      "elapsed_seconds": 5,
+      "gpus": 1,
+      "node": "batch-block1-0062",
+      "effective_wall_limit_seconds": 720,
+      "exit_code": "1:0"
+    },
+    {
+      "job": "37950132",
+      "state": "FAILED",
+      "elapsed_seconds": 102,
+      "gpus": 1,
+      "node": "batch-block1-0062",
+      "effective_wall_limit_seconds": 720,
+      "exit_code": "1:0"
+    },
+    {
+      "job": "37950356",
+      "state": "CANCELLED by 41852",
+      "elapsed_seconds": 331,
+      "gpus": 1,
+      "node": "batch-block4-1051",
+      "effective_wall_limit_seconds": 720,
+      "exit_code": "0:0"
+    },
+    {
+      "job": "37950698",
+      "state": "COMPLETED",
+      "elapsed_seconds": 607,
+      "gpus": 1,
+      "node": "batch-block4-2143",
+      "effective_wall_limit_seconds": 720,
+      "exit_code": "0:0"
+    },
+    {
+      "job": "37950870",
+      "state": "CANCELLED by 41852",
+      "elapsed_seconds": 0,
+      "gpus": 0,
+      "node": "None assigned",
+      "effective_wall_limit_seconds": 2640,
+      "exit_code": "0:0"
+    },
+    {
+      "job": "37950871",
+      "state": "FAILED",
+      "elapsed_seconds": 2528,
+      "gpus": 1,
+      "node": "batch-block4-1051",
+      "effective_wall_limit_seconds": 2640,
+      "exit_code": "1:0"
+    },
+    {
+      "job": "37950908",
+      "state": "FAILED",
+      "elapsed_seconds": 2521,
+      "gpus": 1,
+      "node": "batch-block4-1034",
+      "effective_wall_limit_seconds": 2640,
+      "exit_code": "1:0"
+    },
+    {
+      "job": "37951393",
+      "state": "COMPLETED",
+      "elapsed_seconds": 184,
+      "gpus": 0,
+      "node": "cpu-00117",
+      "effective_wall_limit_seconds": 300,
+      "exit_code": "0:0"
+    },
+    {
+      "job": "37951607",
+      "state": "CANCELLED by 41852",
+      "elapsed_seconds": 0,
+      "gpus": 0,
+      "node": "None assigned",
+      "effective_wall_limit_seconds": 2640,
+      "exit_code": "0:0"
+    },
+    {
+      "job": "37952083",
+      "state": "COMPLETED",
+      "elapsed_seconds": 1835,
+      "gpus": 1,
+      "node": "batch-block1-0062",
+      "effective_wall_limit_seconds": 2040,
+      "exit_code": "0:0"
+    },
+    {
+      "job": "37952084",
+      "state": "COMPLETED",
+      "elapsed_seconds": 222,
+      "gpus": 1,
+      "node": "batch-block1-0010",
+      "effective_wall_limit_seconds": 300,
+      "exit_code": "0:0"
+    },
+    {
+      "job": "37952088",
+      "state": "COMPLETED",
+      "elapsed_seconds": 313,
+      "gpus": 0,
+      "node": "cpu-00072",
+      "effective_wall_limit_seconds": 420,
+      "exit_code": "0:0"
+    },
+    {
+      "job": "37952090",
+      "state": "COMPLETED",
+      "elapsed_seconds": 293,
+      "gpus": 1,
+      "node": "batch-block4-1017",
+      "effective_wall_limit_seconds": 420,
+      "exit_code": "0:0"
+    },
+    {
+      "job": "37953580",
+      "state": "CANCELLED by 41852",
+      "elapsed_seconds": 188,
+      "gpus": 1,
+      "node": "batch-block4-1017",
+      "effective_wall_limit_seconds": 540,
+      "exit_code": "0:0"
+    }
+  ],
+  "all_owned_jobs_terminal": true,
+  "gpu_seconds": 8632,
+  "gpu_cap_seconds": 9000,
+  "remaining_gpu_seconds": 368,
+  "cpu_wall_seconds": 1678,
+  "cpu_cap_seconds": 1800,
+  "local_cuda_seconds": 0,
+  "prior_campaign_gpu_seconds": 26438,
+  "combined_gpu_seconds": 35070,
+  "admission_error": "Earlier fractional-minute rounding produced 9007 seconds of planned reservations; actual use remained below 9000. Retained separately in slurm_rounding_audit.json.",
+  "stop_reason": "Remaining 368 seconds cannot reserve a corrected complete dense continuation run or another full paired training comparison."
+}
