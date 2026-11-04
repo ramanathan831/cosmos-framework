@@ -1,0 +1,13 @@
+{
+  "recorded_utc": "2026-11-04T21:42:56.206955+00:00",
+  "purpose": "Locate CPU preparation cost using the existing metadata-selected 32-target canary. No final task scores or tuning.",
+  "workers": 4,
+  "threads_per_worker": 2,
+  "cpu_node": "cpu-00049",
+  "cpus": 8,
+  "host_memory_gib": 16,
+  "reserved_cpu_wall_seconds": 480,
+  "previous_complete_parallel_canary_allocation_seconds": 322,
+  "original_cpu_cap_seconds": 7200,
+  "scope": "Development profile only; independent raw replay and exact full reference equality remain enforced. Final cold cost stays frozen to completed job37976182 regardless of this result."
+}

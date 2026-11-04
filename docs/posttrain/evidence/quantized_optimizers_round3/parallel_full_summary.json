@@ -1,0 +1,42 @@
+{
+  "job": "37976182",
+  "elapsed_cpu_wall_seconds": 1990,
+  "receipt": {
+    "workers": 4,
+    "threads_per_worker": 2,
+    "cpu_affinity": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      12,
+      13
+    ],
+    "preparation_seconds": 1589.0746991538908,
+    "total_seconds_with_independent_exact_replay": 1883.2770681129768,
+    "exact_raw_prepared_rows": 562,
+    "independently_replayed_unique_targets": 562,
+    "total_verified_rows": 751,
+    "raw_native_calls": 1124,
+    "reference_exact_unique_targets": 562,
+    "reference_corpus_sha256": "ea2e64893ab3d7da0f4c8be33001ae99c96dfd2c54fe293449c29255cd1f2d70",
+    "corpus_sha256": "ea2e64893ab3d7da0f4c8be33001ae99c96dfd2c54fe293449c29255cd1f2d70",
+    "payload_bytes": 6636869170,
+    "cuda_initialized": false,
+    "source_paths": [
+      "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data/train.jsonl",
+      "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data/validation.jsonl",
+      "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data/train-mixed.jsonl",
+      "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data/dev-task.jsonl",
+      "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data/fixed-final.jsonl",
+      "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/validation.jsonl"
+    ],
+    "worker_compute_seconds_sum": 5617.005254155723,
+    "source_sha256": "84249568dddfa6f6b33a7fca4a89b4bd2bb39ec5b163b28998f61f1751925200"
+  },
+  "cold_clock_seconds": 1990,
+  "full_repetitions": 1,
+  "three_full_preparation_repetitions_gate": false
+}

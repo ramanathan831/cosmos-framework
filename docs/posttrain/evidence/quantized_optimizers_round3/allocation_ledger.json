@@ -2,6 +2,7 @@
   "jobs": [
     {
       "job": "37970579",
+      "name": "optimizer-r3-recovery-adamw",
       "state": "CANCELLED by 41852",
       "elapsed_seconds": 0,
       "effective_wall_limit_seconds": 1800,
@@ -12,6 +13,7 @@
     },
     {
       "job": "37970581",
+      "name": "optimizer-r3-recovery-adamw_bnb_8bit",
       "state": "FAILED",
       "elapsed_seconds": 345,
       "effective_wall_limit_seconds": 1800,
@@ -22,6 +24,7 @@
     },
     {
       "job": "37970710",
+      "name": "optimizer-outcomes-prepare",
       "state": "COMPLETED",
       "elapsed_seconds": 2261,
       "effective_wall_limit_seconds": 2700,
@@ -32,6 +35,7 @@
     },
     {
       "job": "37971062",
+      "name": "optimizer-r3-development-diagnosis",
       "state": "CANCELLED by 41852",
       "elapsed_seconds": 0,
       "effective_wall_limit_seconds": 1200,
@@ -42,6 +46,7 @@
     },
     {
       "job": "37971293",
+      "name": "optimizer-r3-recovery-adamw",
       "state": "CANCELLED by 41852",
       "elapsed_seconds": 175,
       "effective_wall_limit_seconds": 1800,
@@ -52,6 +57,7 @@
     },
     {
       "job": "37971294",
+      "name": "optimizer-r3-development-diagnosis",
       "state": "COMPLETED",
       "elapsed_seconds": 297,
       "effective_wall_limit_seconds": 1200,
@@ -62,6 +68,7 @@
     },
     {
       "job": "37972117",
+      "name": "optimizer-r3-recovery-adamw_bnb_8bit",
       "state": "FAILED",
       "elapsed_seconds": 166,
       "effective_wall_limit_seconds": 1800,
@@ -72,6 +79,7 @@
     },
     {
       "job": "37972125",
+      "name": "optimizer-r3-recovery-adamw",
       "state": "FAILED",
       "elapsed_seconds": 114,
       "effective_wall_limit_seconds": 1800,
@@ -82,6 +90,7 @@
     },
     {
       "job": "37972189",
+      "name": "optimizer-outcomes-prepare",
       "state": "COMPLETED",
       "elapsed_seconds": 866,
       "effective_wall_limit_seconds": 1500,
@@ -92,6 +101,7 @@
     },
     {
       "job": "37972617",
+      "name": "optimizer-r3-recovery-adamw_bnb_8bit",
       "state": "COMPLETED",
       "elapsed_seconds": 620,
       "effective_wall_limit_seconds": 1800,
@@ -102,6 +112,7 @@
     },
     {
       "job": "37972618",
+      "name": "optimizer-r3-recovery-adamw",
       "state": "COMPLETED",
       "elapsed_seconds": 948,
       "effective_wall_limit_seconds": 1800,
@@ -112,6 +123,7 @@
     },
     {
       "job": "37972799",
+      "name": "optimizer-r3-development-recipes",
       "state": "COMPLETED",
       "elapsed_seconds": 1342,
       "effective_wall_limit_seconds": 2400,
@@ -122,6 +134,7 @@
     },
     {
       "job": "37973484",
+      "name": "optimizer-r3-capacity-budget",
       "state": "CANCELLED by 41852",
       "elapsed_seconds": 0,
       "effective_wall_limit_seconds": 1500,
@@ -132,6 +145,7 @@
     },
     {
       "job": "37973612",
+      "name": "optimizer-r3-capacity-budget",
       "state": "CANCELLED",
       "elapsed_seconds": 0,
       "effective_wall_limit_seconds": 1500,
@@ -142,6 +156,7 @@
     },
     {
       "job": "37974045",
+      "name": "optimizer-r3-capacity-budget",
       "state": "COMPLETED",
       "elapsed_seconds": 1157,
       "effective_wall_limit_seconds": 1800,
@@ -152,6 +167,7 @@
     },
     {
       "job": "37974953",
+      "name": "optimizer-r3-parallel-input",
       "state": "TIMEOUT",
       "elapsed_seconds": 610,
       "effective_wall_limit_seconds": 600,
@@ -162,6 +178,7 @@
     },
     {
       "job": "37975697",
+      "name": "optimizer-deployment",
       "state": "COMPLETED",
       "elapsed_seconds": 688,
       "effective_wall_limit_seconds": 1200,
@@ -172,6 +189,7 @@
     },
     {
       "job": "37975857",
+      "name": "optimizer-r3-prepare-retry",
       "state": "COMPLETED",
       "elapsed_seconds": 322,
       "effective_wall_limit_seconds": 720,
@@ -182,6 +200,7 @@
     },
     {
       "job": "37976023",
+      "name": "optimizer-deployment",
       "state": "COMPLETED",
       "elapsed_seconds": 1013,
       "effective_wall_limit_seconds": 1200,
@@ -192,16 +211,18 @@
     },
     {
       "job": "37976182",
-      "state": "RUNNING",
-      "elapsed_seconds": 1137,
+      "name": "optimizer-r3-prepare-full",
+      "state": "COMPLETED",
+      "elapsed_seconds": 1990,
       "effective_wall_limit_seconds": 2400,
       "gpu_count_requested": 0,
       "charged_or_reserved_gpu_seconds": 0,
-      "charged_or_reserved_cpu_wall_seconds": 2400,
+      "charged_or_reserved_cpu_wall_seconds": 1990,
       "node": "cpu-00049"
     },
     {
       "job": "37976325",
+      "name": "optimizer-deployment",
       "state": "COMPLETED",
       "elapsed_seconds": 146,
       "effective_wall_limit_seconds": 360,
@@ -209,14 +230,47 @@
       "charged_or_reserved_gpu_seconds": 146,
       "charged_or_reserved_cpu_wall_seconds": 0,
       "node": "batch-block4-1034"
+    },
+    {
+      "job": "37977248",
+      "name": "optimizer-outcome-s17",
+      "state": "RUNNING",
+      "elapsed_seconds": 1150,
+      "effective_wall_limit_seconds": 4500,
+      "gpu_count_requested": 1,
+      "charged_or_reserved_gpu_seconds": 4500,
+      "charged_or_reserved_cpu_wall_seconds": 0,
+      "node": "batch-block4-1034"
+    },
+    {
+      "job": "37977250",
+      "name": "optimizer-outcome-s29",
+      "state": "PENDING",
+      "elapsed_seconds": 0,
+      "effective_wall_limit_seconds": 4500,
+      "gpu_count_requested": 1,
+      "charged_or_reserved_gpu_seconds": 4500,
+      "charged_or_reserved_cpu_wall_seconds": 0,
+      "node": "None assigned"
+    },
+    {
+      "job": "37977251",
+      "name": "optimizer-outcome-s43",
+      "state": "PENDING",
+      "elapsed_seconds": 0,
+      "effective_wall_limit_seconds": 4500,
+      "gpu_count_requested": 1,
+      "charged_or_reserved_gpu_seconds": 4500,
+      "charged_or_reserved_cpu_wall_seconds": 0,
+      "node": "None assigned"
     }
   ],
-  "as_of_utc": "2026-11-04T21:18:53.765164+00:00",
-  "unsubmitted_final_reservation_seconds": 13500,
+  "as_of_utc": "2026-11-04T21:42:56.204676+00:00",
+  "unsubmitted_final_reservation_seconds": 0,
   "total_gpu_cap_seconds": 28800,
   "cpu_wall_cap_seconds": 7200,
   "total_with_reserved_final": 20571,
-  "cpu_actual_or_reserved_seconds": 6519,
+  "cpu_actual_or_reserved_seconds": 6109,
   "failures": {
     "37970581": "New recovery diagnostic failed to resolve native worker cursor handle after update41; checkpoint40 completed. Fixed by2e44bfa.",
     "37971293": "Canceled before reaching the same diagnostic failure.",
@@ -230,7 +284,8 @@
   "local_test_gpu_seconds_charged": 60,
   "local_test_note": "Root pytest setup overrides CUDA_VISIBLE_DEVICES even for CPU-labelled tests. Conservatively charge60GPU-seconds for49.88s of local pytest runtimes, including42 kernel tests passing in26.20s on A100 with Torch2.10.0+cu130/Transformers4.57.6/bnb0.49.2. Remote pinned regression remains required. Future CPU-only invocations exclude the root conftest.",
   "unsubmitted_conditional_cpu_full_trials_reservation_seconds": 0,
-  "cpu_total_including_conditional_reservation": 6519,
+  "cpu_total_including_conditional_reservation": 6589,
   "local_cpu_check_reservation_seconds": 60,
-  "final_reservation_update": "75min per seed \u00d73, including every dependent128-row scoring process, frozen reference and exact exposure inspection; based on180\u2013214s training plus~120s scoring per case. Reserve900more seconds within unchanged28800cap before admission; no threshold changes."
+  "final_reservation_update": "75min per seed \u00d73, including every dependent128-row scoring process, frozen reference and exact exposure inspection; based on180\u2013214s training plus~120s scoring per case. Reserve900more seconds within unchanged28800cap before admission; no threshold changes.",
+  "unsubmitted_preparation_profile_reservation_seconds": 480
 }

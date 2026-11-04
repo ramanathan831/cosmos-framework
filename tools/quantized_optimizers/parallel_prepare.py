@@ -6,10 +6,12 @@ and atomic manifest publication. No CUDA, model weights, or scoring is involved.
 """
 
 import argparse
+import cProfile
 import hashlib
 import json
 import multiprocessing
 import os
+import pstats
 import tempfile
 import time
 from concurrent.futures import ProcessPoolExecutor
@@ -45,14 +47,33 @@ def make_packer(config_path):
     )
 
 
-def worker_init(config_path, threads, directory):
-    global _PACKER, _DIRECTORY
+def worker_init(config_path, threads, directory, profile):
+    global _PACKER, _DIRECTORY, _PROFILE
     torch.set_num_threads(threads)
     _, _PACKER = make_packer(config_path)
     _DIRECTORY = Path(directory)
+    _PROFILE = profile
 
 
 def worker_target(target):
+    if not _PROFILE:
+        return process_target(target)
+    profiler = cProfile.Profile()
+    result = profiler.runcall(process_target, target)
+    result["profile"] = [
+        {
+            "function": f"{path}:{line}:{name}",
+            "primitive_calls": cc,
+            "calls": nc,
+            "own_seconds": tt,
+            "cumulative_seconds": ct,
+        }
+        for (path, line, name), (cc, nc, tt, ct, _) in pstats.Stats(profiler).stats.items()
+    ]
+    return result
+
+
+def process_target(target):
     started = time.monotonic()
     first = deterministic_sample(_PACKER, target)
     path = _DIRECTORY / (target_key(target) + ".pt")
@@ -78,6 +99,7 @@ def main():
     parser.add_argument("--extra-data", action="append", default=[])
     parser.add_argument("--workers", type=int, choices=(1, 2, 4), required=True)
     parser.add_argument("--sample-targets", type=int)
+    parser.add_argument("--profile", action="store_true", help="Development CPU profile; not a timing trial")
     parser.add_argument("--reference-corpus", type=Path, required=True)
     args = parser.parse_args()
     if os.environ.get("CUDA_VISIBLE_DEVICES") != "":
@@ -107,7 +129,7 @@ def main():
             max_workers=args.workers,
             mp_context=multiprocessing.get_context("spawn"),
             initializer=worker_init,
-            initargs=(args.config, 8 // args.workers, temporary),
+            initargs=(args.config, 8 // args.workers, temporary, args.profile),
         )
         native = packer.sft_process_sample
 
@@ -158,6 +180,27 @@ def main():
         "source_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
     }
     (args.output / "preparation_receipt.json").write_text(json.dumps(result, indent=2) + "\n")
+    if args.profile:
+        combined = {}
+        for receipt in receipts.values():
+            for row in receipt["profile"]:
+                values = combined.setdefault(
+                    row["function"], dict.fromkeys(("primitive_calls", "calls", "own_seconds", "cumulative_seconds"), 0)
+                )
+                for key in values:
+                    values[key] += row[key]
+        ordered = sorted(combined.items(), key=lambda item: item[1]["cumulative_seconds"], reverse=True)
+        (args.output / "worker_profile.json").write_text(
+            json.dumps(
+                {
+                    "scope": "Summed worker profiles of independent native preparation and replay. Nested cumulative times overlap; not an uninstrumented timing result.",
+                    "targets": len(receipts),
+                    "functions": [{"function": name, **values} for name, values in ordered],
+                },
+                indent=2,
+            )
+            + "\n"
+        )
     print(json.dumps(result), flush=True)
 
 
