@@ -177,8 +177,8 @@ def launch(root, name, arm, seed, *, prepared, canary, handle, deadline):
 def main():
     root = Path(os.environ["RESULTS"])
     mode = os.environ["MODE"]
-    if mode not in ("canary", "trials"):
-        raise ValueError("MODE must be canary or trials")
+    if mode not in ("canary", "trials", "recovery"):
+        raise ValueError("MODE must be canary, trials or recovery")
     started = time.monotonic()
     deadline = started + int(os.environ["WORK_SECONDS"])
     preparation = Path(os.environ["PREPARATION"])
@@ -226,7 +226,11 @@ def main():
             "preparation_cpu_seconds": receipt["total_seconds_with_independent_exact_replay"],
         },
     )
-    if mode == "canary":
+    if mode == "recovery":
+        from tools.quantized_optimizers.run_recovery import run
+
+        run(root, staging, deadline)
+    elif mode == "canary":
         outputs = []
         for name, arm, corpus in (
             ("raw_fused", "adamw", ""),

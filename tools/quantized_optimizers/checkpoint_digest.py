@@ -14,9 +14,15 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("checkpoint")
     parser.add_argument("output", type=Path)
+    parser.add_argument("--model-only", action="store_true")
     args = parser.parse_args()
     manager = CheckpointManager()
     report = {"checkpoint_provenance": manager.checkpoint_provenance(args.checkpoint)}
+    if args.model_only:
+        value = manager.load_component(args.checkpoint, "model")
+        report["model"] = digest(value["net"])
+        args.output.write_text(json.dumps(report, indent=2) + "\n")
+        return
     for name in ("model", "optim", "trainer", "data"):
         value = manager.load_component(args.checkpoint, name)
         if value is None:

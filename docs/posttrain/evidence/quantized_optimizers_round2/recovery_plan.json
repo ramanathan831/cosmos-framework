@@ -1,0 +1,11 @@
+{
+  "purpose": "Additional mainline dense fresh-process checkpoint continuation, correctness only; never replaces final quality/timing cells",
+  "recorded_before_final_scoring": true,
+  "budget": "Only admit from returned time within the unchanged9000GPU-second follow-up cap, after preserving the three-seed comparison allocations",
+  "arms": ["adamw", "adamw_bnb_8bit"],
+  "seed": 17,
+  "reference": "Same deployment recipe, strict deterministic kernels,44updates, fixed cosine cycle40, checkpoint at40; capture complete state digests at44",
+  "resume": "Fresh process with the same44update horizon and cycle40, restoring reference checkpoint40; execute next4updates and capture complete state digests",
+  "gates": ["Identical model and optimizer values at44", "Identical scheduler, update counters, cursor and RNG at44", "Model changes from40to44; counters advance exactly4", "No nonfinite skips; native epoch boundary is crossed at173rows"],
+  "separation": "Separate correctness output roots and no final task scoring. Reference40numeric state may be checked against original40state, but never substituted for it. No optimizer family conversion or changed horizon is labeled exact resume."
+}

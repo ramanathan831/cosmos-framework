@@ -27,12 +27,14 @@ if __name__ == "__main__":
     # State after the same native loop/finalization. Fingerprint each component
     # by values, excluding deliberate objective identity differences (cache use).
     torch.cuda.synchronize()
+    cursor = captured["data"].state_dict()
     result = {
         "model": digest(trainer._net().state_dict()),
         "optimizer": digest(trainer.opt.state_dict()),
         "scheduler": digest(trainer.lr_scheduler.state_dict()),
         "update": digest(trainer._update_state_dict()),
-        "cursor": digest(captured["data"].state_dict()),
+        "cursor": digest(cursor),
+        "cursor_state": cursor,
         "rng": digest(collect_rng_state()),
         "state_report": trainer.opt.state_report()
         if hasattr(trainer.opt, "state_report")

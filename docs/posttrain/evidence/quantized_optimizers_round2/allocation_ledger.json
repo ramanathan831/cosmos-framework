@@ -69,18 +69,42 @@
     {
       "job": "37950698",
       "phase": "strict native prepared-input canary v7",
-      "state": "PENDING",
-      "wall_reservation_seconds": 720,
+      "state": "COMPLETED",
       "gpus": 1,
-      "source": "d35aa73"
+      "source": "d35aa73",
+      "gpu_seconds": 607,
+      "wall_seconds": 607
+    },
+    {
+      "job": "37950870",
+      "phase": "seed17fixed-node admission",
+      "state": "CANCELLED",
+      "gpu_seconds": 0,
+      "reason": "unstarted node unavailable until~2hours later; rerouted within established A100set"
+    },
+    {
+      "job": "37950871",
+      "phase": "seed29six paired native runs and final scoring",
+      "state": "RUNNING",
+      "wall_reservation_seconds": 2600,
+      "gpus": 1,
+      "source": "d35aa73",
+      "node": "batch-block4-1051"
+    },
+    {
+      "job": "37950908",
+      "phase": "seed17six paired native runs and final scoring",
+      "state": "RUNNING",
+      "wall_reservation_seconds": 2600,
+      "gpus": 1,
+      "source": "d35aa73",
+      "node": "batch-block4-1034"
     }
   ],
   "unsubmitted_seed_reservations": {
-    "17": 2600,
-    "29": 2600,
     "43": 2600
   },
-  "admitted_gpu_seconds_including_all_planned_seeds_and_local_reserve": 9000,
+  "admitted_gpu_seconds_including_all_planned_seeds_and_local_reserve": 8887,
   "admitted_cpu_wall_seconds": 1181,
   "rule": "Refresh terminal actuals and full nonterminal reservations before any new admission; retain all failures.",
   "reservation_adjustment": "Retain438GPU-seconds of launcher/control failures; reserve720 for strict canary,2600for each unchanged six-run seed group,42local. Total9000unchanged. Any returned allocation time stays available for dependent checks."
