@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=optimizer-prepare-cpu
-#SBATCH --partition=polar,grizzly
+#SBATCH --partition=cpu_short
 #SBATCH --account=edgeai_tao-ptm_image-foundation-model-clip
 #SBATCH --nodes=1
 #SBATCH --ntasks=1

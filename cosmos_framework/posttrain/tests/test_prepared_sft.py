@@ -139,3 +139,20 @@ def test_prepared_path_typed_and_default_preserved():
     assert asdict(SFTConfig())["prepared_corpus"] == ""
     with pytest.raises(TypeError, match="path string"):
         SFTConfig(prepared_corpus=True)
+
+
+@pytest.mark.parametrize("change", ["media", "payload"])
+def test_same_size_changes_rejected_when_filesystem_stamps_are_coarse(corpus, monkeypatch, change):
+    from cosmos_framework.posttrain.data.packer import prepared_sft
+
+    packer, data, root, media = corpus
+    monkeypatch.setattr(prepared_sft, "stamp", lambda path: (1, 2, 3, 4, 5))
+    bound = PreparedSFTCorpus(packer, root, [data])
+    target = target_from_row(data[0])
+    bound.process(target)
+    path = media if change == "media" else root / f"{target_key(target)}.pt"
+    value = bytearray(path.read_bytes())
+    value[-1] ^= 1
+    path.write_bytes(value)
+    with pytest.raises(ValueError):
+        bound.process(target)

@@ -168,7 +168,6 @@ class PreparedSFTCorpus:
         for dataset in datasets:
             if any(target_key(target_from_row(dataset[i])) not in self.entry_stamps for i in range(len(dataset))):
                 raise ValueError("prepared SFT corpus does not cover the requested source")
-        self.verified: set[str] = set()
         self.hits = 0
 
     def process(self, target: SFTTarget) -> SFTPolicyInput:
@@ -179,7 +178,11 @@ class PreparedSFTCorpus:
             for part in content if isinstance(content, list) else ():
                 if isinstance(part, dict) and part.get("type") in ("image", "video"):
                     name = part[part["type"]]
-                    if name not in self.media_stamps or stamp(Path(name)) != self.media_stamps[name]:
+                    if (
+                        name not in self.media_stamps
+                        or stamp(Path(name)) != self.media_stamps[name]
+                        or sha256_file(name) != self.manifest["media"][name]
+                    ):
                         raise ValueError("prepared SFT media changed or was not bound")
         key = target_key(target)
         entry = self.manifest["entries"].get(key)
@@ -188,10 +191,10 @@ class PreparedSFTCorpus:
         path = self.root / f"{key}.pt"
         if stamp(path) != self.entry_stamps[key]:
             raise ValueError("prepared SFT entry changed")
-        if key not in self.verified:
-            if sha256_file(str(path)) != entry["sha256"] or stamp(path) != self.entry_stamps[key]:
-                raise ValueError("prepared SFT entry digest mismatch")
-            self.verified.add(key)
+        # Container/remote filesystems can retain the same stat timestamps for
+        # same-size rewrites. A stat-only fast path cannot establish immutability.
+        if sha256_file(str(path)) != entry["sha256"] or stamp(path) != self.entry_stamps[key]:
+            raise ValueError("prepared SFT entry digest mismatch")
         # Each load has private mmap storage. Consumers cannot mutate future hits.
         sample = SFTPolicyInput(**torch.load(path, map_location="cpu", weights_only=True, mmap=True))
         if len(sample.input_ids) != entry["sequence_length"] or len(sample.labels) != len(sample.input_ids):
