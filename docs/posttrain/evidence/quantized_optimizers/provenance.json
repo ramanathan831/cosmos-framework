@@ -479,9 +479,11 @@
       "source": "a02e75793e889aa8bb3fde26b0a9c578ee3f10d6",
       "archive_sha256": "ba8ee52b2971acf49e7c4bd67e7d1f2b5509ef52b0b94857ef4ed2f10b835a0e",
       "allocation_minutes": 45,
-      "state": "RUNNING",
+      "state": "COMPLETED",
       "node": "batch-block4-2071",
-      "dependency": "afterany:37945944"
+      "dependency": "afterany:37945944",
+      "elapsed_gpu_seconds": 1810,
+      "reason": "Allfour seed43cells trained16updates and final-scored; full12cell factorial terminal, both exact8-to16recovery markers preserved."
     },
     {
       "job": "37947535",
@@ -489,16 +491,21 @@
       "source": "3641b40e070bc363f1b9635cf4eda9010f81227d",
       "archive_sha256": "6f5a7b49aa7d95e5dd027c56c2a44fe8ad3b7acb3fff96e2222b7c69deea61d5",
       "allocation_minutes": 15,
-      "state": "PENDING",
+      "state": "COMPLETED",
       "node": "batch-block4-2071",
-      "dependency": "afterany:37947047"
+      "dependency": "afterany:37947047",
+      "elapsed_gpu_seconds": 152,
+      "reason": "Full-model paged2updates+heldoutvalidation passed;117/121supervised tokens; all media/sequence/counter gates pass. Paired nonpaged control37945944OOM. Capacity only, not a speed or quality claim."
     }
   ],
   "final_release": "NOT QUALIFIED",
   "missing_gates": [
-    "Final training comparisons pending completion",
-    "Teacher-forced original WTS task-score factorial on reused evaluation groups",
-    "Uninstrumented matched time-to-quality speed qualification"
+    "Reproducible end-to-end matched-quality speed gain (failed mainline and factorial confidence bounds)",
+    "Equal-resource quality gain (all tested confidence bounds include zero)",
+    "Factorial final task-NLL and positive recording-level adaptation bounds (failed)",
+    "Mainline original-task accuracy (not measured; timing recipe did not save dense final checkpoints)",
+    "Independent uninstrumented paired training restarts and a full3seed16block deployment comparison",
+    "Complete device-wide/host memory telemetry across every arm; process samples are lower bounds"
   ],
   "file_sha256": {
     "diagnostic_initial.json": "9b95057a581f1b5a6c092c910c9e419caf825c855f7d25e9bcfb1f6582b7c4e0",
@@ -540,7 +547,7 @@
     "maximum_minutes_each": 45,
     "overall_campaign_gpu_hours": 8,
     "max_post_calibration_slots": 8,
-    "admission": "Terminal charged time plus full active/pending wall reservations plus proposed wall <=240 GPU minutes; same nine trials, not additional tuning trials."
+    "admission": "Charge terminal time plus full active/pending reservations against the latest recorded phase ceiling and unchanged8hour overall cap; initial240minutes amended230then220 to fund original remaining trials."
   },
   "additional_work_budget": {
     "factorial_max_gpu_minutes": 180,
@@ -555,7 +562,7 @@
     "source_archive_sha256": "98eb09fac746d482fb99fd4d2870ef0310b292670daee8771beaa5a55443dd7a",
     "wheel_sha256": "a1f8c9fcc4afca317bb8147a37345d42d269baf93da91293bdcf410f90b5b049",
     "integration_only_changes": "native adapter consolidated checkpoint bridge and canonical backend identity; no changes to quantization arithmetic; portable export reload without optimizer import",
-    "state": "Both large-model exact8-to16 continuation gates passed after separate deterministic reference replay recovered pruned midpoints. Five original cells final-scored; remaining7 training cells pending.",
+    "state": "All12original quality/timing cells and final task scores complete; both separate native8-to16exactrecovery gates passed.",
     "local_tests": "23 checkpoint +2 extended portable export tests;88 native runtime tests;6 analysis/scoped-driver tests"
   },
   "execution_amendment": "At most two campaign GPUs on distinct nodes. All arms within each paired seed use one verified A100 node; partially complete seed29 stays on its original node. Whole unstarted seed43 and capacity may move; no outcome-based reruns.",
@@ -693,5 +700,40 @@
     "dependency": "afterany:37947047",
     "workflow_tests": "3passed CPU in0.01s; scoped completion retains token gate and rejects invalid scope before launch."
   },
-  "mainline_final": "All9trials complete40updates,zero skipped; paired token/media order matches; NLL/state gates pass; speed/equalbudget gain gates fail. See native_development_summary.json."
+  "mainline_final": "All9trials complete40updates,zero skipped; paired token/media order matches; NLL/state gates pass; speed/equalbudget gain gates fail. See native_development_summary.json.",
+  "final_accounting": {
+    "slurm_gpu_seconds": 25538,
+    "local_gpu_seconds_conservative_allowance": 900,
+    "total_charged_gpu_seconds": 26438,
+    "gpu_hours": 7.3438888888888885,
+    "ceiling_gpu_seconds": 28800,
+    "unspent_seconds": 2362,
+    "owned_allocations_in_ledger": 49,
+    "all_owned_jobs_terminal": true,
+    "phase_actual_seconds": {
+      "mainline_including_failures": 13047,
+      "factorial_including_failures_recovery_canaries": 9722,
+      "capacity_including_failures": 1752,
+      "earlier_compatibility": 1017,
+      "local_allowance": 900
+    },
+    "note": "Budget not exhausted; remaining39m22s cannot fund the complete next3seed deployment comparison. No extra outcome-driven final-set reruns."
+  },
+  "release": "NOT QUALIFIED: implementation/correctness/memory results do not satisfy failed quality/performance gates",
+  "pressure_final": {
+    "control_job": "37945944",
+    "paged_job": "37947535",
+    "seed": 29,
+    "node": "batch-block4-2071",
+    "result": "nonpaged moment allocationOOM; paged2updates+validation PASS with117/121supervised tokens",
+    "scope": "Full8.767BFP32trainables; capacity canary, no quality/speed inference"
+  },
+  "validation_final": {
+    "changed_python_files": 27,
+    "ruff_check": "passed",
+    "ruff_format": "passed",
+    "diff_check": "passed",
+    "pressure_scope_cpu_tests": "4passed0.02s",
+    "cuda_test_note": "No runtime numerics changes after recorded42/55/56-test suites; later changes only qualification workflow, plot captions and evidence."
+  }
 }

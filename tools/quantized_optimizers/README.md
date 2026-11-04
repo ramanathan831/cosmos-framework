@@ -152,7 +152,10 @@ guard. Preserve this incomplete pair. Source
 `CAPACITY_PRESSURE_ARM=paged_adamw_8bit` in pressure-only mode to complete only the
 deferred arm in a fresh output directory, on the same node, seed and controls.
 Reserve 15 minutes with `WORK_SECONDS=780`. Three CPU workflow tests verify the
-scope and unchanged token gate. Before submission, ten unused mainline minutes
+scope and unchanged token gate. Current mainline reserves eight minutes for every
+capacity arm after observing the cold-load delay; a fourth CPU test covers that
+admission guard. The frozen single-arm run had 13 minutes of work allowance and
+completed in 152 allocated seconds. Before submission, ten unused mainline minutes
 and five unassigned minutes moved to capacity; charged/reserved total28,076seconds
 remained below28,800. The original control is never repeated or replaced.
 
@@ -226,6 +229,11 @@ seed43 allocation was admitted with 28,027 charged/reserved seconds against the
 28,800-second total. Ten unused mainline minutes moved to the factorial phase;
 the original trials and all thresholds are unchanged. Amendments in the plan files preserve
 the original limits and reasons; no quality/performance threshold changed.
+Final actual usage is 25,538 Slurm GPU-seconds plus a conservative 900-second local
+allowance: 7h20m38s. All 49 recorded jobs are terminal, including canceled and failed
+attempts. The paged completion passed; the complete mainline/factorial analyses
+retain failed speed and task-NLL gates. The remaining 39m22s is insufficient for
+the proposed 150-minute full deployment follow-up.
 There are at most two concurrent phase allocations, on distinct nodes. Partially
 completed paired seeds stay on their original node; only complete unstarted seed
 groups move to another verified A100.

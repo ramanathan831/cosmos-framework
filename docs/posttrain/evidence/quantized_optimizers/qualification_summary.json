@@ -1,0 +1,162 @@
+{
+  "requested_product_objective": "NOT_ACHIEVED",
+  "release_qualified": false,
+  "implementation": {
+    "branch": "feat/quantized-optimizers",
+    "canonical_names": [
+      "adamw_bnb_8bit",
+      "paged_adamw_8bit"
+    ],
+    "backend": "bitsandbytes==0.49.2",
+    "strategy": "one CUDA device; ordinary contiguous nonempty FP32 trainables",
+    "checkpoint": "native consolidated transaction; exact identity validation and managed reconstruction",
+    "optimizer_module_sha256": "6f9889384ae2f30d2f6e061af826686edb1aabc8884d7dbee61593774b2fc930",
+    "upstream_main": "d04e5067dd2f353fa8fab65fd99fcd86819e537d",
+    "qlora_integration_component": "a7fd524242f4f06ac488a3d96d331b1f46e2b385",
+    "integration_head": "188379861a9d43cb99c57b2b083ada8684aca272"
+  },
+  "correctness": {
+    "real_cuda_tests": "passed; see focused, native and integration receipts",
+    "large_model_bf16_nf4_fresh_process_recovery": true,
+    "scope": "No quantized distributed support; unmodified high-precision two-rank regression passed"
+  },
+  "mainline": {
+    "complete_runs": 9,
+    "updates_per_run": 40,
+    "paired_gates": {
+      "adamw_bnb_8bit": {
+        "validation_nll": true,
+        "training_speed": false,
+        "time_to_quality_speed": false,
+        "equal_budget_quality_gain": false,
+        "wall_time_to_quality_speed": false,
+        "equal_wall_budget_quality_gain": false,
+        "recording_separation": true,
+        "state_memory": true,
+        "original_task_accuracy": null,
+        "uninstrumented_speed_confirmation": null
+      },
+      "paged_adamw_8bit": {
+        "validation_nll": true,
+        "training_speed": false,
+        "time_to_quality_speed": false,
+        "equal_budget_quality_gain": false,
+        "wall_time_to_quality_speed": false,
+        "equal_wall_budget_quality_gain": false,
+        "recording_separation": true,
+        "state_memory": true,
+        "original_task_accuracy": null,
+        "uninstrumented_speed_confirmation": null
+      }
+    },
+    "summary": "native_development_summary.json",
+    "plot": "native_development.png",
+    "raw": "native_development_raw.json.gz"
+  },
+  "factorial": {
+    "complete_cells": 12,
+    "updates_per_cell": 16,
+    "recording_separation": true,
+    "paired_gates": {
+      "bf16_adamw_bnb_8bit_versus_bf16_adamw": {
+        "paired_validation_nll": true,
+        "paired_task_nll": false,
+        "paired_task_accuracy": true,
+        "recording_group_quality_and_adaptation": false,
+        "training_speed": false,
+        "time_to_quality_speed": false,
+        "equal_budget_nll_gain": false,
+        "wall_training_speed": false,
+        "wall_time_to_quality_speed": false,
+        "equal_wall_budget_nll_gain": false,
+        "state_saving": true
+      },
+      "nf4_adamw_bnb_8bit_versus_nf4_adamw": {
+        "paired_validation_nll": true,
+        "paired_task_nll": false,
+        "paired_task_accuracy": true,
+        "recording_group_quality_and_adaptation": false,
+        "training_speed": false,
+        "time_to_quality_speed": false,
+        "equal_budget_nll_gain": false,
+        "wall_training_speed": false,
+        "wall_time_to_quality_speed": false,
+        "equal_wall_budget_nll_gain": false,
+        "state_saving": true
+      },
+      "nf4_adamw_versus_bf16_adamw": {
+        "paired_validation_nll": false,
+        "paired_task_nll": true,
+        "paired_task_accuracy": false,
+        "recording_group_quality_and_adaptation": false,
+        "training_speed": false,
+        "time_to_quality_speed": false,
+        "equal_budget_nll_gain": false,
+        "wall_training_speed": false,
+        "wall_time_to_quality_speed": false,
+        "equal_wall_budget_nll_gain": false,
+        "state_saving": null
+      },
+      "nf4_adamw_bnb_8bit_versus_bf16_adamw_bnb_8bit": {
+        "paired_validation_nll": false,
+        "paired_task_nll": true,
+        "paired_task_accuracy": false,
+        "recording_group_quality_and_adaptation": false,
+        "training_speed": false,
+        "time_to_quality_speed": false,
+        "equal_budget_nll_gain": false,
+        "wall_training_speed": false,
+        "wall_time_to_quality_speed": false,
+        "equal_wall_budget_nll_gain": false,
+        "state_saving": null
+      }
+    },
+    "summary": "factorial_summary.json",
+    "plot": "factorial_summary.png",
+    "raw": "factorial_raw.json.gz"
+  },
+  "memory": {
+    "mainline_fp32_state_bytes": 12348572000,
+    "mainline_eight_bit_state_metadata_bytes": 3135784960,
+    "mainline_state_reduction": 0.746060924291489,
+    "adapter_fp32_state_bytes": 349177824,
+    "adapter_eight_bit_state_metadata_bytes": 88659968,
+    "not_total_memory_percentage": true,
+    "full_model_paging_capacity": "PASS; see native_pressure_summary.json"
+  },
+  "data_history": "User approved reuse of earlier QLoRA train/eval; campaign train/development/final groups are recording-disjoint, not historically untouched.",
+  "cost": {
+    "slurm_gpu_seconds": 25538,
+    "local_gpu_seconds_conservative_allowance": 900,
+    "total_charged_gpu_seconds": 26438,
+    "gpu_hours": 7.3438888888888885,
+    "ceiling_gpu_seconds": 28800,
+    "unspent_seconds": 2362,
+    "owned_allocations_in_ledger": 49,
+    "all_owned_jobs_terminal": true,
+    "phase_actual_seconds": {
+      "mainline_including_failures": 13047,
+      "factorial_including_failures_recovery_canaries": 9722,
+      "capacity_including_failures": 1752,
+      "earlier_compatibility": 1017,
+      "local_allowance": 900
+    },
+    "note": "Budget not exhausted; remaining39m22s cannot fund the complete next3seed deployment comparison. No extra outcome-driven final-set reruns."
+  },
+  "unmet_requirements": [
+    "Reproducible end-to-end matched-quality speed gain (failed mainline and factorial confidence bounds)",
+    "Equal-resource quality gain (all tested confidence bounds include zero)",
+    "Factorial final task-NLL and positive recording-level adaptation bounds (failed)",
+    "Mainline original-task accuracy (not measured; timing recipe did not save dense final checkpoints)",
+    "Independent uninstrumented paired training restarts and a full3seed16block deployment comparison",
+    "Complete device-wide/host memory telemetry across every arm; process samples are lower bounds"
+  ],
+  "next_experiment": {
+    "scope": "On development data, cache deterministic media preprocessing and compare16decoder-block fusedFP32 with recomputation versus nonpaged8bit without recomputation. Same3seeds,40updates,effectivebatch4,trainables,precision,clipping,schedule and data exposure. Preserve checkpoint outputs for task scoring.",
+    "proposed_reservation_gpu_minutes": 150,
+    "estimate_basis": "Six training cells at20minutes plus six final-score processes at5minutes; recheck admission with canary before this separate campaign.",
+    "why_not_run_in_current_budget": "Remaining39m22s cannot reserve the complete150minute comparison. No additional trials submitted.",
+    "release_requirement_afterward": "If it shows a candidate win, independent paired timing restarts, adequate recording-group final evaluation and the unchanged confidence gates still must pass."
+  },
+  "publication": "Local commits and proposed_pr.md only; no PR published/reopened/merged; original QLoRA checkout untouched."
+}

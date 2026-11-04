@@ -1,0 +1,9 @@
+{
+  "checked_at_utc": "2026-11-04T06:43:32.219026+00:00",
+  "last_successful_receipt": "pr334_status.json",
+  "final_recheck": "Public page confirmsClosed. GitHub connector SSO blocked; unauthenticated REST rate limited; gh unavailable.",
+  "writes_attempted": false,
+  "action": "Read-only public-page verification; no reopening, publication or merge.",
+  "state": "closed",
+  "source": "https://github.com/NVIDIA/cosmos-framework/pull/334"
+}
