@@ -1,0 +1,15 @@
+{
+  "tests": 42,
+  "passed": 42,
+  "seconds": 19.83,
+  "source": "220f393aa4d5a2e8e93a6dd24c9d450c200c520f",
+  "scope": [
+    "cosmos_framework/posttrain/tests/test_quantized_optimizer.py",
+    "tools/quantized_optimizers/test_development_driver.py",
+    "tools/quantized_optimizers/test_recording_split.py"
+  ],
+  "command": "CUDA_VISIBLE_DEVICES='' .venv/bin/python -m pytest cosmos_framework/posttrain/tests/test_quantized_optimizer.py tools/quantized_optimizers/test_development_driver.py tools/quantized_optimizers/test_recording_split.py --confcutdir=cosmos_framework/posttrain/tests --override-ini=addopts= -q",
+  "device_note": "Repository pytest-env configuration explicitly unsets CUDA_VISIBLE_DEVICES. CUDA tests ran and passed, rather than being skipped. Charge local GPU time within the pre-reserved 900-second local allowance.",
+  "local_charge_upper_bound_seconds": 900,
+  "ruff": "all 24 changed Python files passed lint and format"
+}
