@@ -145,6 +145,17 @@ Charged capacity time was 1,181 seconds; adding the 600-second reservation stays
 within the unchanged 1,800-second ceiling. Only the full-model nonpaged/paged pair
 is rerun; OOMs and the token-gate failure remain evidence.
 
+Model loading in that final pair took substantially longer than the earlier
+attempts. The nonpaged arm OOMed; the driver then deferred paging at its admission
+guard. Preserve this incomplete pair. Source
+`3641b40e070bc363f1b9635cf4eda9010f81227d` adds
+`CAPACITY_PRESSURE_ARM=paged_adamw_8bit` in pressure-only mode to complete only the
+deferred arm in a fresh output directory, on the same node, seed and controls.
+Reserve 15 minutes with `WORK_SECONDS=780`. Three CPU workflow tests verify the
+scope and unchanged token gate. Before submission, ten unused mainline minutes
+and five unassigned minutes moved to capacity; charged/reserved total28,076seconds
+remained below28,800. The original control is never repeated or replaced.
+
 ## Disposable factorial integration
 
 The primary feature does not contain the QLoRA branch. The separate integration
@@ -208,9 +219,9 @@ to the ledger; a pending dependency alone does not reserve it within the budget.
 ## Budget, collection and analysis
 
 The total ceiling is eight GPU-hours, including failures. Current reservations
-are 230 mainline GPU-minutes, 180 factorial minutes, 30 capacity minutes,
+are 220 mainline GPU-minutes, 180 factorial minutes, 45 capacity minutes,
 1,017 seconds of earlier compatibility allocations and a conservative 15 local
-GPU-minutes. Their sum is 471.95 minutes. After seed29 completed in 1,492 seconds, the final
+GPU-minutes. Their sum is 476.95 minutes. After seed29 completed in 1,492 seconds, the final
 seed43 allocation was admitted with 28,027 charged/reserved seconds against the
 28,800-second total. Ten unused mainline minutes moved to the factorial phase;
 the original trials and all thresholds are unchanged. Amendments in the plan files preserve

@@ -447,7 +447,9 @@
       "source": "0e8e3a2a0a10229f111fbebb389aece37697db68",
       "node": "batch-block4-2042",
       "dependency": "afterany:37943905",
-      "state": "RUNNING"
+      "state": "COMPLETED",
+      "elapsed_gpu_seconds": 2630,
+      "reason": "All three seed43 arms completed40updates; full mainline3seed/3arm comparison terminal."
     },
     {
       "job": "37945829",
@@ -465,9 +467,11 @@
       "phase": "native pressure pair with substantive single-example targets",
       "source": "dfce2fb5a0e1445976abd13ce2ec781d68a9b8c4",
       "allocation_minutes": 10,
-      "state": "PENDING",
+      "state": "COMPLETED",
       "node": "batch-block4-2071",
-      "dependency": "afterany:37943911"
+      "dependency": "afterany:37945829",
+      "reason": "Nonpaged full-model momentsOOM; unusually long model loading consumed admission reserve, so paged arm explicitly deferred. Pair is incomplete, not a passing capacity result.",
+      "elapsed_gpu_seconds": 419
     },
     {
       "job": "37947047",
@@ -475,9 +479,19 @@
       "source": "a02e75793e889aa8bb3fde26b0a9c578ee3f10d6",
       "archive_sha256": "ba8ee52b2971acf49e7c4bd67e7d1f2b5509ef52b0b94857ef4ed2f10b835a0e",
       "allocation_minutes": 45,
-      "state": "PENDING",
-      "node": "verified eligible A100; every seed43 arm in one allocation",
+      "state": "RUNNING",
+      "node": "batch-block4-2071",
       "dependency": "afterany:37945944"
+    },
+    {
+      "job": "37947535",
+      "phase": "complete deferred seed29 paged pressure arm",
+      "source": "3641b40e070bc363f1b9635cf4eda9010f81227d",
+      "archive_sha256": "6f5a7b49aa7d95e5dd027c56c2a44fe8ad3b7acb3fff96e2222b7c69deea61d5",
+      "allocation_minutes": 15,
+      "state": "PENDING",
+      "node": "batch-block4-2071",
+      "dependency": "afterany:37947047"
     }
   ],
   "final_release": "NOT QUALIFIED",
@@ -520,7 +534,7 @@
     }
   },
   "development_budget": {
-    "max_gpu_minutes": 230,
+    "max_gpu_minutes": 220,
     "prior_failed_seconds": 673,
     "remaining_max_allocations": 5,
     "maximum_minutes_each": 45,
@@ -530,7 +544,7 @@
   },
   "additional_work_budget": {
     "factorial_max_gpu_minutes": 180,
-    "mainline_capacity_followup_max_gpu_minutes": 30,
+    "mainline_capacity_followup_max_gpu_minutes": 45,
     "overall_gpu_hours_unchanged": 8
   },
   "integration_native_factorial": {
@@ -661,6 +675,23 @@
       "factorial_after_minutes": 180,
       "reason": "Transfer10minutes inside unchanged8hour ceiling to complete original12factorial cells; mainline charged+reserved13717seconds fits13800second revised ceiling; factorial10612fits10800."
     },
-    "unchanged": "Same3seeds/12cells, immutable training wheel/config/probe, scoring groups, numerical quality/speed gates. No new tuning trials."
-  }
+    "unchanged": "Same3seeds/12cells, immutable training wheel/config/probe, scoring groups, numerical quality/speed gates. No new tuning trials.",
+    "scheduling_update": "Pressure dependency changed to completedfactor29; finalfactor43 additionally excludesmain43node2042 and remainsafterpressure. Distinctnodes,atmost2GPUs;unchangedreservations."
+  },
+  "deferred_pressure_admission": {
+    "utc": "2026-11-04T0606Z",
+    "terminal_charged_seconds_including_local_upper_bound": 24476,
+    "factorial43_reserved_seconds": 2700,
+    "paged_only_proposed_seconds": 900,
+    "total_charged_reserved_seconds": 28076,
+    "ceiling_seconds": 28800,
+    "capacity_charged_seconds": 1600,
+    "capacity_after_reservation_seconds": 2500,
+    "capacity_revised_ceiling_seconds": 2700,
+    "phase_reallocation": "10unused mainline minutes (230->220; actual13047seconds fits13200) and5unassigned minutes to capacity (30->45); factorial180 unchanged. Overall8hours unchanged.",
+    "reason": "Complete original full-model seed29 pair after model loading consumed first attempt; nonpaged result remains original. Same node2071, controls,2updates,64token/media gates. No new quality trial.",
+    "dependency": "afterany:37947047",
+    "workflow_tests": "3passed CPU in0.01s; scoped completion retains token gate and rejects invalid scope before launch."
+  },
+  "mainline_final": "All9trials complete40updates,zero skipped; paired token/media order matches; NLL/state gates pass; speed/equalbudget gain gates fail. See native_development_summary.json."
 }
