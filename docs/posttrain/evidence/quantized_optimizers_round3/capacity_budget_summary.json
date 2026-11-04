@@ -1,0 +1,181 @@
+{
+  "source": "e19e1fa",
+  "job": "37974045",
+  "elapsed_gpu_seconds": 1157,
+  "final_qualification": false,
+  "cases": {
+    "optimizer_cuda_regression": {
+      "attempt": {
+        "returncode": 0,
+        "elapsed_seconds": 63.44095190591179
+      },
+      "external_peak": {
+        "device_used": 1903755264,
+        "matched_process_gpu_bytes": 1035993088,
+        "process_tree_pss": 1811311616
+      }
+    },
+    "direct_checkpoint_score": {
+      "attempt": {
+        "returncode": 0,
+        "elapsed_seconds": 91.49471839691978
+      },
+      "external_peak": {
+        "device_used": 38581501952,
+        "matched_process_gpu_bytes": 37847302144,
+        "process_tree_pss": 35477000192
+      }
+    },
+    "fused_full": {
+      "attempt": {
+        "returncode": 0,
+        "elapsed_seconds": 211.8612223380478
+      },
+      "peak_allocated_bytes": 74349358080,
+      "peak_reserved_bytes": 75319214080,
+      "state_bytes": 24697144000,
+      "state_report_reference": "fused_full/diagnostics/complete.json",
+      "phases_seconds": {
+        "build_backbone": 128.4727309870068,
+        "build_trainer": 143.10789337998722,
+        "dataset_identity": 20.18482373096049,
+        "load_weights": 125.48723536392208,
+        "prepared_verification": 9.602912803995423,
+        "train_step": 8.930166357080452
+      },
+      "external_peak": {
+        "device_used": 77127155712,
+        "matched_process_gpu_bytes": 76392955904,
+        "process_tree_pss": 6871400448
+      }
+    },
+    "fused_checkpoint12": {
+      "attempt": {
+        "returncode": 1,
+        "elapsed_seconds": 79.8498536850093
+      },
+      "failure": "CUDA out of memory",
+      "phases_seconds": {
+        "build_backbone": 12.79197890497744,
+        "build_trainer": 26.500002332031727,
+        "dataset_identity": 10.806265444029123,
+        "load_weights": 10.148853461956605,
+        "prepared_verification": 9.531892510014586,
+        "train_step": 2.746721205068752
+      },
+      "external_peak": {
+        "device_used": 85880668160,
+        "matched_process_gpu_bytes": 85146468352,
+        "process_tree_pss": 6492798976
+      }
+    },
+    "fused_micro2": {
+      "attempt": {
+        "returncode": 1,
+        "elapsed_seconds": 78.38362247706391
+      },
+      "failure": "CUDA out of memory",
+      "phases_seconds": {
+        "build_backbone": 13.698793151066639,
+        "build_trainer": 27.427796024945565,
+        "dataset_identity": 10.521995409042574,
+        "load_weights": 10.018559667980298,
+        "prepared_verification": 9.568823153036647,
+        "train_step": 2.1514780359575525
+      },
+      "external_peak": {
+        "device_used": 85836627968,
+        "matched_process_gpu_bytes": 85102428160,
+        "process_tree_pss": 6684737536
+      }
+    },
+    "budget_adamw": {
+      "attempt": {
+        "returncode": 0,
+        "elapsed_seconds": 211.83302305208053
+      },
+      "peak_allocated_bytes": 74347735040,
+      "peak_reserved_bytes": 75531026432,
+      "state_bytes": 24697144000,
+      "state_report_reference": "budget_adamw/diagnostics/complete.json",
+      "phases_seconds": {
+        "build_backbone": 28.32520572701469,
+        "build_trainer": 44.712645012070425,
+        "checkpoint": 57.91468254197389,
+        "dataset_identity": 13.931458088103682,
+        "load_weights": 24.9916946090525,
+        "optimizer_snapshot": 0.00029234704561531544,
+        "prepared_verification": 12.199506392935291,
+        "train_step": 18.786476402077824
+      },
+      "last_completed_update": 10,
+      "budget_seconds": 60,
+      "training_checkpoint_eligible": true,
+      "delivery_seconds_without_shared_setup": 301.01297210203484,
+      "score_seconds": 89.1722262169933,
+      "development_task": {
+        "rows": 32,
+        "native_supervised_tokens": 64,
+        "restricted_choice_accuracy": 0.8125,
+        "strict_first_token_accuracy": 0.8125,
+        "valid_letter_rate": 1.0,
+        "token_weighted_ce": 0.3605367299642239,
+        "answer_nll": 0.7208255437290063,
+        "restricted_choice_nll": 0.7190539724106202,
+        "restricted_choice_tied_rows": 0,
+        "strict_first_token_tied_rows": 0,
+        "unique_exact_video_content_clusters": 27
+      },
+      "external_peak": {
+        "device_used": 77338968064,
+        "matched_process_gpu_bytes": 76604768256,
+        "process_tree_pss": 6716178432
+      }
+    },
+    "budget_adamw_bnb_8bit": {
+      "attempt": {
+        "returncode": 0,
+        "elapsed_seconds": 180.85463473398704
+      },
+      "peak_allocated_bytes": 70309382656,
+      "peak_reserved_bytes": 74648125440,
+      "state_bytes": null,
+      "state_report_reference": "budget_adamw_bnb_8bit/diagnostics/complete.json",
+      "phases_seconds": {
+        "build_backbone": 12.723921083961613,
+        "build_trainer": 29.77577907498926,
+        "checkpoint": 42.49045816401485,
+        "dataset_identity": 15.301390132983215,
+        "load_weights": 10.094050510902889,
+        "optimizer_snapshot": 1.2833651510300115,
+        "prepared_verification": 12.857156862039119,
+        "train_step": 16.364723152830265
+      },
+      "last_completed_update": 12,
+      "budget_seconds": 60,
+      "training_checkpoint_eligible": true,
+      "delivery_seconds_without_shared_setup": 259.72274384100456,
+      "score_seconds": 78.86038948595524,
+      "development_task": {
+        "rows": 32,
+        "native_supervised_tokens": 64,
+        "restricted_choice_accuracy": 0.875,
+        "strict_first_token_accuracy": 0.875,
+        "valid_letter_rate": 1.0,
+        "token_weighted_ce": 0.3039371712329739,
+        "answer_nll": 0.607793173781829,
+        "restricted_choice_nll": 0.6066437484550988,
+        "restricted_choice_tied_rows": 0,
+        "strict_first_token_tied_rows": 0,
+        "unique_exact_video_content_clusters": 27
+      },
+      "external_peak": {
+        "device_used": 76456067072,
+        "matched_process_gpu_bytes": 75721867264,
+        "process_tree_pss": 11458453504
+      }
+    }
+  },
+  "regression": "49 pinned-runtime CUDA tests passed, including transactional load failure injection and direct full-model initialization;32 scored rows exactly match prior model loading.",
+  "scope": "Development-only timing/stopping canaries. Both budget states were saved and scored, at fused update10 and8-bit update12. Checkpoint/scoring are excluded from the training clock and included in delivery. Historical and new final task comparisons remain separate."
+}

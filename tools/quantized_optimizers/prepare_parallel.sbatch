@@ -24,10 +24,15 @@ srun --kill-on-bad-exit=1 --container-image="$CONTAINER_IMAGE" \
  export SFT_MODEL_PATH="$ASSETS/models/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b"
  export SFT_DATA_ROOT="$CAMPAIGN/data"
  cd "$SOURCE"
- if [ "$MODE" = canary ]; then trials="1 4"; else test "$MODE" = trials; trials="0 1 2"; fi
+ case "$MODE" in
+   canary) trials="1 4" ;;
+   canary_parallel) trials="4" ;;
+   trials) trials="0 1 2" ;;
+   *) exit 2 ;;
+ esac
  for trial in $trials; do
    extra=(); workers=4
-   if [ "$MODE" = canary ]; then workers=$trial; extra+=(--sample-targets 32); fi
+   if [ "$MODE" != trials ]; then workers=$trial; extra+=(--sample-targets 32); fi
    python -m tools.quantized_optimizers.parallel_prepare \
     --config cosmos_framework/posttrain/configs/sft_optimizer_deployment.py \
     --workers "$workers" --reference-corpus "$REFERENCE_CORPUS" \

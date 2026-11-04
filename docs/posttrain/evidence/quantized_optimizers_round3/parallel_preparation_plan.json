@@ -40,5 +40,11 @@
   },
   "pre_execution_amendment": "Use32 targets and10minutes so spawn/tokenizer setup does not dominate a12-target process-pool probe; reserve57minutes for full trials within the unchanged7200CPU-second cap. No preparation canary has run.",
   "pre_execution_cost_annotation": "Allow60seconds for local CPU-only checks in addition to the separate60GPU-seconds conservatively charged for tests whose root fixture restored CUDA visibility. Reserve56minutes for three full CPU trials; admission still depends on the canary. No threshold changed.",
-  "pre_execution_memory_amendment": "CPU00049 has sufficient cores but only17GiB unallocated scheduler memory. The pending32-target canary requests16GiB for both the1-worker and4-worker controls; neither has run. Workers stream individual payload files and never hold the full corpus in memory. Retain any memory failure; do not silently reduce worker count."
+  "pre_execution_memory_amendment": "CPU00049 has sufficient cores but only17GiB unallocated scheduler memory. The pending32-target canary requests16GiB for both the1-worker and4-worker controls; neither has run. Workers stream individual payload files and never hold the full corpus in memory. Retain any memory failure; do not silently reduce worker count.",
+  "recovery_reservation": {
+    "reason": "Serial32-target canary completed321.09s, but allocation/container setup and complete source verification left insufficient time for parallel arm. Running walltime extension was denied. Retain completed serial evidence; rerun only missing parallel arm if interrupted.",
+    "parallel_only_canary_seconds": 720,
+    "remaining_conditional_three_full_trials_seconds": 2640,
+    "unchanged_cpu_total_reserved_seconds": 7147
+  }
 }
