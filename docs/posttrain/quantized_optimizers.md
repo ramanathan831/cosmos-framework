@@ -27,7 +27,7 @@ with the HF model builder on one CUDA device.
 
 | Contract | Implemented behavior |
 |---|---|
-| Base/model storage | Independent of optimizer state; ordinary mainline loading is unchanged |
+| Base/model storage | Independent of optimizer state; ordinary models need no weight quantization |
 | Trainables and updates | Ordinary, contiguous, nonempty CUDA FP32 parameters; no implicit master copies |
 | Gradient/compute precision | FP32 parameter gradients; recipe explicitly uses BF16 autocast |
 | Optimizer moments | Two uint8 arrays, FP32 block scales/maps and explicit/small-tensor exceptions |
@@ -503,6 +503,17 @@ are 87.5%. These are development observations, not final quality qualification.
 The [complete curves](evidence/quantized_optimizers_round3/development_curves.json)
 and [paired screen](evidence/quantized_optimizers_round3/paired_development15_summary.json)
 retain the substantive-only and lower-LR controls.
+
+Across the three seeds, development accuracy at update 15 matches between
+optimizers (87.5%, 84.375%, 78.125%), with slightly lower eight-bit task NLL in
+each seed. There is no development deficit motivating new FP32-state exceptions.
+Both arms show late NLL deterioration for seed29. A separately locked development
+probe shortened the cosine horizon from 40 to 15 while keeping the same 15 updates,
+initial LR, data order and trainables. It helped seed29's NLL but worsened mean
+task NLL by 4.31%, reduced accuracy in all three seeds and worsened substantive
+NLL in two. The candidate failed its prespecified guards and was rejected without
+new final scoring. Its [raw results and decision](evidence/quantized_optimizers_round3/short_schedule_summary.json)
+and 812 GPU-seconds remain in the evidence and ledger.
 
 The native recipe is runnable without the qualification wrapper:
 
