@@ -25,6 +25,7 @@ per-model RADIO buffer skips) parity with cosmos3 ``HFModel``, plus HF safetenso
 from __future__ import annotations
 
 import re
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any
 
 import torch
@@ -220,7 +221,9 @@ class HFModel(nn.Module):
         self.compute_ctx = compute_context(mixed_precision_mode, dtype, "cuda")
         self.ckpt_path = model_name_or_path
         self.grad_ckpt = grad_ckpt
-        if grad_ckpt_modules is not None and not isinstance(grad_ckpt_modules, (list, tuple)):
+        if grad_ckpt_modules is not None and (
+            not isinstance(grad_ckpt_modules, Sequence) or isinstance(grad_ckpt_modules, (str, bytes))
+        ):
             raise TypeError("grad_ckpt_modules must be a list of exact module names")
         self.grad_ckpt_modules = tuple(grad_ckpt_modules or ())
         if self.grad_ckpt_modules and not grad_ckpt:

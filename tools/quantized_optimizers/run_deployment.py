@@ -186,6 +186,22 @@ def main():
     expected_rows = 623 if mode == "study" else 245
     if receipt["cuda_initialized"] or receipt["exact_raw_prepared_rows"] != expected_rows:
         raise ValueError("missing complete CPU parity receipt")
+    if mode == "recovery":
+        bounded_command(
+            [
+                sys.executable,
+                "-m",
+                "pytest",
+                "cosmos_framework/posttrain/tests/test_hf_selective_checkpointing.py",
+                "tools/quantized_optimizers/test_deployment.py",
+                "--confcutdir=cosmos_framework/posttrain/tests",
+                "--override-ini=addopts=",
+                "-q",
+            ],
+            root / "native-control-tests.log",
+            deadline,
+            dict(os.environ, CUDA_VISIBLE_DEVICES=""),
+        )
     # Slurm can leave JOB_GPUS empty on the batch shell while binding the srun
     # device correctly. Resolve CUDA's actual device in an exiting preflight
     # child; the external monitor itself never creates a CUDA context.

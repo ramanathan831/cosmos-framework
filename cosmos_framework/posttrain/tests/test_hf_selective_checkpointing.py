@@ -61,3 +61,19 @@ def test_selective_checkpoint_has_exact_values_and_gradients():
 def test_bad_selective_modules_fail(names, message):
     with pytest.raises(ValueError, match=message):
         checkpoint_modules(model(), names)
+
+
+@pytest.mark.parametrize("names", [[], ["model.layers.1"]])
+def test_native_omegaconf_lists_reach_real_meta_model_construction(tmp_path, names):
+    from omegaconf import OmegaConf
+
+    model().save_pretrained(tmp_path)
+    wrapper = HFModel(
+        str(tmp_path),
+        dtype=torch.float32,
+        attn_implementation="eager",
+        grad_ckpt=bool(names),
+        grad_ckpt_modules=OmegaConf.create(names),
+    )
+    assert wrapper.grad_ckpt_modules == tuple(names)
+    assert next(wrapper.model.parameters()).device.type == "meta"
