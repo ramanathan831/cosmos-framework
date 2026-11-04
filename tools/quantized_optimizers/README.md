@@ -72,7 +72,12 @@ record this campaign's site defaults. Mainline paired runs use one A100-SXM4-80G
 with eight requested CPUs and 128 GiB host memory. Seeds 17/29 retain
 `batch-block4-0052`; the entirely unstarted seed43 group may use another verified
 A100 node. Every arm within a paired seed stays on one node; no trial is rerun
-based on its result. See `execution_grouping_amendment.json`.
+based on its result. See `execution_grouping_amendment.json`. The attended campaign also uses the
+site-authorized `interactive_singlenode` partition (four-hour maximum, one running
+job per user) alongside `polar`/`grizzly`. An explicit exclusion list restricts
+unstarted groups to the previously established A100 node set; each allocation
+still checks the actual GPU model. This changes queue eligibility, not trial
+settings or the GPU-hour limit.
 All three arms use effective batch four, eight processed video frames and the
 same 40 updates, data order, precision, schedule and validation cadence.
 
@@ -91,11 +96,17 @@ export DEVELOPMENT_DRIVER=1 DEPLOYMENT=1 TELEMETRY=1
 export TRIAL_SEED=29 EXPECTED_GPU_NAME="NVIDIA A100-SXM4-80GB"
 export TRAIN_KEYS='[layers.24.,layers.25.,layers.26.,layers.27.,layers.28.,layers.29.,layers.30.,layers.31.]'
 export STEPS=40 FRAMES=8 VAL_EVERY=5 VAL_SAMPLES=16 VAL_BATCH=4
-export VIDEO_PIXELS=1048576 VIDEO_MIN_PIXELS=262144 WORK_SECONDS=2550
-sbatch --time=45 --nodelist=batch-block4-0052 \
+export VIDEO_PIXELS=1048576 VIDEO_MIN_PIXELS=262144 WORK_SECONDS=1350
+sbatch --time=25 --partition=interactive_singlenode,polar --nodelist=batch-block4-0052 \
   --output="$RESULTS/slurm-%j.out" --error="$RESULTS/slurm-%j.err" \
   tools/quantized_optimizers/canary.sbatch
 ```
+
+For the whole unstarted seed43 group, set `TRIAL_SEED=43`, `WORK_SECONDS=3150`
+and reserve `--time=55`; remove the fixed node and use
+`--partition=interactive_singlenode,polar,grizzly` with the campaign
+`--exclude` list. Keep the 900-second per-arm admission guard. Seed29
+needs only its remaining fused arm; completed eight-bit arms are preserved.
 
 The initial two-update capacity calibration tries microbatches 4, 2, 1 for each
 arm, keeping effective batch four. All three recorded arms fit microbatch four;
@@ -129,9 +140,10 @@ artifact. Never apply the entire QLoRA branch to the primary optimizer branch.
 Training uses the unchanged package/config/probe from
 `ad88888d500903a36c89da37a84e4bcd8176f9d3` and wheel SHA256
 `a1f8c9fcc4afca317bb8147a37345d42d269baf93da91293bdcf410f90b5b049`.
-Workflow source `0c0914a7c06b3de2dbae199bc36350af6f4824e1` adds final scoring,
-recovery and whole-seed scheduling. Its archive SHA256 is
-`4e5a1ae4220459f21c4e5e21ac07ada1799c86a8ea55daf748e29ce4b568026c`.
+Workflow source `6f195a77ba8376f944928ac922c4f1693f6f8ff0` adds final scoring,
+recovery, whole-seed scheduling and separate admission reserves: 900 seconds
+for training, 420 seconds for scoring. Prior scoring took 122–161 seconds. Its archive SHA256 is
+`8626da2a583ade32bc04e7142d1e6d288dd37d04060696812ec71d56ea4de378`.
 The installed training wheel, configuration and probe retain the recorded training
 identity. The archive also includes a dataclass field-order compatibility fix;
 the immutable wheel takes precedence for runtime package imports.
@@ -139,7 +151,7 @@ the immutable wheel takes precedence for runtime package imports.
 From the disposable integration worktree, with the shared variables above:
 
 ```sh
-export SOURCE_ARCHIVE="$CAMPAIGN/factorial-source-0c0914a.tgz"
+export SOURCE_ARCHIVE="$CAMPAIGN/factorial-source-6f195a7.tgz"
 export RESULTS="$CAMPAIGN/factorial-clean-v4"
 export SCORE_DATA="$CAMPAIGN/final-v5.jsonl"
 export WHEEL="$CAMPAIGN/factorial-build-da43258/cosmos_framework-1.2.2-py3-none-any.whl"
@@ -147,7 +159,7 @@ export COSMOS_TRAINING_CODE_REVISION=ad88888d500903a36c89da37a84e4bcd8176f9d3
 export COSMOS_TRAINING_WHEEL_SHA256=a1f8c9fcc4afca317bb8147a37345d42d269baf93da91293bdcf410f90b5b049
 export FACTORIAL_CANARY=0 FACTORIAL_SEED_ONLY=29 WORK_SECONDS=2200
 export EXPECTED_GPU_NAME="NVIDIA A100-SXM4-80GB"
-sbatch --time=40 --nodelist=batch-block1-2092 \
+sbatch --time=40 --partition=interactive_singlenode,grizzly --nodelist=batch-block1-2092 \
   --output="$RESULTS/slurm-%j.out" --error="$RESULTS/slurm-%j.err" \
   tools/quantized_optimizers/factorial.sbatch
 ```
@@ -161,7 +173,11 @@ development scores and their completion markers are preserved separately.
 `FACTORIAL_SCORE_ONLY=1` runs frozen references, recovery and final scoring of
 already-completed cells without starting new training. Do not run this concurrently
 with a factorial training driver: both own the same global reference/recovery paths.
-Unset `FACTORIAL_SEED_ONLY` for this scoring phase.
+Unset `FACTORIAL_SEED_ONLY` for this scoring phase and reserve 45 minutes
+with `WORK_SECONDS=2550`. The whole seed43 factorial group also requires a
+45-minute reservation, `FACTORIAL_SEED_ONLY=43`, and `FACTORIAL_SCORE_ONLY=0`.
+Admit it only after unused time from completed allocations has been returned
+to the ledger; a pending dependency alone does not reserve it within the budget.
 
 ## Budget, collection and analysis
 

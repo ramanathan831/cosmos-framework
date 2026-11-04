@@ -1,6 +1,6 @@
 {
   "upstream_main": "e644a833bf909af9c23a02a5c1069967dc501111",
-  "implementation_kernel_run": "d5207b5",
+  "implementation_kernel_run": "b15fe47",
   "qlora_component": "a7fd524242f4f06ac488a3d96d331b1f46e2b385",
   "integration": "caf42ffc859e333ebd99737fb0d419e61c396c4f",
   "integration_optimizer_component": "2131a42",
@@ -9,7 +9,8 @@
   "local_canary_max_gpu_hours": 0.25,
   "local_diagnostics_seconds": [
     13.736660049064085,
-    13.494587125023827
+    13.494587125023827,
+    12.793911373009905
   ],
   "slurm": [
     {
@@ -18,19 +19,506 @@
       "state": "FAILED",
       "elapsed_gpu_seconds": 40,
       "reason": "runtime has no pip; failed before training"
+    },
+    {
+      "job": "37928155",
+      "source": "b8d075a",
+      "state": "FAILED",
+      "elapsed_gpu_seconds": 363,
+      "reason": "Unconditional HF Qwen3 patch rejected SFT Transformers 5.8.1; root pin was incorrectly treated as SFT environment pin."
+    },
+    {
+      "job": "37928753",
+      "source": "2ae1741",
+      "state": "FAILED",
+      "elapsed_gpu_seconds": 110,
+      "reason": "Wrong Transformers 4 overlay; SFT packer requires >=5.8.1"
+    },
+    {
+      "job": "37929107",
+      "source": "2f475fc",
+      "state": "COMPLETED",
+      "elapsed_gpu_seconds": 504,
+      "reason": "All three native video SFT canaries completed; two supervised tokens/example"
+    },
+    {
+      "job": "37929866",
+      "source": "0a3f3f8",
+      "state": "FAILED",
+      "elapsed_gpu_seconds": 673,
+      "reason": "Nested global timing hooks popped one timer twice after first quantized update; preserved PartialUpdateError; fixed and tested"
+    },
+    {
+      "job": "37930554",
+      "source": "74b2090",
+      "state": "CANCELLED",
+      "archive_sha256": "a0478a1877417380e559ac86147b85f136f2e1cbd63b0bfda1ea1e0b744a4daa",
+      "elapsed_gpu_seconds": 0,
+      "reason": "Canceled while pending before allocation to correct measured low-resolution media settings; no training ran"
+    },
+    {
+      "job": "37932080",
+      "source": "eb70410",
+      "state": "TIMEOUT",
+      "archive_sha256": "aeb8c1d585b1e6063d4d4fcd9eca80a175ef3112d43eced5f8fdf9d4b2596aa1",
+      "allocation_minutes": 30,
+      "elapsed_gpu_seconds": 1826,
+      "reason": "Fused seed17 completed; second arm timed out at update38 because driver admission estimate was too short. Incomplete files retained separately; source0071b8f reserves900 seconds before a new arm. Attempted time-limit extension was denied; no extra time was granted."
+    },
+    {
+      "job": "37932764",
+      "source": "eb70410",
+      "state": "CANCELLED",
+      "elapsed_gpu_seconds": 0,
+      "reason": "Canceled while pending to replace immutable launcher archive after runtime-admission correction"
+    },
+    {
+      "job": "37933513",
+      "source": "0071b8f",
+      "state": "CANCELLED",
+      "elapsed_gpu_seconds": 0,
+      "reason": "Scheduler canceled unmet afterok dependency after37932080 timed out"
+    },
+    {
+      "job": "37933933",
+      "source": "0071b8fef340e6589eabe4836dd50bddc7b79044",
+      "archive_sha256": "47ace1bf0db44acea7d4203f68bbdd772b4448215c1b124c2941963684ac1d1b",
+      "state": "COMPLETED",
+      "allocation_minutes": 30,
+      "slot": 2,
+      "elapsed_gpu_seconds": 1750
+    },
+    {
+      "job": "37934125",
+      "source": "b8e1a372d425e20cfc2b6f173a25fe991b6b962a",
+      "state": "CANCELLED",
+      "allocation_minutes": 40,
+      "phase": "factorial canary",
+      "dependency": "afterok:37933933",
+      "archive_sha256": "8f41f0b31ebec034f6fa9d4994c6e935a9d8591849a91e92c5147fbaa464d495",
+      "elapsed_gpu_seconds": 0,
+      "reason": "Canceled while pending to correct score launcher to torchrun; no GPU work"
+    },
+    {
+      "job": "37934745",
+      "source": "da432587786240d759e40340b151645b1468569f",
+      "state": "FAILED",
+      "phase": "factorial canary",
+      "allocation_minutes": 40,
+      "dependency": "afterok:37933933",
+      "archive_sha256": "3617bd8cc4efa825f777b66a09231fe94fb362464ba3a63e94d326b32adc716e",
+      "elapsed_gpu_seconds": 223,
+      "reason": "88 native runtime tests passed; launcher absolute config path rejected before model allocation; corrected to repository-relative path"
+    },
+    {
+      "job": "37935497",
+      "source": "0071b8fef340e6589eabe4836dd50bddc7b79044",
+      "archive_sha256": "47ace1bf0db44acea7d4203f68bbdd772b4448215c1b124c2941963684ac1d1b",
+      "state": "COMPLETED",
+      "allocation_minutes": 30,
+      "slot": 3,
+      "dependency": "afterany:37934745",
+      "elapsed_gpu_seconds": 980
+    },
+    {
+      "job": "37935499",
+      "source": "0071b8fef340e6589eabe4836dd50bddc7b79044",
+      "archive_sha256": "47ace1bf0db44acea7d4203f68bbdd772b4448215c1b124c2941963684ac1d1b",
+      "state": "CANCELLED",
+      "allocation_minutes": 30,
+      "slot": 4,
+      "dependency": "afterany:37935497",
+      "elapsed_gpu_seconds": 244,
+      "reason": "Connected-recording overlap found; stop affected comparison and preserve evidence before rebuilding data"
+    },
+    {
+      "job": "37935503",
+      "source": "0071b8fef340e6589eabe4836dd50bddc7b79044",
+      "archive_sha256": "47ace1bf0db44acea7d4203f68bbdd772b4448215c1b124c2941963684ac1d1b",
+      "state": "CANCELLED",
+      "allocation_minutes": 30,
+      "slot": 5,
+      "dependency": "afterany:37935499",
+      "elapsed_gpu_seconds": 0,
+      "reason": "Connected-recording overlap found; stop affected comparison and preserve evidence before rebuilding data"
+    },
+    {
+      "job": "37935667",
+      "source": "04802a92b5c7f555bf7ad6a85256b5a7e1a25977",
+      "archive_sha256": "85d238842d665a13f2739161bc7bd4dc5f4ce66c1eb028d81ad73d16976f0da4",
+      "state": "CANCELLED",
+      "allocation_minutes": 45,
+      "phase": "last16-layer capacity canary",
+      "dependency": "afterany:37935503",
+      "elapsed_gpu_seconds": 0,
+      "reason": "Connected-recording overlap found; stop affected comparison and preserve evidence before rebuilding data"
+    },
+    {
+      "job": "37935832",
+      "source": "00e29d4a12555095511c34db6108d78a34d46a2d",
+      "archive_sha256": "70fa5f2172ab7017b5735fa7fe2793b56689dbab288d97bb30623395e794df5a",
+      "state": "CANCELLED",
+      "allocation_minutes": 40,
+      "phase": "factorial canary retry",
+      "dependency": "afterany:37935497",
+      "elapsed_gpu_seconds": 0,
+      "reason": "Pending retry moved to distinct node under recorded concurrency amendment; no allocation"
+    },
+    {
+      "job": "37936453",
+      "source": "ad88888d500903a36c89da37a84e4bcd8176f9d3",
+      "archive_sha256": "98eb09fac746d482fb99fd4d2870ef0310b292670daee8771beaa5a55443dd7a",
+      "state": "COMPLETED",
+      "allocation_minutes": 40,
+      "phase": "factorial canary retry",
+      "node": "batch-block1-2092",
+      "elapsed_gpu_seconds": 1227,
+      "reason": "88 runtime tests and all4 native train/save/fresh-process score canaries pass; canary data not qualification data"
+    },
+    {
+      "job": "37936680",
+      "source": "0071b8f",
+      "state": "CANCELLED",
+      "elapsed_gpu_seconds": 0,
+      "reason": "Pending slot6 canceled after recording separation failure",
+      "allocation_minutes": 30
+    },
+    {
+      "job": "37936886",
+      "source": "0071b8fef340e6589eabe4836dd50bddc7b79044",
+      "state": "COMPLETED",
+      "phase": "recording-clean mainline",
+      "slot": 1,
+      "allocation_minutes": 45,
+      "dependency": null,
+      "data": "recording-clean-v4",
+      "node": "batch-block4-0052",
+      "elapsed_gpu_seconds": 1949
+    },
+    {
+      "job": "37936887",
+      "source": "0071b8fef340e6589eabe4836dd50bddc7b79044",
+      "state": "COMPLETED",
+      "phase": "recording-clean mainline",
+      "slot": 2,
+      "allocation_minutes": 45,
+      "dependency": "afterany:37936886",
+      "data": "recording-clean-v4",
+      "node": "batch-block4-0052",
+      "elapsed_gpu_seconds": 2068
+    },
+    {
+      "job": "37936888",
+      "source": "0071b8fef340e6589eabe4836dd50bddc7b79044",
+      "state": "CANCELLED",
+      "phase": "recording-clean mainline",
+      "slot": 3,
+      "allocation_minutes": 45,
+      "dependency": "afterany:37936887",
+      "data": "recording-clean-v4",
+      "node": "batch-block4-0052",
+      "elapsed_gpu_seconds": 0,
+      "reason": "Split remaining trials by whole paired seed; pending replacement, zero GPU time."
+    },
+    {
+      "job": "37937079",
+      "phase": "recording-clean factorial",
+      "allocation_minutes": 40,
+      "state": "COMPLETED",
+      "elapsed_gpu_seconds": 1388,
+      "source": "ad88888d500903a36c89da37a84e4bcd8176f9d3"
+    },
+    {
+      "job": "37937080",
+      "phase": "recording-clean factorial",
+      "allocation_minutes": 40,
+      "state": "COMPLETED",
+      "source": "ad88888d500903a36c89da37a84e4bcd8176f9d3",
+      "elapsed_gpu_seconds": 1668
+    },
+    {
+      "job": "37937083",
+      "phase": "recording-clean factorial",
+      "allocation_minutes": 40,
+      "state": "CANCELLED",
+      "elapsed_gpu_seconds": 0,
+      "source": "ad88888d500903a36c89da37a84e4bcd8176f9d3",
+      "reason": "Canceled pending, zero allocation, to replace development task scoring with recording-disjoint final scoring."
+    },
+    {
+      "job": "37937487",
+      "phase": "recording-clean factorial",
+      "allocation_minutes": 40,
+      "state": "CANCELLED",
+      "elapsed_gpu_seconds": 0,
+      "source": "eda7495b6733379dcf96bbfe6356333a618f6871",
+      "reason": "Canceled pending, zero allocation, to prioritize the already-prespecified exact-recovery gates."
+    },
+    {
+      "job": "37937916",
+      "phase": "recording-clean factorial",
+      "allocation_minutes": 40,
+      "state": "CANCELLED",
+      "source": "2762d6d30d4703e156faea7c967d3545ba989d3d",
+      "training_source": "ad88888d500903a36c89da37a84e4bcd8176f9d3",
+      "archive_sha256": "7fb7087c049c48582e3df1ce7a87d2a62e360f14c9bc30c529cc69b9d4672d8d",
+      "dependency": "afterany:37937080",
+      "reason": "Replace held full driver with seed29-only driver after shared scoring and mainline29; zero GPU time.",
+      "elapsed_gpu_seconds": 0
+    },
+    {
+      "job": "37937937",
+      "phase": "recomputation capacity follow-up",
+      "source": "2e81f9d0cf5633f00a6874be7cb8c8cca4dcd812",
+      "archive_sha256": "71f7f55428a1115d15f87daf90af7c976563d5bd008dc651625247f8a2cd9e39",
+      "state": "CANCELLED",
+      "allocation_minutes": 30,
+      "dependency": "afterany:37936888",
+      "node": "batch-block4-0052",
+      "elapsed_gpu_seconds": 0,
+      "reason": "Add full-model pressure pair inside the same capacity allocation before any allocation."
+    },
+    {
+      "job": "37938908",
+      "phase": "capacity",
+      "state": "CANCELLED",
+      "elapsed_gpu_seconds": 0,
+      "allocation_minutes": 30,
+      "reason": "Pending fixed-node capacity replacement."
+    },
+    {
+      "job": "37939124",
+      "phase": "capacity",
+      "state": "CANCELLED",
+      "elapsed_gpu_seconds": 0,
+      "allocation_minutes": 30,
+      "reason": "Broaden whole unstarted comparison to eligible A100 nodes."
+    },
+    {
+      "job": "37939482",
+      "phase": "capacity",
+      "state": "CANCELLED",
+      "elapsed_gpu_seconds": 0,
+      "allocation_minutes": 30,
+      "reason": "Correct required TRAIN_KEYS environment before allocation."
+    },
+    {
+      "job": "37939266",
+      "phase": "recording-clean mainline",
+      "source": "0e8e3a2",
+      "allocation_minutes": 25,
+      "state": "PENDING",
+      "dependency": null,
+      "node": "batch-block4-0052"
+    },
+    {
+      "job": "37939494",
+      "phase": "capacity",
+      "source": "9eac5c7",
+      "allocation_minutes": 30,
+      "state": "RUNNING",
+      "dependency": null,
+      "node": "batch-block4-2071",
+      "partition": "interactive_singlenode"
+    },
+    {
+      "job": "37939490",
+      "phase": "recording-clean factorial scoring/recovery",
+      "source": "0c0914a",
+      "allocation_minutes": 45,
+      "state": "CANCELLED",
+      "dependency": "afterok:37939494",
+      "node": "eligible A100 in polar/grizzly; excludes original campaign nodes",
+      "elapsed_gpu_seconds": 0,
+      "reason": "Replace pending workflow to reserve seven minutes for scoring and retain fifteen minutes for training; same hardware, trials, runtime and allocation ceilings."
+    },
+    {
+      "job": "37939491",
+      "phase": "recording-clean mainline seed43",
+      "source": "0e8e3a2",
+      "allocation_minutes": 45,
+      "state": "CANCELLED",
+      "dependency": "afterok:37939490",
+      "node": "eligible A100 in polar/grizzly; excludes original campaign nodes",
+      "elapsed_gpu_seconds": 0,
+      "reason": "Return pending45-minute reservation and reserve55minutes for the same whole unstarted seed43; preserve900-second admission guard."
+    },
+    {
+      "job": "37939514",
+      "phase": "recording-clean factorial seed29",
+      "source": "0c0914a",
+      "allocation_minutes": 40,
+      "state": "CANCELLED",
+      "dependency": "afterok:37939490:37939266",
+      "node": "batch-block1-2092",
+      "elapsed_gpu_seconds": 0,
+      "reason": "Replace pending workflow to reserve seven minutes for scoring and retain fifteen minutes for training; same hardware, trials, runtime and allocation ceilings."
+    },
+    {
+      "job": "37939537",
+      "phase": "recording-clean mainline seed43",
+      "source": "0e8e3a2",
+      "allocation_minutes": 55,
+      "state": "PENDING",
+      "dependency": "afterok:37942458",
+      "node": "eligible A100 in polar/grizzly; excludes original campaign nodes"
+    },
+    {
+      "job": "37939879",
+      "phase": "hardware inventory",
+      "state": "CANCELLED",
+      "elapsed_gpu_seconds": 0,
+      "allocation_minutes": 1,
+      "reason": "Canceled while pending; no hardware model established, no GPU allocation."
+    },
+    {
+      "job": "37940011",
+      "phase": "hardware inventory",
+      "state": "CANCELLED",
+      "elapsed_gpu_seconds": 0,
+      "allocation_minutes": 1,
+      "reason": "Canceled while pending; no hardware model established, no GPU allocation."
+    },
+    {
+      "job": "37942458",
+      "phase": "recording-clean factorial scoring/recovery",
+      "allocation_minutes": 45,
+      "node": "eligible A100 in polar/grizzly; excludes original campaign nodes",
+      "dependency": "afterok:37939494",
+      "state": "PENDING",
+      "source": "6f195a77ba8376f944928ac922c4f1693f6f8ff0",
+      "archive_sha256": "8626da2a583ade32bc04e7142d1e6d288dd37d04060696812ec71d56ea4de378"
+    },
+    {
+      "job": "37942471",
+      "phase": "recording-clean factorial seed29",
+      "allocation_minutes": 40,
+      "node": "batch-block1-2092",
+      "dependency": "afterok:37942458:37939266",
+      "state": "PENDING",
+      "source": "6f195a77ba8376f944928ac922c4f1693f6f8ff0",
+      "archive_sha256": "8626da2a583ade32bc04e7142d1e6d288dd37d04060696812ec71d56ea4de378"
     }
   ],
   "final_release": "NOT QUALIFIED",
   "missing_gates": [
-    "untouched recording-disjoint final evaluation",
-    "three-seed real task quality and time-to-quality",
-    "paging under memory pressure",
-    "native multimodal CLI canary pending completion"
+    "Final training comparisons pending completion",
+    "Teacher-forced original WTS task-score factorial on reused evaluation groups",
+    "Uninstrumented matched time-to-quality speed qualification"
   ],
   "file_sha256": {
     "diagnostic_initial.json": "9b95057a581f1b5a6c092c910c9e419caf825c855f7d25e9bcfb1f6582b7c4e0",
     "adapter_canary.json": "65c2b9c8db9e557e73ce0edeac59cab001b0513f5c06fc081a8e6ec34293932a",
     "diagnostic_summary.json": "099e12473d179e3cda13dade07b5dafcc2282f24d0e02a799c8800b277e29eaa",
     "diagnostic.json": "0a91020b3b187b17b6e975268c9ec10be57a08ab471871e46e276ea7b35c913c"
+  },
+  "staging_failures": [
+    {
+      "stage": "copy_source_474c2c6",
+      "reason": "Lustre metadata copy exceeded 240-second SSH deadline; owned staging processes terminated, no GPU job submitted",
+      "gpu_seconds": 0
+    }
+  ],
+  "large_tensor_probe": {
+    "source": "bd4dd0a plus diagnostic width/depth CLI",
+    "elements": 67108864,
+    "result": "speed gate failed; bnb8 total 4.728ms vs fused baseline 2.919ms",
+    "file": "diagnostic_large_tensor.json"
+  },
+  "integration_current": "6f195a77ba8376f944928ac922c4f1693f6f8ff0",
+  "integration_current_optimizer_module": "b15fe47",
+  "evaluation_authorization": "User explicitly approved reusing existing QLoRA train and eval; previous inspection history preserved.",
+  "source_environment_pins": {
+    "root": {
+      "torch": "2.10.0 in cu128/cu130 groups; optional 2.13.0",
+      "transformers": ">=4.57.1,<5.0.0"
+    },
+    "native_sft": {
+      "torch": "2.11.0+cu128/cu130",
+      "transformers": "5.8.1",
+      "bitsandbytes": "0.49.2 (new optional extra)"
+    }
+  },
+  "development_budget": {
+    "max_gpu_minutes": 240,
+    "prior_failed_seconds": 673,
+    "remaining_max_allocations": 5,
+    "maximum_minutes_each": 45,
+    "overall_campaign_gpu_hours": 8,
+    "max_post_calibration_slots": 8,
+    "admission": "Terminal charged time plus full active/pending wall reservations plus proposed wall <=240 GPU minutes; same nine trials, not additional tuning trials."
+  },
+  "additional_work_budget": {
+    "factorial_max_gpu_minutes": 170,
+    "mainline_capacity_followup_max_gpu_minutes": 30,
+    "overall_gpu_hours_unchanged": 8
+  },
+  "integration_native_factorial": {
+    "source": "ad88888d500903a36c89da37a84e4bcd8176f9d3",
+    "qlora_component": "a7fd524242f4f06ac488a3d96d331b1f46e2b385",
+    "optimizer_component": "eb70410",
+    "optimizer_module": "b15fe47",
+    "source_archive_sha256": "98eb09fac746d482fb99fd4d2870ef0310b292670daee8771beaa5a55443dd7a",
+    "wheel_sha256": "a1f8c9fcc4afca317bb8147a37345d42d269baf93da91293bdcf410f90b5b049",
+    "integration_only_changes": "native adapter consolidated checkpoint bridge and canonical backend identity; no changes to quantization arithmetic; portable export reload without optimizer import",
+    "state": "All four canaries completed; five of twelve full cells trained. Final scoring and native8-to16 recovery remain pending. Current factorial ceiling170 GPU minutes.",
+    "local_tests": "23 checkpoint +2 extended portable export tests;88 native runtime tests;6 analysis/scoped-driver tests"
+  },
+  "execution_amendment": "At most two campaign GPUs on distinct nodes. All arms within each paired seed use one verified A100 node; partially complete seed29 stays on its original node. Whole unstarted seed43 and capacity may move; no outcome-based reruns.",
+  "data_integrity_failure": "development-v3 has related trial overlap; NOT quality qualification. Repaired split173/56, fixed validation bytes,46/16 connected groups; see recording_split_repair.json.",
+  "final_data_selection": "final_recording_selection.json:16 groups disjoint from46 training and16 development groups. Source is the approved reused full QLoRA evaluation pool, NOT historically untouched.",
+  "budget_amendment": {
+    "previous_factorial_minutes": 150,
+    "factorial_minutes": 170,
+    "source": "20 minutes from the previously unassigned28.05 minutes inside the existing8GPU-hour ceiling",
+    "reason": "Recording-disjoint final scoring requires rescoring existing completed checkpoints. Measured BF16 full cells take about9 minutes each including fresh-process scoring; fund the unchanged12cells and2recovery gates without omitting correctness or changing quality thresholds.",
+    "unchanged": "8GPUhours overall;240mainline minutes;30capacity minutes;three paired seeds;12training cells;no extra tuning/final evaluation reuse; all quality/speed/memory bounds.",
+    "worst_case_total_gpu_minutes": 471.95,
+    "remaining_unassigned_minutes": 8.05
+  },
+  "admission_receipt_20261104T0312Z": {
+    "mainline_charged_seconds": 9490,
+    "mainline_reserved_seconds": 4200,
+    "mainline_ceiling_seconds": 14400,
+    "factorial_charged_seconds": 4506,
+    "factorial_reserved_seconds": 5100,
+    "factorial_ceiling_seconds": 10200,
+    "capacity_reserved_seconds": 1800,
+    "compatibility_charged_seconds": 1017,
+    "local_charged_seconds_upper_bound": 900,
+    "total_charged_and_reserved_seconds": 27013,
+    "total_ceiling_seconds": 28800,
+    "superseded_mainline_reservation": "55-minute final seed group recorded in execution_grouping_amendment.json; mainline reserve4800seconds, total27613seconds."
+  },
+  "hardware_inventory_admission": {
+    "reason": "Other partitions have idle nodes but GPU models were not established; inspect actual hardware rather than infer it from node prefixes. No new training trials.",
+    "max_allocations": 2,
+    "max_minutes_each": 1,
+    "charge": "Add actual elapsed GPU time to compatibility allocation ledger; reserve120 seconds worst case from previously unassigned8.05 minutes.",
+    "overall_worst_case_phase_ceilings_gpu_minutes": 473.95,
+    "concurrency": "Hold owned capacity job during hardware inventory; mainline29 may remain eligible, at most2 campaign GPUs."
+  },
+  "current_upstream_main": "d04e5067dd2f353fa8fab65fd99fcd86819e537d",
+  "upstream_runtime_delta": "None: current upstream change is action-cookbook documentation only.",
+  "final_validation_only_changes": [
+    "de93e3e preserves dataclass positional constructor API",
+    "cc93696 rejects invalid backend hyperparameters early",
+    "386d839 exercises CLI override and canonical resolved-config serialization; no training arithmetic changes"
+  ],
+  "optimizer_module_sha256": "6f9889384ae2f30d2f6e061af826686edb1aabc8884d7dbee61593774b2fc930",
+  "scoring_admission_amendment": {
+    "utc": "2026-11-04T04:22Z",
+    "measured_prior_scoring_seconds": [
+      150,
+      161,
+      122,
+      124,
+      152
+    ],
+    "scoring_reserve_seconds": 420,
+    "training_reserve_seconds": 900,
+    "tests": "six CPU driver tests passed, including 750s remaining permits only scoring and 300s permits neither",
+    "same_pending_reservation_seconds": 5100,
+    "unchanged": "training wheel/config/native probe, 12 cells, scoring set, all quality and performance thresholds"
   }
 }

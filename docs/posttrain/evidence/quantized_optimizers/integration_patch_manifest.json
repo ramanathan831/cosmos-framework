@@ -1,0 +1,19 @@
+{
+  "base_merge": "a652405f141eb609528871292a29048922197944",
+  "integration_head": "6f195a77ba8376f944928ac922c4f1693f6f8ff0",
+  "workflow_archive_source": "6f195a77ba8376f944928ac922c4f1693f6f8ff0",
+  "training_runtime_source": "ad88888d500903a36c89da37a84e4bcd8176f9d3",
+  "qlora_component": "a7fd524242f4f06ac488a3d96d331b1f46e2b385",
+  "patch_sha256": "d7798f0a03e6ade3fd4241a18e57eab09310568ba52cc7e5ab8b55d4c46b1da5",
+  "validation": "git apply --cached --check --unidiff-zero against temporary index at base_merge passed",
+  "exclusions": {
+    "paths": [
+      "cosmos_framework/posttrain/config/rl.py",
+      "cosmos_framework/posttrain/tests/test_quantized_optimizer.py",
+      "cosmos_framework/posttrain/configs/sft_quantized_optimizer.py",
+      "docs"
+    ],
+    "reason": "Shared primary constructor fix de93e3e, early validation cc93696, CLI test386d839 and current mainline recipe are not integration-only."
+  },
+  "scope": "Adapter consolidated-checkpoint bridge, tests and factorial tools only. Mainline runtime has no dependency on this patch."
+}

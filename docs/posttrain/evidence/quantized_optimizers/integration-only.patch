@@ -1,7 +1,1286 @@
-diff --git a/cosmos_framework/posttrain/config/build.py b/cosmos_framework/posttrain/config/build.py
-index 1e20aa5..73129b9 100644
---- a/cosmos_framework/posttrain/config/build.py
-+++ b/cosmos_framework/posttrain/config/build.py
-@@ -687 +687 @@ def _validate_native_adapter_optimizer(opt_cfg: OptimizerConfig) -> None:
--    if opt_cfg.name != "adamw" or opt_cfg.impl != "fused":
-+    if not ((opt_cfg.name == "adamw" and opt_cfg.impl == "fused") or (opt_cfg.name in ("adamw_bnb_8bit", "paged_adamw_8bit") and not opt_cfg.impl)):
+diff --git a/cosmos_framework/posttrain/checkpoint/adapter.py b/cosmos_framework/posttrain/checkpoint/adapter.py
+index 34ba8b5..d3fbce6 100644
+--- a/cosmos_framework/posttrain/checkpoint/adapter.py
++++ b/cosmos_framework/posttrain/checkpoint/adapter.py
+@@ -171 +171,2 @@ def read_adapter_metadata(
+-        for component in ("optim/.metadata", "trainer.pt", "data.pt"):
++        optimizer_file = "optim.pt" if os.path.isfile(os.path.join(path, "model.pt")) else "optim/.metadata"
++        for component in (optimizer_file, "trainer.pt", "data.pt"):
+@@ -194,5 +195,11 @@ def validate_adapter_tensor_inventory(path: str, metadata: Mapping[str, Any]) ->
+-    inventory = (
+-        _tensor_inventory(_consolidated_adapter_state(path))
+-        if os.path.isfile(os.path.join(path, CHECKPOINT_ARTIFACT_MANIFEST))
+-        else _dcp_inventory(path, "model")
+-    )
++    if os.path.isfile(os.path.join(path, CHECKPOINT_ARTIFACT_MANIFEST)):
++        inventory = _tensor_inventory(_consolidated_adapter_state(path))
++    elif os.path.isfile(os.path.join(path, "model.pt")):
++        from cosmos_framework.posttrain.checkpoint.io import load_component
++
++        state = load_component(path, "model")
++        if not isinstance(state, dict) or set(state) != {"net"}:
++            raise ValueError("consolidated adapter model requires exactly net")
++        inventory = _tensor_inventory(state["net"])
++    else:
++        inventory = _dcp_inventory(path, "model")
+@@ -236,0 +244,2 @@ def load_adapter_weights(
++    elif os.path.isfile(os.path.join(path, "model.pt")):
++        state = manager.load_component(path, "model")["net"]
+@@ -297,0 +307,2 @@ def publish_adapter_artifact(
++    elif os.path.isfile(os.path.join(source_checkpoint, "model.pt")):
++        state = manager.load_component(source_checkpoint, "model")["net"]
+diff --git a/cosmos_framework/posttrain/configs/sft_optimizer_factorial.py b/cosmos_framework/posttrain/configs/sft_optimizer_factorial.py
+new file mode 100644
+index 0000000..218fc65
+--- /dev/null
++++ b/cosmos_framework/posttrain/configs/sft_optimizer_factorial.py
+@@ -0,0 +1,29 @@
++"""Disposable BF16/NF4 x FP32/eight-bit optimizer comparison, not a mainline recipe."""
++
++import os
++
++from cosmos_framework.posttrain.configs.sft_qwen3_vl_8b_lora import build_config
++
++
++def make_config():
++    config = build_config(quantized=os.environ.get("FACTORIAL_BASE", "bf16") == "nf4")
++    seed = int(os.environ.get("FACTORIAL_SEED", "17"))
++    steps = int(os.environ.get("FACTORIAL_STEPS", "16"))
++    name = os.environ.get("FACTORIAL_OPTIMIZER", "adamw")
++    config.job.name = os.environ.get("FACTORIAL_BASE", "bf16") + "_" + name
++    config.rl.seed = seed
++    config.model.model_config.adapter.initialization_seed = seed
++    config.rl.max_steps = steps
++    config.rl.optimizer.warmup_steps = 2 if steps > 2 else 0
++    config.rl.lr_schedule.cycle_steps = steps
++    config.rl.optimizer.name = name
++    config.rl.optimizer.impl = "fused" if name == "adamw" else ""
++    config.rl.micro_batch_size = 4
++    config.rl.grad_accum = 1
++    config.rl.checkpoint_format = "consolidated"
++    config.rl.save_every = steps
++    config.rl.validation.max_samples = int(os.environ.get("FACTORIAL_VAL_ROWS", "16"))
++    config.rl.validation.batch_size = 4
++    config.rl.validation.every_steps = 8 if steps > 2 else steps
++    config.rl.processor_kwargs["videos_kwargs"]["size"] = {"shortest_edge": 262144, "longest_edge": 1048576}
++    return config
+diff --git a/cosmos_framework/posttrain/entrypoints/sft.py b/cosmos_framework/posttrain/entrypoints/sft.py
+index 4bbdd6f..18ef8e6 100644
+--- a/cosmos_framework/posttrain/entrypoints/sft.py
++++ b/cosmos_framework/posttrain/entrypoints/sft.py
+@@ -185,2 +185,2 @@ def _adapter_run_contract(
+-    if rl.checkpoint_format != "dcp" or rl.save_async or rl.checkpoint_store.backend != "local":
+-        raise ValueError("native adapter training requires synchronous local DCP checkpoints")
++    if rl.checkpoint_format not in ("dcp", "consolidated") or rl.save_async or rl.checkpoint_store.backend != "local":
++        raise ValueError("native adapter integration requires synchronous local DCP or consolidated checkpoints")
+diff --git a/cosmos_framework/posttrain/model/checkpoint.py b/cosmos_framework/posttrain/model/checkpoint.py
+index 82a3c1a..c050d4c 100644
+--- a/cosmos_framework/posttrain/model/checkpoint.py
++++ b/cosmos_framework/posttrain/model/checkpoint.py
+@@ -106,0 +107,2 @@ class AdapterCheckpointCodec:
++        if getattr(optimizer, "cosmos_quantized_optimizer", False):
++            return _json_copy(optimizer.identity)
+diff --git a/cosmos_framework/posttrain/model/quantization/loader.py b/cosmos_framework/posttrain/model/quantization/loader.py
+index cd89605..01ba9b4 100644
+--- a/cosmos_framework/posttrain/model/quantization/loader.py
++++ b/cosmos_framework/posttrain/model/quantization/loader.py
+@@ -725 +725 @@ class NativeAdapterLifecycle:
+-            "precision": {"base_dense": "bfloat16", "adapter": "float32", "optimizer_moments": "float32"},
++            "precision": {"base_dense": "bfloat16", "adapter": "float32"},
+diff --git a/cosmos_framework/posttrain/roles/trainer/llm.py b/cosmos_framework/posttrain/roles/trainer/llm.py
+index cf291b9..23a24fe 100644
+--- a/cosmos_framework/posttrain/roles/trainer/llm.py
++++ b/cosmos_framework/posttrain/roles/trainer/llm.py
+@@ -372,2 +372,2 @@ class LLMTrainer(BaseTrainer):
+-        if self.checkpoint_format != "dcp" or self.checkpoint_manager.store.is_object_store:
+-            raise ValueError("adapter training v1 requires local DCP checkpoints")
++        if self.checkpoint_format not in ("dcp", "consolidated") or self.checkpoint_manager.store.is_object_store:
++            raise ValueError("adapter integration requires local DCP or consolidated checkpoints")
+@@ -1543,0 +1544,20 @@ class LLMTrainer(BaseTrainer):
++        if self.checkpoint_format == "consolidated":
++            location = self.checkpoint_manager.save_consolidated(
++                path,
++                {
++                    "model": {"net": codec.view.state_dict()},
++                    "optim": self.opt.state_dict(),
++                    MODEL_METADATA_COMPONENT: codec.metadata(self.opt),
++                    "data": data_state,
++                    "trainer": self._trainer_state(),
++                },
++                async_safe_snapshot=False,
++                publish=publish,
++                update_latest=update_latest,
++                component_plan=plan,
++            )
++            codec.assert_live(self._net(), self.opt)
++            record_qlora_phase("checkpoint_complete", reset_peak=True)
++            if publish:
++                self.callbacks.on_checkpoint(self, location)
++            return
+@@ -1728,0 +1749,12 @@ class LLMTrainer(BaseTrainer):
++        if self.checkpoint_format == "consolidated":
++            model_state = self.checkpoint_manager.load_component(path, "model")["net"]
++            optimizer_state = self.checkpoint_manager.load_component(path, "optim")
++            if optimizer_state is None:
++                raise RuntimeError("consolidated adapter optimizer state is missing")
++            # Quantized loader validates and reconstructs allocations transactionally;
++            # metadata/inventory above has already validated adapter names/dtypes/shapes.
++            self.opt.load_state_dict(optimizer_state)
++            codec.view.load_state_dict(model_state, strict=True)
++            codec.assert_live(self._net(), self.opt)
++            codec.validate_frozen_base()
++            return self._restore_trainer_state(trainer_state)
+diff --git a/cosmos_framework/posttrain/tests/test_adapter_consolidated_quantized.py b/cosmos_framework/posttrain/tests/test_adapter_consolidated_quantized.py
+new file mode 100644
+index 0000000..1f3eb67
+--- /dev/null
++++ b/cosmos_framework/posttrain/tests/test_adapter_consolidated_quantized.py
+@@ -0,0 +1,108 @@
++"""Disposable integration: native adapter transactions with real quantized CUDA state."""
++
++import subprocess
++import sys
++
++import pytest
++import torch
++from torch import nn
++
++from cosmos_framework.posttrain.algorithm.primitives.objective import Objective, Reduction
++from cosmos_framework.posttrain.config.build import build_lr_scheduler, build_optimizer
++from cosmos_framework.posttrain.config.rl import OptimizerConfig
++from cosmos_framework.posttrain.model.checkpoint import build_adapter_checkpoint_codec
++from cosmos_framework.posttrain.roles.trainer.llm import LLMTrainer
++from cosmos_framework.posttrain.utils.rank_state import collect_rank_state
++
++
++class FrozenBase(nn.Linear):
++    def state_dict(self, *args, **kwargs):
++        raise AssertionError("packed/frozen base must not be extracted")
++
++
++class Net(nn.Module):
++    def __init__(self):
++        super().__init__()
++        self.base = FrozenBase(1024, 1024, bias=False, device="cuda", dtype=torch.bfloat16).requires_grad_(False)
++        self.lora_A = nn.Linear(1024, 128, bias=False, device="cuda")
++        self.lora_B = nn.Linear(128, 1024, bias=False, device="cuda")
++        nn.init.zeros_(self.lora_B.weight)
++        self._cosmos_adapter_parameters = {"lora_A.weight": self.lora_A.weight, "lora_B.weight": self.lora_B.weight}
++        self._cosmos_adapter_checkpoint_codec = build_adapter_checkpoint_codec(
++            self, identity={"base": "fixed-bf16-fixture", "revision": "a" * 40}
++        )
++
++    def forward(self, x):
++        return self.base(x.bfloat16()).float() + self.lora_B(self.lora_A(x))
++
++
++def objective(model, batch):
++    loss = model(torch.randn(2, 1024, device="cuda")).square().mean()
++    return loss, {"loss": float(loss.detach())}
++
++
++def trainer(name):
++    torch.manual_seed(17)
++    model = Net()
++    cfg = OptimizerConfig(name=name, lr=1e-3, warmup_steps=2)
++    opt = build_optimizer(model, cfg)
++    return LLMTrainer(
++        model,
++        Objective(objective, reduction=Reduction.MEAN),
++        opt,
++        checkpoint_format="consolidated",
++        lr_scheduler=build_lr_scheduler(opt, cfg),
++    )
++
++
++@pytest.mark.parametrize("name", ["adamw_bnb_8bit", "paged_adamw_8bit"])
++def test_fresh_process_adapter_transaction(name, tmp_path):
++    if not torch.cuda.is_available():
++        pytest.skip("real CUDA required")
++    source = trainer(name)
++    base = source.model.base.weight.detach().clone()
++    for _ in range(3):
++        source.train([None])
++    checkpoint = tmp_path / "iter_000003"
++    source.save(str(checkpoint), data_state=collect_rank_state({"cursor": 3}))
++    assert bool(source.opt.state_report()["paged_moment_bytes"]) == (name == "paged_adamw_8bit")
++    assert torch.equal(base, source.model.base.weight)
++    # Portable model-only exports can reload without an optimizer/backend import.
++    artifact_hint = tmp_path / "checkpoints" / "iter_000003"
++    with pytest.warns(UserWarning, match="partial checkpoint artifact"):
++        source.save(str(artifact_hint), components=["model"])
++    artifact = tmp_path / "checkpoint_artifacts" / "iter_000003"
++    portable_code = """
++import sys, torch
++from cosmos_framework.posttrain.tests.test_adapter_consolidated_quantized import Net
++from cosmos_framework.posttrain.checkpoint.adapter import load_adapter_weights
++from cosmos_framework.posttrain.checkpoint.manager import CheckpointManager
++sys.modules['bitsandbytes'] = None
++torch.manual_seed(17); n=Net()
++load_adapter_weights(sys.argv[1],n._cosmos_adapter_checkpoint_codec,manager=CheckpointManager())
++assert 'bitsandbytes.optim' not in sys.modules
++"""
++    subprocess.run([sys.executable, "-c", portable_code, str(artifact)], check=True)
++    output = tmp_path / "continued.pt"
++    code = """
++import sys, torch
++from cosmos_framework.posttrain.tests.test_adapter_consolidated_quantized import trainer
++from cosmos_framework.posttrain.utils.rank_state import state_for_current_rank
++t = trainer(sys.argv[1]); assert t.load(sys.argv[2]) == 3
++assert state_for_current_rank(t.checkpoint_manager.load_component(sys.argv[2], 'data'))['cursor'] == 3
++assert bool(t.opt.state_report()['paged_moment_bytes']) == (sys.argv[1] == 'paged_adamw_8bit')
++for _ in range(4): t.train([None])
++torch.save({'weights':t._adapter_checkpoint_codec().view.state_dict(), 'optimizer':t.opt.state_dict(), 'scheduler':t.lr_scheduler.state_dict()},sys.argv[3])
++"""
++    subprocess.run([sys.executable, "-c", code, name, str(checkpoint), str(output)], check=True)
++    for _ in range(4):
++        source.train([None])
++    restored = torch.load(output, weights_only=False)
++    for key, value in source._adapter_checkpoint_codec().view.state_dict().items():
++        assert torch.equal(value, restored["weights"][key])
++    assert source.lr_scheduler.state_dict() == restored["scheduler"]
++    for key, state in source.opt.state_dict()["state"].items():
++        for field, value in state.items():
++            actual = restored["optimizer"]["state"][key][field]
++            assert torch.equal(value, actual) if isinstance(value, torch.Tensor) else value == actual
++    assert torch.equal(base, source.model.base.weight)
+diff --git a/cosmos_framework/posttrain/tests/test_entrypoints_sft_qlora.py b/cosmos_framework/posttrain/tests/test_entrypoints_sft_qlora.py
+index 2cd34fc..359a30b 100644
+--- a/cosmos_framework/posttrain/tests/test_entrypoints_sft_qlora.py
++++ b/cosmos_framework/posttrain/tests/test_entrypoints_sft_qlora.py
+@@ -303 +303 @@ def test_fresh_adapter_build_rejects_checkpoint_policy_before_allocation(monkeyp
+-        config.rl.checkpoint_format = "consolidated"
++        config.rl.checkpoint_format = "unsupported"
+@@ -609,0 +610,7 @@ def test_native_entrypoint_resume_restores_real_cursor_optimizer_and_rng(tmp_pat
++
++
++def test_adapter_integration_accepts_consolidated_contract():
++    config = make_config()
++    config.rl.checkpoint_format = "consolidated"
++    processor, training = sft._adapter_run_contract(config, _packer(config), _objective_identity(config))
++    assert processor and training["max_steps"] == config.rl.max_steps
+diff --git a/tools/quantized_optimizers/analyze_factorial.py b/tools/quantized_optimizers/analyze_factorial.py
+new file mode 100644
+index 0000000..9bb032b
+--- /dev/null
++++ b/tools/quantized_optimizers/analyze_factorial.py
+@@ -0,0 +1,431 @@
++"""Preregistered paired optimizer/base-precision analysis on reused WTS groups.
++
++Every incomplete cell remains visible; no missing cell is substituted. The
++bootstrap retains recording families and identical-video connected components.
++This script analyzes teacher-forced task scores, not free-form generation.
++"""
++
++import argparse
++import gzip
++import json
++import math
++import random
++from collections import defaultdict
++from pathlib import Path
++
++from tools.native_qlora_qualification.common import inventory_groups
++from tools.native_qlora_qualification.quality import INPUT_KEYS, metrics, validate_scores
++from tools.quantized_optimizers.analyze_development import interval, parse_time
++
++SEEDS = (17, 29, 43)
++CELLS = ("bf16_adamw", "bf16_adamw_bnb_8bit", "nf4_adamw", "nf4_adamw_bnb_8bit")
++
++
++def paired_bootstrap(candidate, reference, frozen, groups, *, crossed, repetitions=10000):
++    """Seed/group paired draws, preserving whole groups and token weighting."""
++    anchor = candidate[17]
++    by_group = defaultdict(list)
++    for i, row in enumerate(anchor):
++        by_group[groups[row["id"]]].append(i)
++    if len(by_group) < 2:
++        return {"estimable": False, "reason": "fewer than two connected recording groups"}
++    totals = {}
++    for seed in SEEDS:
++        totals[seed] = []
++        for group in sorted(by_group):
++            indices = by_group[group]
++            totals[seed].append(
++                (
++                    len(indices),
++                    sum(
++                        candidate[seed][i]["native_sft_ce"] * candidate[seed][i]["native_supervised_tokens"]
++                        for i in indices
++                    ),
++                    sum(
++                        reference[seed][i]["native_sft_ce"] * reference[seed][i]["native_supervised_tokens"]
++                        for i in indices
++                    ),
++                    sum(candidate[seed][i]["restricted_choice_correct"] for i in indices),
++                    sum(reference[seed][i]["restricted_choice_correct"] for i in indices),
++                    sum(frozen[i]["restricted_choice_correct"] for i in indices),
++                )
++            )
++    rng = random.Random(2026)
++    values = defaultdict(list)
++    count = len(by_group)
++    for _ in range(repetitions):
++        seeds = rng.choices(SEEDS, k=3)
++        shared = rng.choices(range(count), k=count) if crossed else None
++        sampled = []
++        for seed in seeds:
++            draws = shared if crossed else rng.choices(range(count), k=count)
++            sampled.extend(totals[seed][g] for g in draws)
++        n, loss_a, loss_b, correct_a, correct_b, correct_f = map(math.fsum, zip(*sampled, strict=True))
++        if loss_b <= 0:
++            raise ValueError("nonpositive reference NLL")
++        values["nll_ratio"].append(loss_a / loss_b)
++        values["accuracy_degradation"].append((correct_b - correct_a) / n)
++        values["adaptation_gain"].append((correct_a - correct_f) / n)
++    bounds = {}
++    for key, samples in values.items():
++        samples.sort()
++        bounds[key] = {
++            "ci95": [samples[math.ceil(repetitions * p) - 1] for p in (0.025, 0.975)],
++            "lower_one_sided95": samples[math.ceil(repetitions * 0.05) - 1],
++            "upper_one_sided95": samples[math.ceil(repetitions * 0.95) - 1],
++        }
++    gates = {
++        "nll": bounds["nll_ratio"]["upper_one_sided95"] <= 1.01,
++        "accuracy": bounds["accuracy_degradation"]["upper_one_sided95"] <= 0.01,
++        "positive_adaptation": bounds["adaptation_gain"]["lower_one_sided95"] > 0,
++    }
++    return {
++        "estimable": True,
++        "groups": count,
++        "repetitions": repetitions,
++        "rng_seed": 2026,
++        "crossed_group_draws": crossed,
++        "bounds": bounds,
++        "gates": gates,
++        "all_gates_pass": repetitions == 10000 and all(gates.values()),
++    }
++
++
++def analyze(raw, inventory):
++    cells, scores, frozen, missing = {}, {}, {}, []
++    for base in ("bf16", "nf4"):
++        key = f"frozen/{base}/final_score/scores.jsonl"
++        if key in raw and f"frozen/{base}/final_score.complete.json" in raw:
++            frozen[base] = [json.loads(line) for line in raw[key].splitlines()]
++        else:
++            missing.append("frozen/" + base)
++    for seed in SEEDS:
++        for cell in CELLS:
++            prefix = f"seed{seed}/{cell}/"
++            if prefix + "complete.json" not in raw or prefix + "final_score.complete.json" not in raw:
++                missing.append(prefix)
++                continue
++            marker = json.loads(raw[prefix + "complete.json"])
++            if marker["canary"]:
++                raise ValueError("canaries cannot be promoted to full comparisons")
++            score_rows = [json.loads(line) for line in raw[prefix + "final_score/scores.jsonl"].splitlines()]
++            summary = json.loads(raw[prefix + "final_score/summary.json"])
++            if not summary["complete"]:
++                raise ValueError("incomplete task scoring")
++            metric_files = [k for k in raw if k.startswith(prefix + "training/") and k.endswith("/metrics.jsonl")]
++            if len(metric_files) != 1:
++                raise ValueError("missing or ambiguous native metrics")
++            rows = [json.loads(line) for line in raw[metric_files[0]].splitlines()]
++            if rows[-1].get("optim/optimizer_step") != 16 or rows[-1].get("optim/nonfinite_skips_total"):
++                raise ValueError("incomplete or skipped training")
++            clock, curve = 0, []
++            for row in rows:
++                clock += row.get("timer/e2e_step_s", 0) + row.get("timer/validation_s", 0)
++                if "val/loss_avg" in row:
++                    curve.append(
++                        {
++                            "step": row["step"],
++                            "seconds": clock,
++                            "nll": row["val/loss_avg"],
++                            "wall_seconds": parse_time(row["time"]) - float(raw[prefix + "start.txt"]),
++                        }
++                    )
++            cells[seed, cell] = {
++                "seed": seed,
++                "cell": cell,
++                "curve": curve,
++                "task_metrics": metrics(score_rows),
++                "training_seconds": sum(r.get("timer/e2e_step_s", 0) for r in rows),
++                "supervised_tokens": [r["train/valid_token_count"] for r in rows if "train/valid_token_count" in r],
++                "wall_training_and_scoring_seconds": float(raw[prefix + "training.end.txt"])
++                - float(raw[prefix + "start.txt"])
++                + json.loads(raw[prefix + "final_score.complete.json"])["end_unix"]
++                - json.loads(raw[prefix + "final_score.complete.json"])["start_unix"],
++            }
++            scores[seed, cell] = score_rows
++            telemetry = [json.loads(line) for line in raw.get(prefix + "native.telemetry.jsonl", "").splitlines()]
++            updates = [row for row in telemetry if row["kind"] == "optimizer"]
++            # Include all real allocations, but exclude startup kernel probes.
++            updates = [
++                row
++                for row in updates
++                if row.get("trainable_elements", row.get("state", {}).get("trainable_elements", 0)) > 1e6
++            ]
++            run = cells[seed, cell]
++            run["torch_peak_bytes"] = max((r["peak_allocated"] for r in updates), default=None)
++            run["process_gpu_peak_bytes"] = max(
++                (r["process_gpu_bytes"] for r in updates if r.get("process_gpu_bytes") is not None), default=None
++            )
++            run["host_rss_peak_kib"] = max((r["host_rss_kib"] for r in updates), default=None)
++            run["optimizer_seconds"] = [r["optimizer_seconds"] for r in updates]
++            run["state"] = (
++                updates[-1].get("state", {"state_bytes": updates[-1].get("state_bytes")}) if updates else None
++            )
++            run["wall_training_seconds"] = (
++                float(raw[prefix + "training.end.txt"]) - float(raw[prefix + "start.txt"])
++                if prefix + "training.end.txt" in raw
++                else None
++            )
++            phases = [json.loads(line) for line in raw.get(prefix + "native_phases.jsonl", "").splitlines()]
++            phases = [
++                row
++                for row in phases
++                if float(raw[prefix + "start.txt"]) <= row["unix_seconds"] <= float(raw[prefix + "training.end.txt"])
++            ]
++            run["torch_peak_bytes"] = max(
++                [run["torch_peak_bytes"] or 0] + [row["cuda"]["peak_allocated_bytes"] for row in phases]
++            )
++            run["host_high_water_bytes"] = max((row["host_peak_rss_bytes"] for row in phases), default=None)
++            run["task_score_seconds"] = summary["elapsed_seconds"]
++            run["forward_shapes"] = [r for r in telemetry if r["kind"] == "forward"]
++    output = {
++        "complete": not missing,
++        "missing": missing,
++        "runs": list(cells.values()),
++        "data_history": "User-approved reuse of earlier QLoRA train/eval groups; no untouched claim",
++        "quality_kind": "teacher-forced restricted-choice original WTS task and multi-question token NLL",
++        "release": "NOT QUALIFIED: all preregistered correctness, quality and speed gates required",
++    }
++    output["recovery"] = {
++        base: json.loads(raw[f"recovery/{base}/complete.json"])
++        for base in ("bf16", "nf4")
++        if f"recovery/{base}/complete.json" in raw
++    }
++    output["recovery_complete"] = len(output["recovery"]) == 2 and all(r["exact"] for r in output["recovery"].values())
++    if missing:
++        return output
++    frozen_adapter_hashes = {
++        base: json.loads(raw[f"frozen/{base}/final_score/summary.json"])["adapter_tensors_sha256"]
++        for base in ("bf16", "nf4")
++    }
++    if len(set(frozen_adapter_hashes.values())) != 1:
++        raise ValueError("BF16/NF4 initial adapter tensors differ")
++    output["frozen_initial_adapter_hashes"] = frozen_adapter_hashes
++    anchor = scores[17, CELLS[0]]
++    for rows in [*scores.values(), *frozen.values()]:
++        validate_scores(rows)
++        if len(rows) != len(anchor) or any(
++            any(a[k] != b[k] for k in INPUT_KEYS) for a, b in zip(anchor, rows, strict=True)
++        ):
++            raise ValueError("task score media, input, mask, row order or token counts differ")
++    groups = inventory_groups(inventory)
++    if any(row["id"] not in groups for row in anchor):
++        raise ValueError("full media inventory omits scored rows")
++    manifest = json.loads(raw["final_selection.json"])
++    selected = {row["id"]: row for row in manifest["rows"]}
++    if set(selected) != {row["id"] for row in anchor}:
++        raise ValueError("scored rows do not match the prespecified final selection")
++    excluded = set(manifest["excluded"]["train"] + manifest["excluded"]["validation"])
++    inventory_sha = {row["id"]: row["sha256"] for row in inventory}
++    for row in anchor:
++        if groups[row["id"]] in excluded or groups[row["id"]] != selected[row["id"]]["group"]:
++            raise ValueError("final scored recording overlaps training/development or has wrong group")
++        if row["media_sha256"] != selected[row["id"]]["sha256"] or row["media_sha256"] != inventory_sha[row["id"]]:
++            raise ValueError("scored media bytes differ from the full inventory")
++    for key, value in raw.items():
++        if key.endswith("final_score.complete.json") and json.loads(value)["data_sha256"] != manifest["output_sha256"]:
++            raise ValueError("a final score used different data")
++    output["recording_separation_pass"] = True
++    budget = min(run["curve"][-1]["seconds"] for run in cells.values())
++    wall_budget = min(run["curve"][-1]["wall_seconds"] for run in cells.values())
++    output["equal_wall_budget_seconds"] = wall_budget
++    output["equal_budget_seconds"] = budget
++    output["groups"] = {row["id"]: groups[row["id"]] for row in anchor}
++    for seed in SEEDS:
++        target = cells[seed, "bf16_adamw"]["curve"][0]["nll"] * 0.95
++        for cell in CELLS:
++            run = cells[seed, cell]
++            if run["supervised_tokens"] != cells[seed, "bf16_adamw"]["supervised_tokens"]:
++                raise ValueError("training data exposure differs")
++
++            def training_shapes(item):
++                return [
++                    {key: row.get(key) for key in ("shapes", "sequence_lengths", "video_grid_thw", "image_grid_thw")}
++                    for row in item["forward_shapes"]
++                    if row["grad_enabled"]
++                ]
++
++            if training_shapes(run) != training_shapes(cells[seed, "bf16_adamw"]):
++                raise ValueError("paired training media/sequence shape order differs")
++            reference = cells[seed, cell.split("_")[0] + "_adamw"]
++            if run["curve"][0]["nll"] != reference["curve"][0]["nll"]:
++                raise ValueError("optimizer arms differ before their first update")
++            run["matched_training_controls_pass"] = True
++            run["target_nll"] = target
++            run["target_seconds"] = next((p["seconds"] for p in run["curve"] if p["nll"] <= target), None)
++            run["equal_budget_point"] = [p for p in run["curve"] if p["seconds"] <= budget][-1]
++            run["wall_target_seconds"] = next((p["wall_seconds"] for p in run["curve"] if p["nll"] <= target), None)
++            eligible = [p for p in run["curve"] if p["wall_seconds"] <= wall_budget]
++            run["equal_wall_budget_point"] = eligible[-1] if eligible else None
++    output["comparisons"] = {}
++    comparisons = [(base + "_adamw_bnb_8bit", base + "_adamw", base) for base in ("bf16", "nf4")]
++    comparisons += [("nf4_" + opt, "bf16_" + opt, "nf4") for opt in ("adamw", "adamw_bnb_8bit")]
++    for candidate, reference, base in comparisons:
++        a = {seed: scores[seed, candidate] for seed in SEEDS}
++        b = {seed: scores[seed, reference] for seed in SEEDS}
++        pairs = [(cells[seed, candidate], cells[seed, reference]) for seed in SEEDS]
++        stats = {
++            "final_validation_nll_ratio": interval([x["curve"][-1]["nll"] / y["curve"][-1]["nll"] for x, y in pairs]),
++            "training_speed_ratio": interval([y["training_seconds"] / x["training_seconds"] for x, y in pairs]),
++            "time_to_quality_speed_ratio": interval(
++                [
++                    y["target_seconds"] / x["target_seconds"]
++                    for x, y in pairs
++                    if x["target_seconds"] and y["target_seconds"]
++                ]
++            ),
++            "equal_budget_nll_gain": interval(
++                [y["equal_budget_point"]["nll"] - x["equal_budget_point"]["nll"] for x, y in pairs]
++            ),
++            "wall_time_to_quality_speed_ratio": interval(
++                [
++                    y["wall_target_seconds"] / x["wall_target_seconds"]
++                    for x, y in pairs
++                    if x["wall_target_seconds"] and y["wall_target_seconds"]
++                ]
++            ),
++            "equal_wall_budget_nll_gain": interval(
++                [
++                    y["equal_wall_budget_point"]["nll"] - x["equal_wall_budget_point"]["nll"]
++                    for x, y in pairs
++                    if x["equal_wall_budget_point"] and y["equal_wall_budget_point"]
++                ]
++            ),
++            "wall_training_speed_ratio": interval(
++                [y["wall_training_seconds"] / x["wall_training_seconds"] for x, y in pairs]
++            ),
++            "state_saving": interval(
++                [
++                    1
++                    - (
++                        x["state"].get(
++                            "state_bytes", x["state"].get("moment_bytes", 0) + x["state"].get("metadata_bytes", 0)
++                        )
++                    )
++                    / (
++                        y["state"].get(
++                            "state_bytes", y["state"].get("moment_bytes", 0) + y["state"].get("metadata_bytes", 0)
++                        )
++                    )
++                    for x, y in pairs
++                ]
++            ),
++            "hierarchical": paired_bootstrap(a, b, frozen[base], groups, crossed=False),
++            "crossed": paired_bootstrap(a, b, frozen[base], groups, crossed=True),
++        }
++        stats["task_token_nll_ratio"] = interval(
++            [metrics(a[s])["token_weighted_ce"] / metrics(b[s])["token_weighted_ce"] for s in SEEDS]
++        )
++        stats["task_accuracy_degradation"] = interval(
++            [metrics(b[s])["restricted_accuracy"] - metrics(a[s])["restricted_accuracy"] for s in SEEDS]
++        )
++        stats["task_accuracy_gain_over_frozen"] = interval(
++            [metrics(a[s])["restricted_accuracy"] - metrics(frozen[base])["restricted_accuracy"] for s in SEEDS]
++        )
++        stats["gates"] = {
++            "paired_validation_nll": stats["final_validation_nll_ratio"]["ci95"][1] <= 1.01,
++            "paired_task_nll": stats["task_token_nll_ratio"]["ci95"][1] <= 1.01,
++            "paired_task_accuracy": stats["task_accuracy_degradation"]["ci95"][1] <= 0.01,
++            "recording_group_quality_and_adaptation": all(
++                stats[k]["all_gates_pass"] for k in ("hierarchical", "crossed")
++            ),
++            "training_speed": stats["training_speed_ratio"]["ci95"][0] > 1.05,
++            "time_to_quality_speed": stats["time_to_quality_speed_ratio"]["n"] == 3
++            and stats["time_to_quality_speed_ratio"]["ci95"][0] > 1.05,
++            "equal_budget_nll_gain": stats["equal_budget_nll_gain"]["ci95"][0] > 0,
++            "wall_training_speed": stats["wall_training_speed_ratio"]["ci95"][0] > 1.05,
++            "wall_time_to_quality_speed": stats["wall_time_to_quality_speed_ratio"]["n"] == 3
++            and stats["wall_time_to_quality_speed_ratio"]["ci95"][0] > 1.05,
++            "equal_wall_budget_nll_gain": stats["equal_wall_budget_nll_gain"]["n"] == 3
++            and stats["equal_wall_budget_nll_gain"]["ci95"][0] > 0,
++            "state_saving": stats["state_saving"]["ci95"][0] >= 0.6
++            if candidate.endswith("bnb_8bit") and reference.endswith("adamw")
++            else None,
++        }
++        output["comparisons"][candidate + "_versus_" + reference] = stats
++    return output
++
++
++def main():
++    parser = argparse.ArgumentParser()
++    parser.add_argument("raw", type=Path)
++    parser.add_argument("inventory", type=Path)
++    parser.add_argument("output", type=Path)
++    args = parser.parse_args()
++    raw = (
++        json.loads(gzip.decompress(args.raw.read_bytes()))
++        if args.raw.suffix == ".gz"
++        else json.loads(args.raw.read_text())
++    )
++    inventory = [json.loads(line) for line in args.inventory.read_text().splitlines()]
++    result = analyze(raw, inventory)
++    args.output.write_text(json.dumps(result, indent=2, allow_nan=False) + "\n")
++    plot(result, args.output.with_suffix(".png"))
++
++
++def plot(result, output):
++    import matplotlib
++
++    matplotlib.use("Agg")
++    import matplotlib.pyplot as plt
++    import numpy as np
++    from scipy.stats import t
++
++    fig, axes = plt.subplots(1, 4, figsize=(21, 4.8))
++    for cell in CELLS:
++        runs = [r for r in result["runs"] if r["cell"] == cell]
++        if not runs:
++            continue
++        label = cell.replace("_adamw_bnb_8bit", " + bnb8").replace("_adamw", " + fused FP32") + f" (n={len(runs)})"
++        times = np.mean([[p["seconds"] for p in r["curve"]] for r in runs], axis=0)
++        losses = np.array([[p["nll"] for p in r["curve"]] for r in runs])
++        axes[0].plot(times, losses.mean(axis=0), label=label)
++        if len(runs) > 1:
++            ci = t.ppf(0.975, len(runs) - 1) * losses.std(axis=0, ddof=1) / len(runs) ** 0.5
++            axes[0].fill_between(times, losses.mean(axis=0) - ci, losses.mean(axis=0) + ci, alpha=0.15)
++        wall_times = np.mean([[p["wall_seconds"] for p in r["curve"]] for r in runs], axis=0)
++        axes[1].plot(wall_times, losses.mean(axis=0), label=label)
++        if len(runs) > 1:
++            axes[1].fill_between(wall_times, losses.mean(axis=0) - ci, losses.mean(axis=0) + ci, alpha=0.15)
++        for ax, field in zip(axes[2:], ("torch_peak_bytes", "process_gpu_peak_bytes"), strict=True):
++            measured = [r for r in runs if r[field] is not None]
++            if not measured:
++                continue
++            x = interval([r[field] / 2**30 for r in measured])
++            y = interval([64 / r["training_seconds"] for r in measured])
++            ax.errorbar(
++                x["mean"],
++                y["mean"],
++                xerr=x["ci95"][1] - x["mean"] if x["ci95"] else None,
++                yerr=y["ci95"][1] - y["mean"] if y["ci95"] else None,
++                fmt="o",
++                capsize=4,
++                label=label,
++            )
++    axes[0].set(
++        xlabel="Training + validation seconds",
++        ylabel="Reused-group token NLL",
++        title="Factorial integration; 95% seed intervals",
++    )
++    axes[1].set(
++        xlabel="Launch-to-validation seconds",
++        ylabel="Development token NLL",
++        title="Includes initialization/checkpoint costs",
++    )
++    axes[2].set(
++        xlabel="Peak PyTorch allocated GiB",
++        ylabel="Training sequences/s",
++        title="FP32 adapters; frozen base excluded from state",
++    )
++    axes[3].set(
++        xlabel="Sampled process GPU peak GiB", ylabel="Training sequences/s", title="Sampled peak is a lower bound"
++    )
++    for ax in axes:
++        if ax.lines:
++            ax.legend(fontsize=7)
++    fig.tight_layout()
++    fig.savefig(output, dpi=180)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/tools/quantized_optimizers/factorial.sbatch b/tools/quantized_optimizers/factorial.sbatch
+new file mode 100644
+index 0000000..29b86b0
+--- /dev/null
++++ b/tools/quantized_optimizers/factorial.sbatch
+@@ -0,0 +1,38 @@
++#!/usr/bin/env bash
++#SBATCH --job-name=optimizer-factorial
++#SBATCH --partition=polar,polar3,polar4,grizzly
++#SBATCH --account=edgeai_tao-ptm_image-foundation-model-clip
++#SBATCH --nodes=1
++#SBATCH --ntasks=1
++#SBATCH --gpus-per-node=1
++#SBATCH --cpus-per-task=8
++#SBATCH --mem=128G
++#SBATCH --time=40
++#SBATCH --no-requeue
++set -euo pipefail
++: "${SOURCE:?}" "${SOURCE_ARCHIVE:?}" "${ASSETS:?}" "${RESULTS:?}" "${CONTAINER_IMAGE:?}" "${WHEEL:?}"
++mkdir -p "$RESULTS"
++scontrol show job "$SLURM_JOB_ID" > "$RESULTS/job-$SLURM_JOB_ID.txt"
++srun --kill-on-bad-exit=1 --container-image="$CONTAINER_IMAGE" \
++  --container-mounts=/lustre:/lustre --container-workdir="$SOURCE" --container-writable \
++  --container-env=SOURCE,SOURCE_ARCHIVE,ASSETS,RESULTS,SFT_DATA_ROOT,SCORE_DATA,WHEEL,FACTORIAL_CANARY,FACTORIAL_SEED_ONLY,FACTORIAL_SCORE_ONLY,EXPECTED_GPU_NAME,WORK_SECONDS,COSMOS_TRAINING_CODE_REVISION,COSMOS_TRAINING_WHEEL_SHA256 \
++  bash -c '
++    set -euo pipefail
++    export PATH="$ASSETS/environment/bin:$PATH"
++    SOURCE=$(mktemp -d /tmp/cosmos-optimizer-factorial.XXXXXX); export SOURCE
++    tar -xzf "$SOURCE_ARCHIVE" -C "$SOURCE"
++    OVERLAY=$(mktemp -d /tmp/cosmos-optimizer-wheel.XXXXXX)
++    python -m zipfile -e "$WHEEL" "$OVERLAY"
++    export PYTHONPATH="$OVERLAY:$SOURCE" PYTHONDONTWRITEBYTECODE=1
++    export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 WANDB_MODE=disabled OMP_NUM_THREADS=8
++    export CUBLAS_WORKSPACE_CONFIG=:4096:8 PYTHONHASHSEED=42
++    export SFT_MODEL_PATH="$ASSETS/models/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b"
++    if [[ -n "${EXPECTED_GPU_NAME:-}" ]]; then
++      python -c "import os, torch; assert torch.cuda.get_device_name() == os.environ[\"EXPECTED_GPU_NAME\"], torch.cuda.get_device_name()"
++    fi
++    if [[ "${FACTORIAL_CANARY:-0}" == 1 && ! -f "$RESULTS/runtime_tests.passed" ]]; then
++      python -m pytest "$SOURCE/cosmos_framework/posttrain/tests/test_adapter_consolidated_quantized.py" "$SOURCE/cosmos_framework/posttrain/tests/test_checkpoint_adapter.py" "$SOURCE/cosmos_framework/posttrain/tests/test_entrypoints_sft_qlora.py" "$SOURCE/cosmos_framework/posttrain/tests/test_model_qwen3_vl_qlora.py" --confcutdir="$SOURCE/cosmos_framework/posttrain/tests" --override-ini="addopts=" > "$RESULTS/runtime_tests.log" 2>&1
++      echo passed > "$RESULTS/runtime_tests.passed"
++    fi
++    exec python "$SOURCE/tools/quantized_optimizers/run_factorial.py"
++  '
+diff --git a/tools/quantized_optimizers/factorial_recovery.py b/tools/quantized_optimizers/factorial_recovery.py
+new file mode 100644
+index 0000000..86ae3a2
+--- /dev/null
++++ b/tools/quantized_optimizers/factorial_recovery.py
+@@ -0,0 +1,137 @@
++"""Fresh native processes continue the saved mid-run BF16/NF4 adapter checkpoints."""
++
++import json
++import os
++import subprocess
++import time
++
++
++def equal_tree(left, right, path="state"):
++    import numpy as np
++    import torch
++
++    if isinstance(left, torch.Tensor):
++        if not isinstance(right, torch.Tensor) or left.dtype != right.dtype or not torch.equal(left, right):
++            raise AssertionError(f"tensor continuation mismatch at {path}")
++    elif isinstance(left, np.ndarray):
++        if not isinstance(right, np.ndarray) or left.dtype != right.dtype or not np.array_equal(left, right):
++            raise AssertionError(f"array continuation mismatch at {path}")
++    elif isinstance(left, dict):
++        if not isinstance(right, dict) or left.keys() != right.keys():
++            raise AssertionError(f"mapping continuation mismatch at {path}")
++        for key in left:
++            equal_tree(left[key], right[key], f"{path}.{key}")
++    elif isinstance(left, (list, tuple)):
++        if type(left) is not type(right) or len(left) != len(right):
++            raise AssertionError(f"sequence continuation mismatch at {path}")
++        for i, (a, b) in enumerate(zip(left, right, strict=True)):
++            equal_tree(a, b, f"{path}.{i}")
++    elif type(left) is not type(right) or left != right:
++        raise AssertionError(f"scalar continuation mismatch at {path}")
++
++
++def recover(root, source, config, *, started, work_seconds):
++    import torch
++
++    for base in ("bf16", "nf4"):
++        folder = root / "recovery" / base
++        if (folder / "complete.json").exists():
++            continue
++        if time.monotonic() - started > work_seconds - 900:
++            (root / "pending.json").write_text(json.dumps({"recovery": base}) + "\n")
++            return False
++        if folder.exists():
++            raise RuntimeError(f"prior incomplete recovery requires inspection: {folder}")
++        original = root / "seed17" / (base + "_adamw_bnb_8bit")
++        marker = json.loads((original / "complete.json").read_text())
++        from pathlib import Path
++
++        expected = Path(marker["checkpoint"])
++        checkpoint = expected.parent / "iter_000008"
++        if not (checkpoint / "optim.pt").is_file():
++            raise RuntimeError("mid-run full checkpoint missing")
++        folder.mkdir(parents=True)
++        env = dict(
++            os.environ,
++            FACTORIAL_SEED="17",
++            FACTORIAL_BASE=base,
++            FACTORIAL_OPTIMIZER="adamw_bnb_8bit",
++            FACTORIAL_STEPS="16",
++            FACTORIAL_VAL_ROWS="16",
++            RESULTS=str(folder),
++            PROBE_ARM="native",
++            IMAGINAIRE_OUTPUT_ROOT=str(folder / "training"),
++            COSMOS_QLORA_METRICS_FILE=str(folder / "native_phases.jsonl"),
++        )
++        (folder / "start.txt").write_text(str(time.time()) + "\n")
++        with (folder / "train.log").open("w") as log:
++            subprocess.run(
++                [
++                    "torchrun",
++                    "--standalone",
++                    "--nproc-per-node=1",
++                    str(source / "tools/quantized_optimizers/native_probe.py"),
++                    "--config",
++                    config,
++                    "--",
++                    "rl.save_every=8",
++                    "rl.resume=" + str(checkpoint),
++                ],
++                env=env,
++                stdout=log,
++                stderr=subprocess.STDOUT,
++                check=True,
++            )
++        paths = list((folder / "training").rglob("checkpoints/iter_000016"))
++        if len(paths) != 1:
++            raise RuntimeError("resumed final checkpoint missing or ambiguous")
++        restored = paths[0]
++        for component in ("model", "optim", "data"):
++            a = torch.load(expected / (component + ".pt"), map_location="cpu", weights_only=False)
++            b = torch.load(restored / (component + ".pt"), map_location="cpu", weights_only=False)
++            equal_tree(a, b, component)
++        a = torch.load(expected / "trainer.pt", map_location="cpu", weights_only=False)
++        b = torch.load(restored / "trainer.pt", map_location="cpu", weights_only=False)
++        keys = (
++            "iter",
++            "optimizer_step",
++            "accum",
++            "n_mini",
++            "attempt_id",
++            "nonfinite_skips_total",
++            "nonfinite_skips_consecutive",
++            "rng",
++            "lr_scheduler",
++            "lr_scheduler_clock",
++            "objective_identity",
++            "adapter_training",
++        )
++        for key in keys:
++            equal_tree(a[key], b[key], "trainer." + key)
++        metric_paths = list((folder / "training").rglob("metrics.jsonl"))
++        original_paths = list((original / "training").rglob("metrics.jsonl"))
++        rows = [json.loads(line) for line in metric_paths[0].read_text().splitlines()]
++        reference = {r["step"]: r for r in (json.loads(line) for line in original_paths[0].read_text().splitlines())}
++        updates = [r for r in rows if "train/loss_avg" in r]
++        if [r["step"] for r in updates] != list(range(9, 17)):
++            raise AssertionError("resume replayed or omitted updates")
++        for row in updates:
++            for key in ("train/loss_avg", "train/grad_norm", "train/learning_rate", "train/valid_token_count"):
++                equal_tree(reference[row["step"]][key], row[key], f"metrics.{row['step']}.{key}")
++        (folder / "complete.json").write_text(
++            json.dumps(
++                {
++                    "base": base,
++                    "from_update": 8,
++                    "through_update": 16,
++                    "exact": True,
++                    "comparison": "bitwise adapter/moments/metadata/data/RNG/scheduler and next eight update metrics",
++                    "checkpoint": str(checkpoint),
++                    "reference": str(expected),
++                    "restored": str(restored),
++                    "end_unix": time.time(),
++                }
++            )
++            + "\n"
++        )
++    return True
+diff --git a/tools/quantized_optimizers/native_probe.py b/tools/quantized_optimizers/native_probe.py
+index 3f88c5f..d8cf9ad 100644
+--- a/tools/quantized_optimizers/native_probe.py
++++ b/tools/quantized_optimizers/native_probe.py
+@@ -18 +18,5 @@ from cosmos_framework.posttrain.entrypoints.sft import main
+-from cosmos_framework.posttrain.model.hf import HFModel
++
++if os.environ.get("FACTORIAL_BASE"):
++    from cosmos_framework.posttrain.model.qwen3_vl import Qwen3VLPolicy as ObservedPolicy
++else:
++    from cosmos_framework.posttrain.model.hf import HFModel as ObservedPolicy
+@@ -21 +25 @@ out = Path(os.environ["RESULTS"]) / (os.environ.get("PROBE_ARM", "native") + ".t
+-forward = HFModel.forward_policy_batch
++forward = ObservedPolicy.forward_policy_batch
+@@ -137 +141 @@ if __name__ == "__main__":
+-    HFModel.forward_policy_batch = observed_forward
++    ObservedPolicy.forward_policy_batch = observed_forward
+@@ -148 +152 @@ if __name__ == "__main__":
+-        HFModel.forward_policy_batch = forward
++        ObservedPolicy.forward_policy_batch = forward
+diff --git a/tools/quantized_optimizers/run_factorial.py b/tools/quantized_optimizers/run_factorial.py
+new file mode 100644
+index 0000000..a1c05a3
+--- /dev/null
++++ b/tools/quantized_optimizers/run_factorial.py
+@@ -0,0 +1,239 @@
++"""Bounded disposable integration comparison; completed arms are never rerun."""
++
++import hashlib
++import json
++import os
++import subprocess
++import time
++from pathlib import Path
++
++root = Path(os.environ["RESULTS"])
++root.mkdir(parents=True, exist_ok=True)
++started = time.monotonic()
++source = Path(os.environ["SOURCE"])
++config = "cosmos_framework/posttrain/configs/sft_optimizer_factorial.py"
++base_order = [("bf16", "adamw"), ("bf16", "adamw_bnb_8bit"), ("nf4", "adamw"), ("nf4", "adamw_bnb_8bit")]
++canary = os.environ.get("FACTORIAL_CANARY", "0") == "1"
++seed_only = int(os.environ["FACTORIAL_SEED_ONLY"]) if os.environ.get("FACTORIAL_SEED_ONLY") else None
++score_only = os.environ.get("FACTORIAL_SCORE_ONLY", "0") == "1"
++if seed_only is not None and seed_only not in (17, 29, 43):
++    raise ValueError("FACTORIAL_SEED_ONLY must select a prespecified paired seed")
++if canary and (seed_only is not None or score_only):
++    raise ValueError("canary must run its complete four-cell scope")
++progress = root / (
++    "pending.json" if seed_only is None and not score_only else f"pending-seed{seed_only}-score{score_only}.json"
++)
++(root / f"execution-{os.environ.get('SLURM_JOB_ID', 'local')}.json").write_text(
++    json.dumps(
++        {
++            "seed_only": seed_only,
++            "score_only": score_only,
++            "node": os.environ.get("SLURM_JOB_NODELIST"),
++            "cpu_affinity": sorted(os.sched_getaffinity(0)),
++            "source_archive": os.environ.get("SOURCE_ARCHIVE"),
++        }
++    )
++    + "\n"
++)
++score_data = Path(os.environ.get("SCORE_DATA", str(Path(os.environ["ASSETS"]) / "data/canary/validation.jsonl")))
++score_name = "score" if canary else "final_score"
++if not canary and "SCORE_DATA" not in os.environ:
++    raise ValueError("full comparisons require an explicit recording-disjoint SCORE_DATA")
++score_sha = hashlib.sha256(score_data.read_bytes()).hexdigest()
++
++
++def enough_time(required_seconds=900):
++    return time.monotonic() - started <= int(os.environ.get("WORK_SECONDS", "2200")) - required_seconds
++
++
++def score(folder, env, *, arm, checkpoint=None):
++    marker_path = folder / (score_name + ".complete.json")
++    if marker_path.exists():
++        if json.loads(marker_path.read_text())["data_sha256"] != score_sha:
++            raise ValueError("existing score used different data")
++        return
++    if not enough_time(420):
++        progress.write_text(json.dumps({"score": str(folder)}) + "\n")
++        raise SystemExit(0)
++    if (folder / score_name).exists():
++        raise RuntimeError(f"prior incomplete score requires inspection: {folder / score_name}")
++    command = [
++        "torchrun",
++        "--standalone",
++        "--nproc-per-node=1",
++        "-m",
++        "tools.native_qlora_qualification.score",
++        "--config",
++        config,
++        "--data",
++        str(score_data),
++        "--output",
++        str(folder / score_name),
++        "--max-rows",
++        "2" if canary else "16",
++        "--seed",
++        "2026",
++        "--arm",
++        arm,
++    ]
++    if checkpoint is not None:
++        command += ["--checkpoint", str(checkpoint)]
++    score_start = time.time()
++    (folder / (score_name + ".start.txt")).write_text(str(score_start) + "\n")
++    with (folder / (score_name + ".log")).open("w") as log:
++        subprocess.run(command, env=env, stdout=log, stderr=subprocess.STDOUT, check=True)
++    marker_path.write_text(
++        json.dumps(
++            {
++                "data_sha256": score_sha,
++                "start_unix": score_start,
++                "end_unix": time.time(),
++                "source": env.get("COSMOS_TRAINING_CODE_REVISION"),
++                "checkpoint": str(checkpoint),
++            }
++        )
++        + "\n"
++    )
++
++
++# Deterministic zero-B adapters leave each base unchanged. These references are
++# evaluated once, with the same media/score contract as every trained cell.
++if not canary:
++    for base in ("bf16", "nf4"):
++        folder = root / "frozen" / base
++        if (folder / (score_name + ".complete.json")).exists():
++            score(folder, os.environ, arm="frozen_" + base)
++            continue
++        if not enough_time(420):
++            progress.write_text(json.dumps({"frozen": base}) + "\n")
++            raise SystemExit(0)
++        if folder.exists() and not (folder / "complete.json").exists():
++            raise RuntimeError(f"prior incomplete frozen reference requires inspection: {folder}")
++        folder.mkdir(parents=True, exist_ok=True)
++        env = dict(
++            os.environ,
++            FACTORIAL_SEED="17",
++            FACTORIAL_BASE=base,
++            FACTORIAL_OPTIMIZER="adamw",
++            FACTORIAL_STEPS="16",
++            FACTORIAL_VAL_ROWS="16",
++        )
++        if not (folder / "start.txt").exists():
++            (folder / "start.txt").write_text(str(time.time()) + "\n")
++        score(folder, env, arm="frozen_" + base)
++        if not (folder / "complete.json").exists():
++            (folder / "complete.json").write_text(
++                json.dumps({"base": base, "frozen": True, "end_unix": time.time()}) + "\n"
++            )
++
++# Prioritize the already-prespecified native recovery gate once both seed17
++# checkpoints exist. It must not be crowded out by later quality trials.
++if not canary and all(
++    (root / "seed17" / (base + "_adamw_bnb_8bit") / "complete.json").exists() for base in ("bf16", "nf4")
++):
++    from tools.quantized_optimizers.factorial_recovery import recover
++
++    if not recover(root, source, config, started=started, work_seconds=int(os.environ.get("WORK_SECONDS", "2200"))):
++        raise SystemExit(0)
++
++plan = (
++    [(17, b, o) for b, o in base_order]
++    if canary
++    else [(seed, b, o) for i, seed in enumerate((17, 29, 43)) for b, o in base_order[i:] + base_order[:i]]
++)
++for seed, base, optimizer in plan:
++    if seed_only is not None and seed != seed_only:
++        continue
++    folder = root / f"seed{seed}" / (base + "_" + optimizer)
++    if score_only and not (folder / "complete.json").exists():
++        continue  # Only completed training owns a stable checkpoint for rescoring.
++    if (folder / "complete.json").exists() and (folder / (score_name + ".complete.json")).exists():
++        score(folder, os.environ, arm=base + "_" + optimizer)
++        continue
++    if not enough_time(420 if (folder / "training.end.txt").exists() else 900):
++        progress.write_text(json.dumps({"seed": seed, "base": base, "optimizer": optimizer}) + "\n")
++        break
++    if folder.exists() and not (folder / "training.end.txt").exists():
++        raise RuntimeError(f"prior incomplete arm requires inspection: {folder}")
++    folder.mkdir(parents=True, exist_ok=True)
++    env = dict(
++        os.environ,
++        FACTORIAL_SEED=str(seed),
++        FACTORIAL_BASE=base,
++        FACTORIAL_OPTIMIZER=optimizer,
++        FACTORIAL_STEPS="2" if canary else "16",
++        FACTORIAL_VAL_ROWS="2" if canary else "16",
++        RESULTS=str(folder),
++        PROBE_ARM="native",
++        IMAGINAIRE_OUTPUT_ROOT=str(folder / "training"),
++        COSMOS_QLORA_METRICS_FILE=str(folder / "native_phases.jsonl"),
++    )
++    if not (folder / "training.end.txt").exists():
++        (folder / "start.txt").write_text(str(time.time()) + "\n")
++        with (folder / "train.log").open("w") as log:
++            subprocess.run(
++                [
++                    "torchrun",
++                    "--standalone",
++                    "--nproc-per-node=1",
++                    str(source / "tools/quantized_optimizers/native_probe.py"),
++                    "--config",
++                    config,
++                    "--",
++                    "rl.save_every=" + ("2" if canary else "8"),
++                ],
++                env=env,
++                stdout=log,
++                stderr=subprocess.STDOUT,
++                check=True,
++            )
++        (folder / "training.end.txt").write_text(str(time.time()) + "\n")
++    checkpoints = list((folder / "training").rglob("checkpoints/iter_" + ("000002" if canary else "000016")))
++    if len(checkpoints) != 1:
++        raise RuntimeError(f"ambiguous/missing native checkpoint: {checkpoints}")
++    metrics = list((folder / "training").rglob("metrics.jsonl"))
++    rows = [json.loads(line) for line in metrics[0].read_text().splitlines()]
++    if rows[-1]["optim/optimizer_step"] != int(env["FACTORIAL_STEPS"]) or rows[-1]["optim/nonfinite_skips_total"]:
++        raise RuntimeError("incomplete or skipped factorial updates")
++    score(folder, env, arm=base + "_" + optimizer, checkpoint=checkpoints[0])
++    if not (folder / "complete.json").exists():
++        (folder / "complete.json").write_text(
++            json.dumps(
++                {
++                    "seed": seed,
++                    "base": base,
++                    "optimizer": optimizer,
++                    "checkpoint": str(checkpoints[0]),
++                    "end_unix": time.time(),
++                    "canary": canary,
++                }
++            )
++            + "\n"
++        )
++else:
++    if canary:
++        progress.write_text('{"complete": true}\n')
++    else:
++        from tools.quantized_optimizers.factorial_recovery import recover
++
++        ready = all(
++            (root / "seed17" / (base + "_adamw_bnb_8bit") / "complete.json").exists() for base in ("bf16", "nf4")
++        )
++        recovered = ready and recover(
++            root, source, config, started=started, work_seconds=int(os.environ.get("WORK_SECONDS", "2200"))
++        )
++        all_cells = all(
++            (root / f"seed{seed}" / (base + "_" + opt) / "final_score.complete.json").exists()
++            for seed, base, opt in plan
++        )
++        progress.write_text(
++            json.dumps(
++                {
++                    "scope_complete": True,
++                    "seed_only": seed_only,
++                    "score_only": score_only,
++                    "complete": all_cells and recovered,
++                }
++            )
++            + "\n"
++        )
+diff --git a/tools/quantized_optimizers/test_analyze_factorial.py b/tools/quantized_optimizers/test_analyze_factorial.py
+new file mode 100644
+index 0000000..e46b710
+--- /dev/null
++++ b/tools/quantized_optimizers/test_analyze_factorial.py
+@@ -0,0 +1,54 @@
++"""Guard statistical pairing and the unchanged release margins."""
++
++from tools.quantized_optimizers.analyze_factorial import SEEDS, analyze, paired_bootstrap
++
++
++def test_recovery_rejects_dtype_and_clock_changes():
++    import pytest
++    import torch
++
++    from tools.quantized_optimizers.factorial_recovery import equal_tree
++
++    state = {"step": 8, "state1": torch.zeros(3, dtype=torch.uint8)}
++    equal_tree(state, {"step": 8, "state1": state["state1"].clone()})
++    with pytest.raises(AssertionError, match="dtype|tensor"):
++        equal_tree(state, {"step": 8, "state1": state["state1"].float()})
++    with pytest.raises(AssertionError, match="scalar"):
++        equal_tree(state, {"step": 9, "state1": state["state1"]})
++
++
++def test_missing_cells_never_pass():
++    result = analyze({}, [])
++    assert result["complete"] is False
++    assert len(result["missing"]) == 14
++    assert "comparisons" not in result
++
++
++def test_parity_is_not_an_adaptation_gain():
++    rows = [
++        {"id": str(i), "native_sft_ce": i + 1, "native_supervised_tokens": 2, "restricted_choice_correct": bool(i % 2)}
++        for i in range(4)
++    ]
++    pairs = {seed: rows for seed in SEEDS}
++    groups = {str(i): str(i // 2) for i in range(4)}
++    for crossed in (False, True):
++        result = paired_bootstrap(pairs, pairs, rows, groups, crossed=crossed)
++        assert result["bounds"]["nll_ratio"]["ci95"] == [1, 1]
++        assert result["bounds"]["accuracy_degradation"]["ci95"] == [0, 0]
++        assert result["gates"] == {"nll": True, "accuracy": True, "positive_adaptation": False}
++        assert not result["all_gates_pass"]
++
++
++def test_large_consistent_quality_regression_fails_both_group_procedures():
++    reference = [
++        {"id": str(i), "native_sft_ce": 1, "native_supervised_tokens": 2, "restricted_choice_correct": True}
++        for i in range(4)
++    ]
++    candidate = [dict(row, native_sft_ce=1.02, restricted_choice_correct=False) for row in reference]
++    groups = {str(i): str(i // 2) for i in range(4)}
++    for crossed in (False, True):
++        result = paired_bootstrap(
++            {seed: candidate for seed in SEEDS}, {seed: reference for seed in SEEDS}, reference, groups, crossed=crossed
++        )
++        assert not any(result["gates"].values())
++        assert not result["all_gates_pass"]
+diff --git a/tools/quantized_optimizers/test_factorial_driver.py b/tools/quantized_optimizers/test_factorial_driver.py
+new file mode 100644
+index 0000000..52c73c2
+--- /dev/null
++++ b/tools/quantized_optimizers/test_factorial_driver.py
+@@ -0,0 +1,70 @@
++"""A scoring split repair must reuse training and preserve earlier evidence."""
++
++import hashlib
++import json
++import runpy
++from pathlib import Path
++
++import pytest
++
++
++@pytest.mark.parametrize("remaining", [2200, 750, 300])
++@pytest.mark.parametrize("score_only", [False, True])
++def test_completed_training_is_rescored_without_update(tmp_path, monkeypatch, score_only, remaining):
++    data = tmp_path / "evaluation.jsonl"
++    data.write_text("{}\n")
++    root = tmp_path / "results"
++    root.mkdir()
++    for name in ("RESULTS", "SOURCE", "ASSETS", "SCORE_DATA"):
++        monkeypatch.setenv(name, str(data if name == "SCORE_DATA" else root))
++    monkeypatch.setenv("FACTORIAL_CANARY", "0")
++    monkeypatch.setenv("FACTORIAL_SCORE_ONLY", str(int(score_only)))
++    monkeypatch.setenv("WORK_SECONDS", "2200")
++    for base in ("bf16", "nf4"):
++        folder = root / "frozen" / base
++        folder.mkdir(parents=True)
++        (folder / "complete.json").write_text('{"old": true}\n')
++    folder = root / "seed17/bf16_adamw"
++    checkpoint = folder / "training/checkpoints/iter_000016"
++    checkpoint.mkdir(parents=True)
++    (folder / "training/metrics.jsonl").write_text('{"optim/optimizer_step":16,"optim/nonfinite_skips_total":0}\n')
++    (folder / "training.end.txt").write_text("123\n")
++    (folder / "complete.json").write_text('{"old": true}\n')
++    (folder / "score").mkdir()
++    (folder / "score/scores.jsonl").write_text("preserve development evidence\n")
++    calls = []
++
++    def invoke(command, **kwargs):
++        # Stop at the next new training cell after testing the three rescoring calls.
++        if "tools.native_qlora_qualification.score" not in command:
++            raise StopIteration
++        calls.append(command)
++        Path(command[command.index("--output") + 1]).mkdir()
++
++    monkeypatch.setattr("subprocess.run", invoke)
++    driver = Path(__file__).with_name("run_factorial.py")
++    ticks = iter([0])
++    monkeypatch.setattr("time.monotonic", lambda: next(ticks, 2200 - remaining))
++    if remaining == 300:
++        with pytest.raises(SystemExit) as stop:
++            runpy.run_path(str(driver), run_name="__main__")
++        assert stop.value.code == 0
++        assert not calls
++        return
++    if score_only:
++        runpy.run_path(str(driver), run_name="__main__")
++        marker = json.loads((root / "pending-seedNone-scoreTrue.json").read_text())
++        assert marker["scope_complete"] and not marker["complete"]
++    elif remaining == 750:
++        runpy.run_path(str(driver), run_name="__main__")
++        marker = json.loads((root / "pending.json").read_text())
++        assert marker["seed"] == 17 and marker["optimizer"] == "adamw_bnb_8bit"
++    else:
++        with pytest.raises(StopIteration):
++            runpy.run_path(str(driver), run_name="__main__")
++    assert len(calls) == 3
++    assert calls[-1][calls[-1].index("--checkpoint") + 1] == str(checkpoint)
++    assert (folder / "complete.json").read_text() == '{"old": true}\n'
++    assert (folder / "score/scores.jsonl").read_text() == "preserve development evidence\n"
++    marker = json.loads((folder / "final_score.complete.json").read_text())
++    assert marker["data_sha256"] == hashlib.sha256(data.read_bytes()).hexdigest()
