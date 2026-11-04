@@ -183,8 +183,12 @@ def main():
     deadline = started + int(os.environ["WORK_SECONDS"])
     preparation = Path(os.environ["PREPARATION"])
     receipt = json.loads((preparation / "prepared-corpus/preparation_receipt.json").read_text())
-    expected_rows = 623 if mode == "study" else 245
-    if receipt["cuda_initialized"] or receipt["exact_raw_prepared_rows"] != expected_rows:
+    expected_rows = 245
+    if mode == "study":
+        spec = json.loads(Path(os.environ["TASK_SPEC"]).read_text())
+        expected_rows = spec.get("prepared_verified_rows", 623)
+    verified_rows = receipt.get("total_verified_rows", receipt["exact_raw_prepared_rows"])
+    if receipt["cuda_initialized"] or verified_rows != expected_rows:
         raise ValueError("missing complete CPU parity receipt")
     if mode == "recovery":
         bounded_command(

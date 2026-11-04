@@ -48,6 +48,7 @@ def main():
     entry.loop, entry.train_step, entry._evaluate = loop, step, evaluate
     TerminationWatch._local_reason = reason
     entry.main()
+    task.finish()
     report = policy.report(time.monotonic())
     checkpoints = list(Path(os.environ["IMAGINAIRE_OUTPUT_ROOT"]).rglob("model.pt"))
     report["committed_model_paths"] = [str(path.parent) for path in checkpoints]

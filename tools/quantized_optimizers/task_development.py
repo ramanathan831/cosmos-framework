@@ -160,9 +160,38 @@ def install():
     entry.train_step = step
 
 
+def finish():
+    import torch
+
+    trainer = captured["trainer"]
+    optimizer = trainer.opt
+    tensors = [v for state in optimizer.state.values() for v in state.values() if isinstance(v, torch.Tensor)]
+    state = (
+        optimizer.state_report()
+        if hasattr(optimizer, "state_report")
+        else {
+            "state_bytes": sum(v.numel() * v.element_size() for v in tensors),
+            "backend": type(optimizer).__qualname__,
+        }
+    )
+    (root / "complete.json").write_text(
+        json.dumps(
+            {
+                "complete": True,
+                "elapsed_seconds": time.monotonic() - started,
+                "state_report": state,
+                "trainable_elements": sum(p.numel() for p in trainer._net().parameters() if p.requires_grad),
+                "peak_allocated": torch.cuda.max_memory_allocated(),
+                "peak_reserved": torch.cuda.max_memory_reserved(),
+            },
+            indent=2,
+            allow_nan=False,
+        )
+        + "\n"
+    )
+
+
 if __name__ == "__main__":
     install()
     entry.main()
-    (root / "complete.json").write_text(
-        json.dumps({"complete": True, "elapsed_seconds": time.monotonic() - started}) + "\n"
-    )
+    finish()
