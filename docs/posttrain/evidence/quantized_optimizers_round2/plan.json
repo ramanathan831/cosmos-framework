@@ -1,0 +1,115 @@
+{
+  "recorded_utc": "2026-11-04T06:52:07.810531+00:00",
+  "authorization": "User continued the implementation/qualification assignment after first campaign delivery; this is a new finite follow-up. No publication authorization.",
+  "prior_campaign": {
+    "head": "f0ce466f1dc4ad14aa51e97123f4d8a758a3733c",
+    "charged_gpu_seconds": 26438,
+    "result": "NOT QUALIFIED; original evidence remains sealed"
+  },
+  "budget": {
+    "additional_gpu_seconds": 9000,
+    "local_cuda_reservation_seconds": 180,
+    "canary_gpu_reservation_seconds": 720,
+    "three_seed_allocations_seconds_each": 2700,
+    "maximum_simultaneous_gpus": 2,
+    "cpu_preparation_max_seconds": 1800,
+    "cpu_preparation_cores": 8,
+    "admission": "Terminal actual plus full pending/running wall reservations must fit9000seconds. Failures count; no outcome-driven replacement. Returned time can complete the same declared cells."
+  },
+  "workload": {
+    "base": "ordinary FP32 Qwen3-VL-8B; no weight quantization/LoRA",
+    "trainable_decoder_blocks": [
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31
+    ],
+    "parameter_and_gradient_dtype": "float32",
+    "compute_dtype": "bfloat16",
+    "effective_batch": 4,
+    "micro_batch": 4,
+    "accumulation": 1,
+    "updates": 40,
+    "seeds": [
+      17,
+      29,
+      43
+    ],
+    "paired_restarts_per_seed": 3,
+    "arms": {
+      "adamw": {
+        "impl": "fused",
+        "activation_checkpointing": true
+      },
+      "adamw_bnb_8bit": {
+        "impl": "",
+        "activation_checkpointing": false,
+        "min_8bit_size": 16384
+      }
+    },
+    "learning_rate": 1e-05,
+    "warmup_steps": 2,
+    "schedule": {
+      "kind": "cosine",
+      "f_start": 0.5,
+      "f_min": 0.1,
+      "cycle_steps": 40
+    },
+    "schedule_rationale": "Use the same cosine decay in both arms to address development overfitting visible with constant LR; no optimizer-specific tuning or final-set-guided choice.",
+    "weight_decay": 0.01,
+    "gradient_clip": 1.0,
+    "frames": 8,
+    "video_pixels": {
+      "shortest_edge": 262144,
+      "longest_edge": 1048576
+    },
+    "validation_every": 5,
+    "validation_rows": 16,
+    "validation_batch": 4,
+    "checkpoint_every": 40,
+    "strict_determinism": true
+  },
+  "preprocessing": {
+    "kind": "immutable prepared CPU SFT corpus, built by the existing native packer",
+    "controls": "identical content-addressed prepared inputs for both arms; hash and media/processor identity verification; no changes to collation, masking or forward math",
+    "qualification": "CPU exact raw/prepared tensor checks and native raw/prepared fused continuation equality before full trials",
+    "accounting": "Report corpus preparation CPU cost separately, launch-to-target from prepared corpus, and cold-pipeline time including full preparation; do not attribute common preprocessing gains to optimizer quantization."
+  },
+  "data": {
+    "train_sha256": "dac521711ca5969fa0465fa461c959ab7687eb7f32433d34fba2a45149ffa487",
+    "development_sha256": "52d6bd8cc4a53ab520e100e72359001c9ae1a976a521dab7dd7738a7567619a2",
+    "final_selection": "Select remaining16 eligible recording groups from approved QLoRA full evaluation, excluding training/development and the prior16final groups, before evaluating any new checkpoint. Historical inspection disclosed; not an untouched-pool claim."
+  },
+  "fixed_gates": {
+    "paired_seeds": 3,
+    "ci": 0.95,
+    "nll_ratio_upper_max": 1.01,
+    "task_accuracy_degradation_upper_max": 0.01,
+    "speed_ratio_lower_min_exclusive": 1.05,
+    "optimizer_state_saving_min": 0.6,
+    "equal_budget_quality_improvement_lower_min_exclusive": 0,
+    "positive_adaptation_lower_min_exclusive": 0,
+    "time_to_quality_target": "0.95 times paired fused initial validation NLL; unchanged prior criterion",
+    "recording_bootstrap_repetitions": 10000,
+    "bootstrap_seed": 2026
+  },
+  "analysis": "Pair by seed and restart on same allocated GPU/CPU placement. Average paired restart effects within seed before three-seed t intervals; retain all restart timing ratios. Score only fixed restart0 final checkpoints once per arm/seed; other restart checkpoints verify reproducibility. Report matched-update and equal-wall-budget NLL, exposure and all memory counter boundaries.",
+  "stop_conditions": [
+    "Any correctness/input/cache parity failure stops dependent full trials until fixed and rechecked.",
+    "No sparse/DTensor/distributed claims; primary optimizer numerical adapter unchanged unless a demonstrated correctness bug requires repair.",
+    "No threshold relaxation, final-set tuning, or substitution of incomplete trials.",
+    "If9000second admission cap cannot fit remaining work, retain incomplete gates and stop additional submissions."
+  ]
+}
