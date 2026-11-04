@@ -1,0 +1,168 @@
+{
+  "purpose": "development diagnosis",
+  "prepared_verified_rows": 623,
+  "recorded_utc": "2026-11-04T20:52:43.375094+00:00",
+  "basis": "Pinned CUDA profile:90.0635/95.1716 seconds in CPU dtype conversion;3.3374 seconds transfer,0.0699 seconds GPU copy. Exercise exact16-bit-to-FP32 widening on device and require every native development score/input to equal prior arithmetic. Shared loading improvement applies to both arms.",
+  "cases": [
+    {
+      "name": "weight_loading_kernels",
+      "read_model": false,
+      "argv": [
+        "python",
+        "-m",
+        "pytest",
+        "cosmos_framework/posttrain/tests/test_model_weight_loader.py",
+        "-k",
+        "not sharded",
+        "--confcutdir=cosmos_framework/posttrain/tests",
+        "--override-ini=addopts=",
+        "-q"
+      ]
+    },
+    {
+      "name": "mixed15_adamw",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_deployment.py",
+        "--",
+        "job.name=mixed15_adamw",
+        "rl.seed=17",
+        "rl.max_steps=15",
+        "rl.save_every=15",
+        "rl.keep_optim_last=0",
+        "rl.optimizer.name=adamw",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096",
+        "model_hf.grad_ckpt=true",
+        "rl.optimizer.lr=1e-05",
+        "rl.ce_exponent=1.0",
+        "rl.data.path={data}/train-mixed.jsonl"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "compare_task_rows_to": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/paired-development15-v1/mixed15_adamw/diagnostics/task_rows.jsonl"
+    },
+    {
+      "name": "mixed15_adamw_bnb_8bit",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_deployment.py",
+        "--",
+        "job.name=mixed15_adamw_bnb_8bit",
+        "rl.seed=17",
+        "rl.max_steps=15",
+        "rl.save_every=15",
+        "rl.keep_optim_last=0",
+        "rl.optimizer.name=adamw_bnb_8bit",
+        "rl.optimizer.impl=",
+        "rl.optimizer.bnb_min_8bit_size=16384",
+        "model_hf.grad_ckpt=false",
+        "rl.optimizer.lr=1e-05",
+        "rl.ce_exponent=1.0",
+        "rl.data.path={data}/train-mixed.jsonl"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "compare_task_rows_to": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/paired-development15-v1/mixed15_adamw_bnb_8bit/diagnostics/task_rows.jsonl"
+    },
+    {
+      "name": "target_adamw",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.budgeted_sft",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_deployment.py",
+        "--",
+        "job.name=target_adamw",
+        "rl.seed=17",
+        "rl.max_steps=15",
+        "rl.save_every=15",
+        "rl.keep_optim_last=0",
+        "rl.optimizer.name=adamw",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096",
+        "model_hf.grad_ckpt=true",
+        "rl.optimizer.lr=1e-05",
+        "rl.ce_exponent=1.0",
+        "rl.data.path={data}/train-mixed.jsonl",
+        "rl.emergency_checkpoint_components=full"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "budget": {
+        "kind": "target",
+        "seconds": 330,
+        "reserve_seconds": 155,
+        "quality_target": 1.7987394576095224
+      },
+      "score_checkpoint": {
+        "data": "{data}/dev-task.jsonl",
+        "selection": "{data}/dev-task-manifest.json",
+        "seed": 17
+      }
+    },
+    {
+      "name": "end_to_end_adamw_bnb_8bit",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.budgeted_sft",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_deployment.py",
+        "--",
+        "job.name=end_to_end_adamw_bnb_8bit",
+        "rl.seed=17",
+        "rl.max_steps=15",
+        "rl.save_every=15",
+        "rl.keep_optim_last=0",
+        "rl.optimizer.name=adamw_bnb_8bit",
+        "rl.optimizer.impl=",
+        "rl.optimizer.bnb_min_8bit_size=16384",
+        "model_hf.grad_ckpt=false",
+        "rl.optimizer.lr=1e-05",
+        "rl.ce_exponent=1.0",
+        "rl.data.path={data}/train-mixed.jsonl",
+        "rl.emergency_checkpoint_components=full"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "budget": {
+        "kind": "end_to_end",
+        "seconds": 330,
+        "reserve_seconds": 140
+      },
+      "score_checkpoint": {
+        "data": "{data}/dev-task.jsonl",
+        "selection": "{data}/dev-task-manifest.json",
+        "seed": 17
+      }
+    }
+  ]
+}

@@ -95,6 +95,28 @@ def test_missing_required_key_raises(tmp_path):
 
 @pytest.mark.L1
 @pytest.mark.GPU
+@pytest.mark.parametrize("storage_dtype", [torch.bfloat16, torch.float16])
+def test_cuda_widening_matches_cpu_conversion_for_every_16bit_value(tmp_path, storage_dtype):
+    """Exercise real transfer/cast kernels, including subnormals and signed zero."""
+    from safetensors.torch import save_file
+
+    if not torch.cuda.is_available():
+        pytest.skip("requires real CUDA kernels")
+    source = torch.arange(65536, dtype=torch.int32).to(torch.int16).view(storage_dtype)
+    model = torch.nn.Linear(65536, 1, bias=False, device="cuda", dtype=torch.float32)
+    parameter = model.weight
+    save_file({"weight": source.reshape(1, -1)}, str(tmp_path / "model.safetensors"))
+    assert load_weights(model, str(tmp_path), LoadPlan()) == {"weight"}
+    assert model.weight is parameter
+    actual, expected = model.weight.detach().cpu().flatten(), source.float()
+    # NaN payloads have no numerical meaning; their locations must be retained.
+    assert torch.equal(torch.isnan(actual), torch.isnan(expected))
+    finite_or_inf = ~torch.isnan(expected)
+    assert torch.equal(actual.view(torch.int32)[finite_or_inf], expected.view(torch.int32)[finite_or_inf])
+
+
+@pytest.mark.L1
+@pytest.mark.GPU
 def test_sharded_load_exact(tmp_path):
     """2-GPU FSDP striped load: each rank fills its dp_shard slice; gathered == source."""
     import torch.distributed as dist
