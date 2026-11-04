@@ -19,6 +19,7 @@ from cosmos_framework.posttrain.config.model import (
     native_adapter_config_identity,
     native_adapter_execution_policy,
     quantization_config_identity,
+    validate_quantized_linear_execution,
 )
 from cosmos_framework.posttrain.model.quantization import loader
 
@@ -37,8 +38,8 @@ def config(**overrides):
     )
 
 
-def identity():
-    cfg = config()
+def identity(*, logits_mode="full"):
+    cfg = config(sft_logits_mode=logits_mode)
     return {
         "format": "cosmos.adapter-model.v2",
         "model_format": "cosmos_native_qwen3_vl",
@@ -79,10 +80,11 @@ def test_default_and_existing_opt_in_identity_bytes_remain_unchanged():
     )
 
 
-def test_opt_in_structured_roundtrip_and_complete_execution_identity():
-    cfg = OmegaConf.to_object(OmegaConf.structured(config()))
+@pytest.mark.parametrize("logits_mode", ["full", "supervised"])
+def test_opt_in_structured_roundtrip_and_complete_execution_identity(logits_mode):
+    cfg = OmegaConf.to_object(OmegaConf.structured(config(sft_logits_mode=logits_mode)))
     assert cfg.quantized_linear_execution == "checkpointed_dequant"
-    saved = identity()
+    saved = identity(logits_mode=logits_mode)
     assert saved["execution_policy"]["protocol"] == "cosmos.native-adapter-execution.v2"
     assert saved["execution_policy"]["quantized_linear"] == {
         "protocol": "cosmos.checkpointed-dequant.v1",
@@ -93,11 +95,26 @@ def test_opt_in_structured_roundtrip_and_complete_execution_identity():
     assert loader.execution_config_from_identity(saved) == {
         "activation_checkpointing": "full",
         "adapter_compute_dtype": "float32",
-        "sft_logits_mode": "full",
+        "sft_logits_mode": logits_mode,
         "compile_language_model": False,
         "quantized_linear_execution": "checkpointed_dequant",
     }
     loader.validate_execution_policy_identity(cfg, saved)
+
+
+@pytest.mark.parametrize("logits_mode", [None, True, 1, "", "future", ["supervised"]])
+def test_malformed_logits_mode_rejected_by_dependency_light_guard(logits_mode):
+    cfg = config()
+    cfg.sft_logits_mode = logits_mode
+    with pytest.raises(ValueError, match="checkpointed_dequant"):
+        validate_quantized_linear_execution(cfg)
+
+
+@pytest.mark.parametrize("logits_mode", ["full", "supervised"])
+def test_full_and_supervised_execution_identities_are_not_interchangeable(logits_mode):
+    other = "supervised" if logits_mode == "full" else "full"
+    with pytest.raises(ValueError, match="execution policy"):
+        loader.validate_execution_policy_identity(config(sft_logits_mode=other), identity(logits_mode=logits_mode))
 
 
 @pytest.mark.parametrize("execution", [None, True, 1, "", "future", ["bnb"]])
@@ -114,7 +131,6 @@ def test_unknown_execution_never_silently_uses_bnb(execution):
         {"activation_checkpointing": "none"},
         {"activation_checkpointing": "selective"},
         {"adapter_compute_dtype": "bfloat16"},
-        {"sft_logits_mode": "supervised"},
         {"compile_language_model": True},
         {"quantized_base": QuantizedBaseTrainingConfig(excluded_language_layers=(6, 15))},
         {
@@ -138,6 +154,8 @@ def test_unsupported_combinations_fail_in_dependency_light_config(overrides):
         ("compile_language_model", True),
         ("quantized_base", None),
         ("quantized_linear_execution", "future"),
+        ("sft_logits_mode", "future"),
+        ("sft_logits_mode", None),
     ],
 )
 def test_mutated_config_fails_before_source_io_or_runtime_allocation(monkeypatch, name, value):
@@ -171,7 +189,7 @@ def test_mutated_config_fails_before_source_io_or_runtime_allocation(monkeypatch
         "selective_ac",
         "compile",
         "bf16_adapter",
-        "selected_logits",
+        "unknown_logits",
         "bf16_base",
         "wrong_nf4",
         "missing_adapter",
@@ -210,8 +228,8 @@ def test_saved_policy_rejects_missing_unknown_and_conflicting_records(defect):
         policy["language_compile"]["enabled"] = True
     elif defect == "bf16_adapter":
         policy["adapter_compute_dtype"] = "bfloat16"
-    elif defect == "selected_logits":
-        policy["sft_logits_mode"] = "supervised"
+    elif defect == "unknown_logits":
+        policy["sft_logits_mode"] = "future"
     elif defect == "bf16_base":
         saved["quantization"] = None
     elif defect == "wrong_nf4":
@@ -232,22 +250,31 @@ def test_saved_policy_rejects_missing_unknown_and_conflicting_records(defect):
         loader.execution_config_from_identity(saved)
 
 
-def test_real_probe_restore_reconstructs_mode_and_rejects_explicit_conflicts():
+@pytest.mark.parametrize("logits_mode", ["full", "supervised"])
+def test_real_probe_restore_reconstructs_mode_and_rejects_explicit_conflicts(logits_mode):
     from cosmos_framework.posttrain.configs.sft_qwen3_vl_8b_qlora import make_config
     from cosmos_framework.posttrain.tests.qlora_integration import _restore_probe_execution
 
     cfg = make_config()
-    _restore_probe_execution(cfg, identity(), [])
+    saved = identity(logits_mode=logits_mode)
+    _restore_probe_execution(cfg, saved, [])
     assert cfg.model.model_config.quantized_linear_execution == "checkpointed_dequant"
+    assert cfg.model.model_config.sft_logits_mode == logits_mode
     with pytest.raises(ValueError, match="explicit adapter reload override quantized_linear_execution"):
-        _restore_probe_execution(make_config(), identity(), ["model.model_config.quantized_linear_execution=bnb"])
+        _restore_probe_execution(make_config(), saved, ["model.model_config.quantized_linear_execution=bnb"])
+    other = "supervised" if logits_mode == "full" else "full"
+    conflicting = make_config()
+    # The native config loader applies the dotlist before the restore helper sees it.
+    conflicting.model.model_config.sft_logits_mode = other
+    with pytest.raises(ValueError, match="explicit adapter reload override sft_logits_mode"):
+        _restore_probe_execution(conflicting, saved, [f"model.model_config.sft_logits_mode={other}"])
     with pytest.raises(ValueError, match="execution policy"):
-        loader.validate_execution_policy_identity(config(quantized_linear_execution="bnb"), identity())
+        loader.validate_execution_policy_identity(config(quantized_linear_execution="bnb"), saved)
     with pytest.raises(ValueError, match="execution policy"):
         loader.validate_execution_policy_identity(config(), {"format": "cosmos.adapter-model.v1"})
 
 
-def make_opt_in_fixture(tmp_path, monkeypatch):
+def make_opt_in_fixture(tmp_path, monkeypatch, *, logits_mode="full"):
     """Reuse the all-252-target CPU loader fixture, intercepting only its config/BNB doubles."""
     from cosmos_framework.posttrain.tests import test_quantized_exclusions as fixture
 
@@ -256,6 +283,7 @@ def make_opt_in_fixture(tmp_path, monkeypatch):
     def namespace(**kwargs):
         if "quantized_base" in kwargs:
             kwargs["quantized_linear_execution"] = "checkpointed_dequant"
+            kwargs["sft_logits_mode"] = logits_mode
         if "NativeLoraLinear4bit" in kwargs:
             packed = kwargs["NativeLoraLinear4bit"]
 
@@ -272,11 +300,14 @@ def make_opt_in_fixture(tmp_path, monkeypatch):
     return net, life, calls
 
 
-def test_actual_loader_routes_policy_to_canary_and_all_targets_without_changing_base(tmp_path, monkeypatch):
+@pytest.mark.parametrize("logits_mode", ["full", "supervised"])
+def test_actual_loader_routes_policy_to_canary_and_all_targets_without_changing_base(
+    tmp_path, monkeypatch, logits_mode
+):
     from cosmos_framework.posttrain.tests.test_quantized_exclusions import make_lifecycle_fixture
 
     default, _, _, _ = make_lifecycle_fixture(tmp_path, monkeypatch)
-    net, life, calls = make_opt_in_fixture(tmp_path, monkeypatch)
+    net, life, calls = make_opt_in_fixture(tmp_path, monkeypatch, logits_mode=logits_mode)
     assert len(calls["preflight"]) == 1 and len(calls["constructor"]) == 252
     for options in calls["preflight"] + calls["constructor"]:
         assert options["quantized_linear_execution"] == "checkpointed_dequant"
@@ -294,7 +325,8 @@ def test_actual_loader_routes_policy_to_canary_and_all_targets_without_changing_
         default._cosmos_adapter_checkpoint_codec.validate_metadata(net._cosmos_adapter_checkpoint_codec.metadata())
 
 
-def test_real_dcp_resume_rejects_changed_mode_before_loading_tensors(tmp_path, monkeypatch):
+@pytest.mark.parametrize("logits_mode", ["full", "supervised"])
+def test_real_dcp_resume_rejects_changed_mode_before_loading_tensors(tmp_path, monkeypatch, logits_mode):
     from cosmos_framework.posttrain.algorithm.primitives.objective import Objective, Reduction
     from cosmos_framework.posttrain.checkpoint import adapter
     from cosmos_framework.posttrain.configs.sft_qwen3_vl_8b_qlora import make_config
@@ -302,7 +334,7 @@ def test_real_dcp_resume_rejects_changed_mode_before_loading_tensors(tmp_path, m
     from cosmos_framework.posttrain.roles.trainer.llm import LLMTrainer
     from cosmos_framework.posttrain.tests.test_checkpoint_adapter import _save
 
-    net, life, _ = make_opt_in_fixture(tmp_path, monkeypatch)
+    net, life, _ = make_opt_in_fixture(tmp_path, monkeypatch, logits_mode=logits_mode)
     processor, training = {"fixture": "processor"}, {"fixture": "training"}
     codec = net._cosmos_adapter_checkpoint_codec
     codec.bind_processor_identity(processor)
@@ -322,8 +354,13 @@ def test_real_dcp_resume_rejects_changed_mode_before_loading_tensors(tmp_path, m
     cfg.model.model_config.quantized_base = life.cfg.quantized_base
     cfg.model.model_config.source_identity = life.source_identity
     cfg.model.model_config.quantized_linear_execution = "checkpointed_dequant"
+    cfg.model.model_config.sft_logits_mode = logits_mode
     checkpoint = SimpleNamespace(resume_checkpoint=str(path), manager=trainer.checkpoint_manager)
     _preflight_adapter_resume(cfg, checkpoint, processor, training)
+    cfg.model.model_config.sft_logits_mode = "supervised" if logits_mode == "full" else "full"
+    with pytest.raises(ValueError, match="execution policy"):
+        _preflight_adapter_resume(cfg, checkpoint, processor, training)
+    cfg.model.model_config.sft_logits_mode = logits_mode
     cfg.model.model_config.quantized_linear_execution = "bnb"
     with pytest.raises(ValueError, match="execution policy"):
         _preflight_adapter_resume(cfg, checkpoint, processor, training)

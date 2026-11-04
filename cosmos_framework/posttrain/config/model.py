@@ -318,12 +318,12 @@ def validate_quantized_linear_execution(cfg: Any) -> None:
     if (
         cfg.activation_checkpointing != "full"
         or getattr(cfg, "adapter_compute_dtype", "float32") != "float32"
-        or getattr(cfg, "sft_logits_mode", "full") != "full"
+        or getattr(cfg, "sft_logits_mode", "full") not in ("full", "supervised")
         or getattr(cfg, "compile_language_model", False) is not False
     ):
         raise ValueError(
             "checkpointed_dequant requires full nonreentrant activation checkpointing, "
-            "FP32 adapter compute, full logits and no language compilation"
+            "FP32 adapter compute, full or supervised logits and no language compilation"
         )
     if getattr(quantization, "excluded_language_layers", ()):
         raise ValueError("checkpointed_dequant with excluded language layers is not supported")
