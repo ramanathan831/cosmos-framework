@@ -14,5 +14,11 @@
   "controls": "Whole paired seed groups remain sequential on one node, one GPU,8 CPUs,128GiB; require GPU model at startup; record CPU affinity for new allocations. No concurrent campaign jobs on the same node.",
   "concurrency": "At most2 campaign GPUs on distinct nodes; held owned jobs prevent races while independent phases advance.",
   "unchanged": "8GPU-hour total;240mainline/170factorial/30capacity ceilings; every quality/speed/memory threshold; seeds,model,trainables,data,steps,schedules,precision.",
-  "eligibility": "Scheduler inventory verified polar contains batch-block4 and grizzly batch-block1 only. Startup GPU-model assertion remains mandatory; no inference of compatibility from the node name alone."
+  "eligibility": "Scheduler inventory verified polar contains batch-block4 and grizzly batch-block1 only. Startup GPU-model assertion remains mandatory; no inference of compatibility from the node name alone.",
+  "whole_seed43_wall_reservation": {
+    "mainline_minutes": 55,
+    "work_seconds": 3150,
+    "reason": "Observed complete arms take665\u2013963 seconds. Reserve55 minutes for the same three unstarted arms and preserve900-second admission guard, avoiding an extra allocated continuation slot.",
+    "admission": "9490 charged +1500 seed29 reserve +3300 seed43 reserve =14290 <=14400 mainline seconds; overall reserved27613 <=28800 seconds. No additional trial or threshold change."
+  }
 }
