@@ -363,6 +363,19 @@ All three paired sampled training GPU-process savings exceeded the fixed 6 GiB o
 
 The two fresh paired allocations consumed 24,317 GPU-seconds (6.755 GPU-hours), including their recovery qualifiers and allocation overhead. The reused seed-42 allocation is charged only once in the cumulative ledger. Original best-fit execution selection remains incomplete, and no threshold was relaxed after these results.
 
+**Retained step 200 development screen.** The [retained-checkpoint evidence](evidence/native_qlora_retained_step200_55e7f14.json) evaluates the preselected seed-42 step 200 boundaries from the original `55e7f14` 300-update runs. Both cached step 300 scores first reproduced their original input, media, mask, model and score evidence exactly. The fixed point target requires **at least 540/584 correct and native token-weighted CE at most 0.12357161758062493**; answer-token NLL is a separate metric.
+
+| Precision | Retained step | Correct / 584 | Native CE | Both fixed targets |
+| --------- | ------------: | ------------: | --------: | ------------------ |
+| BF16      |           200 |           540 |  0.109935 | Yes                |
+| NF4       |           200 |           536 |  0.112247 | No: accuracy       |
+| BF16      |           300 |           547 |  0.106537 | Yes                |
+| NF4       |           300 |           546 |  0.102329 | Yes                |
+
+At step 200, NF4 has four fewer correct answers and 2.104% higher CE than BF16. The artifact retains all twelve recording-group aggregates and paired differences. Both step 200 boundaries passed inspection and fresh text/image/video reloads from DCP and portable adapters; no new step 200 optimizer resume or interruption/recovery was executed. This one-seed, exposed-development screen does **not** promote NF4 early stopping, establish earliest target crossing or fresh end-to-end time to quality, or replace the original +4.18% result and unchanged NLL/accuracy gates.
+
+The additional evaluation allocation cost **1,815 GPU-seconds and 29,040 allocated CPU-seconds**, including both step 300 parity prerequisites and step 200 scoring/reload work; historical training is not charged again. All 1,347 observed host samples were complete over 1,736.58 seconds of the 1,815-second allocation, with short-phase gaps retained. The separately verified job cgroup watermark was **39,620,075,520 bytes** under a 64 GiB limit, observed before batch teardown with zero limit failures or OOM kills. It includes page cache, startup and the observer; it does not measure a peak for each arm, the complete batch lifetime or total physical host memory, and establishes no smaller-device support.
+
 ## Completed final regression and untouched diagnostic
 
 The [final scoring report](evidence/native_qlora_final_quality_55e7f14.json) contains the completed controlled rank-16 and development-selected rank-32 comparisons. All settings, source identities, paired seeds and evaluation plans were locked before untouched outcomes were read. Both studies retain seed 42's audited producer origin; neither the exposed regression set nor the untouched diagnostic selected a configuration. Independent replay checked the original row bundles, both 10,000-replicate bootstrap calculations, choice-count and answer-letter slices, and public projection. Native model arithmetic and quality thresholds were unchanged.
