@@ -67,7 +67,8 @@ def _objective_identity(config: Any, *, source: str = "immutable-training-data")
     }
 
 
-def _checkpoint(config: Any, tmp_path: Path) -> SimpleNamespace:
+def _checkpoint(config: Any, tmp_path: Path, *, updates: int = 0) -> SimpleNamespace:
+    from cosmos_framework.posttrain.model.quantization.loader import resolved_execution_policy
     from cosmos_framework.utils.lazy_config import instantiate
 
     processor, training = sft._adapter_run_contract(config, _packer(config), _objective_identity(config))
@@ -80,6 +81,11 @@ def _checkpoint(config: Any, tmp_path: Path) -> SimpleNamespace:
         "processor_contract": processor,
         "training_contract": training,
     }
+    policy = resolved_execution_policy(cfg)
+    if policy is not None:
+        trainer._adapter_checkpoint_codec().identity.update(format="cosmos.adapter-model.v2", execution_policy=policy)
+    for _ in range(updates):
+        trainer.train([None])
     path = _save(trainer, tmp_path)
     return SimpleNamespace(manager=trainer.checkpoint_manager, resume_checkpoint=str(path))
 
@@ -342,12 +348,107 @@ def test_preflight_accepts_same_identity_and_skips_fresh_checkpoint_io(tmp_path:
     sft._preflight_adapter_resume(config, checkpoint, processor, training)
 
 
+@pytest.mark.parametrize("resume", ["auto", "off"])
+def test_fresh_combined_execution_refuses_after_actual_resume_resolution(tmp_path, monkeypatch, resume):
+    from cosmos_framework.posttrain.config import build
+    from cosmos_framework.posttrain.control.checkpointing import CheckpointLifecycle
+    from cosmos_framework.posttrain.utils.entry import pin_run_attempt
+
+    config = make_config()
+    config.model.model_config.quantized_linear_execution = "checkpointed_dequant"
+    config.model.model_config.sft_logits_mode = "supervised"
+    config.rl.resume = resume
+    config.rl.run_ts = "20260101000000"
+    monkeypatch.setenv("IMAGINAIRE_OUTPUT_ROOT", str(tmp_path))
+    attempt = pin_run_attempt(config, [], str(tmp_path / "run"))
+    checkpoint = CheckpointLifecycle.from_config(config, config.rl, run_out_dir=attempt.out_dir)
+    assert attempt.resume_checkpoint is None and checkpoint.resume_checkpoint is None
+    assert config.rl.resume == "off"
+    events = []
+    _patch_construction(monkeypatch, config, events)
+    backbone = Mock(side_effect=AssertionError("fresh combined run must fail before model allocation"))
+    checkpoint_read = Mock(side_effect=AssertionError("fresh run must not inspect a checkpoint"))
+    monkeypatch.setattr(build, "build_backbone", backbone)
+    monkeypatch.setattr("cosmos_framework.posttrain.checkpoint.adapter.read_adapter_metadata", checkpoint_read)
+    with pytest.raises(ValueError, match="fresh native SFT does not admit"):
+        sft.build_trainer(
+            config, config.rl, SimpleNamespace(source_fingerprint="immutable-training-data"), None, checkpoint
+        )
+    backbone.assert_not_called()
+    checkpoint_read.assert_not_called()
+    assert events == []
+
+
+@pytest.mark.parametrize(
+    "execution,head,quantized",
+    [
+        ("bnb", "full", True),
+        ("bnb", "supervised", True),
+        ("bnb", "supervised", False),
+        ("checkpointed_dequant", "full", True),
+    ],
+)
+def test_other_fresh_execution_modes_still_skip_checkpoint_io(monkeypatch, execution, head, quantized):
+    config = make_config()
+    config.model.model_config.quantized_linear_execution = execution
+    config.model.model_config.sft_logits_mode = head
+    if not quantized:
+        config.model.model_config.quantized_base = None
+    processor, training = sft._adapter_run_contract(config, _packer(config), _objective_identity(config))
+    checkpoint_read = Mock(side_effect=AssertionError("fresh run must not inspect a checkpoint"))
+    monkeypatch.setattr("cosmos_framework.posttrain.checkpoint.adapter.read_adapter_metadata", checkpoint_read)
+    sft._preflight_adapter_resume(config, SimpleNamespace(resume_checkpoint=None), processor, training)
+    checkpoint_read.assert_not_called()
+
+
+def test_complete_combined_execution_checkpoint_remains_valid_for_resume_and_portable_reload(tmp_path, monkeypatch):
+    from cosmos_framework.posttrain.checkpoint.adapter import publish_adapter_artifact, read_adapter_metadata
+    from cosmos_framework.posttrain.model.quantization.loader import (
+        execution_config_from_identity,
+        validate_execution_policy_identity,
+    )
+    from cosmos_framework.utils.lazy_config import instantiate
+
+    config = make_config()
+    config.model.model_config.quantized_linear_execution = "checkpointed_dequant"
+    config.model.model_config.sft_logits_mode = "supervised"
+    checkpoint = _checkpoint(config, tmp_path, updates=1)
+    artifact = publish_adapter_artifact(checkpoint.resume_checkpoint, str(tmp_path / "portable/iter_000001"))
+    metadata = read_adapter_metadata(artifact)
+    options = execution_config_from_identity(metadata["identity"])
+    assert options["quantized_linear_execution"] == "checkpointed_dequant"
+    assert options["sft_logits_mode"] == "supervised"
+    validate_execution_policy_identity(instantiate(config.model.model_config), metadata["identity"])
+    processor, training = sft._adapter_run_contract(config, _packer(config), _objective_identity(config))
+    monkeypatch.setattr(
+        checkpoint.manager, "load_dcp_component", lambda *a, **k: pytest.fail("preflight must not restore tensors")
+    )
+    sft._preflight_adapter_resume(config, checkpoint, processor, training)
+
+
+@pytest.mark.parametrize("combined", [False, True])
 @pytest.mark.parametrize(
     "change",
-    ["base", "rank", "quantization", "frames", "template", "lr", "schedule", "horizon", "source", "batch", "seed"],
+    [
+        "base",
+        "rank",
+        "quantization",
+        "frames",
+        "template",
+        "lr",
+        "schedule",
+        "horizon",
+        "source",
+        "batch",
+        "seed",
+        "execution_policy",
+    ],
 )
-def test_preflight_rejects_resume_identity_changes(tmp_path: Path, change: str) -> None:
+def test_preflight_rejects_resume_identity_changes(tmp_path: Path, change: str, combined: bool) -> None:
     config = make_config()
+    if combined:
+        config.model.model_config.quantized_linear_execution = "checkpointed_dequant"
+        config.model.model_config.sft_logits_mode = "supervised"
     checkpoint = _checkpoint(config, tmp_path)
     if change == "base":
         config.model.model_config.source_identity["revision"] = "c" * 40
@@ -367,13 +468,15 @@ def test_preflight_rejects_resume_identity_changes(tmp_path: Path, change: str) 
         config.rl.grad_accum *= 2
     elif change == "seed":
         config.rl.seed += 1
+    elif change == "execution_policy":
+        config.model.model_config.sft_logits_mode = "full" if combined else "supervised"
     objective = _objective_identity(
         config, source="other-training-data" if change == "source" else "immutable-training-data"
     )
     processor, training = sft._adapter_run_contract(config, _packer(config), objective)
     if change == "template":
         processor["template"] = "other-template"
-    with pytest.raises(ValueError, match="differs"):
+    with pytest.raises(ValueError, match="differs|checkpointed_dequant requires"):
         sft._preflight_adapter_resume(config, checkpoint, processor, training)
 
 
@@ -396,14 +499,30 @@ def _patch_construction(monkeypatch: pytest.MonkeyPatch, config: Any, events: li
     monkeypatch.setattr(build, "build_sft_lr_scheduler", lambda *args: None)
 
 
-@pytest.mark.parametrize("defect", ["wrong_base", "missing_metadata", "missing_data", "missing_optimizer"])
-def test_build_trainer_resume_refuses_before_backbone_allocation(tmp_path: Path, monkeypatch, defect: str) -> None:
+@pytest.mark.parametrize("combined", [False, True])
+@pytest.mark.parametrize(
+    "defect", ["wrong_base", "missing_metadata", "missing_data", "missing_optimizer", "missing_checkpoint", "portable"]
+)
+def test_build_trainer_resume_refuses_before_backbone_allocation(
+    tmp_path: Path, monkeypatch, defect: str, combined: bool
+) -> None:
     from cosmos_framework.posttrain.config import build
 
     config = make_config()
+    if combined:
+        config.model.model_config.quantized_linear_execution = "checkpointed_dequant"
+        config.model.model_config.sft_logits_mode = "supervised"
     checkpoint = _checkpoint(config, tmp_path)
     if defect == "wrong_base":
         config.model.model_config.source_identity["revision"] = "c" * 40
+    elif defect == "missing_checkpoint":
+        checkpoint.resume_checkpoint = str(tmp_path / "missing/iter_000001")
+    elif defect == "portable":
+        from cosmos_framework.posttrain.checkpoint.adapter import publish_adapter_artifact
+
+        checkpoint.resume_checkpoint = publish_adapter_artifact(
+            checkpoint.resume_checkpoint, str(tmp_path / "portable/iter_000000")
+        )
     else:
         component = {
             "missing_metadata": "model_metadata.pt",

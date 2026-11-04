@@ -225,9 +225,7 @@ def _adapter_run_contract(
 def _preflight_adapter_resume(
     config: Any, checkpoint: Any, processor_identity: dict[str, Any], training_identity: dict[str, Any]
 ) -> None:
-    """Reject an incompatible or incomplete resume before allocating base weights."""
-    if not checkpoint.resume_checkpoint:
-        return
+    """Check fresh-training eligibility or an exact resume before allocating base weights."""
     from cosmos_framework.posttrain.checkpoint.adapter import read_adapter_metadata
     from cosmos_framework.posttrain.config.build import select_policy_backend
     from cosmos_framework.posttrain.config.model import native_adapter_config_identity, quantization_config_identity
@@ -236,6 +234,18 @@ def _preflight_adapter_resume(
     from cosmos_framework.utils.lazy_config import instantiate
 
     cfg = instantiate(select_policy_backend(config).native_spec.model_config)
+    if not checkpoint.resume_checkpoint:
+        # The driver has resolved auto to a checkpoint or off; the configured resume flag
+        # alone does not establish a continuation. Artifact reconstruction remains valid.
+        if (
+            getattr(cfg, "quantized_linear_execution", "bnb") == "checkpointed_dequant"
+            and getattr(cfg, "sft_logits_mode", "full") == "supervised"
+        ):
+            raise ValueError(
+                "fresh native SFT does not admit checkpointed_dequant with supervised logits; "
+                "use bnb execution or full logits. Exact resume requires a complete matching checkpoint."
+            )
+        return
     metadata = read_adapter_metadata(
         checkpoint.resume_checkpoint,
         expected_identity={
