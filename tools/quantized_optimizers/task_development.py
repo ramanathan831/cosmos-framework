@@ -119,10 +119,13 @@ def evaluate(units, rl, model_step, reasons):
     from dataclasses import replace
 
     task = aggregate(scored)
+    duration = report.duration_s + time.monotonic() - before
     return replace(
         report,
+        duration_s=duration,
         metrics={
             **report.metrics,
+            "timer/validation_s": duration,
             "val/task_answer_nll": task["answer_nll"],
             "val/task_accuracy": task["restricted_choice_accuracy"],
         },
