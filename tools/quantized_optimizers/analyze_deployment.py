@@ -148,10 +148,10 @@ def main():
                     speeds.append(crossings[0] / crossings[1])
                 budget = min(run["curve"][-1][clock] for run in (base, quant))
                 points = [
-                    max((p for p in run["curve"] if p[clock] <= budget), key=lambda p: p[clock])
+                    max((p for p in run["curve"] if p[clock] <= budget), key=lambda p: p[clock], default=None)
                     for run in (base, quant)
                 ]
-                equals.append(points[0]["nll"] - points[1]["nll"])
+                equals.append(None if any(p is None for p in points) else points[0]["nll"] - points[1]["nll"])
                 restart_values.append(
                     {
                         "seed": seed,
@@ -163,14 +163,22 @@ def main():
                     }
                 )
             per_seed_speed.append(float(np.mean(speeds)) if all(v is not None for v in speeds) else None)
-            per_seed_equal.append(float(np.mean(equals)))
+            per_seed_equal.append(float(np.mean(equals)) if all(v is not None for v in equals) else None)
         speed = interval(per_seed_speed) if all(v is not None for v in per_seed_speed) else {"mean": None, "ci95": None}
-        equal = interval(per_seed_equal)
+        equal = (
+            interval(per_seed_equal)
+            if all(v is not None for v in per_seed_equal)
+            else {
+                "mean": None,
+                "ci95": None,
+                "reason": "At least one arm has no completed validation by the common budget.",
+            }
+        )
         paired[clock] = {
             "time_to_quality_ratio": speed,
             "equal_budget_nll_improvement": equal,
             "speed_gate": speed["ci95"] is not None and speed["ci95"][0] > 1.05,
-            "equal_budget_quality_gain_gate": equal["ci95"][0] > 0,
+            "equal_budget_quality_gain_gate": equal["ci95"] is not None and equal["ci95"][0] > 0,
             "restarts": restart_values,
         }
     throughput = interval(
@@ -362,13 +370,40 @@ def main():
             label=label,
         )
     axes[0].set(xlabel="Launch seconds, prepared corpus", ylabel="Development supervised-token NLL")
+    targets = [0.95 * runs[s, 0, ARMS[0]]["curve"][0]["nll"] for s in SEEDS]
+    if np.ptp(targets) < 1e-12:
+        axes[0].axhline(
+            targets[0], color="gray", linestyle="--", linewidth=1, label="Prespecified time-to-quality target"
+        )
     axes[1].set(xlabel="Native training sequences / second", ylabel="Sampled whole-device peak GiB")
     for ax in axes:
         ax.grid(alpha=0.25)
         ax.legend(fontsize=7)
-    fig.suptitle("16-block native video SFT · matched effective batch4 · 3 seeds, 95% t intervals")
+    fig.suptitle("16-block native video SFT · matched effective batch 4 · 3 seeds, 95% t intervals")
     fig.tight_layout()
     fig.savefig(args.output / "deployment.png", dpi=180)
+    plt.close(fig)
+    fig, ax = plt.subplots(figsize=(8, 4.5))
+    for arm, label in zip(ARMS, ("Fused FP32 AdamW + recomputation", "8-bit AdamW, no recomputation"), strict=True):
+        x = interval([float(np.mean([runs[s, r, arm]["launch_completion_seconds"] for r in range(3)])) for s in SEEDS])
+        y = interval([final[s, arm]["metrics"]["answer_nll"] for s in SEEDS])
+        ax.errorbar(
+            x["mean"],
+            y["mean"],
+            xerr=[[x["mean"] - x["ci95"][0]], [x["ci95"][1] - x["mean"]]],
+            yerr=[[y["mean"] - y["ci95"][0]], [y["ci95"][1] - y["mean"]]],
+            fmt="o",
+            label=label,
+        )
+    ax.set(
+        xlabel="Launch-to-completion seconds, full checkpoint included",
+        ylabel="Final task gold-answer NLL (lower is better)",
+        title="Matched 40 updates · 3 paired seeds, 95% t intervals\n16 recording groups from the approved reused pool",
+    )
+    ax.grid(alpha=0.25)
+    ax.legend(fontsize=8)
+    fig.tight_layout()
+    fig.savefig(args.output / "final_task.png", dpi=180)
     plt.close(fig)
     print(json.dumps({"gates": gates, "release_qualified": report["release_qualified"]}, indent=2))
 
