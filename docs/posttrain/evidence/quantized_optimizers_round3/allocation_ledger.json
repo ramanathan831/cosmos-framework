@@ -235,7 +235,7 @@
       "job": "37977248",
       "name": "optimizer-outcome-s17",
       "state": "RUNNING",
-      "elapsed_seconds": 1150,
+      "elapsed_seconds": 2718,
       "effective_wall_limit_seconds": 4500,
       "gpu_count_requested": 1,
       "charged_or_reserved_gpu_seconds": 4500,
@@ -274,14 +274,36 @@
       "charged_or_reserved_gpu_seconds": 0,
       "charged_or_reserved_cpu_wall_seconds": 445,
       "node": "cpu-00048"
+    },
+    {
+      "job": "37978606",
+      "name": "optimizer-r3-cpu-decoder",
+      "state": "COMPLETED",
+      "elapsed_seconds": 341,
+      "effective_wall_limit_seconds": 600,
+      "gpu_count_requested": 0,
+      "charged_or_reserved_gpu_seconds": 0,
+      "charged_or_reserved_cpu_wall_seconds": 341,
+      "node": "cpu-00048"
+    },
+    {
+      "job": "37978670",
+      "name": "optimizer-r3-baseline-combo",
+      "state": "PENDING",
+      "elapsed_seconds": 0,
+      "effective_wall_limit_seconds": 900,
+      "gpu_count_requested": 1,
+      "charged_or_reserved_gpu_seconds": 900,
+      "charged_or_reserved_cpu_wall_seconds": 0,
+      "node": "None assigned"
     }
   ],
-  "as_of_utc": "2026-11-04T21:58:14.625758+00:00",
+  "as_of_utc": "2026-11-04T22:09:18.792810+00:00",
   "unsubmitted_final_reservation_seconds": 0,
   "total_gpu_cap_seconds": 28800,
   "cpu_wall_cap_seconds": 7200,
-  "total_with_reserved_final": 20571,
-  "cpu_actual_or_reserved_seconds": 6554,
+  "total_with_reserved_final": 21471,
+  "cpu_actual_or_reserved_seconds": 6895,
   "failures": {
     "37970581": "New recovery diagnostic failed to resolve native worker cursor handle after update41; checkpoint40 completed. Fixed by2e44bfa.",
     "37971293": "Canceled before reaching the same diagnostic failure.",
@@ -295,11 +317,11 @@
   "local_test_gpu_seconds_charged": 60,
   "local_test_note": "Root pytest setup overrides CUDA_VISIBLE_DEVICES even for CPU-labelled tests. Conservatively charge60GPU-seconds for49.88s of local pytest runtimes, including42 kernel tests passing in26.20s on A100 with Torch2.10.0+cu130/Transformers4.57.6/bnb0.49.2. Remote pinned regression remains required. Future CPU-only invocations exclude the root conftest.",
   "unsubmitted_conditional_cpu_full_trials_reservation_seconds": 0,
-  "cpu_total_including_conditional_reservation": 7154,
+  "cpu_total_including_conditional_reservation": 6895,
   "local_cpu_check_reservation_seconds": 60,
   "final_reservation_update": "75min per seed \u00d73, including every dependent128-row scoring process, frozen reference and exact exposure inspection; based on180\u2013214s training plus~120s scoring per case. Reserve900more seconds within unchanged28800cap before admission; no threshold changes.",
   "unsubmitted_preparation_profile_reservation_seconds": 0,
-  "unsubmitted_decoder_thread_canary_reservation_seconds": 600,
-  "unsubmitted_combined_baseline_probe_gpu_seconds": 900,
+  "unsubmitted_decoder_thread_canary_reservation_seconds": 0,
+  "unsubmitted_combined_baseline_probe_gpu_seconds": 0,
   "total_with_reserved_final_and_development": 21471
 }

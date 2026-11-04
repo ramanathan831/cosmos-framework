@@ -1,0 +1,45 @@
+{
+  "job": "37978606",
+  "source_commit": "32d7703",
+  "elapsed_cpu_wall_seconds": 341,
+  "receipt": {
+    "workers": 4,
+    "threads_per_worker": 2,
+    "cpu_affinity": [
+      4,
+      5,
+      6,
+      7,
+      60,
+      61,
+      62,
+      63
+    ],
+    "preparation_seconds": 140.1876680640271,
+    "total_seconds_with_independent_exact_replay": 220.91962211101782,
+    "exact_raw_prepared_rows": 32,
+    "independently_replayed_unique_targets": 32,
+    "total_verified_rows": 32,
+    "raw_native_calls": 64,
+    "reference_exact_unique_targets": 32,
+    "reference_corpus_sha256": "ea2e64893ab3d7da0f4c8be33001ae99c96dfd2c54fe293449c29255cd1f2d70",
+    "corpus_sha256": "70be8ff57c674ae3eacab0c4196543cdc9f113f01705b133426b8049e1764c3d",
+    "payload_bytes": 377943712,
+    "cuda_initialized": false,
+    "source_paths": [
+      "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/decoder-thread-v1/trial4.canary.jsonl"
+    ],
+    "worker_compute_seconds_sum": 387.77188169397414,
+    "decoder_threads": 1,
+    "source_sha256": "81f15e14e35b79a91ba3dbc612d8b1d5ab40a7eb4180cf68aae51322dea03bdf"
+  },
+  "paired_targets": 32,
+  "candidate_seconds_sum": 265.1277846620069,
+  "control_seconds_sum": 121.723600166908,
+  "median_candidate_throughput_over_control": 0.45664614203762943,
+  "orders": {
+    "candidate": 17,
+    "control": 15
+  },
+  "decision": "Reject one-thread candidate: exact inputs preserved but candidate slower. Keep native automatic FFmpeg threading; no change to frozen final clocks or corpus. Single development canary is not a full-pipeline speed claim."
+}
