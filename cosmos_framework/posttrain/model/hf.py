@@ -53,6 +53,21 @@ if TYPE_CHECKING:
 _DECODER_LAYER_SUFFIXES = ("DecoderLayer", "Block")
 
 
+def checkpoint_modules(model: nn.Module, names: tuple[str, ...]) -> dict[str, nn.Module]:
+    """Resolve exact per-layer HF checkpoint gates; parent-loop gates are unsupported."""
+    from transformers.modeling_layers import GradientCheckpointingLayer
+
+    if len(set(names)) != len(names) or any(not isinstance(name, str) or not name for name in names):
+        raise ValueError("grad_ckpt_modules requires unique nonempty exact module names")
+    modules = dict(model.named_modules())
+    missing = set(names) - modules.keys()
+    if missing:
+        raise ValueError(f"unmatched gradient checkpoint module names: {sorted(missing)}")
+    if any(not isinstance(modules[name], GradientCheckpointingLayer) for name in names):
+        raise ValueError("selective checkpointing requires HF GradientCheckpointingLayer modules")
+    return {name: modules[name] for name in names}
+
+
 def _move_to_device(value: Any, device: torch.device) -> Any:
     """Move every tensor in one model input value while preserving its container shape."""
     if isinstance(value, torch.Tensor):
@@ -175,6 +190,7 @@ class HFModel(nn.Module):
         reduce_dtype: torch.dtype = torch.float32,
         mixed_precision_mode: str = "fsdp",
         synchronize_multimodal_forward: bool = True,
+        grad_ckpt_modules: list[str] | None = None,
     ) -> None:
         """Build the HF body on meta and declare its shard/load plans.
 
@@ -204,6 +220,11 @@ class HFModel(nn.Module):
         self.compute_ctx = compute_context(mixed_precision_mode, dtype, "cuda")
         self.ckpt_path = model_name_or_path
         self.grad_ckpt = grad_ckpt
+        if grad_ckpt_modules is not None and not isinstance(grad_ckpt_modules, (list, tuple)):
+            raise TypeError("grad_ckpt_modules must be a list of exact module names")
+        self.grad_ckpt_modules = tuple(grad_ckpt_modules or ())
+        if self.grad_ckpt_modules and not grad_ckpt:
+            raise ValueError("grad_ckpt_modules requires grad_ckpt=true")
         self.tokenizer = None
 
         hf_config = AutoConfig.from_pretrained(model_name_or_path, trust_remote_code=trust_remote_code)
@@ -264,6 +285,9 @@ class HFModel(nn.Module):
                 "weight_loader lacks replicated-gate + fused-expert (EP) shard handling. "
                 "Only dense VLMs (e.g. Qwen3-VL 2B/4B/8B/32B, NemotronH_Nano_VL_V2) are supported."
             )
+
+        if self.grad_ckpt_modules:
+            checkpoint_modules(self.model, self.grad_ckpt_modules)  # validate while weights are still meta
 
         # Normalize floating-point PARAMETER dtypes to ``master_dtype`` — the STORAGE dtype, which
         # is what the optimizer reads and writes and what its moments inherit
@@ -371,6 +395,12 @@ class HFModel(nn.Module):
     def apply_gradient_checkpointing(self) -> None:
         """Enable gradient checkpointing via HF's standard API (non-reentrant)."""
         self.model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+        if self.grad_ckpt_modules:
+            selected = checkpoint_modules(self.model, self.grad_ckpt_modules)
+            for name, module in self.model.named_modules():
+                if hasattr(module, "gradient_checkpointing"):
+                    module.gradient_checkpointing = name in selected
+            logger.info("HFModel: checkpointing exact modules %s", sorted(selected))
         logger.info("HFModel: gradient checkpointing enabled")
 
     def tie_embeddings(self) -> None:
@@ -607,6 +637,7 @@ def build_hf_model(
         trust_remote_code=hf_cfg.trust_remote_code,
         auto_class=hf_cfg.auto_class,
         grad_ckpt=hf_cfg.grad_ckpt,
+        grad_ckpt_modules=getattr(hf_cfg, "grad_ckpt_modules", None),
         master_dtype=getattr(torch, precision.master),
         reduce_dtype=getattr(torch, precision.reduce),
         mixed_precision_mode=precision.mode,

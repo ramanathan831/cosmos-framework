@@ -1,0 +1,48 @@
+{
+  "purpose": "Development-only recipe selection, before new final scores",
+  "observed_basis": [
+    "Original substantive validation improves until about update15, then deteriorates; do not extend horizon merely for amortization.",
+    "Substantive training asks for numbered text while task evaluation requires a single letter.",
+    "Verified evaluation-annotation footer contaminated substantive development targets; train target bytes unchanged."
+  ],
+  "candidates": [
+    {
+      "name": "substantive_lr1e5",
+      "train": "train.jsonl",
+      "lr": 1e-05,
+      "steps": 20
+    },
+    {
+      "name": "mixed_lr1e5",
+      "train": "train-mixed.jsonl",
+      "lr": 1e-05,
+      "steps": 20
+    },
+    {
+      "name": "mixed_lr3e6",
+      "train": "train-mixed.jsonl",
+      "lr": 3e-06,
+      "steps": 20
+    }
+  ],
+  "shared_controls": {
+    "seed": 17,
+    "trainable_layers": "16..31",
+    "optimizer": "torch fused FP32 AdamW",
+    "effective_batch": 4,
+    "microbatch": 4,
+    "gradient_accumulation": 1,
+    "compute": "BF16",
+    "trainable_storage": "FP32",
+    "cosine_cycle_steps": 40,
+    "warmup_steps": 2,
+    "dev_task_rows": 32,
+    "dev_recording_groups": 16,
+    "task_evaluation_every": 5,
+    "substantive_validation_rows": 16,
+    "full_checkpoint_at": 20
+  },
+  "selection": "Prefer lowest development gold-answer NLL among candidates with task accuracy at least frozen; report all curves and substantive NLL. If no candidate meets this, do not claim adaptation; inspect supported failure hypotheses within remaining budget. Both optimizers use selected shared settings.",
+  "baseline_capacity_checks": "At most two four-update fused canaries selecting exact HF checkpoint layer modules, plus microbatch2/accumulation2 if useful. Compare with full checkpointing; retain failures and select fastest feasible baseline before final protocol.",
+  "no_final_scoring": true
+}

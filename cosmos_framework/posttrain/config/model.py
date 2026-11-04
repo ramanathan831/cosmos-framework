@@ -136,6 +136,9 @@ class HFModelConfig:
     trust_remote_code: bool = False
     auto_class: str = "AutoModelForCausalLM"
     grad_ckpt: bool = False  # drives HFModel.apply_gradient_checkpointing in setup()
+    # Empty keeps the HF default (all eligible modules). Exact names permit a
+    # measured partial-recomputation baseline on per-layer checkpointing models.
+    grad_ckpt_modules: list[str] = field(default_factory=list)
     parallelism: HFParallelismConfig = field(default_factory=HFParallelismConfig)
     # Gradient all-reduce dtype for FSDP2 mixed precision (params stay `dtype`); cosmos-rl
     # `fsdp_reduce_dtype`. fp32 reduction over bf16 params is the reference recipe.
