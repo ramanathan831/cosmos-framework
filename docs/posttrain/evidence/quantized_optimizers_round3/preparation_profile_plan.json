@@ -9,5 +9,12 @@
   "reserved_cpu_wall_seconds": 480,
   "previous_complete_parallel_canary_allocation_seconds": 322,
   "original_cpu_cap_seconds": 7200,
-  "scope": "Development profile only; independent raw replay and exact full reference equality remain enforced. Final cold cost stays frozen to completed job37976182 regardless of this result."
+  "scope": "Development profile only; independent raw replay and exact full reference equality remain enforced. Final cold cost stays frozen to completed job37976182 regardless of this result.",
+  "pre_execution_node_amendment": {
+    "recorded_utc": "2026-11-04T21:48:33.760284+00:00",
+    "job": "37978043",
+    "old_node": "cpu-00049",
+    "new_node": "cpu-00048",
+    "reason": "Original node now has only 9087MiB unallocated scheduler memory, insufficient for the unchanged16GiB request. Move this entirely unstarted development profile to the same architecture on cpu00048 with8CPUs/16GiB. It supplies phase attribution, not a matched timing or final cold comparison."
+  }
 }
