@@ -2,21 +2,151 @@
   "jobs": [
     {
       "job": "37970579",
-      "purpose": "fused dense recovery",
-      "gpu_reservation_seconds": 1800,
-      "node": "batch-block4-1051"
+      "state": "CANCELLED by 41852",
+      "elapsed_seconds": 0,
+      "effective_wall_limit_seconds": 1800,
+      "gpu_count_requested": 1,
+      "charged_or_reserved_gpu_seconds": 0,
+      "charged_or_reserved_cpu_wall_seconds": 0,
+      "node": "None assigned"
     },
     {
       "job": "37970581",
-      "purpose": "nonpaged8bit dense recovery",
-      "gpu_reservation_seconds": 1800,
+      "state": "FAILED",
+      "elapsed_seconds": 345,
+      "effective_wall_limit_seconds": 1800,
+      "gpu_count_requested": 1,
+      "charged_or_reserved_gpu_seconds": 345,
+      "charged_or_reserved_cpu_wall_seconds": 0,
       "node": "batch-block4-1034"
+    },
+    {
+      "job": "37970710",
+      "state": "COMPLETED",
+      "elapsed_seconds": 2261,
+      "effective_wall_limit_seconds": 2700,
+      "gpu_count_requested": 0,
+      "charged_or_reserved_gpu_seconds": 0,
+      "charged_or_reserved_cpu_wall_seconds": 2261,
+      "node": "cpu-00049"
+    },
+    {
+      "job": "37971062",
+      "state": "CANCELLED by 41852",
+      "elapsed_seconds": 0,
+      "effective_wall_limit_seconds": 1200,
+      "gpu_count_requested": 1,
+      "charged_or_reserved_gpu_seconds": 0,
+      "charged_or_reserved_cpu_wall_seconds": 0,
+      "node": "None assigned"
+    },
+    {
+      "job": "37971293",
+      "state": "CANCELLED by 41852",
+      "elapsed_seconds": 175,
+      "effective_wall_limit_seconds": 1800,
+      "gpu_count_requested": 1,
+      "charged_or_reserved_gpu_seconds": 175,
+      "charged_or_reserved_cpu_wall_seconds": 0,
+      "node": "batch-block1-2070"
+    },
+    {
+      "job": "37971294",
+      "state": "PENDING",
+      "elapsed_seconds": 0,
+      "effective_wall_limit_seconds": 1200,
+      "gpu_count_requested": 1,
+      "charged_or_reserved_gpu_seconds": 1200,
+      "charged_or_reserved_cpu_wall_seconds": 0,
+      "node": "None assigned"
+    },
+    {
+      "job": "37972117",
+      "state": "FAILED",
+      "elapsed_seconds": 166,
+      "effective_wall_limit_seconds": 1800,
+      "gpu_count_requested": 1,
+      "charged_or_reserved_gpu_seconds": 166,
+      "charged_or_reserved_cpu_wall_seconds": 0,
+      "node": "batch-block4-1034"
+    },
+    {
+      "job": "37972125",
+      "state": "FAILED",
+      "elapsed_seconds": 114,
+      "effective_wall_limit_seconds": 1800,
+      "gpu_count_requested": 1,
+      "charged_or_reserved_gpu_seconds": 114,
+      "charged_or_reserved_cpu_wall_seconds": 0,
+      "node": "batch-block1-2070"
+    },
+    {
+      "job": "37972189",
+      "state": "COMPLETED",
+      "elapsed_seconds": 866,
+      "effective_wall_limit_seconds": 1500,
+      "gpu_count_requested": 0,
+      "charged_or_reserved_gpu_seconds": 0,
+      "charged_or_reserved_cpu_wall_seconds": 866,
+      "node": "cpu-00049"
+    },
+    {
+      "job": "37972617",
+      "state": "COMPLETED",
+      "elapsed_seconds": 620,
+      "effective_wall_limit_seconds": 1800,
+      "gpu_count_requested": 1,
+      "charged_or_reserved_gpu_seconds": 620,
+      "charged_or_reserved_cpu_wall_seconds": 0,
+      "node": "batch-block4-1034"
+    },
+    {
+      "job": "37972618",
+      "state": "RUNNING",
+      "elapsed_seconds": 377,
+      "effective_wall_limit_seconds": 1800,
+      "gpu_count_requested": 1,
+      "charged_or_reserved_gpu_seconds": 1800,
+      "charged_or_reserved_cpu_wall_seconds": 0,
+      "node": "batch-block4-1034"
+    },
+    {
+      "job": "37972799",
+      "state": "PENDING",
+      "elapsed_seconds": 0,
+      "effective_wall_limit_seconds": 2400,
+      "gpu_count_requested": 1,
+      "charged_or_reserved_gpu_seconds": 2400,
+      "charged_or_reserved_cpu_wall_seconds": 0,
+      "node": "None assigned"
+    },
+    {
+      "job": "37973484",
+      "state": "PENDING",
+      "elapsed_seconds": 0,
+      "effective_wall_limit_seconds": 1500,
+      "gpu_count_requested": 1,
+      "charged_or_reserved_gpu_seconds": 1500,
+      "charged_or_reserved_cpu_wall_seconds": 0,
+      "node": "None assigned"
     }
   ],
-  "source_commit": "6fc40f6",
-  "source_archive_sha256": "9ea01b5ec7427dc3cd59089868692b5c070bcbbd8b5785ea369d6c9277d01130",
+  "as_of_utc": "2026-11-04T19:49:06.345223+00:00",
   "unsubmitted_final_reservation_seconds": 12600,
   "total_gpu_cap_seconds": 28800,
-  "admission_reserved_seconds": 16200,
-  "cpu_reserved_seconds": 2700
+  "cpu_wall_cap_seconds": 7200,
+  "total_with_reserved_final": 20980,
+  "cpu_actual_or_reserved_seconds": 3127,
+  "failures": {
+    "37970581": "New recovery diagnostic failed to resolve native worker cursor handle after update41; checkpoint40 completed. Fixed by2e44bfa.",
+    "37971293": "Canceled before reaching the same diagnostic failure.",
+    "37972117": "New selective-checkpoint argument rejected OmegaConf ListConfig empty default before training. Fixed by018438d with real meta-model and pinned runtime tests.",
+    "37972125": "Same ListConfig refusal before training."
+  },
+  "historical_campaign_costs_excluded_from_new_cap_gpu_seconds": {
+    "first": 26438,
+    "second": 8632
+  },
+  "local_test_gpu_seconds_charged": 60,
+  "local_test_note": "Root pytest setup overrides CUDA_VISIBLE_DEVICES even for CPU-labelled tests. Conservatively charge60GPU-seconds for49.88s of local pytest runtimes, including42 kernel tests passing in26.20s on A100 with Torch2.10.0+cu130/Transformers4.57.6/bnb0.49.2. Remote pinned regression remains required. Future CPU-only invocations exclude the root conftest."
 }
