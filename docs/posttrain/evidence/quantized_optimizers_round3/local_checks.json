@@ -14,5 +14,12 @@
   "native_control_tests": {
     "local": 18,
     "pinned_recovery_job": 14
+  },
+  "final_static_checks": {
+    "source_commit": "186fb6e",
+    "python_files_changed_since_1d250b4": 32,
+    "ruff_check": "pass",
+    "ruff_format_check": "pass",
+    "utc": "2026-11-04T23:39:57.345306+00:00"
   }
 }
