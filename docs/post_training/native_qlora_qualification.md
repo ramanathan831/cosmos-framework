@@ -177,6 +177,75 @@ All 100 candidate updates, the healthy final checkpoint with 504 FP32 optimizer-
 
 All **2,379 original v8 samples** were complete over 3,090.682 seconds within the 3,167-second allocation. Peaks remain sampled lower bounds, with allocation-cgroup and physical total-host peaks unknown. The allocation consumed **3,167 GPU-seconds and 50,672 allocated CPU-seconds**: 2,458.937 NF4 stage-seconds, 557.461 BF16, 72.107 shared, 33.265 unlabelled preflight and 45.230 outside stage timers. Historical control training is not charged again. An initial analysis-only screen-path parser failure was preserved and corrected without changing producer outputs or criteria. This negative result preserves the earlier residual failure, original +4.18% regression and 2% release margin; it supplies no quality, speed, longer-run or release promotion.
 
+## Repeated 20-update execution comparison
+
+The [completed six-run comparison](evidence/native_qlora_saved_dequant_wts20_f5e40cf.json) preserves memory savings and numerical parity, but does **not** meet the speed or quality release goals. Across three fixed pairs, NF4's summed update time was **5.84% longer** on average. Its training-through-portable-scoring diagnostic was **1.70% shorter**, and whole allocation time was **1.46% shorter**. These are arithmetic means of paired NF4/BF16 ratios, not confidence bounds or time to a held-out quality target.
+
+All runs used native `f5e40cf`, Qwen3-VL-8B, rank 32/alpha 64, seed 42, microbatch one with accumulation eight, full activation checkpointing, full logits and eager execution. Both arms received one preprocessing worker, the same 1 GiB cache and prefetch, and cached fresh-process scoring. Adapters, gradients and **fused AdamW moments remained FP32; no quantized optimizer was used**. NF4 enabled `checkpointed_dequant`; BF16 used the ordinary dense control. Each run requested one A100 80GB, 16 allocated CPUs/eight physical cores and 64 GiB host memory. The fixed order was BF→NF, NF→BF, BF→NF. Nodes, CPU NUMA placement, filesystem-cache warmth and system load were not isolated; the odd number of pairs only partially balances order.
+
+| Pair | Base | Sum of 20 updates (s) | Training through portable scoring (s) | Whole allocation (s) |
+| ---- | ---- | --------------------: | ------------------------------------: | -------------------: |
+| 1    | BF16 |               238.374 |                               703.508 |                  794 |
+| 1    | NF4  |               246.395 |                               695.404 |                  788 |
+| 2    | BF16 |               225.002 |                               681.375 |                  775 |
+| 2    | NF4  |               249.050 |                               667.260 |                  748 |
+| 3    | BF16 |               227.443 |                               683.922 |                  768 |
+| 3    | NF4  |               235.306 |                               671.146 |                  767 |
+
+The four-stage diagnostic sums native training, checkpoint inspection, portable publication and fresh-process scoring. Native training includes loading, initial/final validation and checkpoint publication. The evidence separately retains preflight, individual phase times, payload verification and time outside the stage timers. Payload verification took 14.34–20.59 seconds per run; it is included once in allocation cost. All 20 updates remain within the original 30-update warmup, so even updates 6–20 are not stationary throughput. This is a controlled short-workload comparison, not the independently optimized best recipe under a fixed memory budget or the complete 584-example development evaluation.
+
+Sampled owned-GPU peaks were **19.490 GiB for BF16 and 10.156 GiB for NF4**, a **9.334 GiB** difference in every pair. Sampled process-tree host-PSS peaks ranged from 5.818–6.046 GiB for BF16 and 5.613–6.788 GiB for NF4. All **3,248 recorded host samples** were complete, but startup and short intervals remain unsampled; total host/cgroup residency is unknown. The artifact retains allocator boundaries, device/process measurements, host RSS/PSS and sampling gaps separately. These observations do not qualify a smaller physical GPU.
+
+Every run matched its retained same-arm reference across all 20 numerical updates and the committed adapter-model, optimizer, RNG and data/control payload. The NF4 diagnostic permits only the previously validated execution-policy identity difference; production cross-mode resume remains rejected. Frozen base tensors are absent from the adapter checkpoint, so this comparison is not a new 20-update frozen-base tensor audit. Base/source identity checks and the earlier frozen-base integrity fixtures remain separate evidence. Each freshly loaded portable adapter also reproduced all 64 calibration score/input records exactly. Interruption/recovery qualification remains the earlier four-update lifecycle; no new 20-update interruption was performed.
+
+The scored calibration inputs actually contained **317–350 tokens and two supervised tokens per example**, with `pixel_values_videos` shaped `[960,1536]` and `video_grid_thw` shaped `[1,3]`. Grid values, actual frame count and resized pixel dimensions were not captured. Training metrics record 160 sequences/320 supervised tokens per run, and each initial/final validation records 64 sequences/128 supervised tokens. Per-training-row shapes were not newly recorded; the scoring range must not be assigned to all training rows. This adds no long-context/larger-video support claim.
+
+The study consumed **4,640 GPU-seconds and 74,240 GPU-coupled CPU-seconds**, with no failed allocation or rerun. It did not select a new recipe, improve held-out task quality, resolve the independent-recording data dependency or establish the 10% time-to-quality target. The original +4.18% NLL result, unchanged 2% NLL/one-percentage-point accuracy guards and later failed uncertainty bounds remain. Completing this diagnostic does not complete the product objective.
+
+To reproduce the training prefix, use the guide's [sealed runtime](native_qlora.md#prepare-a-sealed-runtime), [immutable model and grouped data](native_qlora.md#prepare-the-immutable-base-and-wts-data-on-cpu), and a fresh output. Keep **20 maximum updates, cycle 300 and warmup 30** together; the generic qualification `experiment` command rejects this prefix schedule, so use the native entrypoint:
+
+```bash
+BASE=/absolute/path/to/verified/Qwen3-VL-8B-Instruct
+TRAIN=/absolute/path/to/grouped/train.jsonl
+VALIDATION=/absolute/path/to/grouped/validation.jsonl
+export SFT_MODEL_PATH="$BASE"
+export PYTHONHASHSEED=42 OMP_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false
+export IMAGINAIRE_OUTPUT_ROOT=/absolute/path/to/new/nf4-trial
+
+torchrun --standalone --nproc-per-node=1 \
+  -m cosmos_framework.posttrain.entrypoints.sft \
+  --config cosmos_framework/posttrain/configs/sft_qwen3_vl_8b_qlora.py -- \
+  job.name=saved_dequant_nf4_seed42 job.wandb_mode=disabled \
+  "rl.data.path=\"$TRAIN\"" "rl.validation.data.path=\"$VALIDATION\"" \
+  rl.seed=42 rl.deterministic=true rl.resume=off \
+  rl.max_steps=20 rl.lr_schedule.cycle_steps=300 \
+  rl.optimizer.lr=0.0001 rl.optimizer.warmup_steps=30 \
+  rl.micro_batch_size=1 rl.grad_accum=8 rl.max_length=4096 \
+  rl.preprocessing_workers=1 rl.preprocessing_cache_bytes=1073741824 \
+  rl.preprocessing_prefetch=true \
+  model.model_config.adapter.rank=32 model.model_config.adapter.alpha=64 \
+  model.model_config.adapter.initialization_seed=42 \
+  model.model_config.activation_checkpointing=full \
+  model.model_config.adapter_compute_dtype=float32 \
+  model.model_config.sft_logits_mode=full \
+  model.model_config.compile_language_model=false \
+  model.model_config.quantized_linear_execution=checkpointed_dequant \
+  'model.model_config.quantized_base.excluded_language_layers=[]' \
+  rl.checkpoint_format=dcp rl.save_async=false rl.save_every=20 \
+  'rl.checkpoint_components=["model","optimizer","training_state"]' \
+  rl.emergency_checkpoint_components=full rl.keep_optim_last=0 rl.keep_model_last=0 \
+  rl.validation.enabled=true rl.validation.before_training=true \
+  rl.validation.every_steps=20 rl.validation.max_samples=64 \
+  rl.validation.batch_size=1 rl.validation.seed=42 \
+  rl.validation.save_checkpoint=true \
+  'rl.validation.checkpoint_components=["model","optimizer","training_state"]' \
+  rl.processor_kwargs.videos_kwargs.num_frames=8 \
+  rl.processor_kwargs.videos_kwargs.size.shortest_edge=32768 \
+  rl.processor_kwargs.videos_kwargs.size.longest_edge=524288
+```
+
+For the matched BF16 control, select `sft_qwen3_vl_8b_lora.py`, set `quantized_linear_execution=bnb`, omit the NF4-only exclusions override and use a distinct output/job name. Keep all other settings identical. The common recipes supply zero-B initialization, zero adapter dropout and fused AdamW. The command reproduces training and inline validation; inspection, portable publication, fresh-process scoring and checkpoint comparison remain separate qualification steps. Requested context/frame limits are not measured input sizes.
+
 ## Capability and precision boundary
 
 The candidate is dense `Qwen/Qwen3-VL-8B-Instruct`, revision `0c351dd01ed87e9c1b53cbc748cba10e6187ff3b`, using the native posttrain SFT entrypoint on one Linux x86-64 A100 80GB with one torchrun process. An installed quantizer, inference quantization, or an accepted configuration alone does not establish this training capability.
