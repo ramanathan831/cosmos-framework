@@ -192,6 +192,7 @@ def build_trainer(config: Any, rl: SFTConfig, data: Any, validation: Any | None,
         "dp_world": world_size_or_1(),
         "precision": asdict(resolve_precision(config)),
         **({"prepared_corpus": prepared.identity} if prepared is not None else {}),
+        **({"strict_determinism": True} if rl.strict_determinism else {}),
     }
     misc.set_random_seed(seed=rl.seed, by_rank=False)
     model = build_backbone(config)
@@ -283,7 +284,10 @@ def make_setup(config_path: str, opts: list[str]) -> Any:
         if rl.deterministic:
             from cosmos_framework.posttrain.utils.determinism import enable_determinism
 
-            enable_determinism()
+            if getattr(rl, "strict_determinism", False):
+                enable_determinism(strict=True)
+            else:
+                enable_determinism()
         checkpoint = CheckpointLifecycle.from_config(config, rl)
         coordinates = {"rank": rank_or_0(), "world_size": world_size_or_1()}
         data = run_rank_converged(lambda: build_sft_env(rl.data, rl.seed, **coordinates), "SFT training source")

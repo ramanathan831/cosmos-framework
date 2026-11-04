@@ -33,3 +33,32 @@ def test_state_digest_ignores_storage_pointers_but_preserves_integer_bits_dtype_
     assert digest(a) != digest(b)
     assert digest(a) != digest({"moment": a["moment"].to(torch.int16), "step": 7})
     assert digest(a) != digest({"moment": a["moment"], "step": 8})
+
+
+def test_strict_determinism_requests_kernels_and_keeps_legacy_default(monkeypatch):
+    from cosmos_framework.posttrain.config.sft import SFTConfig
+    from cosmos_framework.posttrain.utils.determinism import enable_determinism
+
+    with pytest.raises(ValueError, match="requires deterministic"):
+        SFTConfig(strict_determinism=True)
+    with pytest.raises(TypeError, match="must be bool"):
+        SFTConfig(strict_determinism="true")
+    assert SFTConfig(deterministic=True, strict_determinism=True).strict_determinism
+    old = (
+        torch.are_deterministic_algorithms_enabled(),
+        torch.is_deterministic_algorithms_warn_only_enabled(),
+        torch.backends.cudnn.deterministic,
+        torch.backends.cudnn.benchmark,
+    )
+    monkeypatch.setenv("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
+    monkeypatch.setenv("FLASH_ATTENTION_DETERMINISTIC", "1")
+    try:
+        enable_determinism()
+        assert torch.are_deterministic_algorithms_enabled() and torch.is_deterministic_algorithms_warn_only_enabled()
+        enable_determinism(strict=True)
+        assert (
+            torch.are_deterministic_algorithms_enabled() and not torch.is_deterministic_algorithms_warn_only_enabled()
+        )
+    finally:
+        torch.use_deterministic_algorithms(old[0], warn_only=old[1])
+        torch.backends.cudnn.deterministic, torch.backends.cudnn.benchmark = old[2:]

@@ -16,6 +16,7 @@ def make_config():
     config.rl.lr_schedule.f_min = 0.1
     config.rl.lr_schedule.cycle_steps = 40
     config.rl.deterministic = True
+    config.rl.strict_determinism = True
     config.rl.save_every = 40
     config.job.group = "optimizer_deployment"
     return config

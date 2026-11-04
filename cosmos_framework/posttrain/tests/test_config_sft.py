@@ -1010,8 +1010,10 @@ def test_deterministic_knob_reaches_setup(monkeypatch: pytest.MonkeyPatch) -> No
 
     from cosmos_framework.posttrain.entrypoints import sft as entry
 
-    calls: list[str] = []
-    monkeypatch.setattr("cosmos_framework.posttrain.utils.determinism.enable_determinism", lambda: calls.append("on"))
+    calls: list[dict] = []
+    monkeypatch.setattr(
+        "cosmos_framework.posttrain.utils.determinism.enable_determinism", lambda **kw: calls.append(kw)
+    )
     monkeypatch.setattr(entry, "validate_config", lambda config: config.rl)
     monkeypatch.setattr("cosmos_framework.utils.config.load_config", lambda path, opts: SimpleNamespace(rl=state["rl"]))
     monkeypatch.setattr(
@@ -1023,10 +1025,14 @@ def test_deterministic_knob_reaches_setup(monkeypatch: pytest.MonkeyPatch) -> No
     )
     monkeypatch.setattr(entry, "build_trainer", lambda *a, **k: "trainer")
     state: dict[str, Any] = {}
-    for deterministic in (False, True):
+    for deterministic, strict in ((False, False), (True, False), (True, True)):
         state["rl"] = SimpleNamespace(
-            deterministic=deterministic, seed=0, data=None, validation=SimpleNamespace(enabled=False)
+            deterministic=deterministic,
+            strict_determinism=strict,
+            seed=0,
+            data=None,
+            validation=SimpleNamespace(enabled=False),
         )
         bodies = entry.make_setup("recipe.py", [])()
         assert bodies["policy"] == "trainer"
-    assert calls == ["on"]
+    assert calls == [{}, {"strict": True}]

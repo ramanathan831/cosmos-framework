@@ -176,6 +176,8 @@ class SFTConfig(HFRunConfig):
     moe_lbl_method: str = "global"
     # An immutable corpus built with the same native CPU packer; empty keeps raw processing.
     prepared_corpus: str = ""
+    # Opt-in strict kernels for tested exact continuation; existing runs keep warning-only mode.
+    strict_determinism: bool = False
 
     def __post_init__(self) -> None:
         super().__post_init__()
@@ -187,6 +189,10 @@ class SFTConfig(HFRunConfig):
         self.lr_schedule.__post_init__()
         if not isinstance(self.prepared_corpus, str):
             raise TypeError("SFT prepared_corpus must be a path string")
+        if type(self.strict_determinism) is not bool:
+            raise TypeError("SFT strict_determinism must be bool")
+        if self.strict_determinism and not self.deterministic:
+            raise ValueError("SFT strict_determinism requires deterministic=True")
         if (
             isinstance(self.ce_exponent, bool)
             or not isinstance(self.ce_exponent, (int, float))
