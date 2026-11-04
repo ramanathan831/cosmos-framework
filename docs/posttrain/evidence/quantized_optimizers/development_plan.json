@@ -1,6 +1,6 @@
 {
   "status": "preregistered before multi-question training",
-  "purpose": "development only; final evaluation groups unavailable",
+  "purpose": "development comparisons on the existing QLoRA train/eval splits; user explicitly authorized reuse; prior inspection history retained",
   "seeds": [
     17,
     29,
@@ -37,7 +37,7 @@
   "video_frames": 8,
   "train_data_exposures_per_arm": 160,
   "arm_order": "rotated across paired seeds",
-  "quality_target": "0.95 times the initial validation NLL on the same development rows",
+  "quality_target": "For every paired seed, all optimizers use the SAME absolute target: 0.95 times the fused FP32 baseline initial validation NLL on the same rows.",
   "clock": "sum native e2e training-step and validation durations; setup reported separately",
   "equal_budget_quality": "last completed validation at or before the minimum final measured training-plus-validation time across all arms/seeds; no interpolation/extrapolation",
   "statistics": "95% paired t interval across seed means; no final release claim on reused development groups",
@@ -65,5 +65,7 @@
     "scope": "all capacity canary training forwards/updates; full-run shapes/counts reported without extrapolation"
   },
   "max_development_gpu_minutes": 180,
-  "allocation_amendment": "Before full comparisons, the one-hour normal job had no start estimate after extended priority queuing. Repack unused development GPU minutes into shorter serial slots; preserve all seeds, steps, rows, thresholds and failure accounting. Stop after five more allocations or 180 development GPU minutes, whichever occurs first."
+  "allocation_amendment": "Before full comparisons, the one-hour normal job had no start estimate after extended priority queuing. Repack unused development GPU minutes into shorter serial slots; preserve all seeds, steps, rows, thresholds and failure accounting. Stop after five more allocations or 180 development GPU minutes, whichever occurs first.",
+  "evaluation_authorization": "User: reuse the qlora train and eval. No numeric thresholds changed.",
+  "clock_correction": "Before any complete paired comparison: reserve 900 seconds instead of 600 before starting a fresh arm. The first allocation attempted a second arm with too little time; preserve it as failed if Slurm terminates it. Budget and numerical gates unchanged."
 }

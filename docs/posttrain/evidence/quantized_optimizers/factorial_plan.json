@@ -1,0 +1,56 @@
+{
+  "registered_before_runs": true,
+  "scope": "Disposable integration, no changes to QLoRA checkout; reused QLoRA recording groups",
+  "seeds": [
+    17,
+    29,
+    43
+  ],
+  "factorial": [
+    "BF16 base + fused FP32 AdamW",
+    "BF16 base + nonpaged eight-bit AdamW",
+    "NF4 base + fused FP32 AdamW",
+    "NF4 base + nonpaged eight-bit AdamW"
+  ],
+  "adapter": {
+    "rank": 16,
+    "alpha": 32,
+    "targets": "seven language projections, all 32 layers",
+    "storage": "float32",
+    "compute": "float32 adapters; BF16 frozen dense base/compute; default upstream NF4 arithmetic"
+  },
+  "steps": 16,
+  "effective_batch": 4,
+  "microbatch": 4,
+  "accumulation": 1,
+  "lr": 0.0001,
+  "warmup": 2,
+  "schedule": "cosine 16 updates, f_start .01, f_min .1",
+  "clip": 1,
+  "weight_decay": 0.01,
+  "video_frames": 8,
+  "video_total_pixels": [
+    262144,
+    1048576
+  ],
+  "validation_every": 8,
+  "validation_rows": 16,
+  "validation_batch": 4,
+  "training_rows_exposed": 64,
+  "quality": "multi-question teacher-forced token NLL plus prior restricted-choice WTS task score after actual checkpoint reload; prior inspection disclosed",
+  "task_score_rows": 16,
+  "statistics": "three paired seed means, 95% paired t; retain per-recording row identities for descriptive cluster uncertainty; no untouched-data claim",
+  "acceptance": {
+    "loss_ratio_upper95_max": 1.01,
+    "task_accuracy_degradation_max": 0.01,
+    "speed_ratio_lower95_min": 1.05,
+    "equal_budget_quality_improvement_lower95_min": 0,
+    "state_saving_min": 0.6
+  },
+  "canaries": "two updates and actual native save/load/scoring before full comparisons; failed attempts retained",
+  "max_gpu_minutes_including_canaries_and_failures": 150,
+  "stop": "abort dependent work on correctness failure; no unbounded retries, no threshold changes; incomplete comparisons remain incomplete",
+  "overall_gpu_hours_ceiling": 8,
+  "additional_mainline_capacity_followup_max_gpu_minutes": 90,
+  "mainline_followup": "If isolation has no speed win, canary last 16 ordinary FP32 decoder layers under the same memory budget. Baseline and nonpaged both try microbatches 4,2,1 at effective batch 4; disable no safeguards. Promote to three paired seeds only if canary profiling supports a plausible end-to-end win. Do not change quality thresholds."
+}

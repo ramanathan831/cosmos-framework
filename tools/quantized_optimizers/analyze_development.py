@@ -136,6 +136,19 @@ def main():
         if (seed, arm) in runs:
             raise ValueError("ambiguous repeated comparison arm")
         runs[seed, arm] = run
+    # A matched-quality comparison uses one absolute target per paired seed.
+    # Quantized arms cannot set an easier target from their own initial loss.
+    for (seed, arm), run in runs.items():
+        baseline = runs.get((seed, "adamw"))
+        if baseline is None:
+            run["target_nll"] = run["target_seconds"] = run["wall_target_seconds"] = None
+            continue
+        target = baseline["curve"][0]["nll"] * 0.95
+        crossed = next((point for point in run["curve"] if point["nll"] <= target), None)
+        run["target_nll"] = target
+        run["target_seconds"] = crossed["seconds"] if crossed else None
+        start = next((value for key, value in raw.items() if key.endswith(f"seed{seed}/{arm}/{arm}.start")), None)
+        run["wall_target_seconds"] = parse_time(crossed["time"]) - parse_time(start) if crossed and start else None
     complete = len(runs) == 9 and all(r["complete"] for r in runs.values())
     pairs = {}
     if complete:
