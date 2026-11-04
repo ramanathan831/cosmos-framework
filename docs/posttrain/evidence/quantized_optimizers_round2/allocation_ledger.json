@@ -127,17 +127,20 @@
       "gpus": 1,
       "wall_reservation_seconds": 2000,
       "dependency": null,
-      "state": "PENDING",
-      "source": "f54620d"
+      "state": "RUNNING",
+      "source": "f54620d",
+      "node": "batch-block1-0062"
     },
     {
       "job": "37952084",
       "phase": "seed17 remaining committed task score",
       "gpus": 1,
-      "wall_reservation_seconds": 250,
       "dependency": null,
-      "state": "PENDING",
-      "source": "f54620d"
+      "state": "COMPLETED",
+      "source": "f54620d",
+      "gpu_seconds": 222,
+      "wall_limit_seconds": 300,
+      "node": "batch-block1-0010"
     },
     {
       "job": "37952088",
@@ -159,7 +162,7 @@
     }
   ],
   "unsubmitted_seed_reservations": {},
-  "admitted_gpu_seconds_including_all_planned_seeds_and_local_reserve": 8786,
+  "admitted_gpu_seconds_including_all_planned_seeds_and_local_reserve": 8758,
   "admitted_cpu_wall_seconds": 1785,
   "rule": "Refresh terminal actuals and full nonterminal reservations before any new admission; retain all failures.",
   "reservation_adjustment": "Retain438GPU-seconds of launcher/control failures; reserve720 for strict canary,2600for each unchanged six-run seed group,42local. Total9000unchanged. Any returned allocation time stays available for dependent checks."

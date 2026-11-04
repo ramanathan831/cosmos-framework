@@ -91,3 +91,31 @@ and small FP32 exceptions. The optimizer implementation hash is unchanged.
 Native CPU job37951393 subsequently passed73tests with one optional skip, including
 the local missing-Torchvision case. CPU preparation plus this regression consumed
 1365wall-seconds of the unchanged1800-second CPU cap.
+
+The first two seed allocations completed all12training runs and all48repeat
+checkpoint-value comparisons. Their final-scoring startup exceeded the remaining
+work deadlines. Job37950871 ended FAILED after2528GPU-seconds, having already
+committed both16-row task summaries; job37950908 ended FAILED after2521seconds,
+having committed the frozen and fused summaries. The failed launcher receipts are
+retained. Completed score commits are checked for fixed checkpoint, seed and row
+coverage, never rerun or selected by outcome. The remaining seed17eight-bit score
+completed in job37952084 (222GPU-seconds).
+
+Sequential reads of immutable pretrained/checkpoint files precede the native
+scoring loaders after this repair, with hashes and time receipts. No scoring math,
+model parameters, selected rows or acceptance thresholds change. The third seed's
+six native training launches remain identical: the entire native package Git tree,
+training-launch AST and scoring-math AST hashes match the original v7source.
+Only its post-training CPU checkpoint hashing and GPU final scoring move into
+separate dependent allocations. Source/archive mappings are machine-verified in
+source_compatibility.json. This avoids charging additional GPU time for CPU-only
+verification; it does not shorten a measured training run or remove checkpoint
+writes from its completion clock.
+
+Unstarted fixed-node jobs were rerouted within the already-prespecified A100set
+when the original node became fully occupied. Seed43runs on block1-0062; the
+separate seed17score ran on block1-0010. All paired timing repeats for seed43stay
+on one allocation, with no outcome-based replacement. The extra50-second score
+wall allowance covered observed container setup, leaving its200-second work
+bound unchanged; it completed before either bound. All costs remain within the
+original9000GPU-second cap.
