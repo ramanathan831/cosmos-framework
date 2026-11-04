@@ -144,7 +144,11 @@ def compare_next_metrics(reference: Path, candidate: Path, step: int) -> dict[st
         "optimizer_step": step,
         "numerical_metrics": left,
         "excluded_observational_metrics": ["timer/*", "train/preprocessing_*", "train/grad_clip_fraction"],
-        "scope": "Exact native numerical update metrics; cold-cache counters, timings and reporter-history clip fractions are observational. Checkpoint comparison separately verifies all optimizer/control/RNG/data state.",
+        "scope": (
+            "Exact native numerical update metrics only; cold-cache counters, timings and reporter-history clip "
+            "fractions are observational. Model, optimizer, control, RNG and data payload equality requires a "
+            "separately executed checkpoint comparison and is not established by this metrics result."
+        ),
     }
 
 
