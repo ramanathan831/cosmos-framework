@@ -79,5 +79,6 @@
     "previous_mainline_runs": "FAILED recording separation; retained, not qualification",
     "repair": "recording_split_repair.json; 173 train/56 validation clips, no connected-recording overlap; three normal clips outside prior selection also excluded"
   },
-  "budget_reallocation": "60 GPU minutes transferred from the 90-minute capacity follow-up (now30) to rerun the SAME nine mainline comparisons after a provenance correctness failure. Overall8 GPU-hour ceiling, factorial150-minute cap, all numeric quality/speed gates, seeds, steps and fixed evaluation bytes unchanged."
+  "budget_reallocation": "60 GPU minutes transferred from the 90-minute capacity follow-up (now30) to rerun the SAME nine mainline comparisons after a provenance correctness failure. Overall8 GPU-hour ceiling, factorial150-minute cap, all numeric quality/speed gates, seeds, steps and fixed evaluation bytes unchanged.",
+  "node_scheduling_amendment": "execution_grouping_amendment.json; move only whole unstarted paired seed groups, retain all existing trials and numeric gates."
 }

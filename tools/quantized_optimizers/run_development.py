@@ -17,6 +17,23 @@ root.mkdir(parents=True, exist_ok=True)
 plan = [(17, a) for a in ("adamw", "adamw_bnb_8bit", "paged_adamw_8bit")]
 plan += [(29, a) for a in ("adamw_bnb_8bit", "paged_adamw_8bit", "adamw")]
 plan += [(43, a) for a in ("paged_adamw_8bit", "adamw", "adamw_bnb_8bit")]
+full_plan = plan.copy()
+seed_only = int(os.environ["TRIAL_SEED"]) if os.environ.get("TRIAL_SEED") else None
+if seed_only is not None and seed_only not in (17, 29, 43):
+    raise ValueError("TRIAL_SEED must be one of the prespecified paired seeds")
+plan = [(seed, arm) for seed, arm in plan if seed_only is None or seed == seed_only]
+progress = root / ("pending.json" if seed_only is None else f"pending-seed{seed_only}.json")
+(root / f"execution-{os.environ.get('SLURM_JOB_ID', 'local')}-{seed_only or 'all'}.json").write_text(
+    json.dumps(
+        {
+            "seed_only": seed_only,
+            "node": os.environ.get("SLURM_JOB_NODELIST"),
+            "cpu_affinity": sorted(os.sched_getaffinity(0)),
+            "source_archive": os.environ.get("SOURCE_ARCHIVE"),
+        }
+    )
+    + "\n"
+)
 started = time.monotonic()
 if not (root / "runtime_optimizer_tests.passed").exists():
     env = dict(os.environ, PYTHONPATH=os.environ["SOURCE"], PYTHONDONTWRITEBYTECODE="1", OMP_NUM_THREADS="8")
@@ -44,7 +61,7 @@ for seed, arm in plan:
     if (output / "complete.json").exists():
         continue
     if int(os.environ.get("WORK_SECONDS", "3500")) - (time.monotonic() - started) < 900:
-        (root / "pending.json").write_text(json.dumps({"next_seed": seed, "next_arm": arm}) + "\n")
+        progress.write_text(json.dumps({"next_seed": seed, "next_arm": arm}) + "\n")
         break
     if output.exists():
         raise RuntimeError(f"prior incomplete attempt requires inspection, refusing overwrite: {output}")
@@ -65,4 +82,13 @@ for seed, arm in plan:
         raise RuntimeError(f"incomplete/nonfinite comparison arm: {output}")
     (output / "complete.json").write_text(json.dumps({"seed": seed, "arm": arm, "metrics": str(metrics[0])}) + "\n")
 else:
-    (root / "pending.json").write_text(json.dumps({"complete": True}) + "\n")
+    progress.write_text(
+        json.dumps(
+            {
+                "scope_complete": True,
+                "seed_only": seed_only,
+                "complete": all((root / f"seed{seed}" / arm / "complete.json").exists() for seed, arm in full_plan),
+            }
+        )
+        + "\n"
+    )

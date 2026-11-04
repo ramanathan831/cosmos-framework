@@ -126,5 +126,6 @@
     "memory_model": "Full FP32 weights plus gradients occupy roughly8N bytes; adding nonpaged eight-bit moments costs another2N plus metadata. For the actual approximately8.7B model this can exceed80GB, whereas managed moments may migrate. Actual N/allocation counts must confirm, and paged can still fail.",
     "gates": "Preserve all OOM attempts; require two finite updates and actual media/target shape gates for completion. No task-quality or speed claim from this canary. No thresholds changed.",
     "budget": "Within existing30capacity minutes and8total GPU hours; no additional allocation reservation."
-  }
+  },
+  "node_scheduling_amendment": "execution_grouping_amendment.json; move only whole unstarted paired seed groups, retain all existing trials and numeric gates."
 }
