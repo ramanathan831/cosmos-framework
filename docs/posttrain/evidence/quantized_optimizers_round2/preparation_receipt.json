@@ -1,0 +1,13 @@
+{
+  "preparation_seconds": 408.4773091740208,
+  "total_seconds_with_independent_exact_replay": 812.126164885005,
+  "exact_raw_prepared_rows": 245,
+  "corpus_sha256": "196d9e89bfe742ed4d31c6b112197ec68048bb2e16869832c34577d0c1ad4718",
+  "payload_bytes": 2894076181,
+  "cuda_initialized": false,
+  "source_paths": [
+    "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-quantized-optimizers-20261103/recording-clean-v4/train.jsonl",
+    "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-quantized-optimizers-20261103/recording-clean-v4/validation.jsonl",
+    "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-quantized-optimizers-deployment-20261104/prepare-v2/final-selection/validation.jsonl"
+  ]
+}

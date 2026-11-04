@@ -1,15 +1,21 @@
 {
   "upstream_main": "d04e5067dd2f353fa8fab65fd99fcd86819e537d",
-  "training_source": "0823efb314b040d9afc49415233d5f9ba0eba661",
-  "canary_source": "46cd36b56e64df85526ad2fbe54b25c2bac8b8a2",
+  "training_source": "d35aa73922d89357996dfd72129731cd8b9a5879",
+  "canary_source": "d35aa73922d89357996dfd72129731cd8b9a5879",
   "cpu_preparation_source": "b3b4f888763ed558389d0a212aa1fc821ae95321",
   "files": {
     "cosmos_framework/utils/quantized_optimizer.py": "6f9889384ae2f30d2f6e061af826686edb1aabc8884d7dbee61593774b2fc930",
     "cosmos_framework/posttrain/data/packer/prepared_sft.py": "0e70471e4e6979d34b02f51a065584c08d03faf3a87fcb69c2b73d6087fbb6a4",
-    "cosmos_framework/posttrain/entrypoints/sft.py": "e224a74b32a7e2b14664446d8a57adf025b16d37ff43730ea027bd34ffe96083",
-    "cosmos_framework/posttrain/configs/sft_optimizer_deployment.py": "44484fe70011ca325c2f8b94894165a0284040af61030cba6257cab51eb1f43b"
+    "cosmos_framework/posttrain/entrypoints/sft.py": "23547c1ebb701ce059f34c73943f906bc973ae764d0b54792ef306f6638fbd9f",
+    "cosmos_framework/posttrain/configs/sft_optimizer_deployment.py": "db88d36acc53452a0c59f645828f52d783f3b6dcf47efa2f81494f623da91766",
+    "cosmos_framework/posttrain/config/sft.py": "f99c4921cf3e68c86dcd65b96e5e1a10151bd94bb0c56fff7993a30cadeaece7",
+    "cosmos_framework/posttrain/utils/determinism.py": "0ef19b9fe2f9a5581e83b807afd5be6642de7413aafb37466a48665f65b25d94"
   },
   "branch": "feat/quantized-optimizers",
   "qlora_integration_used_in_round2": false,
-  "publication_authorized": false
+  "publication_authorized": false,
+  "superseded_unrun_training_source": "0823efb314b040d9afc49415233d5f9ba0eba661",
+  "failed_launcher_canary_source": "46cd36b56e64df85526ad2fbe54b25c2bac8b8a2",
+  "second_failed_launcher_source": "630a9e9f6de8733e41ab7f4a905e68cc769ae03d",
+  "warning_only_canary_source": "873aac71baceccd38a48317d36b27e86f173d433"
 }

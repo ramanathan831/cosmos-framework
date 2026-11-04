@@ -30,6 +30,7 @@ def main():
         raise ValueError("expected one verified preparation receipt")
     preparation = preparations[0]["total_seconds_with_independent_exact_replay"]
     runs = {}
+    model_files = None
     for seed in SEEDS:
         restart_parity = json.loads(raw[f"seed{seed}/restart_parity.json"])
         if not restart_parity or not all(restart_parity.values()):
@@ -41,6 +42,11 @@ def main():
                 complete = json.loads(raw[prefix + "complete.json"])
                 attempt = json.loads(raw[prefix + "attempt.json"])
                 identities = json.loads(raw[prefix + "checkpoint_digest.json"])
+                files = json.loads(raw[prefix + "model-file-reads.json"])["files"]
+                if model_files is None:
+                    model_files = files
+                if model_files != files:
+                    raise ValueError("pretrained weight bytes differ across comparison arms")
                 paths = [k for k in raw if k.startswith(prefix) and k.endswith("metrics.jsonl")]
                 if len(paths) != 1:
                     raise ValueError("missing/ambiguous metrics")
@@ -239,6 +245,7 @@ def main():
         "paired_seeds": 3,
         "restarts_per_seed": 3,
         "preparation_cpu_seconds": preparation,
+        "model_files": model_files,
         "throughput_ratio": throughput,
         "launch_completion_ratio": completion,
         "clocks": paired,

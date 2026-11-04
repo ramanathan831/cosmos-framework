@@ -293,7 +293,7 @@ raw/prepared equality canary passes all six state comparisons.
 ```sh
 export SOURCE=/shared/new-optimizer-deployment-campaign
 export SOURCE_ARCHIVE="$SOURCE/source.tgz"
-git archive --format=tar.gz --output="$SOURCE_ARCHIVE" 0823efb
+git archive --format=tar.gz --output="$SOURCE_ARCHIVE" d35aa73
 export ASSETS=/shared/read-only-qlora-assets
 export PRIOR=/shared/read-only-first-optimizer-campaign
 export CONTAINER_IMAGE=/shared/pinned-runtime.sqsh
@@ -309,9 +309,9 @@ sbatch --time=12 --output="$RESULTS/slurm-%j.log" tools/quantized_optimizers/dep
 
 # Only after canary complete.json and parity.json pass; repeat for seeds29,43,
 # at most two GPUs on distinct nodes. All six runs for one seed stay in this job.
-export RESULTS="$SOURCE/seed17" MODE=trials WORK_SECONDS=2600 TRIAL_SEED=17
+export RESULTS="$SOURCE/seed17" MODE=trials WORK_SECONDS=2480 TRIAL_SEED=17
 mkdir -p "$RESULTS"
-sbatch --time=45 --output="$RESULTS/slurm-%j.log" tools/quantized_optimizers/deployment.sbatch
+sbatch --time=43:20 --output="$RESULTS/slurm-%j.log" tools/quantized_optimizers/deployment.sbatch
 ```
 
 Restrict each GPU submission to the site's verified A100-SXM4-80GB nodes using
@@ -327,6 +327,7 @@ The direct training command used by each eight-bit run is:
 export SFT_MODEL_PATH="$ASSETS/models/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b"
 export SFT_DATA_ROOT="$PRIOR/recording-clean-v4"
 export SFT_PREPARED_CORPUS="$PREPARATION/prepared-corpus"
+export CUBLAS_WORKSPACE_CONFIG=:4096:8 PYTHONHASHSEED=42
 export IMAGINAIRE_OUTPUT_ROOT=/shared/new-native-output
 
 torchrun --standalone --nproc-per-node=1 -m cosmos_framework.posttrain.entrypoints.sft \

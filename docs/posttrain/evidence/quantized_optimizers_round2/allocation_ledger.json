@@ -1,16 +1,87 @@
 {
   "gpu_cap_seconds": 9000,
   "cpu_preparation_cap_seconds": 1800,
-  "local_gpu_reserved_seconds": 180,
+  "local_gpu_reserved_seconds": 42,
   "local_gpu_used_seconds": 0,
   "records": [
-    {"job": null, "phase": "CPU preparation", "state": "SUBMISSION_REJECTED", "reason": "GPU partition requires GPU specification", "gpu_seconds": 0, "cpu_wall_seconds": 0},
-    {"job": "37949431", "phase": "CPU preparation v1", "state": "FAILED", "cpu_wall_seconds": 181, "gpus": 0, "failure": "coarse-timestamp media mutation escaped stat-only check"},
-    {"job": "37949524", "phase": "CPU preparation v2", "state": "RUNNING", "wall_reservation_seconds": 1560, "gpus": 0, "source": "b3b4f88"},
-    {"job": "37949598", "phase": "native prepared-input canary v3", "state": "PENDING", "wall_reservation_seconds": 720, "gpus": 1, "source": "46cd36b", "dependency": "afterok:37949524"}
+    {
+      "job": null,
+      "phase": "CPU preparation",
+      "state": "SUBMISSION_REJECTED",
+      "reason": "GPU partition requires GPU specification",
+      "gpu_seconds": 0,
+      "cpu_wall_seconds": 0
+    },
+    {
+      "job": "37949431",
+      "phase": "CPU preparation v1",
+      "state": "FAILED",
+      "cpu_wall_seconds": 181,
+      "gpus": 0,
+      "failure": "coarse-timestamp media mutation escaped stat-only check"
+    },
+    {
+      "job": "37949524",
+      "phase": "CPU preparation v2",
+      "state": "COMPLETED",
+      "gpus": 0,
+      "source": "b3b4f88",
+      "cpu_wall_seconds": 1000
+    },
+    {
+      "job": "37949598",
+      "phase": "native prepared-input canary v3",
+      "state": "FAILED",
+      "gpus": 1,
+      "source": "46cd36b",
+      "dependency": "afterok:37949524",
+      "gpu_seconds": 5,
+      "wall_seconds": 5,
+      "failure": "batch-shell UUID guard before container or training"
+    },
+    {
+      "job": null,
+      "phase": "native canary v5 retry admission",
+      "state": "SUBMISSION_REJECTED",
+      "reason": "stale excluded node no longer registered",
+      "gpu_seconds": 0
+    },
+    {
+      "job": "37950132",
+      "phase": "native prepared-input canary v5",
+      "state": "FAILED",
+      "gpus": 1,
+      "source": "630a9e9f6de8733e41ab7f4a905e68cc769ae03d",
+      "gpu_seconds": 102,
+      "wall_seconds": 102,
+      "failure": "deterministic launch requires CUBLAS_WORKSPACE_CONFIG before CUDA initialization"
+    },
+    {
+      "job": "37950356",
+      "phase": "native prepared-input canary v6",
+      "state": "CANCELLED",
+      "gpus": 1,
+      "source": "873aac71baceccd38a48317d36b27e86f173d433",
+      "gpu_seconds": 331,
+      "wall_seconds": 331,
+      "failure": "stopped after four raw updates: native deterministic flag was warning-only, contrary to strict parity requirement"
+    },
+    {
+      "job": "37950698",
+      "phase": "strict native prepared-input canary v7",
+      "state": "PENDING",
+      "wall_reservation_seconds": 720,
+      "gpus": 1,
+      "source": "d35aa73"
+    }
   ],
-  "unsubmitted_seed_reservations": {"17": 2700, "29": 2700, "43": 2700},
+  "unsubmitted_seed_reservations": {
+    "17": 2600,
+    "29": 2600,
+    "43": 2600
+  },
   "admitted_gpu_seconds_including_all_planned_seeds_and_local_reserve": 9000,
-  "admitted_cpu_wall_seconds": 1741,
-  "rule": "Refresh terminal actuals and full nonterminal reservations before any new admission; retain all failures."
+  "admitted_cpu_wall_seconds": 1181,
+  "rule": "Refresh terminal actuals and full nonterminal reservations before any new admission; retain all failures.",
+  "reservation_adjustment": "Retain438GPU-seconds of launcher/control failures; reserve720 for strict canary,2600for each unchanged six-run seed group,42local. Total9000unchanged. Any returned allocation time stays available for dependent checks."
 }

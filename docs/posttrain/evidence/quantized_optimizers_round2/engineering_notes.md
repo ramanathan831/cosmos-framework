@@ -48,3 +48,37 @@ historically reused QLoRA pool, excludes this campaign's train/development group
 and the previous final groups, and was fixed before model scoring. No untouched-pool
 claim is made. Score fixed restart zero only. All three restarts must agree in
 model, moments, RNG, scheduler and data-cursor values before final scoring.
+
+Before any round-two training outcomes, the launcher was corrected to resolve the
+single CUDA-visible GPU inside an exiting preflight child and bind NVML to that
+UUID. The batch-shell GPU variable did not provide a usable UUID selection.
+The first guard failure used five GPU seconds. A second attempt reached native
+setup and correctly refused an unset CUBLAS_WORKSPACE_CONFIG after CUDA init;
+it used 102 GPU seconds. The launcher now exports :4096:8 and PYTHONHASHSEED=42.
+These failed attempts remain charged. The unused local-check reservation covers
+107 seconds of launcher failures without changing the 9000-second campaign cap.
+
+Inspection of the first campaign's already-sealed startup logs showed native
+weight loading taking 263,125,8 seconds in seed17's three successive arms. To
+avoid an accidentally cold first-arm control, every new arm performs identical
+sequential reads/hashes of all pinned model safetensors before model construction.
+This common step stays inside its launch clock, and its separate timing/content
+receipt is retained. It changes no model bytes or loader arithmetic. Full timing
+trials have not started, and no new quality outcomes informed this control.
+
+The v6 canary completed four raw fused updates but emitted PyTorch's explicit
+nondeterministic-attention warning. Mainline enable_determinism had only a
+warning-only mode; the strict API existed on the disposable integration branch,
+not mainline. The canary was stopped after331GPU-seconds. Mainline now exposes
+an optional strict helper and typed SFT strict_determinism flag, retaining the
+old warning-only default. The deployment recipe enables strict mode, and its
+checkpoint objective identity records it. This is a small independent mainline
+API change, not a QLoRA dependency or a merge of that branch. Local control tests
+pass58with3environment skips and1missing-torchvision case deselected (the latter
+passed in the earlier pinned CPU job). Strict canary and full trials remain gated.
+
+The GPU cap remains9000seconds. Reservation reallocation now covers438seconds
+of retained failures,720seconds for the strict canary,2600seconds for each of the
+three unchanged six-run seed groups, and42unused local-check seconds. Trial
+steps, seeds, paired restarts, final scoring and all acceptance thresholds are
+unchanged. Returned job time remains available for dependent verification.
