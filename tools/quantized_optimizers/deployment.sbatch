@@ -23,6 +23,7 @@ srun --kill-on-bad-exit=1 --container-image="$CONTAINER_IMAGE" \
  tar -xzf "$SOURCE_ARCHIVE" -C "$SOURCE"
  export PATH="$ASSETS/environment/bin:$PATH" PYTHONPATH="$SOURCE" PYTHONDONTWRITEBYTECODE=1
  export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 WANDB_MODE=disabled OMP_NUM_THREADS=8
+ export CUBLAS_WORKSPACE_CONFIG=:4096:8 PYTHONHASHSEED=42
  export SFT_MODEL_PATH="$ASSETS/models/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b"
  export SFT_DATA_ROOT="$PRIOR/recording-clean-v4"
  cd "$SOURCE"

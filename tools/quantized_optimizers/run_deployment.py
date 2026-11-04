@@ -31,6 +31,23 @@ def bounded_command(command, log_path, deadline, env=None):
         raise RuntimeError(f"dependent verification failed: {log_path}")
 
 
+def read_model_files(output):
+    """Same bounded sequential reads before each arm; cost stays in its launch clock."""
+    started = time.monotonic()
+    records = {}
+    paths = sorted(Path(os.environ["SFT_MODEL_PATH"]).glob("*.safetensors"))
+    if not paths:
+        raise ValueError("missing pinned model files")
+    for path in paths:
+        digest, size = hashlib.sha256(), 0
+        with path.open("rb") as stream:
+            for block in iter(lambda: stream.read(8 * 1024 * 1024), b""):
+                digest.update(block)
+                size += len(block)
+        records[path.name] = {"sha256": digest.hexdigest(), "bytes": size}
+    write(output / "model-file-reads.json", {"seconds": time.monotonic() - started, "files": records})
+
+
 def monitor(handle, process, output, stop):
     """External samples; no torch/CUDA context, hooks or model synchronization."""
     with output.open("x") as stream:
@@ -104,6 +121,7 @@ def launch(root, name, arm, seed, *, prepared, canary, handle, deadline):
     write(output / "command.json", {"argv": command, "prepared_corpus": prepared})
     start = time.monotonic()
     start_ns = time.time_ns()
+    read_model_files(output)
     with (output / "train.log").open("x") as log:
         process = subprocess.Popen(command, env=env, stdout=log, stderr=subprocess.STDOUT)
         stop = threading.Event()
