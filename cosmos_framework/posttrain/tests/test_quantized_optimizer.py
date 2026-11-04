@@ -14,6 +14,7 @@ from cosmos_framework.posttrain.config.rl import OptimizerConfig
 
 
 def test_config():
+    assert OptimizerConfig("adamw").name == "adamw"
     assert asdict(OptimizerConfig(name="adamw_bnb_8bit"))["name"] == "adamw_bnb_8bit"
     with pytest.raises(ValueError):
         OptimizerConfig(name="adamw_8bit")

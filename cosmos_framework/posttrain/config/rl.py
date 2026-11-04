@@ -235,9 +235,6 @@ class OptimizerConfig:
     `HFRunConfig`) the parameter is already fp32 and plain `adamw` gets fp32 moments for free —
     matching cosmos-rl exactly and dropping the apex dependency."""
 
-    bnb_min_8bit_size: int = 4096
-    bnb_fp32_state_names: list[str] = field(default_factory=list)
-
     name: str = "adamw"
     # torch kernel selection for `name="adamw"`, mirroring cosmos-rl's `optm_impl`.
     # "" (DEFAULT) ⇒ pass NEITHER `fused` nor `foreach`, letting torch choose — byte-identical to
@@ -294,6 +291,10 @@ class OptimizerConfig:
     muon_momentum: float = 0.95
     muon_ns_steps: int = 5
     muon_rms_match: float = 0.2
+
+    # Append backend fields to preserve the existing dataclass positional API.
+    bnb_min_8bit_size: int = 4096
+    bnb_fp32_state_names: list[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         if type(self.bnb_min_8bit_size) is not int or self.bnb_min_8bit_size < 1:
