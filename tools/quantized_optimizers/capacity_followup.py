@@ -19,8 +19,14 @@ limit = int(os.environ.get("WORK_SECONDS", "1680"))
 results = []
 settings = [(checkpointing, arm, False) for checkpointing in (False, True) for arm in ("adamw", "adamw_bnb_8bit")]
 settings += [(True, arm, True) for arm in ("adamw_bnb_8bit", "paged_adamw_8bit")]
-if os.environ.get("CAPACITY_PRESSURE_ONLY", "0") == "1":
+pressure_only = os.environ.get("CAPACITY_PRESSURE_ONLY", "0") == "1"
+if pressure_only:
     settings = [setting for setting in settings if setting[2]]
+pressure_arm = os.environ.get("CAPACITY_PRESSURE_ARM")
+if pressure_arm:
+    if not pressure_only or pressure_arm not in ("adamw_bnb_8bit", "paged_adamw_8bit"):
+        raise ValueError("CAPACITY_PRESSURE_ARM requires pressure-only mode and a canonical eight-bit optimizer")
+    settings = [setting for setting in settings if setting[1] == pressure_arm]
 for checkpointing, arm, pressure in settings:
     for micro in (1,) if pressure else (4, 2, 1):
         # Measured full-model pressure attempts take under three minutes each;
@@ -106,4 +112,14 @@ for checkpointing, arm, pressure in settings:
             raise RuntimeError(f"non-OOM failure stops dependent canaries: {folder}")
         if status == "pass":
             break
-(root / "complete.json").write_text(json.dumps({"complete": True, "seconds": time.monotonic() - started}) + "\n")
+(root / "complete.json").write_text(
+    json.dumps(
+        {
+            "complete": True,
+            "pressure_only": pressure_only,
+            "pressure_arm": pressure_arm,
+            "seconds": time.monotonic() - started,
+        }
+    )
+    + "\n"
+)
