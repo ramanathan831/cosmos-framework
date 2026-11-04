@@ -1,0 +1,194 @@
+{
+  "purpose": "development diagnosis",
+  "prepared_verified_rows": 623,
+  "cases": [
+    {
+      "name": "fused_full",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_deployment.py",
+        "--",
+        "job.name=fused_full",
+        "rl.seed=17",
+        "rl.max_steps=4",
+        "rl.save_every=0",
+        "rl.keep_optim_last=0",
+        "rl.optimizer.name=adamw",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096",
+        "model_hf.grad_ckpt=true",
+        "rl.optimizer.lr=1e-05",
+        "rl.ce_exponent=1.0",
+        "rl.data.path={data}/train-mixed.jsonl",
+        "rl.validation.enabled=false",
+        "rl.micro_batch_size=4",
+        "rl.grad_accum=1",
+        "model_hf.grad_ckpt_modules=[]"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "allow_failure": true
+    },
+    {
+      "name": "fused_checkpoint12",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_deployment.py",
+        "--",
+        "job.name=fused_checkpoint12",
+        "rl.seed=17",
+        "rl.max_steps=4",
+        "rl.save_every=0",
+        "rl.keep_optim_last=0",
+        "rl.optimizer.name=adamw",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096",
+        "model_hf.grad_ckpt=true",
+        "rl.optimizer.lr=1e-05",
+        "rl.ce_exponent=1.0",
+        "rl.data.path={data}/train-mixed.jsonl",
+        "rl.validation.enabled=false",
+        "rl.micro_batch_size=4",
+        "rl.grad_accum=1",
+        "model_hf.grad_ckpt_modules=[\"model.language_model.layers.16\",\"model.language_model.layers.17\",\"model.language_model.layers.18\",\"model.language_model.layers.19\",\"model.language_model.layers.20\",\"model.language_model.layers.21\",\"model.language_model.layers.22\",\"model.language_model.layers.23\",\"model.language_model.layers.24\",\"model.language_model.layers.25\",\"model.language_model.layers.26\",\"model.language_model.layers.27\"]"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "allow_failure": true
+    },
+    {
+      "name": "fused_micro2",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_deployment.py",
+        "--",
+        "job.name=fused_micro2",
+        "rl.seed=17",
+        "rl.max_steps=4",
+        "rl.save_every=0",
+        "rl.keep_optim_last=0",
+        "rl.optimizer.name=adamw",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096",
+        "model_hf.grad_ckpt=false",
+        "rl.optimizer.lr=1e-05",
+        "rl.ce_exponent=1.0",
+        "rl.data.path={data}/train-mixed.jsonl",
+        "rl.validation.enabled=false",
+        "rl.micro_batch_size=2",
+        "rl.grad_accum=2",
+        "model_hf.grad_ckpt_modules=[]"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "allow_failure": true
+    },
+    {
+      "name": "budget_adamw",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.budgeted_sft",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_deployment.py",
+        "--",
+        "job.name=budget_adamw",
+        "rl.seed=17",
+        "rl.max_steps=40",
+        "rl.save_every=40",
+        "rl.keep_optim_last=0",
+        "rl.optimizer.name=adamw",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096",
+        "model_hf.grad_ckpt=true",
+        "rl.optimizer.lr=1e-05",
+        "rl.ce_exponent=1.0",
+        "rl.data.path={data}/train-mixed.jsonl",
+        "rl.emergency_checkpoint_components=full"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "budget": {
+        "kind": "training",
+        "seconds": 60,
+        "reserve_seconds": 10
+      },
+      "score_checkpoint": {
+        "data": "{data}/dev-task.jsonl",
+        "selection": "{data}/dev-task-manifest.json",
+        "seed": 17
+      }
+    },
+    {
+      "name": "budget_adamw_bnb_8bit",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.budgeted_sft",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_deployment.py",
+        "--",
+        "job.name=budget_adamw_bnb_8bit",
+        "rl.seed=17",
+        "rl.max_steps=40",
+        "rl.save_every=40",
+        "rl.keep_optim_last=0",
+        "rl.optimizer.name=adamw_bnb_8bit",
+        "rl.optimizer.impl=",
+        "rl.optimizer.bnb_min_8bit_size=16384",
+        "model_hf.grad_ckpt=false",
+        "rl.optimizer.lr=1e-05",
+        "rl.ce_exponent=1.0",
+        "rl.data.path={data}/train-mixed.jsonl",
+        "rl.emergency_checkpoint_components=full"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "budget": {
+        "kind": "training",
+        "seconds": 60,
+        "reserve_seconds": 10
+      },
+      "score_checkpoint": {
+        "data": "{data}/dev-task.jsonl",
+        "selection": "{data}/dev-task-manifest.json",
+        "seed": 17
+      }
+    }
+  ],
+  "interpretation": "Four-update capacity probes select a feasible fused baseline; failures retained. Elapsed60/reserve10 canaries prove native stopping and fresh scoring of actual earlier checkpoints, not final quality/performance claims."
+}
