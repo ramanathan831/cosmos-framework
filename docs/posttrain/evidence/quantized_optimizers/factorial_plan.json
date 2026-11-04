@@ -62,5 +62,18 @@
     "predicted_saving_bytes": 231569408,
     "master_copy_bytes": 0,
     "caveat": "verify actual final trainable membership and allocated dtypes; total training memory saving will be much smaller than state-only percentage"
+  },
+  "quality_target": "One common absolute target per seed across all four cells: 0.95 times initial BF16 + fused FP32 validation NLL.",
+  "additional_project_quality_procedure": {
+    "registered_before_factorial_training": true,
+    "fixed_frozen_references": [
+      "bf16",
+      "nf4"
+    ],
+    "resampling": "10000 paired seed/recording-group bootstrap replicates, seed2026; both independent-within-seed and shared-crossed group draws must meet unchanged bounds",
+    "loss_ratio_upper95_max": 1.01,
+    "accuracy_degradation_upper95_max": 0.01,
+    "adaptation_over_own_frozen_base_accuracy_lower95_min_exclusive": 0,
+    "note": "Retains the stricter project uncertainty/adaptation checks alongside the preregistered paired seed t intervals; no thresholds loosened."
   }
 }
