@@ -6,12 +6,15 @@ based on upstream main `e644a833bf909af9c23a02a5c1069967dc501111` (fetched
 merged locally on 2026-11-04; its only delta is an action-cookbook documentation
 change, with no runtime or dependency-pin changes. **The requested product release is not qualified:** state-memory savings
 and a deployment training-loop throughput gain are measured, but end-to-end
-time-to-quality and final task-quality confidence gates failed. All owned
-training and evaluation jobs are terminal; the thresholds were not relaxed.
+time-to-quality and final task-quality confidence gates failed in the first two
+campaigns. Those allocations are terminal. The [outcome-improvement campaign](#outcome-improvement-campaign)
+closes the dense recovery gap and tests actual equal-time checkpoints; its final
+comparisons are in progress. The thresholds have not been relaxed.
 
 Main had `adamw`, `fusedadam` and `muon`; comments referring to AdamW8bit described
 cosmos-rl. No equivalent native backend was found in the main/PR audit. This change
-uses pinned bitsandbytes 0.49.2 and does not change model loading or architecture.
+uses pinned bitsandbytes 0.49.2 without model-weight quantization or architecture changes.
+Shared loading improvements in the third campaign preserve native values and predictions.
 The original QLoRA checkout remains untouched and PR #334 remains closed.
 
 ## Design and supported interface
@@ -451,6 +454,103 @@ sealed recording/trajectory groups not previously inspected or used in the QLoRA
 pool, with gold annotations, original media and a content/recording manifest, sized
 to resolve the existing 1% quality margin. No training result here establishes lower
 inference latency.
+
+## Outcome-improvement campaign
+
+The third campaign continues from local `1d250b4` on the independent optimizer
+branch. Its [fixed budget and gates](evidence/quantized_optimizers_round3/plan.json)
+allow 28,800 GPU-seconds and 7,200 CPU-wall seconds, including failed allocations.
+Local commits are authorized; no push or new PR publication is authorized.
+
+The dense recovery gap described in the round-two handoff above is now closed.
+Both fused and nonpaged eight-bit native reference44/resume40→44 pairs passed:
+every live parameter, moment/scale/map, scheduler/update counter, RNG and data
+cursor matches after updates41,42,43,44, and the complete final model matches.
+The reference retains both40 and44 with `keep_optim_last=0`; resume performs no
+unrecorded update. The original failed diagnostic attempts remain in the ledger.
+See the [fused](evidence/quantized_optimizers_round3/recovery_fused_raw.json.gz)
+and [eight-bit](evidence/quantized_optimizers_round3/recovery_8bit_raw.json.gz) raw evidence.
+
+A separate restore defect was fixed: group-metadata snapshot failure could occur
+after live moments had been replaced. Metadata is now staged before live mutation.
+Real CUDA failure-injection tests cover both partial moment copying and group
+metadata failure in paged and nonpaged modes, preserving original allocation
+ownership, state/group identity and the next update. The pinned regression suite
+passes49 tests; seven additional weight-loading tests also pass.
+
+The task audit found an annotation conversion defect: the final option could
+include the evaluation-only instruction footer. It affected870 of2,676 gold
+answer texts and all56 substantive development rows. Training173-row bytes were
+unchanged; the historical single-letter task scorer was unaffected. Those old
+accuracy/NLL results are retained. Answer-position alignment, ordered class/token
+mapping, end-token handling, loss masks, actual video inputs, model identity and
+frozen-reference construction were checked.
+
+The original training target asks multiple numbered questions and supervises
+answer text; task scoring asks one original question and requires its letter.
+The selected shared recipe retains every substantive target and adds one original
+single-choice question per training video. `ce_exponent=1` gives equal row weight;
+this jointly changes objective mix and weighting, rather than isolating either
+factor. The high-precision development control reached87.5% accuracy at update15,
+versus46.875% frozen. Development NLL worsened by update20, so the duration remains15.
+At15, eight-bit/fused development task NLL is0.519571/0.522715 and both accuracies
+are87.5%. These are development observations, not final quality qualification.
+The [complete curves](evidence/quantized_optimizers_round3/development_curves.json)
+and [paired screen](evidence/quantized_optimizers_round3/paired_development15_summary.json)
+retain the substantive-only and lower-LR controls.
+
+The native recipe is runnable without the qualification wrapper:
+
+```sh
+SFT_MODEL_PATH=/immutable/Qwen3-VL-8B-Instruct SFT_DATA_ROOT=/authorized/prepared-jsonl \
+SFT_PREPARED_CORPUS=/verified/native-corpus IMAGINAIRE_OUTPUT_ROOT=/new/run \
+torchrun --standalone --nproc-per-node=1 \
+  -m cosmos_framework.posttrain.entrypoints.sft \
+  --config cosmos_framework/posttrain/configs/sft_optimizer_task.py
+```
+
+The data directory contains `train-mixed.jsonl` and repaired `validation.jsonl`.
+Omit `SFT_PREPARED_CORPUS` to use native raw preprocessing. The fused control adds
+`-- rl.optimizer.name=adamw rl.optimizer.impl=fused rl.optimizer.bnb_min_8bit_size=4096 model_hf.grad_ckpt=true`.
+The recipe trains3,087,142,912 ordinary FP32 elements with BF16 forward compute,
+effective batch4 and the same40-update cosine horizon. It does not select QLoRA.
+
+Loading profiles located90 of95 seconds in CPU conversion of memory-mapped
+BF16/FP16 checkpoint weights to FP32. Ordinary CUDA loads now transfer stored
+16-bit tensors before widening on device; sharded and other dtype paths retain
+their conversion behavior. Exhaustive16-bit kernel checks preserve all finite,
+infinite and signed-zero values exactly and retain NaN positions. Both optimizers
+then reproduced all128 native development observations (32 questions at0/5/10/15)
+exactly, including inputs and predictions. Subsequent full-model loads took6–8 seconds.
+Model-only scoring also initializes directly from the committed complete state,
+avoiding a redundant pretrained load;32 prior scores match exactly.
+
+The fused capacity probes retained all failures:12-layer and15-layer selective
+checkpointing, microbatch2/accumulation2 and microbatch1/accumulation4 without
+recomputation all ran out of memory. The final baseline therefore uses full native
+checkpointing. A32-target CPU preparation canary preserves every tensor/token/label
+and reduces processing187→136 seconds with four workers on the same eight CPUs.
+One complete full-corpus measurement is reserved; the measured worker rate does
+not permit three full preparations within the unchanged CPU cap. It cannot
+establish repeated full-preparation speed evidence.
+
+The [final protocol](evidence/quantized_optimizers_round3/final_protocol.json),
+locked before final scoring, uses seeds17/29/43, three paired target timing
+restarts, matched15-update checkpoints,60-second training/validation budgets and
+390-second prepared product budgets. Product clocks include container/source
+setup, model/input verification, initialization, validation, consistent full
+checkpointing and fresh-process scoring. Actual late or absent states are censored;
+validation overruns cannot be hidden behind an earlier optimizer update. Cold
+clocks additionally include the measured qualified CPU preparation and disclose
+that component's replication limit.
+
+The fixed final manifest contains128 questions, four from each of32 recording
+families disjoint from repaired training/development. All32 families were already
+exposed in previous work; the manifest retains both previous16-question selections.
+Extra questions were selected by metadata hashes before scoring. Bootstrap units
+are recording families and paired seeds, not the128 correlated questions. The
+user-authorized reused-pool comparison and any independent replication claim remain
+separate. No final outcome is inferred from the development gains above.
 
 ## Reproduction and source identities
 
