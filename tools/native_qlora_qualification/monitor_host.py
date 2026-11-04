@@ -35,7 +35,8 @@ PROCESS_IDENTITY_METHOD = "proc-identity-state-read-attempts-v3"
 LIVE_THREAD_METHOD = "proc-identity-state-read-attempts-v4"
 THREAD_EXIT_METHOD = "proc-identity-state-read-attempts-v5"
 THREAD_WAIT_METHOD = "proc-identity-state-read-attempts-v6"
-METHOD = "proc-identity-state-read-attempts-v7"
+REAPED_THREAD_METHOD = "proc-identity-state-read-attempts-v7"
+METHOD = "proc-identity-state-read-attempts-v8"
 IDENTITY_SEMANTICS = "pid_start_pidfd_owned_ancestry"
 THREAD_MM_PROTOCOL = "proc-live-thread-shared-mm-v1"
 MAX_TASK_ENTRIES = 4096
@@ -164,6 +165,178 @@ def _receipt_valid(read: Any) -> bool:
         and stamps[0] <= stamps[1]
         and (("error" in read) != ("value" in read or "events" in read))
     )
+
+
+def _enoent(read: dict) -> bool:
+    return _receipt_valid(read) and read.get("error") == {"type": "FileNotFoundError", "errno": errno.ENOENT}
+
+
+def _unbound_pin(pin: dict) -> bool:
+    """Only a failed initial binding, never a valid pin or changed birth."""
+    discovery, before = pin.get("discovery", {}), pin.get("before", {})
+    return (
+        pin.get("error") == {"type": "ProcessLookupError", "errno": errno.ESRCH}
+        and pin.get("flags") == 0
+        and "identity" not in pin
+        and "after" not in pin
+        and _receipt_valid(discovery)
+        and _valid_identity(discovery.get("value"), owner_is_identity=False)
+        and _receipt_valid(before)
+        and discovery["end_monotonic_seconds"] <= before["begin_monotonic_seconds"]
+        and (
+            _enoent(before)
+            or (
+                _valid_identity(before.get("value"), owner_is_identity=False)
+                and _identity(before["value"], owner_is_identity=False)
+                == _identity(discovery["value"], owner_is_identity=False)
+            )
+        )
+    )
+
+
+def _read_pid_namespace() -> dict:
+    """NSpid starts at the procfs mount's namespace, ends at the task's.
+
+    A singleton matching getpid proves the required namespace alignment without
+    access to /proc/1/ns/pid. Retain own namespace/mount and proc-root identities.
+    https://github.com/torvalds/linux/blob/v5.15/fs/proc/array.c#L192-L198
+    """
+    result = {"begin_unix_seconds": time.time(), "begin_monotonic_seconds": time.monotonic()}
+    try:
+        fields = dict(line.split(":", 1) for line in Path("/proc/self/status").read_text().splitlines())
+        value = {
+            "pid": os.getpid(),
+            "proc_self": int(os.readlink("/proc/self")),
+            "status_pid": int(fields["Pid"]),
+            "status_tgid": int(fields["Tgid"]),
+            "nspid": [int(n) for n in fields["NSpid"].split()],
+        }
+        for name, path in (
+            ("pid_namespace", "/proc/thread-self/ns/pid"),
+            ("mount_namespace", "/proc/self/ns/mnt"),
+            ("proc_root", "/proc"),
+        ):
+            stat = os.stat(path)
+            value[name] = [stat.st_dev, stat.st_ino]
+        result["value"] = value
+    except (OSError, ValueError, KeyError) as error:
+        result["error"] = _error(error)
+    result.update(end_unix_seconds=time.time(), end_monotonic_seconds=time.monotonic())
+    return result
+
+
+def _namespace_aligned(value: dict) -> bool:
+    pid = value.get("pid")
+    return (
+        type(pid) is int
+        and pid > 0
+        and value.get("proc_self") == value.get("status_pid") == value.get("status_tgid") == pid
+        and value.get("nspid") == [pid]
+        and all(
+            isinstance(value.get(k), list) and len(value[k]) == 2 and all(type(n) is int and n >= 0 for n in value[k])
+            for k in ("pid_namespace", "mount_namespace", "proc_root")
+        )
+    )
+
+
+def _unbound_recovery_result(proof: dict) -> str:
+    """Current namespace absence is NOT a historical same-pidfd exit proof.
+
+    Linux5.15 returns ESRCH only when find_get_pid in the caller's active PID
+    namespace fails; EINVAL/permission/API errors do not establish absence.
+    https://github.com/torvalds/linux/blob/v5.15/kernel/pid.c#L556-L573
+    """
+    failed = proof["failed_pin"]
+    names = ("namespace_before", "stat_before", "pidfd_open", "stat_after", "namespace_after")
+    reads = [proof[n] for n in names]
+    if (
+        not _unbound_pin(failed)
+        or not all(_receipt_valid(r) for r in reads)
+        or any(a["end_monotonic_seconds"] > b["begin_monotonic_seconds"] for a, b in zip(reads, reads[1:]))
+    ):
+        return "unresolved"
+    namespace = reads[0].get("value", {})
+    if not _namespace_aligned(namespace) or namespace != reads[-1].get("value"):
+        return "unresolved"
+    before, opened, after = reads[1:4]
+    if opened.get("pid") != failed["discovery"]["value"]["pid"] or opened.get("flags") != 0:
+        return "unresolved"
+    if opened.get("backend") not in ("python_pidfd", "linux_x86_64_pidfd_syscalls"):
+        return "unresolved"
+    if (
+        _enoent(before)
+        and _enoent(after)
+        and opened.get("error") == {"type": "ProcessLookupError", "errno": errno.ESRCH}
+    ):
+        return "absent"
+    expected = _identity(failed["discovery"]["value"], owner_is_identity=False)
+    if opened.get("value") == {"opened": True} and all(
+        _valid_identity(r.get("value"), owner_is_identity=False)
+        and _identity(r["value"], owner_is_identity=False) == expected
+        for r in (before, after)
+    ):
+        return "rebound"
+    return "unresolved"
+
+
+def _validate_unbound_recoveries(receipt: dict) -> tuple[float | None, set[int]]:
+    proofs = receipt.get("unbound_recoveries")
+    if proofs is None:
+        if "collection_begin_monotonic_seconds" in receipt:
+            raise ValueError("unbound recovery start lacks proof")
+        return None, set()
+    start = receipt.get("collection_begin_monotonic_seconds")
+    if receipt["protocol"] != METHOD or not isinstance(proofs, dict) or not proofs or type(start) not in (float, int):
+        raise ValueError("invalid unbound recovery protocol")
+    first = receipt["attempts"][0]
+    preceding = start
+    absent = set()
+    # JSON key sorting must not change the chronological recovery order.
+    for pid, proof in sorted(proofs.items(), key=lambda item: item[1]["namespace_before"]["begin_monotonic_seconds"]):
+        if not pid.isdecimal() or int(pid) in (receipt["root_pid"], receipt["excluded_monitor_pid"]):
+            raise ValueError("unbound recovery cannot retire the scope root or monitor")
+        failed = proof["failed_pin"]
+        reported = proof["failed_collection_end_monotonic_seconds"]
+        if (
+            not _unbound_pin(failed)
+            or failed["discovery"]["value"]["pid"] != int(pid)
+            or not failed["before"]["end_monotonic_seconds"] <= reported < start
+        ):
+            raise ValueError("unbound recovery lacks a prior failed binding")
+        begin, end = proof["namespace_before"], proof["namespace_after"]
+        if (
+            not preceding
+            <= begin["begin_monotonic_seconds"]
+            <= end["end_monotonic_seconds"]
+            <= first["begin_monotonic_seconds"]
+        ):
+            raise ValueError("unbound recovery outside new collection")
+        decided = proof["decision_monotonic_seconds"]
+        if not end["end_monotonic_seconds"] <= decided <= first["begin_monotonic_seconds"]:
+            raise ValueError("unbound recovery decision outside proof interval")
+        preceding = decided
+        result = _unbound_recovery_result(proof)
+        if decided + EXIT_WAIT_RETRY_RESERVE_SECONDS > start + MAX_COLLECTION_SECONDS:
+            result = "unresolved"
+        if proof["result"] != result:
+            raise ValueError("unbound recovery result disagrees with actual reads")
+        if result == "absent":
+            absent.add(int(pid))
+        elif result == "rebound":
+            pin = first["processes"].get(pid, {}).get("pin", {})
+            expected = {
+                "discovery": failed["discovery"],
+                "before": proof["stat_before"],
+                "after": proof["stat_after"],
+                "identity": proof["stat_before"]["value"],
+                "flags": 0,
+                "backend": proof["pidfd_open"]["backend"],
+            }
+            if pin != expected:
+                raise ValueError("fresh pin does not preserve the originally discovered birth and ancestry")
+        elif first["processes"].get(pid, {}).get("pin") != failed:
+            raise ValueError("unresolved task silently omitted or rebound")
+    return start, absent
 
 
 def classify_process(
@@ -556,7 +729,15 @@ def _validate_exit_wait(record: dict, *, method: str, collection_start: float) -
             raise ValueError("timed pidfd poll lacks its initial read and budget")
         return
     if (
-        method not in (PROCESS_IDENTITY_METHOD, LIVE_THREAD_METHOD, THREAD_EXIT_METHOD, THREAD_WAIT_METHOD, METHOD)
+        method
+        not in (
+            PROCESS_IDENTITY_METHOD,
+            LIVE_THREAD_METHOD,
+            THREAD_EXIT_METHOD,
+            THREAD_WAIT_METHOD,
+            REAPED_THREAD_METHOD,
+            METHOD,
+        )
         or not isinstance(wait, dict)
         or set(wait) != {"initial_poll", "deadline_monotonic_seconds", "retry_reserve_seconds"}
         or wait["retry_reserve_seconds"] != EXIT_WAIT_RETRY_RESERVE_SECONDS
@@ -581,11 +762,11 @@ def _validate_exit_wait(record: dict, *, method: str, collection_start: float) -
 
 def _validate_thread_exit_waits(attempt: dict, *, method: str, collection_start: float) -> None:
     waits = attempt.get("thread_exit_waits", {})
-    if "thread_exit_waits" in attempt and method not in (THREAD_WAIT_METHOD, METHOD):
+    if "thread_exit_waits" in attempt and method not in (THREAD_WAIT_METHOD, REAPED_THREAD_METHOD, METHOD):
         raise ValueError("thread exit wait cannot be relabeled as an older method")
     if not isinstance(waits, dict) or not set(waits) <= set(attempt["processes"]):
         raise ValueError("invalid thread exit wait ownership")
-    if method not in (THREAD_WAIT_METHOD, METHOD):
+    if method not in (THREAD_WAIT_METHOD, REAPED_THREAD_METHOD, METHOD):
         return
     for pid, final in attempt["post_discovery_polls"].items():
         wait = waits.get(pid)
@@ -628,6 +809,7 @@ def summarize_collection(receipt: dict) -> dict:
         LIVE_THREAD_METHOD,
         THREAD_EXIT_METHOD,
         THREAD_WAIT_METHOD,
+        REAPED_THREAD_METHOD,
         METHOD,
     ):
         raise ValueError("unsupported host collection protocol")
@@ -636,6 +818,7 @@ def summarize_collection(receipt: dict) -> dict:
         LIVE_THREAD_METHOD,
         THREAD_EXIT_METHOD,
         THREAD_WAIT_METHOD,
+        REAPED_THREAD_METHOD,
         METHOD,
     )
     if not owner_is_identity:
@@ -649,6 +832,7 @@ def summarize_collection(receipt: dict) -> dict:
         LIVE_THREAD_METHOD,
         THREAD_EXIT_METHOD,
         THREAD_WAIT_METHOD,
+        REAPED_THREAD_METHOD,
         METHOD,
     )
     if final_polls_required and receipt.get("uid_semantics") != "proc_inode_owner":
@@ -662,9 +846,10 @@ def summarize_collection(receipt: dict) -> dict:
         raise ValueError("invalid host collection attempts")
     if receipt.get("max_attempts") != MAX_ATTEMPTS or receipt.get("max_collection_seconds") != MAX_COLLECTION_SECONDS:
         raise ValueError("unsupported collection bounds")
+    recovery_start, absent_unbound = _validate_unbound_recoveries(receipt)
     hard_errors: list[str] = []
     first_stage = None
-    first_start = None
+    first_start = recovery_start
     prior_after: set[str] = set()
     prior_discovery: dict = {}
     observed_rss, observed_pss = [], []
@@ -677,7 +862,10 @@ def summarize_collection(receipt: dict) -> dict:
         if first_start is None:
             first_start = started
         elif not first_start <= started <= first_start + MAX_COLLECTION_SECONDS:
-            raise ValueError("retry outside bounded collection interval")
+            if recovery_start is not None and index == 0 and started > first_start:
+                hard_errors.append("unbound_recovery_collection_deadline_exceeded")
+            else:
+                raise ValueError("retry outside bounded collection interval")
         records = attempt.get("processes")
         before, after = attempt.get("selected_before"), attempt.get("selected_after")
         if not isinstance(records, dict) or not isinstance(before, list) or not isinstance(after, list) or not before:
@@ -696,6 +884,10 @@ def summarize_collection(receipt: dict) -> dict:
             raise ValueError("selected process silently omitted")
         if receipt.get("root_pid") not in before or receipt.get("excluded_monitor_pid") in before:
             raise ValueError("invalid observed tree scope")
+        if absent_unbound.intersection(before + after):
+            # A legitimately reused PID stays in the fresh evidence, but this
+            # ambiguous observation is incomplete rather than a collector crash.
+            hard_errors.append("unbound_absent_pid_reappeared")
         for suffix, selected in (("before", before), ("after", after)):
             discovery = attempt.get("discovery_" + suffix)
             if (
@@ -777,7 +969,13 @@ def summarize_collection(receipt: dict) -> dict:
                 record, released_after_discovery=final_released is True, owner_is_identity=owner_is_identity
             )
             if "thread_mm" in record:
-                if method not in (LIVE_THREAD_METHOD, THREAD_EXIT_METHOD, THREAD_WAIT_METHOD, METHOD):
+                if method not in (
+                    LIVE_THREAD_METHOD,
+                    THREAD_EXIT_METHOD,
+                    THREAD_WAIT_METHOD,
+                    REAPED_THREAD_METHOD,
+                    METHOD,
+                ):
                     raise ValueError("live-thread evidence cannot be relabeled as an older method")
                 try:
                     values = _thread_mm_memory(
@@ -786,14 +984,14 @@ def summarize_collection(receipt: dict) -> dict:
                     errors = []
                 except (ValueError, KeyError, TypeError, StopIteration):
                     try:
-                        if method not in (THREAD_EXIT_METHOD, THREAD_WAIT_METHOD, METHOD):
+                        if method not in (THREAD_EXIT_METHOD, THREAD_WAIT_METHOD, REAPED_THREAD_METHOD, METHOD):
                             raise ValueError("historical live-thread method retains failed read")
                         values = _thread_mm_memory(
                             record,
                             collection_start=first_start,
                             discovery_after=attempt["discovery_after"][pid],
                             released_poll=final_polls[pid],
-                            allow_discovery_enoent=method == METHOD,
+                            allow_discovery_enoent=method in (REAPED_THREAD_METHOD, METHOD),
                         )
                         errors, changed = [], True
                     except (ValueError, KeyError, TypeError, StopIteration):
@@ -817,6 +1015,15 @@ def summarize_collection(receipt: dict) -> dict:
     published = receipt.get("stage_publish")
     if published is not None and (not _receipt_valid(published) or published.get("value") != first_stage):
         hard_errors.append("stage_changed_or_unreadable")
+    if (
+        recovery_start is not None
+        and published is not None
+        and (
+            not _receipt_valid(published)
+            or published["end_monotonic_seconds"] > recovery_start + MAX_COLLECTION_SECONDS
+        )
+    ):
+        hard_errors.append("unbound_recovery_collection_deadline_exceeded")
     complete = (
         not hard_errors
         and not final_transition
@@ -844,6 +1051,7 @@ def _validate_sample(sample: dict) -> dict:
         LIVE_THREAD_METHOD,
         THREAD_EXIT_METHOD,
         THREAD_WAIT_METHOD,
+        REAPED_THREAD_METHOD,
         METHOD,
     ):
         raise ValueError("unsupported host memory method")
@@ -884,7 +1092,14 @@ class HostSampler:
     """
 
     def __init__(self, root_pid: int, stage_file: Path, *, exclude_pid: int | None = None, method: str = METHOD):
-        if method not in (PROCESS_IDENTITY_METHOD, LIVE_THREAD_METHOD, THREAD_EXIT_METHOD, THREAD_WAIT_METHOD, METHOD):
+        if method not in (
+            PROCESS_IDENTITY_METHOD,
+            LIVE_THREAD_METHOD,
+            THREAD_EXIT_METHOD,
+            THREAD_WAIT_METHOD,
+            REAPED_THREAD_METHOD,
+            METHOD,
+        ):
             raise ValueError("unsupported host acquisition method")
         self.method = method
         self.root_pid, self.stage_file = root_pid, stage_file
@@ -956,6 +1171,67 @@ class HostSampler:
         record["poll_after"] = _poll(item["fd"])
         return record
 
+    def _recover_unbound(self, started: float) -> dict:
+        """Revisit only failed bindings already published in an earlier sample.
+
+        Successful pins, including reparented live descendants, are untouched.
+        A failed interval is never retried into a complete interval here: these
+        proofs precede an entirely new sample and contain no memory estimate.
+        """
+        proofs = {}
+        for pid, item in list(self.tracked.items()):
+            if (
+                pid == self.root_pid
+                or item["fd"] is not None
+                or not _unbound_pin(item["pin"])
+                or "failed_sample_end" not in item
+                or time.monotonic() + EXIT_WAIT_RETRY_RESERVE_SECONDS >= started + MAX_COLLECTION_SECONDS
+            ):
+                continue
+            proof = {
+                "failed_pin": item["pin"],
+                "failed_collection_end_monotonic_seconds": item["failed_sample_end"],
+                "namespace_before": _read_pid_namespace(),
+                "stat_before": read_proc(pid, "stat"),
+            }
+            opened = {
+                "pid": pid,
+                "flags": 0,
+                "backend": self.backend.backend,
+                "begin_unix_seconds": time.time(),
+                "begin_monotonic_seconds": time.monotonic(),
+            }
+            fd = None
+            try:
+                fd = self.backend.open(pid)
+                opened["value"] = {"opened": True}
+            except OSError as error:
+                opened["error"] = _error(error)
+            opened.update(end_unix_seconds=time.time(), end_monotonic_seconds=time.monotonic())
+            proof.update(pidfd_open=opened, stat_after=read_proc(pid, "stat"), namespace_after=_read_pid_namespace())
+            result = _unbound_recovery_result(proof)
+            proof["decision_monotonic_seconds"] = time.monotonic()
+            if proof["decision_monotonic_seconds"] + EXIT_WAIT_RETRY_RESERVE_SECONDS > started + MAX_COLLECTION_SECONDS:
+                result = "unresolved"
+            proof["result"] = result
+            proofs[str(pid)] = proof
+            if result == "absent":
+                del self.tracked[pid]
+            elif result == "rebound":
+                pin = {
+                    "discovery": item["pin"]["discovery"],
+                    "before": proof["stat_before"],
+                    "after": proof["stat_after"],
+                    "identity": proof["stat_before"]["value"],
+                    "flags": 0,
+                    "backend": self.backend.backend,
+                }
+                self.tracked[pid] = {"pin": pin, "fd": fd}
+                fd = None
+            if fd is not None:
+                os.close(fd)
+        return proofs
+
     def _wait_for_exit(self, pid: int, record: dict, deadline: float) -> None:
         if not _exit_wait_eligible(record):
             return
@@ -984,9 +1260,13 @@ class HostSampler:
             "max_attempts": MAX_ATTEMPTS,
             "max_collection_seconds": MAX_COLLECTION_SECONDS,
         }
+        if self.method == METHOD:
+            recoveries = self._recover_unbound(started)
+            if recoveries:
+                receipt.update(unbound_recoveries=recoveries, collection_begin_monotonic_seconds=started)
         for _ in range(MAX_ATTEMPTS):
             attempt_started = time.monotonic()
-            if not receipt["attempts"]:
+            if not receipt["attempts"] and "unbound_recoveries" not in receipt:
                 started = attempt_started
             stage = _read_stage(self.stage_file)
             selected = self._discover()
@@ -1000,6 +1280,7 @@ class HostSampler:
                     LIVE_THREAD_METHOD,
                     THREAD_EXIT_METHOD,
                     THREAD_WAIT_METHOD,
+                    REAPED_THREAD_METHOD,
                     METHOD,
                 ) and _thread_mm_eligible(record):
                     record["thread_mm"] = _thread_mm(pid, self.tracked[pid]["fd"], started + MAX_COLLECTION_SECONDS)
@@ -1015,7 +1296,7 @@ class HostSampler:
                 initial = _poll(self.tracked[pid]["fd"])
                 final_polls[str(pid)] = initial
                 if (
-                    self.method in (THREAD_WAIT_METHOD, METHOD)
+                    self.method in (THREAD_WAIT_METHOD, REAPED_THREAD_METHOD, METHOD)
                     and len(receipt["attempts"]) < MAX_ATTEMPTS - 1
                     and _released(initial) is False
                     and _thread_exit_wait_eligible(
@@ -1060,6 +1341,10 @@ class HostSampler:
             "stage": receipt["attempts"][0]["stage_before"].get("value", "unreadable"),
         }
         record.update(derived)
+        if self.method == METHOD:
+            for item in self.tracked.values():
+                if item["fd"] is None:
+                    item.setdefault("failed_sample_end", time.monotonic())
         # Keep a released root as scope evidence; retire other members only after
         # an explicit released record, never merely on a failed /proc read.
         for pid in list(self.tracked):

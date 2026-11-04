@@ -449,7 +449,8 @@ def test_v3_owner_change_cannot_conceal_bound_identity_change(sampler, field):
     assert "discovery_identity_changed" in result["host_collection_errors"]
 
 
-def test_actual_pinned_descendant_remains_owned_after_reparenting(tmp_path, request):
+@pytest.mark.parametrize("failed_initial_pin", [False, True])
+def test_actual_pinned_descendant_remains_owned_after_reparenting(tmp_path, request, monkeypatch, failed_initial_pin):
     compiler = shutil.which("cc")
     assert compiler, "real owned-reparent qualification requires a C compiler"
     source = tmp_path / "reparent.c"
@@ -494,29 +495,75 @@ int main(void) {
     try:
         members = dict(process.stdout.readline().decode().split() for _ in range(2))
         parent, child = int(members["parent"]), int(members["child"])
-        before = sampler.collect()
-        assert host.validate_sample(before)["host_pss_complete"]
-        original = before["host_collection"]["attempts"][0]["processes"][str(child)]["pin"]["identity"]
+        pin, read = sampler._pin, host.read_proc
+
+        def unavailable_before_pin(pid, discovery):
+            if pid != child:
+                return pin(pid, discovery)
+
+            def missing_once(target, name):
+                result = read(target, name)
+                if target == child and name == "stat":
+                    result.pop("value", None)
+                    result["error"] = {"type": "FileNotFoundError", "errno": errno.ENOENT}
+                return result
+
+            with monkeypatch.context() as patch:
+                patch.setattr(host, "read_proc", missing_once)
+                return pin(pid, discovery)
+
+        with monkeypatch.context() as patch:
+            if failed_initial_pin:
+                patch.setattr(sampler, "_pin", unavailable_before_pin)
+            before = sampler.collect()
+        assert host.validate_sample(before)["host_pss_complete"] is not failed_initial_pin
+        initial_pin = before["host_collection"]["attempts"][0]["processes"][str(child)]["pin"]
+        original = initial_pin["discovery"]["value"] if failed_initial_pin else initial_pin["identity"]
         assert original["ppid"] == parent
         process.stdin.write(b"p")
         process.stdin.flush()
         assert process.stdout.readline() == b"reparented\n"
         after = sampler.collect()
         item = after["host_collection"]["attempts"][0]["processes"][str(child)]
-        assert item["pin"]["identity"] == original
+        if failed_initial_pin:
+            proof = after["host_collection"]["unbound_recoveries"][str(child)]
+            assert proof["result"] == "rebound" and proof["pidfd_open"]["value"] == {"opened": True}
+            assert item["pin"]["discovery"] == initial_pin["discovery"]
+            assert host._identity(item["pin"]["identity"], owner_is_identity=False) == host._identity(
+                original, owner_is_identity=False
+            )
+            request.node.user_properties.append(
+                (
+                    "actual_unbound_live_orphan_rebinding",
+                    json.dumps(
+                        {
+                            "failed": before,
+                            "recovered": after,
+                            "initial_stat_enoent_injected": True,
+                            "actual_reparent_and_pidfd_open": True,
+                            "previous_interval_repaired": False,
+                        },
+                        sort_keys=True,
+                    ),
+                )
+            )
+        else:
+            assert item["pin"]["identity"] == original
+            assert "unbound_recoveries" not in after["host_collection"]
         assert item["stat_before"]["value"]["ppid"] == process.pid != parent
         assert item["poll_before"]["events"] == item["poll_after"]["events"] == []
         assert host.validate_sample(after)["host_pss_complete"]
         assert after["process_host_memory"][str(child)]["Pss_rollup"] > 3 * 1024 * 1024
-        request.node.user_properties.append(
-            (
-                "actual_owned_descendant_reparenting",
-                json.dumps(
-                    {"pin": original, "observed": item["stat_before"], "complete": after["host_pss_complete"]},
-                    sort_keys=True,
-                ),
+        if not failed_initial_pin:
+            request.node.user_properties.append(
+                (
+                    "actual_owned_descendant_reparenting",
+                    json.dumps(
+                        {"pin": original, "observed": item["stat_before"], "complete": after["host_pss_complete"]},
+                        sort_keys=True,
+                    ),
+                )
             )
-        )
         process.stdin.write(b"c")
         process.stdin.flush()
         process.wait(timeout=5)
@@ -1613,3 +1660,342 @@ def test_reaped_thread_retry_requires_exact_identity_release_and_deadline(live_t
         proof["deadline_monotonic_seconds"] += 1
     with pytest.raises(ValueError):
         host.summarize_collection(receipt)
+
+
+@contextmanager
+def _vanished_before_pin(tmp_path, monkeypatch, *, method=host.METHOD, count=1):
+    """A real parent reaps its child between discovery and the first pin read."""
+    code = """import subprocess,sys
+p=subprocess.Popen([sys.executable,'-I','-S','-c','import time; time.sleep(60)']); children=[p]
+children.extend(subprocess.Popen([sys.executable,'-I','-S','-c','import time; time.sleep(60)']) for _ in range(int(sys.argv[1])-1))
+print(','.join(str(p.pid) for p in children),flush=True)
+try:
+ sys.stdin.buffer.read(1)
+ for p in children: p.terminate(); p.wait(timeout=5)
+ print('reaped',flush=True)
+ while sys.stdin.buffer.read(1)==b'n':
+  c=subprocess.Popen([sys.executable,'-I','-S','-c','import time; time.sleep(60)']); children.append(c); print(c.pid,flush=True)
+finally:
+ for p in children:
+  if p.poll() is None: p.kill(); p.wait(timeout=5)
+"""
+    parent = subprocess.Popen(
+        [sys.executable, "-I", "-S", "-c", code, str(count)], stdin=subprocess.PIPE, stdout=subprocess.PIPE
+    )
+    targets = [int(p) for p in parent.stdout.readline().split(b",")]
+    target = targets[0]
+    marker = tmp_path / "stage"
+    marker.write_text("training")
+    sampler = host.HostSampler(parent.pid, marker, method=method)
+    pin = sampler._pin
+    fired = False
+
+    def reap_before_pin(pid, discovery):
+        nonlocal fired
+        if pid in targets and not fired:
+            assert discovery["value"]["pid"] == pid
+            fired = True
+            parent.stdin.write(b"x")
+            parent.stdin.flush()
+            assert parent.stdout.readline() == b"reaped\n"
+        pin(pid, discovery)
+
+    try:
+        with monkeypatch.context() as patch:
+            patch.setattr(sampler, "_pin", reap_before_pin)
+            failed = sampler.collect()
+        assert fired and not host.validate_sample(failed)["host_pss_complete"]
+        assert sampler.tracked[target]["fd"] is None
+        assert "identity" not in sampler.tracked[target]["pin"]
+        assert sampler.tracked[target]["pin"]["before"]["error"]["errno"] == errno.ENOENT
+        assert "Pss_rollup" not in failed["process_host_memory"][str(target)]
+        sampler._fixture_parent = parent
+        sampler._fixture_targets = targets
+        yield sampler, failed, target
+    finally:
+        sampler.close()
+        if parent.poll() is None:
+            parent.stdin.write(b"xx")
+            parent.stdin.flush()
+        parent.wait(timeout=5)
+        parent.stdin.close()
+        parent.stdout.close()
+
+
+def test_actual_unbound_disappearance_recovers_only_in_new_collection(tmp_path, monkeypatch, request):
+    with _vanished_before_pin(tmp_path, monkeypatch) as (sampler, failed, pid):
+        unchanged = json.dumps(failed, sort_keys=True)
+        recovered = sampler.collect()
+        assert host.validate_sample(recovered)["host_pss_complete"]
+        proof = recovered["host_collection"]["unbound_recoveries"][str(pid)]
+        assert proof["result"] == "absent"
+        assert proof["pidfd_open"]["flags"] == 0
+        assert proof["pidfd_open"]["error"] == {"type": "ProcessLookupError", "errno": errno.ESRCH}
+        assert pid not in sampler.tracked and str(pid) not in recovered["process_host_memory"]
+        assert "address_space_released" not in proof
+        assert json.dumps(failed, sort_keys=True) == unchanged and not host.validate_sample(failed)["host_pss_complete"]
+        for _ in range(3):
+            later = sampler.collect()
+            assert host.validate_sample(later)["host_pss_complete"]
+            assert "unbound_recoveries" not in later["host_collection"]
+        request.node.user_properties.append(
+            (
+                "actual_unbound_disappearance_recollection",
+                json.dumps(
+                    {
+                        "failed": failed,
+                        "recovered": recovered,
+                        "actual_child_reaped_before_pin": True,
+                        "proc_or_syscall_errors_injected": False,
+                        "previous_interval_repaired": False,
+                    },
+                    sort_keys=True,
+                ),
+            )
+        )
+
+
+@pytest.mark.parametrize(
+    "method",
+    [
+        host.PROCESS_IDENTITY_METHOD,
+        host.LIVE_THREAD_METHOD,
+        host.THREAD_EXIT_METHOD,
+        host.THREAD_WAIT_METHOD,
+        host.REAPED_THREAD_METHOD,
+    ],
+)
+def test_historical_unbound_disappearance_remains_incomplete(tmp_path, monkeypatch, method):
+    with _vanished_before_pin(tmp_path, monkeypatch, method=method) as (sampler, failed, pid):
+        later = sampler.collect()
+        assert not host.validate_sample(later)["host_pss_complete"]
+        assert pid in sampler.tracked and "unbound_recoveries" not in later["host_collection"]
+        assert "unbound_process_identity" in later["host_collection_errors"]
+
+
+@pytest.mark.parametrize("code", [errno.EACCES, errno.EPERM, errno.EINVAL, errno.EMFILE, errno.ENOSYS])
+def test_unbound_recovery_non_esrch_open_errors_never_retire(tmp_path, monkeypatch, code):
+    with _vanished_before_pin(tmp_path, monkeypatch) as (sampler, failed, pid):
+        original = sampler.backend.open
+
+        def error(target):
+            if target == pid:
+                raise OSError(code, "controlled unavailable pidfd")
+            return original(target)
+
+        monkeypatch.setattr(sampler.backend, "open", error)
+        sample = sampler.collect()
+        assert not host.validate_sample(sample)["host_pss_complete"] and pid in sampler.tracked
+        assert sample["host_collection"]["unbound_recoveries"][str(pid)]["result"] == "unresolved"
+
+
+@pytest.mark.parametrize("mutation", ["nspid", "self_pid", "mount", "own_namespace", "proc_root", "unreadable"])
+def test_unbound_namespace_ambiguity_never_retires(tmp_path, monkeypatch, mutation):
+    with _vanished_before_pin(tmp_path, monkeypatch) as (sampler, failed, pid):
+        read = host._read_pid_namespace
+        calls = 0
+
+        def changed():
+            nonlocal calls
+            value = read()
+            calls += 1
+            if mutation == "nspid":
+                value["value"]["nspid"].append(1)
+            elif mutation == "self_pid":
+                value["value"]["proc_self"] += 1
+            elif mutation == "mount" and calls == 2:
+                value["value"]["mount_namespace"][1] += 1
+            elif mutation == "own_namespace" and calls == 2:
+                value["value"]["pid_namespace"][1] += 1
+            elif mutation == "proc_root" and calls == 2:
+                value["value"]["proc_root"][1] += 1
+            elif mutation == "unreadable":
+                value.pop("value")
+                value["error"] = {"type": "PermissionError", "errno": errno.EACCES}
+            return value
+
+        monkeypatch.setattr(host, "_read_pid_namespace", changed)
+        sample = sampler.collect()
+        assert not host.validate_sample(sample)["host_pss_complete"] and pid in sampler.tracked
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        "legacy",
+        "flags",
+        "open_errno",
+        "open_pid",
+        "proc_errno",
+        "namespace",
+        "prior_time",
+        "order",
+        "deadline",
+        "omitted_proof",
+        "forged_identity",
+    ],
+)
+def test_unbound_recovery_receipt_tampering_rejected(tmp_path, monkeypatch, mutation):
+    with _vanished_before_pin(tmp_path, monkeypatch) as (sampler, failed, pid):
+        sample = sampler.collect()
+        assert host.validate_sample(sample)["host_pss_complete"]
+        receipt = sample["host_collection"]
+        proof = receipt["unbound_recoveries"][str(pid)]
+        if mutation == "legacy":
+            sample["host_process_memory_method"] = receipt["protocol"] = host.REAPED_THREAD_METHOD
+        elif mutation == "flags":
+            proof["pidfd_open"]["flags"] = 1
+        elif mutation == "open_errno":
+            proof["pidfd_open"]["error"]["errno"] = errno.EINVAL
+        elif mutation == "open_pid":
+            proof["pidfd_open"]["pid"] += 1
+        elif mutation == "proc_errno":
+            proof["stat_after"]["error"]["errno"] = errno.EACCES
+        elif mutation == "namespace":
+            proof["namespace_after"]["value"]["nspid"].append(1)
+        elif mutation == "prior_time":
+            proof["failed_collection_end_monotonic_seconds"] = receipt["collection_begin_monotonic_seconds"] + 1
+        elif mutation == "order":
+            proof["pidfd_open"]["begin_monotonic_seconds"] = 0
+        elif mutation == "deadline":
+            receipt["collection_begin_monotonic_seconds"] -= 1
+        elif mutation == "omitted_proof":
+            del receipt["unbound_recoveries"]
+        elif mutation == "forged_identity":
+            proof["failed_pin"]["identity"] = proof["failed_pin"]["discovery"]["value"]
+        with pytest.raises(ValueError):
+            host.validate_sample(sample)
+
+
+def test_slow_unbound_recovery_is_incomplete_without_collector_crash(tmp_path, monkeypatch):
+    with _vanished_before_pin(tmp_path, monkeypatch) as (sampler, failed, pid):
+        read = host._read_pid_namespace
+        delayed = False
+
+        def slow():
+            nonlocal delayed
+            if not delayed:
+                delayed = True
+                time.sleep(host.MAX_COLLECTION_SECONDS + 0.02)
+            return read()
+
+        with monkeypatch.context() as patch:
+            patch.setattr(host, "_read_pid_namespace", slow)
+            sample = sampler.collect()
+        assert not host.validate_sample(sample)["host_pss_complete"] and pid in sampler.tracked
+        assert "unbound_recovery_collection_deadline_exceeded" in sample["host_collection_errors"]
+        assert sample["host_collection"]["unbound_recoveries"][str(pid)]["result"] == "unresolved"
+        assert host.validate_sample(sampler.collect())["host_pss_complete"]
+
+
+def _recover_then_new_descendant(sampler, monkeypatch):
+    original = sampler._process
+    spawned = None
+
+    def start_after_first_read(pid):
+        nonlocal spawned
+        result = original(pid)
+        if spawned is None:
+            parent = sampler._fixture_parent
+            parent.stdin.write(b"n")
+            parent.stdin.flush()
+            spawned = int(parent.stdout.readline())
+        return result
+
+    with monkeypatch.context() as patch:
+        patch.setattr(sampler, "_process", start_after_first_read)
+        sample = sampler.collect()
+    return sample, spawned
+
+
+def test_unbound_prefix_allows_fresh_membership_transition_retry(tmp_path, monkeypatch):
+    with _vanished_before_pin(tmp_path, monkeypatch) as (sampler, failed, pid):
+        sample, new_pid = _recover_then_new_descendant(sampler, monkeypatch)
+        assert host.validate_sample(sample)["host_pss_complete"]
+        assert len(sample["host_collection"]["attempts"]) == 2
+        assert sample["host_collection"]["unbound_recoveries"][str(pid)]["result"] == "absent"
+        assert sample["process_host_memory"][str(new_pid)]["Pss_rollup"] > 0
+        assert sampler.tracked[new_pid]["pin"]["identity"]["ppid"] == sampler.root_pid
+
+
+def test_simulated_pid_reappearance_is_retained_incomplete_not_decoder_crash(tmp_path, monkeypatch):
+    with _vanished_before_pin(tmp_path, monkeypatch) as (sampler, failed, old_pid):
+        sample, new_pid = _recover_then_new_descendant(sampler, monkeypatch)
+        assert host.validate_sample(sample)["host_pss_complete"]
+        receipt = sample["host_collection"]
+        # Model immediate PID reuse without attempting to wrap the machine's
+        # real PID allocator. Fresh descendant reads/ancestry remain actual.
+        proof = receipt["unbound_recoveries"].pop(str(old_pid))
+        proof["failed_pin"]["discovery"]["value"]["pid"] = new_pid
+        proof["pidfd_open"]["pid"] = new_pid
+        receipt["unbound_recoveries"][str(new_pid)] = proof
+        # The fresh complete tree observation contains the new process. This
+        # models reuse before that observation, not a retry after a hard error.
+        receipt["attempts"] = [receipt["attempts"][-1]]
+        receipt["final_attempt"] = 0
+        derived = host.summarize_collection(receipt)
+        assert not derived["host_pss_complete"] and "unbound_absent_pid_reappeared" in derived["host_collection_errors"]
+        assert str(new_pid) in derived["process_host_memory"]
+        sample.update(derived)
+        assert not host.validate_sample(sample)["host_pss_complete"]
+
+
+def test_multiple_unbound_recoveries_survive_sorted_json_roundtrip(tmp_path, monkeypatch):
+    with _vanished_before_pin(tmp_path, monkeypatch, count=2) as (sampler, failed, pid):
+        assert all(sampler.tracked[p]["fd"] is None for p in sampler._fixture_targets)
+        # Exercise the opposite of JSON's numeric-string key order deliberately.
+        sampler.tracked = dict(sorted(sampler.tracked.items(), reverse=True))
+        sample = sampler.collect()
+        assert len(sample["host_collection"]["unbound_recoveries"]) == 2
+        decoded = json.loads(json.dumps(sample, sort_keys=True))
+        assert host.validate_sample(decoded)["host_pss_complete"]
+
+
+@pytest.mark.parametrize("mutation", ["post_open_failure", "changed_birth", "initial_permission"])
+def test_unqualified_failed_pins_are_not_recovered(tmp_path, monkeypatch, mutation):
+    with _vanished_before_pin(tmp_path, monkeypatch) as (sampler, failed, pid):
+        pin = sampler.tracked[pid]["pin"]
+        if mutation == "post_open_failure":
+            pin["after"] = copy.deepcopy(pin["before"])
+        elif mutation == "initial_permission":
+            pin["error"] = {"type": "PermissionError", "errno": errno.EACCES}
+        else:
+            pin["before"].pop("error")
+            pin["before"]["value"] = dict(
+                pin["discovery"]["value"], start_ticks=pin["discovery"]["value"]["start_ticks"] + 1
+            )
+        sample = sampler.collect()
+        assert not host.validate_sample(sample)["host_pss_complete"]
+        assert pid in sampler.tracked and "unbound_recoveries" not in sample["host_collection"]
+
+
+def test_live_replacement_birth_closes_temporary_pidfd_and_remains_incomplete(tmp_path, monkeypatch):
+    with _vanished_before_pin(tmp_path, monkeypatch) as (sampler, failed, pid):
+        read, opened, temporary = host.read_proc, sampler.backend.open, []
+
+        def changed_birth(target, name):
+            if target == pid and name == "stat":
+                result = read(sampler.root_pid, "stat")
+                result["value"]["pid"] = pid
+                result["value"]["start_ticks"] = sampler.tracked[pid]["pin"]["discovery"]["value"]["start_ticks"] + 1
+                return result
+            return read(target, name)
+
+        def current_replacement(target):
+            fd = opened(sampler.root_pid if target == pid else target)
+            if target == pid:
+                temporary.append(fd)
+            return fd
+
+        # Controlled PID-reuse analogue: real live-parent descriptor and reads,
+        # mapped to the disappeared PID with its different birth identifier.
+        with monkeypatch.context() as patch:
+            patch.setattr(host, "read_proc", changed_birth)
+            patch.setattr(sampler.backend, "open", current_replacement)
+            sample = sampler.collect()
+        assert not host.validate_sample(sample)["host_pss_complete"] and pid in sampler.tracked
+        assert sample["host_collection"]["unbound_recoveries"][str(pid)]["result"] == "unresolved"
+        assert len(temporary) == 1
+        with pytest.raises(OSError) as error:
+            os.fstat(temporary[0])
+        assert error.value.errno == errno.EBADF
