@@ -30,6 +30,7 @@ if [[ -n "${ARM_ONLY:-}" ]]; then arms=("$ARM_ONLY"); fi
 if [[ "${DEPLOYMENT:-0}" == 1 && -n "${CAPACITY_FILE:-}" && ! -f "$CAPACITY_FILE" ]]; then
   python "$SOURCE/tools/quantized_optimizers/calibrate_capacity.py"
 fi
+if [[ "${CAPACITY_ONLY:-0}" == 1 && "${CALIBRATING:-0}" != 1 ]]; then exit 0; fi
 for arm in "${arms[@]}"; do
   export PROBE_ARM="$arm"
   export IMAGINAIRE_OUTPUT_ROOT="$RESULTS/$arm"

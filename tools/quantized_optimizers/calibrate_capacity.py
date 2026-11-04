@@ -10,7 +10,11 @@ import subprocess
 from pathlib import Path
 
 result = {}
-for arm in ("adamw", "adamw_bnb_8bit", "paged_adamw_8bit"):
+supported = ("adamw", "adamw_bnb_8bit", "paged_adamw_8bit")
+arms = os.environ.get("CAPACITY_ARMS", ",".join(supported)).split(",")
+if len(arms) != len(set(arms)) or any(arm not in supported for arm in arms):
+    raise ValueError("CAPACITY_ARMS must select unique supported optimizer names")
+for arm in arms:
     for micro in (4, 2, 1):
         folder = Path(os.environ["RESULTS"]) / "capacity" / f"{arm}-micro{micro}"
         if folder.exists():
