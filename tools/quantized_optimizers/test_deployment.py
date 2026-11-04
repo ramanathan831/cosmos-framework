@@ -101,3 +101,27 @@ def test_recovery_probe_records_each_clock_once_and_checks_nested_step_agreement
             optimizer.step()
     finally:
         canary.captured["probe_handle"].remove()
+
+
+def test_completed_recovery_state_resolves_native_worker_handle(monkeypatch):
+    from types import SimpleNamespace
+
+    from cosmos_framework.posttrain.workers.worker_group import Handle
+    from tools.quantized_optimizers import prepared_canary as canary
+
+    net = torch.nn.Linear(3, 2, bias=False)
+    opt = torch.optim.AdamW(net.parameters())
+    scheduler = torch.optim.lr_scheduler.LambdaLR(opt, lambda _: 1.0)
+    cursor = {"states": {"0": {"epoch": 2, "position": 3}}}
+    data = SimpleNamespace(state_dict=lambda: Handle(value=cursor))
+    trainer = SimpleNamespace(
+        _net=lambda: net, opt=opt, lr_scheduler=scheduler, _update_state_dict=lambda: {"optimizer_step": 41}
+    )
+    monkeypatch.setattr(canary, "captured", {"trainer": trainer})
+    monkeypatch.setattr(canary, "original_step", lambda *_: {"optim/optimizer_step": 41})
+    before = digest(torch.optim.Optimizer.state_dict(opt))
+    canary.capture_completed_step(data, None, None)
+    captured = canary.captured["completed_update_states"][0]
+    assert captured["cursor"] == digest(cursor)
+    assert captured["optimizer"] == before == digest(torch.optim.Optimizer.state_dict(opt))
+    assert captured["step"] == 41

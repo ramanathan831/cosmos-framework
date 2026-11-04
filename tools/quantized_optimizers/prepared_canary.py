@@ -28,7 +28,7 @@ def capture_completed_step(data, policy, rl):
             "optimizer": digest(torch.optim.Optimizer.state_dict(trainer.opt)),
             "scheduler": digest(trainer.lr_scheduler.state_dict()),
             "update": digest(trainer._update_state_dict()),
-            "cursor": digest(data.state_dict()),
+            "cursor": digest(entry.resolve(data.state_dict())),
             "rng": digest(collect_rng_state()),
         }
         captured.setdefault("completed_update_states", []).append(record)
