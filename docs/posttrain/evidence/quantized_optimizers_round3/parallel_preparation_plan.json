@@ -1,0 +1,39 @@
+{
+  "recorded_utc": "2026-11-04T20:21:32.974197+00:00",
+  "reason": "Cold preparation plus independent replay took2156.28s plus760.47s for the expanded corpus; this dominates short adaptation. Each immutable target can use the same native packer in a separate CPU process.",
+  "resource_contract": {
+    "cpus": 8,
+    "host_memory_gib": 40,
+    "cuda_visible_devices": "",
+    "canary_allocation_seconds": 420,
+    "reserved_three_full_trials_seconds": 3600,
+    "previous_cpu_allocations_seconds": 3127,
+    "total_cpu_cap_seconds": 7200
+  },
+  "canary": {
+    "unique_targets": 12,
+    "selection": "First12 SHA256 target keys from the same authorized sources; no task scores used.",
+    "configurations": [
+      {
+        "workers": 1,
+        "torch_threads_per_worker": 8
+      },
+      {
+        "workers": 4,
+        "torch_threads_per_worker": 2
+      }
+    ],
+    "gates": [
+      "Exact equality of every CPU tensor, label and token against independent native replay and the qualified reference corpus.",
+      "No CUDA initialization.",
+      "Parallel processing wall time at most 1/1.2 of serial canary before admitting full trials.",
+      "Full trial reservation must fit remaining CPU cap using observed canary cost."
+    ]
+  },
+  "full_trials_if_admitted": {
+    "count": 3,
+    "sources": "All751 logical rows / deduplicated immutable target identities; exact per-target replay remains required.",
+    "same_cpu_node_and_affinity": true,
+    "classification": "Cold input preparation; does not assert an empty operating-system file cache."
+  }
+}
