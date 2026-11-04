@@ -1,0 +1,13 @@
+{
+  "job": "37951393",
+  "source": "dfde22d1a5662cb8df17cad36ec863facfe482f6",
+  "cpu_wall_seconds": 184,
+  "gpu_seconds": 0,
+  "passed": 73,
+  "skipped": 1,
+  "pytest_seconds": 142.47,
+  "environment": "read-only pinned native Python3.12/Torch2.11/Transformers5.8.1",
+  "suite": "test_deployment, test_prepared_sft, test_config_sft, test_entrypoints_sft, test_config_optimizer_impl, test_config_optimizer_decay_groups",
+  "result": "PASS; includes local missing-torchvision failure in supported native environment",
+  "lint": "All42changed Python files pass ruff lint and format check; git diff --check passes"
+}

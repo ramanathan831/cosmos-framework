@@ -17,5 +17,6 @@
   "superseded_unrun_training_source": "0823efb314b040d9afc49415233d5f9ba0eba661",
   "failed_launcher_canary_source": "46cd36b56e64df85526ad2fbe54b25c2bac8b8a2",
   "second_failed_launcher_source": "630a9e9f6de8733e41ab7f4a905e68cc769ae03d",
-  "warning_only_canary_source": "873aac71baceccd38a48317d36b27e86f173d433"
+  "warning_only_canary_source": "873aac71baceccd38a48317d36b27e86f173d433",
+  "recovery_and_native_cpu_source": "dfde22d1a5662cb8df17cad36ec863facfe482f6"
 }

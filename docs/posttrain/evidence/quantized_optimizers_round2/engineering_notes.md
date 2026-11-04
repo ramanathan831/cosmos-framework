@@ -82,3 +82,12 @@ of retained failures,720seconds for the strict canary,2600seconds for each of th
 three unchanged six-run seed groups, and42unused local-check seconds. Trial
 steps, seeds, paired restarts, final scoring and all acceptance thresholds are
 unchanged. Returned job time remains available for dependent verification.
+
+The strict v7 canary passed raw/prepared equality for model, optimizer, scheduler,
+update, cursor and RNG values after four native fused updates. Nonpaged eight-bit
+completed its four-update no-recomputation canary. Actual state allocation was
+24,697,144,000 bytes fused versus6,271,567,872 bytes eight-bit, including metadata
+and small FP32 exceptions. The optimizer implementation hash is unchanged.
+Native CPU job37951393 subsequently passed73tests with one optional skip, including
+the local missing-Torchvision case. CPU preparation plus this regression consumed
+1365wall-seconds of the unchanged1800-second CPU cap.
