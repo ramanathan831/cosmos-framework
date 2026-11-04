@@ -14,12 +14,9 @@ set -euo pipefail
 mkdir -p "$RESULTS"
 scontrol show job "$SLURM_JOB_ID" > "$RESULTS/job-$SLURM_JOB_ID.txt"
 trap 'status=$?; echo "$status" > "$RESULTS/exit-code-$SLURM_JOB_ID.txt"' EXIT
-# Resolve the exact allocated physical UUID before entering a PID/container namespace.
-export MONITOR_GPU_UUID=$(nvidia-smi --id="$SLURM_JOB_GPUS" --query-gpu=uuid --format=csv,noheader)
-[[ "$MONITOR_GPU_UUID" == GPU-* && "$MONITOR_GPU_UUID" != *$'\n'* ]]
 srun --kill-on-bad-exit=1 --container-image="$CONTAINER_IMAGE" \
  --container-mounts=/lustre:/lustre --container-workdir="$SOURCE" --container-writable \
- --container-env=SOURCE,SOURCE_ARCHIVE,ASSETS,RESULTS,PRIOR,PREPARATION,MODE,TRIAL_SEED,MONITOR_GPU_UUID,SLURM_JOB_ID,SLURM_JOB_NODELIST,WORK_SECONDS \
+ --container-env=SOURCE,SOURCE_ARCHIVE,ASSETS,RESULTS,PRIOR,PREPARATION,MODE,TRIAL_SEED,SLURM_JOB_ID,SLURM_JOB_NODELIST,WORK_SECONDS \
  bash -c '
  set -euo pipefail
  SOURCE=$(mktemp -d /tmp/cosmos-optimizer-deployment.XXXXXX); export SOURCE

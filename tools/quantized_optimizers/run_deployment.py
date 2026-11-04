@@ -167,6 +167,26 @@ def main():
     receipt = json.loads((preparation / "prepared-corpus/preparation_receipt.json").read_text())
     if receipt["cuda_initialized"] or receipt["exact_raw_prepared_rows"] != 245:
         raise ValueError("missing complete CPU parity receipt")
+    # Slurm can leave JOB_GPUS empty on the batch shell while binding the srun
+    # device correctly. Resolve CUDA's actual device in an exiting preflight
+    # child; the external monitor itself never creates a CUDA context.
+    device = json.loads(
+        subprocess.check_output(
+            [
+                sys.executable,
+                "-c",
+                "import json,torch; assert torch.cuda.device_count()==1, 'expected exactly one CUDA-visible GPU'; "
+                "p=torch.cuda.get_device_properties(0); print(json.dumps({'name':p.name,'uuid':str(p.uuid)}))",
+            ],
+            text=True,
+            timeout=45,
+        )
+    )
+    gpu_uuid = device["uuid"]
+    if not gpu_uuid.startswith("GPU-"):
+        gpu_uuid = "GPU-" + gpu_uuid
+    os.environ["MONITOR_GPU_UUID"] = gpu_uuid
+    write(root / f"device-preflight-{os.environ['SLURM_JOB_ID']}.json", device)
     pynvml.nvmlInit()
     handle = pynvml.nvmlDeviceGetHandleByUUID(os.environ["MONITOR_GPU_UUID"])
     if pynvml.nvmlDeviceGetName(handle) != "NVIDIA A100-SXM4-80GB":
