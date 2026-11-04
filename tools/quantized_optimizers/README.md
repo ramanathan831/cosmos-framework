@@ -69,15 +69,18 @@ python -m tools.quantized_optimizers.select_final \
 
 Use the site's authorized Slurm account and container. The checked-in batch files
 record this campaign's site defaults. Mainline paired runs use one A100-SXM4-80GB
-on fixed node `batch-block4-0052`, eight requested CPUs and 128 GiB host memory.
+with eight requested CPUs and 128 GiB host memory. Seeds 17/29 retain
+`batch-block4-0052`; the entirely unstarted seed43 group may use another verified
+A100 node. Every arm within a paired seed stays on one node; no trial is rerun
+based on its result. See `execution_grouping_amendment.json`.
 All three arms use effective batch four, eight processed video frames and the
 same 40 updates, data order, precision, schedule and validation cadence.
 
 ```sh
 export SOURCE="$CAMPAIGN"
-export SOURCE_ARCHIVE="$CAMPAIGN/source-0071b8f.tgz"
+export SOURCE_ARCHIVE="$CAMPAIGN/source-0e8e3a2.tgz"
 git archive --format=tar.gz --output="$SOURCE_ARCHIVE" \
-  0071b8fef340e6589eabe4836dd50bddc7b79044
+  0e8e3a2a0a10229f111fbebb389aece37697db68
 sha256sum "$SOURCE_ARCHIVE"
 export ASSETS=/shared/read-only-qlora-assets
 export SFT_DATA_ROOT="$CAMPAIGN/recording-clean-v4"
@@ -85,6 +88,7 @@ export RESULTS="$CAMPAIGN/development-clean-v4"
 export CONTAINER_IMAGE=/shared/pinned-runtime.sqsh
 export CAPACITY_FILE="$CAMPAIGN/development-capacity-v3.json"
 export DEVELOPMENT_DRIVER=1 DEPLOYMENT=1 TELEMETRY=1
+export TRIAL_SEED=29 EXPECTED_GPU_NAME="NVIDIA A100-SXM4-80GB"
 export TRAIN_KEYS='[layers.24.,layers.25.,layers.26.,layers.27.,layers.28.,layers.29.,layers.30.,layers.31.]'
 export STEPS=40 FRAMES=8 VAL_EVERY=5 VAL_SAMPLES=16 VAL_BATCH=4
 export VIDEO_PIXELS=1048576 VIDEO_MIN_PIXELS=262144 WORK_SECONDS=2550
@@ -102,13 +106,17 @@ the Slurm job, inspect failures, and admit another serial allocation only within
 the charged/reserved budget below.
 
 The separate recomputation canary uses source
-`2e81f9d0cf5633f00a6874be7cb8c8cca4dcd812` and `CAPACITY_FOLLOWUP=1`,
+`9eac5c7ec60c771d43ba270096563f9dce8f4645` and `CAPACITY_FOLLOWUP=1`,
 `WORK_SECONDS=1680`, `--time=30`, and trainable layers 16 through 31. Clear
 `DEVELOPMENT_DRIVER`, retain the same substantive media/data settings, and use
 a fresh output directory. Both fused and nonpaged optimizers try activation
 checkpointing off and on, descending microbatch 4, 2, 1 at effective batch four.
 Two actual updates test capacity and profile the mechanism; they cannot establish
 task quality or a reproducible speed gain. Preserve OOMs and stop on other errors.
+Set `TRAIN_KEYS` explicitly to blocks16–31 and unset `DEVELOPMENT_DRIVER` and
+`TRIAL_SEED`. If the same allocation still admits work, the driver tests full-model
+nonpaged/paged capacity at microbatch/effective batch one, with recomputation.
+It does not submit extra allocations for this pressure pair.
 
 ## Disposable factorial integration
 
@@ -121,22 +129,24 @@ artifact. Never apply the entire QLoRA branch to the primary optimizer branch.
 Training uses the unchanged package/config/probe from
 `ad88888d500903a36c89da37a84e4bcd8176f9d3` and wheel SHA256
 `a1f8c9fcc4afca317bb8147a37345d42d269baf93da91293bdcf410f90b5b049`.
-Workflow source `2762d6d30d4703e156faea7c967d3545ba989d3d` changes scoring and
-recovery scheduling only; its archive SHA256 is
-`7fb7087c049c48582e3df1ce7a87d2a62e360f14c9bc30c529cc69b9d4672d8d`.
-Keeping the training build identity is justified by the byte-identical runtime
-package, configuration and probe, not by relaxing resume identity validation.
+Workflow source `0c0914a7c06b3de2dbae199bc36350af6f4824e1` adds final scoring,
+recovery and whole-seed scheduling. Its archive SHA256 is
+`4e5a1ae4220459f21c4e5e21ac07ada1799c86a8ea55daf748e29ce4b568026c`.
+The installed training wheel, configuration and probe retain the recorded training
+identity. The archive also includes a dataclass field-order compatibility fix;
+the immutable wheel takes precedence for runtime package imports.
 
 From the disposable integration worktree, with the shared variables above:
 
 ```sh
-export SOURCE_ARCHIVE="$CAMPAIGN/factorial-source-2762d6d.tgz"
+export SOURCE_ARCHIVE="$CAMPAIGN/factorial-source-0c0914a.tgz"
 export RESULTS="$CAMPAIGN/factorial-clean-v4"
 export SCORE_DATA="$CAMPAIGN/final-v5.jsonl"
 export WHEEL="$CAMPAIGN/factorial-build-da43258/cosmos_framework-1.2.2-py3-none-any.whl"
 export COSMOS_TRAINING_CODE_REVISION=ad88888d500903a36c89da37a84e4bcd8176f9d3
 export COSMOS_TRAINING_WHEEL_SHA256=a1f8c9fcc4afca317bb8147a37345d42d269baf93da91293bdcf410f90b5b049
-export FACTORIAL_CANARY=0 WORK_SECONDS=2200
+export FACTORIAL_CANARY=0 FACTORIAL_SEED_ONLY=29 WORK_SECONDS=2200
+export EXPECTED_GPU_NAME="NVIDIA A100-SXM4-80GB"
 sbatch --time=40 --nodelist=batch-block1-2092 \
   --output="$RESULTS/slurm-%j.out" --error="$RESULTS/slurm-%j.err" \
   tools/quantized_optimizers/factorial.sbatch
@@ -148,6 +158,10 @@ Native full checkpoints at updates 8 and 16 enable fresh-process continuation;
 the next eight updates, tensors, optimizer metadata, scheduler, cursor and RNG
 are compared bitwise. Completed training is reused for final scoring. Old
 development scores and their completion markers are preserved separately.
+`FACTORIAL_SCORE_ONLY=1` runs frozen references, recovery and final scoring of
+already-completed cells without starting new training. Do not run this concurrently
+with a factorial training driver: both own the same global reference/recovery paths.
+Unset `FACTORIAL_SEED_ONLY` for this scoring phase.
 
 ## Budget, collection and analysis
 
@@ -156,7 +170,9 @@ are 240 mainline GPU-minutes, 170 factorial minutes, 30 capacity minutes,
 1,017 seconds of earlier compatibility allocations and a conservative 15 local
 GPU-minutes. Their sum is 471.95 minutes. Amendments in the plan files preserve
 the original limits and reasons; no quality/performance threshold changed.
-There are at most two concurrent phase allocations, on distinct fixed nodes.
+There are at most two concurrent phase allocations, on distinct nodes. Partially
+completed paired seeds stay on their original node; only complete unstarted seed
+groups move to another verified A100.
 
 Before each submission, query `sacct -X` for owned job IDs. Charge terminal elapsed
 GPU time, and reserve the **full** wall limits of running/pending allocations.

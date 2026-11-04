@@ -5,7 +5,7 @@
 SFT_MODEL_PATH and SFT_DATA_ROOT identify immutable local artifacts. Override
 rl.optimizer.name=adamw rl.optimizer.impl=fused
 rl.optimizer.bnb_min_8bit_size=4096 for the high-precision control,
-or rl.optimizer.name=paged_adamw_8bit for the capacity mode. Train the last eight
+or rl.optimizer.name=paged_adamw_8bit for the capacity mode. Train the eight selected
 decoder blocks (about 1.54B parameters), with frozen ordinary base weights. The
 measured A100 80GB workload uses microbatch four and eight 256x480 video frames.
 This recipe is not a speed or quality-gain claim. Enable rl.save_every explicitly
