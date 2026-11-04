@@ -3,7 +3,8 @@
 """Single-device SFT; ordinary FP32 trainables and BF16 autocast, no weight quantization.
 
 SFT_MODEL_PATH and SFT_DATA_ROOT identify immutable local artifacts. Override
-rl.optimizer.name=adamw rl.optimizer.impl=fused for the high-precision control,
+rl.optimizer.name=adamw rl.optimizer.impl=fused
+rl.optimizer.bnb_min_8bit_size=4096 for the high-precision control,
 or rl.optimizer.name=paged_adamw_8bit for the capacity mode. Train the last eight
 decoder blocks (about 1.54B parameters), with frozen ordinary base weights. The
 measured A100 80GB workload uses microbatch four and eight 256x480 video frames.

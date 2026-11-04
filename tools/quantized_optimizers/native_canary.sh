@@ -42,7 +42,7 @@ for arm in "${arms[@]}"; do
   fi
   micro=${MICRO_OVERRIDE:-$micro}; accum=${ACCUM_OVERRIDE:-$accum}
   if [[ "${CALIBRATING:-0}" == 1 && "$arm" != adamw ]]; then extra=(rl.optimizer.bnb_min_8bit_size=16384); fi
-  if [[ "$arm" == adamw ]]; then impl=fused; fi
+  if [[ "$arm" == adamw ]]; then impl=fused; extra=(rl.optimizer.bnb_min_8bit_size=4096); fi
   date -u +%FT%TZ > "$RESULTS/$arm.start"
   if [[ -n "${SLURM_JOB_GPUS:-}" ]]; then
     nvidia-smi --id="$SLURM_JOB_GPUS" --query-gpu=timestamp,index,memory.used,memory.total,utilization.gpu,power.draw --format=csv --loop-ms=250 > "$RESULTS/$arm.device_samples.csv" 2> "$RESULTS/$arm.device_samples.err" &
