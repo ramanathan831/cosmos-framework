@@ -1,0 +1,56 @@
+{
+  "records": {
+    "d35aa73922d89357996dfd72129731cd8b9a5879": {
+      "training_tree": "00a490d3f09bfd00b8be96f4d23f8429cd321db3",
+      "launch_function_sha256": "861a0e45dbedcabab9b8abbcd3d28e661dfb0fcdb066bb48a355689c3a3eefa5",
+      "scoring_functions": {
+        "score_prediction": "357d7b3161f69af31492b45a7c931f38525a133db4f62273d600621d023ec625",
+        "score_answer": "a24c56f9a82e8504a8866feb81b8c65ab237fde86ee5444051101d565f21e40f",
+        "evaluate_row": "31d0d76ab5ea8d025c4f26f84c553c98fc01cb1f648bc6d316d7d967a5c64dc2",
+        "aggregate": "49c154647a09c36c75cceaf8a0ee63f7e56366afb7df84091d8d1688e2be7ff0",
+        "answer_alignment": "9a65dfc30b4be576f4ca3572c1f604b4b4faa09c59c5466976f93fb85cb41506",
+        "validate_wts": "831975f8be844d299145642d3f69dfc93b595e2295074e5efe4582aa9d952755"
+      }
+    },
+    "f54620d587793b5325151744bc3e4d39b4fb9026": {
+      "training_tree": "00a490d3f09bfd00b8be96f4d23f8429cd321db3",
+      "launch_function_sha256": "861a0e45dbedcabab9b8abbcd3d28e661dfb0fcdb066bb48a355689c3a3eefa5",
+      "scoring_functions": {
+        "score_prediction": "357d7b3161f69af31492b45a7c931f38525a133db4f62273d600621d023ec625",
+        "score_answer": "a24c56f9a82e8504a8866feb81b8c65ab237fde86ee5444051101d565f21e40f",
+        "evaluate_row": "31d0d76ab5ea8d025c4f26f84c553c98fc01cb1f648bc6d316d7d967a5c64dc2",
+        "aggregate": "49c154647a09c36c75cceaf8a0ee63f7e56366afb7df84091d8d1688e2be7ff0",
+        "answer_alignment": "9a65dfc30b4be576f4ca3572c1f604b4b4faa09c59c5466976f93fb85cb41506",
+        "validate_wts": "831975f8be844d299145642d3f69dfc93b595e2295074e5efe4582aa9d952755"
+      }
+    }
+  },
+  "verified_identical": true,
+  "scope": "Native package tree, native training launch definition and scoring mathematics unchanged. Only post-training stage scheduling and sequential scoring file reads changed.",
+  "archive_records": {
+    "3fcbd420955c16472bbf65b5dd4014ef5437cdfaa468ba23483c8253cc5e5853": {
+      "training_tree": "00a490d3f09bfd00b8be96f4d23f8429cd321db3",
+      "launch_function_sha256": "861a0e45dbedcabab9b8abbcd3d28e661dfb0fcdb066bb48a355689c3a3eefa5",
+      "scoring_functions": {
+        "score_prediction": "357d7b3161f69af31492b45a7c931f38525a133db4f62273d600621d023ec625",
+        "score_answer": "a24c56f9a82e8504a8866feb81b8c65ab237fde86ee5444051101d565f21e40f",
+        "evaluate_row": "31d0d76ab5ea8d025c4f26f84c553c98fc01cb1f648bc6d316d7d967a5c64dc2",
+        "aggregate": "49c154647a09c36c75cceaf8a0ee63f7e56366afb7df84091d8d1688e2be7ff0",
+        "answer_alignment": "9a65dfc30b4be576f4ca3572c1f604b4b4faa09c59c5466976f93fb85cb41506",
+        "validate_wts": "831975f8be844d299145642d3f69dfc93b595e2295074e5efe4582aa9d952755"
+      }
+    },
+    "cf80408ab05fd7e841e02e6b713dd7979ae10c3508eefd4a38b0c14495347e01": {
+      "training_tree": "00a490d3f09bfd00b8be96f4d23f8429cd321db3",
+      "launch_function_sha256": "861a0e45dbedcabab9b8abbcd3d28e661dfb0fcdb066bb48a355689c3a3eefa5",
+      "scoring_functions": {
+        "score_prediction": "357d7b3161f69af31492b45a7c931f38525a133db4f62273d600621d023ec625",
+        "score_answer": "a24c56f9a82e8504a8866feb81b8c65ab237fde86ee5444051101d565f21e40f",
+        "evaluate_row": "31d0d76ab5ea8d025c4f26f84c553c98fc01cb1f648bc6d316d7d967a5c64dc2",
+        "aggregate": "49c154647a09c36c75cceaf8a0ee63f7e56366afb7df84091d8d1688e2be7ff0",
+        "answer_alignment": "9a65dfc30b4be576f4ca3572c1f604b4b4faa09c59c5466976f93fb85cb41506",
+        "validate_wts": "831975f8be844d299145642d3f69dfc93b595e2295074e5efe4582aa9d952755"
+      }
+    }
+  }
+}

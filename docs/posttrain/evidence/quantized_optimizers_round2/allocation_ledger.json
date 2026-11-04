@@ -85,20 +85,22 @@
     {
       "job": "37950871",
       "phase": "seed29six paired native runs and final scoring",
-      "state": "RUNNING",
-      "wall_reservation_seconds": 2600,
+      "state": "FAILED",
       "gpus": 1,
       "source": "d35aa73",
-      "node": "batch-block4-1051"
+      "node": "batch-block4-1051",
+      "gpu_seconds": 2528,
+      "failure": "qualification launcher deadline; all six training runs and repeat hashes complete, committed score subsets retained"
     },
     {
       "job": "37950908",
       "phase": "seed17six paired native runs and final scoring",
-      "state": "RUNNING",
-      "wall_reservation_seconds": 2600,
+      "state": "FAILED",
       "gpus": 1,
       "source": "d35aa73",
-      "node": "batch-block4-1034"
+      "node": "batch-block4-1034",
+      "gpu_seconds": 2521,
+      "failure": "qualification launcher deadline; all six training runs and repeat hashes complete, committed score subsets retained"
     },
     {
       "job": "37951393",
@@ -111,17 +113,54 @@
     {
       "job": "37951607",
       "phase": "seed43six paired native runs and final scoring",
-      "state": "PENDING",
+      "state": "CANCELLED",
       "dependency": "afterok:37950871",
-      "wall_reservation_seconds": 2600,
       "gpus": 1,
       "source": "d35aa73",
-      "excluded_other_active_node": "batch-block4-1034"
+      "excluded_other_active_node": "batch-block4-1034",
+      "gpu_seconds": 0,
+      "reason": "unstarted third seed held while dependent evaluation scheduling was repaired"
+    },
+    {
+      "job": "37952083",
+      "phase": "seed43 unchanged training only",
+      "gpus": 1,
+      "wall_reservation_seconds": 2000,
+      "dependency": null,
+      "state": "PENDING",
+      "source": "f54620d"
+    },
+    {
+      "job": "37952084",
+      "phase": "seed17 remaining committed task score",
+      "gpus": 1,
+      "wall_reservation_seconds": 250,
+      "dependency": null,
+      "state": "PENDING",
+      "source": "f54620d"
+    },
+    {
+      "job": "37952088",
+      "phase": "seed43 CPU checkpoint verification",
+      "gpus": 0,
+      "wall_reservation_seconds": 420,
+      "dependency": "afterok:37952083",
+      "state": "PENDING",
+      "source": "f54620d"
+    },
+    {
+      "job": "37952090",
+      "phase": "seed43 final task scoring",
+      "gpus": 1,
+      "wall_reservation_seconds": 400,
+      "dependency": "afterok:37952088",
+      "state": "PENDING",
+      "source": "f54620d"
     }
   ],
   "unsubmitted_seed_reservations": {},
-  "admitted_gpu_seconds_including_all_planned_seeds_and_local_reserve": 8887,
-  "admitted_cpu_wall_seconds": 1365,
+  "admitted_gpu_seconds_including_all_planned_seeds_and_local_reserve": 8786,
+  "admitted_cpu_wall_seconds": 1785,
   "rule": "Refresh terminal actuals and full nonterminal reservations before any new admission; retain all failures.",
   "reservation_adjustment": "Retain438GPU-seconds of launcher/control failures; reserve720 for strict canary,2600for each unchanged six-run seed group,42local. Total9000unchanged. Any returned allocation time stays available for dependent checks."
 }

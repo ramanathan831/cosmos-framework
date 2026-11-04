@@ -33,7 +33,12 @@ def main():
     exposures, runtimes = {}, {}
     model_files = None
     for seed in SEEDS:
-        runtime_paths = [k for k in raw if k.startswith(f"seed{seed}/runtime-")]
+        runtime_paths = [
+            k
+            for k in raw
+            if k.startswith(f"seed{seed}/runtime-")
+            and json.loads(raw[k]).get("mode", "trials") in ("trials", "train_only")
+        ]
         if len(runtime_paths) != 1:
             raise ValueError("seed group must have exactly one allocation identity")
         runtimes[seed] = json.loads(raw[runtime_paths[0]])
@@ -118,7 +123,10 @@ def main():
                 if sum(x["supervised_tokens"] for x in exposure) != runs[seed, restart, arm]["supervised_tokens"]:
                     raise ValueError("actual supervised token count differs from reconstructed native exposure")
     if len({v["source_archive_sha256"] for v in runtimes.values()}) != 1:
-        raise ValueError("comparison seeds used different training source archives")
+        compatibility = json.loads(raw["source_compatibility.json"])
+        records = [compatibility["archive_records"][v["source_archive_sha256"]] for v in runtimes.values()]
+        if not compatibility["verified_identical"] or len({json.dumps(v, sort_keys=True) for v in records}) != 1:
+            raise ValueError("comparison sources changed native training or launch code")
     if len({json.dumps(v["versions"], sort_keys=True) for v in runtimes.values()}) != 1:
         raise ValueError("comparison seeds used different dependencies")
     paired = {}
@@ -199,6 +207,13 @@ def main():
             prefix = f"seed{seed}/final_{arm}/"
             final[seed, arm] = json.loads(raw[prefix + "summary.json"])
             score_rows[seed, arm] = [json.loads(line) for line in raw[prefix + "scores.jsonl"].splitlines()]
+            expected_checkpoint = json.loads(raw[f"seed{seed}/restart0_{arm}/complete.json"])["checkpoint"]
+            if (
+                not final[seed, arm]["complete"]
+                or final[seed, arm]["checkpoint"] != expected_checkpoint
+                or final[seed, arm]["seed"] != seed
+            ):
+                raise ValueError("final score commit is incomplete or belongs to another checkpoint/seed")
     frozen = [json.loads(line) for line in raw["seed17/final_frozen/scores.jsonl"].splitlines()]
     ids = [row["id"] for row in frozen]
     for rows in score_rows.values():
