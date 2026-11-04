@@ -281,6 +281,10 @@ def main():
         "state_saving": saving >= 0.6,
         "equal_wall_budget_quality_gain": paired["launch_seconds"]["equal_budget_quality_gain_gate"],
     }
+    unresolved_release_evidence = [
+        "No historically untouched evaluation pool was supplied; approved reused groups support this disclosed comparison only.",
+        "Equal-time quality uses development validation checkpoints; final task scores exist at matched update40, not at both arms' equal-time stopping points.",
+    ]
     report = {
         "complete_runs": len(runs),
         "paired_seeds": 3,
@@ -300,7 +304,9 @@ def main():
         "exposure": exposures,
         "runtimes": runtimes,
         "gates": gates,
-        "release_qualified": all(gates.values()),
+        "numeric_gates_pass": all(gates.values()),
+        "unresolved_release_evidence": unresolved_release_evidence,
+        "release_qualified": all(gates.values()) and not unresolved_release_evidence,
         "runs": list(runs.values()),
         "final_metrics": {f"seed{s}_{a}": v["metrics"] for (s, a), v in final.items()},
         "limitations": [
