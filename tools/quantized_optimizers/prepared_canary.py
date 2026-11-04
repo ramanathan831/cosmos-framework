@@ -22,9 +22,15 @@ def capture(config, rl, data, validation, checkpoint):
         captured["update_probes"] = []
 
         def probe(optimizer, _args, _kwargs):
-            captured["update_probes"].append(
-                {"step": int(optimizer.state[parameter]["step"]), "name": name, "sha256": tensor_digest(parameter)}
-            )
+            record = {"step": int(optimizer.state[parameter]["step"]), "name": name, "sha256": tensor_digest(parameter)}
+            previous = captured["update_probes"]
+            # Torch can wrap both the upstream step and Cosmos's overriding step.
+            # Require their views of the same clock to agree, recording it once.
+            if previous and previous[-1]["step"] == record["step"]:
+                if previous[-1] != record:
+                    raise RuntimeError("optimizer wrapper changed a parameter after its inner update")
+            else:
+                previous.append(record)
 
         captured["probe_handle"] = trainer.opt.register_step_post_hook(probe)
     return trainer
