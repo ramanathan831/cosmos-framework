@@ -174,6 +174,8 @@ class SFTConfig(HFRunConfig):
     # before the shares are formed; ``local`` balances each rank's own batch).
     moe_lbl_coeff: float = 0.0
     moe_lbl_method: str = "global"
+    # An immutable corpus built with the same native CPU packer; empty keeps raw processing.
+    prepared_corpus: str = ""
 
     def __post_init__(self) -> None:
         super().__post_init__()
@@ -183,6 +185,8 @@ class SFTConfig(HFRunConfig):
             if type(value) is not int or value < minimum:
                 raise ValueError(f"SFT {name} must be an integer >= {minimum}")
         self.lr_schedule.__post_init__()
+        if not isinstance(self.prepared_corpus, str):
+            raise TypeError("SFT prepared_corpus must be a path string")
         if (
             isinstance(self.ce_exponent, bool)
             or not isinstance(self.ce_exponent, (int, float))

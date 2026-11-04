@@ -167,6 +167,16 @@ def build_trainer(config: Any, rl: SFTConfig, data: Any, validation: Any | None,
         ),
         "SFT tokenizer/processor setup",
     )
+    prepared = None
+    if rl.prepared_corpus:
+        from cosmos_framework.posttrain.data.packer.prepared_sft import attach_prepared_corpus
+
+        prepared = run_rank_converged(
+            lambda: attach_prepared_corpus(
+                packer, rl.prepared_corpus, [source.dataset for source in (data, validation) if source is not None]
+            ),
+            "SFT prepared corpus verification",
+        )
     objective = make_objective(
         packer,
         ce_exponent=rl.ce_exponent,
@@ -181,6 +191,7 @@ def build_trainer(config: Any, rl: SFTConfig, data: Any, validation: Any | None,
         "grad_accum": rl.grad_accum,
         "dp_world": world_size_or_1(),
         "precision": asdict(resolve_precision(config)),
+        **({"prepared_corpus": prepared.identity} if prepared is not None else {}),
     }
     misc.set_random_seed(seed=rl.seed, by_rank=False)
     model = build_backbone(config)

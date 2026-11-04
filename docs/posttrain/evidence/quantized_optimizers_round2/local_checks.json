@@ -1,0 +1,7 @@
+{
+  "environment": "local Python3.13 Torch2.10 Transformers4.57.6; no torchvision",
+  "initial_regression": {"passed": 49, "skipped": 3, "failed": 2, "cause": "preexisting test_config_sft fixture root points above standalone clone"},
+  "after_fixture_root_fix": {"passed": 50, "skipped": 3, "failed": 1, "cause": "fixture now found, local environment missing torchvision; pinned native CPU allocation will rerun"},
+  "prepared_corpus_tests": {"passed": 8, "gpu_evidence": false},
+  "gpu_seconds": 0
+}
