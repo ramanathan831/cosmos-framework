@@ -107,11 +107,19 @@
       "gpus": 0,
       "source": "dfde22d",
       "cpu_wall_seconds": 184
+    },
+    {
+      "job": "37951607",
+      "phase": "seed43six paired native runs and final scoring",
+      "state": "PENDING",
+      "dependency": "afterok:37950871",
+      "wall_reservation_seconds": 2600,
+      "gpus": 1,
+      "source": "d35aa73",
+      "excluded_other_active_node": "batch-block4-1034"
     }
   ],
-  "unsubmitted_seed_reservations": {
-    "43": 2600
-  },
+  "unsubmitted_seed_reservations": {},
   "admitted_gpu_seconds_including_all_planned_seeds_and_local_reserve": 8887,
   "admitted_cpu_wall_seconds": 1365,
   "rule": "Refresh terminal actuals and full nonterminal reservations before any new admission; retain all failures.",
