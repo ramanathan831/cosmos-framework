@@ -29,9 +29,9 @@ if pressure_arm:
     settings = [setting for setting in settings if setting[1] == pressure_arm]
 for checkpointing, arm, pressure in settings:
     for micro in (1,) if pressure else (4, 2, 1):
-        # Measured full-model pressure attempts take under three minutes each;
-        # keep a four-minute reserve. The broader batch search retains eight.
-        reserve = 240 if pressure else 480
+        # Cold model loading made a pressure attempt exceed six minutes despite
+        # earlier sub-three-minute attempts. Reserve eight minutes for either path.
+        reserve = 480
         if limit - (time.monotonic() - started) < reserve:
             (root / "pending.json").write_text(
                 json.dumps({"arm": arm, "checkpointing": checkpointing, "micro": micro, "native_pressure": pressure})

@@ -312,7 +312,7 @@ def main():
     axes[2].set(
         xlabel="Sampled process GPU peak GiB (NVML)",
         ylabel="Training video sequences/s",
-        title="Process samples after updates; peaks are lower bounds",
+        title="Post-update process samples; not total paged residency",
     )
     axes[0].set(
         xlabel="Training + validation seconds (initialization excluded)",

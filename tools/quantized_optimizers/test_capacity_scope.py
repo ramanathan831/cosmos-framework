@@ -50,3 +50,15 @@ def test_invalid_pressure_scope_refused_before_launch(tmp_path, monkeypatch, pre
     monkeypatch.setenv("CAPACITY_PRESSURE_ARM", arm)
     with pytest.raises(ValueError, match="CAPACITY_PRESSURE_ARM"):
         runpy.run_path(str(Path(__file__).with_name("capacity_followup.py")), run_name="__main__")
+
+
+def test_cold_pressure_attempt_requires_full_reserve(tmp_path, monkeypatch):
+    monkeypatch.setenv("RESULTS", str(tmp_path))
+    monkeypatch.setenv("CAPACITY_PRESSURE_ONLY", "1")
+    monkeypatch.setenv("CAPACITY_PRESSURE_ARM", "paged_adamw_8bit")
+    monkeypatch.setenv("WORK_SECONDS", "450")
+    with pytest.raises(SystemExit) as stopped:
+        runpy.run_path(str(Path(__file__).with_name("capacity_followup.py")), run_name="__main__")
+    assert stopped.value.code == 0
+    assert json.loads((tmp_path / "pending.json").read_text())["arm"] == "paged_adamw_8bit"
+    assert not (tmp_path / "complete.json").exists()
