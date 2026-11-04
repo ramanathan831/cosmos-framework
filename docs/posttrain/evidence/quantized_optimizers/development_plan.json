@@ -44,7 +44,7 @@
   "precision_exception_rationale": "FP32 states for small norm tensors cost little memory; no changed weight storage or invented master copies",
   "stop_conditions": [
     "OOM or correctness failure: stop dependent comparisons, fix and reassess",
-    "Do not exceed five more 30-minute allocations, 180 development GPU minutes including failures, or the overall eight GPU-hour campaign budget",
+    "Do not exceed eight post-calibration slots, 180 development GPU minutes including failures, or the overall eight GPU-hour campaign budget; reserve pending/active jobs at their full wall limits before admitting another.",
     "never reinterpret reused groups as final test data"
   ],
   "capacity_selection": "Before substantive training, try descending microbatches 4,2,1 separately for each arm; retain OOM failures, abort on other failures. Same effective batch 4 and model/data/precision. Freeze chosen batches across seeds; never select using quality outcomes.",
@@ -55,8 +55,8 @@
     "max": 1048576
   },
   "media_amendment": "Before any full comparison, actual capacity telemetry showed inherited settings produced 64x96 frames. Cancel unallocated replacement 37930554 (zero GPU hours); repeat calibration with larger media budget and verify actual shapes before substantive training. Original low-resolution probes remain diagnostic evidence.",
-  "max_new_gpu_allocations": 6,
-  "allocation_accounting": "Failed calibration 37929866 consumed 673 GPU-seconds. Canceled pending job 37930554 consumed zero. At most five subsequent 30-minute allocations: the original three-GPU-hour development ceiling and eight-GPU-hour campaign ceiling are unchanged.",
+  "max_new_gpu_allocations": 9,
+  "allocation_accounting": "Failed calibration and failed/partial trials count against 180 GPU minutes. Terminal jobs use actual charged elapsed time; active/pending jobs reserve their full wall limits. Original five-slot packaging is retained in amendment history; additional slots can use only returned unused time for the same nine trials.",
   "actual_shape_canary_gate": {
     "temporal_grid_min": 4,
     "spatial_patch_product_min": 128,
@@ -65,7 +65,10 @@
     "scope": "all capacity canary training forwards/updates; full-run shapes/counts reported without extrapolation"
   },
   "max_development_gpu_minutes": 180,
-  "allocation_amendment": "Before full comparisons, the one-hour normal job had no start estimate after extended priority queuing. Repack unused development GPU minutes into shorter serial slots; preserve all seeds, steps, rows, thresholds and failure accounting. Stop after five more allocations or 180 development GPU minutes, whichever occurs first.",
+  "allocation_amendment": "After slot3 showed variable model initialization can consume the second-arm admission window, allow at most eight post-calibration slots to complete the SAME nine preregistered trials. Before each new allocation, terminal charged GPU seconds plus full wall limits of active/pending allocations plus the proposed wall limit must remain <=180 development GPU minutes. Repack returned unused allocation time only; keep 8 total GPU hours, all seeds/data/steps/quality and speed thresholds unchanged.",
   "evaluation_authorization": "User: reuse the qlora train and eval. No numeric thresholds changed.",
-  "clock_correction": "Before any complete paired comparison: reserve 900 seconds instead of 600 before starting a fresh arm. The first allocation attempted a second arm with too little time; preserve it as failed if Slurm terminates it. Budget and numerical gates unchanged."
+  "clock_correction": "Before any complete paired comparison: reserve 900 seconds instead of 600 before starting a fresh arm. The first allocation attempted a second arm with too little time; preserve it as failed if Slurm terminates it. Budget and numerical gates unchanged.",
+  "allocation_amendments_history": [
+    "Before full comparisons, the one-hour normal job had no start estimate after extended priority queuing. Repack unused development GPU minutes into shorter serial slots; preserve all seeds, steps, rows, thresholds and failure accounting. Stop after five more allocations or 180 development GPU minutes, whichever occurs first."
+  ]
 }
