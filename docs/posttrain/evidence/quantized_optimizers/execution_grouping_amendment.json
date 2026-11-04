@@ -33,7 +33,8 @@
       "UsageFactor": 1.0,
       "PreemptMode": "OFF"
     },
-    "purpose": "Attended bounded single-node engineering qualification after extended normal-partition priority queueing. May move one owned pending allocation at a time; never alter other jobs or site limits.",
-    "unchanged": "Existing job IDs, immutable source and environment, GPU/node pairing,8CPUs,128GiB, GPU-hour budget, trial plan and numeric gates. Retain normal partition for an independent second phase if it starts."
+    "purpose": "Attended bounded single-node engineering qualification after extended normal-partition queueing. Add the permitted single-node partition alongside normal partitions, retaining site MaxJobsPerUser=1. Never alter other jobs or site limits.",
+    "unchanged": "Existing job IDs, immutable source and environment, GPU/node pairing,8CPUs,128GiB, GPU-hour budget, trial plan and numeric gates. Retain normal partition for an independent second phase if it starts.",
+    "node_filter": "Exclude every interactive-partition node outside the existing polar/grizzly node set. For unstarted capacity/scoring/seed43 also exclude both partially completed seed29 nodes. GPU-model preflight remains mandatory."
   }
 }
