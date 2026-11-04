@@ -1,0 +1,196 @@
+{
+  "source": "9eac5c7ec60c771d43ba270096563f9dce8f4645",
+  "job": "37939494",
+  "node": "batch-block4-2071",
+  "allocated_seconds": 898,
+  "driver_seconds": 829.5930502163246,
+  "attempts": [
+    {
+      "arm": "adamw",
+      "checkpointing": false,
+      "micro_batch": 4,
+      "accumulation": 1,
+      "native_pressure": false,
+      "train_keys": "[layers.16.,layers.17.,layers.18.,layers.19.,layers.20.,layers.21.,layers.22.,layers.23.,layers.24.,layers.25.,layers.26.,layers.27.,layers.28.,layers.29.,layers.30.,layers.31.]",
+      "returncode": 1,
+      "status": "oom",
+      "folder": "adamw-pressureFalse-checkpointingFalse-micro4",
+      "actual_optimizer_updates": 1,
+      "last_update_memory": {
+        "peak_allocated": 72160249344,
+        "peak_reserved": 84068532224,
+        "device_used": 75550097408,
+        "process_gpu_bytes": 74815897600,
+        "host_rss_kib": 2487532,
+        "state_bytes": 24697144000
+      }
+    },
+    {
+      "arm": "adamw",
+      "checkpointing": false,
+      "micro_batch": 2,
+      "accumulation": 2,
+      "native_pressure": false,
+      "train_keys": "[layers.16.,layers.17.,layers.18.,layers.19.,layers.20.,layers.21.,layers.22.,layers.23.,layers.24.,layers.25.,layers.26.,layers.27.,layers.28.,layers.29.,layers.30.,layers.31.]",
+      "returncode": 1,
+      "status": "oom",
+      "folder": "adamw-pressureFalse-checkpointingFalse-micro2",
+      "actual_optimizer_updates": 1,
+      "last_update_memory": {
+        "peak_allocated": 72161413120,
+        "peak_reserved": 84060143616,
+        "device_used": 79952019456,
+        "process_gpu_bytes": 79217819648,
+        "host_rss_kib": 2429064,
+        "state_bytes": 24697144000
+      }
+    },
+    {
+      "arm": "adamw",
+      "checkpointing": false,
+      "micro_batch": 1,
+      "accumulation": 4,
+      "native_pressure": false,
+      "train_keys": "[layers.16.,layers.17.,layers.18.,layers.19.,layers.20.,layers.21.,layers.22.,layers.23.,layers.24.,layers.25.,layers.26.,layers.27.,layers.28.,layers.29.,layers.30.,layers.31.]",
+      "returncode": 1,
+      "status": "oom",
+      "folder": "adamw-pressureFalse-checkpointingFalse-micro1",
+      "actual_optimizer_updates": 1,
+      "last_update_memory": {
+        "peak_allocated": 72160513024,
+        "peak_reserved": 78666268672,
+        "device_used": 80421781504,
+        "process_gpu_bytes": 79687581696,
+        "host_rss_kib": 2458176,
+        "state_bytes": 24697144000
+      }
+    },
+    {
+      "arm": "adamw_bnb_8bit",
+      "checkpointing": false,
+      "micro_batch": 4,
+      "accumulation": 1,
+      "native_pressure": false,
+      "train_keys": "[layers.16.,layers.17.,layers.18.,layers.19.,layers.20.,layers.21.,layers.22.,layers.23.,layers.24.,layers.25.,layers.26.,layers.27.,layers.28.,layers.29.,layers.30.,layers.31.]",
+      "returncode": 0,
+      "status": "pass",
+      "training_seconds": 14.806959482841194,
+      "folder": "adamw_bnb_8bit-pressureFalse-checkpointingFalse-micro4",
+      "actual_optimizer_updates": 2,
+      "last_update_memory": {
+        "peak_allocated": 70576666112,
+        "peak_reserved": 75512152064,
+        "device_used": 77267664896,
+        "process_gpu_bytes": 76533465088,
+        "host_rss_kib": 2555868,
+        "state_bytes": null
+      },
+      "state": {
+        "trainable_elements": 3087142912,
+        "quantized_elements": 3087007744,
+        "fp32_elements": 135168,
+        "moment_bytes": 6175096832,
+        "metadata_bytes": 96471040,
+        "paged_moment_bytes": 0,
+        "uninitialized_elements": 0
+      }
+    },
+    {
+      "arm": "adamw",
+      "checkpointing": true,
+      "micro_batch": 4,
+      "accumulation": 1,
+      "native_pressure": false,
+      "train_keys": "[layers.16.,layers.17.,layers.18.,layers.19.,layers.20.,layers.21.,layers.22.,layers.23.,layers.24.,layers.25.,layers.26.,layers.27.,layers.28.,layers.29.,layers.30.,layers.31.]",
+      "returncode": 0,
+      "status": "pass",
+      "training_seconds": 15.5019890954718,
+      "folder": "adamw-pressureFalse-checkpointingTrue-micro4",
+      "actual_optimizer_updates": 2,
+      "last_update_memory": {
+        "peak_allocated": 74325210112,
+        "peak_reserved": 76244058112,
+        "device_used": 77999570944,
+        "process_gpu_bytes": 77265371136,
+        "host_rss_kib": 2446676,
+        "state_bytes": 24697144000
+      }
+    },
+    {
+      "arm": "adamw_bnb_8bit",
+      "checkpointing": true,
+      "micro_batch": 4,
+      "accumulation": 1,
+      "native_pressure": false,
+      "train_keys": "[layers.16.,layers.17.,layers.18.,layers.19.,layers.20.,layers.21.,layers.22.,layers.23.,layers.24.,layers.25.,layers.26.,layers.27.,layers.28.,layers.29.,layers.30.,layers.31.]",
+      "returncode": 0,
+      "status": "pass",
+      "training_seconds": 15.51836886908859,
+      "folder": "adamw_bnb_8bit-pressureFalse-checkpointingTrue-micro4",
+      "actual_optimizer_updates": 2,
+      "last_update_memory": {
+        "peak_allocated": 55907799552,
+        "peak_reserved": 57061408768,
+        "device_used": 58816921600,
+        "process_gpu_bytes": 58082721792,
+        "host_rss_kib": 2568728,
+        "state_bytes": null
+      },
+      "state": {
+        "trainable_elements": 3087142912,
+        "quantized_elements": 3087007744,
+        "fp32_elements": 135168,
+        "moment_bytes": 6175096832,
+        "metadata_bytes": 96471040,
+        "paged_moment_bytes": 0,
+        "uninitialized_elements": 0
+      }
+    },
+    {
+      "arm": "adamw_bnb_8bit",
+      "checkpointing": true,
+      "micro_batch": 1,
+      "accumulation": 1,
+      "native_pressure": true,
+      "train_keys": "[]",
+      "returncode": 1,
+      "status": "oom",
+      "folder": "adamw_bnb_8bit-pressureTrue-checkpointingTrue-micro1",
+      "actual_optimizer_updates": 0,
+      "oom_stage": "optimizer moment allocation"
+    },
+    {
+      "arm": "paged_adamw_8bit",
+      "checkpointing": true,
+      "micro_batch": 1,
+      "accumulation": 1,
+      "native_pressure": true,
+      "train_keys": "[]",
+      "returncode": 1,
+      "status": "oom",
+      "folder": "paged_adamw_8bit-pressureTrue-checkpointingTrue-micro1",
+      "actual_optimizer_updates": 2,
+      "last_update_memory": {
+        "peak_allocated": 74831132672,
+        "peak_reserved": 80348184576,
+        "device_used": 85897445376,
+        "process_gpu_bytes": 81371594752,
+        "host_rss_kib": 2524408,
+        "state_bytes": null
+      },
+      "state": {
+        "trainable_elements": 8767123696,
+        "quantized_elements": 8766353408,
+        "fp32_elements": 770288,
+        "moment_bytes": 17538869120,
+        "metadata_bytes": 273950592,
+        "paged_moment_bytes": 17532706816,
+        "uninitialized_elements": 0
+      },
+      "oom_stage": "held-out validation after two applied updates; completed gradients retained"
+    }
+  ],
+  "speed_claim": false,
+  "reason": "Two-update capacity/profile canary, no three-seed matched-quality qualification",
+  "follow_up": "Separate pressure rerun after native validation releases completed gradients; old failures retained."
+}

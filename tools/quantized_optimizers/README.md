@@ -129,6 +129,15 @@ Set `TRAIN_KEYS` explicitly to blocks16–31 and unset `DEVELOPMENT_DRIVER` and
 nonpaged/paged capacity at microbatch/effective batch one, with recomputation.
 It does not submit extra allocations for this pressure pair.
 
+The original full-model paged attempt completed two updates but OOMed during
+validation while completed gradients remained live. A separate mainline fix
+releases gradients at the completed boundary before native SFT validation. Its
+scoped rerun uses `db4ba624eef8c2809a59533633ec6b73197cc43f`,
+`CAPACITY_PRESSURE_ONLY=1`, `CAPACITY_FOLLOWUP=1`, `WORK_SECONDS=780` and a
+15-minute wall limit on the same A100 node. Original capacity charged 898 seconds;
+898 + 900 remains within the unchanged 1,800-second capacity ceiling. It reruns
+only the nonpaged/paged full-model pair; the earlier failures remain evidence.
+
 ## Disposable factorial integration
 
 The primary feature does not contain the QLoRA branch. The separate integration
@@ -140,10 +149,10 @@ artifact. Never apply the entire QLoRA branch to the primary optimizer branch.
 Training uses the unchanged package/config/probe from
 `ad88888d500903a36c89da37a84e4bcd8176f9d3` and wheel SHA256
 `a1f8c9fcc4afca317bb8147a37345d42d269baf93da91293bdcf410f90b5b049`.
-Workflow source `6f195a77ba8376f944928ac922c4f1693f6f8ff0` adds final scoring,
+Workflow source `fe7929c7a2fbfa34da119546f8479d728f933a9e` adds final scoring,
 recovery, whole-seed scheduling and separate admission reserves: 900 seconds
 for training, 420 seconds for scoring. Prior scoring took 122–161 seconds. Its archive SHA256 is
-`8626da2a583ade32bc04e7142d1e6d288dd37d04060696812ec71d56ea4de378`.
+`8bb9f911cdbe91a6ec74bf5ebd255b45df58fdf4a9eacdbfd89d6435f523f314`.
 The installed training wheel, configuration and probe retain the recorded training
 identity. The archive also includes a dataclass field-order compatibility fix;
 the immutable wheel takes precedence for runtime package imports.
@@ -151,7 +160,7 @@ the immutable wheel takes precedence for runtime package imports.
 From the disposable integration worktree, with the shared variables above:
 
 ```sh
-export SOURCE_ARCHIVE="$CAMPAIGN/factorial-source-6f195a7.tgz"
+export SOURCE_ARCHIVE="$CAMPAIGN/factorial-source-fe7929c.tgz"
 export RESULTS="$CAMPAIGN/factorial-clean-v4"
 export SCORE_DATA="$CAMPAIGN/final-v5.jsonl"
 export WHEEL="$CAMPAIGN/factorial-build-da43258/cosmos_framework-1.2.2-py3-none-any.whl"
@@ -168,7 +177,11 @@ The four-cell canary (`FACTORIAL_CANARY=1`) must pass first. Full comparisons us
 three seeds and BF16/NF4 bases crossed with fused FP32/nonpaged eight-bit states.
 Native full checkpoints at updates 8 and 16 enable fresh-process continuation;
 the next eight updates, tensors, optimizer metadata, scheduler, cursor and RNG
-are compared bitwise. Completed training is reused for final scoring. Old
+are compared bitwise. Set `rl.keep_optim_last=0`: the default consolidated retention
+prunes older optimizer components. The workflow now sets this explicitly. Where
+the original midpoint was already pruned, a separate correctness-only 16-update
+reference replay must match the original final model/moments/data before its
+retained midpoint is eligible. These repeats never replace quality/timing trials. Completed training is reused for final scoring. Old
 development scores and their completion markers are preserved separately.
 `FACTORIAL_SCORE_ONLY=1` runs frozen references, recovery and final scoring of
 already-completed cells without starting new training. Do not run this concurrently

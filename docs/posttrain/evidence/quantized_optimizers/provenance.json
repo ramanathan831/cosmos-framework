@@ -316,10 +316,11 @@
       "phase": "capacity",
       "source": "9eac5c7",
       "allocation_minutes": 30,
-      "state": "RUNNING",
+      "state": "COMPLETED",
       "dependency": null,
       "node": "batch-block4-2071",
-      "partition": "interactive_singlenode"
+      "partition": "interactive_singlenode",
+      "elapsed_gpu_seconds": 898
     },
     {
       "job": "37939490",
@@ -359,9 +360,11 @@
       "phase": "recording-clean mainline seed43",
       "source": "0e8e3a2",
       "allocation_minutes": 55,
-      "state": "PENDING",
+      "state": "CANCELLED",
       "dependency": "afterok:37942458",
-      "node": "eligible A100 in polar/grizzly; excludes original campaign nodes"
+      "node": "eligible A100 in polar/grizzly; excludes original campaign nodes",
+      "elapsed_gpu_seconds": 0,
+      "reason": "Scheduler canceled invalid afterok dependency when recovery preflight detected pruned optimizer checkpoint."
     },
     {
       "job": "37939879",
@@ -385,9 +388,11 @@
       "allocation_minutes": 45,
       "node": "eligible A100 in polar/grizzly; excludes original campaign nodes",
       "dependency": "afterok:37939494",
-      "state": "PENDING",
+      "state": "FAILED",
       "source": "6f195a77ba8376f944928ac922c4f1693f6f8ff0",
-      "archive_sha256": "8626da2a583ade32bc04e7142d1e6d288dd37d04060696812ec71d56ea4de378"
+      "archive_sha256": "8626da2a583ade32bc04e7142d1e6d288dd37d04060696812ec71d56ea4de378",
+      "elapsed_gpu_seconds": 274,
+      "reason": "Both final frozen references scored successfully; recovery refused missing update8 optimizer pruned by default retention. Preserve failure; reproduce reference separately with retention0, never invent optimizer state."
     },
     {
       "job": "37942471",
@@ -395,9 +400,47 @@
       "allocation_minutes": 40,
       "node": "batch-block1-2092",
       "dependency": "afterok:37942458:37939266",
-      "state": "PENDING",
+      "state": "CANCELLED",
       "source": "6f195a77ba8376f944928ac922c4f1693f6f8ff0",
-      "archive_sha256": "8626da2a583ade32bc04e7142d1e6d288dd37d04060696812ec71d56ea4de378"
+      "archive_sha256": "8626da2a583ade32bc04e7142d1e6d288dd37d04060696812ec71d56ea4de378",
+      "elapsed_gpu_seconds": 0,
+      "reason": "Scheduler canceled invalid afterok dependency when recovery preflight detected pruned optimizer checkpoint."
+    },
+    {
+      "job": "37943877",
+      "phase": "recording-clean factorial scoring/recovery retry",
+      "allocation_minutes": 45,
+      "source": "fe7929c7a2fbfa34da119546f8479d728f933a9e",
+      "node": "batch-block4-2071",
+      "dependency": null,
+      "state": "RUNNING"
+    },
+    {
+      "job": "37943880",
+      "phase": "recording-clean factorial seed29",
+      "allocation_minutes": 40,
+      "source": "fe7929c7a2fbfa34da119546f8479d728f933a9e",
+      "node": "batch-block1-2092",
+      "dependency": "afterok:37943877:37939266",
+      "state": "PENDING"
+    },
+    {
+      "job": "37943905",
+      "phase": "native pressure validation-gradient fix",
+      "allocation_minutes": 15,
+      "source": "db4ba624eef8c2809a59533633ec6b73197cc43f",
+      "node": "batch-block4-2071",
+      "dependency": "afterany:37943877",
+      "state": "PENDING"
+    },
+    {
+      "job": "37943911",
+      "phase": "recording-clean mainline seed43",
+      "allocation_minutes": 55,
+      "source": "0e8e3a2a0a10229f111fbebb389aece37697db68",
+      "node": "eligible A100; excludes original paired nodes",
+      "dependency": "afterany:37943905",
+      "state": "PENDING"
     }
   ],
   "final_release": "NOT QUALIFIED",
@@ -425,7 +468,7 @@
     "result": "speed gate failed; bnb8 total 4.728ms vs fused baseline 2.919ms",
     "file": "diagnostic_large_tensor.json"
   },
-  "integration_current": "6f195a77ba8376f944928ac922c4f1693f6f8ff0",
+  "integration_current": "fe7929c7a2fbfa34da119546f8479d728f933a9e",
   "integration_current_optimizer_module": "b15fe47",
   "evaluation_authorization": "User explicitly approved reusing existing QLoRA train and eval; previous inspection history preserved.",
   "source_environment_pins": {
@@ -520,5 +563,28 @@
     "tests": "six CPU driver tests passed, including 750s remaining permits only scoring and 300s permits neither",
     "same_pending_reservation_seconds": 5100,
     "unchanged": "training wheel/config/native probe, 12 cells, scoring set, all quality and performance thresholds"
+  },
+  "gradient_lifetime_fix": {
+    "source": "e9a3f442cb88226d4c6fd35cdcab004f5fe7f0ba",
+    "tests": "55 passed1skipped (Transformers5-only tiny Qwen model); includes CUDA backend regressions, completed-boundary cleanup and exact next3updates",
+    "reason": "Full-model paged training applied two updates, then native validation OOMed with completed FP32 gradients retained. Separate cleanup at nativeSFT evaluation boundary preserves raw evaluator gradient contract and refuses open accumulation.",
+    "frozen_comparisons": "Mainline0e8e3a2 and integration wheelad88888d retain original runtime; report memory/timing against those exact identities. Pressure rerun uses corrected current mainline source."
+  },
+  "admission_receipt_20261104T0435Z": {
+    "actual_seconds": 17085,
+    "main29_reserved": 1500,
+    "recovery_scoring_reserved": 2700,
+    "factorial29_reserved": 2400,
+    "main43_reserved": 3300,
+    "pressure_reserved": 900,
+    "total": 27885,
+    "ceiling": 28800,
+    "factorial43": "Not yet admitted; wait for returned allocation time.",
+    "capacity_phase_actual_and_reserved": 1798,
+    "capacity_phase_ceiling": 1800,
+    "main_phase_actual_and_reserved": 14290,
+    "main_phase_ceiling": 14400,
+    "factorial_phase_actual_and_reserved": 9880,
+    "factorial_phase_ceiling": 10200
   }
 }

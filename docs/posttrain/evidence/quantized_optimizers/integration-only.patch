@@ -742,10 +742,10 @@ index 0000000..29b86b0
 +  '
 diff --git a/tools/quantized_optimizers/factorial_recovery.py b/tools/quantized_optimizers/factorial_recovery.py
 new file mode 100644
-index 0000000..86ae3a2
+index 0000000..f68d26c
 --- /dev/null
 +++ b/tools/quantized_optimizers/factorial_recovery.py
-@@ -0,0 +1,137 @@
+@@ -0,0 +1,204 @@
 +"""Fresh native processes continue the saved mid-run BF16/NF4 adapter checkpoints."""
 +
 +import json
@@ -785,9 +785,6 @@ index 0000000..86ae3a2
 +        folder = root / "recovery" / base
 +        if (folder / "complete.json").exists():
 +            continue
-+        if time.monotonic() - started > work_seconds - 900:
-+            (root / "pending.json").write_text(json.dumps({"recovery": base}) + "\n")
-+            return False
 +        if folder.exists():
 +            raise RuntimeError(f"prior incomplete recovery requires inspection: {folder}")
 +        original = root / "seed17" / (base + "_adamw_bnb_8bit")
@@ -796,8 +793,77 @@ index 0000000..86ae3a2
 +
 +        expected = Path(marker["checkpoint"])
 +        checkpoint = expected.parent / "iter_000008"
-+        if not (checkpoint / "optim.pt").is_file():
-+            raise RuntimeError("mid-run full checkpoint missing")
++        reference_folder = root / "recovery_reference" / base
++        needs_reference = not (checkpoint / "optim.pt").is_file()
++        reserve = 1500 if needs_reference and not (reference_folder / "complete.json").exists() else 900
++        if time.monotonic() - started > work_seconds - reserve:
++            (root / "pending.json").write_text(json.dumps({"recovery": base}) + "\n")
++            return False
++        if needs_reference:
++            # Consolidated retention deleted the old update8 optimizer component.
++            # Reproduce the original16 updates in a NEW correctness-only run with
++            # retention disabled; never reconstruct moments from model weights.
++            # Its final model/moments/data must match the original before using8.
++            if not (reference_folder / "complete.json").exists():
++                if reference_folder.exists():
++                    raise RuntimeError(f"incomplete recovery reference requires inspection: {reference_folder}")
++                reference_folder.mkdir(parents=True)
++                env = dict(
++                    os.environ,
++                    FACTORIAL_SEED="17",
++                    FACTORIAL_BASE=base,
++                    FACTORIAL_OPTIMIZER="adamw_bnb_8bit",
++                    FACTORIAL_STEPS="16",
++                    FACTORIAL_VAL_ROWS="16",
++                    RESULTS=str(reference_folder),
++                    PROBE_ARM="native",
++                    IMAGINAIRE_OUTPUT_ROOT=str(reference_folder / "training"),
++                    COSMOS_QLORA_METRICS_FILE=str(reference_folder / "native_phases.jsonl"),
++                )
++                (reference_folder / "start.txt").write_text(str(time.time()) + "\n")
++                with (reference_folder / "train.log").open("w") as log:
++                    subprocess.run(
++                        [
++                            "torchrun",
++                            "--standalone",
++                            "--nproc-per-node=1",
++                            str(source / "tools/quantized_optimizers/native_probe.py"),
++                            "--config",
++                            config,
++                            "--",
++                            "rl.save_every=8",
++                            "rl.keep_optim_last=0",
++                        ],
++                        env=env,
++                        stdout=log,
++                        stderr=subprocess.STDOUT,
++                        check=True,
++                    )
++                references = list((reference_folder / "training").rglob("checkpoints/iter_000016"))
++                if len(references) != 1:
++                    raise RuntimeError("recovery reference checkpoint missing or ambiguous")
++                replay = references[0]
++                for component in ("model", "optim", "data"):
++                    equal_tree(
++                        torch.load(expected / (component + ".pt"), map_location="cpu", weights_only=False),
++                        torch.load(replay / (component + ".pt"), map_location="cpu", weights_only=False),
++                        "reference." + component,
++                    )
++                (reference_folder / "complete.json").write_text(
++                    json.dumps(
++                        {
++                            "checkpoint": str(replay),
++                            "original": str(expected),
++                            "exact": True,
++                            "purpose": "correctness-only deterministic replay after optimizer retention removed8; excluded from quality/timing comparisons",
++                        }
++                    )
++                    + "\n"
++                )
++            replay = Path(json.loads((reference_folder / "complete.json").read_text())["checkpoint"])
++            checkpoint = replay.parent / "iter_000008"
++            if not (checkpoint / "optim.pt").is_file():
++                raise RuntimeError("recovery reference did not retain update8 optimizer")
 +        folder.mkdir(parents=True)
 +        env = dict(
 +            os.environ,
@@ -823,6 +889,7 @@ index 0000000..86ae3a2
 +                    config,
 +                    "--",
 +                    "rl.save_every=8",
++                    "rl.keep_optim_last=0",
 +                    "rl.resume=" + str(checkpoint),
 +                ],
 +                env=env,
@@ -905,10 +972,10 @@ index 3f88c5f..d8cf9ad 100644
 +        ObservedPolicy.forward_policy_batch = forward
 diff --git a/tools/quantized_optimizers/run_factorial.py b/tools/quantized_optimizers/run_factorial.py
 new file mode 100644
-index 0000000..a1c05a3
+index 0000000..9caa4a6
 --- /dev/null
 +++ b/tools/quantized_optimizers/run_factorial.py
-@@ -0,0 +1,239 @@
+@@ -0,0 +1,240 @@
 +"""Bounded disposable integration comparison; completed arms are never rerun."""
 +
 +import hashlib
@@ -1092,6 +1159,7 @@ index 0000000..a1c05a3
 +                    config,
 +                    "--",
 +                    "rl.save_every=" + ("2" if canary else "8"),
++                    "rl.keep_optim_last=0",
 +                ],
 +                env=env,
 +                stdout=log,
@@ -1284,3 +1352,99 @@ index 0000000..52c73c2
 +    assert (folder / "score/scores.jsonl").read_text() == "preserve development evidence\n"
 +    marker = json.loads((folder / "final_score.complete.json").read_text())
 +    assert marker["data_sha256"] == hashlib.sha256(data.read_bytes()).hexdigest()
+diff --git a/tools/quantized_optimizers/test_factorial_recovery.py b/tools/quantized_optimizers/test_factorial_recovery.py
+new file mode 100644
+index 0000000..5a52893
+--- /dev/null
++++ b/tools/quantized_optimizers/test_factorial_recovery.py
+@@ -0,0 +1,90 @@
++"""Retained recovery references never replace quality trials or invent moments."""
++
++import json
++from pathlib import Path
++
++import pytest
++import torch
++
++from tools.quantized_optimizers.factorial_recovery import recover
++
++
++@pytest.mark.parametrize("retained", [False, True])
++def test_recovery_replays_only_pruned_reference_and_keeps_original(tmp_path, monkeypatch, retained):
++    keys = (
++        "iter",
++        "optimizer_step",
++        "accum",
++        "n_mini",
++        "attempt_id",
++        "nonfinite_skips_total",
++        "nonfinite_skips_consecutive",
++        "rng",
++        "lr_scheduler",
++        "lr_scheduler_clock",
++        "objective_identity",
++        "adapter_training",
++    )
++    trainer = {key: {"value": torch.tensor([16])} for key in keys}
++    components = {
++        "model": {"weight": torch.tensor([1.0])},
++        "optim": {"state": torch.tensor([3], dtype=torch.uint8)},
++        "data": {"cursor": 64},
++        "trainer": trainer,
++    }
++
++    def checkpoint(path, *, optimizer=True):
++        path.mkdir(parents=True)
++        for name, value in components.items():
++            if name != "optim" or optimizer:
++                torch.save(value, path / (name + ".pt"))
++
++    def metrics(folder, start):
++        folder.mkdir(parents=True, exist_ok=True)
++        (folder / "metrics.jsonl").write_text(
++            "\n".join(
++                json.dumps(
++                    {
++                        "step": step,
++                        "train/loss_avg": 1.0 / step,
++                        "train/grad_norm": 0.5,
++                        "train/learning_rate": 0.01,
++                        "train/valid_token_count": 100,
++                    }
++                )
++                for step in range(start, 17)
++            )
++        )
++
++    originals = []
++    for base in ("bf16", "nf4"):
++        original = tmp_path / "seed17" / (base + "_adamw_bnb_8bit")
++        final = original / "training/checkpoints/iter_000016"
++        checkpoint(final)
++        checkpoint(final.parent / "iter_000008", optimizer=retained)
++        metrics(original / "training", 1)
++        (original / "complete.json").write_text(json.dumps({"checkpoint": str(final)}))
++        originals.append(final.parent / "iter_000008/optim.pt")
++    calls = []
++
++    def invoke(command, *, env, **kwargs):
++        assert "rl.keep_optim_last=0" in command
++        calls.append(command)
++        folder = Path(env["IMAGINAIRE_OUTPUT_ROOT"])
++        checkpoint(folder / "checkpoints/iter_000016")
++        is_resume = any(value.startswith("rl.resume=") for value in command)
++        if not is_resume:
++            checkpoint(folder / "checkpoints/iter_000008")
++        metrics(folder, 9 if is_resume else 1)
++
++    monkeypatch.setattr("subprocess.run", invoke)
++    monkeypatch.setattr("time.monotonic", lambda: 0)
++    assert recover(tmp_path, tmp_path, "config", started=0, work_seconds=3000)
++    assert len(calls) == (2 if retained else 4)
++    assert all(p.exists() == retained for p in originals)
++    for base in ("bf16", "nf4"):
++        result = json.loads((tmp_path / "recovery" / base / "complete.json").read_text())
++        assert result["exact"] and result["from_update"] == 8 and result["through_update"] == 16
++    # An already completed correctness check must not train again.
++    assert recover(tmp_path, tmp_path, "config", started=0, work_seconds=3000)
++    assert len(calls) == (2 if retained else 4)
