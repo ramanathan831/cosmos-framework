@@ -32,6 +32,15 @@ def test_product_clock_includes_setup_and_requires_delivery_cost_check():
     assert report["requires_external_delivery_check"]
 
 
+def test_validation_overrun_cannot_pass_training_budget_from_earlier_update():
+    p = BudgetPolicy("training", 60, 10, 100, loop_monotonic=200)
+    p.update(1, 249)
+    p.checkpoint_boundary_monotonic = 262  # required validation ended after budget
+    report = p.report(320)
+    assert report["completed_training_validation_boundary_seconds"] == 62
+    assert not report["training_checkpoint_eligible"]
+
+
 def test_target_requires_an_observed_post_training_validation():
     p = BudgetPolicy("target", 300, 90, 100, quality_target=0.95)
     p.validation(0, 0.9, 110)

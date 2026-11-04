@@ -49,6 +49,7 @@ def main():
     TerminationWatch._local_reason = reason
     entry.main()
     task.finish()
+    policy.checkpoint_boundary_monotonic = task.captured["checkpoint_started_monotonic"]
     checkpoints = list(Path(os.environ["IMAGINAIRE_OUTPUT_ROOT"]).rglob("model.pt"))
     if len(checkpoints) != 1:
         raise ValueError(f"budget run must produce one actual native model checkpoint, found {checkpoints}")

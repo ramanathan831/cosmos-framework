@@ -74,6 +74,7 @@ def build(*args, **kwargs):
 
     def save(*save_args, **save_kwargs):
         before_save = time.monotonic()
+        captured["checkpoint_started_monotonic"] = before_save
         result = original_save(*save_args, **save_kwargs)
         record(
             "phases.jsonl",

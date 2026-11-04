@@ -18,6 +18,7 @@ class BudgetPolicy:
     quality_target: float | None = None
     cold_offset_seconds: float = 0.0
     loop_monotonic: float | None = None
+    checkpoint_boundary_monotonic: float | None = None
     updates: list[dict] = field(default_factory=list)
     target_hit: dict | None = None
 
@@ -67,6 +68,9 @@ class BudgetPolicy:
     def report(self, now):
         elapsed = self.elapsed(now)
         last = self.updates[-1] if self.updates else None
+        boundary = (
+            self.elapsed(self.checkpoint_boundary_monotonic) if self.checkpoint_boundary_monotonic is not None else None
+        )
         return {
             "kind": self.kind,
             "budget_seconds": self.seconds,
@@ -75,7 +79,10 @@ class BudgetPolicy:
             "loop_start_clock_seconds": self.elapsed(self.loop_monotonic) if self.loop_monotonic is not None else None,
             "updates": self.updates,
             "target_hit": self.target_hit,
-            "training_checkpoint_eligible": last is not None and last["clock_seconds"] <= self.seconds,
+            "training_checkpoint_eligible": last is not None
+            and last["clock_seconds"] <= self.seconds
+            and (self.kind != "training" or boundary is None or boundary <= self.seconds),
+            "completed_training_validation_boundary_seconds": boundary,
             "process_complete_seconds": elapsed,
             "process_within_budget": elapsed is not None and elapsed <= self.seconds,
             "requires_external_delivery_check": self.kind != "training",
