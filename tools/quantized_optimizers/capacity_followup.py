@@ -23,7 +23,7 @@ if os.environ.get("CAPACITY_PRESSURE_ONLY", "0") == "1":
     settings = [setting for setting in settings if setting[2]]
 for checkpointing, arm, pressure in settings:
     for micro in (1,) if pressure else (4, 2, 1):
-        # Measured full-model pressure attempts take under two minutes each;
+        # Measured full-model pressure attempts take under three minutes each;
         # keep a four-minute reserve. The broader batch search retains eight.
         reserve = 240 if pressure else 480
         if limit - (time.monotonic() - started) < reserve:
