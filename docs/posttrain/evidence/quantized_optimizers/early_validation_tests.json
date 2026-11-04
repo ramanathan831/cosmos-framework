@@ -1,0 +1,9 @@
+{
+  "command": "CUDA_VISIBLE_DEVICES='' .venv/bin/python -m pytest cosmos_framework/posttrain/tests/test_quantized_optimizer.py -k 'invalid_backend_hyperparameters or test_config or adam_does_not_import_bnb or missing_dependency or strategy_and_checkpoint' --confcutdir=cosmos_framework/posttrain/tests --override-ini=addopts=",
+  "passed": 22,
+  "deselected": 14,
+  "seconds": 3.65,
+  "accelerator": false,
+  "scope": "Early config rejection plus existing config, lazy-import, missing-dependency and strategy gates; not new numerical qualification.",
+  "format": "Ruff formatter applied afterward; check and format --check pass."
+}

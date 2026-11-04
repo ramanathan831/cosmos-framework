@@ -35,6 +35,28 @@ def test_adam_does_not_import_bnb():
 
 
 @pytest.mark.parametrize("name", ["adamw_bnb_8bit", "paged_adamw_8bit"])
+@pytest.mark.parametrize(
+    "invalid",
+    [
+        {"lr": float("nan")},
+        {"lr": -1.0},
+        {"eps": float("inf")},
+        {"eps": -1.0},
+        {"weight_decay": -1.0},
+        {"weight_decay": True},
+        {"betas": [0.9]},
+        {"betas": [0.9, 1.0]},
+        {"betas": [0.9, float("nan")]},
+    ],
+)
+def test_invalid_backend_hyperparameters_fail_in_config(name, invalid):
+    with pytest.raises(ValueError, match="bitsandbytes"):
+        OptimizerConfig(name=name, **invalid)
+    # Zero learning rate/epsilon/decay and beta zero are supported backend values.
+    OptimizerConfig(name=name, lr=0.0, eps=0.0, weight_decay=0.0, betas=[0.0, 0.99])
+
+
+@pytest.mark.parametrize("name", ["adamw_bnb_8bit", "paged_adamw_8bit"])
 def test_gpu_resume_and_membership(name, tmp_path):
     if not torch.cuda.is_available():
         pytest.skip("CUDA kernel gate")

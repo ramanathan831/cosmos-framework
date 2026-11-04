@@ -309,6 +309,17 @@ class OptimizerConfig:
             raise ValueError("bnb state options require a bitsandbytes optimizer")
         if self.name in ("adamw_bnb_8bit", "paged_adamw_8bit") and not self.force_finite_grads:
             raise ValueError("bitsandbytes optimizers require force_finite_grads=True")
+        if self.name in ("adamw_bnb_8bit", "paged_adamw_8bit"):
+            # Refuse invalid backend options before allocating a large model.
+            for key in ("lr", "eps", "weight_decay"):
+                value = getattr(self, key)
+                if isinstance(value, bool) or not isinstance(value, Real) or not math.isfinite(value) or value < 0:
+                    raise ValueError(f"OptimizerConfig.{key} must be finite and non-negative for bitsandbytes")
+            if len(self.betas) != 2 or any(
+                isinstance(beta, bool) or not isinstance(beta, Real) or not math.isfinite(beta) or not 0 <= beta < 1
+                for beta in self.betas
+            ):
+                raise ValueError("OptimizerConfig.betas must contain two finite values in [0, 1) for bitsandbytes")
         if self.name not in OPTIMIZER_NAMES:
             raise ValueError(f"OptimizerConfig.name={self.name!r} must be one of {OPTIMIZER_NAMES}")
         if self.name == "muon":
