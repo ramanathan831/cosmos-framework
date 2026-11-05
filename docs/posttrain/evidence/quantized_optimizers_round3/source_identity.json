@@ -50,5 +50,13 @@
     "qlora_component": "a7fd524242f4f06ac488a3d96d331b1f46e2b385",
     "scope": "Historical separate BF16/NF4 adapter training/recovery evidence; no edits or new integration qualification in this campaign. Ordinary16-bit-to-FP32 CUDA loading fast path does not apply to BF16/NF4 base storage. Native optimizer arithmetic did not change."
   },
-  "publication": "Local commits only; original QLoRA checkout untouched, PR334 kept closed."
+  "publication": "Local commits only; original QLoRA checkout untouched, PR334 kept closed.",
+  "delivery": {
+    "reviewable_results_commit": "67fd101a83fc4b8d6c0510509c92359fbdf8d7b3",
+    "recorded_utc": "2026-11-05T01:57:01.945690+00:00",
+    "native_tree": "45d30bb53fb3688c11b18bbdb1a27954b9cb7432",
+    "all_owned_jobs_terminal": true,
+    "publication": "Local only; no push, PR publication or merge.",
+    "artifact_manifest": "evidence_manifest.json"
+  }
 }

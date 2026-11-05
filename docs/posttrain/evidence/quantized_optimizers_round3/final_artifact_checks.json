@@ -113,5 +113,14 @@
   "all_frozen_protocol_hashes_unchanged": true,
   "native_tree_unchanged": "45d30bb53fb3688c11b18bbdb1a27954b9cb7432",
   "pinned_dependency_hashes_unchanged": true,
-  "kv_screen_reproduced": "verify_kv_precision.py checks exact source/archive, initialization, model/data hashes,15 applied updates, tokens/LR, all32 selectors, counts/bytes and fixed gates."
+  "kv_screen_reproduced": "verify_kv_precision.py checks exact source/archive, initialization, model/data hashes,15 applied updates, tokens/LR, all32 selectors, counts/bytes and fixed gates.",
+  "local_markdown_links": {
+    "verified": 85,
+    "sources": [
+      "docs/posttrain/evidence/quantized_optimizers_round3/proposed_pr.md",
+      "docs/posttrain/evidence/quantized_optimizers_round3/requirements.md",
+      "docs/posttrain/quantized_optimizers.md",
+      "tools/quantized_optimizers/README.md"
+    ]
+  }
 }
