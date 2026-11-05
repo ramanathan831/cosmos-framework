@@ -301,6 +301,8 @@ Run outputs include a timestamped attempt beneath the configured project/group/j
 | Portable adapter publication | Publish adapters and identity metadata only; this artifact cannot resume training. It neither merges nor requantizes the base.                                                                                                                                                                                                      |
 | Dense/merged exports         | Dequantized `Q(W)` plus the adapter, original higher-precision `W` plus the adapter, and subsequent requantization are different numerical models. These exports and serving-backend compatibility require separate qualification.                                                                                                  |
 
+Exact full resume retains the recorded canonical media paths and ordinary tokenizer/processor configuration paths; identical bytes at different canonical locations are not sufficient. The [frozen-base source identity](../../cosmos_framework/posttrain/utils/adapter_source.py#L79) uses content hashes, while [portable processor identity](../../cosmos_framework/posttrain/utils/adapter_identity.py#L67) separately permits relocation of verified base/processor references for reload. Completed fresh-process recovery tests stayed within their allocated nodes; cross-node Slurm resume remains unqualified.
+
 Publish a committed checkpoint as a portable adapter artifact:
 
 ```bash
