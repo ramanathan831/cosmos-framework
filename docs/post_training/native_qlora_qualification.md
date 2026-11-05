@@ -338,6 +338,12 @@ The 16 traced language-embedding inputs per arm were 321–345 tokens; all 16 vi
 
 The allocation consumed **2,043 GPU-seconds and 32,688 allocated CPU-seconds**. All 1,494 collected host samples were complete, but unsampled lifetime and zero-sample allocator intervals remain; profiler export and trace analysis have their own memory costs. No explicit host-memory binding, job-cgroup watermark, new task-quality result or update-42 interruption/recovery claim follows. The current rank-32 four-update recovery and historical rank-16 long-input evidence retain their separate scopes.
 
+### 3 GiB cache recovery
+
+The [completed 3 GiB cache qualification](evidence/native_qlora_final_build_cache3gib_4cd8988.json) repeats the final native build's ordinary `bnb` execution with full logits, one preprocessing worker and a 3 GiB cache in both precision arms. Each arm passed all 15 lifecycle stages on a schedule of four updates, a four-step cycle and one warmup step. Six full-payload comparisons per arm verified the same-cache boundary and accumulation recovery paths, including optimizer, scheduler, RNG, data cursor and validation controls. Resumed updates three and four and fresh text/image/video DCP and portable reloads were exact. These checks do not compare full checkpoint state across cache capacities or extend interruption recovery to 300 updates.
+
+The two allocations overlapped on the same host, using different GPUs, disjoint physical CPU cores and different CPU NUMA nodes; their timings measure the cost of these correctness checks and do not provide a matched performance comparison. Together they consumed **2,852 GPU-seconds and 45,632 allocated CPU-seconds**, excluding the earlier gate, 1 GiB lifecycles and profile. All **963 NF4 and 1,115 BF16** collected host samples were complete, but lifetime gaps and 23/24 allocator intervals without host samples remain. Actual memory-page placement and whole-host/cgroup residency were not measured. The unchanged probe shapes retain their earlier scope; no training-shape census, cache speed benefit or task-quality result follows.
+
 ## Capability and precision boundary
 
 The candidate is dense `Qwen/Qwen3-VL-8B-Instruct`, revision `0c351dd01ed87e9c1b53cbc748cba10e6187ff3b`, using the native posttrain SFT entrypoint on one Linux x86-64 A100 80GB with one torchrun process. An installed quantizer, inference quantization, or an accepted configuration alone does not establish this training capability.
