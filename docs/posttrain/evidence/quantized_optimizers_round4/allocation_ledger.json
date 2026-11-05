@@ -1,17 +1,105 @@
 {
-  "as_of_utc": "2026-11-05T18:32:26.049093+00:00",
+  "as_of_utc": "2026-11-05T18:36:24.693348+00:00",
   "gpu_cap_seconds": 15660,
   "cpu_wall_cap_seconds": 7200,
-  "jobs": [],
+  "jobs": [
+    {
+      "job": "38037823",
+      "name": "optimizer-r4-lr75-fused",
+      "node": "batch-block4-0052",
+      "wall_seconds": 1080,
+      "argv": [
+        "sbatch",
+        "--parsable",
+        "--export=ALL",
+        "--job-name=optimizer-r4-lr75-fused",
+        "--nodelist=batch-block4-0052",
+        "--time=18",
+        "--output=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-lr-20261105T1830/optimizer-r4-lr75-fused-%j.log",
+        "--partition=interactive_singlenode,polar",
+        "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-lr-20261105T1830/deployment.sbatch"
+      ],
+      "state": "SUBMITTED",
+      "gpu_count": 1,
+      "charged_or_reserved_gpu_seconds": 1080,
+      "charged_or_reserved_cpu_wall_seconds": 0
+    },
+    {
+      "job": "38037824",
+      "name": "optimizer-r4-cold-1",
+      "node": "cpu-00016",
+      "wall_seconds": 2340,
+      "argv": [
+        "sbatch",
+        "--parsable",
+        "--export=ALL",
+        "--job-name=optimizer-r4-cold-1",
+        "--nodelist=cpu-00016",
+        "--time=39",
+        "--output=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-lr-20261105T1830/optimizer-r4-cold-1-%j.log",
+        "--partition=cpu_short",
+        "--mem=16G",
+        "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-lr-20261105T1830/prepare_parallel.sbatch"
+      ],
+      "state": "SUBMITTED",
+      "gpu_count": 0,
+      "charged_or_reserved_gpu_seconds": 0,
+      "charged_or_reserved_cpu_wall_seconds": 2340
+    },
+    {
+      "job": "38037828",
+      "name": "optimizer-r4-cold-2",
+      "node": "cpu-00019",
+      "wall_seconds": 2340,
+      "argv": [
+        "sbatch",
+        "--parsable",
+        "--export=ALL",
+        "--job-name=optimizer-r4-cold-2",
+        "--nodelist=cpu-00019",
+        "--time=39",
+        "--output=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-lr-20261105T1830/optimizer-r4-cold-2-%j.log",
+        "--partition=cpu_short",
+        "--mem=16G",
+        "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-lr-20261105T1830/prepare_parallel.sbatch"
+      ],
+      "state": "SUBMITTED",
+      "gpu_count": 0,
+      "charged_or_reserved_gpu_seconds": 0,
+      "charged_or_reserved_cpu_wall_seconds": 2340
+    },
+    {
+      "job": "38037830",
+      "name": "optimizer-r4-cold-3",
+      "node": "cpu-00020",
+      "wall_seconds": 2340,
+      "argv": [
+        "sbatch",
+        "--parsable",
+        "--export=ALL",
+        "--job-name=optimizer-r4-cold-3",
+        "--nodelist=cpu-00020",
+        "--time=39",
+        "--output=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-lr-20261105T1830/optimizer-r4-cold-3-%j.log",
+        "--partition=cpu_short",
+        "--mem=16G",
+        "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-lr-20261105T1830/prepare_parallel.sbatch"
+      ],
+      "state": "SUBMITTED",
+      "gpu_count": 0,
+      "charged_or_reserved_gpu_seconds": 0,
+      "charged_or_reserved_cpu_wall_seconds": 2340
+    }
+  ],
   "unsubmitted_gpu_reservations": {
-    "fused_development": 1080,
+    "fused_development": 0,
     "conditional_eight_bit_development": 1080,
     "conditional_final": 13500
   },
   "unsubmitted_cpu_reservations": {
-    "full_preparation_1": 2340,
-    "full_preparation_2": 2340,
-    "full_preparation_3": 2340
+    "full_preparation_1": 0,
+    "full_preparation_2": 0,
+    "full_preparation_3": 0
   },
   "local_cpu_check_seconds_reserved": 180,
   "total_charged_or_reserved_gpu_seconds": 15660,

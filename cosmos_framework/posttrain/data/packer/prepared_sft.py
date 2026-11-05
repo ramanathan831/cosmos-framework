@@ -13,6 +13,7 @@ import hashlib
 import io
 import json
 import random
+from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
 from dataclasses import asdict
 from pathlib import Path
@@ -138,7 +139,11 @@ def prepare_corpus(packer: Any, datasets: list[Any], output: str | Path) -> dict
 
 
 class PreparedSFTCorpus:
-    def __init__(self, packer: Any, directory: str | Path, datasets: list[Any]) -> None:
+    def __init__(
+        self, packer: Any, directory: str | Path, datasets: list[Any], *, verification_workers: int = 4
+    ) -> None:
+        if type(verification_workers) is not int or not 1 <= verification_workers <= 4:
+            raise ValueError("prepared source verification requires one to four workers")
         self.root, self.packer = Path(directory).resolve(), packer
         value = (self.root / "manifest.json").read_bytes()
         self.identity = hashlib.sha256(value).hexdigest()
@@ -148,15 +153,33 @@ class PreparedSFTCorpus:
         ) != canonical_json_sha256(packer.validation_semantics_identity(), context="live processor"):
             raise ValueError("prepared SFT format/processor identity mismatch")
         self.settings = _settings(packer)
-        self.media_stamps = {}
+        media = {}
         for dataset in datasets:
             if dataset.cursor_fingerprint() not in self.manifest["sources"]:
                 raise ValueError("prepared SFT source identity mismatch")
             for name, digest in getattr(dataset, "media_hashes", {}).items():
-                path, before = Path(name), stamp(Path(name))
-                if self.manifest["media"].get(name) != digest or sha256_file(name) != digest or stamp(path) != before:
-                    raise ValueError("prepared SFT source media mismatch")
-                self.media_stamps[name] = before
+                if name in media and media[name] != digest:
+                    raise ValueError("conflicting prepared SFT source media identities")
+                media[name] = digest
+
+        def verify_media(item):
+            name, digest = item
+            path, before = Path(name), stamp(Path(name))
+            if self.manifest["media"].get(name) != digest or sha256_file(name) != digest or stamp(path) != before:
+                raise ValueError("prepared SFT source media mismatch")
+            return name, before
+
+        # Each source still receives a complete byte hash. A stat-only cache
+        # would miss same-size rewrites on filesystems with coarse timestamps.
+        self.verification_workers = min(verification_workers, max(1, len(media)))
+        if self.verification_workers == 1:
+            self.media_stamps = dict(map(verify_media, media.items()))
+        else:
+            with ThreadPoolExecutor(max_workers=self.verification_workers) as pool:
+                self.media_stamps = dict(pool.map(verify_media, media.items()))
+        for name, before in self.media_stamps.items():
+            if stamp(Path(name)) != before:
+                raise ValueError("prepared SFT source media mismatch")
         self.entry_stamps = {}
         for key, entry in self.manifest["entries"].items():
             if len(key) != 64 or any(char not in "0123456789abcdef" for char in key):
@@ -203,7 +226,9 @@ class PreparedSFTCorpus:
         return sample
 
 
-def attach_prepared_corpus(packer: Any, directory: str, datasets: list[Any]) -> PreparedSFTCorpus:
-    corpus = PreparedSFTCorpus(packer, directory, datasets)
+def attach_prepared_corpus(
+    packer: Any, directory: str, datasets: list[Any], *, verification_workers: int = 4
+) -> PreparedSFTCorpus:
+    corpus = PreparedSFTCorpus(packer, directory, datasets, verification_workers=verification_workers)
     packer.sft_process_sample = corpus.process
     return corpus

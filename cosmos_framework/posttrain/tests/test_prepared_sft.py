@@ -156,3 +156,35 @@ def test_same_size_changes_rejected_when_filesystem_stamps_are_coarse(corpus, mo
     path.write_bytes(value)
     with pytest.raises(ValueError):
         bound.process(target)
+
+
+@pytest.mark.parametrize("workers", [1, 4])
+def test_parallel_attachment_keeps_full_media_verification(tmp_path, monkeypatch, workers):
+    from cosmos_framework.posttrain.data.packer import prepared_sft
+
+    files = [tmp_path / f"video{index}.mp4" for index in range(4)]
+    for index, path in enumerate(files):
+        path.write_bytes(f"media {index}".encode())
+    datasets = [Dataset(path) for path in files]
+    root = tmp_path / "prepared"
+    prepare_corpus(Packer(), datasets, root)
+    serial = PreparedSFTCorpus(Packer(), root, datasets, verification_workers=1)
+    candidate = PreparedSFTCorpus(Packer(), root, datasets, verification_workers=workers)
+    assert candidate.identity == serial.identity
+    assert candidate.media_stamps == serial.media_stamps
+    for dataset in datasets:
+        target = target_from_row(dataset[0])
+        a, b = candidate.process(target), serial.process(target)
+        assert a.input_ids == b.input_ids and a.labels == b.labels
+        assert torch.equal(a.mm_kwargs["pixel_values_videos"], b.mm_kwargs["pixel_values_videos"])
+    # Stamps cannot be trusted as content identities, including during attachment.
+    monkeypatch.setattr(prepared_sft, "stamp", lambda path: (1, 2, 3, 4, 5))
+    files[-1].write_bytes(b"changed")
+    with pytest.raises(ValueError, match="source media mismatch"):
+        PreparedSFTCorpus(Packer(), root, datasets, verification_workers=workers)
+
+
+@pytest.mark.parametrize("workers", [0, 5, True, 1.5])
+def test_invalid_verification_workers_fail_before_io(workers):
+    with pytest.raises(ValueError, match="one to four workers"):
+        PreparedSFTCorpus(Packer(), "/missing/corpus", [], verification_workers=workers)

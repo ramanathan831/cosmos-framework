@@ -314,11 +314,13 @@ def main():
     parser.add_argument("--checkpoint")
     parser.add_argument("--substantive-data", type=Path)
     parser.add_argument("--seed", type=int, required=True)
+    parser.add_argument("--verification-workers", type=int, choices=(1, 2, 3, 4), default=4)
     args = parser.parse_args()
     if os.environ.get("WORLD_SIZE") != "1":
         raise ValueError("dense scoring requires torchrun world one")
     args.output.mkdir(parents=True, exist_ok=False)
     started = time.monotonic()
+    phases = {}
     selection = json.loads(args.selection.read_text())
     if hashlib.sha256(args.data.read_bytes()).hexdigest() != selection["output_sha256"]:
         raise ValueError("selection source mismatch")
@@ -356,9 +358,18 @@ def main():
             trust_remote_code=trust,
             mask_think_opener=rl.mask_think_opener,
         )
+        phase_started = time.monotonic()
         dataset = JSONLSFTDataset(str(args.data))
         substantive = JSONLSFTDataset(str(args.substantive_data)) if args.substantive_data else None
-        corpus = attach_prepared_corpus(packer, rl.prepared_corpus, [dataset] + ([substantive] if substantive else []))
+        phases["dataset_identity"] = time.monotonic() - phase_started
+        phase_started = time.monotonic()
+        corpus = attach_prepared_corpus(
+            packer,
+            rl.prepared_corpus,
+            [dataset] + ([substantive] if substantive else []),
+            verification_workers=args.verification_workers,
+        )
+        phases["prepared_verification"] = time.monotonic() - phase_started
         # Final scoring has no training timing claim. Read the immutable files
         # sequentially before the native loaders, as the paired training launcher
         # already does, avoiding slow demand paging on the shared filesystem.
@@ -381,6 +392,7 @@ def main():
                 )
                 + "\n"
             )
+            phases["checkpoint_read"] = time.monotonic() - read_started
 
             def load():
                 nonlocal model
@@ -389,7 +401,9 @@ def main():
                     raise ValueError("committed checkpoint has no dense model")
                 model = build_backbone(config, hf_model_state=state["net"])
 
+            phase_started = time.monotonic()
             _, provenance = manager.load_checkpoint(args.checkpoint, load)
+            phases["committed_model_restore"] = time.monotonic() - phase_started
             print("Scoring: committed dense model restored", flush=True)
         else:
             read_model_files(args.output)
@@ -406,6 +420,7 @@ def main():
         )
         versions = {name: parameter._version for name, parameter in model.net.named_parameters()}
         rows = []
+        phase_started = time.monotonic()
         with (args.output / "scores.jsonl").open("x") as stream:
             for index in range(len(dataset)):
                 row = dataset[index]
@@ -419,6 +434,7 @@ def main():
                 stream.flush()
                 rows.append(scores)
             os.fsync(stream.fileno())
+        phases["task_scoring"] = time.monotonic() - phase_started
         if versions != {name: parameter._version for name, parameter in model.net.named_parameters()}:
             raise RuntimeError("evaluation mutated model parameters")
         if substantive is not None:
@@ -445,6 +461,8 @@ def main():
             "selection_sha256": hashlib.sha256(args.selection.read_bytes()).hexdigest(),
             "corpus_sha256": corpus.identity,
             "elapsed_seconds": time.monotonic() - started,
+            "phase_seconds": phases,
+            "source_verification_workers": corpus.verification_workers,
             "versions": {name: importlib.metadata.version(name) for name in ("torch", "transformers")},
             "objective_identity": objective.identity,
             "processor_identity": packer.validation_semantics_identity(),

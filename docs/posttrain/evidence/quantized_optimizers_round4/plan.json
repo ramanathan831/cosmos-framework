@@ -42,5 +42,11 @@
   "cold_statistics": "Report three directly measured preparation allocation/processing times and exact corpus checks. Composed cold timings use all three new costs, propagate variability with a declared seed/preparation crossed resampling; do not call composed estimates direct cold GPU runs. Historical single-cost results unchanged.",
   "runtime_work": "Inspect measured phases for one concrete shared improvement; any GPU parity work must fit freed actual-cost headroom after reservations. No optimizer microbenchmark/capacity reruns or automatic sweep.",
   "evaluation_pool": "Same authorized128questions/32historically exposed recording families, disjoint repaired train/development. No independence claim.",
-  "publication": "Local commits/PR draft only; original QLoRA checkout untouched, PR334 closed."
+  "publication": "Local commits/PR draft only; original QLoRA checkout untouched, PR334 closed.",
+  "cold_statistics_prospective_detail": {
+    "recorded_before_any_full_preparation_completed": "2026-11-05T18:42:19.109050+00:00",
+    "direct": "All3 allocationElapsedRaw and processing/replay costs reported, plus95%Student-t interval across3preparations. No empty-OS-cache claim.",
+    "composed": "If no newly selected final comparison is admitted, reuse only the frozen round3 paired target-delivery times as a separately labelled historical-GPU/new-CPU composition. For each of3seeds average3paired restart ratios with common preparation cost C added to both arms. Point estimate averages these ratios over3measured C values and3seeds. Crossed bootstrap resamples3paired seeds and3preparation trials independently,10000draws,RNG2026, retaining paired restarts and common C for each arm. Report95%percentile interval and unchanged lower>1.05 gate. This is not a new GPU performance experiment and does not replace round3 single-cost results.",
+    "quality": "No new final quality scoring if LR screen fails. No bootstrap over timing restarts as independent seeds. Recording-family quality guards remain untouched."
+  }
 }
