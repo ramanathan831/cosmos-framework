@@ -337,5 +337,49 @@
       929
     ]
   },
-  "scope": "Matched15 actual runs, 3 paired seeds;95%t intervals. Phase timers are nested (optimizer snapshot within checkpoint, load_weights within build_backbone/build_trainer); do not sum them. Whole-device includes other device overhead, process GPU uses NVML, host PSS separately covers training/checkpoint and complete delivery/scoring. Prepared setup includes allocation/container/corpus staging; queue excluded."
+  "scope": "Matched15 actual runs, 3 paired seeds;95%t intervals. Phase timers are nested (optimizer snapshot within checkpoint, load_weights within build_backbone/build_trainer); do not sum them. Whole-device includes other device overhead, process GPU uses NVML, host PSS separately covers training/checkpoint and complete delivery/scoring. Prepared setup includes allocation/container/corpus staging; queue excluded.",
+  "actual_exposure": [
+    {
+      "seed": 17,
+      "sequences": 60,
+      "single_choice_rows": 30,
+      "substantive_rows": 30,
+      "substantive_supervised_token_range": [
+        41,
+        121
+      ],
+      "supervised_tokens": 2852,
+      "actual_video_grid_thw": [
+        "[[4, 16, 30]]"
+      ]
+    },
+    {
+      "seed": 29,
+      "sequences": 60,
+      "single_choice_rows": 36,
+      "substantive_rows": 24,
+      "substantive_supervised_token_range": [
+        87,
+        120
+      ],
+      "supervised_tokens": 2459,
+      "actual_video_grid_thw": [
+        "[[4, 16, 30]]"
+      ]
+    },
+    {
+      "seed": 43,
+      "sequences": 60,
+      "single_choice_rows": 31,
+      "substantive_rows": 29,
+      "substantive_supervised_token_range": [
+        41,
+        132
+      ],
+      "supervised_tokens": 2899,
+      "actual_video_grid_thw": [
+        "[[4, 16, 30]]"
+      ]
+    }
+  ]
 }

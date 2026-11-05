@@ -1,0 +1,48 @@
+{
+  "recorded_utc": "2026-11-05T00:49:40.012043+00:00",
+  "branch": "feat/quantized-optimizers",
+  "upstream_base": "d04e5067dd2f353fa8fab65fd99fcd86819e537d",
+  "runtime_sources": {
+    "original_final": {
+      "commit": "cb9d4f3637eb7918a58ecadd112a75fd1d9c9e5d",
+      "native_tree": "45d30bb53fb3688c11b18bbdb1a27954b9cb7432"
+    },
+    "corrected_product": {
+      "commit": "f56a658a9b3aeea303dec4d032da3761c7958674",
+      "native_tree": "45d30bb53fb3688c11b18bbdb1a27954b9cb7432"
+    },
+    "native_arithmetic_diagnostic": {
+      "commit": "e65f7eac8d7536171aa92ba7f7d019a8ea4b6998",
+      "native_tree": "45d30bb53fb3688c11b18bbdb1a27954b9cb7432"
+    },
+    "outcome_analysis": {
+      "commit": "2f576e4a93aa7fca58bf048729d5f8bde21b2a6a",
+      "native_tree": "45d30bb53fb3688c11b18bbdb1a27954b9cb7432"
+    }
+  },
+  "archives": {
+    "original_final": "a9bf74f63288723ccc55f357a39be3bd2e6d70a9bd39dbe8141fd93decdb55dd",
+    "corrected_product": "531b0fbdcad066cc9484fdcf06204e2b9e069ea5f7f93ffc0e5f7752b4947ac4",
+    "native_arithmetic_diagnostic": "83ad99a4feaf0cbe737f83cac9f08a18aeb21964f3801d4bf725406b37044325"
+  },
+  "dependency_files_sha256": {
+    "pyproject.toml": "009c4cf827ec61dd2d0cc6c5034a349d5167569b374a85a648ba8be497df9954",
+    "uv.lock": "254ec6986f11e86a064f21eb22289a48207457b5dd8183291f7214095b8ef074",
+    "docker/posttrain/environment/pyproject.toml": "34ab3112709c09c04a0277a049dca9cc8082b4a35607b8cb318ea55fb6431d6b",
+    "docker/posttrain/environment/uv.lock": "86dd224c42ac34359f8aa77e0be3ce5e7d3eb3a73cc603b6a7f7f504b7d45986"
+  },
+  "pinned_runtime": {
+    "python": "3.12",
+    "torch": "2.11.0+cu128",
+    "transformers": "5.8.1",
+    "bitsandbytes": "0.49.2"
+  },
+  "native_support": "SingleCUDA ordinaryFP32 trainables, consolidated same-identity recovery; no model-weight quantization dependency.",
+  "integration": {
+    "checkout": "cosmos-framework-optimizer-qlora-integration",
+    "head": "188379861a9d43cb99c57b2b083ada8684aca272",
+    "qlora_component": "a7fd524242f4f06ac488a3d96d331b1f46e2b385",
+    "scope": "Historical separate BF16/NF4 adapter training/recovery evidence; no edits or new integration qualification in this campaign. Ordinary16-bit-to-FP32 CUDA loading fast path does not apply to BF16/NF4 base storage. Native optimizer arithmetic did not change."
+  },
+  "publication": "Local commits only; original QLoRA checkout untouched, PR334 kept closed."
+}

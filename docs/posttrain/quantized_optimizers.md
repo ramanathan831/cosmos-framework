@@ -616,7 +616,8 @@ bound. The recording bootstrap also fails the 1% NLL guard. Timing restarts are
 averaged within each seed and do not increase the quality sample size. Actual
 matched-update batches consume 60 sequences per seed, 2,852/2,459/2,899 supervised
 tokens, sequence lengths 569–929, and native video tensors `[1920,1536]` with
-`video_grid_thw` shape `[1,3]`. Configured context limits are not substituted for
+actual `video_grid_thw=[[4,16,30]]`. Substantive rows supervise 41–132 tokens;
+single-choice rows supervise two. Configured context limits are not substituted for
 those observed lengths.
 
 The original 390-second product endpoint is censored: seed43 eight-bit committed
