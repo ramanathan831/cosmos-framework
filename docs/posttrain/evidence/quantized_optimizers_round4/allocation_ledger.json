@@ -1,5 +1,5 @@
 {
-  "as_of_utc": "2026-11-05T18:51:05.801412+00:00",
+  "as_of_utc": "2026-11-05T19:31:09.948751+00:00",
   "gpu_cap_seconds": 15660,
   "cpu_wall_cap_seconds": 7200,
   "jobs": [
@@ -23,7 +23,8 @@
       "gpu_count": 1,
       "charged_or_reserved_gpu_seconds": 754,
       "charged_or_reserved_cpu_wall_seconds": 0,
-      "elapsed_seconds": 754
+      "elapsed_seconds": 754,
+      "effective_wall_seconds": 1080
     },
     {
       "job": "38037824",
@@ -42,10 +43,12 @@
         "--mem=16G",
         "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-lr-20261105T1830/prepare_parallel.sbatch"
       ],
-      "state": "SUBMITTED",
+      "state": "TIMEOUT",
       "gpu_count": 0,
       "charged_or_reserved_gpu_seconds": 0,
-      "charged_or_reserved_cpu_wall_seconds": 2340
+      "charged_or_reserved_cpu_wall_seconds": 2361,
+      "elapsed_seconds": 2361,
+      "effective_wall_seconds": 2340
     },
     {
       "job": "38037828",
@@ -64,10 +67,12 @@
         "--mem=16G",
         "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-lr-20261105T1830/prepare_parallel.sbatch"
       ],
-      "state": "SUBMITTED",
+      "state": "COMPLETED",
       "gpu_count": 0,
       "charged_or_reserved_gpu_seconds": 0,
-      "charged_or_reserved_cpu_wall_seconds": 2340
+      "charged_or_reserved_cpu_wall_seconds": 2193,
+      "elapsed_seconds": 2193,
+      "effective_wall_seconds": 2340
     },
     {
       "job": "38037830",
@@ -86,10 +91,12 @@
         "--mem=16G",
         "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-lr-20261105T1830/prepare_parallel.sbatch"
       ],
-      "state": "SUBMITTED",
+      "state": "COMPLETED",
       "gpu_count": 0,
       "charged_or_reserved_gpu_seconds": 0,
-      "charged_or_reserved_cpu_wall_seconds": 2340
+      "charged_or_reserved_cpu_wall_seconds": 2166,
+      "elapsed_seconds": 2166,
+      "effective_wall_seconds": 2340
     },
     {
       "job": "38038432",
@@ -100,7 +107,92 @@
       "gpu_count": 1,
       "charged_or_reserved_gpu_seconds": 431,
       "charged_or_reserved_cpu_wall_seconds": 0,
-      "elapsed_seconds": 431
+      "elapsed_seconds": 431,
+      "effective_wall_seconds": 600
+    },
+    {
+      "job": "38039130",
+      "name": "optimizer-r4-overlap",
+      "wall_seconds": 600,
+      "work_seconds": 520,
+      "node": "batch-block4-0102",
+      "utc": "2026-11-05T19:03:30.691257+00:00",
+      "argv": [
+        "sbatch",
+        "--parsable",
+        "--export=ALL",
+        "--partition=interactive_singlenode,polar",
+        "--time=10",
+        "--nodelist=batch-block4-0102",
+        "--job-name=optimizer-r4-overlap",
+        "--output=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-lr-20261105T1830/overlap-%j.log",
+        "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-lr-20261105T1830/deployment.sbatch"
+      ],
+      "environment": {
+        "SOURCE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850",
+        "SOURCE_ARCHIVE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-lr-20261105T1830/source-checkpoint-overlap.tgz",
+        "ASSETS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z",
+        "PRIOR": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-quantized-optimizers-20261103",
+        "PREPARATION": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/prepare-evaluation-v1",
+        "CONTAINER_IMAGE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-automl-focused-20261012/image-conversion/cosmos-framework-focused.sqsh",
+        "TASK_DATA_ROOT": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data",
+        "TASK_SPEC": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-lr-20261105T1830/checkpoint_overlap_canary.json",
+        "MODE": "study",
+        "WORK_SECONDS": "520",
+        "RESULTS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-lr-20261105T1830/checkpoint-overlap"
+      },
+      "state": "COMPLETED",
+      "gpu_count": 1,
+      "charged_or_reserved_gpu_seconds": 390,
+      "charged_or_reserved_cpu_wall_seconds": 0,
+      "elapsed_seconds": 390,
+      "effective_wall_seconds": 600
+    },
+    {
+      "job": "38039910",
+      "name": "optimizer-r4-verify",
+      "node": "cpu-00019",
+      "wall_seconds": 180,
+      "grace_reserved_seconds": 120,
+      "cpu_reserved_seconds": 300,
+      "argv": [
+        "sbatch",
+        "--parsable",
+        "--nodelist=cpu-00019",
+        "--job-name=optimizer-r4-verify",
+        "--output=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-lr-20261105T1830/preparation-recovery/slurm-%j.log",
+        "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-lr-20261105T1830/verify-published.sbatch"
+      ],
+      "utc": "2026-11-05T19:19:17.549074+00:00",
+      "gpu_count": 0,
+      "state": "COMPLETED",
+      "elapsed_seconds": 29,
+      "charged_or_reserved_gpu_seconds": 0,
+      "charged_or_reserved_cpu_wall_seconds": 29,
+      "effective_wall_seconds": 180
+    },
+    {
+      "job": "38040460",
+      "name": "optimizer-r4-verify-v2",
+      "node": "cpu-00019",
+      "wall_seconds": 120,
+      "grace_reserved_seconds": 120,
+      "cpu_reserved_seconds": 240,
+      "argv": [
+        "sbatch",
+        "--parsable",
+        "--nodelist=cpu-00019",
+        "--job-name=optimizer-r4-verify-v2",
+        "--output=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-lr-20261105T1830/preparation-recovery-recheck/slurm-%j.log",
+        "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-lr-20261105T1830/verify-published-v2.sbatch"
+      ],
+      "utc": "2026-11-05T19:29:09.227782+00:00",
+      "gpu_count": 0,
+      "state": "COMPLETED",
+      "elapsed_seconds": 25,
+      "effective_wall_seconds": 120,
+      "charged_or_reserved_gpu_seconds": 0,
+      "charged_or_reserved_cpu_wall_seconds": 25
     }
   ],
   "unsubmitted_gpu_reservations": {
@@ -108,16 +200,18 @@
     "conditional_eight_bit_development": 0,
     "conditional_final": 0,
     "shared_runtime_canary": 0,
-    "checkpoint_overlap_canary": 600
+    "checkpoint_overlap_canary": 0
   },
   "unsubmitted_cpu_reservations": {
     "full_preparation_1": 0,
     "full_preparation_2": 0,
-    "full_preparation_3": 0
+    "full_preparation_3": 0,
+    "published_corpus_verification_with_grace": 0
   },
   "local_cpu_check_seconds_reserved": 180,
-  "total_charged_or_reserved_gpu_seconds": 1785,
-  "total_charged_or_reserved_cpu_seconds": 7200,
+  "total_charged_or_reserved_gpu_seconds": 1575,
+  "total_charged_or_reserved_cpu_seconds": 6954,
   "prior_ledger": "../quantized_optimizers_round3/final_accounting.json",
-  "conditional_release_reason": "Fused LR screen fails its unchanged per-seed accuracy guard in seeds17 and29. All three fused runs completed; no eight-bit LR run or final scoring is admitted for this candidate. The separately predeclared shared source-verification canary reserves600seconds; no sweep."
+  "conditional_release_reason": "Fused LR screen fails its unchanged per-seed accuracy guard in seeds17 and29. All three fused runs completed; no eight-bit LR run or final scoring is admitted for this candidate. The separately predeclared shared source-verification canary reserves600seconds; no sweep.",
+  "active_owned_jobs": []
 }

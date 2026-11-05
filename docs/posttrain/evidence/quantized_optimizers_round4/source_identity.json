@@ -1,0 +1,69 @@
+{
+  "handoff_commit": "40885d972ba63b4827b12bb775d308b936e016c5",
+  "branch": "feat/quantized-optimizers",
+  "final_implementation_commit": "f34953144d43cd4ae554d0ba6af9864c70d51d71",
+  "final_native_tree": "bc3f27a80f6053ac0ac52ef0a9cc8cdb252e86a3",
+  "runtime_sources": {
+    "fused_LR_and_full_preparations": {
+      "commit": "e65f7eac8d7536171aa92ba7f7d019a8ea4b6998",
+      "archive_sha256": "83ad99a4feaf0cbe737f83cac9f08a18aeb21964f3801d4bf725406b37044325"
+    },
+    "source_verification_canary": {
+      "commit": "f4f3cb151ae10d97b4c001d87cb60afc37f82f27",
+      "archive_sha256": "6c1dc70f2ebe3e365a672fa7b86a6c5b33579b83d6bdd26594b0086674d9a305",
+      "native_tree": "bc3f27a80f6053ac0ac52ef0a9cc8cdb252e86a3",
+      "scope": "Candidate prepared source verification and score phase instrumentation only; LR development and CPU preparation continue with original immutable e65f7ea. No default performance adoption before canary screen.",
+      "local_cpu_tests": {
+        "prepared_sft": 16,
+        "seconds": 3.17,
+        "CUDA_VISIBLE_DEVICES": "",
+        "root_conftest_excluded": true
+      },
+      "static_checks": "Ruff check/format and git diff check pass."
+    },
+    "checkpoint_overlap_canary": {
+      "commit": "c0ad47a8c573a67aeb2591760c502092fce3a75c",
+      "archive_sha256": "5f2f0a1deb8a0f8168d01ccd23a890ff3b3caf3e4de9b1ed1351f83c2650107b",
+      "native_tree": "bc3f27a80f6053ac0ac52ef0a9cc8cdb252e86a3",
+      "local_cpu_tests": {
+        "checkpoint_read": 6,
+        "seconds": 1.17
+      },
+      "scope": "Fresh-process development scoring only; full checkpoint SHA and native restore provenance remain required. LR and CPU preparation use immutable e65f7ea."
+    },
+    "first_corpus_recovery_commit": "64273af11bc3bd40ccc27e7eb108459ebb0740bb",
+    "corrected_corpus_recovery_commit": "fb4d6cd7a55d12663d3c6f24eb7ee0a4eddeef01"
+  },
+  "final_file_sha256": {
+    "cosmos_framework/posttrain/data/packer/prepared_sft.py": "bed9bdffbc95a651c55ece2489da1f4bd623be388931c15ded297a2b1cb3e851",
+    "cosmos_framework/posttrain/tests/test_prepared_sft.py": "9923e9b74110984b8a8d4b091782ed0f1686aa99485a819967a10b54d8c25bff",
+    "tools/quantized_optimizers/score_dense.py": "fc2bfd25c2efb8e200dce5ad716aa4c21764dc7cbff1e029960169f515309b0b",
+    "tools/quantized_optimizers/test_checkpoint_read.py": "037ad3c8763006a726dcc1f771cc9b6001f937fb1651fcde9564eb1b1d052ecc",
+    "tools/quantized_optimizers/verify_published_corpus.py": "713ae2a04023f195e13179cdb4059e8ee475d21d83147a2da96663abafa824ee",
+    "tools/quantized_optimizers/test_verify_published_corpus.py": "1fcf4c79ec3193eedf9154577567a218c94ebc0dfa4195bf81d9ecb1553a8b09"
+  },
+  "native_paths_changed_since_handoff": [
+    "cosmos_framework/posttrain/data/packer/prepared_sft.py",
+    "cosmos_framework/posttrain/tests/test_prepared_sft.py"
+  ],
+  "unchanged_paths": "Optimizer factory/backend, checkpoint save/transaction/restore, model-weight loading, native training loops, scheduler and QLoRA integration. Reuse sealed recovery/regression evidence for those unchanged paths.",
+  "pinned_runtime": {
+    "torch": "2.11.0+cu128",
+    "transformers": "5.8.1",
+    "bitsandbytes": "0.49.2",
+    "python": "3.12"
+  },
+  "local_test_runtime": {
+    "torch": "2.10.0+cu130",
+    "transformers": "4.57.6",
+    "bitsandbytes": "0.49.2",
+    "python": "3.13",
+    "cuda_visible_devices": "",
+    "root_conftest_excluded": true
+  },
+  "standalone_verifier_runtime": "System Python3.8.10, standard library only; no model/tensor/CUDA imports.",
+  "model": "Qwen/Qwen3-VL-8B-Instruct@0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+  "corpus_sha256": "ea2e64893ab3d7da0f4c8be33001ae99c96dfd2c54fe293449c29255cd1f2d70",
+  "evaluation_policy": "No new final scores. Authorized historically exposed128question/32family pool remains unchanged. Only development predictions are used for screens.",
+  "publication": "Local commits only. No push/publication/merge; original QLoRA checkout untouched and PR334 not reopened."
+}

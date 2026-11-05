@@ -1,0 +1,33 @@
+{
+  "implementation_complete_for_declared_matrix": true,
+  "product_release_qualified": false,
+  "objective_open": true,
+  "new_final_comparison_admitted": false,
+  "new_final_scoring_runs": 0,
+  "shared_lr_screen": {
+    "accepted": false,
+    "mean_task_nll_reduction_fraction": 0.09035513367143722,
+    "failure": "Accuracy declines in seeds17 and29; substantive NLL ratio1.36815 in seed43 exceeds1.01."
+  },
+  "shared_source_verification_screen_pass": true,
+  "shared_checkpoint_overlap_screen_pass": true,
+  "exact_corpora": 3,
+  "uninterrupted_cold_timings": 2,
+  "three_replication_cold_gate_pass": false,
+  "unchanged_final_gates": {
+    "positive_task_adaptation_vs_frozen": true,
+    "matched_nll_upper_at_most_1_01": false,
+    "accuracy_drop_upper_at_most_1pp": false,
+    "positive_equal_training_budget_nll_gain": false,
+    "positive_equal_product_budget_nll_gain": false,
+    "prepared_target_speed_lower_above_1_05": false,
+    "state_memory_saving": true,
+    "dense_fresh_process_recovery": true
+  },
+  "source_identity": "source_identity.json",
+  "raw_and_derived_evidence": "evidence_manifest.json",
+  "requirements": "requirements.md",
+  "costs": "final_accounting.json",
+  "all_owned_jobs_terminal": true,
+  "publication": "Local only; no push, publication or merge. Original QLoRA checkout untouched; PR334 remains closed."
+}

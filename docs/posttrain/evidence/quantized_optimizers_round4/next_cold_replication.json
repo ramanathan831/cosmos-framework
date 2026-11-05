@@ -1,0 +1,34 @@
+{
+  "status": "NOT_ADMITTED_OR_RUN",
+  "reason": "Only two uninterrupted full preparation replications completed; the third corpus was recovered by exact byte verification after timeout. Preserve that failure and its costs.",
+  "source_commit": "e65f7eac8d7536171aa92ba7f7d019a8ea4b6998",
+  "source_archive_sha256": "83ad99a4feaf0cbe737f83cac9f08a18aeb21964f3801d4bf725406b37044325",
+  "controls": "Same full_one producer, four workers/two threads, eight CPUs/16GiB, same qualified reference and all751logical rows/562targets. Original native replay and tensor-equality verification retained. Fresh output path; no emptyOS-cache claim.",
+  "reservation_cpu_wall_seconds": 3000,
+  "slurm_time_minutes": 48,
+  "slurm_killwait_seconds_reserved": 120,
+  "basis": "Two full replications cost2193/2166seconds; slower attempt reached2361seconds before timeout. Reserve2880seconds plus120seconds grace before retry. Current246seconds headroom cannot admit it.",
+  "environment": {
+    "SOURCE": "$OLD",
+    "SOURCE_ARCHIVE": "$OLD/source-native-diagnostic.tgz",
+    "ASSETS": "$ASSETS",
+    "CONTAINER_IMAGE": "$CONTAINER_IMAGE",
+    "MODE": "full_one",
+    "REFERENCE_CORPUS": "$OLD/prepare-evaluation-v1/prepared-corpus",
+    "FINAL_DATA": "$OLD/evaluation-v1/validation.jsonl",
+    "PREPARATION_PROFILE": "0",
+    "DECODER_THREADS": "",
+    "RESULTS": "$FRESH_CAMPAIGN/cold-replacement"
+  },
+  "argv": [
+    "sbatch",
+    "--parsable",
+    "--export=ALL",
+    "--partition=cpu_short",
+    "--cpus-per-task=8",
+    "--mem=16G",
+    "--time=48",
+    "tools/quantized_optimizers/prepare_parallel.sbatch"
+  ],
+  "statistics": "Before admission, lock how the two completed historical preparations and prospective replacement are analyzed, retaining dates/nodes/cache/concurrency. No favorable-outcome selection, removal of failed costs or direct cold-GPU claim."
+}

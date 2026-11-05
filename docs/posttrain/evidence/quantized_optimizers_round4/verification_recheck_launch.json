@@ -1,0 +1,17 @@
+{
+  "job": "38040460",
+  "name": "optimizer-r4-verify-v2",
+  "node": "cpu-00019",
+  "wall_seconds": 120,
+  "grace_reserved_seconds": 120,
+  "cpu_reserved_seconds": 240,
+  "argv": [
+    "sbatch",
+    "--parsable",
+    "--nodelist=cpu-00019",
+    "--job-name=optimizer-r4-verify-v2",
+    "--output=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-lr-20261105T1830/preparation-recovery-recheck/slurm-%j.log",
+    "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-lr-20261105T1830/verify-published-v2.sbatch"
+  ],
+  "utc": "2026-11-05T19:29:09.227782+00:00"
+}

@@ -95,8 +95,9 @@
     "conditional_eight_bit_development_reservation_gpu_seconds": 1080,
     "complete_final_comparison_reservation_gpu_seconds": 13500,
     "total_gpu_reservation_seconds": 15660,
-    "final_comparison_basis": "Current complete36-run/37-score campaign actual11129GPU-seconds; retain its proven3x4500-second reservations including dependent scoring and failures. Actual completed preparation1990seconds; three fresh full CPU preparations reserve3x2400seconds if repeated cold qualification is pursued.",
-    "three_cold_replications_reservation_cpu_seconds": 7200
+    "final_comparison_basis": "Retain the proven 3 x 4500-second complete final reservations, including dependent fresh scoring; original complete final work consumed11129GPU-seconds. Shared runtime changes require prospective reserve recalibration, not subtraction of a favorable canary timing. Completed round-four preparation replications may be reused with their exact producer/input identities; no automatic repeat of adequate preparation evidence.",
+    "three_cold_replications_reservation_cpu_seconds": 0,
+    "cpu_scope": "Reuse round-four full preparations only if all exact checks completed; future CPU checks/final analysis must receive an explicit finite reservation. Zero here is not a promise of no CPU analysis cost."
   },
   "stop": "Not submitted. Current failed-screen stop rule prevents an automatic sweep; all unchanged development guards apply. Full conditional development/final reservations total15660GPUseconds; current campaign charges remain separate.",
   "development_confidence_evidence": "fused_development_summary.json retains all32update15questions per seed. Seed17 loses one formerly correct answer to a tied A/D decision; seed29 loses another to a confident wrong A. The known seed29 wrong answer becomes less confident (goldNLL7.75to4.51), explaining part of the average NLL gain. Do not change ties, class mapping or scoring to remove the accuracy failures."

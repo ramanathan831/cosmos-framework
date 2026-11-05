@@ -1,0 +1,23 @@
+{
+  "utc": "2026-11-05T19:13:12.148636+00:00",
+  "completed_jobs": {
+    "38037828": [
+      "COMPLETED",
+      "2193"
+    ],
+    "38037830": [
+      "COMPLETED",
+      "2166"
+    ]
+  },
+  "job": "38037824",
+  "old_wall_seconds": 2340,
+  "new_wall_seconds": 2520,
+  "killwait_seconds_reserved": 120,
+  "local_cpu_seconds_reserved": 180,
+  "max_total_charged_or_reserved_cpu_seconds": 7179,
+  "reason": "Two completed preparations free321seconds; extend remaining full exact verification within the unchanged7200-second ceiling including120-second grace. No target/check modifications.",
+  "returncode": 1,
+  "stdout": "",
+  "stderr": "Access/permission denied for job 38037824\n"
+}

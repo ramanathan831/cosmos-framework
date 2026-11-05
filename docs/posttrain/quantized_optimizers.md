@@ -733,6 +733,94 @@ replications additionally reserve 7,200 CPU-wall seconds. Those complete depende
 comparisons do not fit the remaining caps, so the next probe is not submitted.
 Its outcome is unknown; no improvement or qualification is promised.
 
+## Additional shared-learning-rate campaign
+
+The [additional protocol](evidence/quantized_optimizers_round4/plan.json) used a new
+4.35 GPU allocation-hour and two CPU-wall-hour allowance. It executed the exact
+previously proposed 7.5e-6 learning-rate screen under fused AdamW at seeds 17, 29
+and 43, retaining 15 updates, the 40-update schedule horizon, mixed objective and
+all other controls. The [complete development analysis](evidence/quantized_optimizers_round4/fused_development_summary.json)
+retains every per-question prediction and the update-0/5/10/15 curves.
+
+Mean gold-answer NLL improved 9.04%, passing the required 2% improvement. However,
+seeds 17 and 29 each lost one of 32 correct answers, and seed 43's substantive
+answer-text NLL worsened 36.81%. **The candidate fails the unchanged development
+screen.** Its eight-bit arm and new final comparison were not admitted. The default
+learning rate, precision exceptions and schedule remain unchanged.
+
+The evidence supports a shared recipe trade-off rather than a quantization defect.
+On the previously identified seed-29 wrong answer, gold NLL falls from 7.75 to
+4.51 as confidence in the wrong answer decreases. A different formerly correct
+answer becomes confidently wrong; seed 17 also loses a correct answer to a tied
+choice decision. Ties, class mapping and scoring are unchanged. Better average
+confidence calibration does not replace accuracy or substantive-answer guards.
+The next [unsubmitted intermediate-LR probe](evidence/quantized_optimizers_round4/next_shared_lr_probe.json)
+tests 8.75e-6 with the same strict screens and equal optimizer access. No improvement
+is assumed, and the failed screen does not authorize an automatic sweep.
+
+Two bounded shared loading changes passed their predeclared development screens:
+
+| Change | Exactness and measured scope |
+|---|---|
+| Prepared-input source verification | At most four threads hash every source byte, deduplicating repeated media within an attachment. Per-access payload/media hashes remain. Serial/parallel fresh scores exactly match all 128 development observations. Verification time falls 52.54%; aggregate scoring-process time falls 3.00% in this canary. |
+| Checkpoint hash and restore overlap | A background full SHA-256 read overlaps native model restoration inside stable checkpoint provenance. It joins before scoring or success publication, including failure paths. All 128 development observations and checkpoint identities match exactly. Combined read-and-restore time falls 29.50%; aggregate process time falls 26.40%. |
+
+These are one counterbalanced pair per optimizer checkpoint, not independent
+three-seed end-to-end performance evidence. Variable startup contributes to the
+process totals; nested concurrent timers must not be added. Full fresh-process
+reloads and full content checks remain required. Scoring defaults to overlap,
+with `--checkpoint-read-mode serial` retaining the control. Prepared attachment
+defaults to four verification workers; `--verification-workers 1` retains serial
+scoring verification. Both optimizers receive these changes. Peak scoring host
+PSS in the overlap canary was 33.39/33.25 GiB for fused serial/overlap and
+34.00/34.02 GiB for eight-bit; process GPU peaks were 34.99 GiB throughout.
+See the [source-verification screen](evidence/quantized_optimizers_round4/runtime_canary_summary.json)
+and [checkpoint-loading screen](evidence/quantized_optimizers_round4/checkpoint_overlap_summary.json).
+This does not establish an optimizer-related inference-latency improvement.
+
+Two full preparation replications completed in 2,193 and 2,166 allocated CPU
+seconds. Each verified 751 logical rows, 562 unique targets, 1,124 independent
+native decodes and 6,636,869,170 payload bytes against the qualified corpus.
+The third published the complete corpus but timed out before its final receipt,
+charging 2,361 seconds. Slurm rejected an attempted within-budget extension.
+A separately reserved 29-second allocation verified every payload in both
+corpora and all 308 source-media hashes, recovering exact input identity without
+repeating decoding. Its initial pipeline cost is 2,390 allocated seconds. A subsequent review fixed
+a manifest hash/parse read gap in the standalone verifier; six integrity tests
+pass, and a 25-second full recheck passes. The complete third-pipeline cost,
+including the failed allocation and both verifications, is 2,415 seconds.
+
+The [cold report](evidence/quantized_optimizers_round4/cold_preparation_summary.json)
+therefore distinguishes **two uninterrupted timings and one recovered corpus**.
+All three corpora are exact, but the prespecified three-replication cold interval
+is withheld. Neither the recovered workflow nor the two completed timings replace
+the historical single-preparation composed result. Fresh output paths are not
+empty filesystem caches; nodes shared storage with development work. A
+[same-workflow replacement replication](evidence/quantized_optimizers_round4/next_cold_replication.json)
+remains unsubmitted, with a 3,000-second CPU reservation including termination grace.
+
+The optimizer, checkpoint transaction and model-weight loading paths are unchanged
+from the verified foundation. Dense fresh-process 40-to-44 recovery and the 49
+pinned regressions retain their scope. New checks pass: 16 prepared-input tests
+locally and in the pinned environment, six checkpoint-read controls locally and
+in the pinned environment, and six published-corpus integrity controls locally.
+No broader dtype, distributed, paging-speed or QLoRA scope is inferred.
+
+All eight admitted allocations are terminal. [Additional accounting](evidence/quantized_optimizers_round4/final_accounting.json)
+charges 1,575 GPU-seconds (0.4375 hours) and 6,954 CPU-wall seconds (1.9317 hours),
+including the failed preparation, recovery and 180-second local-check allowance.
+Headroom is 14,085 GPU-seconds and 246 CPU-wall seconds; the allowance is not
+exhausted. The complete next conditional development/final plan reserves 15,660
+GPU-seconds, and the replacement cold replication reserves 3,000 CPU-seconds.
+Neither fits the remaining corresponding ceiling. The prior ledger is unchanged.
+
+The requested product objective remains open. Prior positive adaptation and state
+savings stand, but the matched-quality confidence bounds, equal-budget NLL gain
+and end-to-end speed lower bound still fail. No new final examples were scored;
+the 128-question/32-family reused-pool disclosure and all historical endpoints
+remain. The [requirement-to-evidence map](evidence/quantized_optimizers_round4/requirements.md)
+distinguishes numerical, statistical and operational failures.
+
 ## Reproduction and source identities
 
 [Qualification commands](../../tools/quantized_optimizers/README.md) cover data
@@ -740,8 +828,13 @@ regeneration, immutable source archives, Slurm submission, collection and analys
 [First-campaign status](evidence/quantized_optimizers/qualification_summary.json)
 and [completed follow-up status](evidence/quantized_optimizers_round2/qualification_summary.json)
 link each result, gate and remaining requirement. The
-[current proposed PR](evidence/quantized_optimizers_round3/proposed_pr.md)
+[current proposed PR](evidence/quantized_optimizers_round4/proposed_pr.md)
 describes the combined implementation and measured limitations; it has not been published.
+[Additional campaign commands](evidence/quantized_optimizers_round4/commands.md),
+[source identities](evidence/quantized_optimizers_round4/source_identity.json) and
+[artifact manifest](evidence/quantized_optimizers_round4/evidence_manifest.json)
+bind the rejected LR screen, accepted shared loading changes and preparation
+recovery separately from the unchanged round-three final comparisons.
 [Third-campaign status](evidence/quantized_optimizers_round3/qualification_summary.json),
 [requirement-to-evidence map](evidence/quantized_optimizers_round3/requirements.md),
 [source identities](evidence/quantized_optimizers_round3/source_identity.json) and

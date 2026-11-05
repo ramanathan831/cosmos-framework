@@ -1,0 +1,14 @@
+{
+  "utc": "2026-11-05T19:23:02.038351+00:00",
+  "owned_jobs": [
+    "38037823",
+    "38037824",
+    "38037828",
+    "38037830",
+    "38038432",
+    "38039130",
+    "38039910"
+  ],
+  "sacct": "JobID|State|ElapsedRaw|TimelimitRaw|NodeList|ExitCode\n38037823|COMPLETED|754|18|batch-block4-0052|0:0\n38037824|TIMEOUT|2361|39|cpu-00016|0:0\n38037828|COMPLETED|2193|39|cpu-00019|0:0\n38037830|COMPLETED|2166|39|cpu-00020|0:0\n38038432|COMPLETED|431|10|batch-block4-0051|0:0\n38039130|COMPLETED|390|10|batch-block4-0102|0:0\n38039910|COMPLETED|29|3|cpu-00019|0:0\n",
+  "active_owned_jobs": []
+}

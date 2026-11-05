@@ -1,0 +1,35 @@
+{
+  "gpu_cap_seconds": 15660,
+  "gpu_allocated_seconds": 1575,
+  "gpu_allocated_hours": 0.4375,
+  "gpu_headroom_seconds": 14085,
+  "cpu_cap_seconds": 7200,
+  "cpu_allocated_seconds": 6774,
+  "conservative_local_cpu_check_allowance_seconds": 180,
+  "cpu_charged_seconds": 6954,
+  "cpu_charged_hours": 1.9316666666666666,
+  "cpu_headroom_seconds": 246,
+  "all_owned_jobs_terminal": true,
+  "owned_jobs": [
+    "38037823",
+    "38037824",
+    "38037828",
+    "38037830",
+    "38038432",
+    "38039130",
+    "38039910",
+    "38040460"
+  ],
+  "active_owned_jobs": [],
+  "failed_allocations": [
+    {
+      "job": "38037824",
+      "state": "TIMEOUT",
+      "seconds": 2361
+    }
+  ],
+  "unsubmitted_eightbit_development_and_final": "Not admitted because shared LR screen failed; no final quality evaluation was repeated.",
+  "prior_round3_ledger": "Unchanged23384GPUseconds/7015CPU-wallseconds, with5416/185seconds historical headroom; not carried into these ceilings.",
+  "timing_rounding_and_grace": "Admission reserved effective Slurm minute limits. CPU producer timeout charged2361seconds,21seconds beyond39minutes. Attempted within-cap extension was permission-denied, recorded in cpu_extension.json. Verification reserved180-second limit+120-secondKillWait; actual29seconds. Corrected verifier reserved120-second limit+120-secondKillWait; actual25seconds. Both recovery allocations and the timeout remain charged.",
+  "headroom_policy": "Allowances are not exhausted. No automatic recipe sweep. The next complete conditional comparison reserves15660GPUseconds and does not fit14085seconds remaining. One same-workflow cold replacement would reserve3000CPU-wallseconds and does not fit246seconds remaining."
+}

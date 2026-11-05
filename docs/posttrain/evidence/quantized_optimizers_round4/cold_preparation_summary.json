@@ -1,0 +1,155 @@
+{
+  "all_three_published_corpora_exact": true,
+  "uninterrupted_full_replications": 2,
+  "recovered_full_corpora": 1,
+  "replications": [
+    {
+      "replication": 1,
+      "job": "38037824",
+      "state": "TIMEOUT",
+      "allocation_seconds": 2361,
+      "manifest_sha256": "ea2e64893ab3d7da0f4c8be33001ae99c96dfd2c54fe293449c29255cd1f2d70",
+      "independent_raw_replay": "Pinned producer publishes a complete manifest only after each worker returns two exact native decodes and rejects CUDA initialization. All562targets were published.",
+      "raw_sha256": "38cf79df7f8107faf31b96b759e8c11341e995a72c197222351988ee40520b41"
+    },
+    {
+      "replication": 2,
+      "job": "38037828",
+      "state": "COMPLETED",
+      "allocation_seconds": 2193,
+      "manifest_sha256": "ea2e64893ab3d7da0f4c8be33001ae99c96dfd2c54fe293449c29255cd1f2d70",
+      "independent_raw_replay": "Pinned producer publishes a complete manifest only after each worker returns two exact native decodes and rejects CUDA initialization. All562targets were published.",
+      "raw_sha256": "79c68063d3dc5ae826e247897ddb296ce20b05c19ffe2e9699829a6f5dc48171",
+      "receipt": {
+        "workers": 4,
+        "threads_per_worker": 2,
+        "cpu_affinity": [
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23
+        ],
+        "preparation_seconds": 1671.6604675709968,
+        "total_seconds_with_independent_exact_replay": 1991.474931113975,
+        "exact_raw_prepared_rows": 562,
+        "independently_replayed_unique_targets": 562,
+        "total_verified_rows": 751,
+        "raw_native_calls": 1124,
+        "reference_exact_unique_targets": 562,
+        "reference_corpus_sha256": "ea2e64893ab3d7da0f4c8be33001ae99c96dfd2c54fe293449c29255cd1f2d70",
+        "corpus_sha256": "ea2e64893ab3d7da0f4c8be33001ae99c96dfd2c54fe293449c29255cd1f2d70",
+        "payload_bytes": 6636869170,
+        "cuda_initialized": false,
+        "source_paths": [
+          "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data/train.jsonl",
+          "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data/validation.jsonl",
+          "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data/train-mixed.jsonl",
+          "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data/dev-task.jsonl",
+          "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data/fixed-final.jsonl",
+          "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/validation.jsonl"
+        ],
+        "worker_compute_seconds_sum": 5691.227554055251,
+        "decoder_threads": null,
+        "source_sha256": "81f15e14e35b79a91ba3dbc612d8b1d5ab40a7eb4180cf68aae51322dea03bdf"
+      }
+    },
+    {
+      "replication": 3,
+      "job": "38037830",
+      "state": "COMPLETED",
+      "allocation_seconds": 2166,
+      "manifest_sha256": "ea2e64893ab3d7da0f4c8be33001ae99c96dfd2c54fe293449c29255cd1f2d70",
+      "independent_raw_replay": "Pinned producer publishes a complete manifest only after each worker returns two exact native decodes and rejects CUDA initialization. All562targets were published.",
+      "raw_sha256": "f34aeff5d5f082e986ffa1fb9e976c6e16f8f7a3b8e50af03f82d7518d10d917",
+      "receipt": {
+        "workers": 4,
+        "threads_per_worker": 2,
+        "cpu_affinity": [
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23
+        ],
+        "preparation_seconds": 1687.087584993802,
+        "total_seconds_with_independent_exact_replay": 2006.3554598898627,
+        "exact_raw_prepared_rows": 562,
+        "independently_replayed_unique_targets": 562,
+        "total_verified_rows": 751,
+        "raw_native_calls": 1124,
+        "reference_exact_unique_targets": 562,
+        "reference_corpus_sha256": "ea2e64893ab3d7da0f4c8be33001ae99c96dfd2c54fe293449c29255cd1f2d70",
+        "corpus_sha256": "ea2e64893ab3d7da0f4c8be33001ae99c96dfd2c54fe293449c29255cd1f2d70",
+        "payload_bytes": 6636869170,
+        "cuda_initialized": false,
+        "source_paths": [
+          "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data/train.jsonl",
+          "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data/validation.jsonl",
+          "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data/train-mixed.jsonl",
+          "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data/dev-task.jsonl",
+          "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data/fixed-final.jsonl",
+          "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/validation.jsonl"
+        ],
+        "worker_compute_seconds_sum": 5783.965476165991,
+        "decoder_threads": null,
+        "source_sha256": "81f15e14e35b79a91ba3dbc612d8b1d5ab40a7eb4180cf68aae51322dea03bdf"
+      }
+    }
+  ],
+  "recovery": {
+    "job": "38039910",
+    "allocation_seconds": 29,
+    "receipt": {
+      "complete": true,
+      "scope": "Published corpus byte-identity recovery; not an uninterrupted preparation receipt",
+      "candidate": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-lr-20261105T1830/cold-preparation-1/trial0",
+      "reference": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/prepare-evaluation-v1/prepared-corpus",
+      "manifest_sha256": "ea2e64893ab3d7da0f4c8be33001ae99c96dfd2c54fe293449c29255cd1f2d70",
+      "exact_payloads_per_corpus": 562,
+      "payload_bytes_per_corpus": 6636869170,
+      "source_media_files": 308,
+      "verified_files_including_manifests": 1434,
+      "wall_seconds": 23.503829585009953,
+      "python": "3.8.10 (default, May 26 2023, 14:05:08) \n[GCC 9.4.0]",
+      "source_sha256": "1d806728d39fcd54c19dc1b945434174832282abc12ffd6c4ebcd8e338d58ee7"
+    },
+    "raw_sha256": "04a68fed8075f49f9bdc7141c8ae8770a85a88ab0dc41643ee6d3175845df5ed"
+  },
+  "third_total_allocation_seconds_including_timeout_and_recovery": 2390,
+  "uninterrupted_allocation_seconds": [
+    2193,
+    2166
+  ],
+  "unchanged_three_replication_timing_gate_pass": false,
+  "composed_cold_interval": null,
+  "reason": "All inputs/targets are now exact, but only2uninterrupted replications completed the locked producer. The third required a different, byte-equivalent verification continuation. Do not compute the prespecified3-trial CI or replace the prior single-cost cold result with a homogeneous-replication claim. Preserve unknown failed-run phase timings and charge the entire failed allocation.",
+  "cache_and_concurrency": "Fresh output directories; no emptyOS-cache claim. CPU nodes were distinct but shared storage with development GPU work. Recovery reused the completed corpus and its filesystem cache.",
+  "corrected_verifier_recheck": {
+    "job": "38040460",
+    "allocation_seconds": 25,
+    "receipt": {
+      "complete": true,
+      "scope": "Published corpus byte-identity recovery; not an uninterrupted preparation receipt",
+      "candidate": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-lr-20261105T1830/cold-preparation-1/trial0",
+      "reference": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/prepare-evaluation-v1/prepared-corpus",
+      "manifest_sha256": "ea2e64893ab3d7da0f4c8be33001ae99c96dfd2c54fe293449c29255cd1f2d70",
+      "exact_payloads_per_corpus": 562,
+      "payload_bytes_per_corpus": 6636869170,
+      "source_media_files": 308,
+      "verified_files_including_manifests": 1434,
+      "wall_seconds": 18.7470385459892,
+      "python": "3.8.10 (default, May 26 2023, 14:05:08) \n[GCC 9.4.0]",
+      "source_sha256": "713ae2a04023f195e13179cdb4059e8ee475d21d83147a2da96663abafa824ee"
+    },
+    "raw_sha256": "8ed0e7dfafe5ea6b6c5db16061165dd2493db12ecde535df788d37afc781962b",
+    "reason": "Bind the parsed manifest bytes directly to the pinned digest; six local integrity tests pass, including altered parse bytes with unchanged stat. Full published-corpus verification passes again."
+  },
+  "third_total_seconds_including_recovery_and_correctness_recheck": 2415
+}
