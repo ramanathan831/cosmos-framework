@@ -1,0 +1,104 @@
+{
+  "purpose": "development diagnosis",
+  "prepared_verified_rows": 751,
+  "locked_utc": "2026-11-05T00:38:28.137871+00:00",
+  "reservation_gpu_seconds": 1500,
+  "work_seconds": 1380,
+  "seed": 17,
+  "cases": [
+    {
+      "name": "fused_fp32",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=fused_fp32",
+        "rl.seed=17",
+        "rl.optimizer.name=adamw",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096",
+        "model_hf.grad_ckpt=true",
+        "rl.lr_schedule.cycle_steps=40"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "allow_failure": false
+    },
+    {
+      "name": "bnb_fp32",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=bnb_fp32",
+        "rl.seed=17",
+        "rl.optimizer.name=adamw_bnb_8bit",
+        "rl.optimizer.impl=",
+        "rl.optimizer.bnb_min_8bit_size=2147483647",
+        "model_hf.grad_ckpt=true",
+        "rl.lr_schedule.cycle_steps=40"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "allow_failure": false
+    },
+    {
+      "name": "bnb_8bit",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=bnb_8bit",
+        "rl.seed=17",
+        "rl.optimizer.name=adamw_bnb_8bit",
+        "rl.optimizer.impl=",
+        "rl.optimizer.bnb_min_8bit_size=16384",
+        "model_hf.grad_ckpt=true",
+        "rl.lr_schedule.cycle_steps=40"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "allow_failure": false
+    },
+    {
+      "name": "update_comparison",
+      "read_model": false,
+      "argv": [
+        "python",
+        "-m",
+        "tools.quantized_optimizers.compare_native_updates",
+        "{root}",
+        "{case}/updates.json"
+      ],
+      "allow_failure": false
+    }
+  ],
+  "reason": "Unchanged final matched-quality guards fail despite a small mean NLL difference; development shows no consistent eight-bit deficit. Separate backend arithmetic from state quantization before proposing precision exceptions. This native mixed-objective diagnostic complements the existing synthetic control; it is not another final evaluation.",
+  "controls": "Identical initialization, data order, 15 updates, 40-step cosine, effective batch4, micro4, full activation recomputation for every arm, FP32 trainables and BF16 compute. bnb_fp32 forces every state to FP32 via the supported minimum-size option; actual allocated dtype/count is asserted. No public backend name or support contract changes.",
+  "analysis": "Compare development curves and cumulative live-parameter updates against identical pretrained tensors. Inspect all 176 trainable tensors and pairwise update norms/cosines. No inference of independent task quality or kernel-only error; gradient feedback is included. No final scores or test-set-driven exception selection.",
+  "stop": "Single seed diagnostic only; no automatic follow-up or final evaluation. Stop on unsupported allocation, identity mismatch or nonfinite updates. Required corrected evaluations retain their reservations and complete first."
+}
