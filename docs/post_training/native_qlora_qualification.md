@@ -321,6 +321,23 @@ The actual reload probes have **25/275/340 tokens**, **2/5/2 supervised tokens**
 
 The three allocations consumed **3,087 GPU-seconds and 49,392 allocated CPU-seconds**, charged once as final-build confirmation. NF4 retained 925 memory samples with one incomplete host-membership sample; BF16 retained 1,131 with none incomplete. The report preserves allocator intervals, sampled lower bounds and gaps. It does not measure whole-host residency or a job-cgroup memory watermark. These independent lifecycle allocations are correctness evidence, not a matched speed comparison, a 300-update interruption test, or a new quality-gate pass.
 
+### Postwarmup preparation profile
+
+The [completed native profile](evidence/native_qlora_postwarmup_profile_4cd8988.json) ran ordinary NF4 then BF16 on the same A100 80GB, CPU affinity and single CPU NUMA node, using native `4cd8988`, rank 32/alpha 64, FP32 adapters and fused AdamW, full logits/checkpointing, microbatch one with accumulation eight, one preprocessing worker and a 1 GiB cache. Both applied 42 updates on the original 300-update schedule with 30 warmup updates and passed healthy update-42 checkpoint inspection.
+
+| Measurement scope                                                  |      NF4 |     BF16 |
+| ------------------------------------------------------------------ | -------: | -------: |
+| Updates 31–39, summed update time                                  | 77.220 s | 71.779 s |
+| Updates 31–39, preparation-wait counter                            | 22.344 s | 27.060 s |
+| Updates 31–39, video-cache misses / hits                           |  35 / 37 |  35 / 37 |
+| Traced updates 41–42, preparation-wait fraction of step wall union |   22.31% |   30.16% |
+
+Updates 31–39 precede Torch-profiler warmup at update 40 and active tracing at 41–42; whole-process CPU-span annotations remain enabled. The traced NF4 dequantization kernels account for 0.746963 seconds, with substantial kernel time unattributed in both arms. CPU preparation spans cover the whole process, including validation, and overlap update/device work; these quantities cannot be summed into an end-to-end speed estimate. The native update timer ends before profiler callback/export, whose cost remains in the complete command.
+
+The 16 traced language-embedding inputs per arm were 321–345 tokens; all 16 vision-convolution operands had shape `[960,3,2,16,16]`. These are operator inputs, not a census of training pixels, grid values or distinct source frames. The last recorded training snapshot retained 802,331,880 bytes under the 805,306,368-byte video-cache allowance; this is neither a maximum nor proof that all misses were avoidable. Together with the earlier CPU-only 576-row cache comparison, the common preparation waits motivate testing 1 GiB versus 3 GiB in both arms. Native benefit and cache-policy promotion remain unproved.
+
+The allocation consumed **2,043 GPU-seconds and 32,688 allocated CPU-seconds**. All 1,494 collected host samples were complete, but unsampled lifetime and zero-sample allocator intervals remain; profiler export and trace analysis have their own memory costs. No explicit host-memory binding, job-cgroup watermark, new task-quality result or update-42 interruption/recovery claim follows. The current rank-32 four-update recovery and historical rank-16 long-input evidence retain their separate scopes.
+
 ## Capability and precision boundary
 
 The candidate is dense `Qwen/Qwen3-VL-8B-Instruct`, revision `0c351dd01ed87e9c1b53cbc748cba10e6187ff3b`, using the native posttrain SFT entrypoint on one Linux x86-64 A100 80GB with one torchrun process. An installed quantizer, inference quantization, or an accepted configuration alone does not establish this training capability.
