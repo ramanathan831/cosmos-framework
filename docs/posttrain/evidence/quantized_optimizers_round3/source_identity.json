@@ -16,8 +16,9 @@
       "native_tree": "45d30bb53fb3688c11b18bbdb1a27954b9cb7432"
     },
     "outcome_analysis": {
-      "commit": "2f576e4a93aa7fca58bf048729d5f8bde21b2a6a",
-      "native_tree": "45d30bb53fb3688c11b18bbdb1a27954b9cb7432"
+      "commit": "360efca3b00baf6b30ecd8d5e3e3951f7105bcef",
+      "native_tree": "45d30bb53fb3688c11b18bbdb1a27954b9cb7432",
+      "analysis_file_sha256": "9987d35c2906690192d7f0ed967fd5b7169f5edddc23c95155a7db239537fd22"
     }
   },
   "archives": {

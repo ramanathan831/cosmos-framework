@@ -1,0 +1,102 @@
+{
+  "purpose": "development diagnosis",
+  "status": "NOT_ADMITTED_OR_RUN",
+  "prepared_verified_rows": 751,
+  "recorded_utc": "2026-11-05T01:26:31.577899+00:00",
+  "reason": "Development seed29 NLL worsens after update10 in both arms; shortening the shared cosine horizon worsened mean development NLL and all seed accuracies. The next bounded shared-recipe candidate lowers initial LR from1e-5 to7.5e-6 at the same15 updates and40-update horizon. Existing3e-6 control adapted more slowly. Candidate choice uses these development observations; final scores are not used for precision exceptions or checkpoint selection.",
+  "prerequisite": "Complete native arithmetic diagnostic; investigate any correctness fault before admitting this candidate.",
+  "cases": [
+    {
+      "name": "fused_lr75_seed17",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=fused_lr75_seed17",
+        "rl.seed=17",
+        "rl.optimizer.name=adamw",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096",
+        "model_hf.grad_ckpt=true",
+        "rl.lr_schedule.cycle_steps=40",
+        "rl.optimizer.lr=7.5e-6"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "allow_failure": false
+    },
+    {
+      "name": "fused_lr75_seed29",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=fused_lr75_seed29",
+        "rl.seed=29",
+        "rl.optimizer.name=adamw",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096",
+        "model_hf.grad_ckpt=true",
+        "rl.lr_schedule.cycle_steps=40",
+        "rl.optimizer.lr=7.5e-6"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "allow_failure": false
+    },
+    {
+      "name": "fused_lr75_seed43",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=fused_lr75_seed43",
+        "rl.seed=43",
+        "rl.optimizer.name=adamw",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096",
+        "model_hf.grad_ckpt=true",
+        "rl.lr_schedule.cycle_steps=40",
+        "rl.optimizer.lr=7.5e-6"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "allow_failure": false
+    }
+  ],
+  "admission": "Same strict development screen as the rejected shorter-horizon probe: at least2% lower mean15-update task NLL than existing fused controls, no accuracy drop in any of3seeds, and each substantive development NLL ratio<=1.01. Failure stops without new final scoring. If it passes, give eight-bit the identical candidate and development budget before locking any new comparison.",
+  "controls": "No longer duration, model/data/precision/trainable/clipping/effective-batch changes. Retain all original protocols/results. No new final-group selection or independent-replication claim.",
+  "resource_estimate": {
+    "fused_development_reservation_gpu_seconds": 1080,
+    "conditional_eight_bit_development_reservation_gpu_seconds": 1080,
+    "complete_final_comparison_reservation_gpu_seconds": 13500,
+    "total_gpu_reservation_seconds": 15660,
+    "final_comparison_basis": "Current complete36-run/37-score campaign actual11129GPU-seconds; retain its proven3x4500-second reservations including dependent scoring and failures. Actual completed preparation1990seconds; three fresh full CPU preparations reserve3x2400seconds if repeated cold qualification is pursued.",
+    "three_cold_replications_reservation_cpu_seconds": 7200
+  },
+  "stop": "Not admitted under the current unchanged caps: reserve the complete conditional comparison before exploratory submission. No empirical improvement is promised."
+}

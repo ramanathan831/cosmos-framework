@@ -1,0 +1,214 @@
+{
+  "purpose": "development diagnosis",
+  "prepared_verified_rows": 751,
+  "locked_utc": "2026-11-05T01:35:15.851406+00:00",
+  "source_commit": "e65f7ea",
+  "source_archive_sha256": "83ad99a4feaf0cbe737f83cac9f08a18aeb21964f3801d4bf725406b37044325",
+  "reservation_gpu_seconds": 1080,
+  "work_seconds": 960,
+  "reason": "Native development parameter-update comparison found the six largest absolute8bit-versus-FP32-state differences in attention K/V projection tensors; the maximum is0.00345807 at layer31.v_proj. The broad K/V class is selected from training update deviations, not final scores. Test its32tensors in FP32 state, retaining all other recipe and precision controls.",
+  "correction": "One of the seven largest absolute deviations is an MLP up-projection; this is a K/V-focused hypothesis, not a claim all errors are isolated there.",
+  "fp32_state_names": [
+    "model.language_model.layers.16.self_attn.k_proj.weight",
+    "model.language_model.layers.16.self_attn.v_proj.weight",
+    "model.language_model.layers.17.self_attn.k_proj.weight",
+    "model.language_model.layers.17.self_attn.v_proj.weight",
+    "model.language_model.layers.18.self_attn.k_proj.weight",
+    "model.language_model.layers.18.self_attn.v_proj.weight",
+    "model.language_model.layers.19.self_attn.k_proj.weight",
+    "model.language_model.layers.19.self_attn.v_proj.weight",
+    "model.language_model.layers.20.self_attn.k_proj.weight",
+    "model.language_model.layers.20.self_attn.v_proj.weight",
+    "model.language_model.layers.21.self_attn.k_proj.weight",
+    "model.language_model.layers.21.self_attn.v_proj.weight",
+    "model.language_model.layers.22.self_attn.k_proj.weight",
+    "model.language_model.layers.22.self_attn.v_proj.weight",
+    "model.language_model.layers.23.self_attn.k_proj.weight",
+    "model.language_model.layers.23.self_attn.v_proj.weight",
+    "model.language_model.layers.24.self_attn.k_proj.weight",
+    "model.language_model.layers.24.self_attn.v_proj.weight",
+    "model.language_model.layers.25.self_attn.k_proj.weight",
+    "model.language_model.layers.25.self_attn.v_proj.weight",
+    "model.language_model.layers.26.self_attn.k_proj.weight",
+    "model.language_model.layers.26.self_attn.v_proj.weight",
+    "model.language_model.layers.27.self_attn.k_proj.weight",
+    "model.language_model.layers.27.self_attn.v_proj.weight",
+    "model.language_model.layers.28.self_attn.k_proj.weight",
+    "model.language_model.layers.28.self_attn.v_proj.weight",
+    "model.language_model.layers.29.self_attn.k_proj.weight",
+    "model.language_model.layers.29.self_attn.v_proj.weight",
+    "model.language_model.layers.30.self_attn.k_proj.weight",
+    "model.language_model.layers.30.self_attn.v_proj.weight",
+    "model.language_model.layers.31.self_attn.k_proj.weight",
+    "model.language_model.layers.31.self_attn.v_proj.weight"
+  ],
+  "expected_state": {
+    "trainable_elements": 3087142912,
+    "quantized_elements": 2952790016,
+    "fp32_elements": 134352896,
+    "total_tensor_state_bytes": 7072679936,
+    "explicit_exception_count": 32,
+    "small_tensor_exception_count": 64,
+    "baseline_tensor_state_bytes": 24697144000
+  },
+  "control_development": {
+    "17": {
+      "step": 15,
+      "elapsed_seconds": 167.10899484099355,
+      "task_seconds": 8.563911158940755,
+      "substantive_validation": {
+        "val/loss_avg": 0.2765065218594595,
+        "val/valid_token_count": 1346,
+        "val/valid_sequence_count": 16,
+        "timer/validation_s": 3.308771062991582
+      },
+      "metrics": {
+        "rows": 32,
+        "native_supervised_tokens": 64,
+        "restricted_choice_accuracy": 0.875,
+        "strict_first_token_accuracy": 0.875,
+        "valid_letter_rate": 1.0,
+        "token_weighted_ce": 0.25981915318789106,
+        "answer_nll": 0.5195713894881919,
+        "restricted_choice_nll": 0.5172136613000475,
+        "restricted_choice_tied_rows": 0,
+        "strict_first_token_tied_rows": 0,
+        "unique_exact_video_content_clusters": 27
+      }
+    },
+    "29": {
+      "step": 15,
+      "elapsed_seconds": 166.78178017912433,
+      "task_seconds": 8.507823483087122,
+      "substantive_validation": {
+        "val/loss_avg": 0.1771083262708885,
+        "val/valid_token_count": 1346,
+        "val/valid_sequence_count": 16,
+        "timer/validation_s": 2.9389466349966824
+      },
+      "metrics": {
+        "rows": 32,
+        "native_supervised_tokens": 64,
+        "restricted_choice_accuracy": 0.84375,
+        "strict_first_token_accuracy": 0.84375,
+        "valid_letter_rate": 1.0,
+        "token_weighted_ce": 0.3713542403883423,
+        "answer_nll": 0.7426976141181285,
+        "restricted_choice_nll": 0.7402403523658982,
+        "restricted_choice_tied_rows": 0,
+        "strict_first_token_tied_rows": 0,
+        "unique_exact_video_content_clusters": 27
+      }
+    },
+    "43": {
+      "step": 15,
+      "elapsed_seconds": 169.80417754896916,
+      "task_seconds": 8.181342202005908,
+      "substantive_validation": {
+        "val/loss_avg": 0.13785717358472266,
+        "val/valid_token_count": 1346,
+        "val/valid_sequence_count": 16,
+        "timer/validation_s": 2.8650123039260507
+      },
+      "metrics": {
+        "rows": 32,
+        "native_supervised_tokens": 64,
+        "restricted_choice_accuracy": 0.78125,
+        "strict_first_token_accuracy": 0.78125,
+        "valid_letter_rate": 1.0,
+        "token_weighted_ce": 0.24912732089796918,
+        "answer_nll": 0.49767698418872897,
+        "restricted_choice_nll": 0.4937303436927323,
+        "restricted_choice_tied_rows": 0,
+        "strict_first_token_tied_rows": 0,
+        "unique_exact_video_content_clusters": 27
+      }
+    }
+  },
+  "cases": [
+    {
+      "name": "kv_fp32_seed17",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=kv_fp32_seed17",
+        "rl.seed=17",
+        "rl.optimizer.name=adamw_bnb_8bit",
+        "rl.optimizer.impl=",
+        "rl.optimizer.bnb_min_8bit_size=16384",
+        "model_hf.grad_ckpt=false",
+        "rl.lr_schedule.cycle_steps=40",
+        "rl.optimizer.bnb_fp32_state_names=[model.language_model.layers.16.self_attn.k_proj.weight,model.language_model.layers.16.self_attn.v_proj.weight,model.language_model.layers.17.self_attn.k_proj.weight,model.language_model.layers.17.self_attn.v_proj.weight,model.language_model.layers.18.self_attn.k_proj.weight,model.language_model.layers.18.self_attn.v_proj.weight,model.language_model.layers.19.self_attn.k_proj.weight,model.language_model.layers.19.self_attn.v_proj.weight,model.language_model.layers.20.self_attn.k_proj.weight,model.language_model.layers.20.self_attn.v_proj.weight,model.language_model.layers.21.self_attn.k_proj.weight,model.language_model.layers.21.self_attn.v_proj.weight,model.language_model.layers.22.self_attn.k_proj.weight,model.language_model.layers.22.self_attn.v_proj.weight,model.language_model.layers.23.self_attn.k_proj.weight,model.language_model.layers.23.self_attn.v_proj.weight,model.language_model.layers.24.self_attn.k_proj.weight,model.language_model.layers.24.self_attn.v_proj.weight,model.language_model.layers.25.self_attn.k_proj.weight,model.language_model.layers.25.self_attn.v_proj.weight,model.language_model.layers.26.self_attn.k_proj.weight,model.language_model.layers.26.self_attn.v_proj.weight,model.language_model.layers.27.self_attn.k_proj.weight,model.language_model.layers.27.self_attn.v_proj.weight,model.language_model.layers.28.self_attn.k_proj.weight,model.language_model.layers.28.self_attn.v_proj.weight,model.language_model.layers.29.self_attn.k_proj.weight,model.language_model.layers.29.self_attn.v_proj.weight,model.language_model.layers.30.self_attn.k_proj.weight,model.language_model.layers.30.self_attn.v_proj.weight,model.language_model.layers.31.self_attn.k_proj.weight,model.language_model.layers.31.self_attn.v_proj.weight]"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "allow_failure": false
+    },
+    {
+      "name": "kv_fp32_seed29",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=kv_fp32_seed29",
+        "rl.seed=29",
+        "rl.optimizer.name=adamw_bnb_8bit",
+        "rl.optimizer.impl=",
+        "rl.optimizer.bnb_min_8bit_size=16384",
+        "model_hf.grad_ckpt=false",
+        "rl.lr_schedule.cycle_steps=40",
+        "rl.optimizer.bnb_fp32_state_names=[model.language_model.layers.16.self_attn.k_proj.weight,model.language_model.layers.16.self_attn.v_proj.weight,model.language_model.layers.17.self_attn.k_proj.weight,model.language_model.layers.17.self_attn.v_proj.weight,model.language_model.layers.18.self_attn.k_proj.weight,model.language_model.layers.18.self_attn.v_proj.weight,model.language_model.layers.19.self_attn.k_proj.weight,model.language_model.layers.19.self_attn.v_proj.weight,model.language_model.layers.20.self_attn.k_proj.weight,model.language_model.layers.20.self_attn.v_proj.weight,model.language_model.layers.21.self_attn.k_proj.weight,model.language_model.layers.21.self_attn.v_proj.weight,model.language_model.layers.22.self_attn.k_proj.weight,model.language_model.layers.22.self_attn.v_proj.weight,model.language_model.layers.23.self_attn.k_proj.weight,model.language_model.layers.23.self_attn.v_proj.weight,model.language_model.layers.24.self_attn.k_proj.weight,model.language_model.layers.24.self_attn.v_proj.weight,model.language_model.layers.25.self_attn.k_proj.weight,model.language_model.layers.25.self_attn.v_proj.weight,model.language_model.layers.26.self_attn.k_proj.weight,model.language_model.layers.26.self_attn.v_proj.weight,model.language_model.layers.27.self_attn.k_proj.weight,model.language_model.layers.27.self_attn.v_proj.weight,model.language_model.layers.28.self_attn.k_proj.weight,model.language_model.layers.28.self_attn.v_proj.weight,model.language_model.layers.29.self_attn.k_proj.weight,model.language_model.layers.29.self_attn.v_proj.weight,model.language_model.layers.30.self_attn.k_proj.weight,model.language_model.layers.30.self_attn.v_proj.weight,model.language_model.layers.31.self_attn.k_proj.weight,model.language_model.layers.31.self_attn.v_proj.weight]"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "allow_failure": false
+    },
+    {
+      "name": "kv_fp32_seed43",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=kv_fp32_seed43",
+        "rl.seed=43",
+        "rl.optimizer.name=adamw_bnb_8bit",
+        "rl.optimizer.impl=",
+        "rl.optimizer.bnb_min_8bit_size=16384",
+        "model_hf.grad_ckpt=false",
+        "rl.lr_schedule.cycle_steps=40",
+        "rl.optimizer.bnb_fp32_state_names=[model.language_model.layers.16.self_attn.k_proj.weight,model.language_model.layers.16.self_attn.v_proj.weight,model.language_model.layers.17.self_attn.k_proj.weight,model.language_model.layers.17.self_attn.v_proj.weight,model.language_model.layers.18.self_attn.k_proj.weight,model.language_model.layers.18.self_attn.v_proj.weight,model.language_model.layers.19.self_attn.k_proj.weight,model.language_model.layers.19.self_attn.v_proj.weight,model.language_model.layers.20.self_attn.k_proj.weight,model.language_model.layers.20.self_attn.v_proj.weight,model.language_model.layers.21.self_attn.k_proj.weight,model.language_model.layers.21.self_attn.v_proj.weight,model.language_model.layers.22.self_attn.k_proj.weight,model.language_model.layers.22.self_attn.v_proj.weight,model.language_model.layers.23.self_attn.k_proj.weight,model.language_model.layers.23.self_attn.v_proj.weight,model.language_model.layers.24.self_attn.k_proj.weight,model.language_model.layers.24.self_attn.v_proj.weight,model.language_model.layers.25.self_attn.k_proj.weight,model.language_model.layers.25.self_attn.v_proj.weight,model.language_model.layers.26.self_attn.k_proj.weight,model.language_model.layers.26.self_attn.v_proj.weight,model.language_model.layers.27.self_attn.k_proj.weight,model.language_model.layers.27.self_attn.v_proj.weight,model.language_model.layers.28.self_attn.k_proj.weight,model.language_model.layers.28.self_attn.v_proj.weight,model.language_model.layers.29.self_attn.k_proj.weight,model.language_model.layers.29.self_attn.v_proj.weight,model.language_model.layers.30.self_attn.k_proj.weight,model.language_model.layers.30.self_attn.v_proj.weight,model.language_model.layers.31.self_attn.k_proj.weight,model.language_model.layers.31.self_attn.v_proj.weight]"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "allow_failure": false
+    }
+  ],
+  "admission": "Before adoption: at least2% reduction in mean15-update task NLL versus existing eight-bit controls, no accuracy drop in any seed, each substantive NLL ratio<=1.01, actual tensor-state saving>=0.60, exact32explicit selectors and no skipped updates. Report actual device/process/host memory and native timing descriptively; a new policy gets no speed qualification from these3single development runs.",
+  "decision": "All original gates/protocols/results remain fixed. Reject on any failed screen. A passing candidate is development progress only and requires a separately funded/locked full comparison and affected recovery checks before release. No final scoring in this probe.",
+  "budget": "Original required recovery and all corrected final evaluations are complete. Reserve1080within the unchanged28800GPU-second cap before this bounded diagnostic; no new CPU-only job, no automatic final campaign."
+}
