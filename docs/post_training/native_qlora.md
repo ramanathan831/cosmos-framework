@@ -303,6 +303,8 @@ Run outputs include a timestamped attempt beneath the configured project/group/j
 
 Exact full resume retains the recorded canonical media paths and ordinary tokenizer/processor configuration paths; identical bytes at different canonical locations are not sufficient. The [frozen-base source identity](../../cosmos_framework/posttrain/utils/adapter_source.py#L79) uses content hashes, while [portable processor identity](../../cosmos_framework/posttrain/utils/adapter_identity.py#L67) separately permits relocation of verified base/processor references for reload. Completed fresh-process recovery tests stayed within their allocated nodes; cross-node Slurm resume remains unqualified.
 
+The cumulative `train/grad_clip_fraction` is reconstructed from [retained reporting history](../../cosmos_framework/posttrain/utils/report.py#L401), so a fresh output directory starts a new history for that diagnostic. It does not control gradient clipping or optimizer updates. The [existing qualification comparator](../../tools/native_qlora_qualification/lifecycle.py#L146) excludes this field and observational timing/preprocessing counters; its strict training-metric and full-checkpoint state comparisons remain separate checks. Checkpoint-alone recovery does not require copying an uninterrupted run's metrics.
+
 Publish a committed checkpoint as a portable adapter artifact:
 
 ```bash
