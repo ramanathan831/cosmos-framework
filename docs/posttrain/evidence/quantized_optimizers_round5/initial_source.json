@@ -1,0 +1,5 @@
+{
+  "commit": "582ee70",
+  "archive_sha256": "987facf12879fabc0367f0e7f30f156b71fb937a8e325dcedbf1defda6d5216e",
+  "scope": "Same implementation as completedround4; no optimizer/transaction/producer changes. Full source hashes and overlapping score loading available to both arms."
+}

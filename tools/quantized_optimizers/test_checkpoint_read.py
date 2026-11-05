@@ -66,3 +66,56 @@ def test_checkpoint_mutation_during_hash_is_rejected(tmp_path, monkeypatch):
     monkeypatch.setattr(score_dense.hashlib, "sha256", MutatingDigest)
     with pytest.raises(RuntimeError, match="checkpoint changed"):
         score_dense.read_checkpoint_file(path)
+
+
+@pytest.mark.parametrize("overlap", [False, True])
+@pytest.mark.parametrize("failure", [None, "checksum", "provenance"])
+def test_scoring_receipt_requires_hash_and_provenance(tmp_path, overlap, failure):
+    import json
+
+    checkpoint = tmp_path / "checkpoint"
+    checkpoint.mkdir()
+    payload = b"complete immutable model"
+    (checkpoint / "model.pt").write_bytes(payload)
+    output = tmp_path / "scores"
+    output.mkdir()
+    digest = hashlib.sha256(payload).hexdigest()
+
+    class Manager:
+        def load_checkpoint(self, source, load):
+            value = load()
+            assert not (output / "checkpoint-read.json").exists()
+            if failure == "provenance":
+                raise RuntimeError("checkpoint provenance changed")
+            return value, {"signature": "stable"}
+
+    def restore():
+        assert not list(output.iterdir())
+        return "restored-model"
+
+    if failure:
+        with pytest.raises(RuntimeError, match="SHA-256|provenance"):
+            score_dense.restore_scoring_checkpoint(
+                Manager(),
+                checkpoint,
+                restore,
+                output,
+                overlap=overlap,
+                expected_sha256="0" * 64 if failure == "checksum" else digest,
+            )
+        assert not list(output.iterdir())
+    else:
+        value, provenance, _ = score_dense.restore_scoring_checkpoint(
+            Manager(), checkpoint, restore, output, overlap=overlap, expected_sha256=digest
+        )
+        assert value == "restored-model" and provenance == {"signature": "stable"}
+        assert json.loads((output / "checkpoint-read.json").read_text())["sha256"] == digest
+
+
+@pytest.mark.parametrize("digest", ["", "g" * 64, "A" * 64])
+def test_invalid_pinned_digest_fails_before_restoration(tmp_path, digest):
+    def restore():
+        pytest.fail("invalid expected identity reached model restoration")
+
+    with pytest.raises(ValueError, match="SHA-256"):
+        score_dense.restore_with_checkpoint_read(tmp_path / "absent", restore, overlap=True, expected_sha256=digest)

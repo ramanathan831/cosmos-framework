@@ -1,0 +1,52 @@
+{
+  "locked_utc": "2026-11-05T20:10:05.504940+00:00",
+  "purpose": "Three bounded counterbalanced paired timing allocations on development only, testing shared loading changes independently of LR selection.",
+  "source": "score_dense adds optional pinned model.pt SHA checking before scoring receipt publication; no native optimizer/checkpoint state changes.",
+  "checkpoints": {
+    "fused": "c2cb253288f83107280c12df0253a3d21912ac0a1c8f82dec2fdecd05c99a4b7",
+    "eightbit": "7456aeea1b7f58e25cdcd4bffc26237f8d13c8a6a17037f1f26fa75b2e8ac1d0"
+  },
+  "manifest": "Same32development questions and immutable seed17matched15 checkpoints from round3; exact inputs/masks/scoring semantics. No new final examples.",
+  "control": "serial full source hashing and serial full model SHA read then native restore",
+  "candidate": "four source-hash workers and overlapped full SHA read/native restore; both stages retain every byte check",
+  "orders": [
+    [
+      "fused_serial",
+      "fused_optimized",
+      "eightbit_optimized",
+      "eightbit_serial"
+    ],
+    [
+      "eightbit_serial",
+      "eightbit_optimized",
+      "fused_optimized",
+      "fused_serial"
+    ],
+    [
+      "fused_optimized",
+      "fused_serial",
+      "eightbit_serial",
+      "eightbit_optimized"
+    ]
+  ],
+  "reservation_seconds": [
+    840,
+    720,
+    720
+  ],
+  "effective_wall_seconds": [
+    720,
+    600,
+    600
+  ],
+  "grace_seconds_each": 120,
+  "work_seconds": [
+    640,
+    520,
+    520
+  ],
+  "statistics": "For each arm, paired speed ratios control_attempt_seconds/candidate_attempt_seconds across3restarts.95%Student-t interval(df2). Overall per-restart ratio uses sums acrossbotharms; require its lower bound>1.05 and each arm lower bound>1.0 for a reliable shared-scoring gain claim. Also report direct nonoverlapping preparation verification+checkpoint_read_and_restore phase ratios, raw timings, memory and node identity. Do not sum concurrent nested timers. Three restarts are timing replication, not new quality seeds/recordings.",
+  "parity": "All384fresh-scored development observations must equal their pinned round4controls exactly; checkpoint SHA/provenance/objective/input identity exact.",
+  "failure_injection": "First allocation runs15pinned helper tests and a final real-CUDA restore with an intentionally wrong expected SHA. Nonzero return, explicit checksum-mismatch error and absence of scores/summary/read-success receipt are required.",
+  "limits": "No automatic extra timings after seeing intervals. Preserve uncertainty and negative results. Shared scoring gain is not optimizer end-to-end or inference latency."
+}

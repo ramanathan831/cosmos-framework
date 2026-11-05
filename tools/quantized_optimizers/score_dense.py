@@ -27,8 +27,14 @@ OPTION = re.compile(r"(?m)^[ \t]*([A-Z])([:.])[ \t]+(?=\S)")
 OPTION_MARKER = re.compile(r"(?m)^[ \t]*([A-Za-z])([:.])")
 
 
-def read_checkpoint_file(path: Path) -> dict[str, Any]:
+def validate_checkpoint_digest(value: str | None) -> None:
+    if value is not None and (len(value) != 64 or any(c not in "0123456789abcdef" for c in value)):
+        raise ValueError("expected checkpoint SHA-256 must contain 64 lowercase hexadecimal characters")
+
+
+def read_checkpoint_file(path: Path, expected_sha256: str | None = None) -> dict[str, Any]:
     """Hash every byte and reject replacement/mutation during this read."""
+    validate_checkpoint_digest(expected_sha256)
     started = time.monotonic()
 
     def identity(stat):
@@ -43,21 +49,28 @@ def read_checkpoint_file(path: Path) -> dict[str, Any]:
             checksum.update(block)
         if identity(os.fstat(stream.fileno())) != before or identity(path.stat()) != before:
             raise RuntimeError("checkpoint changed during checksum read")
-    return {"path": str(path), "sha256": checksum.hexdigest(), "seconds": time.monotonic() - started}
+    digest = checksum.hexdigest()
+    if expected_sha256 is not None and digest != expected_sha256:
+        raise RuntimeError("checkpoint SHA-256 differs from the pinned scoring identity")
+    return {"path": str(path), "sha256": digest, "seconds": time.monotonic() - started}
 
 
-def restore_with_checkpoint_read(path: Path, restore, *, overlap: bool):
+def restore_with_checkpoint_read(path: Path, restore, *, overlap: bool, expected_sha256: str | None = None):
     """Join the independent read before returning; callers own stable provenance."""
+    validate_checkpoint_digest(expected_sha256)
     started = time.monotonic()
+    # Preserve the one-argument call for existing instrumentation when no digest
+    # is supplied. New benchmark comparisons bind the independently pinned hash.
+    read_args = (path,) if expected_sha256 is None else (path, expected_sha256)
     if overlap:
         with ThreadPoolExecutor(max_workers=1) as pool:
-            read = pool.submit(read_checkpoint_file, path)
+            read = pool.submit(read_checkpoint_file, *read_args)
             restore_started = time.monotonic()
             value = restore()
             restore_seconds = time.monotonic() - restore_started
             receipt = read.result()
     else:
-        receipt = read_checkpoint_file(path)
+        receipt = read_checkpoint_file(*read_args)
         restore_started = time.monotonic()
         value = restore()
         restore_seconds = time.monotonic() - restore_started
@@ -70,6 +83,21 @@ def restore_with_checkpoint_read(path: Path, restore, *, overlap: bool):
             "checkpoint_read_and_restore": time.monotonic() - started,
         },
     )
+
+
+def restore_scoring_checkpoint(manager, checkpoint, restore, output, *, overlap, expected_sha256=None):
+    """Publish the read receipt only after checksum AND native provenance succeed."""
+    validate_checkpoint_digest(expected_sha256)
+
+    def load():
+        return restore_with_checkpoint_read(
+            Path(checkpoint) / "model.pt", restore, overlap=overlap, expected_sha256=expected_sha256
+        )
+
+    (value, receipt, phases), provenance = manager.load_checkpoint(checkpoint, load)
+    with (Path(output) / "checkpoint-read.json").open("x") as stream:
+        stream.write(json.dumps(receipt) + "\n")
+    return value, provenance, phases
 
 
 def json_digest(value):
@@ -358,11 +386,15 @@ def main():
     parser.add_argument("--selection", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--checkpoint")
+    parser.add_argument("--checkpoint-sha256", help="Independently pinned model.pt digest; mismatch rejects scoring")
     parser.add_argument("--substantive-data", type=Path)
     parser.add_argument("--seed", type=int, required=True)
     parser.add_argument("--verification-workers", type=int, choices=(1, 2, 3, 4), default=4)
     parser.add_argument("--checkpoint-read-mode", choices=("serial", "overlap"), default="overlap")
     args = parser.parse_args()
+    validate_checkpoint_digest(args.checkpoint_sha256)
+    if args.checkpoint_sha256 is not None and args.checkpoint is None:
+        raise ValueError("a pinned checkpoint digest requires --checkpoint")
     if os.environ.get("WORLD_SIZE") != "1":
         raise ValueError("dense scoring requires torchrun world one")
     args.output.mkdir(parents=True, exist_ok=False)
@@ -427,8 +459,6 @@ def main():
         if args.checkpoint:
             manager = CheckpointManager()
 
-            path = Path(args.checkpoint) / "model.pt"
-
             def restore():
                 nonlocal model
                 state = manager.load_component(args.checkpoint, "model")
@@ -436,15 +466,15 @@ def main():
                     raise ValueError("committed checkpoint has no dense model")
                 model = build_backbone(config, hf_model_state=state["net"])
 
-            def load():
-                _, receipt, loading_phases = restore_with_checkpoint_read(
-                    path, restore, overlap=args.checkpoint_read_mode == "overlap"
-                )
-                phases.update(loading_phases)
-                return receipt
-
-            receipt, provenance = manager.load_checkpoint(args.checkpoint, load)
-            (args.output / "checkpoint-read.json").write_text(json.dumps(receipt) + "\n")
+            _, provenance, loading_phases = restore_scoring_checkpoint(
+                manager,
+                args.checkpoint,
+                restore,
+                args.output,
+                overlap=args.checkpoint_read_mode == "overlap",
+                expected_sha256=args.checkpoint_sha256,
+            )
+            phases.update(loading_phases)
             print("Scoring: committed dense model restored", flush=True)
         else:
             read_model_files(args.output)
@@ -505,6 +535,7 @@ def main():
             "phase_seconds": phases,
             "source_verification_workers": corpus.verification_workers,
             "checkpoint_read_mode": args.checkpoint_read_mode,
+            "expected_checkpoint_sha256": args.checkpoint_sha256,
             "versions": {name: importlib.metadata.version(name) for name in ("torch", "transformers")},
             "objective_identity": objective.identity,
             "processor_identity": packer.validation_semantics_identity(),
