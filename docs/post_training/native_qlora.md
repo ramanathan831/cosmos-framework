@@ -10,6 +10,8 @@ The initial candidate is `Qwen/Qwen3-VL-8B-Instruct` at revision `0c351dd01ed87e
 
 **Prospective release scope, 2026-11-04:** beating equally optimized BF16 LoRA by 10% in time-to-quality or improving its task accuracy is optional research work. Release still requires substantial measured memory savings, the existing paired/grouped one-sided 95% noninferiority bounds (at most 2% relative token-NLL increase and one percentage point of accuracy loss), and reliability for every advertised configuration. Avoidable overhead must be addressed and the remaining memory–runtime trade-off reported. This scope change does not turn any historical experiment into a pass or resolve the failed quality bounds and missing independent evaluation groups. See the [current criteria and historical scope](native_qlora_qualification.md#prospective-release-scope).
 
+**Product objectives reaffirmed, 2026-11-05:** improved task quality and lower training time to a fixed, predeclared quality target remain objectives of this continuation. The preceding scope decision and all historical pass/fail results are preserved; substantial memory savings alone satisfy neither objective. The quality-preservation guards remain mandatory and unchanged. Training efficiency is measured separately from inference latency, which has no serving qualification here.
+
 ## Prepare a sealed runtime
 
 Use uv `0.11.29` and Python 3.12. The [posttrain environment](../../docker/posttrain/environment/pyproject.toml) and its [lock](../../docker/posttrain/environment/uv.lock) select Torch `2.11.0+cu128`, Transformers `5.8.1`, and bitsandbytes `0.49.2`. The x86-64 selection uses CPU TorchCodec `0.11.0+cpu`; the host also needs working FFmpeg libraries for video decoding.
@@ -138,6 +140,7 @@ torchrun --standalone --nproc-per-node=1 \
     model.model_config.adapter.initialization_seed="$QLORA_SEED" \
     model.model_config.activation_checkpointing=full \
     model.model_config.adapter_compute_dtype=float32 \
+    model.model_config.quantized_linear_execution=bnb \
     model.model_config.sft_logits_mode=full \
     model.model_config.compile_language_model=false \
     rl.seed="$QLORA_SEED" rl.deterministic=true \
@@ -145,6 +148,7 @@ torchrun --standalone --nproc-per-node=1 \
     rl.optimizer.lr=0.0001 rl.optimizer.warmup_steps=30 \
     rl.micro_batch_size=1 rl.grad_accum=8 rl.max_length=4096 \
     rl.preprocessing_cache_bytes=1073741824 rl.preprocessing_prefetch=true \
+    rl.preprocessing_workers=1 \
     rl.checkpoint_format=dcp rl.save_async=false rl.save_every=50 \
     'rl.checkpoint_components=["model","optimizer","training_state"]' \
     rl.emergency_checkpoint_components=full rl.keep_optim_last=0 rl.keep_model_last=0 \

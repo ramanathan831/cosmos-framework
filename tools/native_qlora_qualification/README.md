@@ -21,6 +21,28 @@ Keep generated rows and media private. Preserve the split manifests and their SH
 
 `layer_sensitivity.py` is a training-only diagnostic for the frozen zero-B NF4 model. It requires the SHA-bound 64-row calibration manifest and uses the native scorer and bounded prepared-input cache. It temporarily restores the seven language projections of one block to their original BF16 source while retaining the same adapter objects, measures actual task outputs, and restores the original packed matrices in `finally`. All 36 blocks are examined separately, followed by an exact original-model control. It constructs no optimizer or checkpoint and does not qualify a mixed-precision exclusion recipe. Run `test_layer_sensitivity_gpu.py` on the real accelerator first and require its one test to pass without skips. Parent timing and process-memory sampling must include source admission, cache preparation, loading and restoration; the tool's per-case forward peaks do not cover those costs.
 
+## Independent confirmation analysis
+
+`confirmation_design.py` implements prospective paired-seed analysis without changing the historical three-seed reports. It checks both unchanged noninferiority margins and separately retains positive adaptation over frozen NF4. It rejects missing input/artifact identities, cross-split recording/media/session/event links, missing task coverage, overlapping pilot/final seeds, and a final design rejected by its bound pilot planning scenarios. These checks establish consistency of supplied evidence; they do not certify acquisition provenance, calibrated statistical power or release support.
+
+```bash
+python -m tools.native_qlora_qualification.confirmation_design \
+  --inputs "$CONFIRMATION_INPUTS" --output "$NEW_CONFIRMATION_RESULT"
+```
+
+The JSON input bundle has `role` (`pilot` or `confirmation`), references named `spec`, `inventory`, `provenance_audit`, `task_taxonomy`, `exposure_and_relationship_source`, and `artifact_validation`; `trained` maps each declared seed string to `nf4` and `bf16` score references; `frozen` contains the two fixed reference score files. Confirmation additionally requires `pilot_analysis`. Every reference has `path` and the SHA256 of its file bytes. Outputs are exclusive. `proposal(task_types, recipe_sha256)` supplies the candidate specification schema with unresolved evidence pins; it does not authorize acquisition or jobs.
+
+The inventory is a list containing each row's `id`, media `sha256`, `raw_row_sha256`, `role` (`exposed`, `pilot`, or `confirmation`), `task`, reviewed `session` and reviewed `event`. Include all historical exposure. Unknown relationships refuse; connected components must not cross roles. `inventory_sha256` is the canonical `common.digest_json(inventory)` digest, while provenance, taxonomy and pilot-result pins are file-byte hashes. The ordered taxonomy must contain the same 22 task types as the specification. Use the existing native scorer with `--all-rows --split development` for a separately sealed pilot manifest and `--split final` for confirmation. The statistical roles are not additional scorer arguments. Final scoring requires the existing prior selection receipt binding configuration, pilot/development evidence and the final manifest.
+
+The externally reviewed metadata contracts are:
+
+- Taxonomy: protocol `cosmos.qlora-confirmation-task-taxonomy.v1` and the exact ordered `task_types`.
+- Exposure source: the canonical `inventory_sha256` and a nonempty `known_exposed_rows` list matching historical rows on ID, row/media hashes, task, session and event.
+- Provenance: protocol `cosmos.qlora-confirmation-provenance.v1`, `complete: true`, matching inventory and taxonomy hashes, the actual exposure-source file hash in `exposure_and_relationship_source_sha256`, and `unresolved_relationships: []`.
+- Artifact validation: protocol `cosmos.qlora-confirmation-score-artifacts.v1`, `complete: true`, the exact `recipe_sha256`, ordered `paired_seeds`, `inventory_sha256`, and `score_bundle_sha256 = common.digest_json({"trained": bundle["trained"], "frozen": bundle["frozen"]})`. The issuing review must verify completed native training, checkpoint/portable reload, source and selection identities, and score artifacts. The analyzer independently checks score rows, masks, tokens and media, but does not load checkpoint tensors.
+
+There is no automatic producer or approval toggle for these external reviews. Matching their hashes does not prove their assertions. After a separate pilot, revise a rejected sample-size design before final outcomes. Seal the combined exposed/pilot/final inventory and rerun the metadata-only pilot analysis to bind that final design, reusing the pilot scores. Confirmation requires this exact pilot result and recomputes both declared variance scenarios. The approximate planning checks are necessary eligibility conditions, not proof of bootstrap power. Neither the provisional 180-group estimate nor the newer 400-group candidate is established sufficient; see the [audit and compute assumptions](../../docs/post_training/native_qlora_qualification.md#statistical-audit-and-executable-confirmation-design).
+
 ## Native experiments
 
 `protocol.py` defines the strict JSON `Experiment` schema and bounded allocation accounting. The two precision arms use the same native overrides, differing in their base recipe and run name. Training, adapter initialization and validation seeds are explicit. Parameter, arithmetic and optimizer precision remain separate.
