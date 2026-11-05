@@ -494,3 +494,78 @@ it is not a claim about an empty OS page cache. The analysis preserves matched
 updates, equal training time and equal product budget separately, uses three
 paired quality seeds and bootstraps recording families, and retains both original
 16-question summaries. This optimizer work makes no inference-latency claim.
+
+### Corrected product-budget endpoint
+
+The original endpoint remains censored for seed43: validation15 was pending in
+its committed trainer journal. `pending_validation_inspection.json` binds that
+journal, actual missing terminal metric and checkpoint provenance. Reproduce the
+original analysis with `--pending-validation-inspections` pointing to that file;
+do not treat the saved state as an eligible completed product.
+
+`product_repair_protocol.json` repeats only the product-budget pair for all three
+seeds. It preserves the original manifest, budget, reserve, recipe and numerical
+gates. Source `f56a658` finishes required scheduled validation before an advance
+budget notice. A real external signal retains immediate native preemption.
+The native `cosmos_framework/` tree is identical to `cb9d4f3`.
+
+Use the **current checked-in outer** `deployment.sbatch`, which exports and passes
+`ALLOCATION_START_NS` into the container. `SOURCE` may be an existing directory
+because the launcher extracts the immutable archive into a fresh temporary tree;
+it does not authorize using an older outer script from that directory. Three
+wrong-launcher preflight failures ran no training and remain charged (212 seconds).
+
+With the same input/runtime variables above and a new result root:
+
+```sh
+git archive --format=tar.gz -o /shared/source-product-repair.tgz f56a658
+export SOURCE_ARCHIVE=/shared/source-product-repair.tgz MODE=study WORK_SECONDS=960
+export RESULTS="$REPLAY/product-repair-v2-seed17"
+export TASK_SPEC=/shared/product-repair-specs/seed17.json
+# Copy the committed product_repair_specs/seed*.json files byte-for-byte first.
+mkdir -p "$RESULTS"
+p17=$(sbatch --parsable --partition=interactive_singlenode,polar \
+  --nodelist=batch-block4-0102 --time=18 --export=ALL \
+  --output="$RESULTS/slurm-%j.log" tools/quantized_optimizers/deployment.sbatch)
+
+export RESULTS="$REPLAY/product-repair-v2-seed29"
+export TASK_SPEC=/shared/product-repair-specs/seed29.json
+mkdir -p "$RESULTS"
+sbatch --partition=interactive_singlenode,polar --nodelist=batch-block4-1017 \
+  --dependency="afterok:$p17" --time=18 --export=ALL \
+  --output="$RESULTS/slurm-%j.log" tools/quantized_optimizers/deployment.sbatch
+
+export RESULTS="$REPLAY/product-repair-v2-seed43"
+export TASK_SPEC=/shared/product-repair-specs/seed43.json
+mkdir -p "$RESULTS"
+sbatch --partition=interactive_singlenode,polar --nodelist=batch-block4-0102 \
+  --dependency="afterok:$p17" --time=18 --export=ALL \
+  --output="$RESULTS/slurm-%j.log" tools/quantized_optimizers/deployment.sbatch
+```
+
+Reserve all three effective 18-minute limits before admission. Each allocation
+includes both native runs and both dependent fixed-manifest scores. The first
+seed is the launcher canary; the other two cannot start if it fails. A job
+completing successfully does not imply every state meets the product deadline.
+
+Keep original and corrected raw archives separate, with keys prefixed by their
+actual `final-seed*` or `product-repair-v2-seed*` directories. The corrected
+analysis checks unchanged case arguments, actual exposure, source archive,
+scoring contracts and required validations, and reuses other original endpoints:
+
+```sh
+python -m tools.quantized_optimizers.analyze_outcomes outcomes_raw.json.gz \
+  docs/posttrain/evidence/quantized_optimizers_round3/final_protocol.json \
+  docs/posttrain/evidence/quantized_optimizers_round3/final_selection.json \
+  /new/corrected-product-analysis --cold-preparation-seconds 1990 \
+  --product-repair-raw product_repair_raw.json.gz \
+  --product-repair-protocol \
+  docs/posttrain/evidence/quantized_optimizers_round3/product_repair_protocol.json
+```
+
+The separate `native_arithmetic_probe.json` is development-only: one seed, three
+identical full-recomputation native runs, then CUDA comparison of cumulative
+parameter updates. Its all-FP32 bitsandbytes control sets the supported minimum
+state size above every trainable tensor and asserts zero quantized elements;
+it is not a new public optimizer name. Its 25-minute reservation follows both
+corrected seed jobs, with no new final scoring or automatic precision changes.

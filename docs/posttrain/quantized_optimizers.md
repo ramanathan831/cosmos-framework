@@ -449,14 +449,11 @@ training-launch and scoring-math hashes prove the split did not change training 
 metrics. All negative results and unsuccessful attempts remain in the
 [machine-readable evidence](evidence/quantized_optimizers_round2/summary.json).
 
-The release remains blocked by final task-NLL confidence, end-to-end time-to-quality,
-absence of a demonstrated equal-budget quality gain, and independent final evaluation.
-The next correctness check is the corrected dense reference/resume pair with enough
-wall time for native final checkpoint writes; both optimizer controls still need
-that additional large-workload check. A further performance campaign should first
-address the measured common loading/preparation bottleneck and retain checkpoints
-at the prespecified equal-time stopping points. It must keep the failed thresholds
-unchanged and use development data for tuning. Independent release evaluation needs
+At the round-two handoff, task-NLL confidence, end-to-end time-to-quality,
+equal-budget quality and the extra dense recovery check remained open. The next
+section records completion of that recovery check, shared loading improvements
+and actual equal-time evaluations while preserving the failed thresholds.
+Independent replication additionally needs
 sealed recording/trajectory groups not previously inspected or used in the QLoRA
 pool, with gold annotations, original media and a content/recording manifest, sized
 to resolve the existing 1% quality margin. No training result here establishes lower
@@ -658,7 +655,7 @@ regeneration, immutable source archives, Slurm submission, collection and analys
 [First-campaign status](evidence/quantized_optimizers/qualification_summary.json)
 and [completed follow-up status](evidence/quantized_optimizers_round2/qualification_summary.json)
 link each result, gate and remaining requirement. The
-[current proposed PR](evidence/quantized_optimizers_round2/proposed_pr.md)
+[current proposed PR](evidence/quantized_optimizers_round3/proposed_pr.md)
 describes the combined implementation and measured limitations; it has not been published.
 [Provenance](evidence/quantized_optimizers/provenance.json) retains every failed,
 canceled and completed allocation, dependency/source identities and budget receipts.
