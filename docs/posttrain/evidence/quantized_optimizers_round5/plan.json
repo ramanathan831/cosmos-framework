@@ -1,0 +1,45 @@
+{
+  "locked_utc": "2026-11-05T20:05:49.743403+00:00",
+  "handoff_commit": "582ee70",
+  "cumulative_start_commit": "40885d9",
+  "combined_caps": {
+    "gpu_seconds": 21600,
+    "cpu_wall_seconds": 11700
+  },
+  "sealed_round4_charges": {
+    "gpu_seconds": 1575,
+    "cpu_seconds": 6954
+  },
+  "prior_campaign_headroom_not_used": true,
+  "reserved_gpu_seconds": {
+    "lr875_fused_limit_and_grace": 1200,
+    "lr875_conditional_eightbit_limit_and_grace": 1200,
+    "conditional_complete_final_three_allocations_with_grace": 13860,
+    "shared_loading_three_paired_allocations_with_grace": 2160
+  },
+  "reserved_cpu_seconds": {
+    "same_workflow_full_preparation_replacement_with_grace": 3000,
+    "local_checks_and_analysis": 180
+  },
+  "total_gpu_charged_or_reserved": 19995,
+  "total_cpu_charged_or_reserved": 10134,
+  "second_candidate": "At most one further shared factor, selected only after a failed875development screen. Reserve its fused and conditional eight-bit stages before admission and retain the complete final reservation. Use terminal actual costs to replace reservations; release conditional stages only when ruled out. No final scoring for a failed recipe.",
+  "source_policy": "LR875uses immutable582ee70; final recipe/source only locked after both development screens pass. CPU replacement uses exacte65f7ea producer/archive/worker policy. Loading timing source will include only affected fail-closed checks, if needed, and be locked before timing.",
+  "development_gates": {
+    "seeds": [
+      17,
+      29,
+      43
+    ],
+    "mean_task_nll_improvement_min": 0.02,
+    "per_seed_accuracy_drop_max": 0,
+    "each_substantive_nll_ratio_max": 1.01,
+    "updates": 15,
+    "cosine_horizon": 40
+  },
+  "final_gates": "Unchanged paired-seed and recording-family guards: matchedNLLupper<=1.01, accuracydropupper<=1pp, speedlower>1.05, positive equal-budgetNLLgain with accuracy protection. Keep matched,actual60secondtraining,390secondpreparedproduct,target clocks separate. Historically exposed128questions/32families; no new final scoring until recipe lock.",
+  "cpu_statistics": "Retain two uninterrupted original producer runs2193/2166seconds; append the single prospective replacement, with no favorable outcome selection. Report all three raw costs and95%paired-seed/preparation crossed bootstrap for historical GPU/newCPU composition using10000draws,RNG2026 as previously locked. Also report sensitivity charging the2361-secondtimeout and54secondsrecovery/recheck as reliability cost, not an extra completed replicate. No direct coldGPU or empty-cache claim.",
+  "preparation_decision": "Historical cold bound cannot pass from optimizer training savings alone. No changed preparation policy is admitted without reserving three new complete replications. Retain original producer and its complete research replay costs for the replacement. See critical_path_plan.json for production/research distinction and required reduction.",
+  "concurrency": "At most2owned GPUs on distinct matched-class nodes. Every paired loading timing keeps all four processes on one A10080GB allocation with8CPU/128GiB. CPU preparation uses8CPU/16GiB. Shared storage concurrency is recorded.",
+  "publication": "Local commits and PR draft only; no push/publication/merge, originalQLoRAcheckout untouched,PR334closed."
+}

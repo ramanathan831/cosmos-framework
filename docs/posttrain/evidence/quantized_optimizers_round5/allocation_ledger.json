@@ -1,0 +1,24 @@
+{
+  "updated_utc": "2026-11-05T20:05:49.743403+00:00",
+  "caps": {
+    "gpu_seconds": 21600,
+    "cpu_wall_seconds": 11700
+  },
+  "sealed_round4": {
+    "gpu_seconds": 1575,
+    "cpu_seconds": 6954
+  },
+  "jobs": [],
+  "gpu_reservations": {
+    "lr875_fused_limit_and_grace": 1200,
+    "lr875_conditional_eightbit_limit_and_grace": 1200,
+    "conditional_complete_final_three_allocations_with_grace": 13860,
+    "shared_loading_three_paired_allocations_with_grace": 2160
+  },
+  "cpu_reservations": {
+    "same_workflow_full_preparation_replacement_with_grace": 3000,
+    "local_checks_and_analysis": 180
+  },
+  "cumulative_gpu_charged_or_reserved": 19995,
+  "cumulative_cpu_charged_or_reserved": 10134
+}

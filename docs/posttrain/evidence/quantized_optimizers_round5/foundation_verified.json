@@ -1,0 +1,24 @@
+{
+  "handoff": "582ee70",
+  "clean_at_start": true,
+  "verified": {
+    "quantized_optimizers_round3": {
+      "artifacts": 87,
+      "manifest_sha256": "7c253207a306c33016eb4483081509c464b623225f61ffb99d6b6814e0cb37f9"
+    },
+    "quantized_optimizers_round4": {
+      "artifacts": 43,
+      "manifest_sha256": "fd15325ccf842d2df820bf5532049cceb6eda596ad334b5c2700ec8d72256911"
+    }
+  },
+  "prior_gpu_seconds": 1575,
+  "prior_cpu_seconds": 6954,
+  "combined_caps": {
+    "gpu_seconds": 21600,
+    "cpu_seconds": 11700
+  },
+  "remaining": {
+    "gpu_seconds": 20025,
+    "cpu_seconds": 4746
+  }
+}

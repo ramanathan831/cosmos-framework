@@ -1,0 +1,233 @@
+{
+  "recorded_utc": "2026-11-05T20:03:29.259234+00:00",
+  "invalidating_defect_found": false,
+  "rows": [
+    {
+      "seed": 17,
+      "exact_task_identity_rows": 128,
+      "substantive_rows": 16,
+      "substantive_supervised_tokens": 1346,
+      "task_mean_nll_delta": -0.15967131750039698,
+      "task_median_nll_delta": 0.005399236571975052,
+      "nll_improved_questions": 3,
+      "nll_worsened_questions": 29,
+      "largest_improvement": {
+        "id": "20230929_52_SN22_T1_192.168.0.11_1_0",
+        "delta": -3.9447625875473022
+      },
+      "mean_nll_delta_without_largest_improvement": -0.03757159911178713,
+      "restricted_choice_brier": {
+        "candidate": 0.1831930365112166,
+        "control": 0.1975880840858999
+      },
+      "newly_wrong": [
+        {
+          "id": "20230929_39_SY19_T1_192.168.0.11_1_18",
+          "gold": "D",
+          "candidate_prediction": "A",
+          "control_prediction": "D",
+          "candidate_correct": false,
+          "control_correct": true,
+          "candidate_nll": 1.3526341915130615,
+          "control_nll": 0.5075953602790833,
+          "candidate_max_choice_probability": 0.33868744828619657,
+          "control_max_choice_probability": 0.6274881640114608,
+          "candidate_tied": true,
+          "control_tied": false
+        }
+      ],
+      "curves": [
+        {
+          "step": 0,
+          "candidate_task_nll": 1.8934099553784447,
+          "control_task_nll": 1.8934099553784447,
+          "candidate_accuracy": 0.46875,
+          "control_accuracy": 0.46875,
+          "candidate_substantive_nll": 1.0873957560639855,
+          "control_substantive_nll": 1.0873957560639855
+        },
+        {
+          "step": 5,
+          "candidate_task_nll": 0.9742231039926992,
+          "control_task_nll": 0.8287633526779246,
+          "candidate_accuracy": 0.5625,
+          "control_accuracy": 0.65625,
+          "candidate_substantive_nll": 0.5586178569347331,
+          "control_substantive_nll": 0.38280323227482776
+        },
+        {
+          "step": 10,
+          "candidate_task_nll": 0.6656194374372717,
+          "control_task_nll": 0.7208255437290063,
+          "candidate_accuracy": 0.75,
+          "control_accuracy": 0.8125,
+          "candidate_substantive_nll": 0.23500215830101479,
+          "control_substantive_nll": 0.2504110665989135
+        },
+        {
+          "step": 15,
+          "candidate_task_nll": 0.36304333585576387,
+          "control_task_nll": 0.5227146533561609,
+          "candidate_accuracy": 0.84375,
+          "control_accuracy": 0.875,
+          "candidate_substantive_nll": 0.2537172729423461,
+          "control_substantive_nll": 0.2778207900841204
+        }
+      ]
+    },
+    {
+      "seed": 29,
+      "exact_task_identity_rows": 128,
+      "substantive_rows": 16,
+      "substantive_supervised_tokens": 1346,
+      "task_mean_nll_delta": -0.050493589282893936,
+      "task_median_nll_delta": 0.0003606044228945393,
+      "nll_improved_questions": 4,
+      "nll_worsened_questions": 28,
+      "largest_improvement": {
+        "id": "20230929_12_CN38_T1_192.168.0.12_4_11",
+        "delta": -3.2393345832824707
+      },
+      "mean_nll_delta_without_largest_improvement": 0.052372249233221445,
+      "restricted_choice_brier": {
+        "candidate": 0.310441882981949,
+        "control": 0.24465637933016585
+      },
+      "newly_wrong": [
+        {
+          "id": "20230728_60_SY11_T1_Camera2_0_13",
+          "gold": "D",
+          "candidate_prediction": "A",
+          "control_prediction": "D",
+          "candidate_correct": false,
+          "control_correct": true,
+          "candidate_nll": 3.2906978130340576,
+          "control_nll": 0.31476452946662903,
+          "candidate_max_choice_probability": 0.9604369537473582,
+          "control_max_choice_probability": 0.7304497124164867,
+          "candidate_tied": false,
+          "control_tied": false
+        }
+      ],
+      "curves": [
+        {
+          "step": 0,
+          "candidate_task_nll": 1.8934099553784447,
+          "control_task_nll": 1.8934099553784447,
+          "candidate_accuracy": 0.46875,
+          "control_accuracy": 0.46875,
+          "candidate_substantive_nll": 1.0873957560639855,
+          "control_substantive_nll": 1.0873957560639855
+        },
+        {
+          "step": 5,
+          "candidate_task_nll": 0.8213239783362951,
+          "control_task_nll": 0.7611662168055773,
+          "candidate_accuracy": 0.65625,
+          "control_accuracy": 0.625,
+          "candidate_substantive_nll": 0.5877545591980706,
+          "control_substantive_nll": 0.49146910084834955
+        },
+        {
+          "step": 10,
+          "candidate_task_nll": 0.5936544634569145,
+          "control_task_nll": 0.6693957768757173,
+          "candidate_accuracy": 0.75,
+          "control_accuracy": 0.78125,
+          "candidate_substantive_nll": 0.26008663301039237,
+          "control_substantive_nll": 0.20296045956250286
+        },
+        {
+          "step": 15,
+          "candidate_task_nll": 0.692222441122226,
+          "control_task_nll": 0.7427160304051199,
+          "candidate_accuracy": 0.8125,
+          "control_accuracy": 0.84375,
+          "candidate_substantive_nll": 0.1704039819992492,
+          "control_substantive_nll": 0.17763557675866104
+        }
+      ]
+    },
+    {
+      "seed": 43,
+      "exact_task_identity_rows": 128,
+      "substantive_rows": 16,
+      "substantive_supervised_tokens": 1346,
+      "task_mean_nll_delta": 0.050524073663837044,
+      "task_median_nll_delta": 0.13926145830191672,
+      "nll_improved_questions": 7,
+      "nll_worsened_questions": 25,
+      "largest_improvement": {
+        "id": "20230728_37_CN38_T1_Camera4_2_12",
+        "delta": -1.8479204177856445
+      },
+      "mean_nll_delta_without_largest_improvement": 0.1117642185493042,
+      "restricted_choice_brier": {
+        "candidate": 0.30514729386019035,
+        "control": 0.30166916213489575
+      },
+      "newly_wrong": [
+        {
+          "id": "20230929_12_CN38_T1_192.168.0.12_4_2",
+          "gold": "C",
+          "candidate_prediction": "D",
+          "control_prediction": "C",
+          "candidate_correct": false,
+          "control_correct": true,
+          "candidate_nll": 0.950915515422821,
+          "control_nll": 0.376254677772522,
+          "candidate_max_choice_probability": 0.43871174808085056,
+          "control_max_choice_probability": 0.6882464469088001,
+          "candidate_tied": false,
+          "control_tied": false
+        }
+      ],
+      "curves": [
+        {
+          "step": 0,
+          "candidate_task_nll": 1.8934099553784447,
+          "control_task_nll": 1.8934099553784447,
+          "candidate_accuracy": 0.46875,
+          "control_accuracy": 0.46875,
+          "candidate_substantive_nll": 1.0873957560639855,
+          "control_substantive_nll": 1.0873957560639855
+        },
+        {
+          "step": 5,
+          "candidate_task_nll": 1.0537024344375823,
+          "control_task_nll": 0.9872316305409186,
+          "candidate_accuracy": 0.5,
+          "control_accuracy": 0.5,
+          "candidate_substantive_nll": 0.6038450864413518,
+          "control_substantive_nll": 0.4144084032010536
+        },
+        {
+          "step": 10,
+          "candidate_task_nll": 0.8014051751233637,
+          "control_task_nll": 0.689184840535745,
+          "candidate_accuracy": 0.6875,
+          "control_accuracy": 0.71875,
+          "candidate_substantive_nll": 0.23271047415828988,
+          "control_substantive_nll": 0.2096853002927987
+        },
+        {
+          "step": 15,
+          "candidate_task_nll": 0.5519086956046522,
+          "control_task_nll": 0.5013846219408151,
+          "candidate_accuracy": 0.78125,
+          "control_accuracy": 0.78125,
+          "candidate_substantive_nll": 0.1894492831573798,
+          "control_substantive_nll": 0.13847131080604413
+        }
+      ]
+    }
+  ],
+  "endpoint_definitions": {
+    "accuracy": "Unchanged ordered restricted-choice argmax,32questions; ties retain the existing first-choice rule.",
+    "gold_answer_nll": "Unchanged full-vocabulary gold answer-token NLL, average across32questions; end-token CE reported separately.",
+    "substantive_loss": "Native teacher-forced answer-text token CE,16fixed substantive rows/1346tokens, same mask and token denominator. Not free-generation evaluation."
+  },
+  "audit": "Compared all384paired development row identities, expanded tensors/digests, class tokens, answer alignment and counts; initialization outputs exactly match. Same15completed updates, FP32trainables, mixed objective and40-step schedule. Source checksums and native checkpoint identities retained in raw manifests. Existing records do not contain per-substantive-row losses; do not ascribe seed43 aggregate deterioration to a particular text row.",
+  "calibration_limit": "Brier and leave-largest-improvement-out summaries are descriptive development diagnostics, not new gates or evidence of uniform calibration improvement. A fused-only intervention cannot implicate quantized state.",
+  "next": "No invalidating defect; admit the exact8.75e-6 sharedLR screen with unchanged guards. A second shared factor may be selected only from its development failure and only once."
+}
