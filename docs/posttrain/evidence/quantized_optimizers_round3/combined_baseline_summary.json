@@ -1,0 +1,63 @@
+{
+  "complete": true,
+  "job": "37983881",
+  "charged_gpu_seconds": 480,
+  "source_commit": "cb9d4f3",
+  "raw_sha256": "bb689f4f274e4cb89f2077fa95149a33854fb8606c7ebb6ec11c6149095776a9",
+  "cases": [
+    {
+      "returncode": 0,
+      "elapsed_seconds": 223.4326083039632,
+      "name": "fused_full_micro4",
+      "oom": false,
+      "complete": {
+        "complete": true,
+        "elapsed_seconds": 192.71363082609605,
+        "state_report": {
+          "state_bytes": 24697144000,
+          "backend": "AdamW"
+        },
+        "trainable_elements": 3087142912,
+        "peak_allocated": 74348673024,
+        "peak_reserved": 75740741632
+      },
+      "final_development": {
+        "step": 15,
+        "elapsed_seconds": 192.26336210907903,
+        "task_seconds": 8.015364186954685,
+        "substantive_validation": {
+          "val/loss_avg": 0.2778207900841204,
+          "val/valid_token_count": 1346,
+          "val/valid_sequence_count": 16,
+          "timer/validation_s": 3.483722713077441
+        },
+        "metrics": {
+          "rows": 32,
+          "native_supervised_tokens": 64,
+          "restricted_choice_accuracy": 0.875,
+          "strict_first_token_accuracy": 0.875,
+          "valid_letter_rate": 1.0,
+          "token_weighted_ce": 0.26139008287100296,
+          "answer_nll": 0.5227146533561609,
+          "restricted_choice_nll": 0.5205671322328271,
+          "restricted_choice_tied_rows": 0,
+          "strict_first_token_tied_rows": 0,
+          "unique_exact_video_content_clusters": 27
+        }
+      }
+    },
+    {
+      "returncode": 1,
+      "elapsed_seconds": 103.34892550902441,
+      "name": "fused_selective12_micro2",
+      "oom": true
+    },
+    {
+      "returncode": 1,
+      "elapsed_seconds": 88.46181923092809,
+      "name": "fused_selective8_micro2",
+      "oom": true
+    }
+  ],
+  "conclusion": "Full recomputation/micro4 remains the strongest feasible fused configuration among the tested controls. Both combined micro2/accumulation2 selective12/8 candidates OOM; no claim of exhaustive optimality. Effective batch, model, trainables, precision and data exposure remain controlled."
+}

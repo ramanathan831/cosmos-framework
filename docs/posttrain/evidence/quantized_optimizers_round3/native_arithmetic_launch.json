@@ -1,0 +1,11 @@
+{
+  "job": "37985273",
+  "source_commit": "e65f7ea",
+  "archive_sha256": "83ad99a4feaf0cbe737f83cac9f08a18aeb21964f3801d4bf725406b37044325",
+  "dependency": "afterok:37984755:37984756",
+  "wall_seconds": 1500,
+  "work_seconds": 1380,
+  "node": "batch-block4-0102",
+  "launcher": "product-repair-launch.sbatch",
+  "pre_submission_refusal": "First metadata preflight used the wrong data-directory spelling. It refused before sbatch; no allocation was created. Corrected to the same immutable ROOT/data used by the completed campaign."
+}

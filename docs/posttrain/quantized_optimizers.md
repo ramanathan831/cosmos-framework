@@ -8,8 +8,10 @@ change, with no runtime or dependency-pin changes. **The requested product relea
 and a deployment training-loop throughput gain are measured, but end-to-end
 time-to-quality and final task-quality confidence gates failed in the first two
 campaigns. Those allocations are terminal. The [outcome-improvement campaign](#outcome-improvement-campaign)
-closes the dense recovery gap and tests actual equal-time checkpoints; its final
-comparisons are in progress. The thresholds have not been relaxed.
+closes the dense recovery gap and demonstrates positive adaptation. Its 36-run
+comparison is complete; a corrected product-budget endpoint is being evaluated
+separately. The quality and end-to-end speed guards remain unmet. The thresholds
+have not been relaxed.
 
 Main had `adamw`, `fusedadam` and `muon`; comments referring to AdamW8bit described
 cosmos-rl. No equivalent native backend was found in the main/PR audit. This change
@@ -544,9 +546,13 @@ avoiding a redundant pretrained load; 32 prior scores match exactly.
 The fused capacity probes retained all failures: microbatch-four 12-layer and
 15-layer selective checkpointing, microbatch 2/accumulation 2 and microbatch
 1/accumulation 4 without recomputation all ran out of memory. The locked final
-baseline uses full native checkpointing. A separate development probe combines
-microbatch 2/accumulation 2 with selective checkpointing; the strongest feasible
-baseline remains unresolved until that probe completes. A 32-target CPU preparation
+baseline uses full native checkpointing. The additional microbatch 2/accumulation 2
+probe with 12 or 8 selectively checkpointed layers also failed with OOM; its full
+recomputation control completed. Full recomputation remains the strongest feasible
+fused configuration among the tested controls, without a claim of exhaustive
+optimality. All 480 GPU-seconds and both failures are retained in the
+[combined capacity evidence](evidence/quantized_optimizers_round3/combined_baseline_summary.json).
+A 32-target CPU preparation
 canary preserves every tensor/token/label
 and reduces processing 187→136 seconds with four workers on the same eight CPUs.
 The complete full-corpus run verified 751 logical rows and 562 independently
@@ -583,6 +589,67 @@ Extra questions were selected by metadata hashes before scoring. Bootstrap units
 are recording families and paired seeds, not the 128 correlated questions. The
 user-authorized reused-pool comparison and any independent replication claim remain
 separate. No final outcome is inferred from the development gains above.
+
+### Completed third-campaign outcomes
+
+All 36 original training runs and 37 fresh-process score files completed, including
+the frozen reference. The [analysis](evidence/quantized_optimizers_round3/summary.json)
+verifies model/input identities, actual data exposure, checkpoint provenance,
+required validations and the fixed statistical procedure. At matched 15 updates,
+both optimizers now improve restricted-choice task accuracy over the frozen model:
+fused 76.82%, eight-bit 76.56%, frozen 59.375%. The recording-family bootstrap lower
+bounds for improvement are +7.81 and +7.55 percentage points. This establishes
+adaptation on the authorized reused pool, not independent replication or generated
+answer quality. The original multi-question objective remains in training and
+its substantive development NLL guard passes.
+
+| Original locked endpoint | Result and unchanged gate |
+|---|---|
+| Matched-update task NLL, eight-bit/fused | 1.00458, 95% paired-seed interval [0.96779, 1.04138]; upper bound exceeds 1.01 |
+| Matched-update accuracy drop, fused minus eight-bit | +0.260 percentage points, interval [−0.860, +1.381]; upper bound exceeds 1 point |
+| Equal 60-second training/validation budget | Actual fused updates [10,10,10], eight-bit [10,12,11]; NLL gain −0.14824 [−0.64459, +0.34811], no demonstrated gain |
+| Prepared product time to fixed validation target | Fused/eight-bit ratio 1.05885 [1.01560, 1.10210]; excludes parity but fails the required lower bound >1.05 |
+| Composed cold time to target | 1.00868 [1.00307, 1.01428]; fails, conditional on one 1,990-second preparation measurement |
+| Training/validation time to target | 1.13019 [1.05236, 1.20802]; passes this narrower clock |
+| Repeated native-loop throughput | 1.35568 [1.26611, 1.44525]; saving state memory permits removal of recomputation |
+| Allocated optimizer state | 24,697,144,000 → 6,271,567,872 bytes, 74.61% saved |
+
+The mean matched-update NLL regression is 0.458%; 4.138% is its upper uncertainty
+bound. The recording bootstrap also fails the 1% NLL guard. Timing restarts are
+averaged within each seed and do not increase the quality sample size. Actual
+matched-update batches consume 60 sequences per seed, 2,852/2,459/2,899 supervised
+tokens, sequence lengths 569–929, and native video tensors `[1920,1536]` with
+`video_grid_thw` shape `[1,3]`. Configured context limits are not substituted for
+those observed lengths.
+
+The original 390-second product endpoint is censored: seed43 eight-bit committed
+update15 with its required validation still pending. Its durable journal retains
+the real update metric, scheduler and data position; it is not an eligible
+completed product. The qualification wrapper had treated an advance budget notice
+as immediate preemption. It now finishes scheduled validation before an advance
+budget stop while preserving immediate external-signal handling. Nine control
+tests cover those boundaries. The native training/optimizer implementation is
+unchanged. The [corrected protocol](evidence/quantized_optimizers_round3/product_repair_protocol.json)
+reruns both arms in all three seeds with the same budgets, manifest and gates.
+Original scores and the censored endpoint remain unchanged; the correction is
+not independent replication. Corrected endpoint results are pending.
+
+The [phase and memory report](evidence/quantized_optimizers_round3/phase_memory_summary.json)
+shows why the native-loop gain has limited product impact. Matched runs average
+70.6 seconds setup, about 46 seconds validation, 59/47 seconds full checkpointing
+and 120/117 seconds final scoring for fused/eight-bit, versus 27.6/20.9 seconds
+native training. Nested phase timers must not be added. Eight-bit optimizer snapshot
+creation averages 1.0 second inside the full save; it is not the dominant checkpoint
+cost. Consistent full-model publication remains synchronous.
+
+Mean whole-device training peaks are 72.58/71.80 GiB, process GPU peaks
+71.89/71.12 GiB, and PyTorch allocated peaks 69.27/65.86 GiB. Training/checkpoint
+host PSS rises from 5.76 to 10.71 GiB; including fresh scoring, peaks are
+33.38/33.68 GiB. State savings are spent partly on activations, not a 75% total
+memory reduction. Every scope and confidence interval is retained in the report.
+
+![Actual quality versus delivery time](evidence/quantized_optimizers_round3/quality_time.png)
+![Measured memory versus native throughput](evidence/quantized_optimizers_round3/memory_throughput.png)
 
 ## Reproduction and source identities
 

@@ -22,14 +22,15 @@ from tools.quantized_optimizers.plan_outcomes import ARMS
 from tools.quantized_optimizers.score_dense import aggregate
 
 
-def analyze(raw, protocol, selection, protocol_sha256, cold_preparation_seconds):
+def analyze(
+    raw, protocol, selection, protocol_sha256, cold_preparation_seconds, pending_inspections=None, product_repair=None
+):
     seeds = protocol["paired_seeds"]
 
-    def find(seed, ending):
+    def find(seed, ending, repaired=False):
+        stem = "product-repair-v2-seed" if repaired else "final-seed"
         keys = [
-            k
-            for k in raw
-            if (k.startswith(f"final-seed{seed}/") or k.startswith(f"final-seed{seed}-")) and k.endswith(ending)
+            k for k in raw if (k.startswith(f"{stem}{seed}/") or k.startswith(f"{stem}{seed}-")) and k.endswith(ending)
         ]
         if len(keys) != 1:
             raise ValueError(f"missing or ambiguous completed evidence: seed{seed} {ending}: {keys}")
@@ -55,23 +56,40 @@ def analyze(raw, protocol, selection, protocol_sha256, cold_preparation_seconds)
     for seed in seeds:
         exposure = json.loads(raw[find(seed, "/training_exposure/exposure.json")])["rows"]
         for design in designs:
+            repaired = bool(product_repair and design == "end_to_end")
+            if repaired:
+                repair_exposure = json.loads(raw[find(seed, "/training_exposure/exposure.json", True)])["rows"]
+                if repair_exposure != exposure:
+                    raise ValueError("corrected endpoint changed the actual training data order or inputs")
             for arm in ARMS:
                 name = f"{design}_{arm}"
-                summary_path = find(seed, f"/{name}/score/summary.json")
+                summary_path = find(seed, f"/{name}/score/summary.json", repaired)
                 prefix = summary_path.removesuffix("score/summary.json")
                 root = prefix.removesuffix(name + "/")
                 spec = json.loads(raw[root + "executed_spec.json"])
-                if spec.get("protocol_sha256") != protocol_sha256 or not spec.get("locked_before_evaluation"):
+                expected_protocol = product_repair["sha256"] if repaired else protocol_sha256
+                if spec.get("protocol_sha256") != expected_protocol or not spec.get("locked_before_evaluation"):
                     raise ValueError("result does not use the frozen comparison protocol")
+                if repaired:
+                    original_spec = json.loads(raw[find(seed, "/executed_spec.json")])
+                    original_case = next(case for case in original_spec["cases"] if case["name"] == name)
+                    repair_case = next(case for case in spec["cases"] if case["name"] == name)
+                    if original_case != repair_case:
+                        raise ValueError("corrected endpoint changed the original paired case")
                 runtime_keys = [k for k in raw if k.startswith(root + "runtime-") and k.endswith(".json")]
                 if len(runtime_keys) != 1:
                     raise ValueError("ambiguous allocation runtime")
                 runtime = json.loads(raw[runtime_keys[0]])
+                if product_repair:
+                    expected_archive = product_repair["archive_sha256" if repaired else "parent_archive_sha256"]
+                    if runtime["source_archive_sha256"] != expected_archive:
+                        raise ValueError("source archive differs from the recorded original or corrected endpoint")
                 identities[root] = runtime
                 models.append(json.loads(raw[prefix + "model-file-reads.json"])["files"])
                 attempt = json.loads(raw[prefix + "attempt.json"])
                 summary = json.loads(raw[summary_path])
                 delivered = json.loads(raw[prefix + "delivery.json"])
+                budget = delivered["budget_report"]
                 if attempt["returncode"] or not summary["complete"]:
                     raise ValueError("failed training/scoring cannot enter a comparison")
                 metric_keys = [k for k in raw if k.startswith(prefix + "native/") and k.endswith("metrics.jsonl")]
@@ -79,6 +97,21 @@ def analyze(raw, protocol, selection, protocol_sha256, cold_preparation_seconds)
                     raise ValueError("missing native metrics")
                 metrics = lines(metric_keys[0])
                 steps = [row for row in metrics if "optim/optimizer_step" in row]
+                journal = (pending_inspections or {}).get(prefix)
+                if journal:
+                    pending = journal["validation_progress"]
+                    if (
+                        not budget
+                        or journal["checkpoint_provenance"] != budget["checkpoint_provenance"]
+                        or journal["optimizer_step"] != budget["committed_optimizer_step"]
+                        or pending["pending_step"] != journal["optimizer_step"]
+                        or pending["pending_metrics"]["optim/optimizer_step"] != journal["optimizer_step"]
+                        or steps[-1]["optim/optimizer_step"] + 1 != journal["optimizer_step"]
+                    ):
+                        raise ValueError("pending validation journal does not bind the missing final metric")
+                    # Read the durable native metric, never infer it from another
+                    # run. Required validation is still missing: this case fails.
+                    steps.append(pending["pending_metrics"])
                 last = int(steps[-1]["optim/optimizer_step"])
                 if [int(row["optim/optimizer_step"]) for row in steps] != list(range(1, last + 1)) or any(
                     row["optim/nonfinite_skips_total"] for row in steps
@@ -91,7 +124,11 @@ def analyze(raw, protocol, selection, protocol_sha256, cold_preparation_seconds)
                     row["supervised_tokens"] for row in actual_exposure
                 ):
                     raise ValueError("native sequence/token totals disagree with actual data order")
-                budget = delivered["budget_report"]
+                curve = lines(prefix + "diagnostics/task_curve.jsonl")
+                required_validation = set(range(0, last + 1, protocol["validation"]["every_updates"]))
+                if last == protocol["recipe"]["max_updates"]:
+                    required_validation.add(last)
+                missing_validation = sorted(required_validation - {row["step"] for row in curve})
                 eligible = True
                 if design == "matched" and last != 15:
                     raise ValueError("matched-update recipe did not complete15 updates")
@@ -103,6 +140,7 @@ def analyze(raw, protocol, selection, protocol_sha256, cold_preparation_seconds)
                         eligible = eligible and delivered["end_to_end_budget_eligible"]
                     if design.startswith("target"):
                         eligible = eligible and budget["target_hit"] is not None
+                eligible = eligible and not missing_validation and journal is None
                 score_rows = lines(prefix + "score/scores.jsonl")
                 if [row["id"] for row in score_rows] != ids:
                     raise ValueError("comparison changes the fixed task manifest")
@@ -137,7 +175,6 @@ def analyze(raw, protocol, selection, protocol_sha256, cold_preparation_seconds)
                 complete = json.loads(raw[prefix + "diagnostics/complete.json"])
                 state = complete["state_report"]
                 state_bytes = state.get("state_bytes", state.get("moment_bytes", 0) + state.get("metadata_bytes", 0))
-                curve = lines(prefix + "diagnostics/task_curve.jsonl")
                 training_seconds = sum(row.get("timer/e2e_step_s", 0) for row in steps)
                 record = {
                     "seed": seed,
@@ -146,6 +183,9 @@ def analyze(raw, protocol, selection, protocol_sha256, cold_preparation_seconds)
                     "prefix": prefix,
                     "optimizer_step": last,
                     "eligible": bool(eligible),
+                    "missing_required_validation_steps": missing_validation,
+                    "terminal_metric_source": "durable_pending_validation_journal" if journal else "native_metrics",
+                    "development_validation_step": curve[-1]["step"],
                     "budget": budget,
                     "metrics": summary["metrics"],
                     "training_seconds": training_seconds,
@@ -178,9 +218,8 @@ def analyze(raw, protocol, selection, protocol_sha256, cold_preparation_seconds)
                 runs[seed, design, arm] = record
     if any(model != models[0] for model in models):
         raise ValueError("pretrained model bytes differ across arms")
-    if (
-        len({json.dumps(r["versions"], sort_keys=True) for r in identities.values()}) != 1
-        or len({r["source_archive_sha256"] for r in identities.values()}) != 1
+    if len({json.dumps(r["versions"], sort_keys=True) for r in identities.values()}) != 1 or (
+        not product_repair and len({r["source_archive_sha256"] for r in identities.values()}) != 1
     ):
         raise ValueError("source/dependencies differ across final comparisons")
     quality = {}
@@ -296,6 +335,10 @@ def analyze(raw, protocol, selection, protocol_sha256, cold_preparation_seconds)
         "runs": list(runs.values()),
         "independent_replication_qualified": False,
         "evaluation_limitation": "Authorized reused pool; recording groups disjoint from training/development but historically exposed. No independent replication claim.",
+        "product_repair": product_repair,
+        "report_scope": "Corrected product endpoint; all other comparisons reuse the original locked campaign unchanged. Original product results remain separately preserved and censored."
+        if product_repair
+        else "Original locked campaign, including its censored product endpoint.",
     }
 
 
@@ -373,14 +416,42 @@ def main():
     parser.add_argument("selection", type=Path)
     parser.add_argument("output", type=Path)
     parser.add_argument("--cold-preparation-seconds", type=float, required=True)
+    parser.add_argument("--pending-validation-inspections", type=Path)
+    parser.add_argument("--product-repair-raw", type=Path)
+    parser.add_argument("--product-repair-protocol", type=Path)
     args = parser.parse_args()
     protocol_bytes = args.protocol.read_bytes()
+    raw = json.load(gzip.open(args.raw, "rt"))
+    repair = None
+    if bool(args.product_repair_raw) != bool(args.product_repair_protocol):
+        parser.error("corrected endpoint requires both raw evidence and its frozen protocol")
+    if args.product_repair_raw:
+        repair_bytes = args.product_repair_protocol.read_bytes()
+        repair = json.loads(repair_bytes)
+        parent = json.loads(protocol_bytes)
+        if repair["parent_protocol_sha256"] != hashlib.sha256(protocol_bytes).hexdigest() or any(
+            repair[key] != parent[key] for key in ("paired_seeds", "evaluation", "gates")
+        ):
+            raise ValueError("corrected endpoint changed the parent protocol or quality gates")
+        correction = json.load(gzip.open(args.product_repair_raw, "rt"))
+        if (set(raw) & set(correction)) - {"_collection.json"}:
+            raise ValueError("corrected raw evidence would overwrite original records")
+        correction.pop("_collection.json", None)
+        raw.update(correction)
+        repair = {
+            **repair,
+            "sha256": hashlib.sha256(repair_bytes).hexdigest(),
+            "archive_sha256": "531b0fbdcad066cc9484fdcf06204e2b9e069ea5f7f93ffc0e5f7752b4947ac4",
+            "parent_archive_sha256": "a9bf74f63288723ccc55f357a39be3bd2e6d70a9bd39dbe8141fd93decdb55dd",
+        }
     report = analyze(
-        json.load(gzip.open(args.raw, "rt")),
+        raw,
         json.loads(protocol_bytes),
         json.loads(args.selection.read_text()),
         hashlib.sha256(protocol_bytes).hexdigest(),
         args.cold_preparation_seconds,
+        json.loads(args.pending_validation_inspections.read_text()) if args.pending_validation_inspections else None,
+        repair,
     )
     args.output.mkdir(exist_ok=True, parents=True)
     (args.output / "summary.json").write_text(json.dumps(report, indent=2, allow_nan=False) + "\n")
