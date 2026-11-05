@@ -256,11 +256,11 @@
     {
       "job": "37977251",
       "name": "optimizer-outcome-s43",
-      "state": "RUNNING",
-      "elapsed_seconds": 1011,
+      "state": "COMPLETED",
+      "elapsed_seconds": 3642,
       "effective_wall_limit_seconds": 4500,
       "gpu_count_requested": 1,
-      "charged_or_reserved_gpu_seconds": 4500,
+      "charged_or_reserved_gpu_seconds": 3642,
       "charged_or_reserved_cpu_wall_seconds": 0,
       "node": "batch-block4-0102"
     },
@@ -324,7 +324,7 @@
   "unsubmitted_final_reservation_seconds": 0,
   "total_gpu_cap_seconds": 28800,
   "cpu_wall_cap_seconds": 7200,
-  "total_with_reserved_final": 21070,
+  "total_with_reserved_final": 20212,
   "cpu_actual_or_reserved_seconds": 6955,
   "failures": {
     "37970581": "New recovery diagnostic failed to resolve native worker cursor handle after update41; checkpoint40 completed. Fixed by2e44bfa.",
@@ -345,8 +345,9 @@
   "unsubmitted_preparation_profile_reservation_seconds": 0,
   "unsubmitted_decoder_thread_canary_reservation_seconds": 0,
   "unsubmitted_combined_baseline_probe_gpu_seconds": 0,
-  "total_with_reserved_final_and_development": 21070,
+  "total_with_reserved_final_and_development": 23452,
   "unsubmitted_short_schedule_probe_gpu_seconds": 0,
   "local_cpu_check_note": "Conservative120-second CPU-only allowance covers local controls, lint and final evidence analysis. Root-conftest GPU checks remain separately charged60GPU-seconds. No additional CPU allocation admitted.",
-  "unsubmitted_combined_baseline_reservation_extension_seconds": 0
+  "unsubmitted_combined_baseline_reservation_extension_seconds": 0,
+  "unsubmitted_product_repair_gpu_seconds": 3240
 }

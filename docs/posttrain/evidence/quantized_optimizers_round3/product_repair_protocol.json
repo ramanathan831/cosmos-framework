@@ -1,0 +1,60 @@
+{
+  "locked_utc": "2026-11-05T00:19:44.949338+00:00",
+  "locked_before_rerun": true,
+  "parent_protocol_sha256": "aff3b3d9e32418a784f894de24e645bf72692fb18d2e5f9603c0a3d0d5faad65",
+  "source_commit": "f56a658",
+  "native_core_tree_unchanged_from": "cb9d4f3",
+  "reason": "The original seed43 eight-bit product run committed update15 with validation15 pending after an advance budget notice. Original endpoint remains censored. Repair the wrapper to complete scheduled validation, preserving real-signal preemption. No new final task-quality statistics were computed before this repair decision. Rerun both arms in all3seeds for a matched corrected endpoint, not just the favorable or failed arm.",
+  "scope": "Only actual390-second prepared product /2380-second composed cold-budget quality. Existing matched-update,60-second training, target timing and all original scores remain unchanged.",
+  "paired_seeds": [
+    17,
+    29,
+    43
+  ],
+  "evaluation": {
+    "data": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/validation.jsonl",
+    "manifest": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/manifest.json",
+    "manifest_sha256": "3f7d5013d231f21c44878f94b9f9deb880a636761dae56a002c0532733fe6e58",
+    "data_sha256": "a21c55a7ddbaba22f7d9a34af178e5462adc2fc427ff22070aba411b7fbda9ba",
+    "questions": 128,
+    "recording_families": 32,
+    "questions_per_family": 4,
+    "historical_exposure": "All32 eligible recording families outside repaired training/development were used in earlier final selections. Retain all32 prior questions and report both historical16-row subsets. Extra questions were chosen by metadata hash before new scores; they do not create unexposed recording families."
+  },
+  "budgets": {
+    "adamw": {
+      "seconds": 390,
+      "reserve_seconds": 210
+    },
+    "adamw_bnb_8bit": {
+      "seconds": 390,
+      "reserve_seconds": 180
+    }
+  },
+  "recipe_and_statistical_procedure": "Exactly the parent protocol: same mixed objective, LR,40-horizon schedule,max15,trainables,precision,clipping,data order,validation0/every5,checkpoint policy,128rows/32families,95%paired-seed and10000crossed-seed/recording bootstrap,RNG2026,all original thresholds.",
+  "gates": {
+    "paired_seeds": 3,
+    "ci": 0.95,
+    "nll_ratio_upper_max": 1.01,
+    "task_accuracy_degradation_upper_max": 0.01,
+    "speed_ratio_lower_min_exclusive": 1.05,
+    "optimizer_state_saving_min": 0.6,
+    "equal_budget_quality_improvement_lower_min_exclusive": 0,
+    "positive_adaptation_lower_min_exclusive": 0,
+    "time_to_quality_target": "0.95 times paired fused initial validation NLL; unchanged prior criterion",
+    "recording_bootstrap_repetitions": 10000,
+    "bootstrap_seed": 2026
+  },
+  "cold_preparation_seconds": 1990,
+  "frozen_reference": "Reuse verified original final-seed17/frozen: native core/model/input bytes unchanged. No new frozen selection or evaluation data.",
+  "censoring": "Every required validation at/before committed step must have completed. Score the exact committed checkpoint. Charge all setup,verification,validation,checkpoint,provenance and fresh scoring; over390seconds remains censored. Preserve all prior failures.",
+  "resources": {
+    "reserved_gpu_seconds": 3240,
+    "seconds_per_seed": 1080,
+    "work_seconds_per_seed": 960,
+    "maximum_concurrent_owned_gpus": 2,
+    "gpu_cap_unchanged": 28800,
+    "cpu_wall_cap_unchanged": 7200
+  },
+  "historical_exposure": "Authorized previously exposed pool; this correction repeats the same fixed comparison and is not independent replication."
+}
