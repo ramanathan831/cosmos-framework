@@ -40,7 +40,12 @@ def verify(candidate, reference, expected_manifest_sha256):
         digest, stamps[path] = checked_hash(path)
         if digest != expected_manifest_sha256:
             raise ValueError("manifest differs from the externally qualified identity")
-    manifest = json.loads(manifests[0].read_text())
+    # Parse the bytes whose digest is checked, rather than relying on a stat
+    # identity to connect separate hash and parse reads on coarse filesystems.
+    value = manifests[0].read_bytes()
+    if hashlib.sha256(value).hexdigest() != expected_manifest_sha256:
+        raise ValueError("manifest changed before parsing its qualified identity")
+    manifest = json.loads(value)
     checks = {}
     for key, entry in manifest["entries"].items():
         if len(key) != 64 or any(c not in "0123456789abcdef" for c in key):

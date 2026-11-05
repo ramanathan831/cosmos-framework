@@ -1,0 +1,15 @@
+{
+  "locked_utc": "2026-11-05T19:28:49.917365+00:00",
+  "reason": "Final review identified a hash/parse read gap in standalone recovery verification. Parse the exact bytes whose digest is checked, so unchanged stat timestamps cannot substitute a different payload mapping. No optimizer, checkpoint or preparation producer changes.",
+  "local_tests": "6passed, including changed parse read without stat change",
+  "source_sha256": "713ae2a04023f195e13179cdb4059e8ee475d21d83147a2da96663abafa824ee",
+  "reservation_cpu_seconds": 240,
+  "slurm_time_seconds": 120,
+  "killwait_seconds": 120,
+  "basis": "Same full payload/media verification completed in29allocated seconds,23.5verification seconds. Repeat on sameCPU node after this concrete integrity fix; do not repeat decoding.",
+  "prior_charged_cpu_seconds": 6929,
+  "charged_or_reserved_cpu_seconds": 7169,
+  "cpu_cap_seconds": 7200,
+  "output": "preparation-recovery-recheck",
+  "timing_scope": "Correctness rerun, charged separately; not an additional preparation timing replication."
+}
