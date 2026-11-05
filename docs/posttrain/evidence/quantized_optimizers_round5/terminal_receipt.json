@@ -1,0 +1,71 @@
+{
+  "utc": "2026-11-05T21:02:51.940988+00:00",
+  "jobs": [
+    {
+      "job": "38042204",
+      "state": "COMPLETED",
+      "elapsed_seconds": 714,
+      "effective_limit_minutes": 18,
+      "node": "batch-block4-1051",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38042206",
+      "state": "COMPLETED",
+      "elapsed_seconds": 2121,
+      "effective_limit_minutes": 48,
+      "node": "cpu-00008",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38042441",
+      "state": "COMPLETED",
+      "elapsed_seconds": 458,
+      "effective_limit_minutes": 12,
+      "node": "batch-block4-0045",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38042648",
+      "state": "COMPLETED",
+      "elapsed_seconds": 353,
+      "effective_limit_minutes": 10,
+      "node": "batch-block4-0045",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38042650",
+      "state": "COMPLETED",
+      "elapsed_seconds": 334,
+      "effective_limit_minutes": 10,
+      "node": "batch-block4-0045",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38042848",
+      "state": "COMPLETED",
+      "elapsed_seconds": 732,
+      "effective_limit_minutes": 18,
+      "node": "batch-block4-1051",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38043623",
+      "state": "COMPLETED",
+      "elapsed_seconds": 591,
+      "effective_limit_minutes": 18,
+      "node": "batch-block4-1051",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38044139",
+      "state": "COMPLETED",
+      "elapsed_seconds": 370,
+      "effective_limit_minutes": 10,
+      "node": "batch-block4-1051",
+      "exit_code": "0:0"
+    }
+  ],
+  "all_owned_jobs_terminal": true,
+  "intentional_checksum_failure": "One allowed negative subprocess inside successfully completed loading0; retained in raw logs and charged allocation."
+}

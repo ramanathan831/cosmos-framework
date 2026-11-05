@@ -1,0 +1,24 @@
+{
+  "recorded_utc": "2026-11-05T21:04:05.152118+00:00",
+  "status": "NOT_ADMITTED_OR_RUN",
+  "reason": "Both lower-LR probes rejected. At original LR, exponent.95 preserves task accuracy and improves taskNLL4.83%/5.38%, but eight-bit native substantive loss rises1.51%/1.33% in seeds29/43. Per-row seed29reload shows shared worsening families in both optimizers. A single midpoint exponent.975 is a bounded future test of a smaller objective-weight shift; monotonic improvement is not assumed.",
+  "single_factor": "rl.ce_exponent=.975 versus original1.0; LR1e-5,15updates/40horizon and every other control unchanged. No rejected LR/schedule/precision exceptions combined.",
+  "fused_spec": "next_weight975_fused.json",
+  "conditional_eightbit_spec": "next_weight975_eightbit.json",
+  "guards": {
+    "task_nll_mean_ratio_max": 0.98,
+    "each_seed_accuracy_drop_max": 0,
+    "each_native_substantive_nll_ratio_max": 1.01
+  },
+  "gating": "Fused first. Eight-bit only if fused passes all original guards against original controls. Final only after both stages pass and a new protocol is locked. Native batch4 validation remains authoritative; do not substitute batch1 descriptive losses.",
+  "reservation_gpu_seconds": {
+    "fused_including_grace": 1200,
+    "conditional_eightbit_including_grace": 1200,
+    "conditional_complete_final_including_grace": 13860,
+    "total": 16260
+  },
+  "observed_basis": "Current stages used732 and591GPU allocation seconds; earlier full final comparison11129seconds. Retain conservative4500-second per-seed final limits plus120-second termination grace each.",
+  "reservation_cpu_seconds": 180,
+  "cold_policy": "Reuse the three exact unchanged-producer replications only if preparation policy/source remains unchanged. A changed preparation implementation needs separately reserved full replications; current cold critical-path bound remains unmet.",
+  "not_admitted_reason": "The user allowed one additional shared intervention after LR875; weight.95 consumed it. Remaining resource headroom does not authorize another automatic candidate. No additional final scoring on a rejected recipe."
+}

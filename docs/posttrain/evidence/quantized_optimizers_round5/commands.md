@@ -105,3 +105,38 @@ No new final comparison is admitted unless both optimizer development stages
 pass. Original matched-update, actual 60-second training, 390-second prepared
 product and target-delivery results remain distinct. New shared-loading timings
 are not substituted into historical optimizer end-to-end results.
+
+The fused weighting screen passed, admitting its identical eight-bit stage. That
+stage failed the substantive guard in seeds29/43, so no final comparison followed.
+The recorded dependent diagnostic scores four existing seed-29 checkpoints on
+development examples only; it adds no optimizer update.
+
+```bash
+export MODE=study WORK_SECONDS=960 SOURCE_ARCHIVE=$ROOT/source-baseline.tgz
+export TASK_SPEC=$ROOT/eightbit_weight95_probe.json RESULTS=$ROOT/weight95-eightbit
+sbatch --parsable --export=ALL --time=18 --nodelist=batch-block4-1051 \
+  --partition=interactive_singlenode,polar --output="$ROOT/weight95-eightbit-%j.log" \
+  "$ROOT/deployment.sbatch"
+export WORK_SECONDS=520 SOURCE_ARCHIVE=$ROOT/source-loading.tgz
+export TASK_SPEC=$ROOT/substantive_diagnosis_spec.json RESULTS=$ROOT/substantive-diagnosis
+sbatch --parsable --export=ALL --time=10 --nodelist=batch-block4-1051 \
+  --partition=interactive_singlenode,polar --dependency=afterok:38043623 \
+  --output="$ROOT/substantive-diagnosis-%j.log" "$ROOT/deployment.sbatch"
+
+PYTHONDONTWRITEBYTECODE=1 python docs/posttrain/evidence/quantized_optimizers_round5/analyze_screen.py \
+  docs/posttrain/evidence/quantized_optimizers_round5/weight95_fused_raw.json.gz \
+  fused_weight95 adamw --lr-ratio=1 \
+  --output=docs/posttrain/evidence/quantized_optimizers_round5/fused_weight95_summary.json
+PYTHONDONTWRITEBYTECODE=1 python docs/posttrain/evidence/quantized_optimizers_round5/analyze_screen.py \
+  docs/posttrain/evidence/quantized_optimizers_round5/weight95_eightbit_raw.json.gz \
+  eightbit_weight95 adamw_bnb_8bit --lr-ratio=1 \
+  --output=docs/posttrain/evidence/quantized_optimizers_round5/eightbit_weight95_summary.json
+PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 .venv/bin/python \
+  docs/posttrain/evidence/quantized_optimizers_round5/analyze_cold.py --allocation-seconds=2121
+PYTHONDONTWRITEBYTECODE=1 python docs/posttrain/evidence/quantized_optimizers_round5/analyze_substantive.py
+```
+
+The four-way reload verifies unchanged native task predictions and reports each
+substantive answer's tokens and loss. It preserves the distinction between native
+batch-four validation and batch-one descriptive scoring; the former remains the
+acceptance metric. All target/mask definitions remain unchanged.

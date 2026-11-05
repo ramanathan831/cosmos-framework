@@ -1,0 +1,75 @@
+{
+  "implementation_complete_for_declared_matrix": true,
+  "product_release_qualified": false,
+  "objective_open": true,
+  "new_training_runs": 9,
+  "new_final_comparison_admitted": false,
+  "new_final_scoring_runs": 0,
+  "lr875_fused_screen_pass": false,
+  "weight95_fused_screen_pass": true,
+  "weight95_eightbit_screen_pass": false,
+  "weight95_not_promoted": true,
+  "native_substantive_failure_ratios_eightbit_seed29_43": [
+    1.0151237685400438,
+    1.0132728488143352
+  ],
+  "correctness": {
+    "pinned_and_local_checkpoint_read_tests": 15,
+    "paired_loading_exact_task_observations": 384,
+    "development_localization_exact_task_observations": 128,
+    "real_cuda_wrong_sha_no_success_receipt": true,
+    "core_optimizer_model_transaction_paths_unchanged": true,
+    "prior_dense_40_to_44_recovery_retained": true
+  },
+  "shared_loading": {
+    "phase_ratios": "loading_summary.json",
+    "whole_process_ratio": 1.2452976812216765,
+    "ci95": [
+      0.9365378266315357,
+      1.5540575358118174
+    ],
+    "prospective_whole_process_speed_gate_pass": false
+  },
+  "cold": {
+    "uninterrupted_full_replications": 3,
+    "allocation_seconds": [
+      2193,
+      2166,
+      2121
+    ],
+    "exact_inputs_and_targets": true,
+    "composed_historical_target_ratio": 1.00808752168539,
+    "ci95": [
+      1.0057301796040459,
+      1.009652355565402
+    ],
+    "speed_gate_pass": false,
+    "directly_measured_cold_gpu_pipeline_claim": false
+  },
+  "unchanged_final_gates": {
+    "positive_task_adaptation_vs_frozen": true,
+    "matched_nll_upper_at_most_1_01": false,
+    "accuracy_drop_upper_at_most_1pp": false,
+    "positive_equal_training_budget_nll_gain": false,
+    "positive_equal_product_budget_nll_gain": false,
+    "prepared_target_speed_lower_above_1_05": false,
+    "state_memory_saving": true,
+    "dense_fresh_process_recovery": true
+  },
+  "state_bytes": {
+    "fused": 24697144000,
+    "eightbit": 6271567872,
+    "quantized_elements": 3087007744,
+    "fp32_state_elements": 135168,
+    "uninitialized_elements": 0
+  },
+  "limitations": "Same historically exposed128questions/32families for prior final comparisons; repaired family separation retained. No new final scoring. Per-row text diagnosis uses batch1 while native acceptance uses batch4; observed numeric differences do not change the guard. No new distributed/dtype/paging-speed/QLoRA or inference-latency claim.",
+  "all_owned_jobs_terminal": true,
+  "remaining_resource_headroom_not_exhausted": true,
+  "source_identity": "source_identity.json",
+  "raw_manifest": "evidence_manifest.json",
+  "requirements": "requirements.md",
+  "accounting": "final_accounting.json",
+  "next_unsubmitted_intervention": "next_intervention.json",
+  "publication": "Local commits and draft only; no push, publication, merge or reopening334. Original QLoRA checkout untouched."
+}

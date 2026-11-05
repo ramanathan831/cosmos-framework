@@ -1,0 +1,102 @@
+{
+  "cumulative_start_commit": "40885d9",
+  "continuation_start_commit": "582ee70",
+  "caps": {
+    "gpu_allocation_seconds": 21600,
+    "cpu_wall_seconds": 11700
+  },
+  "sealed_round4": {
+    "gpu_seconds": 1575,
+    "cpu_wall_seconds": 6954
+  },
+  "this_continuation": {
+    "gpu_allocation_seconds": 3552,
+    "cpu_allocation_seconds": 2121,
+    "local_cpu_wall_allowance_charged_seconds": 180,
+    "cpu_wall_seconds": 2301,
+    "gpu_hours": 0.9866666666666667,
+    "cpu_hours": 0.6391666666666667
+  },
+  "combined_charged": {
+    "gpu_seconds": 5127,
+    "cpu_wall_seconds": 9255,
+    "gpu_hours": 1.4241666666666666,
+    "cpu_hours": 2.5708333333333333
+  },
+  "remaining": {
+    "gpu_seconds": 16473,
+    "cpu_wall_seconds": 2445
+  },
+  "all_eight_admitted_allocations_terminal": true,
+  "new_final_comparison_gpu_seconds": 0,
+  "old_campaign_headroom_borrowed": false,
+  "historical_failures_retained": "Round4CPUtimeout2361seconds plus29-second recovery and25-second correctness recheck remain in the sealed6954-second charge. Loading0intentional wrong-hash subprocess is charged inside its458-second successful test allocation.",
+  "reservation_policy": "Before launch, reserve site-rounded wall limit plus120-second termination grace. Replace with parent-job SlurmElapsedRaw after terminal accounting; do not sum batch/extern/step duplicates. Local checks/analysis charged conservative180CPU-wall seconds in addition to sealed round4 allowance.",
+  "scope_stop": "LR875failed. The one additional shared factor, exponent.95, passed fused but failed eight-bit substantive guards; final reservation released unused. Further candidate trials are outside this continuation scope, even though allocation headroom remains.",
+  "jobs": [
+    {
+      "job": "38042204",
+      "state": "COMPLETED",
+      "elapsed_seconds": 714,
+      "effective_limit_minutes": 18,
+      "node": "batch-block4-1051",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38042206",
+      "state": "COMPLETED",
+      "elapsed_seconds": 2121,
+      "effective_limit_minutes": 48,
+      "node": "cpu-00008",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38042441",
+      "state": "COMPLETED",
+      "elapsed_seconds": 458,
+      "effective_limit_minutes": 12,
+      "node": "batch-block4-0045",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38042648",
+      "state": "COMPLETED",
+      "elapsed_seconds": 353,
+      "effective_limit_minutes": 10,
+      "node": "batch-block4-0045",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38042650",
+      "state": "COMPLETED",
+      "elapsed_seconds": 334,
+      "effective_limit_minutes": 10,
+      "node": "batch-block4-0045",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38042848",
+      "state": "COMPLETED",
+      "elapsed_seconds": 732,
+      "effective_limit_minutes": 18,
+      "node": "batch-block4-1051",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38043623",
+      "state": "COMPLETED",
+      "elapsed_seconds": 591,
+      "effective_limit_minutes": 18,
+      "node": "batch-block4-1051",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38044139",
+      "state": "COMPLETED",
+      "elapsed_seconds": 370,
+      "effective_limit_minutes": 10,
+      "node": "batch-block4-1051",
+      "exit_code": "0:0"
+    }
+  ]
+}

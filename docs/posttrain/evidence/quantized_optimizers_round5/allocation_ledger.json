@@ -1,5 +1,5 @@
 {
-  "updated_utc": "2026-11-05T20:52:03.843752+00:00",
+  "updated_utc": "2026-11-05T21:04:49.634847+00:00",
   "caps": {
     "gpu_seconds": 21600,
     "cpu_wall_seconds": 11700
@@ -44,7 +44,8 @@
       "state": "COMPLETED",
       "charged_or_reserved_gpu_seconds": 714,
       "charged_or_reserved_cpu_seconds": 0,
-      "elapsed_seconds": 714
+      "elapsed_seconds": 714,
+      "exit_code": "0:0"
     },
     {
       "job": "38042206",
@@ -83,7 +84,8 @@
       "state": "COMPLETED",
       "charged_or_reserved_gpu_seconds": 0,
       "charged_or_reserved_cpu_seconds": 2121,
-      "elapsed_seconds": 2121
+      "elapsed_seconds": 2121,
+      "exit_code": "0:0"
     },
     {
       "job": "38042441",
@@ -107,7 +109,8 @@
       "state": "COMPLETED",
       "charged_or_reserved_gpu_seconds": 458,
       "charged_or_reserved_cpu_seconds": 0,
-      "elapsed_seconds": 458
+      "elapsed_seconds": 458,
+      "exit_code": "0:0"
     },
     {
       "job": "38042648",
@@ -134,7 +137,8 @@
       "state": "COMPLETED",
       "charged_or_reserved_gpu_seconds": 353,
       "charged_or_reserved_cpu_seconds": 0,
-      "elapsed_seconds": 353
+      "elapsed_seconds": 353,
+      "exit_code": "0:0"
     },
     {
       "job": "38042650",
@@ -161,7 +165,8 @@
       "state": "COMPLETED",
       "charged_or_reserved_gpu_seconds": 334,
       "charged_or_reserved_cpu_seconds": 0,
-      "elapsed_seconds": 334
+      "elapsed_seconds": 334,
+      "exit_code": "0:0"
     },
     {
       "name": "weight95-fused",
@@ -198,7 +203,8 @@
       "state": "COMPLETED",
       "charged_or_reserved_gpu_seconds": 732,
       "charged_or_reserved_cpu_seconds": 0,
-      "elapsed_seconds": 732
+      "elapsed_seconds": 732,
+      "exit_code": "0:0"
     },
     {
       "name": "weight95-eightbit",
@@ -232,24 +238,68 @@
       },
       "job": "38043623",
       "utc": "2026-11-05T20:41:22.211665+00:00",
-      "state": "SUBMITTED",
-      "charged_or_reserved_gpu_seconds": 1200,
-      "charged_or_reserved_cpu_seconds": 0
+      "state": "COMPLETED",
+      "charged_or_reserved_gpu_seconds": 591,
+      "charged_or_reserved_cpu_seconds": 0,
+      "elapsed_seconds": 591,
+      "exit_code": "0:0"
+    },
+    {
+      "name": "substantive-diagnosis",
+      "node": "batch-block4-1051",
+      "effective_wall_seconds": 600,
+      "grace_reserved_seconds": 120,
+      "gpu_count": 1,
+      "argv": [
+        "sbatch",
+        "--parsable",
+        "--export=ALL",
+        "--time=10",
+        "--nodelist=batch-block4-1051",
+        "--job-name=optimizer-r5-substantive-diagnosis",
+        "--output=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r5-20261105/substantive-diagnosis-%j.log",
+        "--partition=interactive_singlenode,polar",
+        "--dependency=afterok:38043623",
+        "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r5-20261105/deployment.sbatch"
+      ],
+      "environment": {
+        "SOURCE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850",
+        "ASSETS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z",
+        "PRIOR": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-quantized-optimizers-20261103",
+        "PREPARATION": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/prepare-evaluation-v1",
+        "CONTAINER_IMAGE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-automl-focused-20261012/image-conversion/cosmos-framework-focused.sqsh",
+        "SOURCE_ARCHIVE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r5-20261105/source-loading.tgz",
+        "TASK_DATA_ROOT": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data",
+        "TASK_SPEC": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r5-20261105/substantive_diagnosis_spec.json",
+        "MODE": "study",
+        "WORK_SECONDS": "520",
+        "RESULTS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r5-20261105/substantive-diagnosis"
+      },
+      "job": "38044139",
+      "utc": "2026-11-05T20:53:20.942984+00:00",
+      "state": "COMPLETED",
+      "charged_or_reserved_gpu_seconds": 370,
+      "charged_or_reserved_cpu_seconds": 0,
+      "elapsed_seconds": 370,
+      "exit_code": "0:0"
     }
   ],
   "gpu_reservations": {
     "lr875_fused_limit_and_grace": 0,
     "lr875_conditional_eightbit_limit_and_grace": 0,
-    "conditional_complete_final_three_allocations_with_grace": 13860,
+    "conditional_complete_final_three_allocations_with_grace": 0,
     "shared_loading_three_paired_allocations_with_grace": 0,
     "weight95_fused_limit_and_grace": 0,
     "weight95_conditional_eightbit_limit_and_grace": 0,
-    "substantive_localization_with_grace": 720
+    "substantive_localization_with_grace": 0
   },
   "cpu_reservations": {
     "same_workflow_full_preparation_replacement_with_grace": 0,
-    "local_checks_and_analysis": 180
+    "local_checks_and_analysis": 0
   },
-  "cumulative_gpu_charged_or_reserved": 19946,
-  "cumulative_cpu_charged_or_reserved": 9255
+  "cumulative_gpu_charged_or_reserved": 5127,
+  "cumulative_cpu_charged_or_reserved": 9255,
+  "final_release_reason": "Both weighting-stage screens must pass. Eight-bit seed29/43 substantive ratios1.015124/1.013273 fail1.01. No final comparison admitted; all historical results retained.",
+  "local_cpu_wall_charge_seconds": 180,
+  "all_owned_jobs_terminal": true
 }

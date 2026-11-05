@@ -1,0 +1,644 @@
+{
+  "complete": true,
+  "exact_native_task_observations": 128,
+  "same_substantive_ids_and_tokens": true,
+  "arms": {
+    "fused": {
+      "cases": {
+        "control": {
+          "native_batch4_token_nll": 0.17763557675866104,
+          "fresh_batch1_token_nll": 0.17785142699774095,
+          "fresh_minus_native": 0.0002158502390799122,
+          "rows": [
+            {
+              "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+              "loss": 0.34139299392700195,
+              "tokens": 127
+            },
+            {
+              "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+              "loss": 0.34390121698379517,
+              "tokens": 127
+            },
+            {
+              "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_0.mp4",
+              "loss": 0.1450430303812027,
+              "tokens": 88
+            },
+            {
+              "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_4.mp4",
+              "loss": 0.1676570326089859,
+              "tokens": 88
+            },
+            {
+              "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+              "loss": 0.15895536541938782,
+              "tokens": 88
+            },
+            {
+              "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+              "loss": 0.16155679523944855,
+              "tokens": 88
+            },
+            {
+              "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera1_0.mp4",
+              "loss": 0.04434576630592346,
+              "tokens": 45
+            },
+            {
+              "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera1_3.mp4",
+              "loss": 0.05548485368490219,
+              "tokens": 45
+            },
+            {
+              "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera3_1.mp4",
+              "loss": 0.04096580669283867,
+              "tokens": 45
+            },
+            {
+              "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera4_2.mp4",
+              "loss": 0.041813235729932785,
+              "tokens": 45
+            },
+            {
+              "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera1_0.mp4",
+              "loss": 0.15526822209358215,
+              "tokens": 94
+            },
+            {
+              "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera2_3.mp4",
+              "loss": 0.15830475091934204,
+              "tokens": 94
+            },
+            {
+              "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+              "loss": 0.16041621565818787,
+              "tokens": 94
+            },
+            {
+              "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera4_2.mp4",
+              "loss": 0.1593303680419922,
+              "tokens": 94
+            },
+            {
+              "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera2_0.mp4",
+              "loss": 0.14305412769317627,
+              "tokens": 92
+            },
+            {
+              "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera3_1.mp4",
+              "loss": 0.17089703679084778,
+              "tokens": 92
+            }
+          ],
+          "checkpoint_read": {
+            "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/final-seed29/matched_adamw/native/cosmos3_reasoner/optimizer_task/matched_adamw/20261104143240/checkpoints/iter_000015/model.pt",
+            "sha256": "6493ee2aa52162d442396d5d6a9c89f24e4e60c2d7990dc9bba490ca7d772ecf",
+            "seconds": 29.331104661920108
+          },
+          "checkpoint_provenance": {
+            "version": 1,
+            "source": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/final-seed29/matched_adamw/native/cosmos3_reasoner/optimizer_task/matched_adamw/20261104143240/checkpoints/iter_000015",
+            "signature": "dec8fc30dbcca8fbe13659d406157f1433dcee517d45d401d3047d8c7a0693f7"
+          },
+          "attempt_seconds": 77.02414567698725,
+          "exact_task_rows": 32
+        },
+        "candidate": {
+          "native_batch4_token_nll": 0.1784464937328938,
+          "fresh_batch1_token_nll": 0.17856467036145668,
+          "fresh_minus_native": 0.00011817662856286604,
+          "rows": [
+            {
+              "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+              "loss": 0.3390427529811859,
+              "tokens": 127
+            },
+            {
+              "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+              "loss": 0.344632089138031,
+              "tokens": 127
+            },
+            {
+              "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_0.mp4",
+              "loss": 0.14992082118988037,
+              "tokens": 88
+            },
+            {
+              "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_4.mp4",
+              "loss": 0.17340004444122314,
+              "tokens": 88
+            },
+            {
+              "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+              "loss": 0.16705799102783203,
+              "tokens": 88
+            },
+            {
+              "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+              "loss": 0.16454999148845673,
+              "tokens": 88
+            },
+            {
+              "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera1_0.mp4",
+              "loss": 0.0362972691655159,
+              "tokens": 45
+            },
+            {
+              "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera1_3.mp4",
+              "loss": 0.04493403062224388,
+              "tokens": 45
+            },
+            {
+              "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera3_1.mp4",
+              "loss": 0.03496762365102768,
+              "tokens": 45
+            },
+            {
+              "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera4_2.mp4",
+              "loss": 0.033773504197597504,
+              "tokens": 45
+            },
+            {
+              "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera1_0.mp4",
+              "loss": 0.1568283885717392,
+              "tokens": 94
+            },
+            {
+              "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera2_3.mp4",
+              "loss": 0.1616171896457672,
+              "tokens": 94
+            },
+            {
+              "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+              "loss": 0.15646356344223022,
+              "tokens": 94
+            },
+            {
+              "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera4_2.mp4",
+              "loss": 0.15973438322544098,
+              "tokens": 94
+            },
+            {
+              "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera2_0.mp4",
+              "loss": 0.14533300697803497,
+              "tokens": 92
+            },
+            {
+              "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera3_1.mp4",
+              "loss": 0.17512734234333038,
+              "tokens": 92
+            }
+          ],
+          "checkpoint_read": {
+            "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r5-20261105/weight95-fused/fused_weight95_seed29/native/cosmos3_reasoner/optimizer_task/fused_weight95_seed29/20261105123246/checkpoints/iter_000015/model.pt",
+            "sha256": "7cc9e70209b20270fe3fbb7e83bae3e6b71e67ff5f7bd61c1d97014aa39278bb",
+            "seconds": 28.22062822605949
+          },
+          "checkpoint_provenance": {
+            "version": 1,
+            "source": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r5-20261105/weight95-fused/fused_weight95_seed29/native/cosmos3_reasoner/optimizer_task/fused_weight95_seed29/20261105123246/checkpoints/iter_000015",
+            "signature": "34087f4724846bf6299db30255e59f1b04f9f10bad2b4f9fb974de0c768dcec3"
+          },
+          "attempt_seconds": 71.71238582092337,
+          "exact_task_rows": 32
+        }
+      },
+      "native_guard_ratio": 1.0045650594831828,
+      "fresh_diagnostic_ratio": 1.0040103325329224,
+      "rows_by_worsening_contribution": [
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+          "tokens": 88,
+          "candidate_nll": 0.16705799102783203,
+          "control_nll": 0.15895536541938782,
+          "contribution_to_token_mean_delta": 0.0005297407530037822
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_4.mp4",
+          "tokens": 88,
+          "candidate_nll": 0.17340004444122314,
+          "control_nll": 0.1676570326089859,
+          "contribution_to_token_mean_delta": 0.0003754717988386905
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_0.mp4",
+          "tokens": 88,
+          "candidate_nll": 0.14992082118988037,
+          "control_nll": 0.1450430303812027,
+          "contribution_to_token_mean_delta": 0.0003189045996758063
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera3_1.mp4",
+          "tokens": 92,
+          "candidate_nll": 0.17512734234333038,
+          "control_nll": 0.17089703679084778,
+          "contribution_to_token_mean_delta": 0.0002891442130968794
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera2_3.mp4",
+          "tokens": 94,
+          "candidate_nll": 0.1616171896457672,
+          "control_nll": 0.15830475091934204,
+          "contribution_to_token_mean_delta": 0.00023132930184544285
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+          "tokens": 88,
+          "candidate_nll": 0.16454999148845673,
+          "control_nll": 0.16155679523944855,
+          "contribution_to_token_mean_delta": 0.00019569187957854363
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera2_0.mp4",
+          "tokens": 92,
+          "candidate_nll": 0.14533300697803497,
+          "control_nll": 0.14305412769317627,
+          "contribution_to_token_mean_delta": 0.0001557629228878163
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera1_0.mp4",
+          "tokens": 94,
+          "candidate_nll": 0.1568283885717392,
+          "control_nll": 0.15526822209358215,
+          "contribution_to_token_mean_delta": 0.00010895664854885742
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+          "tokens": 127,
+          "candidate_nll": 0.344632089138031,
+          "control_nll": 0.34390121698379517,
+          "contribution_to_token_mean_delta": 6.896044843087047e-05
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera4_2.mp4",
+          "tokens": 94,
+          "candidate_nll": 0.15973438322544098,
+          "control_nll": 0.1593303680419922,
+          "contribution_to_token_mean_delta": 2.8215027670272215e-05
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera3_1.mp4",
+          "tokens": 45,
+          "candidate_nll": 0.03496762365102768,
+          "control_nll": 0.04096580669283867,
+          "contribution_to_token_mean_delta": -0.00020053360838149668
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "tokens": 127,
+          "candidate_nll": 0.3390427529811859,
+          "control_nll": 0.34139299392700195,
+          "contribution_to_token_mean_delta": -0.00022175378909259814
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera4_2.mp4",
+          "tokens": 45,
+          "candidate_nll": 0.033773504197597504,
+          "control_nll": 0.041813235729932785,
+          "contribution_to_token_mean_delta": -0.0002687874583618779
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera1_0.mp4",
+          "tokens": 45,
+          "candidate_nll": 0.0362972691655159,
+          "control_nll": 0.04434576630592346,
+          "contribution_to_token_mean_delta": -0.0002690805136094653
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+          "tokens": 94,
+          "candidate_nll": 0.15646356344223022,
+          "control_nll": 0.16041621565818787,
+          "contribution_to_token_mean_delta": -0.00027603960497772536
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera1_3.mp4",
+          "tokens": 45,
+          "candidate_nll": 0.04493403062224388,
+          "control_nll": 0.05548485368490219,
+          "contribution_to_token_mean_delta": -0.0003527392554380564
+        }
+      ]
+    },
+    "eightbit": {
+      "cases": {
+        "control": {
+          "native_batch4_token_nll": 0.1771083262708885,
+          "fresh_batch1_token_nll": 0.17690345277126884,
+          "fresh_minus_native": -0.00020487349961964552,
+          "rows": [
+            {
+              "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+              "loss": 0.340870201587677,
+              "tokens": 127
+            },
+            {
+              "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+              "loss": 0.3419284522533417,
+              "tokens": 127
+            },
+            {
+              "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_0.mp4",
+              "loss": 0.14247722923755646,
+              "tokens": 88
+            },
+            {
+              "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_4.mp4",
+              "loss": 0.16571871936321259,
+              "tokens": 88
+            },
+            {
+              "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+              "loss": 0.15973393619060516,
+              "tokens": 88
+            },
+            {
+              "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+              "loss": 0.1597425937652588,
+              "tokens": 88
+            },
+            {
+              "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera1_0.mp4",
+              "loss": 0.04430916905403137,
+              "tokens": 45
+            },
+            {
+              "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera1_3.mp4",
+              "loss": 0.05679789185523987,
+              "tokens": 45
+            },
+            {
+              "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera3_1.mp4",
+              "loss": 0.04306815564632416,
+              "tokens": 45
+            },
+            {
+              "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera4_2.mp4",
+              "loss": 0.040954288095235825,
+              "tokens": 45
+            },
+            {
+              "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera1_0.mp4",
+              "loss": 0.15461184084415436,
+              "tokens": 94
+            },
+            {
+              "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera2_3.mp4",
+              "loss": 0.15835091471672058,
+              "tokens": 94
+            },
+            {
+              "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+              "loss": 0.15667015314102173,
+              "tokens": 94
+            },
+            {
+              "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera4_2.mp4",
+              "loss": 0.15918192267417908,
+              "tokens": 94
+            },
+            {
+              "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera2_0.mp4",
+              "loss": 0.14208656549453735,
+              "tokens": 92
+            },
+            {
+              "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera3_1.mp4",
+              "loss": 0.17010928690433502,
+              "tokens": 92
+            }
+          ],
+          "checkpoint_read": {
+            "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/final-seed29/matched_adamw_bnb_8bit/native/cosmos3_reasoner/optimizer_task/matched_adamw_bnb_8bit/20261104142739/checkpoints/iter_000015/model.pt",
+            "sha256": "9b9beec69a106334ad60d4cc968ea0f83b30442d2e27db19e8c2b0a5ffb13d74",
+            "seconds": 28.512540201074444
+          },
+          "checkpoint_provenance": {
+            "version": 1,
+            "source": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/final-seed29/matched_adamw_bnb_8bit/native/cosmos3_reasoner/optimizer_task/matched_adamw_bnb_8bit/20261104142739/checkpoints/iter_000015",
+            "signature": "ce39f36bd78caa590db8cc3fc14e67ce3b6bf22f1503945da505a0b8a65051c3"
+          },
+          "attempt_seconds": 76.03692775696982,
+          "exact_task_rows": 32
+        },
+        "candidate": {
+          "native_batch4_token_nll": 0.17978687160392395,
+          "fresh_batch1_token_nll": 0.17883856901497666,
+          "fresh_minus_native": -0.0009483025889472918,
+          "rows": [
+            {
+              "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+              "loss": 0.3389356732368469,
+              "tokens": 127
+            },
+            {
+              "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+              "loss": 0.3417889177799225,
+              "tokens": 127
+            },
+            {
+              "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_0.mp4",
+              "loss": 0.14901837706565857,
+              "tokens": 88
+            },
+            {
+              "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_4.mp4",
+              "loss": 0.17244060337543488,
+              "tokens": 88
+            },
+            {
+              "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+              "loss": 0.16833190619945526,
+              "tokens": 88
+            },
+            {
+              "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+              "loss": 0.16455967724323273,
+              "tokens": 88
+            },
+            {
+              "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera1_0.mp4",
+              "loss": 0.036439865827560425,
+              "tokens": 45
+            },
+            {
+              "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera1_3.mp4",
+              "loss": 0.046882349997758865,
+              "tokens": 45
+            },
+            {
+              "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera3_1.mp4",
+              "loss": 0.03515191376209259,
+              "tokens": 45
+            },
+            {
+              "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera4_2.mp4",
+              "loss": 0.03432711958885193,
+              "tokens": 45
+            },
+            {
+              "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera1_0.mp4",
+              "loss": 0.15737202763557434,
+              "tokens": 94
+            },
+            {
+              "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera2_3.mp4",
+              "loss": 0.16163991391658783,
+              "tokens": 94
+            },
+            {
+              "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+              "loss": 0.1596825271844864,
+              "tokens": 94
+            },
+            {
+              "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera4_2.mp4",
+              "loss": 0.16210895776748657,
+              "tokens": 94
+            },
+            {
+              "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera2_0.mp4",
+              "loss": 0.1458708494901657,
+              "tokens": 92
+            },
+            {
+              "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera3_1.mp4",
+              "loss": 0.17554505169391632,
+              "tokens": 92
+            }
+          ],
+          "checkpoint_read": {
+            "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r5-20261105/weight95-eightbit/eightbit_weight95_seed29/native/cosmos3_reasoner/optimizer_task/eightbit_weight95_seed29/20261105124613/checkpoints/iter_000015/model.pt",
+            "sha256": "6abae30a4ef49755b2030b599f5cf784eaca7f558103227671fe785239f8d329",
+            "seconds": 29.04856962710619
+          },
+          "checkpoint_provenance": {
+            "version": 1,
+            "source": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r5-20261105/weight95-eightbit/eightbit_weight95_seed29/native/cosmos3_reasoner/optimizer_task/eightbit_weight95_seed29/20261105124613/checkpoints/iter_000015",
+            "signature": "aeeb633bce24d3b8ca879e01b1be5fd161c426bc9578ef2969774101257f103f"
+          },
+          "attempt_seconds": 73.66815786098596,
+          "exact_task_rows": 32
+        }
+      },
+      "native_guard_ratio": 1.0151237685400438,
+      "fresh_diagnostic_ratio": 1.0109388268764312,
+      "rows_by_worsening_contribution": [
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+          "tokens": 88,
+          "candidate_nll": 0.16833190619945526,
+          "control_nll": 0.15973393619060516,
+          "contribution_to_token_mean_delta": 0.0005621258252442857
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_4.mp4",
+          "tokens": 88,
+          "candidate_nll": 0.17244060337543488,
+          "control_nll": 0.16571871936321259,
+          "contribution_to_token_mean_delta": 0.00043946938564306203
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_0.mp4",
+          "tokens": 88,
+          "candidate_nll": 0.14901837706565857,
+          "control_nll": 0.14247722923755646,
+          "contribution_to_token_mean_delta": 0.00042765305265452143
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera3_1.mp4",
+          "tokens": 92,
+          "candidate_nll": 0.17554505169391632,
+          "control_nll": 0.17010928690433502,
+          "contribution_to_token_mean_delta": 0.0003715381579802968
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+          "tokens": 88,
+          "candidate_nll": 0.16455967724323273,
+          "control_nll": 0.1597425937652588,
+          "contribution_to_token_mean_delta": 0.00031493562114539864
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera2_0.mp4",
+          "tokens": 92,
+          "candidate_nll": 0.1458708494901657,
+          "control_nll": 0.14208656549453735,
+          "contribution_to_token_mean_delta": 0.0002586583414545385
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera2_3.mp4",
+          "tokens": 94,
+          "candidate_nll": 0.16163991391658783,
+          "control_nll": 0.15835091471672058,
+          "contribution_to_token_mean_delta": 0.00022969236611257158
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+          "tokens": 94,
+          "candidate_nll": 0.1596825271844864,
+          "control_nll": 0.15667015314102173,
+          "contribution_to_token_mean_delta": 0.00021037381878579353
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera4_2.mp4",
+          "tokens": 94,
+          "candidate_nll": 0.16210895776748657,
+          "control_nll": 0.15918192267417908,
+          "contribution_to_token_mean_delta": 0.00020441404069160814
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera1_0.mp4",
+          "tokens": 94,
+          "candidate_nll": 0.15737202763557434,
+          "control_nll": 0.15461184084415436,
+          "contribution_to_token_mean_delta": 0.0001927619304557789
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+          "tokens": 127,
+          "candidate_nll": 0.3417889177799225,
+          "control_nll": 0.3419284522533417,
+          "contribution_to_token_mean_delta": -1.3165585530636746e-05
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "tokens": 127,
+          "candidate_nll": 0.3389356732368469,
+          "control_nll": 0.340870201587677,
+          "contribution_to_token_mean_delta": -0.00018252979238887068
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera4_2.mp4",
+          "tokens": 45,
+          "candidate_nll": 0.03432711958885193,
+          "control_nll": 0.040954288095235825,
+          "contribution_to_token_mean_delta": -0.0002215620971673665
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera1_0.mp4",
+          "tokens": 45,
+          "candidate_nll": 0.036439865827560425,
+          "control_nll": 0.04430916905403137,
+          "contribution_to_token_mean_delta": -0.00026308963238573003
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera3_1.mp4",
+          "tokens": 45,
+          "candidate_nll": 0.03515191376209259,
+          "control_nll": 0.04306815564632416,
+          "contribution_to_token_mean_delta": -0.0002646589040047701
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera1_3.mp4",
+          "tokens": 45,
+          "candidate_nll": 0.046882349997758865,
+          "control_nll": 0.05679789185523987,
+          "contribution_to_token_mean_delta": -0.0003315002849826487
+        }
+      ]
+    }
+  },
+  "scope": "Seed29 development only, four already committed checkpoints. No training or final scoring. Native batch4 token mean remains the acceptance metric. Fresh batch1 per-row teacher-forced answer-text losses localize contributions; any batch-shape numerical differences are retained, not used to replace the guard. This does not measure generated-answer quality or establish calibration across the task."
+}

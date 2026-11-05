@@ -752,8 +752,8 @@ The evidence supports a shared recipe trade-off rather than a quantization defec
 On the previously identified seed-29 wrong answer, gold NLL falls from 7.75 to
 4.51 as confidence in the wrong answer decreases. A different formerly correct
 answer becomes confidently wrong; seed 17 also loses a correct answer to a tied
-choice decision. Ties, class mapping and scoring are unchanged. Better average
-confidence calibration does not replace accuracy or substantive-answer guards.
+choice decision. Ties, class mapping and scoring are unchanged. Lower mean
+gold-answer NLL does not replace accuracy or substantive-answer guards.
 The next [unsubmitted intermediate-LR probe](evidence/quantized_optimizers_round4/next_shared_lr_probe.json)
 tests 8.75e-6 with the same strict screens and equal optimizer access. No improvement
 is assumed, and the failed screen does not authorize an automatic sweep.
@@ -821,6 +821,100 @@ the 128-question/32-family reused-pool disclosure and all historical endpoints
 remain. The [requirement-to-evidence map](evidence/quantized_optimizers_round4/requirements.md)
 distinguishes numerical, statistical and operational failures.
 
+## Focused continuation: shared weighting and cold completion
+
+The [continuation protocol](evidence/quantized_optimizers_round5/plan.json) retains
+the unchanged quality gates and cumulative accounting from `40885d9`. It starts
+from verified `582ee70`; the optimizer, model and checkpoint-transaction code are
+unchanged. The [development audit](evidence/quantized_optimizers_round5/development_audit.json)
+checks normalized identities, masks, labels, counts and initialization. It finds
+no invalidating scoring defect. Lower mean NLL in the rejected LR probes is
+concentrated in some questions and does not establish uniformly better calibration.
+
+Nine new training runs test two shared interventions, with no new final scoring:
+
+| Development candidate | Fused result | Eight-bit result |
+|---|---|---|
+| LR 8.75e-6, otherwise unchanged | Task NLL improves 6.61%, but seed 29 loses one correct answer and seed 43 substantive NLL rises 5.59%; rejected | Not admitted |
+| Original LR 1e-5, `rl.ce_exponent=0.95` | Task NLL improves 4.83%, accuracy is unchanged in all seeds, substantive ratios 0.97328/1.00457/1.00571; screen passes | Task NLL improves 5.38%, accuracy is unchanged, but substantive ratios 0.97624/1.01512/1.01327 fail the 1.01 guard in seeds 29/43 |
+
+The second candidate modestly increases the relative weight of longer substantive
+answers while retaining every mixed-objective row. It does not change validation
+reductions, labels, tie breaking or token masks. Both stages retain 15 updates,
+the 40-update horizon and seeds 17/29/43. The [fused](evidence/quantized_optimizers_round5/fused_weight95_summary.json)
+and [eight-bit](evidence/quantized_optimizers_round5/eightbit_weight95_summary.json)
+reports retain every development question and curve. **The candidate is not
+promoted:** both optimizer screens must pass. Default recipes and the prior final
+comparison remain unchanged. A separately reserved development-only
+[reload diagnosis](evidence/quantized_optimizers_round5/substantive_diagnosis_protocol.json)
+examines existing seed-29 checkpoints without another training intervention.
+Its [completed report](evidence/quantized_optimizers_round5/substantive_diagnosis_summary.json)
+reproduces all 128 native task observations exactly. All four text evaluations use
+the same 16 rows and 1,346 tokens. The largest worsening contribution comes from
+the same recording family in both optimizers. Batch-one descriptive text ratios
+are 1.00401 fused / 1.01094 eight-bit, compared with native batch-four ratios
+1.00457 / 1.01512. These numerical differences remain visible; native validation
+is the authoritative guard. This supports a shared objective trade-off, without
+establishing a sole optimizer-specific cause or justifying precision exceptions.
+
+Scoring now accepts an independently pinned `--checkpoint-sha256`. The full
+checksum and native provenance must both succeed before even the read-success
+receipt is published. Fifteen controls pass locally and in the pinned runtime;
+a real CUDA wrong-checksum restore fails with no scores or success receipt.
+The [three counterbalanced loading repetitions](evidence/quantized_optimizers_round5/loading_summary.json)
+preserve all 384 development observations exactly. Verification plus checkpoint
+read/restore ratios are 1.4911 [1.2348,1.7474] for fused and 1.4054 [1.1917,1.6191]
+for eight-bit checkpoints. Whole-process ratio is 1.2453 [0.9365,1.5541], failing
+the prospective reliable-speed gate. These are shared loading results, not a new
+optimizer end-to-end or inference-latency claim. Scoring host PSS peaks are about
+33.98 GiB serial and 34.02 GiB optimized; process GPU peaks are 34.99 GiB throughout.
+
+![Paired shared-loading timings and uncertainty](evidence/quantized_optimizers_round5/shared_loading.png)
+
+The [same-workflow cold replacement](evidence/quantized_optimizers_round5/cold_preparation_summary.json)
+completes in 2,121 CPU allocation-seconds, joining 2,193 and 2,166 seconds. Each
+proves exact equality for 751 logical rows, 562 targets and 1,124 native decodes;
+the producer and worker policy are unchanged. The former timing-replication gap
+is closed. Composing these measurements with the historical paired target runs,
+while resampling preparation and seed clusters, yields 1.00809 [1.00573,1.00965].
+It still fails the lower-bound-above-1.05 gate. This is a composed estimate, not
+three directly measured cold GPU pipelines or empty-storage-cache runs. Charging
+the previous timeout and recovery as equal reliability overhead lowers the mean
+to 1.00612; all failed-attempt costs remain visible.
+
+The [critical-path bound](evidence/quantized_optimizers_round5/critical_path_plan.json)
+shows why a training tweak cannot solve the current cold endpoint: even zero
+candidate training cost gives only about 1.01084 at the prior target. Holding
+other measured costs fixed, preparation would need to fall roughly 90.5%, to at
+most 207 seconds, merely to reach a 1.05 mean ratio. Repeated decoding for research
+verification remains charged in this endpoint. Within-pass video deduplication
+alone cannot supply that reduction, and a changed preparation path would require
+three new fully reserved replications. No unqualified replacement pipeline is
+substituted for the historical clock.
+
+The [requirement map](evidence/quantized_optimizers_round5/requirements.md),
+[accounting](evidence/quantized_optimizers_round5/final_accounting.json) and
+[commands](evidence/quantized_optimizers_round5/commands.md) distinguish completed
+engineering from the still-open product objective. Matched quality, equal-budget
+NLL gain and prepared end-to-end speed gates remain failed; no new final comparison
+is admitted for the rejected recipe. The historically exposed 128-question /
+32-family final pool and all earlier results remain disclosed. State savings,
+ordinary dense-workload results and separate adapter compatibility retain their
+original scopes; paging receives no new sustained-speed claim.
+
+All eight admitted allocations are terminal. This continuation charges 3,552 GPU
+allocation-seconds and 2,301 CPU-wall seconds, including the conservative local
+analysis allowance. Combined with sealed round four, totals are 5,127 GPU-seconds
+(1.4242 hours) and 9,255 CPU-wall seconds (2.5708 hours), below the cumulative
+6.00/3.25-hour ceilings. Remaining headroom is 16,473 GPU / 2,445 CPU-wall seconds;
+the allowance is not exhausted. The authorized one additional shared intervention
+has been tested under both optimizers and rejected, so its final reservation is
+released. The [next executable proposal](evidence/quantized_optimizers_round5/next_intervention.json)
+is a single exponent-0.975 bracket at original LR with the same guards, reserving
+16,260 GPU-seconds for both conditional stages and complete final comparison. It
+is unsubmitted and outside this continuation's intervention limit; success is not
+assumed. The cold-path requirement remains a separate engineering problem.
+
 ## Reproduction and source identities
 
 [Qualification commands](../../tools/quantized_optimizers/README.md) cover data
@@ -828,7 +922,7 @@ regeneration, immutable source archives, Slurm submission, collection and analys
 [First-campaign status](evidence/quantized_optimizers/qualification_summary.json)
 and [completed follow-up status](evidence/quantized_optimizers_round2/qualification_summary.json)
 link each result, gate and remaining requirement. The
-[current proposed PR](evidence/quantized_optimizers_round4/proposed_pr.md)
+[current proposed PR](evidence/quantized_optimizers_round5/proposed_pr.md)
 describes the combined implementation and measured limitations; it has not been published.
 [Additional campaign commands](evidence/quantized_optimizers_round4/commands.md),
 [source identities](evidence/quantized_optimizers_round4/source_identity.json) and
