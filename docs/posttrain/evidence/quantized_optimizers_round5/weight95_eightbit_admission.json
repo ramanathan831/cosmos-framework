@@ -1,0 +1,11 @@
+{
+  "utc": "2026-11-05T20:41:02.983848+00:00",
+  "fused_screen_pass": true,
+  "mean_task_nll_ratio": 0.9517166115983837,
+  "identical_weight95_candidate": true,
+  "source": "582ee70",
+  "gpu_reserved_seconds": 1200,
+  "complete_final_still_reserved_seconds": 13860,
+  "cumulative_gpu_charged_or_reserved": 19226,
+  "no_final_admission_yet": true
+}

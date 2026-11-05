@@ -1,5 +1,5 @@
 {
-  "updated_utc": "2026-11-05T20:33:42.670773+00:00",
+  "updated_utc": "2026-11-05T20:41:02.983848+00:00",
   "caps": {
     "gpu_seconds": 21600,
     "cpu_wall_seconds": 11700
@@ -194,9 +194,10 @@
       },
       "utc": "2026-11-05T20:26:49.337978+00:00",
       "job": "38042848",
-      "state": "SUBMITTED",
-      "charged_or_reserved_gpu_seconds": 1200,
-      "charged_or_reserved_cpu_seconds": 0
+      "state": "COMPLETED",
+      "charged_or_reserved_gpu_seconds": 732,
+      "charged_or_reserved_cpu_seconds": 0,
+      "elapsed_seconds": 732
     }
   ],
   "gpu_reservations": {
@@ -211,6 +212,6 @@
     "same_workflow_full_preparation_replacement_with_grace": 0,
     "local_checks_and_analysis": 180
   },
-  "cumulative_gpu_charged_or_reserved": 19694,
+  "cumulative_gpu_charged_or_reserved": 19226,
   "cumulative_cpu_charged_or_reserved": 10134
 }
