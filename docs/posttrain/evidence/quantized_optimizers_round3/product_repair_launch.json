@@ -9,5 +9,14 @@
     "37984553": 54
   },
   "reason": "Old recovery-launch outer script omitted the setup timestamp export. No training ran. Current deployment.sbatch exports ALLOCATION_START_NS before srun and passes it into the container.",
-  "retry_policy": "Run seed17 first; seed29 andseed43 depend on its successful completion, preventing repeated setup failure. Same fixed protocol/source/model/data/budgets/guards. Retain failed directories; new product-repair-v2-seed directories."
+  "retry_policy": "Run seed17 first; seed29 andseed43 depend on its successful completion, preventing repeated setup failure. Same fixed protocol/source/model/data/budgets/guards. Retain failed directories; new product-repair-v2-seed directories.",
+  "pending_seed29_migration": {
+    "utc": "2026-11-05T01:00:35.044449+00:00",
+    "job": "37984755",
+    "original_node": "batch-block4-1017",
+    "final_node": "batch-block4-0102",
+    "dependency": "afterok:37984756",
+    "reason": "Original requested node and1034 both allocated all8GPUs. Preserve whole unstarted paired seed on the slot released by successful seed43, sequentially, with unchanged source/protocol/resources/limit. An initial scontrol update also named completed/purged seed17 and was refused before allocation; successful retry names the sufficient seed43 dependency only.",
+    "guarded_followup": "A metadata-only scan found node2045 available while0102 was still completing. Before any further move, the runtime guard observed seed29 had already started and refused the entire update. Both seed29 and its dependent diagnostic retain node0102. No running trial was moved."
+  }
 }

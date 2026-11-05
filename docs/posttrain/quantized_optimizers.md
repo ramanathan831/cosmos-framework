@@ -613,7 +613,10 @@ its substantive development NLL guard passes.
 
 The mean matched-update NLL regression is 0.458%; 4.138% is its upper uncertainty
 bound. The recording bootstrap also fails the 1% NLL guard. Timing restarts are
-averaged within each seed and do not increase the quality sample size. Actual
+averaged within each seed and do not increase the quality sample size. All target
+restarts first observe the fixed validation target at update 5; their throughput
+includes lazy state allocation. The earlier 40-update throughput evidence remains
+separate. Actual
 matched-update batches consume 60 sequences per seed, 2,852/2,459/2,899 supervised
 tokens, sequence lengths 569–929, and native video tensors `[1920,1536]` with
 actual `video_grid_thw=[[4,16,30]]`. Substantive rows supervise 41–132 tokens;

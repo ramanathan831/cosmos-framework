@@ -323,6 +323,13 @@ def analyze(
         "quality": quality,
         "time_to_quality": timing,
         "repeated_native_throughput_ratio": throughput,
+        "repeated_native_throughput_scope": {
+            "designs": [f"target_restart{i}" for i in range(3)],
+            "observed_optimizer_steps": sorted(
+                {r["optimizer_step"] for r in runs.values() if r["design"].startswith("target_restart")}
+            ),
+            "description": "Native loop including lazy state allocation, averaged within seed over target restarts. Separate from matched15-update runs and the historical40-update campaign.",
+        },
         "development": dev,
         "state_saving_fraction": saving,
         "gates": gates,

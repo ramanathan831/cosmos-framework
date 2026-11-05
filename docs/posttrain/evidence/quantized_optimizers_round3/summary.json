@@ -10183,5 +10183,16 @@
   "independent_replication_qualified": false,
   "evaluation_limitation": "Authorized reused pool; recording groups disjoint from training/development but historically exposed. No independent replication claim.",
   "product_repair": null,
-  "report_scope": "Original locked campaign, including its censored product endpoint."
+  "report_scope": "Original locked campaign, including its censored product endpoint.",
+  "repeated_native_throughput_scope": {
+    "designs": [
+      "target_restart0",
+      "target_restart1",
+      "target_restart2"
+    ],
+    "observed_optimizer_steps": [
+      5
+    ],
+    "description": "Native loop including lazy state allocation, averaged within seed over target restarts. Separate from matched15-update runs and the historical40-update campaign."
+  }
 }

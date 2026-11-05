@@ -528,24 +528,28 @@ p17=$(sbatch --parsable --partition=interactive_singlenode,polar \
   --nodelist=batch-block4-0102 --time=18 --export=ALL \
   --output="$RESULTS/slurm-%j.log" tools/quantized_optimizers/deployment.sbatch)
 
-export RESULTS="$REPLAY/product-repair-v2-seed29"
-export TASK_SPEC=/shared/product-repair-specs/seed29.json
-mkdir -p "$RESULTS"
-sbatch --partition=interactive_singlenode,polar --nodelist=batch-block4-1017 \
-  --dependency="afterok:$p17" --time=18 --export=ALL \
-  --output="$RESULTS/slurm-%j.log" tools/quantized_optimizers/deployment.sbatch
-
 export RESULTS="$REPLAY/product-repair-v2-seed43"
 export TASK_SPEC=/shared/product-repair-specs/seed43.json
 mkdir -p "$RESULTS"
+p43=$(sbatch --parsable --partition=interactive_singlenode,polar \
+  --nodelist=batch-block4-0102 --dependency="afterok:$p17" \
+  --time=18 --export=ALL --output="$RESULTS/slurm-%j.log" \
+  tools/quantized_optimizers/deployment.sbatch)
+
+export RESULTS="$REPLAY/product-repair-v2-seed29"
+export TASK_SPEC=/shared/product-repair-specs/seed29.json
+mkdir -p "$RESULTS"
 sbatch --partition=interactive_singlenode,polar --nodelist=batch-block4-0102 \
-  --dependency="afterok:$p17" --time=18 --export=ALL \
+  --dependency="afterok:$p43" --time=18 --export=ALL \
   --output="$RESULTS/slurm-%j.log" tools/quantized_optimizers/deployment.sbatch
+
 ```
 
 Reserve all three effective 18-minute limits before admission. Each allocation
 includes both native runs and both dependent fixed-manifest scores. The first
-seed is the launcher canary; the other two cannot start if it fails. A job
+seed is the launcher canary; the other two cannot start if it fails. Seed29 was
+moved wholly unstarted from its filled node1017 to the slot released by seed43;
+the commands show that final sequential placement and preserve each paired group. A job
 completing successfully does not imply every state meets the product deadline.
 
 Keep original and corrected raw archives separate, with keys prefixed by their

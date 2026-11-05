@@ -31,7 +31,7 @@ All 36 original outcome training runs and 37 fresh-process score files completed
 | Equal 60-second training-budget quality | Actual states 10/10/10 versus 10/12/11; no demonstrated NLL gain |
 | Prepared product time-to-target ratio | 1.05885 [1.01560, 1.10210]; excludes parity but fails lower >1.05 |
 | Composed cold ratio | 1.00868 [1.00307, 1.01428]; fails; only one full preparation measurement |
-| Repeated native-loop throughput | 1.35568 [1.26611, 1.44525]; narrower-clock gain |
+| Repeated native-loop throughput | 1.35568 [1.26611, 1.44525]; five-update target restarts, narrower-clock gain |
 
 The original 390-second product endpoint remains censored because one run committed update 15 with required validation pending. Its complete native journal is retained. A qualification-wrapper correction completes scheduled validation before an advance budget notice while retaining immediate external-signal handling. Both arms/all three seeds are being repeated under the same budget, manifest and gates; original outcomes are unchanged. The separate native arithmetic diagnostic remains pending. These pending results must be appended before this draft is final.
 
