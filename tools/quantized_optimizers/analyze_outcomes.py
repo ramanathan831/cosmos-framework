@@ -353,7 +353,12 @@ def plots(report, output):
     runs = report["runs"]
     colors = {ARMS[0]: "#475569", ARMS[1]: "#0d9488"}
     labels = {ARMS[0]: "Fused FP32 AdamW, full recomputation", ARMS[1]: "Eight-bit AdamW, no recomputation"}
-    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+    design_labels = {
+        "matched": "matched 15 updates",
+        "training": "60 s training budget",
+        "end_to_end": "390 s product budget",
+    }
+    fig, axes = plt.subplots(1, 2, figsize=(14, 6))
     for arm in ARMS:
         for design, marker in (("matched", "o"), ("training", "s"), ("end_to_end", "^")):
             if not report["quality"][design]["all_checkpoints_eligible"]:
@@ -370,7 +375,7 @@ def plots(report, output):
                     fmt=marker,
                     color=colors[arm],
                     capsize=3,
-                    label=f"{labels[arm]} · {design}",
+                    label=f"{labels[arm]} · {design_labels[design]}",
                 )
     for ax, key, label in zip(
         axes,
@@ -380,11 +385,13 @@ def plots(report, output):
     ):
         ax.axhline(report["frozen_metrics"][key], color="#a16207", linestyle="--", label="Frozen reference")
         ax.set(xlabel="Seconds from prepared launch to scored checkpoint", ylabel=label)
+    scope = "corrected product endpoint" if report.get("product_repair") else "censored states retained in report"
     fig.suptitle(
-        "Actual states · 3 paired seeds · 95% t intervals\n128 questions / 32 reused recording groups; censored states remain in the report"
+        f"Actual states · 3 paired seeds · 95% t intervals\n128 questions / 32 reused recording groups; {scope}"
     )
-    axes[0].legend(fontsize=7)
-    fig.tight_layout()
+    handles, legend_labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, legend_labels, loc="lower center", ncol=2, fontsize=8)
+    fig.tight_layout(rect=(0, 0.18, 1, 1))
     fig.savefig(output / "quality_time.png", dpi=160)
     plt.close(fig)
     fig, axes = plt.subplots(1, 2, figsize=(10, 4))

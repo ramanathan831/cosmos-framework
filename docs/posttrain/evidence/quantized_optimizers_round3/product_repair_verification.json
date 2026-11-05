@@ -1,0 +1,120 @@
+{
+  "complete": true,
+  "raw_sha256": "06ee7857f72c9fcf2608b89bde3c5e98b917ffc48a2872f81a47166b9c00611b",
+  "scope": "Required validation restored, all six actual budget states delivered within390seconds. Source/control/input/provenance checks passed; same-update scores match prior runs exactly. No independent replication claim.",
+  "cases": [
+    {
+      "case": "product-repair-v2-seed17/end_to_end_adamw/",
+      "optimizer_step": 5,
+      "required_validations_completed": [
+        0,
+        5
+      ],
+      "same_update_reference": "final-seed17/target_restart0_adamw/score/scores.jsonl",
+      "all128_scores_byte_identical": true,
+      "score_sha256": "d6b0ea1b656fd85a735cd0950c1640a56d1221a1fba04340d5007606e6bca2ce",
+      "checkpoint_provenance": {
+        "version": 1,
+        "source": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/product-repair-v2-seed17/end_to_end_adamw/native/cosmos3_reasoner/optimizer_task/end_to_end_adamw/20261104163544/checkpoints/iter_000005",
+        "signature": "90e465ff6d1fbc3f46e1ff2a1348dface65afd5c2f7610f15689e5282b4fbbab"
+      }
+    },
+    {
+      "case": "product-repair-v2-seed17/end_to_end_adamw_bnb_8bit/",
+      "optimizer_step": 15,
+      "required_validations_completed": [
+        0,
+        5,
+        10,
+        15
+      ],
+      "same_update_reference": "final-seed17/matched_adamw_bnb_8bit/score/scores.jsonl",
+      "all128_scores_byte_identical": true,
+      "score_sha256": "3952b77503380771f80e9811f0d3a9b11364c6ddbbbe2c45b8357582e8e25520",
+      "checkpoint_provenance": {
+        "version": 1,
+        "source": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/product-repair-v2-seed17/end_to_end_adamw_bnb_8bit/native/cosmos3_reasoner/optimizer_task/end_to_end_adamw_bnb_8bit/20261104164022/checkpoints/iter_000015",
+        "signature": "2b3148a1b684fdf5e54647b9d76b62ef69f034473f06e96f7d8b94184f2edfbf"
+      }
+    },
+    {
+      "case": "product-repair-v2-seed29/end_to_end_adamw/",
+      "optimizer_step": 10,
+      "required_validations_completed": [
+        0,
+        5,
+        10
+      ],
+      "same_update_reference": "final-seed29/training_adamw/score/scores.jsonl",
+      "all128_scores_byte_identical": true,
+      "score_sha256": "5dac2f48c65c1a9d6a6ad2b3276b589e4e27571c07614b4fd23641b14d99028b",
+      "checkpoint_provenance": {
+        "version": 1,
+        "source": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/product-repair-v2-seed29/end_to_end_adamw/native/cosmos3_reasoner/optimizer_task/end_to_end_adamw/20261104171017/checkpoints/iter_000010",
+        "signature": "611e5a805227cac1b2d3237a4c0bc0b9b759092f28547bdfd548eeb71b5bc7ae"
+      }
+    },
+    {
+      "case": "product-repair-v2-seed29/end_to_end_adamw_bnb_8bit/",
+      "optimizer_step": 15,
+      "required_validations_completed": [
+        0,
+        5,
+        10,
+        15
+      ],
+      "same_update_reference": "final-seed29/matched_adamw_bnb_8bit/score/scores.jsonl",
+      "all128_scores_byte_identical": true,
+      "score_sha256": "adcbea7617cdcca4788d34592ea2828d328e5744ffba1acb28b6887a90e797bc",
+      "checkpoint_provenance": {
+        "version": 1,
+        "source": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/product-repair-v2-seed29/end_to_end_adamw_bnb_8bit/native/cosmos3_reasoner/optimizer_task/end_to_end_adamw_bnb_8bit/20261104170509/checkpoints/iter_000015",
+        "signature": "4187cfb1226a9d003cceae2c8e01040795ba15928a433d48b96e6e71975795ff"
+      }
+    },
+    {
+      "case": "product-repair-v2-seed43/end_to_end_adamw/",
+      "optimizer_step": 5,
+      "required_validations_completed": [
+        0,
+        5
+      ],
+      "same_update_reference": "final-seed43/target_restart0_adamw/score/scores.jsonl",
+      "all128_scores_byte_identical": true,
+      "score_sha256": "671ecdeb295a20d61b869b400c4bebc961bf808e8442e2dbe4f27acec32d0ea3",
+      "checkpoint_provenance": {
+        "version": 1,
+        "source": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/product-repair-v2-seed43/end_to_end_adamw/native/cosmos3_reasoner/optimizer_task/end_to_end_adamw/20261104164742/checkpoints/iter_000005",
+        "signature": "35cbbb05d037623499d24e2b6131b1dd188805ded0977c486fdc27a63d0d8add"
+      }
+    },
+    {
+      "case": "product-repair-v2-seed43/end_to_end_adamw_bnb_8bit/",
+      "optimizer_step": 15,
+      "required_validations_completed": [
+        0,
+        5,
+        10,
+        15
+      ],
+      "same_update_reference": "final-seed43/matched_adamw_bnb_8bit/score/scores.jsonl",
+      "all128_scores_byte_identical": true,
+      "score_sha256": "c662806271ae5fc74714c4d234a937c9630557c97002e83ea37b7a8af125a8c1",
+      "checkpoint_provenance": {
+        "version": 1,
+        "source": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/product-repair-v2-seed43/end_to_end_adamw_bnb_8bit/native/cosmos3_reasoner/optimizer_task/end_to_end_adamw_bnb_8bit/20261104165242/checkpoints/iter_000015",
+        "signature": "0aba6da44c44850a0693a61d49ba6c7a486bb39d891fb27e2c7742f6f9c32653"
+      }
+    }
+  ],
+  "unchanged_original_endpoint_fields": [
+    "time_to_quality",
+    "repeated_native_throughput_ratio",
+    "development",
+    "state_saving_fraction",
+    "frozen_metrics",
+    "quality.matched",
+    "quality.training",
+    "quality.target_restart0"
+  ]
+}

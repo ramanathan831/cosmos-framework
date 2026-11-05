@@ -9,8 +9,9 @@ and a deployment training-loop throughput gain are measured, but end-to-end
 time-to-quality and final task-quality confidence gates failed in the first two
 campaigns. Those allocations are terminal. The [outcome-improvement campaign](#outcome-improvement-campaign)
 closes the dense recovery gap and demonstrates positive adaptation. Its 36-run
-comparison is complete; a corrected product-budget endpoint is being evaluated
-separately. The quality and end-to-end speed guards remain unmet. The thresholds
+comparison and the separately corrected product-budget endpoint are complete.
+Equal-product-budget accuracy improves, but its NLL-gain requirement, matched
+quality guards and end-to-end speed guards remain unmet. The thresholds
 have not been relaxed.
 
 Main had `adamw`, `fusedadam` and `muon`; comments referring to AdamW8bit described
@@ -633,7 +634,27 @@ tests cover those boundaries. The native training/optimizer implementation is
 unchanged. The [corrected protocol](evidence/quantized_optimizers_round3/product_repair_protocol.json)
 reruns both arms in all three seeds with the same budgets, manifest and gates.
 Original scores and the censored endpoint remain unchanged; the correction is
-not independent replication. Corrected endpoint results are pending.
+not independent replication.
+
+All six corrected runs and their fresh-process scores completed within 390 seconds,
+with every required validation present. Fused actual updates are [5,10,5] and
+eight-bit [15,15,15]; scoring the saved states reproduces the original same-update
+scores exactly. At the same product budget, accuracy improves from 67.71% to
+76.56%: +8.85 percentage points, paired-seed interval [+6.61,+11.10] and recording
+bootstrap [+2.08,+15.63]. Mean gold-answer NLL is worse, 0.8160 versus 1.1599.
+The declared fused-minus-eight-bit NLL gain is −0.34386 [−1.03976,+0.35205], with
+bootstrap [−0.75742,+0.01803]. **The prespecified quality-gain gate fails.** The
+accuracy gain does not replace that requirement, and extra data exposure at this
+budget does not establish that quantization itself improves optimization.
+
+Actual prepared delivery times are 348.26/367.95/367.31 seconds for fused and
+383.01/374.82/384.63 for eight-bit. The fixed reserves remain 210/180 seconds;
+unused time is retained rather than used to select a different checkpoint after
+the run. Adding the common measured 1,990-second preparation gives the same states
+under the declared 2,380-second composed cold budget, with the same replication
+limitation. See [corrected analysis](evidence/quantized_optimizers_round3/corrected_product/summary.json),
+[actual-state verification](evidence/quantized_optimizers_round3/product_repair_verification.json)
+and [separate raw evidence](evidence/quantized_optimizers_round3/product_repair_raw.json.gz).
 
 The [phase and memory report](evidence/quantized_optimizers_round3/phase_memory_summary.json)
 shows why the native-loop gain has limited product impact. Matched runs average
@@ -650,6 +671,7 @@ host PSS rises from 5.76 to 10.71 GiB; including fresh scoring, peaks are
 memory reduction. Every scope and confidence interval is retained in the report.
 
 ![Actual quality versus delivery time](evidence/quantized_optimizers_round3/quality_time.png)
+![Corrected product-budget endpoint, with unchanged original comparisons](evidence/quantized_optimizers_round3/corrected_product/quality_time.png)
 ![Measured memory versus native throughput](evidence/quantized_optimizers_round3/memory_throughput.png)
 
 ## Reproduction and source identities
