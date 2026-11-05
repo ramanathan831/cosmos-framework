@@ -1,0 +1,21 @@
+{
+  "utc": "2026-11-05T00:04:21.531672+00:00",
+  "historical_raw_sha256": "2768a3a41d8907875e9ebe1ebb91d2ff748a912312957b71ac04c5cf6b1cb7ad",
+  "new_seed17_raw_sha256": "52a8ce64d2afd305220f46baecebc7c91a8585e08d227442f82fa50324b56840",
+  "historical_key": "seed17/final_frozen/scores.jsonl",
+  "new_key": "frozen/score/scores.jsonl",
+  "matched_rows": 16,
+  "fields_exact": [
+    "gold",
+    "candidate_token_ids",
+    "media_sha256",
+    "input_sha256",
+    "sequence_length",
+    "native_supervised_tokens",
+    "answer_token_position",
+    "prediction_logit_position",
+    "answer_nll",
+    "restricted_choice_correct"
+  ],
+  "scope": "Round-two ordinary dense frozen reference. Historical BF16/NF4 adapter references remain distinct base-precision contracts."
+}

@@ -29,6 +29,16 @@ def main():
     original_reason = TerminationWatch._local_reason
 
     def loop(*args, **kwargs):
+        from cosmos_framework.posttrain.control.validation import ValidationSchedule
+
+        config = args[1] if len(args) > 1 else kwargs["config"]
+        schedule = ValidationSchedule.from_config(config.rl.validation)
+        policy.required_validation_steps = {
+            step
+            for step in range(config.rl.max_steps + 1)
+            if schedule.reasons(step, config.rl.max_steps, fresh_start=step == 0, after_update=step > 0)
+        }
+        policy.checkpoint_intervals = task.captured.setdefault("checkpoint_intervals", [])
         policy.loop_monotonic = time.monotonic()
         return original_loop(*args, **kwargs)
 

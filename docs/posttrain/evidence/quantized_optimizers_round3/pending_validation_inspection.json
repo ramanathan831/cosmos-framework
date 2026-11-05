@@ -1,0 +1,63 @@
+{
+  "final-seed43/end_to_end_adamw_bnb_8bit/": {
+    "observed_utc": "2026-11-05T00:18:11.986898+00:00",
+    "checkpoint_provenance": {
+      "version": 1,
+      "source": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/final-seed43/end_to_end_adamw_bnb_8bit/native/cosmos3_reasoner/optimizer_task/end_to_end_adamw_bnb_8bit/20261104153510/checkpoints/iter_000015",
+      "signature": "ca3c97f6d9054e7e528de665d1b520b5b1e7a4d824ec9762cbdb39e5ff3833a4"
+    },
+    "optimizer_step": 15,
+    "attempt_id": 15,
+    "nonfinite_skips_total": 0,
+    "validation_progress": {
+      "pending_step": 15,
+      "pending_reasons": [
+        "final",
+        "periodic"
+      ],
+      "pending_metrics": {
+        "train/loss_avg": 1.0941115617752075,
+        "train/valid_token_count": 8,
+        "train/valid_sequence_count": 4,
+        "train/objective": 1.0941115617752075,
+        "train/grad_norm": 36.33152770996094,
+        "train/grad_clip_coef": 0.027524302871567093,
+        "train/grad_clipped": 1.0,
+        "train/learning_rate": 7.961266711550922e-06,
+        "optim/update_outcome": "applied",
+        "optim/step_skipped": 0.0,
+        "optim/attempt_id": 15,
+        "optim/optimizer_step": 15,
+        "optim/nonfinite_skips_total": 0,
+        "optim/nonfinite_skips_consecutive": 0,
+        "optim/nonfinite_loss": 0.0,
+        "optim/nonfinite_gradient": 0.0,
+        "optim/finite_gradient_check_enabled": 1.0,
+        "timer/e2e_step_s": 1.245915031991899,
+        "train/grad_clip_fraction": 1.0
+      }
+    },
+    "lr_scheduler": {
+      "base_lrs": [
+        1e-05
+      ],
+      "last_epoch": 15,
+      "_step_count": 16,
+      "_is_initial": false,
+      "_get_lr_called_within_step": false,
+      "_last_lr": [
+        7.641763268666832e-06
+      ],
+      "lr_lambdas": [
+        null
+      ]
+    },
+    "data_position": 60,
+    "dataset_fingerprint": "891694dacfc22945563e0c6727f13af87da0673fda3d3398fa744489a9d5b3f8",
+    "control_file_sha256": {
+      "trainer": "a914a4b3fb95db6a0685e2495b2a7a34b72367ab4ab627a41dc2a568391308b7",
+      "data": "91a1cdd56ff302e3c6108c6a7b6ae53327b1d6e29ba1cfe4fc984437742d0bca"
+    },
+    "decision": "Original product-budget checkpoint is ineligible because required validation15 is pending. Journal preserves the actual update15 metrics; they are not inferred or substituted from another run."
+  }
+}

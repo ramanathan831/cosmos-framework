@@ -76,11 +76,13 @@ def build(*args, **kwargs):
         before_save = time.monotonic()
         captured["checkpoint_started_monotonic"] = before_save
         result = original_save(*save_args, **save_kwargs)
+        finished_save = time.monotonic()
+        captured.setdefault("checkpoint_intervals", []).append((before_save, finished_save))
         record(
             "phases.jsonl",
             {
                 "phase": "checkpoint",
-                "seconds": time.monotonic() - before_save,
+                "seconds": finished_save - before_save,
                 "elapsed_seconds": time.monotonic() - started,
             },
         )

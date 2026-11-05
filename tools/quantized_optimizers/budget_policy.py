@@ -21,6 +21,9 @@ class BudgetPolicy:
     checkpoint_boundary_monotonic: float | None = None
     updates: list[dict] = field(default_factory=list)
     target_hit: dict | None = None
+    required_validation_steps: set[int] = field(default_factory=set)
+    validations: list[dict] = field(default_factory=list)
+    checkpoint_intervals: list[tuple[float, float]] = field(default_factory=list)
 
     def __post_init__(self):
         if self.kind not in {"training", "end_to_end", "target"}:
@@ -41,7 +44,15 @@ class BudgetPolicy:
         origin = self.loop_monotonic if self.kind == "training" else self.launch_monotonic
         if origin is None:
             return None
-        return now - origin + (self.cold_offset_seconds if self.kind != "training" else 0.0)
+        checkpoint_seconds = sum(
+            max(0.0, min(now, end) - max(origin, start)) for start, end in self.checkpoint_intervals
+        )
+        return (
+            now
+            - origin
+            - (checkpoint_seconds if self.kind == "training" else 0.0)
+            + (self.cold_offset_seconds if self.kind != "training" else 0.0)
+        )
 
     def update(self, step, now):
         if self.updates and step != self.updates[-1]["step"] + 1:
@@ -54,10 +65,16 @@ class BudgetPolicy:
     def validation(self, step, nll, now):
         if not math.isfinite(nll):
             raise ValueError("nonfinite task validation")
+        self.validations.append({"step": step, "clock_seconds": self.elapsed(now)})
         if self.kind == "target" and step > 0 and nll <= self.quality_target and self.target_hit is None:
             self.target_hit = {"step": step, "nll": nll, "clock_seconds": self.elapsed(now)}
 
     def stop_reason(self, now):
+        step = self.updates[-1]["step"] if self.updates else 0
+        if step in self.required_validation_steps and not any(row["step"] == step for row in self.validations):
+            # This is an advance budget notice, not an external preemption.
+            # Let the native validation transaction finish before stopping.
+            return None
         if self.target_hit is not None:
             return "prespecified task quality target reached"
         elapsed = self.elapsed(now)
@@ -71,6 +88,13 @@ class BudgetPolicy:
         boundary = (
             self.elapsed(self.checkpoint_boundary_monotonic) if self.checkpoint_boundary_monotonic is not None else None
         )
+        missing_validation = sorted(
+            step
+            for step in self.required_validation_steps
+            if last is not None and step <= last["step"] and not any(row["step"] == step for row in self.validations)
+        )
+        if self.validations:
+            boundary = max(boundary if boundary is not None else 0.0, self.validations[-1]["clock_seconds"])
         return {
             "kind": self.kind,
             "budget_seconds": self.seconds,
@@ -78,8 +102,13 @@ class BudgetPolicy:
             "cold_offset_seconds": self.cold_offset_seconds,
             "loop_start_clock_seconds": self.elapsed(self.loop_monotonic) if self.loop_monotonic is not None else None,
             "updates": self.updates,
+            "required_validation_steps": sorted(self.required_validation_steps),
+            "completed_validations": self.validations,
+            "missing_required_validation_steps": missing_validation,
+            "checkpoint_intervals": self.checkpoint_intervals,
             "target_hit": self.target_hit,
             "training_checkpoint_eligible": last is not None
+            and not missing_validation
             and last["clock_seconds"] <= self.seconds
             and (self.kind != "training" or boundary is None or boundary <= self.seconds),
             "completed_training_validation_boundary_seconds": boundary,
