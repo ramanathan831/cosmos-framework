@@ -1,0 +1,83 @@
+{
+  "complete": true,
+  "uninterrupted_replications": 3,
+  "allocation_seconds": [
+    2193,
+    2166,
+    2121
+  ],
+  "new_receipt": {
+    "workers": 4,
+    "threads_per_worker": 2,
+    "cpu_affinity": [
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39
+    ],
+    "preparation_seconds": 1615.7518382230774,
+    "total_seconds_with_independent_exact_replay": 1921.8239146429114,
+    "exact_raw_prepared_rows": 562,
+    "independently_replayed_unique_targets": 562,
+    "total_verified_rows": 751,
+    "raw_native_calls": 1124,
+    "reference_exact_unique_targets": 562,
+    "reference_corpus_sha256": "ea2e64893ab3d7da0f4c8be33001ae99c96dfd2c54fe293449c29255cd1f2d70",
+    "corpus_sha256": "ea2e64893ab3d7da0f4c8be33001ae99c96dfd2c54fe293449c29255cd1f2d70",
+    "payload_bytes": 6636869170,
+    "cuda_initialized": false,
+    "source_paths": [
+      "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data/train.jsonl",
+      "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data/validation.jsonl",
+      "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data/train-mixed.jsonl",
+      "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data/dev-task.jsonl",
+      "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data/fixed-final.jsonl",
+      "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/validation.jsonl"
+    ],
+    "worker_compute_seconds_sum": 5575.338567456696,
+    "decoder_threads": null,
+    "source_sha256": "81f15e14e35b79a91ba3dbc612d8b1d5ab40a7eb4180cf68aae51322dea03bdf"
+  },
+  "all_input_target_reference_checks_exact": true,
+  "composition": {
+    "mean_ratio": 1.00808752168539,
+    "ci95": [
+      1.0057301796040459,
+      1.009652355565402
+    ],
+    "paired_seed_by_preparation_ratios": [
+      [
+        1.009558831173788,
+        1.0096621506957444,
+        1.0098394043486303
+      ],
+      [
+        1.0056357966853013,
+        1.005695850908644,
+        1.0057988369948492
+      ],
+      [
+        1.0087490540692172,
+        1.0088431669585844,
+        1.0090046033337512
+      ]
+    ],
+    "method": "Crossed paired-seed/preparation percentile bootstrap, 10000 draws, RNG2026; three timing restarts retained inside each seed. Three seeds and three preparations are small samples; no independent-data claim.",
+    "speed_lower_bound_above_1_05": false,
+    "scope": "Historical round-three prepared target deliveries plus the three uninterrupted full CPU preparations. This is a composed clock with preparation variability, not directly measured cold GPU training, empty storage caches, or a new optimizer comparison. Historical single-preparation composition remains recorded."
+  },
+  "reliability_sensitivity": {
+    "failed_allocation_seconds": 2361,
+    "recovery_and_correctness_recheck_seconds": 54,
+    "uninterrupted_successes_over_admitted_full_attempts": "3/4; not an estimated production failure probability",
+    "total_series_seconds_including_failure_and_recovery": 8895,
+    "seconds_per_qualifying_uninterrupted_timing_including_all_costs": 2965.0,
+    "composed_ratio_charging_equal_share_of_failed_attempt_and_recovery": 1.0061201023624273,
+    "recovered_corpus_is_not_a_fourth_timing_replication": true
+  },
+  "cache_and_concurrency": "New output directories and unchanged producer/workers; shared Lustre/cache state not flushed. Replacement CPU preparation overlapped owned GPU development/loading allocations. Raw node, affinity, source/archive identities and every failed attempt remain visible."
+}
