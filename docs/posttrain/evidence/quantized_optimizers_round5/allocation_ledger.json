@@ -1,5 +1,5 @@
 {
-  "updated_utc": "2026-11-05T20:26:07.091361+00:00",
+  "updated_utc": "2026-11-05T20:33:42.670773+00:00",
   "caps": {
     "gpu_seconds": 21600,
     "cpu_wall_seconds": 11700
@@ -130,9 +130,10 @@
       ],
       "utc": "2026-11-05T20:20:27.010854+00:00",
       "node_policy": "Reuse first timing node for every restart; same8CPUs/128GiB andA100class, each arm pair within one allocation. No outcome-based node choice. At mostone loading allocation active alongside quality work.",
-      "state": "SUBMITTED",
-      "charged_or_reserved_gpu_seconds": 720,
-      "charged_or_reserved_cpu_seconds": 0
+      "state": "COMPLETED",
+      "charged_or_reserved_gpu_seconds": 353,
+      "charged_or_reserved_cpu_seconds": 0,
+      "elapsed_seconds": 353
     },
     {
       "job": "38042650",
@@ -156,8 +157,45 @@
       ],
       "utc": "2026-11-05T20:20:28.838895+00:00",
       "node_policy": "Reuse first timing node for every restart; same8CPUs/128GiB andA100class, each arm pair within one allocation. No outcome-based node choice. At mostone loading allocation active alongside quality work.",
+      "state": "COMPLETED",
+      "charged_or_reserved_gpu_seconds": 334,
+      "charged_or_reserved_cpu_seconds": 0,
+      "elapsed_seconds": 334
+    },
+    {
+      "name": "weight95-fused",
+      "node": "batch-block4-1051",
+      "effective_wall_seconds": 1080,
+      "grace_reserved_seconds": 120,
+      "gpu_count": 1,
+      "argv": [
+        "sbatch",
+        "--parsable",
+        "--export=ALL",
+        "--time=18",
+        "--nodelist=batch-block4-1051",
+        "--job-name=optimizer-r5-weight95-fused",
+        "--output=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r5-20261105/weight95-fused-%j.log",
+        "--partition=interactive_singlenode,polar",
+        "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r5-20261105/deployment.sbatch"
+      ],
+      "environment": {
+        "SOURCE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850",
+        "ASSETS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z",
+        "PRIOR": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-quantized-optimizers-20261103",
+        "PREPARATION": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/prepare-evaluation-v1",
+        "CONTAINER_IMAGE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-automl-focused-20261012/image-conversion/cosmos-framework-focused.sqsh",
+        "SOURCE_ARCHIVE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r5-20261105/source-baseline.tgz",
+        "TASK_DATA_ROOT": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data",
+        "TASK_SPEC": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r5-20261105/fused_weight95_probe.json",
+        "MODE": "study",
+        "WORK_SECONDS": "960",
+        "RESULTS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r5-20261105/weight95-fused"
+      },
+      "utc": "2026-11-05T20:26:49.337978+00:00",
+      "job": "38042848",
       "state": "SUBMITTED",
-      "charged_or_reserved_gpu_seconds": 720,
+      "charged_or_reserved_gpu_seconds": 1200,
       "charged_or_reserved_cpu_seconds": 0
     }
   ],
@@ -166,13 +204,13 @@
     "lr875_conditional_eightbit_limit_and_grace": 0,
     "conditional_complete_final_three_allocations_with_grace": 13860,
     "shared_loading_three_paired_allocations_with_grace": 0,
-    "weight95_fused_limit_and_grace": 1200,
+    "weight95_fused_limit_and_grace": 0,
     "weight95_conditional_eightbit_limit_and_grace": 1200
   },
   "cpu_reservations": {
     "same_workflow_full_preparation_replacement_with_grace": 0,
     "local_checks_and_analysis": 180
   },
-  "cumulative_gpu_charged_or_reserved": 20447,
+  "cumulative_gpu_charged_or_reserved": 19694,
   "cumulative_cpu_charged_or_reserved": 10134
 }

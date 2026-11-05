@@ -6,6 +6,20 @@ qualification tools, not an alternative training implementation. `native_probe.p
 calls the native SFT entrypoint and adds synchronized timing/shape hooks. Its
 instrumented timings must not be presented as uninstrumented performance.
 
+The latest bounded continuation is recorded in
+[round-five commands](../../docs/posttrain/evidence/quantized_optimizers_round5/commands.md).
+Its development recipe selection is separate from the historical final comparisons.
+
+For dense fresh-process scoring, `score_dense.py --checkpoint-sha256 DIGEST`
+binds `model.pt` to an independently recorded SHA-256. Both `serial` and `overlap`
+checkpoint-read modes hash every byte and validate native checkpoint provenance
+before publishing a read-success receipt or scores. A mismatch fails the process.
+Obtain the expected digest from the trusted checkpoint publication/evidence record;
+hashing an untrusted replacement immediately before loading does not establish
+the original checkpoint identity. The optional flag leaves existing callers
+compatible; without it, the full read is recorded but is not compared to an
+independent expected digest.
+
 ## Identities and data
 
 The frozen mainline training source is

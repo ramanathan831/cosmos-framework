@@ -1,0 +1,293 @@
+{
+  "complete": true,
+  "accepted": false,
+  "gates": {
+    "384_exact_development_rows": true,
+    "checkpoint_sha_provenance_objective_input_exact": true,
+    "helper_and_real_cuda_fail_closed_checks": true,
+    "overall_speed_lower_bound_above_1_05": false,
+    "each_arm_speed_lower_bound_above_1": false
+  },
+  "paired_speed_ratios": {
+    "fused": {
+      "mean": 1.3188549466057773,
+      "ci95": [
+        0.6444803707701737,
+        1.9932295224413807
+      ],
+      "values": [
+        1.6286134152336422,
+        1.1223286536174932,
+        1.2056227709661966
+      ],
+      "method": "paired t, df=2"
+    },
+    "eightbit": {
+      "mean": 1.1794971600671142,
+      "ci95": [
+        1.086879937719825,
+        1.2721143824144034
+      ],
+      "values": [
+        1.1583175589462096,
+        1.1576273863638757,
+        1.2225465348912572
+      ],
+      "method": "paired t, df=2"
+    },
+    "overall": {
+      "mean": 1.2452976812216765,
+      "ci95": [
+        0.9365378266315357,
+        1.5540575358118174
+      ],
+      "values": [
+        1.3821960328168792,
+        1.1395286264075946,
+        1.2141683844405557
+      ],
+      "method": "paired t, df=2"
+    }
+  },
+  "nonoverlapping_verification_plus_checkpoint_phase_ratios": {
+    "fused": {
+      "mean": 1.491109667881976,
+      "ci95": [
+        1.234795977837428,
+        1.747423357926524
+      ],
+      "values": [
+        1.5948677851061697,
+        1.3885173741534498,
+        1.4899438443863082
+      ],
+      "method": "paired t, df=2"
+    },
+    "eightbit": {
+      "mean": 1.4053801857156127,
+      "ci95": [
+        1.1916807142882806,
+        1.6190796571429449
+      ],
+      "values": [
+        1.3064034086398002,
+        1.4475812956403482,
+        1.4621558528666898
+      ],
+      "method": "paired t, df=2"
+    }
+  },
+  "cases": [
+    {
+      "fused_serial": {
+        "attempt_seconds": 102.85062304500025,
+        "scoring_scope_seconds": 93.11167321598623,
+        "phase_seconds": {
+          "dataset_identity": 2.8936062549910275,
+          "prepared_verification": 1.7655347649997566,
+          "checkpoint_read": 27.298519460004172,
+          "committed_model_restore": 13.385267115998431,
+          "checkpoint_read_and_restore": 40.683797156001674,
+          "task_scoring": 11.301817847008351
+        },
+        "peak_host_pss_bytes": 36482717696,
+        "peak_process_gpu_bytes": 37566283776,
+        "peak_device_bytes": 38300483584,
+        "checkpoint_sha256": "c2cb253288f83107280c12df0253a3d21912ac0a1c8f82dec2fdecd05c99a4b7",
+        "exact_rows": 32
+      },
+      "fused_optimized": {
+        "attempt_seconds": 63.15226319700014,
+        "scoring_scope_seconds": 54.15708885301137,
+        "phase_seconds": {
+          "dataset_identity": 1.3613706299947808,
+          "prepared_verification": 0.850015574003919,
+          "checkpoint_read": 25.765952942994772,
+          "committed_model_restore": 16.827103318006266,
+          "checkpoint_read_and_restore": 25.766191937000258,
+          "task_scoring": 9.021457783004735
+        },
+        "peak_host_pss_bytes": 35928070144,
+        "peak_process_gpu_bytes": 37566283776,
+        "peak_device_bytes": 38300483584,
+        "checkpoint_sha256": "c2cb253288f83107280c12df0253a3d21912ac0a1c8f82dec2fdecd05c99a4b7",
+        "exact_rows": 32
+      },
+      "eightbit_serial": {
+        "attempt_seconds": 80.51477082401107,
+        "scoring_scope_seconds": 71.42120227499981,
+        "phase_seconds": {
+          "dataset_identity": 1.3847543809970375,
+          "prepared_verification": 1.7767133390007075,
+          "checkpoint_read": 26.805514517996926,
+          "committed_model_restore": 14.910945225012256,
+          "checkpoint_read_and_restore": 41.716472624000744,
+          "task_scoring": 9.675065005998476
+        },
+        "peak_host_pss_bytes": 36461946880,
+        "peak_process_gpu_bytes": 37566283776,
+        "peak_device_bytes": 38300483584,
+        "checkpoint_sha256": "7456aeea1b7f58e25cdcd4bffc26237f8d13c8a6a17037f1f26fa75b2e8ac1d0",
+        "exact_rows": 32
+      },
+      "eightbit_optimized": {
+        "attempt_seconds": 69.51010126899928,
+        "scoring_scope_seconds": 60.235752500986564,
+        "phase_seconds": {
+          "dataset_identity": 1.312462173998938,
+          "prepared_verification": 0.847936664998997,
+          "checkpoint_read": 32.444050233010785,
+          "committed_model_restore": 32.43966474701301,
+          "checkpoint_read_and_restore": 32.444372337995446,
+          "task_scoring": 8.470332516008057
+        },
+        "peak_host_pss_bytes": 36526016512,
+        "peak_process_gpu_bytes": 37566283776,
+        "peak_device_bytes": 38300483584,
+        "checkpoint_sha256": "7456aeea1b7f58e25cdcd4bffc26237f8d13c8a6a17037f1f26fa75b2e8ac1d0",
+        "exact_rows": 32
+      }
+    },
+    {
+      "fused_serial": {
+        "attempt_seconds": 79.0184353730001,
+        "scoring_scope_seconds": 69.41834855399793,
+        "phase_seconds": {
+          "dataset_identity": 1.3150513779983157,
+          "prepared_verification": 1.8137683179957094,
+          "checkpoint_read": 25.220632412994746,
+          "committed_model_restore": 15.214785932999803,
+          "checkpoint_read_and_restore": 40.43543236599362,
+          "task_scoring": 8.797469416007516
+        },
+        "peak_host_pss_bytes": 36482785280,
+        "peak_process_gpu_bytes": 37566283776,
+        "peak_device_bytes": 38300483584,
+        "checkpoint_sha256": "c2cb253288f83107280c12df0253a3d21912ac0a1c8f82dec2fdecd05c99a4b7",
+        "exact_rows": 32
+      },
+      "fused_optimized": {
+        "attempt_seconds": 70.40578988900234,
+        "scoring_scope_seconds": 58.88170594400435,
+        "phase_seconds": {
+          "dataset_identity": 1.3148162049910752,
+          "prepared_verification": 0.8610410359979142,
+          "checkpoint_read": 29.56621925700165,
+          "committed_model_restore": 29.54229355401185,
+          "checkpoint_read_and_restore": 29.56652254400251,
+          "task_scoring": 9.426549802999943
+        },
+        "peak_host_pss_bytes": 36525957120,
+        "peak_process_gpu_bytes": 37566283776,
+        "peak_device_bytes": 38300483584,
+        "checkpoint_sha256": "c2cb253288f83107280c12df0253a3d21912ac0a1c8f82dec2fdecd05c99a4b7",
+        "exact_rows": 32
+      },
+      "eightbit_serial": {
+        "attempt_seconds": 77.45618588599609,
+        "scoring_scope_seconds": 68.99118234300113,
+        "phase_seconds": {
+          "dataset_identity": 1.314709236001363,
+          "prepared_verification": 1.7684579159977147,
+          "checkpoint_read": 25.6698223130079,
+          "committed_model_restore": 15.044304392999038,
+          "checkpoint_read_and_restore": 40.714137365997885,
+          "task_scoring": 8.478947208001046
+        },
+        "peak_host_pss_bytes": 36482050048,
+        "peak_process_gpu_bytes": 37566283776,
+        "peak_device_bytes": 38300483584,
+        "checkpoint_sha256": "7456aeea1b7f58e25cdcd4bffc26237f8d13c8a6a17037f1f26fa75b2e8ac1d0",
+        "exact_rows": 32
+      },
+      "eightbit_optimized": {
+        "attempt_seconds": 66.9094276780088,
+        "scoring_scope_seconds": 57.46448990600766,
+        "phase_seconds": {
+          "dataset_identity": 1.3182930720067816,
+          "prepared_verification": 0.8314696949964855,
+          "checkpoint_read": 28.515568864007946,
+          "committed_model_restore": 19.578574735001894,
+          "checkpoint_read_and_restore": 28.51582527899882,
+          "task_scoring": 9.718017115999828
+        },
+        "peak_host_pss_bytes": 34377154560,
+        "peak_process_gpu_bytes": 37566283776,
+        "peak_device_bytes": 38300483584,
+        "checkpoint_sha256": "7456aeea1b7f58e25cdcd4bffc26237f8d13c8a6a17037f1f26fa75b2e8ac1d0",
+        "exact_rows": 32
+      }
+    },
+    {
+      "fused_serial": {
+        "attempt_seconds": 75.95576305700524,
+        "scoring_scope_seconds": 67.46642907899513,
+        "phase_seconds": {
+          "dataset_identity": 1.3162280949909473,
+          "prepared_verification": 1.7699381700076628,
+          "checkpoint_read": 24.87359052800457,
+          "committed_model_restore": 14.119447024000692,
+          "checkpoint_read_and_restore": 38.99304840200057,
+          "task_scoring": 8.517250409990083
+        },
+        "peak_host_pss_bytes": 36483248128,
+        "peak_process_gpu_bytes": 37566283776,
+        "peak_device_bytes": 38300483584,
+        "checkpoint_sha256": "c2cb253288f83107280c12df0253a3d21912ac0a1c8f82dec2fdecd05c99a4b7",
+        "exact_rows": 32
+      },
+      "fused_optimized": {
+        "attempt_seconds": 63.00126779799757,
+        "scoring_scope_seconds": 54.27846049400978,
+        "phase_seconds": {
+          "dataset_identity": 1.3165877830033423,
+          "prepared_verification": 0.8351986719935667,
+          "checkpoint_read": 26.52328051699442,
+          "committed_model_restore": 17.810624347999692,
+          "checkpoint_read_and_restore": 26.52354154200293,
+          "task_scoring": 8.486479026003508
+        },
+        "peak_host_pss_bytes": 35840280576,
+        "peak_process_gpu_bytes": 37566283776,
+        "peak_device_bytes": 38300483584,
+        "checkpoint_sha256": "c2cb253288f83107280c12df0253a3d21912ac0a1c8f82dec2fdecd05c99a4b7",
+        "exact_rows": 32
+      },
+      "eightbit_serial": {
+        "attempt_seconds": 78.56150208799227,
+        "scoring_scope_seconds": 69.21213209199777,
+        "phase_seconds": {
+          "dataset_identity": 1.3177469719958026,
+          "prepared_verification": 1.771864103997359,
+          "checkpoint_read": 25.73077445400122,
+          "committed_model_restore": 14.560264216008363,
+          "checkpoint_read_and_restore": 40.291052789994865,
+          "task_scoring": 9.00786876201164
+        },
+        "peak_host_pss_bytes": 36481761280,
+        "peak_process_gpu_bytes": 37566283776,
+        "peak_device_bytes": 38300483584,
+        "checkpoint_sha256": "7456aeea1b7f58e25cdcd4bffc26237f8d13c8a6a17037f1f26fa75b2e8ac1d0",
+        "exact_rows": 32
+      },
+      "eightbit_optimized": {
+        "attempt_seconds": 64.26054129299882,
+        "scoring_scope_seconds": 55.51845085299283,
+        "phase_seconds": {
+          "dataset_identity": 1.3142980650009122,
+          "prepared_verification": 0.8508831770013785,
+          "checkpoint_read": 27.91660996399878,
+          "committed_model_restore": 18.98775322700385,
+          "checkpoint_read_and_restore": 27.916855098999804,
+          "task_scoring": 8.430394422990503
+        },
+        "peak_host_pss_bytes": 36526391296,
+        "peak_process_gpu_bytes": 37566283776,
+        "peak_device_bytes": 38300483584,
+        "checkpoint_sha256": "7456aeea1b7f58e25cdcd4bffc26237f8d13c8a6a17037f1f26fa75b2e8ac1d0",
+        "exact_rows": 32
+      }
+    }
+  ],
+  "scope": "Three counterbalanced timing restarts on the same A10080GB node, two immutable optimizer checkpoints, 32 development questions. Timing restarts are not new quality seeds or recording families. Shared storage cache/concurrency and startup variation remain. No optimizer end-to-end or inference-latency claim. Concurrent read/restore child timers must not be summed."
+}

@@ -1,0 +1,26 @@
+{
+  "handoff_commit": "582ee70",
+  "cumulative_budget_start_commit": "40885d9",
+  "training_source": {
+    "commit": "582ee70",
+    "archive_sha256": "987facf12879fabc0367f0e7f30f156b71fb937a8e325dcedbf1defda6d5216e",
+    "scope": "Same implementation as completedround4; no optimizer/transaction/producer changes. Full source hashes and overlapping score loading available to both arms."
+  },
+  "loading_source": {
+    "commit": "251dc2117590c2c4e492d8fbac2bb9b75deb1598",
+    "archive_sha256": "56e4dc82efc5405b1b22009a161d6983e515fde93764f40750906be36e999d28",
+    "local_helper_tests": {
+      "passed": 15,
+      "seconds": 1.16
+    },
+    "scope": "Scoring checksum/publication control only; same native optimizer/model/transaction code, same complete-input checks."
+  },
+  "preparation_source": {
+    "commit": "e65f7eac8d7536171aa92ba7f7d019a8ea4b6998",
+    "archive_sha256": "83ad99a4feaf0cbe737f83cac9f08a18aeb21964f3801d4bf725406b37044325",
+    "worker_policy": "four workers/two PyTorch threads, native decoder threads, independent raw replay and full reference verification"
+  },
+  "unchanged_core_source_paths_since_handoff": [],
+  "loading_specs_exact_before_launch": true,
+  "publication": "Local commits only; original QLoRA checkout untouched; no push, PR, reopening334 or merge."
+}
