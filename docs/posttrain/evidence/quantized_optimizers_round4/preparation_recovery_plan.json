@@ -1,0 +1,21 @@
+{
+  "locked_utc": "2026-11-05T19:18:47.487245+00:00",
+  "producer_job": "38037824",
+  "producer_state": "TIMEOUT",
+  "producer_elapsed_seconds": 2361,
+  "remaining_cpu_wall_seconds": 300,
+  "cpu_existing_seconds": 6720,
+  "local_checks_reserved_seconds": 180,
+  "cpu_cap_seconds": 7200,
+  "new_time_limit_seconds": 180,
+  "killwait_reserved_seconds": 120,
+  "total_charged_or_reserved_cpu_seconds": 7200,
+  "purpose": "Recover full byte verification of a published corpus, retaining failed producer and separate timing identity. Do not mint an uninterrupted preparation receipt or replace missing producer phase timers.",
+  "manifest_sha256": "ea2e64893ab3d7da0f4c8be33001ae99c96dfd2c54fe293449c29255cd1f2d70",
+  "qualified_manifest_matches_failed_producer": true,
+  "checks": "All562payload files in candidate and reference must match their exact pinned digests; all308source media must match. Stable per-file identities during and after reads. Full SHA256, no stat-only fast path.",
+  "cost_basis": "Standard-library only, no container/model/tokenizer/worker startup. About13.27GB payload reads plus bound media; pinned score checksum reads a larger full dense model in25seconds.180seconds work plus120seconds Slurm grace reserved.",
+  "local_tests": "5passed,0.02seconds",
+  "verifier_sha256": "1d806728d39fcd54c19dc1b945434174832282abc12ffd6c4ebcd8e338d58ee7",
+  "timing_policy": "Only2uninterrupted full preparation replications. Report third as recovered pipeline, charging failed allocation plus this allocation. No confirmatory3replication cold speed CI from mixed workflow."
+}
