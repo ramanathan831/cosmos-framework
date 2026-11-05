@@ -311,26 +311,62 @@
     {
       "job": "37983881",
       "name": "optimizer-r3-baseline-combo",
-      "state": "PENDING",
-      "elapsed_seconds": 0,
+      "state": "COMPLETED",
+      "elapsed_seconds": 480,
       "effective_wall_limit_seconds": 1200,
       "gpu_count_requested": 1,
-      "charged_or_reserved_gpu_seconds": 1200,
+      "charged_or_reserved_gpu_seconds": 480,
       "charged_or_reserved_cpu_wall_seconds": 0,
-      "node": "None assigned"
+      "node": "batch-block4-0102"
+    },
+    {
+      "job": "37984548",
+      "name": "optimizer-r3-product-s17",
+      "state": "FAILED",
+      "elapsed_seconds": 72,
+      "effective_wall_limit_seconds": 1080,
+      "gpu_count_requested": 1,
+      "charged_or_reserved_gpu_seconds": 72,
+      "charged_or_reserved_cpu_wall_seconds": 0,
+      "node": "batch-block4-0102"
+    },
+    {
+      "job": "37984552",
+      "name": "optimizer-r3-product-s29",
+      "state": "FAILED",
+      "elapsed_seconds": 86,
+      "effective_wall_limit_seconds": 1080,
+      "gpu_count_requested": 1,
+      "charged_or_reserved_gpu_seconds": 86,
+      "charged_or_reserved_cpu_wall_seconds": 0,
+      "node": "batch-block4-1017"
+    },
+    {
+      "job": "37984553",
+      "name": "optimizer-r3-product-s43",
+      "state": "FAILED",
+      "elapsed_seconds": 54,
+      "effective_wall_limit_seconds": 1080,
+      "gpu_count_requested": 1,
+      "charged_or_reserved_gpu_seconds": 54,
+      "charged_or_reserved_cpu_wall_seconds": 0,
+      "node": "batch-block4-0102"
     }
   ],
-  "as_of_utc": "2026-11-04T23:58:36.417824+00:00",
+  "as_of_utc": "2026-11-05T00:22:45.263847+00:00",
   "unsubmitted_final_reservation_seconds": 0,
   "total_gpu_cap_seconds": 28800,
   "cpu_wall_cap_seconds": 7200,
-  "total_with_reserved_final": 20212,
+  "total_with_reserved_final": 19704,
   "cpu_actual_or_reserved_seconds": 6955,
   "failures": {
     "37970581": "New recovery diagnostic failed to resolve native worker cursor handle after update41; checkpoint40 completed. Fixed by2e44bfa.",
     "37971293": "Canceled before reaching the same diagnostic failure.",
     "37972117": "New selective-checkpoint argument rejected OmegaConf ListConfig empty default before training. Fixed by018438d with real meta-model and pinned runtime tests.",
-    "37972125": "Same ListConfig refusal before training."
+    "37972125": "Same ListConfig refusal before training.",
+    "37984548": "Wrong older outer Slurm script omitted ALLOCATION_START_NS; strict product-clock preflight refused before any training. Retry uses the current checked-in launcher.",
+    "37984552": "Wrong older outer Slurm script omitted ALLOCATION_START_NS; strict product-clock preflight refused before any training. Retry uses the current checked-in launcher.",
+    "37984553": "Wrong older outer Slurm script omitted ALLOCATION_START_NS; strict product-clock preflight refused before any training. Retry uses the current checked-in launcher."
   },
   "historical_campaign_costs_excluded_from_new_cap_gpu_seconds": {
     "first": 26438,
@@ -345,7 +381,7 @@
   "unsubmitted_preparation_profile_reservation_seconds": 0,
   "unsubmitted_decoder_thread_canary_reservation_seconds": 0,
   "unsubmitted_combined_baseline_probe_gpu_seconds": 0,
-  "total_with_reserved_final_and_development": 23452,
+  "total_with_reserved_final_and_development": 22944,
   "unsubmitted_short_schedule_probe_gpu_seconds": 0,
   "local_cpu_check_note": "Conservative120-second CPU-only allowance covers local controls, lint and final evidence analysis. Root-conftest GPU checks remain separately charged60GPU-seconds. No additional CPU allocation admitted.",
   "unsubmitted_combined_baseline_reservation_extension_seconds": 0,

@@ -1,0 +1,13 @@
+{
+  "utc": "2026-11-05T00:28:52.028297+00:00",
+  "source_archive_sha256": "531b0fbdcad066cc9484fdcf06204e2b9e069ea5f7f93ffc0e5f7752b4947ac4",
+  "source_commit": "f56a658",
+  "outer_launcher_sha256": "7454235f87f610242250cb3226407d0fdba4adbc81849d9e8b18ae75c420eb36",
+  "failed_unqualified_allocations": {
+    "37984548": 72,
+    "37984552": 86,
+    "37984553": 54
+  },
+  "reason": "Old recovery-launch outer script omitted the setup timestamp export. No training ran. Current deployment.sbatch exports ALLOCATION_START_NS before srun and passes it into the container.",
+  "retry_policy": "Run seed17 first; seed29 andseed43 depend on its successful completion, preventing repeated setup failure. Same fixed protocol/source/model/data/budgets/guards. Retain failed directories; new product-repair-v2-seed directories."
+}
