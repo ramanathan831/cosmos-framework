@@ -1,5 +1,5 @@
 {
-  "updated_utc": "2026-11-05T20:45:06.583193+00:00",
+  "updated_utc": "2026-11-05T20:52:03.843752+00:00",
   "caps": {
     "gpu_seconds": 21600,
     "cpu_wall_seconds": 11700
@@ -243,12 +243,13 @@
     "conditional_complete_final_three_allocations_with_grace": 13860,
     "shared_loading_three_paired_allocations_with_grace": 0,
     "weight95_fused_limit_and_grace": 0,
-    "weight95_conditional_eightbit_limit_and_grace": 0
+    "weight95_conditional_eightbit_limit_and_grace": 0,
+    "substantive_localization_with_grace": 720
   },
   "cpu_reservations": {
     "same_workflow_full_preparation_replacement_with_grace": 0,
     "local_checks_and_analysis": 180
   },
-  "cumulative_gpu_charged_or_reserved": 19226,
+  "cumulative_gpu_charged_or_reserved": 19946,
   "cumulative_cpu_charged_or_reserved": 9255
 }

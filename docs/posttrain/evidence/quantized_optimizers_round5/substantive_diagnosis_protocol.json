@@ -1,0 +1,20 @@
+{
+  "locked_utc": "2026-11-05T20:52:03.843752+00:00",
+  "purpose": "Locate the failed seed29substantive guard using existing checkpoints only; no retraining, candidate change, final examples or new optimizer arithmetic diagnostic.",
+  "observed_failure": {
+    "eightbit_native_candidate_substantive_nll": 0.17978687160392395,
+    "eightbit_native_control_substantive_nll": 0.1771083262708885,
+    "ratio": 1.0151237685400438,
+    "upper_guard": 1.01
+  },
+  "source_commit": "251dc2117590c2c4e492d8fbac2bb9b75deb1598",
+  "case_order": [
+    "fused_control",
+    "fused_candidate",
+    "eightbit_candidate",
+    "eightbit_control"
+  ],
+  "checks": "All32task predictions/inputs/counts must match each checkpoint corresponding native step15development diagnostic exactly. Preserve full checkpoint hashes/provenance. Compare first16substantive rows/IDs/token counts and full token-weighted aggregate against native validation. Native batching is4 and diagnostic batching1, so retain any numeric difference; native guard remains authoritative. Per-row losses are descriptive localization, never a replacement acceptance denominator.",
+  "cost": "Four fresh-process scores with32task+16substantive examples, estimated400seconds including setup; reserve600Slurm seconds plus120grace, WORK_SECONDS520. Chain after existing development allocation; no parallel CPU preparation remains.",
+  "stop": "No new recipe from these scores during this continuation. Finish admitted scoring; retain negative results and diagnose, without tuning thresholds."
+}
