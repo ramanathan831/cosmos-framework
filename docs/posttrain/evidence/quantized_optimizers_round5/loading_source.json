@@ -1,0 +1,9 @@
+{
+  "commit": "251dc2117590c2c4e492d8fbac2bb9b75deb1598",
+  "archive_sha256": "56e4dc82efc5405b1b22009a161d6983e515fde93764f40750906be36e999d28",
+  "local_helper_tests": {
+    "passed": 15,
+    "seconds": 1.16
+  },
+  "scope": "Scoring checksum/publication control only; same native optimizer/model/transaction code, same complete-input checks."
+}

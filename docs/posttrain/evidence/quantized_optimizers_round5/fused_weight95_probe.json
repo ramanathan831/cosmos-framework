@@ -1,0 +1,93 @@
+{
+  "purpose": "development diagnosis",
+  "prepared_verified_rows": 751,
+  "cases": [
+    {
+      "name": "fused_weight95_seed17",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=fused_weight95_seed17",
+        "rl.seed=17",
+        "rl.optimizer.name=adamw",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096",
+        "model_hf.grad_ckpt=true",
+        "rl.lr_schedule.cycle_steps=40",
+        "rl.optimizer.lr=1e-5",
+        "rl.ce_exponent=0.95"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "allow_failure": false
+    },
+    {
+      "name": "fused_weight95_seed29",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=fused_weight95_seed29",
+        "rl.seed=29",
+        "rl.optimizer.name=adamw",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096",
+        "model_hf.grad_ckpt=true",
+        "rl.lr_schedule.cycle_steps=40",
+        "rl.optimizer.lr=1e-5",
+        "rl.ce_exponent=0.95"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "allow_failure": false
+    },
+    {
+      "name": "fused_weight95_seed43",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=fused_weight95_seed43",
+        "rl.seed=43",
+        "rl.optimizer.name=adamw",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096",
+        "model_hf.grad_ckpt=true",
+        "rl.lr_schedule.cycle_steps=40",
+        "rl.optimizer.lr=1e-5",
+        "rl.ce_exponent=0.95"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "allow_failure": false
+    }
+  ],
+  "status": "FUSED_ADMITTED_EIGHTBIT_CONDITIONAL",
+  "protocol": "weight95_protocol.json",
+  "locked_utc": "2026-11-05T20:26:07.091361+00:00"
+}

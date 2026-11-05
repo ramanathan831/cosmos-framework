@@ -1,0 +1,20 @@
+{
+  "job": "38042441",
+  "name": "loading-repeat0",
+  "node": "batch-block4-0045",
+  "gpu_count": 1,
+  "effective_wall_seconds": 720,
+  "grace_reserved_seconds": 120,
+  "argv": [
+    "sbatch",
+    "--parsable",
+    "--export=ALL",
+    "--time=12",
+    "--partition=interactive_singlenode,polar",
+    "--nodelist=batch-block4-0045",
+    "--job-name=optimizer-r5-loading0",
+    "--output=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r5-20261105/loading0-%j.log",
+    "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r5-20261105/deployment.sbatch"
+  ],
+  "utc": "2026-11-05T20:11:38.759669+00:00"
+}

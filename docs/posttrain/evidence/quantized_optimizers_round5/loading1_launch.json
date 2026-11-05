@@ -1,0 +1,23 @@
+{
+  "job": "38042648",
+  "name": "loading-repeat1",
+  "node": "batch-block4-0045",
+  "gpu_count": 1,
+  "effective_wall_seconds": 600,
+  "grace_reserved_seconds": 120,
+  "dependency": "38042441",
+  "argv": [
+    "sbatch",
+    "--parsable",
+    "--export=ALL",
+    "--time=10",
+    "--partition=interactive_singlenode,polar",
+    "--nodelist=batch-block4-0045",
+    "--dependency=afterok:38042441",
+    "--job-name=optimizer-r5-loading1",
+    "--output=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r5-20261105/loading1-%j.log",
+    "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r5-20261105/deployment.sbatch"
+  ],
+  "utc": "2026-11-05T20:20:27.010854+00:00",
+  "node_policy": "Reuse first timing node for every restart; same8CPUs/128GiB andA100class, each arm pair within one allocation. No outcome-based node choice. At mostone loading allocation active alongside quality work."
+}

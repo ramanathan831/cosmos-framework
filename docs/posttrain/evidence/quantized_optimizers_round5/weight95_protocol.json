@@ -1,0 +1,25 @@
+{
+  "locked_utc": "2026-11-05T20:26:07.091361+00:00",
+  "status": "FUSED_ADMITTED_EIGHTBIT_CONDITIONAL",
+  "single_factor": "rl.ce_exponent=0.95 instead of 1.0; original LR1e-5 retained. No rejected LR/horizon/precision candidate combined.",
+  "source_commit": "582ee70",
+  "source_archive_sha256": "987facf12879fabc0367f0e7f30f156b71fb937a8e325dcedbf1defda6d5216e",
+  "observed_failure": {
+    "lr875_mean_task_nll_ratio": 0.9339079127348174,
+    "accuracy_loss_seed29": 0.03125,
+    "seed43_substantive_ratio": 1.0558691029406884
+  },
+  "rationale": "Both lower-LR probes soften some extreme wrong-choice losses but lose seed29 decisions and slow substantive learning in seed43. Test a modest relative increase in substantive gradient weight at the original LR, instead of further globally reducing update size. Existing row-weighting API n^(1-e) gives an84-token text row about1.205times a2-token choice row at e=.95, versus equal row weights at e=1. This is a development hypothesis, not a demonstrated calibration defect or quantization effect.",
+  "unchanged": "15updates,40updatecosinehorizon,seeds17/29/43,all mixed training rows,media,FP32trainables,BF16compute,clipping,effectivebatch,dataorder; substantive and task scoring denominators/masks/ties unchanged. Native loss metrics remain token means. Same original corresponding optimizer controls.",
+  "guards": {
+    "mean_task_nll_ratio_max": 0.98,
+    "per_seed_accuracy_loss_max": 0,
+    "each_substantive_nll_ratio_max": 1.01
+  },
+  "promotion": "Only if fused passes all guards run identical eight-bit candidate; final comparison only after both pass. This is the one additional intervention authorized after LR875failure. No further sweep.",
+  "reservation_gpu_seconds": {
+    "fused_with_grace": 1200,
+    "conditional_eightbit_with_grace": 1200,
+    "complete_final_held": 13860
+  }
+}

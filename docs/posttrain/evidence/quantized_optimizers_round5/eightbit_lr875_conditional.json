@@ -1,0 +1,104 @@
+{
+  "purpose": "development diagnosis",
+  "status": "CONDITIONAL_NOT_ADMITTED",
+  "prepared_verified_rows": 751,
+  "recorded_utc": "2026-11-05T18:51:05.801703+00:00",
+  "reason": "LR7.5e-6 reduces mean development taskNLL9.04% but loses one correct answer in seeds17 and29, and worsens substantiveNLL36.81% in seed43. The original1e-5 control retains higher accuracy/text quality on those seeds. A single intermediate8.75e-6 shared LR is the next bracketed hypothesis at the same15updates/40horizon; no monotonic improvement is assumed.",
+  "prerequisite": "All3fused875seeds must pass every locked screen; otherwise do not submit.",
+  "cases": [
+    {
+      "name": "eightbit_lr875_seed17",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=eightbit_lr875_seed17",
+        "rl.seed=17",
+        "rl.optimizer.name=adamw_bnb_8bit",
+        "rl.optimizer.impl=",
+        "rl.optimizer.bnb_min_8bit_size=16384",
+        "model_hf.grad_ckpt=false",
+        "rl.lr_schedule.cycle_steps=40",
+        "rl.optimizer.lr=8.75e-6"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "allow_failure": false
+    },
+    {
+      "name": "eightbit_lr875_seed29",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=eightbit_lr875_seed29",
+        "rl.seed=29",
+        "rl.optimizer.name=adamw_bnb_8bit",
+        "rl.optimizer.impl=",
+        "rl.optimizer.bnb_min_8bit_size=16384",
+        "model_hf.grad_ckpt=false",
+        "rl.lr_schedule.cycle_steps=40",
+        "rl.optimizer.lr=8.75e-6"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "allow_failure": false
+    },
+    {
+      "name": "eightbit_lr875_seed43",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+        "--",
+        "job.name=eightbit_lr875_seed43",
+        "rl.seed=43",
+        "rl.optimizer.name=adamw_bnb_8bit",
+        "rl.optimizer.impl=",
+        "rl.optimizer.bnb_min_8bit_size=16384",
+        "model_hf.grad_ckpt=false",
+        "rl.lr_schedule.cycle_steps=40",
+        "rl.optimizer.lr=8.75e-6"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl"
+      },
+      "allow_failure": false
+    }
+  ],
+  "admission": "Same strict2%mean taskNLL improvement, no per-seed accuracy loss and each substantiveNLLratio<=1.01, against the recorded eight-bit controls. All other controls match those controls; LR is8.75e-6.",
+  "controls": "No longer duration, model/data/precision/trainable/clipping/effective-batch changes. Retain all original protocols/results. No new final-group selection or independent-replication claim.",
+  "resource_estimate": {
+    "fused_development_reservation_gpu_seconds": 1080,
+    "conditional_eight_bit_development_reservation_gpu_seconds": 1080,
+    "complete_final_comparison_reservation_gpu_seconds": 13500,
+    "total_gpu_reservation_seconds": 15660,
+    "final_comparison_basis": "Retain the proven 3 x 4500-second complete final reservations, including dependent fresh scoring; original complete final work consumed11129GPU-seconds. Shared runtime changes require prospective reserve recalibration, not subtraction of a favorable canary timing. Completed round-four preparation replications may be reused with their exact producer/input identities; no automatic repeat of adequate preparation evidence.",
+    "three_cold_replications_reservation_cpu_seconds": 0,
+    "cpu_scope": "Reuse round-four full preparations only if all exact checks completed; future CPU checks/final analysis must receive an explicit finite reservation. Zero here is not a promise of no CPU analysis cost."
+  },
+  "stop": "Not submitted. Current failed-screen stop rule prevents an automatic sweep; all unchanged development guards apply. Full conditional development/final reservations total15660GPUseconds; current campaign charges remain separate.",
+  "development_confidence_evidence": "fused_development_summary.json retains all32update15questions per seed. Seed17 loses one formerly correct answer to a tied A/D decision; seed29 loses another to a confident wrong A. The known seed29 wrong answer becomes less confident (goldNLL7.75to4.51), explaining part of the average NLL gain. Do not change ties, class mapping or scoring to remove the accuracy failures."
+}
