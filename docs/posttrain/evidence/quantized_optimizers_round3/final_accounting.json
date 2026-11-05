@@ -1,0 +1,23 @@
+{
+  "closed_allocations": true,
+  "all_owned_jobs_terminal": true,
+  "jobs": 37,
+  "as_of_utc": "2026-11-05T01:51:27.902509+00:00",
+  "slurm_gpu_seconds": 23324,
+  "local_gpu_seconds_conservatively_charged": 60,
+  "total_charged_gpu_seconds": 23384,
+  "gpu_cap_seconds": 28800,
+  "gpu_headroom_seconds": 5416,
+  "slurm_cpu_only_wall_seconds": 6835,
+  "local_cpu_seconds_conservatively_charged": 180,
+  "total_charged_cpu_wall_seconds": 7015,
+  "cpu_wall_cap_seconds": 7200,
+  "cpu_headroom_seconds": 185,
+  "active_or_unsubmitted_reservations": 0,
+  "failed_or_timed_out_seconds": 1447,
+  "cancelled_allocated_seconds": 175,
+  "policy": "Terminal Slurm ElapsedRaw includes failures and grace; unstarted cancellations cost0. All required dependent evaluation finished. Historical campaign costs remain separately recorded. Remaining allowance is not called exhaustion.",
+  "next_complete_campaign_gpu_reservation_seconds": 15660,
+  "next_three_full_cold_replications_cpu_reservation_seconds": 7200,
+  "admission": "Remaining allowance cannot reserve the next conditional development plus complete final comparison. No new jobs admitted, thresholds unchanged, product objective remains open."
+}

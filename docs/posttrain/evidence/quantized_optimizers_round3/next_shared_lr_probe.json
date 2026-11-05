@@ -4,7 +4,7 @@
   "prepared_verified_rows": 751,
   "recorded_utc": "2026-11-05T01:26:31.577899+00:00",
   "reason": "Development seed29 NLL worsens after update10 in both arms; shortening the shared cosine horizon worsened mean development NLL and all seed accuracies. The next bounded shared-recipe candidate lowers initial LR from1e-5 to7.5e-6 at the same15 updates and40-update horizon. Existing3e-6 control adapted more slowly. Candidate choice uses these development observations; final scores are not used for precision exceptions or checkpoint selection.",
-  "prerequisite": "Complete native arithmetic diagnostic; investigate any correctness fault before admitting this candidate.",
+  "prerequisite": "Native arithmetic diagnostic completed. K/V precision screen completed and was rejected: mean development task NLL worsened1.805%, while all accuracies were unchanged. This shared-LR candidate is the next intervention, not a combination with the rejected precision policy. Reserve both conditional development stages and all final comparisons before admission.",
   "cases": [
     {
       "name": "fused_lr75_seed17",
@@ -98,5 +98,6 @@
     "final_comparison_basis": "Current complete36-run/37-score campaign actual11129GPU-seconds; retain its proven3x4500-second reservations including dependent scoring and failures. Actual completed preparation1990seconds; three fresh full CPU preparations reserve3x2400seconds if repeated cold qualification is pursued.",
     "three_cold_replications_reservation_cpu_seconds": 7200
   },
-  "stop": "Not admitted under the current unchanged caps: reserve the complete conditional comparison before exploratory submission. No empirical improvement is promised."
+  "stop": "Not admitted under the current unchanged caps: reserve the complete conditional comparison before exploratory submission. No empirical improvement is promised.",
+  "development_confidence_evidence": "development_confidence.json records all six native development curves and same-input per-question confidence. In seed29 both arms improve accuracy10-to15 while one shared wrong choice becomes almost certain and its gold NLL rises to7.75. This strengthens the already recorded development motivation without changing the candidate, evaluation scoring or numerical gates."
 }

@@ -1,0 +1,637 @@
+{
+  "scope": "Development-only diagnosis,32 questions. Reads only diagnostics/task_rows.jsonl, never score/scores.jsonl. Restricted four-letter confidence is not a full-vocabulary or generated-answer calibration claim. No thresholds, final results or proposed LR changed.",
+  "raw_sha256": "0672d842e2a707c064634f525778a3d94f482ac94ab33070e00cf66ef6fa2408",
+  "runs": [
+    {
+      "seed": 17,
+      "arm": "adamw",
+      "raw_key": "final-seed17/matched_adamw/diagnostics/task_rows.jsonl",
+      "curve": [
+        {
+          "step": 0,
+          "accuracy": 0.46875,
+          "answer_nll": 1.8934099553784447,
+          "wrong_count": 17,
+          "mean_wrong_answer_nll": 3.4960077299791226,
+          "mean_wrong_max_restricted_probability": 0.7625140696728949,
+          "mean_all_max_restricted_probability": 0.8428550159696955
+        },
+        {
+          "step": 5,
+          "accuracy": 0.65625,
+          "answer_nll": 0.8287633526779246,
+          "wrong_count": 11,
+          "mean_wrong_answer_nll": 1.754626675085588,
+          "mean_wrong_max_restricted_probability": 0.5689849573600303,
+          "mean_all_max_restricted_probability": 0.6872074110015237
+        },
+        {
+          "step": 10,
+          "accuracy": 0.8125,
+          "answer_nll": 0.7208255437290063,
+          "wrong_count": 6,
+          "mean_wrong_answer_nll": 3.498880386352539,
+          "mean_wrong_max_restricted_probability": 0.8400636869220613,
+          "mean_all_max_restricted_probability": 0.9174721718909716
+        },
+        {
+          "step": 15,
+          "accuracy": 0.875,
+          "answer_nll": 0.5227146533561609,
+          "wrong_count": 4,
+          "mean_wrong_answer_nll": 4.01863631606102,
+          "mean_wrong_max_restricted_probability": 0.8544426712282756,
+          "mean_all_max_restricted_probability": 0.9663196338507278
+        }
+      ],
+      "largest_nll_increases": [
+        {
+          "id": "20230922_19_CN13_T1_192.168.0.11_1_14",
+          "input_sha256": "8507cb1a7e810722dda2458f7682c7d7d14b4aa5c80ecb9556fa50fd49f1d575",
+          "gold": "A",
+          "nll_change_10_to_15": 4.211807727813721,
+          "nll_10": 3.415372371673584,
+          "nll_15": 7.627180099487305,
+          "prediction_10": "C",
+          "prediction_15": "C",
+          "max_restricted_probability_10": 0.9612126878535553,
+          "max_restricted_probability_15": 0.9983721172465158
+        },
+        {
+          "id": "20230728_37_CN38_T1_Camera4_2_12",
+          "input_sha256": "056ddc0e8b08654f51a1937df2e598d0bff66b104a772f6835001bb2dd145d39",
+          "gold": "A",
+          "nll_change_10_to_15": 1.4432439804077148,
+          "nll_10": 0.3146085739135742,
+          "nll_15": 1.757852554321289,
+          "prediction_10": "A",
+          "prediction_15": "D",
+          "max_restricted_probability_10": 0.7318041372041635,
+          "max_restricted_probability_15": 0.7754722630058731
+        },
+        {
+          "id": "20230728_58_SY15_T1_Camera2_0_11",
+          "input_sha256": "9c382ef75ebce452233888bbe018317990bbc0b58e9acb20ad0043971870d15f",
+          "gold": "A",
+          "nll_change_10_to_15": 0.034971071407198906,
+          "nll_10": 0.02174990065395832,
+          "nll_15": 0.05672097206115723,
+          "prediction_10": "A",
+          "prediction_15": "A",
+          "max_restricted_probability_10": 0.9801516679770202,
+          "max_restricted_probability_15": 0.9460354276764849
+        },
+        {
+          "id": "20230728_27_CN34_T1_Camera4_2_6",
+          "input_sha256": "a7d93babcbb74d75e715f895e69a0a1f9aac5ef1345bf8dee11b1aa323378033",
+          "gold": "C",
+          "nll_change_10_to_15": -0.002547966840211302,
+          "nll_10": 0.0035217900294810534,
+          "nll_15": 0.0009738231892697513,
+          "prediction_10": "C",
+          "prediction_15": "C",
+          "max_restricted_probability_10": 0.9970125038276278,
+          "max_restricted_probability_15": 0.9993450268665501
+        },
+        {
+          "id": "20230728_27_CN34_T1_Camera1_3_6",
+          "input_sha256": "9a3662811fb1e66e5eba0b4eb95fb4ab58e1ba7073f6a06e5e739b56c9a5bc48",
+          "gold": "C",
+          "nll_change_10_to_15": -0.0026575677329674363,
+          "nll_10": 0.0036452056374400854,
+          "nll_15": 0.000987637904472649,
+          "prediction_10": "C",
+          "prediction_15": "C",
+          "max_restricted_probability_10": 0.9969060055071606,
+          "max_restricted_probability_15": 0.9993450268665501
+        }
+      ]
+    },
+    {
+      "seed": 17,
+      "arm": "adamw_bnb_8bit",
+      "raw_key": "final-seed17/matched_adamw_bnb_8bit/diagnostics/task_rows.jsonl",
+      "curve": [
+        {
+          "step": 0,
+          "accuracy": 0.46875,
+          "answer_nll": 1.8934099553784447,
+          "wrong_count": 17,
+          "mean_wrong_answer_nll": 3.4960077299791226,
+          "mean_wrong_max_restricted_probability": 0.7625140696728949,
+          "mean_all_max_restricted_probability": 0.8428550159696955
+        },
+        {
+          "step": 5,
+          "accuracy": 0.65625,
+          "answer_nll": 0.8418323645310011,
+          "wrong_count": 11,
+          "mean_wrong_answer_nll": 1.7947645404122092,
+          "mean_wrong_max_restricted_probability": 0.5782910021545625,
+          "mean_all_max_restricted_probability": 0.6912684534571166
+        },
+        {
+          "step": 10,
+          "accuracy": 0.8125,
+          "answer_nll": 0.7146900687948801,
+          "wrong_count": 6,
+          "mean_wrong_answer_nll": 3.4639436403910318,
+          "mean_wrong_max_restricted_probability": 0.8351621951952879,
+          "mean_all_max_restricted_probability": 0.9160452707886456
+        },
+        {
+          "step": 15,
+          "accuracy": 0.875,
+          "answer_nll": 0.5195713894881919,
+          "wrong_count": 4,
+          "mean_wrong_answer_nll": 4.01294718682766,
+          "mean_wrong_max_restricted_probability": 0.8411250249360991,
+          "mean_all_max_restricted_probability": 0.9663776637699301
+        }
+      ],
+      "largest_nll_increases": [
+        {
+          "id": "20230922_19_CN13_T1_192.168.0.11_1_14",
+          "input_sha256": "8507cb1a7e810722dda2458f7682c7d7d14b4aa5c80ecb9556fa50fd49f1d575",
+          "gold": "A",
+          "nll_change_10_to_15": 4.457207679748535,
+          "nll_10": 3.29472017288208,
+          "nll_15": 7.751927852630615,
+          "prediction_10": "C",
+          "prediction_15": "C",
+          "max_restricted_probability_10": 0.957021535443491,
+          "max_restricted_probability_15": 0.9985631236647551
+        },
+        {
+          "id": "20230728_37_CN38_T1_Camera4_2_12",
+          "input_sha256": "056ddc0e8b08654f51a1937df2e598d0bff66b104a772f6835001bb2dd145d39",
+          "gold": "A",
+          "nll_change_10_to_15": 1.6173883080482483,
+          "nll_10": 0.34563714265823364,
+          "nll_15": 1.963025450706482,
+          "prediction_10": "A",
+          "prediction_15": "D",
+          "max_restricted_probability_10": 0.7093643340799504,
+          "max_restricted_probability_15": 0.8112478968398814
+        },
+        {
+          "id": "20230728_58_SY15_T1_Camera2_0_11",
+          "input_sha256": "9c382ef75ebce452233888bbe018317990bbc0b58e9acb20ad0043971870d15f",
+          "gold": "A",
+          "nll_change_10_to_15": 0.04211241751909256,
+          "nll_10": 0.021714672446250916,
+          "nll_15": 0.06382708996534348,
+          "prediction_10": "A",
+          "prediction_15": "A",
+          "max_restricted_probability_10": 0.9801516679770202,
+          "max_restricted_probability_15": 0.9393600021656123
+        },
+        {
+          "id": "20230728_27_CN34_T1_Camera4_2_6",
+          "input_sha256": "a7d93babcbb74d75e715f895e69a0a1f9aac5ef1345bf8dee11b1aa323378033",
+          "gold": "C",
+          "nll_change_10_to_15": -0.002345786429941654,
+          "nll_10": 0.003310677595436573,
+          "nll_15": 0.0009648911654949188,
+          "prediction_10": "C",
+          "prediction_15": "C",
+          "max_restricted_probability_10": 0.9972115298616482,
+          "max_restricted_probability_15": 0.9993713912229949
+        },
+        {
+          "id": "20230728_27_CN34_T1_Camera1_3_6",
+          "input_sha256": "9a3662811fb1e66e5eba0b4eb95fb4ab58e1ba7073f6a06e5e739b56c9a5bc48",
+          "gold": "C",
+          "nll_change_10_to_15": -0.002467086131218821,
+          "nll_10": 0.0033369355369359255,
+          "nll_15": 0.0008698494057171047,
+          "prediction_10": "C",
+          "prediction_15": "C",
+          "max_restricted_probability_10": 0.9972115298616482,
+          "max_restricted_probability_15": 0.9994307289840931
+        }
+      ]
+    },
+    {
+      "seed": 29,
+      "arm": "adamw",
+      "raw_key": "final-seed29/matched_adamw/diagnostics/task_rows.jsonl",
+      "curve": [
+        {
+          "step": 0,
+          "accuracy": 0.46875,
+          "answer_nll": 1.8934099553784447,
+          "wrong_count": 17,
+          "mean_wrong_answer_nll": 3.4960077299791226,
+          "mean_wrong_max_restricted_probability": 0.7625140696728949,
+          "mean_all_max_restricted_probability": 0.8428550159696955
+        },
+        {
+          "step": 5,
+          "accuracy": 0.625,
+          "answer_nll": 0.7611662168055773,
+          "wrong_count": 12,
+          "mean_wrong_answer_nll": 1.4884576350450516,
+          "mean_wrong_max_restricted_probability": 0.5251906537853882,
+          "mean_all_max_restricted_probability": 0.665114213632906
+        },
+        {
+          "step": 10,
+          "accuracy": 0.78125,
+          "answer_nll": 0.6693957768757173,
+          "wrong_count": 7,
+          "mean_wrong_answer_nll": 2.5702833277838573,
+          "mean_wrong_max_restricted_probability": 0.7065617543460908,
+          "mean_all_max_restricted_probability": 0.849838518418714
+        },
+        {
+          "step": 15,
+          "accuracy": 0.84375,
+          "answer_nll": 0.7427160304051199,
+          "wrong_count": 5,
+          "mean_wrong_answer_nll": 4.578057432174683,
+          "mean_wrong_max_restricted_probability": 0.6878272054664722,
+          "mean_all_max_restricted_probability": 0.9293664135843521
+        }
+      ],
+      "largest_nll_increases": [
+        {
+          "id": "20230929_12_CN38_T1_192.168.0.12_4_11",
+          "input_sha256": "c16fe15e507187eb63b37b3e7c90c3af28f0eb37e8a9f8b28fb595e8c6cfc51f",
+          "gold": "C",
+          "nll_change_10_to_15": 6.14674186706543,
+          "nll_10": 1.6037774085998535,
+          "nll_15": 7.750519275665283,
+          "prediction_10": "A",
+          "prediction_15": "A",
+          "max_restricted_probability_10": 0.7958956242446892,
+          "max_restricted_probability_15": 0.9995633040337537
+        },
+        {
+          "id": "20230922_43_SN36_T1_192.168.0.28_3_0",
+          "input_sha256": "83c69aef8a9e94b96347d94f3ade06f5863ba6f7e89541f2527d95ab92397809",
+          "gold": "B",
+          "nll_change_10_to_15": 2.9056618213653564,
+          "nll_10": 2.575038194656372,
+          "nll_15": 5.4807000160217285,
+          "prediction_10": "C",
+          "prediction_15": "C",
+          "max_restricted_probability_10": 0.7237164812132952,
+          "max_restricted_probability_15": 0.7012666892675831
+        },
+        {
+          "id": "20230929_39_SY19_T1_192.168.0.11_1_18",
+          "input_sha256": "1397388a1406cd256b2e548e4b3820d3e714cad91dacc7dd0dbdf5a823e131ff",
+          "gold": "D",
+          "nll_change_10_to_15": 1.2382795810699463,
+          "nll_10": 2.6056902408599854,
+          "nll_15": 3.8439698219299316,
+          "prediction_10": "C",
+          "prediction_15": "C",
+          "max_restricted_probability_10": 0.5482601385401136,
+          "max_restricted_probability_15": 0.6326757233533906
+        },
+        {
+          "id": "20230929_52_SN22_T1_192.168.0.11_1_0",
+          "input_sha256": "998a7cf9b4d831dc1c99409736f240129365a4a04d87402775e138d93d97262f",
+          "gold": "D",
+          "nll_change_10_to_15": 0.9047541618347168,
+          "nll_10": 3.225341796875,
+          "nll_15": 4.130095958709717,
+          "prediction_10": "B",
+          "prediction_15": "A",
+          "max_restricted_probability_10": 0.6228274044668032,
+          "max_restricted_probability_15": 0.5339239164868647
+        },
+        {
+          "id": "20230728_6_CN3_T1_Camera1_0_11",
+          "input_sha256": "5868ea373b62195038cca3cfcbc4568cd35982798e99f69cedea761886c558b1",
+          "gold": "A",
+          "nll_change_10_to_15": -0.0003741218133654911,
+          "nll_10": 0.00039057256071828306,
+          "nll_15": 1.645074735279195e-05,
+          "prediction_10": "A",
+          "prediction_15": "A",
+          "max_restricted_probability_10": 0.9997180747764739,
+          "max_restricted_probability_15": 0.9999985534089483
+        }
+      ]
+    },
+    {
+      "seed": 29,
+      "arm": "adamw_bnb_8bit",
+      "raw_key": "final-seed29/matched_adamw_bnb_8bit/diagnostics/task_rows.jsonl",
+      "curve": [
+        {
+          "step": 0,
+          "accuracy": 0.46875,
+          "answer_nll": 1.8934099553784447,
+          "wrong_count": 17,
+          "mean_wrong_answer_nll": 3.4960077299791226,
+          "mean_wrong_max_restricted_probability": 0.7625140696728949,
+          "mean_all_max_restricted_probability": 0.8428550159696955
+        },
+        {
+          "step": 5,
+          "accuracy": 0.6875,
+          "answer_nll": 0.7584089766023681,
+          "wrong_count": 10,
+          "mean_wrong_answer_nll": 1.6147513031959533,
+          "mean_wrong_max_restricted_probability": 0.544901234778105,
+          "mean_all_max_restricted_probability": 0.6666842157501333
+        },
+        {
+          "step": 10,
+          "accuracy": 0.78125,
+          "answer_nll": 0.657542822891628,
+          "wrong_count": 7,
+          "mean_wrong_answer_nll": 2.5342466831207275,
+          "mean_wrong_max_restricted_probability": 0.7080308311803672,
+          "mean_all_max_restricted_probability": 0.8531727779702941
+        },
+        {
+          "step": 15,
+          "accuracy": 0.84375,
+          "answer_nll": 0.7426976141181285,
+          "wrong_count": 5,
+          "mean_wrong_answer_nll": 4.610088801383972,
+          "mean_wrong_max_restricted_probability": 0.7313752452333332,
+          "mean_all_max_restricted_probability": 0.940234476595529
+        }
+      ],
+      "largest_nll_increases": [
+        {
+          "id": "20230929_12_CN38_T1_192.168.0.12_4_11",
+          "input_sha256": "c16fe15e507187eb63b37b3e7c90c3af28f0eb37e8a9f8b28fb595e8c6cfc51f",
+          "gold": "C",
+          "nll_change_10_to_15": 6.2456443309783936,
+          "nll_10": 1.5048611164093018,
+          "nll_15": 7.750505447387695,
+          "prediction_10": "A",
+          "prediction_15": "A",
+          "max_restricted_probability_10": 0.7753815864590646,
+          "max_restricted_probability_15": 0.9995640253678371
+        },
+        {
+          "id": "20230922_43_SN36_T1_192.168.0.28_3_0",
+          "input_sha256": "83c69aef8a9e94b96347d94f3ade06f5863ba6f7e89541f2527d95ab92397809",
+          "gold": "B",
+          "nll_change_10_to_15": 3.0801260471343994,
+          "nll_10": 2.458177328109741,
+          "nll_15": 5.538303375244141,
+          "prediction_10": "C",
+          "prediction_15": "C",
+          "max_restricted_probability_10": 0.7178612262287547,
+          "max_restricted_probability_15": 0.7501409703052085
+        },
+        {
+          "id": "20230929_39_SY19_T1_192.168.0.11_1_18",
+          "input_sha256": "1397388a1406cd256b2e548e4b3820d3e714cad91dacc7dd0dbdf5a823e131ff",
+          "gold": "D",
+          "nll_change_10_to_15": 1.2116763591766357,
+          "nll_10": 2.6757988929748535,
+          "nll_15": 3.8874752521514893,
+          "prediction_10": "C",
+          "prediction_15": "C",
+          "max_restricted_probability_10": 0.5789936011610386,
+          "max_restricted_probability_15": 0.686949492358135
+        },
+        {
+          "id": "20230929_52_SN22_T1_192.168.0.11_1_0",
+          "input_sha256": "998a7cf9b4d831dc1c99409736f240129365a4a04d87402775e138d93d97262f",
+          "gold": "D",
+          "nll_change_10_to_15": 0.8871722221374512,
+          "nll_10": 3.1980013847351074,
+          "nll_15": 4.085173606872559,
+          "prediction_10": "B",
+          "prediction_15": "B",
+          "max_restricted_probability_10": 0.6400596957500286,
+          "max_restricted_probability_15": 0.5586821833829263
+        },
+        {
+          "id": "20230728_6_CN3_T1_Camera1_0_11",
+          "input_sha256": "5868ea373b62195038cca3cfcbc4568cd35982798e99f69cedea761886c558b1",
+          "gold": "A",
+          "nll_change_10_to_15": -0.00034659482844290324,
+          "nll_10": 0.0003630455757956952,
+          "nll_15": 1.645074735279195e-05,
+          "prediction_10": "A",
+          "prediction_15": "A",
+          "max_restricted_probability_10": 0.9997451517350039,
+          "max_restricted_probability_15": 0.9999987618323515
+        }
+      ]
+    },
+    {
+      "seed": 43,
+      "arm": "adamw",
+      "raw_key": "final-seed43/matched_adamw/diagnostics/task_rows.jsonl",
+      "curve": [
+        {
+          "step": 0,
+          "accuracy": 0.46875,
+          "answer_nll": 1.8934099553784447,
+          "wrong_count": 17,
+          "mean_wrong_answer_nll": 3.4960077299791226,
+          "mean_wrong_max_restricted_probability": 0.7625140696728949,
+          "mean_all_max_restricted_probability": 0.8428550159696955
+        },
+        {
+          "step": 5,
+          "accuracy": 0.5,
+          "answer_nll": 0.9872316305409186,
+          "wrong_count": 16,
+          "mean_wrong_answer_nll": 1.5391385033726692,
+          "mean_wrong_max_restricted_probability": 0.4711818694624434,
+          "mean_all_max_restricted_probability": 0.5786221340153468
+        },
+        {
+          "step": 10,
+          "accuracy": 0.71875,
+          "answer_nll": 0.689184840535745,
+          "wrong_count": 9,
+          "mean_wrong_answer_nll": 1.4222088125016954,
+          "mean_wrong_max_restricted_probability": 0.5393038526475622,
+          "mean_all_max_restricted_probability": 0.6635255045288456
+        },
+        {
+          "step": 15,
+          "accuracy": 0.78125,
+          "answer_nll": 0.5013846219408151,
+          "wrong_count": 7,
+          "mean_wrong_answer_nll": 1.961177911077227,
+          "mean_wrong_max_restricted_probability": 0.7802698078175939,
+          "mean_all_max_restricted_probability": 0.8893694889049403
+        }
+      ],
+      "largest_nll_increases": [
+        {
+          "id": "20230728_37_CN38_T1_Camera4_2_12",
+          "input_sha256": "056ddc0e8b08654f51a1937df2e598d0bff66b104a772f6835001bb2dd145d39",
+          "gold": "A",
+          "nll_change_10_to_15": 1.9869658946990967,
+          "nll_10": 1.593827724456787,
+          "nll_15": 3.580793619155884,
+          "prediction_10": "C",
+          "prediction_15": "C",
+          "max_restricted_probability_10": 0.5531771382190518,
+          "max_restricted_probability_15": 0.92441142223739
+        },
+        {
+          "id": "20230929_13_SN25_T1_192.168.0.28_3_7",
+          "input_sha256": "5f6f7d1ad2995e9bf0874bb64308fd2cc65f2fd008a45fdda377cbf0be82469d",
+          "gold": "C",
+          "nll_change_10_to_15": 1.4489206075668335,
+          "nll_10": 1.2611886262893677,
+          "nll_15": 2.710109233856201,
+          "prediction_10": "D",
+          "prediction_15": "D",
+          "max_restricted_probability_10": 0.5303554031410936,
+          "max_restricted_probability_15": 0.9205304383334767
+        },
+        {
+          "id": "20230929_13_SN25_T1_192.168.0.12_2_5",
+          "input_sha256": "4addc8aac7c57203ea3483f283789f52936b25aa6d91ef5579c1ea6f5db49aba",
+          "gold": "C",
+          "nll_change_10_to_15": 0.46295952796936035,
+          "nll_10": 0.8724321126937866,
+          "nll_15": 1.335391640663147,
+          "prediction_10": "C",
+          "prediction_15": "D",
+          "max_restricted_probability_10": 0.41916214377534267,
+          "max_restricted_probability_15": 0.7180324945381095
+        },
+        {
+          "id": "20230929_48_SN35_T1_192.168.0.14_1_16",
+          "input_sha256": "f5ec42310fd2b90f3afd5badcf525683721d864e7a1edda1e993162ffe0ff363",
+          "gold": "A",
+          "nll_change_10_to_15": 0.20441603660583496,
+          "nll_10": 1.9420356750488281,
+          "nll_15": 2.146451711654663,
+          "prediction_10": "D",
+          "prediction_15": "D",
+          "max_restricted_probability_10": 0.6444712716223122,
+          "max_restricted_probability_15": 0.866567999810835
+        },
+        {
+          "id": "20230728_58_SY15_T1_Camera2_0_11",
+          "input_sha256": "9c382ef75ebce452233888bbe018317990bbc0b58e9acb20ad0043971870d15f",
+          "gold": "A",
+          "nll_change_10_to_15": 0.16604667901992798,
+          "nll_10": 0.8385940194129944,
+          "nll_15": 1.0046406984329224,
+          "prediction_10": "A",
+          "prediction_15": "C",
+          "max_restricted_probability_10": 0.44388424362844425,
+          "max_restricted_probability_15": 0.6162590759013912
+        }
+      ]
+    },
+    {
+      "seed": 43,
+      "arm": "adamw_bnb_8bit",
+      "raw_key": "final-seed43/matched_adamw_bnb_8bit/diagnostics/task_rows.jsonl",
+      "curve": [
+        {
+          "step": 0,
+          "accuracy": 0.46875,
+          "answer_nll": 1.8934099553784447,
+          "wrong_count": 17,
+          "mean_wrong_answer_nll": 3.4960077299791226,
+          "mean_wrong_max_restricted_probability": 0.7625140696728949,
+          "mean_all_max_restricted_probability": 0.8428550159696955
+        },
+        {
+          "step": 5,
+          "accuracy": 0.5,
+          "answer_nll": 0.9860917768673971,
+          "wrong_count": 16,
+          "mean_wrong_answer_nll": 1.5397956818342209,
+          "mean_wrong_max_restricted_probability": 0.47503352684805356,
+          "mean_all_max_restricted_probability": 0.5810275528141498
+        },
+        {
+          "step": 10,
+          "accuracy": 0.6875,
+          "answer_nll": 0.6971550607704557,
+          "wrong_count": 10,
+          "mean_wrong_answer_nll": 1.3740891814231873,
+          "mean_wrong_max_restricted_probability": 0.529474230971056,
+          "mean_all_max_restricted_probability": 0.6591461675239505
+        },
+        {
+          "step": 15,
+          "accuracy": 0.78125,
+          "answer_nll": 0.49767698418872897,
+          "wrong_count": 7,
+          "mean_wrong_answer_nll": 1.9372860874448503,
+          "mean_wrong_max_restricted_probability": 0.7834658052301542,
+          "mean_all_max_restricted_probability": 0.8887107558653817
+        }
+      ],
+      "largest_nll_increases": [
+        {
+          "id": "20230728_37_CN38_T1_Camera4_2_12",
+          "input_sha256": "056ddc0e8b08654f51a1937df2e598d0bff66b104a772f6835001bb2dd145d39",
+          "gold": "A",
+          "nll_change_10_to_15": 1.8655827045440674,
+          "nll_10": 1.5938029289245605,
+          "nll_15": 3.459385633468628,
+          "prediction_10": "C",
+          "prediction_15": "C",
+          "max_restricted_probability_10": 0.5531771382190518,
+          "max_restricted_probability_15": 0.9209882807853638
+        },
+        {
+          "id": "20230929_13_SN25_T1_192.168.0.28_3_7",
+          "input_sha256": "5f6f7d1ad2995e9bf0874bb64308fd2cc65f2fd008a45fdda377cbf0be82469d",
+          "gold": "C",
+          "nll_change_10_to_15": 1.3320971727371216,
+          "nll_10": 1.2612508535385132,
+          "nll_15": 2.5933480262756348,
+          "prediction_10": "D",
+          "prediction_15": "D",
+          "max_restricted_probability_10": 0.5303554031410936,
+          "max_restricted_probability_15": 0.9128291795969181
+        },
+        {
+          "id": "20230929_13_SN25_T1_192.168.0.12_2_5",
+          "input_sha256": "4addc8aac7c57203ea3483f283789f52936b25aa6d91ef5579c1ea6f5db49aba",
+          "gold": "C",
+          "nll_change_10_to_15": 0.4167739152908325,
+          "nll_10": 0.8278824090957642,
+          "nll_15": 1.2446563243865967,
+          "prediction_10": "C",
+          "prediction_15": "D",
+          "max_restricted_probability_10": 0.43820911677525093,
+          "max_restricted_probability_15": 0.6936365459836669
+        },
+        {
+          "id": "20230728_58_SY15_T1_Camera2_0_11",
+          "input_sha256": "9c382ef75ebce452233888bbe018317990bbc0b58e9acb20ad0043971870d15f",
+          "gold": "A",
+          "nll_change_10_to_15": 0.1866466999053955,
+          "nll_10": 0.8977358341217041,
+          "nll_15": 1.0843825340270996,
+          "prediction_10": "C",
+          "prediction_15": "C",
+          "max_restricted_probability_10": 0.4749179081608295,
+          "max_restricted_probability_15": 0.6453587857545228
+        },
+        {
+          "id": "20230929_48_SN35_T1_192.168.0.14_1_16",
+          "input_sha256": "f5ec42310fd2b90f3afd5badcf525683721d864e7a1edda1e993162ffe0ff363",
+          "gold": "A",
+          "nll_change_10_to_15": 0.17505550384521484,
+          "nll_10": 1.9699196815490723,
+          "nll_15": 2.144975185394287,
+          "prediction_10": "D",
+          "prediction_15": "D",
+          "max_restricted_probability_10": 0.6268009856188318,
+          "max_restricted_probability_15": 0.8677479936231094
+        }
+      ]
+    }
+  ],
+  "interpretation": "Seed29 accuracy improves10-to15 in both arms, but shared wrong examples become less probable under the gold answer; the largest shared error becomes almost certain on the same wrong choice. This is a shared development confidence problem, not evidence of a label defect or optimizer-specific cause. It supports investigating the already recorded lower shared LR without changing evaluation scoring or thresholds."
+}

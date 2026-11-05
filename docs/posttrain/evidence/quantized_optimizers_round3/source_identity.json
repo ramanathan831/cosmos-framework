@@ -19,12 +19,17 @@
       "commit": "360efca3b00baf6b30ecd8d5e3e3951f7105bcef",
       "native_tree": "45d30bb53fb3688c11b18bbdb1a27954b9cb7432",
       "analysis_file_sha256": "9987d35c2906690192d7f0ed967fd5b7169f5edddc23c95155a7db239537fd22"
+    },
+    "kv_precision_development": {
+      "commit": "e65f7eac8d7536171aa92ba7f7d019a8ea4b6998",
+      "native_tree": "45d30bb53fb3688c11b18bbdb1a27954b9cb7432"
     }
   },
   "archives": {
     "original_final": "a9bf74f63288723ccc55f357a39be3bd2e6d70a9bd39dbe8141fd93decdb55dd",
     "corrected_product": "531b0fbdcad066cc9484fdcf06204e2b9e069ea5f7f93ffc0e5f7752b4947ac4",
-    "native_arithmetic_diagnostic": "83ad99a4feaf0cbe737f83cac9f08a18aeb21964f3801d4bf725406b37044325"
+    "native_arithmetic_diagnostic": "83ad99a4feaf0cbe737f83cac9f08a18aeb21964f3801d4bf725406b37044325",
+    "kv_precision_development": "83ad99a4feaf0cbe737f83cac9f08a18aeb21964f3801d4bf725406b37044325"
   },
   "dependency_files_sha256": {
     "pyproject.toml": "009c4cf827ec61dd2d0cc6c5034a349d5167569b374a85a648ba8be497df9954",

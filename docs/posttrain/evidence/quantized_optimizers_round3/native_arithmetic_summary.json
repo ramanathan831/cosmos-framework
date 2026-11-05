@@ -2576,6 +2576,6 @@
       ]
     }
   ],
-  "interpretation": "All arms use the same full recomputation, FP32 trainables, BF16 compute, initialization, data order, schedule and15updates. Cumulative differences include gradient feedback, not just one-step kernel rounding. All final development accuracies87.5%; eight-bit NLL is slightly lower than both controls. This one-seed diagnostic supplies no development evidence for additional FP32 exceptions, and cannot pass the failed final quality guards. No new final scoring or precision changes.",
-  "next": "Shared lower-LR development candidate, separately costed and not admitted; no longer training duration or weakened threshold."
+  "interpretation": "All arms use identical full recomputation, FP32 trainables, BF16 compute, initialization, data order, schedule and 15 updates. Cumulative differences include gradient feedback, not just one-step kernel rounding. All final development accuracies are87.5%; eight-bit NLL is slightly lower than both controls. These quality observations do not justify adopting extra FP32 exceptions or pass the failed final quality guards. The large local K/V update deviations motivated the separately locked kv_precision_probe.json development screen; that screen must pass before any adoption.",
+  "next": "Evaluate the predeclared K/V precision screen first. A shared lower-LR development candidate is separately costed and not admitted; no longer training duration or weakened threshold."
 }

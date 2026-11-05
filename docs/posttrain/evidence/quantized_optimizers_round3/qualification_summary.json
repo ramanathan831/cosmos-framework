@@ -1,0 +1,424 @@
+{
+  "recorded_utc": "2026-11-05T01:54:14.076611+00:00",
+  "campaign": "Third campaign: task adaptation, actual equal-time states, end-to-end outcome improvement and dense recovery",
+  "status": "BOUNDED_CAMPAIGN_COMPLETE_PRODUCT_OBJECTIVE_OPEN",
+  "product_objective_achieved": false,
+  "qualification_status": "The unchanged matched-quality, equal-budget NLL gain and end-to-end speed confidence gates are unmet. Implementation correctness, positive adaptation, optimizer-state savings and narrower native-loop gains do not substitute for those requirements.",
+  "branch": "feat/quantized-optimizers",
+  "continued_from": "1d250b47068a1fa71c3932988c1e7e6f90a47734",
+  "publication": "Local commits and proposed_pr.md only. No push, new publication or merge. PR334 remains closed; original QLoRA checkout untouched.",
+  "supported_matrix": {
+    "optimizers": [
+      "adamw_bnb_8bit",
+      "paged_adamw_8bit"
+    ],
+    "execution": "One CUDA GPU, ordinary contiguous FP32 trainable Parameters and gradients; independent forward compute precision.",
+    "recovery": "Consolidated same-identity exact recovery, including lazy states, integer moments, maps/scales, clocks and reconstructed managed allocations.",
+    "unsupported": [
+      "BF16/FP16 trainables requiring absent FP32 masters",
+      "multi-rank/DDP/FSDP/DTensor",
+      "DCP",
+      "optimizer offload",
+      "sparse gradients and noncontiguous trainables"
+    ],
+    "paged_evidence": "Capacity/ownership/recovery canaries only; no sustained paging throughput or task-quality claim.",
+    "adapter_evidence": "Prior BF16/NF4 integration remains separately bound in source_identity.json; no QLoRA merge or new integration claim."
+  },
+  "completed": {
+    "original_final_training_runs": 36,
+    "original_final_score_files_including_frozen": 37,
+    "corrected_product_training_runs": 6,
+    "corrected_product_fresh_score_files": 6,
+    "native_arithmetic_development_runs": 3,
+    "kv_precision_development_runs": 3,
+    "dense_fresh_process_recovery": "Both fused and nonpaged40-to44 pairs pass every resumed update41,42,43,44; live parameters, full final model, moments/scales/maps, scheduler, RNG, data cursor and counters match.",
+    "all_owned_jobs_terminal": true,
+    "dependent_evaluations_queued": false
+  },
+  "verified_changes": [
+    "Stage group metadata before optimizer restore mutation; paged/nonpaged CUDA failure injection preserves live state and next update.",
+    "Repair evaluation-only annotation footer conversion; original training bytes and historical single-letter scoring retained.",
+    "Shared development-selected mixed substantive/choice objective and row weighting improve the intended restricted-choice task; original substantive targets retained.",
+    "Move eligible ordinary16-bit checkpoint widening from CPU to CUDA after transfer, with exhaustive value/prediction parity; direct committed-model scoring avoids redundant pretrained loading.",
+    "Support explicit selective activation checkpointing with exact-resume identity; tested capacity candidates retained even when they OOM.",
+    "Finish required validation before advance qualification budget notices, retaining actual-signal preemption; original censored endpoint preserved and all six corrected product states independently scored."
+  ],
+  "unchanged_release_gates": {
+    "matched_task_nll": false,
+    "matched_task_accuracy": false,
+    "substantive_development_nll": true,
+    "positive_baseline_adaptation": true,
+    "positive_quantized_adaptation": true,
+    "equal_training_budget_quality_gain": false,
+    "equal_product_budget_quality_gain": false,
+    "prepared_end_to_end_time_to_quality": false,
+    "cold_end_to_end_time_to_quality": false,
+    "optimizer_state_saving": true,
+    "repeated_native_throughput": true
+  },
+  "matched_update": {
+    "updates": {
+      "adamw": [
+        15,
+        15,
+        15
+      ],
+      "adamw_bnb_8bit": [
+        15,
+        15,
+        15
+      ]
+    },
+    "baseline_accuracy": {
+      "mean": 0.7682291666666666,
+      "ci95": [
+        0.7278295962561802,
+        0.8086287370771531
+      ],
+      "n": 3
+    },
+    "quantized_accuracy": {
+      "mean": 0.765625,
+      "ci95": [
+        0.7268103482539011,
+        0.8044396517460989
+      ],
+      "n": 3
+    },
+    "frozen_accuracy": 0.59375,
+    "nll_ratio": {
+      "mean": 1.0045844392179701,
+      "ci95": [
+        0.9677897569774802,
+        1.04137912145846
+      ],
+      "n": 3
+    },
+    "accuracy_drop": {
+      "mean": 0.0026041666666666665,
+      "ci95": [
+        -0.008600658150389226,
+        0.013808991483722558
+      ],
+      "n": 3
+    },
+    "crossed_seed_recording_bootstrap": {
+      "nll_ratio": {
+        "ci95": [
+          0.9885353119414556,
+          1.0225542217096608
+        ]
+      },
+      "accuracy_drop": {
+        "ci95": [
+          0.0,
+          0.015625
+        ]
+      },
+      "nll_improvement": {
+        "ci95": [
+          -0.029636255260358742,
+          0.010209512434039412
+        ]
+      },
+      "baseline_adaptation": {
+        "ci95": [
+          0.078125,
+          0.27083333333333337
+        ]
+      },
+      "quantized_adaptation": {
+        "ci95": [
+          0.07552083333333337,
+          0.26822916666666663
+        ]
+      }
+    }
+  },
+  "equal_training_budget": {
+    "updates": {
+      "adamw": [
+        10,
+        10,
+        10
+      ],
+      "adamw_bnb_8bit": [
+        10,
+        12,
+        11
+      ]
+    },
+    "all_checkpoints_eligible": true,
+    "nll_improvement": {
+      "mean": -0.14823732463210604,
+      "ci95": [
+        -0.6445865209904879,
+        0.3481118717262758
+      ],
+      "n": 3
+    },
+    "equal_budget_gain_gate": false
+  },
+  "equal_product_budget": {
+    "updates": {
+      "adamw": [
+        5,
+        10,
+        5
+      ],
+      "adamw_bnb_8bit": [
+        15,
+        15,
+        15
+      ]
+    },
+    "all_checkpoints_eligible": true,
+    "baseline_accuracy": {
+      "mean": 0.6770833333333334,
+      "ci95": [
+        0.617792973433384,
+        0.7363736932332827
+      ],
+      "n": 3
+    },
+    "quantized_accuracy": {
+      "mean": 0.765625,
+      "ci95": [
+        0.7268103482539011,
+        0.8044396517460989
+      ],
+      "n": 3
+    },
+    "baseline_nll": {
+      "mean": 0.8160407523683565,
+      "ci95": [
+        0.6362036663780234,
+        0.9958778383586896
+      ],
+      "n": 3
+    },
+    "quantized_nll": {
+      "mean": 1.1598960996007246,
+      "ci95": [
+        0.42539190045347397,
+        1.8944002987479753
+      ],
+      "n": 3
+    },
+    "nll_improvement": {
+      "mean": -0.34385534723236805,
+      "ci95": [
+        -1.0397587971187296,
+        0.3520481026539935
+      ],
+      "n": 3
+    },
+    "accuracy_drop": {
+      "mean": -0.08854166666666667,
+      "ci95": [
+        -0.11095131630077845,
+        -0.06613201703255489
+      ],
+      "n": 3
+    },
+    "crossed_seed_recording_bootstrap": {
+      "nll_ratio": {
+        "ci95": [
+          0.9767930903986651,
+          1.8833248806435123
+        ]
+      },
+      "accuracy_drop": {
+        "ci95": [
+          -0.15625,
+          -0.020833333333333332
+        ]
+      },
+      "nll_improvement": {
+        "ci95": [
+          -0.7574186285184148,
+          0.018028732452641243
+        ]
+      },
+      "baseline_adaptation": {
+        "ci95": [
+          0.0,
+          0.16412760416666572
+        ]
+      },
+      "quantized_adaptation": {
+        "ci95": [
+          0.07552083333333337,
+          0.26822916666666663
+        ]
+      }
+    },
+    "equal_budget_gain_gate": false
+  },
+  "equal_budget_interpretation": "Corrected390-second product-budget accuracy improves with positive paired-seed and recording-bootstrap gain bounds, but gold-answer NLL worsens and the prespecified quality-gain requirement fails. The60-second training-budget NLL gain also fails. Actual selected states, not inferred development curves, are scored.",
+  "time_to_quality": {
+    "prepared_delivery_seconds": {
+      "mean": 1.0588538520342656,
+      "ci95": [
+        1.0156031316057552,
+        1.102104572462776
+      ],
+      "n": 3,
+      "paired_restarts_by_seed": [
+        [
+          1.0810467079794372,
+          1.061353752168799,
+          1.0757460689770624
+        ],
+        [
+          0.9946453363153032,
+          1.0484300602838827,
+          1.0748620995722435
+        ],
+        [
+          1.0544576187619976,
+          1.0859530739478775,
+          1.0531899503017867
+        ]
+      ],
+      "speed_gate": false
+    },
+    "cold_delivery_seconds": {
+      "mean": 1.0086751812566597,
+      "ci95": [
+        1.0030715952983444,
+        1.014278767214975
+      ],
+      "n": 3,
+      "paired_restarts_by_seed": [
+        [
+          1.0116318008019798,
+          1.008884760783553,
+          1.0106670034401841
+        ],
+        [
+          0.9991861452869408,
+          1.0071344157943716,
+          1.0120425028226676
+        ],
+        [
+          1.007912980243461,
+          1.0126228213161121,
+          1.0079942008206666
+        ]
+      ],
+      "speed_gate": false
+    },
+    "training_validation_seconds": {
+      "mean": 1.1301892172592416,
+      "ci95": [
+        1.052359726128682,
+        1.2080187083898013
+      ],
+      "n": 3,
+      "paired_restarts_by_seed": [
+        [
+          1.1083122815083764,
+          1.133354856778942,
+          1.1421909531105572
+        ],
+        [
+          1.089527489785721,
+          1.0640180527635223,
+          1.1465649118799421
+        ],
+        [
+          1.1730687151599797,
+          1.1321842512350704,
+          1.1824814431110644
+        ]
+      ],
+      "speed_gate": true
+    }
+  },
+  "native_throughput": {
+    "mean": 1.3556761257014038,
+    "ci95": [
+      1.2661065385659596,
+      1.445245712836848
+    ],
+    "n": 3
+  },
+  "native_throughput_scope": {
+    "designs": [
+      "target_restart0",
+      "target_restart1",
+      "target_restart2"
+    ],
+    "observed_optimizer_steps": [
+      5
+    ],
+    "description": "Native loop including lazy state allocation, averaged within seed over target restarts. Separate from matched15-update runs and the historical40-update campaign."
+  },
+  "state_bytes": {
+    "fused": 24697144000,
+    "eight_bit": 6271567872,
+    "saving_fraction": 0.7460610072160571
+  },
+  "total_memory": "phase_memory_summary.json retains whole-device/process/PyTorch/host scopes and uncertainty. Matched whole-device72.58/71.80GiB; training/checkpoint hostPSS5.76/10.71GiB; full delivery33.38/33.68GiB. Fused/eight-bit order; savings partly fund activations.",
+  "development_decisions": {
+    "shorter_cosine_horizon": "Rejected: mean task NLL+4.31%, every accuracy lower, two substantive guards failed.",
+    "decoder_threads_one": "Rejected: exact input parity but slower target decoding; default retained.",
+    "kv_fp32_state": "Rejected: mean task NLL+1.805%, every accuracy unchanged; exact32selectors/71.36%state saving verified. No final scoring.",
+    "arithmetic_control": "No demonstrated development quality deficit in one-seed fused/bnbFP32/bnb8bit diagnostic. Cumulative update differences include gradient feedback; no single-step error interpretation.",
+    "shared_confidence": "development_confidence.json retains common wrong-answer confidence deterioration despite higher accuracy; no label-defect inference."
+  },
+  "evaluation_honesty": {
+    "authorized_pool": "Reuse QLoRA train/eval as explicitly requested.",
+    "recording_families": 32,
+    "questions": 128,
+    "paired_seeds": [
+      17,
+      29,
+      43
+    ],
+    "separation": "Fixed final manifest disjoint from repaired train/development by recording family; all families historically exposed.",
+    "independent_replication_qualified": false,
+    "original_results_preserved": true,
+    "final_data_used_to_select_kv_policy": false,
+    "cold_limitation": "Common measured full preparation cost; one full preparation measurement does not establish its between-run uncertainty."
+  },
+  "cost": {
+    "closed_allocations": true,
+    "all_owned_jobs_terminal": true,
+    "jobs": 37,
+    "as_of_utc": "2026-11-05T01:51:27.902509+00:00",
+    "slurm_gpu_seconds": 23324,
+    "local_gpu_seconds_conservatively_charged": 60,
+    "total_charged_gpu_seconds": 23384,
+    "gpu_cap_seconds": 28800,
+    "gpu_headroom_seconds": 5416,
+    "slurm_cpu_only_wall_seconds": 6835,
+    "local_cpu_seconds_conservatively_charged": 180,
+    "total_charged_cpu_wall_seconds": 7015,
+    "cpu_wall_cap_seconds": 7200,
+    "cpu_headroom_seconds": 185,
+    "active_or_unsubmitted_reservations": 0,
+    "failed_or_timed_out_seconds": 1447,
+    "cancelled_allocated_seconds": 175,
+    "policy": "Terminal Slurm ElapsedRaw includes failures and grace; unstarted cancellations cost0. All required dependent evaluation finished. Historical campaign costs remain separately recorded. Remaining allowance is not called exhaustion.",
+    "next_complete_campaign_gpu_reservation_seconds": 15660,
+    "next_three_full_cold_replications_cpu_reservation_seconds": 7200,
+    "admission": "Remaining allowance cannot reserve the next conditional development plus complete final comparison. No new jobs admitted, thresholds unchanged, product objective remains open."
+  },
+  "next_intervention": "next_shared_lr_probe.json is executable but not admitted. Same15-update/40-horizon recipe with LR7.5e-6, strict development screen, equal optimizer tuning access and separately locked final comparison. No promised improvement; reserve complete dependent work before admission.",
+  "artifacts": {
+    "support_recipe": "../../quantized_optimizers.md",
+    "requirements": "requirements.md",
+    "original_locked_results": "summary.json",
+    "corrected_product": "corrected_product/summary.json",
+    "raw_original": "outcomes_raw.json.gz",
+    "raw_corrected": "product_repair_raw.json.gz",
+    "arithmetic": "native_arithmetic_summary.json",
+    "precision_probe": "kv_precision_summary.json",
+    "source": "source_identity.json",
+    "slurm": "final_allocation_receipt.txt",
+    "publication_draft": "proposed_pr.md"
+  },
+  "inference": "No inference-latency claim; model-only export does not require optimizer implementation."
+}

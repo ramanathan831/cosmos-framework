@@ -506,7 +506,8 @@ retain the substantive-only and lower-LR controls.
 
 Across the three seeds, development accuracy at update 15 matches between
 optimizers (87.5%, 84.375%, 78.125%), with slightly lower eight-bit task NLL in
-each seed. There is no development deficit motivating new FP32-state exceptions.
+each seed. These quality observations do not justify adopting additional
+FP32-state exceptions.
 Both arms show late NLL deterioration for seed29. A separately locked development
 probe shortened the cosine horizon from 40 to 15 while keeping the same 15 updates,
 initial LR, data order and trainables. It helped seed29's NLL but worsened mean
@@ -514,6 +515,47 @@ task NLL by 4.31%, reduced accuracy in all three seeds and worsened substantive
 NLL in two. The candidate failed its prespecified guards and was rejected without
 new final scoring. Its [raw results and decision](evidence/quantized_optimizers_round3/short_schedule_summary.json)
 and 812 GPU-seconds remain in the evidence and ledger.
+
+The [development confidence audit](evidence/quantized_optimizers_round3/development_confidence.json)
+helps explain the accuracy/NLL trade-off. For seed29, both arms improve accuracy
+from 78.125% at update10 to 84.375% at update15 while NLL worsens. On the largest
+shared deteriorating example, the same wrong letter remains selected: its
+four-choice probability rises from about 0.80/0.78 to 0.99956, and gold-answer
+NLL rises from 1.60/1.50 to 7.75 for fused/eight-bit. This is evidence of a shared
+confidence problem on development data, not proof of a quantization defect or a
+label error. All inputs/gold mappings are unchanged; per-question records and
+all six development curves are retained. The next shared LR candidate is based
+on these development curves, without post-hoc final checkpoint selection.
+
+A [native arithmetic diagnostic](evidence/quantized_optimizers_round3/native_arithmetic_summary.json)
+compared fused AdamW, bitsandbytes FP32-state AdamW and eight-bit AdamW under
+identical full recomputation for seed17 and 15 updates. All three reached 87.5%
+development accuracy; task NLL was 0.522715, 0.524023 and 0.519571 respectively.
+The FP32-state control uses the supported minimum-size setting above every
+trainable tensor, with zero quantized state elements verified after allocation.
+It does not introduce another public optimizer name.
+
+CUDA comparisons cover all 176 trainable tensors against the exact pretrained
+initial values. Cumulative update relative L2 differences are 2.24% for
+fused versus bitsandbytes FP32 state and 3.48% for bitsandbytes FP32 versus eight-bit
+state. These include gradient feedback across 15 updates; they are not single-step
+kernel errors. The largest absolute latter difference is 0.003458 in layer31's
+V projection. Six of the seven largest absolute differences are in K/V projections,
+motivating a bounded development test of FP32 moments for those 32 tensors. Neither
+the arithmetic comparison nor development accuracy can pass the failed final
+quality guards.
+
+The [three-seed K/V precision screen](evidence/quantized_optimizers_round3/kv_precision_summary.json)
+completed and was rejected. FP32 moments for the 32 K/V projections preserve
+87.5%, 84.375% and 78.125% development accuracy, but mean task NLL worsens 1.805%
+instead of meeting the locked 2% improvement requirement. Substantive NLL and
+state-accounting checks pass. Actual tensor state is 7,072,679,936 bytes, a 71.36%
+saving against fused; all 32 explicit and 64 small-tensor exceptions match.
+Descriptive mean peaks are 72.67 GiB whole device, 71.99 GiB process GPU and
+11.46 GiB host PSS, with 20.81 seconds native training. Historical controls are
+not a new paired timing experiment. All three runs completed 15 applied updates
+without skips. Default precision, final results and thresholds remain unchanged;
+no final examples were scored to select this policy. All 733 GPU-seconds are charged.
 
 The native recipe is runnable without the qualification wrapper:
 
@@ -674,6 +716,23 @@ memory reduction. Every scope and confidence interval is retained in the report.
 ![Corrected product-budget endpoint, with unchanged original comparisons](evidence/quantized_optimizers_round3/corrected_product/quality_time.png)
 ![Measured memory versus native throughput](evidence/quantized_optimizers_round3/memory_throughput.png)
 
+The campaign's [final accounting](evidence/quantized_optimizers_round3/final_accounting.json)
+charges 23,384 GPU-seconds (6.496 hours) and 7,015 CPU-wall seconds (1.949 hours),
+including failures and conservative local-check allowances. All 37 owned Slurm
+allocations are terminal; no dependent evaluations remain queued. Headroom is
+5,416 GPU-seconds and 185 CPU-wall seconds, not an exhausted allowance or a passed
+release. The requested product objective remains open.
+
+The executable [next shared-LR development probe](evidence/quantized_optimizers_round3/next_shared_lr_probe.json)
+tests 7.5e-6 at the same 15 updates and 40-update schedule, first under fused AdamW
+and, only if its strict development screen passes, under eight-bit with the same
+candidate and tuning budget. Reserving both development stages and a complete
+three-seed final comparison requires 15,660 GPU-seconds (4.35 hours), based on
+the observed runs and proven allocation limits. Three full cold-preparation
+replications additionally reserve 7,200 CPU-wall seconds. Those complete dependent
+comparisons do not fit the remaining caps, so the next probe is not submitted.
+Its outcome is unknown; no improvement or qualification is promised.
+
 ## Reproduction and source identities
 
 [Qualification commands](../../tools/quantized_optimizers/README.md) cover data
@@ -683,6 +742,12 @@ and [completed follow-up status](evidence/quantized_optimizers_round2/qualificat
 link each result, gate and remaining requirement. The
 [current proposed PR](evidence/quantized_optimizers_round3/proposed_pr.md)
 describes the combined implementation and measured limitations; it has not been published.
+[Third-campaign status](evidence/quantized_optimizers_round3/qualification_summary.json),
+[requirement-to-evidence map](evidence/quantized_optimizers_round3/requirements.md),
+[source identities](evidence/quantized_optimizers_round3/source_identity.json) and
+[artifact manifest](evidence/quantized_optimizers_round3/evidence_manifest.json)
+bind the completed recovery, development and actual-budget comparisons separately
+from both historical campaigns.
 [Provenance](evidence/quantized_optimizers/provenance.json) retains every failed,
 canceled and completed allocation, dependency/source identities and budget receipts.
 The mainline and integration archives are separate; the integration-only patch is

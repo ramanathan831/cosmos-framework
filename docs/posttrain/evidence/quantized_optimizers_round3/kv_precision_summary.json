@@ -1,0 +1,688 @@
+{
+  "complete": true,
+  "job": "37988222",
+  "charged_gpu_seconds": 733,
+  "raw_sha256": "c83af8391f31da3ae6c355387f9d938c589026903fd46d39e1b41c9471b4196d",
+  "protocol_sha256": "53dd556210811d136e761c75acfdc17968a09784bd89ca8ad1f76beb6fa9a3dd",
+  "source_commit": "e65f7ea",
+  "runtime": {
+    "mode": "study",
+    "versions": {
+      "torch": "2.11.0+cu128",
+      "transformers": "5.8.1",
+      "bitsandbytes": "0.49.2"
+    },
+    "node": "batch-block4-0052",
+    "gpu_uuid": "GPU-ef6dab63-ff8f-0296-49b3-0dc8f8d86b8f",
+    "cpu_affinity": [
+      40,
+      41,
+      42,
+      43,
+      164,
+      165,
+      166,
+      167
+    ],
+    "source_archive": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/source-native-diagnostic.tgz",
+    "source_archive_sha256": "83ad99a4feaf0cbe737f83cac9f08a18aeb21964f3801d4bf725406b37044325",
+    "prepared_corpus_sha256": "ea2e64893ab3d7da0f4c8be33001ae99c96dfd2c54fe293449c29255cd1f2d70",
+    "staging_seconds": 29.69959860399831,
+    "allocation_bootstrap_seconds": 43.964072218,
+    "setup_seconds": 73.66367082199831,
+    "setup_contract": "Batch-shell start through container/source setup, CUDA preflight and prepared-corpus staging; excludes scheduler queue time. Charged once to every independently delivered product run.",
+    "preparation_cpu_seconds": 760.4734641199466
+  },
+  "scope": "Three-seed development-only FP32 K/V state screen; no final scoring. Timing/memory are descriptive, historical controls are not a matched repeated timing experiment.",
+  "candidate_mean_task_nll_over_control": 1.018049503828454,
+  "gates": {
+    "mean_task_nll_improvement_at_least_2_percent": false,
+    "no_seed_accuracy_loss": true,
+    "each_substantive_nll_ratio_at_most_1_01": true,
+    "state_saving_at_least_60_percent": true,
+    "exact_selectors_and_no_skips": true
+  },
+  "accepted": false,
+  "rows": [
+    {
+      "seed": 17,
+      "curve": [
+        {
+          "step": 0,
+          "elapsed_seconds": 85.18489882501308,
+          "task_seconds": 7.973746291012503,
+          "substantive_validation": {
+            "val/loss_avg": 1.0873957560639855,
+            "val/valid_token_count": 1346,
+            "val/valid_sequence_count": 16,
+            "timer/validation_s": 5.804178360966034
+          },
+          "metrics": {
+            "rows": 32,
+            "native_supervised_tokens": 64,
+            "restricted_choice_accuracy": 0.46875,
+            "strict_first_token_accuracy": 0.46875,
+            "valid_letter_rate": 1.0,
+            "token_weighted_ce": 0.9467276870585016,
+            "answer_nll": 1.8934099553784447,
+            "restricted_choice_nll": 1.893409124522307,
+            "restricted_choice_tied_rows": 0,
+            "strict_first_token_tied_rows": 0,
+            "unique_exact_video_content_clusters": 27
+          }
+        },
+        {
+          "step": 5,
+          "elapsed_seconds": 103.88075074297376,
+          "task_seconds": 8.396437252988108,
+          "substantive_validation": {
+            "val/loss_avg": 0.3835956389181327,
+            "val/valid_token_count": 1346,
+            "val/valid_sequence_count": 16,
+            "timer/validation_s": 2.8643260670360178
+          },
+          "metrics": {
+            "rows": 32,
+            "native_supervised_tokens": 64,
+            "restricted_choice_accuracy": 0.65625,
+            "strict_first_token_accuracy": 0.65625,
+            "valid_letter_rate": 1.0,
+            "token_weighted_ce": 0.41634654470544774,
+            "answer_nll": 0.8315535299479961,
+            "restricted_choice_nll": 0.8288747989281546,
+            "restricted_choice_tied_rows": 2,
+            "strict_first_token_tied_rows": 2,
+            "unique_exact_video_content_clusters": 27
+          }
+        },
+        {
+          "step": 10,
+          "elapsed_seconds": 121.64115972700529,
+          "task_seconds": 7.872209565946832,
+          "substantive_validation": {
+            "val/loss_avg": 0.24884086307055175,
+            "val/valid_token_count": 1346,
+            "val/valid_sequence_count": 16,
+            "timer/validation_s": 2.8861490030540153
+          },
+          "metrics": {
+            "rows": 32,
+            "native_supervised_tokens": 64,
+            "restricted_choice_accuracy": 0.8125,
+            "strict_first_token_accuracy": 0.8125,
+            "valid_letter_rate": 1.0,
+            "token_weighted_ce": 0.354665604638285,
+            "answer_nll": 0.7090690616460051,
+            "restricted_choice_nll": 0.7072666370077059,
+            "restricted_choice_tied_rows": 0,
+            "strict_first_token_tied_rows": 0,
+            "unique_exact_video_content_clusters": 27
+          }
+        },
+        {
+          "step": 15,
+          "elapsed_seconds": 193.80373653501738,
+          "task_seconds": 8.461179426987655,
+          "substantive_validation": {
+            "val/loss_avg": 0.2787201401250323,
+            "val/valid_token_count": 1346,
+            "val/valid_sequence_count": 16,
+            "timer/validation_s": 3.1118280340451747
+          },
+          "metrics": {
+            "rows": 32,
+            "native_supervised_tokens": 64,
+            "restricted_choice_accuracy": 0.875,
+            "strict_first_token_accuracy": 0.875,
+            "valid_letter_rate": 1.0,
+            "token_weighted_ce": 0.261678238368404,
+            "answer_nll": 0.5232931808368448,
+            "restricted_choice_nll": 0.521035156394646,
+            "restricted_choice_tied_rows": 0,
+            "strict_first_token_tied_rows": 0,
+            "unique_exact_video_content_clusters": 27
+          }
+        }
+      ],
+      "control": {
+        "step": 15,
+        "elapsed_seconds": 167.10899484099355,
+        "task_seconds": 8.563911158940755,
+        "substantive_validation": {
+          "val/loss_avg": 0.2765065218594595,
+          "val/valid_token_count": 1346,
+          "val/valid_sequence_count": 16,
+          "timer/validation_s": 3.308771062991582
+        },
+        "metrics": {
+          "rows": 32,
+          "native_supervised_tokens": 64,
+          "restricted_choice_accuracy": 0.875,
+          "strict_first_token_accuracy": 0.875,
+          "valid_letter_rate": 1.0,
+          "token_weighted_ce": 0.25981915318789106,
+          "answer_nll": 0.5195713894881919,
+          "restricted_choice_nll": 0.5172136613000475,
+          "restricted_choice_tied_rows": 0,
+          "strict_first_token_tied_rows": 0,
+          "unique_exact_video_content_clusters": 27
+        }
+      },
+      "task_nll_ratio": 1.0071631953258995,
+      "accuracy_change": 0.0,
+      "substantive_nll_ratio": 1.0080056638472272,
+      "state": {
+        "trainable_elements": 3087142912,
+        "quantized_elements": 2952790016,
+        "fp32_elements": 134352896,
+        "moment_bytes": 6980403200,
+        "metadata_bytes": 92276736,
+        "paged_moment_bytes": 0,
+        "uninitialized_elements": 0
+      },
+      "total_tensor_state_bytes": 7072679936,
+      "state_saving_fraction": 0.7136235697536525,
+      "exception_counts": {
+        "explicit": 32,
+        "small_tensor": 64
+      },
+      "verified_explicit_names": [
+        "model.language_model.layers.16.self_attn.k_proj.weight",
+        "model.language_model.layers.16.self_attn.v_proj.weight",
+        "model.language_model.layers.17.self_attn.k_proj.weight",
+        "model.language_model.layers.17.self_attn.v_proj.weight",
+        "model.language_model.layers.18.self_attn.k_proj.weight",
+        "model.language_model.layers.18.self_attn.v_proj.weight",
+        "model.language_model.layers.19.self_attn.k_proj.weight",
+        "model.language_model.layers.19.self_attn.v_proj.weight",
+        "model.language_model.layers.20.self_attn.k_proj.weight",
+        "model.language_model.layers.20.self_attn.v_proj.weight",
+        "model.language_model.layers.21.self_attn.k_proj.weight",
+        "model.language_model.layers.21.self_attn.v_proj.weight",
+        "model.language_model.layers.22.self_attn.k_proj.weight",
+        "model.language_model.layers.22.self_attn.v_proj.weight",
+        "model.language_model.layers.23.self_attn.k_proj.weight",
+        "model.language_model.layers.23.self_attn.v_proj.weight",
+        "model.language_model.layers.24.self_attn.k_proj.weight",
+        "model.language_model.layers.24.self_attn.v_proj.weight",
+        "model.language_model.layers.25.self_attn.k_proj.weight",
+        "model.language_model.layers.25.self_attn.v_proj.weight",
+        "model.language_model.layers.26.self_attn.k_proj.weight",
+        "model.language_model.layers.26.self_attn.v_proj.weight",
+        "model.language_model.layers.27.self_attn.k_proj.weight",
+        "model.language_model.layers.27.self_attn.v_proj.weight",
+        "model.language_model.layers.28.self_attn.k_proj.weight",
+        "model.language_model.layers.28.self_attn.v_proj.weight",
+        "model.language_model.layers.29.self_attn.k_proj.weight",
+        "model.language_model.layers.29.self_attn.v_proj.weight",
+        "model.language_model.layers.30.self_attn.k_proj.weight",
+        "model.language_model.layers.30.self_attn.v_proj.weight",
+        "model.language_model.layers.31.self_attn.k_proj.weight",
+        "model.language_model.layers.31.self_attn.v_proj.weight"
+      ],
+      "complete": true,
+      "actual_updates": 15,
+      "skipped_updates": 0,
+      "attempt_seconds": 238.28527838992886,
+      "native_training_seconds": 20.92303694691509,
+      "original_control_native_training_seconds": 20.738029233994894,
+      "peak_allocated": 71099942400,
+      "peak_reserved": 75824627712,
+      "external_memory_peaks": {
+        "device_used": 77632569344,
+        "matched_process_gpu_bytes": 76898369536,
+        "process_tree_pss": 12305838080,
+        "process_tree_rss": 12474818560
+      },
+      "original_control_external_memory_peaks": {
+        "device_used": 76588187648,
+        "matched_process_gpu_bytes": 75853987840,
+        "process_tree_pss": 11443220480,
+        "process_tree_rss": 11549544448
+      },
+      "phase_seconds": {
+        "build_backbone": 10.96988824591972,
+        "build_trainer": 28.390629032975994,
+        "checkpoint": 54.02443426800892,
+        "dataset_identity": 25.045640965923667,
+        "load_weights": 5.090688419062644,
+        "optimizer_snapshot": 1.6825328329578042,
+        "prepared_verification": 12.239663805929013,
+        "train_step": 20.904965945868753
+      },
+      "matched_control_checks": [
+        "exact initialization predictions",
+        "same pretrained file hashes and prepared corpus",
+        "same input/gold/positions, data tokens and learning rate per update",
+        "same 15 applied updates; no skips; exact 32 FP32 selectors"
+      ]
+    },
+    {
+      "seed": 29,
+      "curve": [
+        {
+          "step": 0,
+          "elapsed_seconds": 68.43215298897121,
+          "task_seconds": 8.080530637991615,
+          "substantive_validation": {
+            "val/loss_avg": 1.0873957560639855,
+            "val/valid_token_count": 1346,
+            "val/valid_sequence_count": 16,
+            "timer/validation_s": 3.721747637959197
+          },
+          "metrics": {
+            "rows": 32,
+            "native_supervised_tokens": 64,
+            "restricted_choice_accuracy": 0.46875,
+            "strict_first_token_accuracy": 0.46875,
+            "valid_letter_rate": 1.0,
+            "token_weighted_ce": 0.9467276870585016,
+            "answer_nll": 1.8934099553784447,
+            "restricted_choice_nll": 1.893409124522307,
+            "restricted_choice_tied_rows": 0,
+            "strict_first_token_tied_rows": 0,
+            "unique_exact_video_content_clusters": 27
+          }
+        },
+        {
+          "step": 5,
+          "elapsed_seconds": 86.175541538978,
+          "task_seconds": 8.166422631009482,
+          "substantive_validation": {
+            "val/loss_avg": 0.4915802805154497,
+            "val/valid_token_count": 1346,
+            "val/valid_sequence_count": 16,
+            "timer/validation_s": 2.856231912970543
+          },
+          "metrics": {
+            "rows": 32,
+            "native_supervised_tokens": 64,
+            "restricted_choice_accuracy": 0.65625,
+            "strict_first_token_accuracy": 0.65625,
+            "valid_letter_rate": 1.0,
+            "token_weighted_ce": 0.38534816092578694,
+            "answer_nll": 0.7665600766194984,
+            "restricted_choice_nll": 0.7648267667973414,
+            "restricted_choice_tied_rows": 1,
+            "strict_first_token_tied_rows": 1,
+            "unique_exact_video_content_clusters": 27
+          }
+        },
+        {
+          "step": 10,
+          "elapsed_seconds": 104.09190060000401,
+          "task_seconds": 8.15822876302991,
+          "substantive_validation": {
+            "val/loss_avg": 0.20295455622283345,
+            "val/valid_token_count": 1346,
+            "val/valid_sequence_count": 16,
+            "timer/validation_s": 2.884104448952712
+          },
+          "metrics": {
+            "rows": 32,
+            "native_supervised_tokens": 64,
+            "restricted_choice_accuracy": 0.78125,
+            "strict_first_token_accuracy": 0.78125,
+            "valid_letter_rate": 1.0,
+            "token_weighted_ce": 0.3330116600795918,
+            "answer_nll": 0.6659863133272665,
+            "restricted_choice_nll": 0.6649795843604807,
+            "restricted_choice_tied_rows": 0,
+            "strict_first_token_tied_rows": 0,
+            "unique_exact_video_content_clusters": 27
+          }
+        },
+        {
+          "step": 15,
+          "elapsed_seconds": 170.05752082599793,
+          "task_seconds": 8.234696494997479,
+          "substantive_validation": {
+            "val/loss_avg": 0.17725795201879732,
+            "val/valid_token_count": 1346,
+            "val/valid_sequence_count": 16,
+            "timer/validation_s": 3.128675197949633
+          },
+          "metrics": {
+            "rows": 32,
+            "native_supervised_tokens": 64,
+            "restricted_choice_accuracy": 0.84375,
+            "strict_first_token_accuracy": 0.84375,
+            "valid_letter_rate": 1.0,
+            "token_weighted_ce": 0.3762614002852729,
+            "answer_nll": 0.7525113676703654,
+            "restricted_choice_nll": 0.7498069984504347,
+            "restricted_choice_tied_rows": 0,
+            "strict_first_token_tied_rows": 0,
+            "unique_exact_video_content_clusters": 27
+          }
+        }
+      ],
+      "control": {
+        "step": 15,
+        "elapsed_seconds": 166.78178017912433,
+        "task_seconds": 8.507823483087122,
+        "substantive_validation": {
+          "val/loss_avg": 0.1771083262708885,
+          "val/valid_token_count": 1346,
+          "val/valid_sequence_count": 16,
+          "timer/validation_s": 2.9389466349966824
+        },
+        "metrics": {
+          "rows": 32,
+          "native_supervised_tokens": 64,
+          "restricted_choice_accuracy": 0.84375,
+          "strict_first_token_accuracy": 0.84375,
+          "valid_letter_rate": 1.0,
+          "token_weighted_ce": 0.3713542403883423,
+          "answer_nll": 0.7426976141181285,
+          "restricted_choice_nll": 0.7402403523658982,
+          "restricted_choice_tied_rows": 0,
+          "strict_first_token_tied_rows": 0,
+          "unique_exact_video_content_clusters": 27
+        }
+      },
+      "task_nll_ratio": 1.0132136597259567,
+      "accuracy_change": 0.0,
+      "substantive_nll_ratio": 1.000844826164073,
+      "state": {
+        "trainable_elements": 3087142912,
+        "quantized_elements": 2952790016,
+        "fp32_elements": 134352896,
+        "moment_bytes": 6980403200,
+        "metadata_bytes": 92276736,
+        "paged_moment_bytes": 0,
+        "uninitialized_elements": 0
+      },
+      "total_tensor_state_bytes": 7072679936,
+      "state_saving_fraction": 0.7136235697536525,
+      "exception_counts": {
+        "explicit": 32,
+        "small_tensor": 64
+      },
+      "verified_explicit_names": [
+        "model.language_model.layers.16.self_attn.k_proj.weight",
+        "model.language_model.layers.16.self_attn.v_proj.weight",
+        "model.language_model.layers.17.self_attn.k_proj.weight",
+        "model.language_model.layers.17.self_attn.v_proj.weight",
+        "model.language_model.layers.18.self_attn.k_proj.weight",
+        "model.language_model.layers.18.self_attn.v_proj.weight",
+        "model.language_model.layers.19.self_attn.k_proj.weight",
+        "model.language_model.layers.19.self_attn.v_proj.weight",
+        "model.language_model.layers.20.self_attn.k_proj.weight",
+        "model.language_model.layers.20.self_attn.v_proj.weight",
+        "model.language_model.layers.21.self_attn.k_proj.weight",
+        "model.language_model.layers.21.self_attn.v_proj.weight",
+        "model.language_model.layers.22.self_attn.k_proj.weight",
+        "model.language_model.layers.22.self_attn.v_proj.weight",
+        "model.language_model.layers.23.self_attn.k_proj.weight",
+        "model.language_model.layers.23.self_attn.v_proj.weight",
+        "model.language_model.layers.24.self_attn.k_proj.weight",
+        "model.language_model.layers.24.self_attn.v_proj.weight",
+        "model.language_model.layers.25.self_attn.k_proj.weight",
+        "model.language_model.layers.25.self_attn.v_proj.weight",
+        "model.language_model.layers.26.self_attn.k_proj.weight",
+        "model.language_model.layers.26.self_attn.v_proj.weight",
+        "model.language_model.layers.27.self_attn.k_proj.weight",
+        "model.language_model.layers.27.self_attn.v_proj.weight",
+        "model.language_model.layers.28.self_attn.k_proj.weight",
+        "model.language_model.layers.28.self_attn.v_proj.weight",
+        "model.language_model.layers.29.self_attn.k_proj.weight",
+        "model.language_model.layers.29.self_attn.v_proj.weight",
+        "model.language_model.layers.30.self_attn.k_proj.weight",
+        "model.language_model.layers.30.self_attn.v_proj.weight",
+        "model.language_model.layers.31.self_attn.k_proj.weight",
+        "model.language_model.layers.31.self_attn.v_proj.weight"
+      ],
+      "complete": true,
+      "actual_updates": 15,
+      "skipped_updates": 0,
+      "attempt_seconds": 209.38376965897623,
+      "native_training_seconds": 20.398891667719,
+      "original_control_native_training_seconds": 20.87875125091523,
+      "peak_allocated": 71424355840,
+      "peak_reserved": 75755421696,
+      "external_memory_peaks": {
+        "device_used": 77563363328,
+        "matched_process_gpu_bytes": 76829163520,
+        "process_tree_pss": 12311324672,
+        "process_tree_rss": 12497596416
+      },
+      "original_control_external_memory_peaks": {
+        "device_used": 76525273088,
+        "matched_process_gpu_bytes": 75791073280,
+        "process_tree_pss": 11528728576,
+        "process_tree_rss": 11714949120
+      },
+      "phase_seconds": {
+        "build_backbone": 10.178523545968346,
+        "build_trainer": 27.0775228360435,
+        "checkpoint": 47.74779538495932,
+        "dataset_identity": 15.992320178076625,
+        "load_weights": 5.435244310996495,
+        "optimizer_snapshot": 1.1261994439410046,
+        "prepared_verification": 12.232076783897355,
+        "train_step": 20.38094664120581
+      },
+      "matched_control_checks": [
+        "exact initialization predictions",
+        "same pretrained file hashes and prepared corpus",
+        "same input/gold/positions, data tokens and learning rate per update",
+        "same 15 applied updates; no skips; exact 32 FP32 selectors"
+      ]
+    },
+    {
+      "seed": 43,
+      "curve": [
+        {
+          "step": 0,
+          "elapsed_seconds": 64.65363565494772,
+          "task_seconds": 7.957670705043711,
+          "substantive_validation": {
+            "val/loss_avg": 1.0873957560639855,
+            "val/valid_token_count": 1346,
+            "val/valid_sequence_count": 16,
+            "timer/validation_s": 4.442983818938956
+          },
+          "metrics": {
+            "rows": 32,
+            "native_supervised_tokens": 64,
+            "restricted_choice_accuracy": 0.46875,
+            "strict_first_token_accuracy": 0.46875,
+            "valid_letter_rate": 1.0,
+            "token_weighted_ce": 0.9467276870585016,
+            "answer_nll": 1.8934099553784447,
+            "restricted_choice_nll": 1.893409124522307,
+            "restricted_choice_tied_rows": 0,
+            "strict_first_token_tied_rows": 0,
+            "unique_exact_video_content_clusters": 27
+          }
+        },
+        {
+          "step": 5,
+          "elapsed_seconds": 83.03671283100266,
+          "task_seconds": 8.239031973993406,
+          "substantive_validation": {
+            "val/loss_avg": 0.4151320518568756,
+            "val/valid_token_count": 1346,
+            "val/valid_sequence_count": 16,
+            "timer/validation_s": 2.857026482000947
+          },
+          "metrics": {
+            "rows": 32,
+            "native_supervised_tokens": 64,
+            "restricted_choice_accuracy": 0.5,
+            "strict_first_token_accuracy": 0.5,
+            "valid_letter_rate": 1.0,
+            "token_weighted_ce": 0.4957275475899223,
+            "answer_nll": 0.9903534430777654,
+            "restricted_choice_nll": 0.988558259268757,
+            "restricted_choice_tied_rows": 0,
+            "strict_first_token_tied_rows": 0,
+            "unique_exact_video_content_clusters": 27
+          }
+        },
+        {
+          "step": 10,
+          "elapsed_seconds": 101.25707618403248,
+          "task_seconds": 7.9826892499113455,
+          "substantive_validation": {
+            "val/loss_avg": 0.208887582459386,
+            "val/valid_token_count": 1346,
+            "val/valid_sequence_count": 16,
+            "timer/validation_s": 3.0465011509368196
+          },
+          "metrics": {
+            "rows": 32,
+            "native_supervised_tokens": 64,
+            "restricted_choice_accuracy": 0.71875,
+            "strict_first_token_accuracy": 0.71875,
+            "valid_letter_rate": 1.0,
+            "token_weighted_ce": 0.34952410456025973,
+            "answer_nll": 0.698744405322941,
+            "restricted_choice_nll": 0.6949037689919351,
+            "restricted_choice_tied_rows": 1,
+            "strict_first_token_tied_rows": 1,
+            "unique_exact_video_content_clusters": 27
+          }
+        },
+        {
+          "step": 15,
+          "elapsed_seconds": 168.28483780904207,
+          "task_seconds": 8.16470212501008,
+          "substantive_validation": {
+            "val/loss_avg": 0.13844610670966168,
+            "val/valid_token_count": 1346,
+            "val/valid_sequence_count": 16,
+            "timer/validation_s": 3.295664657955058
+          },
+          "metrics": {
+            "rows": 32,
+            "native_supervised_tokens": 64,
+            "restricted_choice_accuracy": 0.78125,
+            "strict_first_token_accuracy": 0.78125,
+            "valid_letter_rate": 1.0,
+            "token_weighted_ce": 0.25824815078885877,
+            "answer_nll": 0.515907591132418,
+            "restricted_choice_nll": 0.5119706074947317,
+            "restricted_choice_tied_rows": 0,
+            "strict_first_token_tied_rows": 0,
+            "unique_exact_video_content_clusters": 27
+          }
+        }
+      ],
+      "control": {
+        "step": 15,
+        "elapsed_seconds": 169.80417754896916,
+        "task_seconds": 8.181342202005908,
+        "substantive_validation": {
+          "val/loss_avg": 0.13785717358472266,
+          "val/valid_token_count": 1346,
+          "val/valid_sequence_count": 16,
+          "timer/validation_s": 2.8650123039260507
+        },
+        "metrics": {
+          "rows": 32,
+          "native_supervised_tokens": 64,
+          "restricted_choice_accuracy": 0.78125,
+          "strict_first_token_accuracy": 0.78125,
+          "valid_letter_rate": 1.0,
+          "token_weighted_ce": 0.24912732089796918,
+          "answer_nll": 0.49767698418872897,
+          "restricted_choice_nll": 0.4937303436927323,
+          "restricted_choice_tied_rows": 0,
+          "strict_first_token_tied_rows": 0,
+          "unique_exact_video_content_clusters": 27
+        }
+      },
+      "task_nll_ratio": 1.0366314045513016,
+      "accuracy_change": 0.0,
+      "substantive_nll_ratio": 1.0042720528038178,
+      "state": {
+        "trainable_elements": 3087142912,
+        "quantized_elements": 2952790016,
+        "fp32_elements": 134352896,
+        "moment_bytes": 6980403200,
+        "metadata_bytes": 92276736,
+        "paged_moment_bytes": 0,
+        "uninitialized_elements": 0
+      },
+      "total_tensor_state_bytes": 7072679936,
+      "state_saving_fraction": 0.7136235697536525,
+      "exception_counts": {
+        "explicit": 32,
+        "small_tensor": 64
+      },
+      "verified_explicit_names": [
+        "model.language_model.layers.16.self_attn.k_proj.weight",
+        "model.language_model.layers.16.self_attn.v_proj.weight",
+        "model.language_model.layers.17.self_attn.k_proj.weight",
+        "model.language_model.layers.17.self_attn.v_proj.weight",
+        "model.language_model.layers.18.self_attn.k_proj.weight",
+        "model.language_model.layers.18.self_attn.v_proj.weight",
+        "model.language_model.layers.19.self_attn.k_proj.weight",
+        "model.language_model.layers.19.self_attn.v_proj.weight",
+        "model.language_model.layers.20.self_attn.k_proj.weight",
+        "model.language_model.layers.20.self_attn.v_proj.weight",
+        "model.language_model.layers.21.self_attn.k_proj.weight",
+        "model.language_model.layers.21.self_attn.v_proj.weight",
+        "model.language_model.layers.22.self_attn.k_proj.weight",
+        "model.language_model.layers.22.self_attn.v_proj.weight",
+        "model.language_model.layers.23.self_attn.k_proj.weight",
+        "model.language_model.layers.23.self_attn.v_proj.weight",
+        "model.language_model.layers.24.self_attn.k_proj.weight",
+        "model.language_model.layers.24.self_attn.v_proj.weight",
+        "model.language_model.layers.25.self_attn.k_proj.weight",
+        "model.language_model.layers.25.self_attn.v_proj.weight",
+        "model.language_model.layers.26.self_attn.k_proj.weight",
+        "model.language_model.layers.26.self_attn.v_proj.weight",
+        "model.language_model.layers.27.self_attn.k_proj.weight",
+        "model.language_model.layers.27.self_attn.v_proj.weight",
+        "model.language_model.layers.28.self_attn.k_proj.weight",
+        "model.language_model.layers.28.self_attn.v_proj.weight",
+        "model.language_model.layers.29.self_attn.k_proj.weight",
+        "model.language_model.layers.29.self_attn.v_proj.weight",
+        "model.language_model.layers.30.self_attn.k_proj.weight",
+        "model.language_model.layers.30.self_attn.v_proj.weight",
+        "model.language_model.layers.31.self_attn.k_proj.weight",
+        "model.language_model.layers.31.self_attn.v_proj.weight"
+      ],
+      "complete": true,
+      "actual_updates": 15,
+      "skipped_updates": 0,
+      "attempt_seconds": 206.84581844392233,
+      "native_training_seconds": 21.103324785013683,
+      "original_control_native_training_seconds": 21.037868629791774,
+      "peak_allocated": 71989416448,
+      "peak_reserved": 77082918912,
+      "external_memory_peaks": {
+        "device_used": 78890860544,
+        "matched_process_gpu_bytes": 78156660736,
+        "process_tree_pss": 12313077760,
+        "process_tree_rss": 12499349504
+      },
+      "original_control_external_memory_peaks": {
+        "device_used": 78171537408,
+        "matched_process_gpu_bytes": 77437337600,
+        "process_tree_pss": 11528646656,
+        "process_tree_rss": 11714396160
+      },
+      "phase_seconds": {
+        "build_backbone": 9.38797699403949,
+        "build_trainer": 25.903544328990392,
+        "checkpoint": 48.892466476070695,
+        "dataset_identity": 13.775161782978103,
+        "load_weights": 5.055878746090457,
+        "optimizer_snapshot": 1.1556440900312737,
+        "prepared_verification": 12.196398554951884,
+        "train_step": 21.088291798136197
+      },
+      "matched_control_checks": [
+        "exact initialization predictions",
+        "same pretrained file hashes and prepared corpus",
+        "same input/gold/positions, data tokens and learning rate per update",
+        "same 15 applied updates; no skips; exact 32 FP32 selectors"
+      ]
+    }
+  ],
+  "decision": "Rejected by the predeclared screen; retain default state precision and every prior final result. No final scoring or automatic follow-up."
+}

@@ -1,0 +1,37 @@
+37970579|optimizer-r3-recovery-adamw|CANCELLED by 41852|0|30|None assigned
+37970581|optimizer-r3-recovery-adamw_bnb_8bit|FAILED|345|30|batch-block4-1034
+37970710|optimizer-outcomes-prepare|COMPLETED|2261|45|cpu-00049
+37971062|optimizer-r3-development-diagnosis|CANCELLED by 41852|0|20|None assigned
+37971293|optimizer-r3-recovery-adamw|CANCELLED by 41852|175|30|batch-block1-2070
+37971294|optimizer-r3-development-diagnosis|COMPLETED|297|20|batch-block4-1034
+37972117|optimizer-r3-recovery-adamw_bnb_8bit|FAILED|166|30|batch-block4-1034
+37972125|optimizer-r3-recovery-adamw|FAILED|114|30|batch-block1-2070
+37972189|optimizer-outcomes-prepare|COMPLETED|866|25|cpu-00049
+37972617|optimizer-r3-recovery-adamw_bnb_8bit|COMPLETED|620|30|batch-block4-1034
+37972618|optimizer-r3-recovery-adamw|COMPLETED|948|30|batch-block4-1034
+37972799|optimizer-r3-development-recipes|COMPLETED|1342|40|batch-block4-1034
+37973484|optimizer-r3-capacity-budget|CANCELLED by 41852|0|25|None assigned
+37973612|optimizer-r3-capacity-budget|CANCELLED|0|25|None assigned
+37974045|optimizer-r3-capacity-budget|COMPLETED|1157|30|batch-block4-1034
+37974953|optimizer-r3-parallel-input|TIMEOUT|610|10|cpu-00049
+37975697|optimizer-deployment|COMPLETED|688|20|batch-block4-1034
+37975857|optimizer-r3-prepare-retry|COMPLETED|322|12|cpu-00049
+37976023|optimizer-deployment|COMPLETED|1013|20|batch-block4-1034
+37976182|optimizer-r3-prepare-full|COMPLETED|1990|40|cpu-00049
+37976325|optimizer-deployment|COMPLETED|146|6|batch-block4-1034
+37977248|optimizer-outcome-s17|COMPLETED|3749|75|batch-block4-1034
+37977250|optimizer-outcome-s29|COMPLETED|3738|75|batch-block4-1017
+37977251|optimizer-outcome-s43|COMPLETED|3642|75|batch-block4-0102
+37978043|optimizer-r3-cpu-profile|COMPLETED|445|8|cpu-00048
+37978606|optimizer-r3-cpu-decoder|COMPLETED|341|10|cpu-00048
+37978670|optimizer-r3-baseline-combo|CANCELLED by 41852|0|15|None assigned
+37982776|optimizer-r3-short-schedule|COMPLETED|812|18|batch-block4-1017
+37983881|optimizer-r3-baseline-combo|COMPLETED|480|20|batch-block4-0102
+37984548|optimizer-r3-product-s17|FAILED|72|18|batch-block4-0102
+37984552|optimizer-r3-product-s29|FAILED|86|18|batch-block4-1017
+37984553|optimizer-r3-product-s43|FAILED|54|18|batch-block4-0102
+37984754|optimizer-r3-product-v2-s17|COMPLETED|720|18|batch-block4-0102
+37984755|optimizer-r3-product-v2-s29|COMPLETED|719|18|batch-block4-0102
+37984756|optimizer-r3-product-v2-s43|COMPLETED|720|18|batch-block4-0102
+37985273|optimizer-r3-native-arithmetic|COMPLETED|788|25|batch-block4-0102
+37988222|optimizer-r3-kv-precision|COMPLETED|733|18|batch-block4-0052

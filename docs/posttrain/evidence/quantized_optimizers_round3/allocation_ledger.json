@@ -289,7 +289,7 @@
     {
       "job": "37978670",
       "name": "optimizer-r3-baseline-combo",
-      "state": "CANCELLED before allocation",
+      "state": "CANCELLED by 41852",
       "elapsed_seconds": 0,
       "effective_wall_limit_seconds": 900,
       "gpu_count_requested": 1,
@@ -395,13 +395,24 @@
       "charged_or_reserved_gpu_seconds": 788,
       "charged_or_reserved_cpu_wall_seconds": 0,
       "node": "batch-block4-0102"
+    },
+    {
+      "job": "37988222",
+      "name": "optimizer-r3-kv-precision",
+      "state": "COMPLETED",
+      "elapsed_seconds": 733,
+      "effective_wall_limit_seconds": 1080,
+      "gpu_count_requested": 1,
+      "charged_or_reserved_gpu_seconds": 733,
+      "charged_or_reserved_cpu_wall_seconds": 0,
+      "node": "batch-block4-0052"
     }
   ],
-  "as_of_utc": "2026-11-05T01:35:15.851814+00:00",
+  "as_of_utc": "2026-11-05T01:51:27.902509+00:00",
   "unsubmitted_final_reservation_seconds": 0,
   "total_gpu_cap_seconds": 28800,
   "cpu_wall_cap_seconds": 7200,
-  "total_with_reserved_final": 22651,
+  "total_with_reserved_final": 23384,
   "cpu_actual_or_reserved_seconds": 7015,
   "failures": {
     "37970581": "New recovery diagnostic failed to resolve native worker cursor handle after update41; checkpoint40 completed. Fixed by2e44bfa.",
@@ -425,11 +436,11 @@
   "unsubmitted_preparation_profile_reservation_seconds": 0,
   "unsubmitted_decoder_thread_canary_reservation_seconds": 0,
   "unsubmitted_combined_baseline_probe_gpu_seconds": 0,
-  "total_with_reserved_final_and_development": 23731,
+  "total_with_reserved_final_and_development": 23384,
   "unsubmitted_short_schedule_probe_gpu_seconds": 0,
-  "local_cpu_check_note": "Conservative180-second CPU-only allowance covers local controls, lint, final/corrected evidence analysis and artifact checks. Increased by60 before the remaining analyses; unchanged7200-second total cap. Root-conftest GPU checks remain separately charged60GPU-seconds.",
+  "local_cpu_check_note": "Conservative180-second CPU-only allowance covers local controls, lint, final/corrected evidence analysis and artifact checks. Increased by60 before the remaining analyses; unchanged7200-second total cap. Root-conftest GPU checks remain separately charged60GPU-seconds. At campaign closure the entire allowance is conservatively charged, not pending work.",
   "unsubmitted_combined_baseline_reservation_extension_seconds": 0,
   "unsubmitted_product_repair_gpu_seconds": 0,
   "unsubmitted_native_arithmetic_probe_gpu_seconds": 0,
-  "unsubmitted_kv_precision_probe_gpu_seconds": 1080
+  "unsubmitted_kv_precision_probe_gpu_seconds": 0
 }

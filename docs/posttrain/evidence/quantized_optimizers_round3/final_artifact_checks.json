@@ -1,0 +1,117 @@
+{
+  "utc": "2026-11-05T01:56:00.349096+00:00",
+  "gzip_archives": [
+    {
+      "file": "capacity_budget_raw.json.gz",
+      "sha256": "b65a900cebf61891e3334c5231a13128a3521528d06e188901e3d17f03e96200",
+      "receipt_files": 90
+    },
+    {
+      "file": "combined_baseline_raw.json.gz",
+      "sha256": "bb689f4f274e4cb89f2077fa95149a33854fb8606c7ebb6ec11c6149095776a9",
+      "receipt_files": 43
+    },
+    {
+      "file": "decoder_thread_raw.json.gz",
+      "sha256": "9606772cff6faa2d8a10e6b9286c4a9318b80057c6dd549895297ff5f43e3e6e",
+      "receipt_files": 8
+    },
+    {
+      "file": "development_raw.json.gz",
+      "sha256": "3e7e9fdb4b4f6cd250462faf9fa70684ffdd7a7b89a7d26c51bfc8671328b7bc",
+      "receipt_files": null,
+      "legacy_format": "No original per-file collection receipt; entire archive verified byte-identical to a1c0834. Its hash binds the retained evidence, not an invented collection-time receipt."
+    },
+    {
+      "file": "diagnosis_raw.json.gz",
+      "sha256": "6c5e606bbc7496767c04197de2c174136166ca57524fc5178182ad4df36eba58",
+      "receipt_files": null,
+      "legacy_format": "No original per-file collection receipt; entire archive verified byte-identical to a1c0834. Its hash binds the retained evidence, not an invented collection-time receipt."
+    },
+    {
+      "file": "kv_precision_raw.json.gz",
+      "sha256": "c83af8391f31da3ae6c355387f9d938c589026903fd46d39e1b41c9471b4196d",
+      "receipt_files": 46
+    },
+    {
+      "file": "loading_validation_raw.json.gz",
+      "sha256": "336e15556dfde1a9649200643b14b26545d819b3a98a9739f93e22e589521816",
+      "receipt_files": 82
+    },
+    {
+      "file": "micro1_capacity_raw.json.gz",
+      "sha256": "49c4bf9badc6b3d0023a3fa07e65f4d3399aae40cc58cd1f67af990d0f9e1a33",
+      "receipt_files": 17
+    },
+    {
+      "file": "native_arithmetic_raw.json.gz",
+      "sha256": "c1decc03b295524ed23c6afaf87e425497bbaeacb114e568678796621f8e8cfb",
+      "receipt_files": 51
+    },
+    {
+      "file": "outcomes_raw.json.gz",
+      "sha256": "0672d842e2a707c064634f525778a3d94f482ac94ab33070e00cf66ef6fa2408",
+      "receipt_files": 793
+    },
+    {
+      "file": "paired_development15_raw.json.gz",
+      "sha256": "39237696512bc0c5af09bd6b3fbe21f5800eb43b4e397e5293a7aa56b75e31fe",
+      "receipt_files": 45
+    },
+    {
+      "file": "parallel_canary_failed_raw.json.gz",
+      "sha256": "f4d6c5fc7e5f644a4f5bcd7d7fea551369d46c666a5305603ab34d942029ffb0",
+      "receipt_files": 10
+    },
+    {
+      "file": "parallel_canary_retry_raw.json.gz",
+      "sha256": "7e13defb669e839805db0258b1672ce817c529606eb40d645d0309c03b8ff25e",
+      "receipt_files": 7
+    },
+    {
+      "file": "parallel_full_raw.json.gz",
+      "sha256": "29e44f445cbac5c3052f98fd7d01d0c3f6bda4524c8cf4fe0e14ef239a95031c",
+      "receipt_files": 6
+    },
+    {
+      "file": "parallel_profile_raw.json.gz",
+      "sha256": "eebd840489fb02d135e5a3646f73bb11f153e7afd08ac0f04fa83725864809b0",
+      "receipt_files": 8
+    },
+    {
+      "file": "product_failed_preflights_raw.json.gz",
+      "sha256": "7765b02c18116778b5e8d735d83bd553e592fbf9235c74b1c7b8f2a3a33977d2",
+      "receipt_files": 18
+    },
+    {
+      "file": "product_repair_raw.json.gz",
+      "sha256": "06ee7857f72c9fcf2608b89bde3c5e98b917ffc48a2872f81a47166b9c00611b",
+      "receipt_files": 168
+    },
+    {
+      "file": "recovery_8bit_raw.json.gz",
+      "sha256": "d388e15801a26f61c4af751443f35ca9cf54749b2833c8e3a069647aea6e722d",
+      "receipt_files": null,
+      "legacy_format": "No original per-file collection receipt; entire archive verified byte-identical to a1c0834. Its hash binds the retained evidence, not an invented collection-time receipt."
+    },
+    {
+      "file": "recovery_fused_raw.json.gz",
+      "sha256": "bbae281965d33a73e5326db070779050de243589e3588de2ccd83e2e2cc8195c",
+      "receipt_files": null,
+      "legacy_format": "No original per-file collection receipt; entire archive verified byte-identical to a1c0834. Its hash binds the retained evidence, not an invented collection-time receipt."
+    },
+    {
+      "file": "short_schedule_raw.json.gz",
+      "sha256": "80849b8d1195ce618e8be5b67c32ca3dde36a0a469f452f55316cea0a59b5f33",
+      "receipt_files": 47
+    }
+  ],
+  "all_present_collection_receipts_verified": true,
+  "all_legacy_archives_byte_identical_to_recorded_commit": true,
+  "all_json_parsed": true,
+  "original_and_corrected_final_results_unchanged_since": "a1c0834",
+  "all_frozen_protocol_hashes_unchanged": true,
+  "native_tree_unchanged": "45d30bb53fb3688c11b18bbdb1a27954b9cb7432",
+  "pinned_dependency_hashes_unchanged": true,
+  "kv_screen_reproduced": "verify_kv_precision.py checks exact source/archive, initialization, model/data hashes,15 applied updates, tokens/LR, all32 selectors, counts/bytes and fixed gates."
+}

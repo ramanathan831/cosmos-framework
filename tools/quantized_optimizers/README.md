@@ -571,5 +571,42 @@ The separate `native_arithmetic_probe.json` is development-only: one seed, three
 identical full-recomputation native runs, then CUDA comparison of cumulative
 parameter updates. Its all-FP32 bitsandbytes control sets the supported minimum
 state size above every trainable tensor and asserts zero quantized elements;
-it is not a new public optimizer name. Its 25-minute reservation follows both
-corrected seed jobs, with no new final scoring or automatic precision changes.
+it is not a new public optimizer name. Its 25-minute reservation followed the
+corrected seed jobs and completed in 788 GPU-seconds, with no new final scoring
+or automatic precision changes.
+
+The subsequent `kv_precision_probe.json` tests only development data for three
+seeds, setting the 32 exact K/V tensor names to FP32 optimizer state. The immutable
+runtime remains `e65f7ea`. Its admission screen was locked before execution:
+at least 2% lower mean task NLL, no per-seed accuracy drop, each substantive NLL
+ratio at most 1.01, at least 60% actual tensor-state saving, exact selector matches
+and no skipped updates. A pass would require a separately reserved full comparison
+and affected recovery checks before adoption. Reproduce it only in a new result
+directory and after reserving its full 18-minute allocation:
+
+```sh
+git archive --format=tar.gz -o /shared/source-native-diagnostic.tgz e65f7ea
+export SOURCE_ARCHIVE=/shared/source-native-diagnostic.tgz MODE=study WORK_SECONDS=960
+export RESULTS="$REPLAY/kv-precision" TASK_SPEC=/shared/kv-precision-probe.json
+# Copy the committed kv_precision_probe.json byte-for-byte to TASK_SPEC.
+mkdir -p "$RESULTS"
+sbatch --partition=interactive_singlenode,polar --nodelist=batch-block4-0052 \
+  --time=18 --export=ALL --output="$RESULTS/slurm-%j.log" \
+  tools/quantized_optimizers/deployment.sbatch
+```
+
+The original node was chosen using available CPU/GPU/memory metadata before
+submission; exact A100-SXM4-80GB runtime validation remained mandatory. This
+three-run development screen does not establish a new performance estimate.
+The actual screen completed in 733 GPU-seconds and was rejected: mean task NLL
+worsened 1.805%, with unchanged accuracy in every seed. Reproduce its receipt,
+membership, matched-input and numerical screen checks locally without a GPU:
+
+```sh
+python docs/posttrain/evidence/quantized_optimizers_round3/verify_kv_precision.py
+```
+
+The executable `next_shared_lr_probe.json` is a separate, unsubmitted shared
+recipe candidate. Its conditional development and complete final comparison
+must be reserved together; remaining allowance alone does not authorize an
+undersized final campaign.

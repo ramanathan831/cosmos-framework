@@ -1,0 +1,17 @@
+{
+  "job": "37988222",
+  "utc": "2026-11-05T01:38:48.853065+00:00",
+  "node": "batch-block4-0052",
+  "node_policy": "First lexical matching non-completing node with free GPU,8CPUs and128GiB;248CPU/8GPU architecture. ExactA100-SXM4-80GB runtime preflight retained.",
+  "node_capacity": {
+    "State": "MIXED",
+    "CPUAlloc": "118",
+    "AllocMem": "1166336",
+    "CfgTRES": "cpu=248,mem=1878738M,billing=8,gres/gpu=8",
+    "AllocTRES": "cpu=118,mem=1139G,gres/gpu=7"
+  },
+  "wall_seconds": 1080,
+  "work_seconds": 960,
+  "source_commit": "e65f7ea",
+  "archive_sha256": "83ad99a4feaf0cbe737f83cac9f08a18aeb21964f3801d4bf725406b37044325"
+}
