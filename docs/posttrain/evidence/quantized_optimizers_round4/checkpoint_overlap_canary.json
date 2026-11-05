@@ -1,7 +1,7 @@
 {
   "purpose": "development diagnosis",
   "prepared_verified_rows": 751,
-  "locked_utc": "2026-11-05T18:43:10.986057+00:00",
+  "locked_utc": "2026-11-05T19:02:53.126964+00:00",
   "cases": [
     {
       "name": "pinned_controls",
@@ -10,7 +10,7 @@
         "-m",
         "pytest",
         "tools/quantized_optimizers/test_checkpoint_read.py",
-        "--confcutdir=cosmos_framework/posttrain/tests",
+        "--confcutdir=tools/quantized_optimizers",
         "--override-ini=addopts=",
         "-q"
       ],

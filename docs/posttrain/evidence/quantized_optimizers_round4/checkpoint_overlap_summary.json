@@ -1,0 +1,160 @@
+{
+  "complete": true,
+  "job": "38039130",
+  "allocated_gpu_seconds": 390,
+  "source_commit": "c0ad47a8c573a67aeb2591760c502092fce3a75c",
+  "raw_sha256": "272f9564242595cb9e4d026f8fae35350fdeaa5a367e9becde87005ab75782eb",
+  "cases": {
+    "fused_serial": {
+      "attempt_seconds": 102.84877543803304,
+      "scoring_scope_seconds": 93.24915618193336,
+      "phase_seconds": {
+        "dataset_identity": 2.66482094489038,
+        "prepared_verification": 0.8399307429790497,
+        "checkpoint_read": 27.627914109034464,
+        "committed_model_restore": 14.054498046869412,
+        "checkpoint_read_and_restore": 41.68241977598518,
+        "task_scoring": 11.406007457058877
+      },
+      "peak_host_pss_bytes": 35853477888,
+      "peak_process_gpu_bytes": 37566283776,
+      "peak_device_bytes": 38300483584,
+      "checkpoint_sha256": "c2cb253288f83107280c12df0253a3d21912ac0a1c8f82dec2fdecd05c99a4b7",
+      "checkpoint_provenance": {
+        "version": 1,
+        "source": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/final-seed17/matched_adamw/native/cosmos3_reasoner/optimizer_task/matched_adamw/20261104132611/checkpoints/iter_000015",
+        "signature": "5b9ca8e5cd94f66b455a224dab5c9cc210ae4f86c51de28abc9af0896f3d1f0c"
+      },
+      "exact_rows": 32,
+      "metrics": {
+        "rows": 32,
+        "native_supervised_tokens": 64,
+        "restricted_choice_accuracy": 0.875,
+        "strict_first_token_accuracy": 0.875,
+        "valid_letter_rate": 1.0,
+        "token_weighted_ce": 0.26139008287100296,
+        "answer_nll": 0.5227146533561609,
+        "restricted_choice_nll": 0.5205671322328271,
+        "restricted_choice_tied_rows": 0,
+        "strict_first_token_tied_rows": 0,
+        "unique_exact_video_content_clusters": 27
+      }
+    },
+    "fused_overlap": {
+      "attempt_seconds": 64.31901480001397,
+      "scoring_scope_seconds": 55.34795430209488,
+      "phase_seconds": {
+        "dataset_identity": 1.3808824000880122,
+        "prepared_verification": 0.9046737479511648,
+        "checkpoint_read": 26.72169605898671,
+        "committed_model_restore": 16.673545657889917,
+        "checkpoint_read_and_restore": 26.722012243932113,
+        "task_scoring": 8.984166961861774
+      },
+      "peak_host_pss_bytes": 35697735680,
+      "peak_process_gpu_bytes": 37566283776,
+      "peak_device_bytes": 38300483584,
+      "checkpoint_sha256": "c2cb253288f83107280c12df0253a3d21912ac0a1c8f82dec2fdecd05c99a4b7",
+      "checkpoint_provenance": {
+        "version": 1,
+        "source": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/final-seed17/matched_adamw/native/cosmos3_reasoner/optimizer_task/matched_adamw/20261104132611/checkpoints/iter_000015",
+        "signature": "5b9ca8e5cd94f66b455a224dab5c9cc210ae4f86c51de28abc9af0896f3d1f0c"
+      },
+      "exact_rows": 32,
+      "metrics": {
+        "rows": 32,
+        "native_supervised_tokens": 64,
+        "restricted_choice_accuracy": 0.875,
+        "strict_first_token_accuracy": 0.875,
+        "valid_letter_rate": 1.0,
+        "token_weighted_ce": 0.26139008287100296,
+        "answer_nll": 0.5227146533561609,
+        "restricted_choice_nll": 0.5205671322328271,
+        "restricted_choice_tied_rows": 0,
+        "strict_first_token_tied_rows": 0,
+        "unique_exact_video_content_clusters": 27
+      }
+    },
+    "eightbit_serial": {
+      "attempt_seconds": 73.4073248100467,
+      "scoring_scope_seconds": 64.42578209890053,
+      "phase_seconds": {
+        "dataset_identity": 1.3105580029077828,
+        "prepared_verification": 0.8500538668595254,
+        "checkpoint_read": 24.335353630129248,
+        "committed_model_restore": 12.034973987843841,
+        "checkpoint_read_and_restore": 36.37033534888178,
+        "task_scoring": 8.532200610032305
+      },
+      "peak_host_pss_bytes": 36510875648,
+      "peak_process_gpu_bytes": 37566283776,
+      "peak_device_bytes": 38300483584,
+      "checkpoint_sha256": "7456aeea1b7f58e25cdcd4bffc26237f8d13c8a6a17037f1f26fa75b2e8ac1d0",
+      "checkpoint_provenance": {
+        "version": 1,
+        "source": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/final-seed17/matched_adamw_bnb_8bit/native/cosmos3_reasoner/optimizer_task/matched_adamw_bnb_8bit/20261104133142/checkpoints/iter_000015",
+        "signature": "238cd991846417efbda2c0bb6b6993a3af22ed9192626c19c0bf2d675a777bec"
+      },
+      "exact_rows": 32,
+      "metrics": {
+        "rows": 32,
+        "native_supervised_tokens": 64,
+        "restricted_choice_accuracy": 0.875,
+        "strict_first_token_accuracy": 0.875,
+        "valid_letter_rate": 1.0,
+        "token_weighted_ce": 0.25981915318789106,
+        "answer_nll": 0.5195713894881919,
+        "restricted_choice_nll": 0.5172136613000475,
+        "restricted_choice_tied_rows": 0,
+        "strict_first_token_tied_rows": 0,
+        "unique_exact_video_content_clusters": 27
+      }
+    },
+    "eightbit_overlap": {
+      "attempt_seconds": 65.40714606409892,
+      "scoring_scope_seconds": 56.20382477808744,
+      "phase_seconds": {
+        "dataset_identity": 1.3179664111230522,
+        "prepared_verification": 0.8457804119680077,
+        "checkpoint_read": 28.30739308311604,
+        "committed_model_restore": 28.303304169792682,
+        "checkpoint_read_and_restore": 28.307617236860096,
+        "task_scoring": 8.537619121139869
+      },
+      "peak_host_pss_bytes": 36525672448,
+      "peak_process_gpu_bytes": 37566283776,
+      "peak_device_bytes": 38300483584,
+      "checkpoint_sha256": "7456aeea1b7f58e25cdcd4bffc26237f8d13c8a6a17037f1f26fa75b2e8ac1d0",
+      "checkpoint_provenance": {
+        "version": 1,
+        "source": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/final-seed17/matched_adamw_bnb_8bit/native/cosmos3_reasoner/optimizer_task/matched_adamw_bnb_8bit/20261104133142/checkpoints/iter_000015",
+        "signature": "238cd991846417efbda2c0bb6b6993a3af22ed9192626c19c0bf2d675a777bec"
+      },
+      "exact_rows": 32,
+      "metrics": {
+        "rows": 32,
+        "native_supervised_tokens": 64,
+        "restricted_choice_accuracy": 0.875,
+        "strict_first_token_accuracy": 0.875,
+        "valid_letter_rate": 1.0,
+        "token_weighted_ce": 0.25981915318789106,
+        "answer_nll": 0.5195713894881919,
+        "restricted_choice_nll": 0.5172136613000475,
+        "restricted_choice_tied_rows": 0,
+        "strict_first_token_tied_rows": 0,
+        "unique_exact_video_content_clusters": 27
+      }
+    }
+  },
+  "combined_read_restore_ratio": 0.7050312239812304,
+  "aggregate_attempt_time_ratio": 0.7360094809854743,
+  "gates": {
+    "exact_input_prediction_ce_nll_parity": true,
+    "exact_checkpoint_sha_and_provenance": true,
+    "phase_reduction_at_least_10_percent": true,
+    "attempt_ratio_at_most_1_02": true
+  },
+  "pinned_helper_tests": 6,
+  "scope": "Two optimizer checkpoints, one counterbalanced pair per arm;32development questions per process. No final evaluation, independent seed replication or CI. Phase timers include concurrent work; do not add checkpoint_read and committed_model_restore. Aggregate attempt timing also includes variable startup; the combined phase is the direct mechanism evidence.",
+  "accepted": true
+}

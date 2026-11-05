@@ -1,0 +1,10 @@
+{
+  "commit": "c0ad47a8c573a67aeb2591760c502092fce3a75c",
+  "archive_sha256": "5f2f0a1deb8a0f8168d01ccd23a890ff3b3caf3e4de9b1ed1351f83c2650107b",
+  "native_tree": "bc3f27a80f6053ac0ac52ef0a9cc8cdb252e86a3",
+  "local_cpu_tests": {
+    "checkpoint_read": 6,
+    "seconds": 1.17
+  },
+  "scope": "Fresh-process development scoring only; full checkpoint SHA and native restore provenance remain required. LR and CPU preparation use immutable e65f7ea."
+}

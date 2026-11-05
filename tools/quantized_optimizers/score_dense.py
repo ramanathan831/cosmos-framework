@@ -361,7 +361,7 @@ def main():
     parser.add_argument("--substantive-data", type=Path)
     parser.add_argument("--seed", type=int, required=True)
     parser.add_argument("--verification-workers", type=int, choices=(1, 2, 3, 4), default=4)
-    parser.add_argument("--checkpoint-read-mode", choices=("serial", "overlap"), default="serial")
+    parser.add_argument("--checkpoint-read-mode", choices=("serial", "overlap"), default="overlap")
     args = parser.parse_args()
     if os.environ.get("WORLD_SIZE") != "1":
         raise ValueError("dense scoring requires torchrun world one")
@@ -417,9 +417,9 @@ def main():
             verification_workers=args.verification_workers,
         )
         phases["prepared_verification"] = time.monotonic() - phase_started
-        # Final scoring has no training timing claim. Read the immutable files
-        # sequentially before the native loaders, as the paired training launcher
-        # already does, avoiding slow demand paging on the shared filesystem.
+        # Scoring keeps its own phase accounting. Checkpoint verification reads
+        # every byte and joins before scoring, including when overlapped with
+        # restoration. Frozen-model scoring retains the pretrained-file read.
         from tools.quantized_optimizers.run_deployment import read_model_files
 
         model = None
