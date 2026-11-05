@@ -1,0 +1,13 @@
+{
+  "commit": "f4f3cb151ae10d97b4c001d87cb60afc37f82f27",
+  "archive_sha256": "6c1dc70f2ebe3e365a672fa7b86a6c5b33579b83d6bdd26594b0086674d9a305",
+  "native_tree": "bc3f27a80f6053ac0ac52ef0a9cc8cdb252e86a3",
+  "scope": "Candidate prepared source verification and score phase instrumentation only; LR development and CPU preparation continue with original immutable e65f7ea. No default performance adoption before canary screen.",
+  "local_cpu_tests": {
+    "prepared_sft": 16,
+    "seconds": 3.17,
+    "CUDA_VISIBLE_DEVICES": "",
+    "root_conftest_excluded": true
+  },
+  "static_checks": "Ruff check/format and git diff check pass."
+}

@@ -1,0 +1,15 @@
+{
+  "locked_utc": "2026-11-05T18:57:37.487292+00:00",
+  "purpose": "One additional bounded shared-loading intervention, motivated by measured fresh-scoring phases, independent of the rejected LR recipe. No new final scoring.",
+  "source_measurement": "Serial development score: checkpoint SHA read26.94/24.63seconds plus model restore13.55/12.21seconds. Source verification only1.81/1.78seconds.",
+  "change": "Overlap the unchanged complete checkpoint SHA256 read with the native mmap/model restore in a single background read thread. Both occur inside native stable before/after checkpoint provenance. Wait for and validate the hash before publishing any scoring output; preserve fresh process, checksum bytes, loader, weights and computation. No checkpoint writes or optimizer-state loading changes.",
+  "admission_gates": {
+    "exact_inputs_predictions_nll_ce_and_checkpoint_sha_vs_serial": true,
+    "combined_read_restore_time_reduction_min": 0.1,
+    "aggregate_fresh_score_attempt_ratio_max": 1.02,
+    "host_memory": "Retain128GiB request and report external PSS/RSS peaks; no host-memory saving promise."
+  },
+  "order": "fused serial then overlap; eight-bit overlap then serial. Same seed17 immutable matched15 checkpoints and32development questions; same4source-verification workers if first canary passes its fixed screen.",
+  "cost": "Reserve600GPUseconds, work520; include pinned CPU helper tests and4fresh reload/scoring processes. Fits released conditional budget; no automatic further runtime/recipe sweep.",
+  "failure_policy": "Any parity/timing screen failure rejects the overlap default. Preserve every attempt and unchanged release gates; runtime canaries do not qualify optimizer end-to-end performance."
+}

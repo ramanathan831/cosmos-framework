@@ -16,6 +16,7 @@ import math
 import os
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
@@ -24,6 +25,51 @@ from tools.quantized_optimizers.state_digest import tensor_digest
 LETTERS = ("A", "B", "C", "D")
 OPTION = re.compile(r"(?m)^[ \t]*([A-Z])([:.])[ \t]+(?=\S)")
 OPTION_MARKER = re.compile(r"(?m)^[ \t]*([A-Za-z])([:.])")
+
+
+def read_checkpoint_file(path: Path) -> dict[str, Any]:
+    """Hash every byte and reject replacement/mutation during this read."""
+    started = time.monotonic()
+
+    def identity(stat):
+        return stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns
+
+    before = identity(path.stat())
+    checksum = hashlib.sha256()
+    with path.open("rb") as stream:
+        if identity(os.fstat(stream.fileno())) != before:
+            raise RuntimeError("checkpoint changed before checksum read")
+        for block in iter(lambda: stream.read(8 * 1024 * 1024), b""):
+            checksum.update(block)
+        if identity(os.fstat(stream.fileno())) != before or identity(path.stat()) != before:
+            raise RuntimeError("checkpoint changed during checksum read")
+    return {"path": str(path), "sha256": checksum.hexdigest(), "seconds": time.monotonic() - started}
+
+
+def restore_with_checkpoint_read(path: Path, restore, *, overlap: bool):
+    """Join the independent read before returning; callers own stable provenance."""
+    started = time.monotonic()
+    if overlap:
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            read = pool.submit(read_checkpoint_file, path)
+            restore_started = time.monotonic()
+            value = restore()
+            restore_seconds = time.monotonic() - restore_started
+            receipt = read.result()
+    else:
+        receipt = read_checkpoint_file(path)
+        restore_started = time.monotonic()
+        value = restore()
+        restore_seconds = time.monotonic() - restore_started
+    return (
+        value,
+        receipt,
+        {
+            "checkpoint_read": receipt["seconds"],
+            "committed_model_restore": restore_seconds,
+            "checkpoint_read_and_restore": time.monotonic() - started,
+        },
+    )
 
 
 def json_digest(value):
@@ -315,6 +361,7 @@ def main():
     parser.add_argument("--substantive-data", type=Path)
     parser.add_argument("--seed", type=int, required=True)
     parser.add_argument("--verification-workers", type=int, choices=(1, 2, 3, 4), default=4)
+    parser.add_argument("--checkpoint-read-mode", choices=("serial", "overlap"), default="serial")
     args = parser.parse_args()
     if os.environ.get("WORLD_SIZE") != "1":
         raise ValueError("dense scoring requires torchrun world one")
@@ -381,29 +428,23 @@ def main():
             manager = CheckpointManager()
 
             path = Path(args.checkpoint) / "model.pt"
-            read_started = time.monotonic()
-            checksum = hashlib.sha256()
-            with path.open("rb") as stream:
-                for block in iter(lambda: stream.read(8 * 1024 * 1024), b""):
-                    checksum.update(block)
-            (args.output / "checkpoint-read.json").write_text(
-                json.dumps(
-                    {"path": str(path), "sha256": checksum.hexdigest(), "seconds": time.monotonic() - read_started}
-                )
-                + "\n"
-            )
-            phases["checkpoint_read"] = time.monotonic() - read_started
 
-            def load():
+            def restore():
                 nonlocal model
                 state = manager.load_component(args.checkpoint, "model")
                 if state is None:
                     raise ValueError("committed checkpoint has no dense model")
                 model = build_backbone(config, hf_model_state=state["net"])
 
-            phase_started = time.monotonic()
-            _, provenance = manager.load_checkpoint(args.checkpoint, load)
-            phases["committed_model_restore"] = time.monotonic() - phase_started
+            def load():
+                _, receipt, loading_phases = restore_with_checkpoint_read(
+                    path, restore, overlap=args.checkpoint_read_mode == "overlap"
+                )
+                phases.update(loading_phases)
+                return receipt
+
+            receipt, provenance = manager.load_checkpoint(args.checkpoint, load)
+            (args.output / "checkpoint-read.json").write_text(json.dumps(receipt) + "\n")
             print("Scoring: committed dense model restored", flush=True)
         else:
             read_model_files(args.output)
@@ -463,6 +504,7 @@ def main():
             "elapsed_seconds": time.monotonic() - started,
             "phase_seconds": phases,
             "source_verification_workers": corpus.verification_workers,
+            "checkpoint_read_mode": args.checkpoint_read_mode,
             "versions": {name: importlib.metadata.version(name) for name in ("torch", "transformers")},
             "objective_identity": objective.identity,
             "processor_identity": packer.validation_semantics_identity(),

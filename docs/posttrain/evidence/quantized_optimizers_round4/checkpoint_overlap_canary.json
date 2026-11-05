@@ -1,0 +1,133 @@
+{
+  "purpose": "development diagnosis",
+  "prepared_verified_rows": 751,
+  "locked_utc": "2026-11-05T18:43:10.986057+00:00",
+  "cases": [
+    {
+      "name": "pinned_controls",
+      "argv": [
+        "python",
+        "-m",
+        "pytest",
+        "tools/quantized_optimizers/test_checkpoint_read.py",
+        "--confcutdir=cosmos_framework/posttrain/tests",
+        "--override-ini=addopts=",
+        "-q"
+      ],
+      "env": {
+        "CUDA_VISIBLE_DEVICES": ""
+      },
+      "read_model": false
+    },
+    {
+      "name": "fused_serial",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.score_dense",
+        "--data",
+        "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data/dev-task.jsonl",
+        "--selection",
+        "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data/dev-task-manifest.json",
+        "--output",
+        "{case}/scores",
+        "--checkpoint",
+        "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/final-seed17/matched_adamw/native/cosmos3_reasoner/optimizer_task/matched_adamw/20261104132611/checkpoints/iter_000015",
+        "--seed",
+        "17",
+        "--verification-workers",
+        "4",
+        "--checkpoint-read-mode",
+        "serial"
+      ],
+      "read_model": false,
+      "allow_failure": false
+    },
+    {
+      "name": "fused_overlap",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.score_dense",
+        "--data",
+        "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data/dev-task.jsonl",
+        "--selection",
+        "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data/dev-task-manifest.json",
+        "--output",
+        "{case}/scores",
+        "--checkpoint",
+        "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/final-seed17/matched_adamw/native/cosmos3_reasoner/optimizer_task/matched_adamw/20261104132611/checkpoints/iter_000015",
+        "--seed",
+        "17",
+        "--verification-workers",
+        "4",
+        "--checkpoint-read-mode",
+        "overlap"
+      ],
+      "read_model": false,
+      "allow_failure": false,
+      "compare_scores_to": "{root}/fused_serial/scores/scores.jsonl"
+    },
+    {
+      "name": "eightbit_overlap",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.score_dense",
+        "--data",
+        "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data/dev-task.jsonl",
+        "--selection",
+        "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data/dev-task-manifest.json",
+        "--output",
+        "{case}/scores",
+        "--checkpoint",
+        "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/final-seed17/matched_adamw_bnb_8bit/native/cosmos3_reasoner/optimizer_task/matched_adamw_bnb_8bit/20261104133142/checkpoints/iter_000015",
+        "--seed",
+        "17",
+        "--verification-workers",
+        "4",
+        "--checkpoint-read-mode",
+        "overlap"
+      ],
+      "read_model": false,
+      "allow_failure": false
+    },
+    {
+      "name": "eightbit_serial",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.score_dense",
+        "--data",
+        "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data/dev-task.jsonl",
+        "--selection",
+        "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data/dev-task-manifest.json",
+        "--output",
+        "{case}/scores",
+        "--checkpoint",
+        "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/final-seed17/matched_adamw_bnb_8bit/native/cosmos3_reasoner/optimizer_task/matched_adamw_bnb_8bit/20261104133142/checkpoints/iter_000015",
+        "--seed",
+        "17",
+        "--verification-workers",
+        "4",
+        "--checkpoint-read-mode",
+        "serial"
+      ],
+      "read_model": false,
+      "allow_failure": false,
+      "compare_scores_to": "{root}/eightbit_overlap/scores/scores.jsonl"
+    }
+  ],
+  "scope": "Checkpoint read/restore overlap canary: exact same32development questions and checkpoints, native provenance, full SHA256 and independent fresh-process reload. Four source-verification workers in every arm, qualified by runtime_canary_summary.json.",
+  "reservation_gpu_seconds": 600,
+  "work_seconds": 520,
+  "acceptance": "Exact score/input/checkpoint SHA/provenance parity; combined read-and-restore phase at least10% lower in aggregate, aggregate attempt time ratio<=1.02. No final performance claim."
+}

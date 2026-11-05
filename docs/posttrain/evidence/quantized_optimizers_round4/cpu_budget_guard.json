@@ -1,0 +1,7 @@
+{
+  "recorded_utc": "2026-11-05T18:46:57.140860+00:00",
+  "slurm_killwait_seconds": 120,
+  "overtime_minutes": 0,
+  "cpu_cap_guard": "Monitor remaining allocation headroom explicitly. Until completed preparations release actual-time headroom, send termination by elapsed36minutes if a preparation is still running and its maximum grace cannot fit; allow at most60seconds polling lag plus120seconds KillWait within the39minute reservation. Do not count a terminated/incomplete corpus as a completed replication. Once actual completed costs release enough headroom, the original39minute Slurm limit can be retained. No walltime extension or new CPU job beyond the7200second ceiling.",
+  "scope": "Operational budget protection only. Does not reduce source checks, worker count or change final thresholds."
+}

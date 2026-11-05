@@ -1,5 +1,5 @@
 {
-  "as_of_utc": "2026-11-05T18:36:24.693348+00:00",
+  "as_of_utc": "2026-11-05T18:51:05.801412+00:00",
   "gpu_cap_seconds": 15660,
   "cpu_wall_cap_seconds": 7200,
   "jobs": [
@@ -19,10 +19,11 @@
         "--partition=interactive_singlenode,polar",
         "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-lr-20261105T1830/deployment.sbatch"
       ],
-      "state": "SUBMITTED",
+      "state": "COMPLETED",
       "gpu_count": 1,
-      "charged_or_reserved_gpu_seconds": 1080,
-      "charged_or_reserved_cpu_wall_seconds": 0
+      "charged_or_reserved_gpu_seconds": 754,
+      "charged_or_reserved_cpu_wall_seconds": 0,
+      "elapsed_seconds": 754
     },
     {
       "job": "38037824",
@@ -89,12 +90,25 @@
       "gpu_count": 0,
       "charged_or_reserved_gpu_seconds": 0,
       "charged_or_reserved_cpu_wall_seconds": 2340
+    },
+    {
+      "job": "38038432",
+      "name": "optimizer-r4-runtime",
+      "node": "batch-block4-0051",
+      "wall_seconds": 600,
+      "state": "COMPLETED",
+      "gpu_count": 1,
+      "charged_or_reserved_gpu_seconds": 431,
+      "charged_or_reserved_cpu_wall_seconds": 0,
+      "elapsed_seconds": 431
     }
   ],
   "unsubmitted_gpu_reservations": {
     "fused_development": 0,
-    "conditional_eight_bit_development": 1080,
-    "conditional_final": 13500
+    "conditional_eight_bit_development": 0,
+    "conditional_final": 0,
+    "shared_runtime_canary": 0,
+    "checkpoint_overlap_canary": 600
   },
   "unsubmitted_cpu_reservations": {
     "full_preparation_1": 0,
@@ -102,7 +116,8 @@
     "full_preparation_3": 0
   },
   "local_cpu_check_seconds_reserved": 180,
-  "total_charged_or_reserved_gpu_seconds": 15660,
+  "total_charged_or_reserved_gpu_seconds": 1785,
   "total_charged_or_reserved_cpu_seconds": 7200,
-  "prior_ledger": "../quantized_optimizers_round3/final_accounting.json"
+  "prior_ledger": "../quantized_optimizers_round3/final_accounting.json",
+  "conditional_release_reason": "Fused LR screen fails its unchanged per-seed accuracy guard in seeds17 and29. All three fused runs completed; no eight-bit LR run or final scoring is admitted for this candidate. The separately predeclared shared source-verification canary reserves600seconds; no sweep."
 }
