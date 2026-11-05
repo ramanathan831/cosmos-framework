@@ -1,0 +1,46 @@
+{
+  "locked_utc": "2026-11-05T18:32:26.049093+00:00",
+  "handoff_commit": "40885d9",
+  "runtime_commit": "e65f7eac8d7536171aa92ba7f7d019a8ea4b6998",
+  "runtime_archive_sha256": "83ad99a4feaf0cbe737f83cac9f08a18aeb21964f3801d4bf725406b37044325",
+  "new_authorized_gpu_seconds": 15660,
+  "new_authorized_cpu_wall_seconds": 7200,
+  "prior_ledger_unchanged": {
+    "gpu_charged_seconds": 23384,
+    "cpu_charged_seconds": 7015,
+    "gpu_headroom_seconds": 5416,
+    "cpu_headroom_seconds": 185,
+    "not_carried_into_this_allowance": true
+  },
+  "reservations": {
+    "fused_development_gpu_seconds": 1080,
+    "conditional_eight_bit_development_gpu_seconds": 1080,
+    "conditional_complete_final_gpu_seconds": 13500,
+    "cold_cpu_repetitions_wall_seconds": [
+      2340,
+      2340,
+      2340
+    ],
+    "local_cpu_checks_seconds": 180
+  },
+  "gpu_rule": "Reserve full effective Slurm limits before submission; terminal actual ElapsedRaw including failures/grace replaces reservation. Max2 owned GPUs on distinct nodes. Conditional final resources stay reserved until recipe screens pass or fail; no final scoring on a failed candidate.",
+  "cpu_rule": "Three complete fresh-output preparations, each4workers/2threads/8CPUs/16GiB, exact independent raw replay and qualified-reference equality, no CUDA.39minute limits versus observed1990seconds provide350seconds headroom each while reserving180seconds local checks. Not empty OS caches; no input/target/decoder changes.",
+  "fused_probe_sha256": "1feca923a163211f1a52031649d2286fe0eeca4bedf61846b975b63f7452de1b",
+  "fused_probe_policy": "Exact previously executable plan bytes retained; its old NOT_ADMITTED status belongs to historical handoff. This new user-authorized admission supersedes that status without modifying cases or screens.",
+  "development_gates": {
+    "mean_update15_task_nll_reduction_min": 0.02,
+    "per_seed_accuracy_drop_max": 0,
+    "per_seed_substantive_nll_ratio_max": 1.01,
+    "seeds": [
+      17,
+      29,
+      43
+    ]
+  },
+  "conditional_eight_bit": "Only if fused screen passes; identical LR7.5e-6 and controls, same strict screen against recorded eight-bit controls; equal development budget. Default exceptions and40-step horizon retained.",
+  "final_policy": "Only after both screens pass: lock new recipe, unchanged1%NLL/1ppaccuracy and>1.05speed bounds, target,60s training/390s product budgets, cadence, reserve rule/order/stats before final scoring. Preserve actual states and censoring.",
+  "cold_statistics": "Report three directly measured preparation allocation/processing times and exact corpus checks. Composed cold timings use all three new costs, propagate variability with a declared seed/preparation crossed resampling; do not call composed estimates direct cold GPU runs. Historical single-cost results unchanged.",
+  "runtime_work": "Inspect measured phases for one concrete shared improvement; any GPU parity work must fit freed actual-cost headroom after reservations. No optimizer microbenchmark/capacity reruns or automatic sweep.",
+  "evaluation_pool": "Same authorized128questions/32historically exposed recording families, disjoint repaired train/development. No independence claim.",
+  "publication": "Local commits/PR draft only; original QLoRA checkout untouched, PR334 closed."
+}

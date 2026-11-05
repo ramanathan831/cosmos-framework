@@ -1,0 +1,20 @@
+{
+  "as_of_utc": "2026-11-05T18:32:26.049093+00:00",
+  "gpu_cap_seconds": 15660,
+  "cpu_wall_cap_seconds": 7200,
+  "jobs": [],
+  "unsubmitted_gpu_reservations": {
+    "fused_development": 1080,
+    "conditional_eight_bit_development": 1080,
+    "conditional_final": 13500
+  },
+  "unsubmitted_cpu_reservations": {
+    "full_preparation_1": 2340,
+    "full_preparation_2": 2340,
+    "full_preparation_3": 2340
+  },
+  "local_cpu_check_seconds_reserved": 180,
+  "total_charged_or_reserved_gpu_seconds": 15660,
+  "total_charged_or_reserved_cpu_seconds": 7200,
+  "prior_ledger": "../quantized_optimizers_round3/final_accounting.json"
+}
