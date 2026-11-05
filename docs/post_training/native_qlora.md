@@ -127,6 +127,8 @@ The default comparison recipe is 300 updates, accumulation 8, sequence limit 409
 
 The selected rank-32 study uses the existing native recipe with explicit overrides. Its [completed three-seed results](native_qlora_qualification.md#completed-selected-three-seed-development-comparison) remain experimental: the crossed NLL uncertainty bound fails the unchanged 2% gate. This is the fixed-execution development choice, not a successful same-budget best-fit search or a universal default.
 
+The [final native build](native_qlora_qualification.md#final-native-build-ordinary-execution), `4cd8988`, passed its real-kernel/artifact gate and both precision arms' native four-update interruption, recovery and fresh multimodal checkpoint/portable reload checks. The frozen recipe uses ordinary `bnb` execution, full logits, FP32 adapters and fused AdamW, with one preprocessing worker. These checks preserve the failed quality bounds and do not qualify rank-32 long-context training.
+
 Use the sealed build and pinned processor above. Set `SFT_DATA_ROOT` to the source-bound grouped training directory containing the fresh 4,611-row `train.jsonl` and a `validation.jsonl` copy of the 584-row development partition. Preserve the corresponding manifests; do not substitute the earlier raw conversion's split. The [qualification runner](../../tools/native_qlora_qualification/README.md#native-experiments) supplies preflight, measurement, portable publication, fresh reload and complete development scoring around this native launch. The training command alone does not perform that qualification.
 
 ```bash
@@ -389,7 +391,7 @@ All four evaluation arms verified the same pinned base revision recorded above, 
 
 ### Exact reload and resume canary
 
-The controlled canary used **four optimizer updates, microbatch one, accumulation two, seed 42**, with saves at updates two and four. Actual WTS sequences were at most 354 tokens, with eight video frames resized to 192 × 320 and 240 visual tokens.
+The controlled canary used **four optimizer updates, microbatch one, accumulation two, seed 42**, with saves at updates two and four. Actual WTS sequences were at most 354 tokens, with eight processed video temporal slots resized to 192 × 320 and 240 visual tokens. The number of unique source frames was not recorded.
 
 - All three real CUDA tests passed: NF4 forward/input backward and adapter updates, plus exact repeated BF16 Flash SDPA forward/backward for language and vision shapes.
 - The optimizer contained exactly the 504 FP32 adapter tensors. All 252 A and 252 B factors updated; frozen weights, buffers, packed data and nested quantization state passed fingerprint checks at save/probe boundaries.
@@ -449,7 +451,7 @@ Questions had two, three or four choices: 16, 72 and 168 rows respectively. Rest
 
 Tie counts in the table's row order were 7, 0, 4 and 2 for both accuracy readouts. Ties use canonical choice order for restricted scoring and the lowest token ID for full-vocabulary scoring. The selected rows covered 133 exact video-content hashes; related events or camera views may require broader clustering for release uncertainty estimates. Evaluator source SHA256 was `3b16133a77643f1585470e4a38a5fdfd5d1709eb679a22ee30db4fb928142ac9`.
 
-Observed evaluation sequences ranged from **304 to 365 tokens** (median 342, p95 356). Video pixel tensor shapes were `[960,1536]` for 252 rows and `[864,1536]` for four rows. The processor requested eight frames with the total pixel budgets documented above; decoded grid values/frame counts were not recorded. Actual training input-length and frame distributions were also not recorded. The configured 4096-token ceiling and these short evaluation sequences do not qualify sustained 4096-token training.
+Observed evaluation sequences ranged from **304 to 365 tokens** (median 342, p95 356). Video pixel tensor shapes were `[960,1536]` for 252 rows and `[864,1536]` for four rows. The processor requested eight frames with the total pixel budgets documented above; decoded grid values/frame counts were not recorded. Actual training input-length and frame distributions were not recorded in the original GPU captures; the later exact 2,400-row CPU replay described above measured processed shapes, without establishing source-frame uniqueness. The configured 4096-token ceiling and these short evaluation sequences do not qualify sustained 4096-token training.
 
 **The release quality gate is not satisfied.** Trained NF4 improved the diagnostic accuracy over frozen NF4 by 38.2813 percentage points, but scored one fewer correct answer than trained BF16 (−0.3906 percentage points). Its token-weighted NLL was **4.18% higher** than trained BF16, already exceeding the proposed 2% relative margin at the point-estimate level. This is an observed quality regression in addition to incomplete release sampling; the required one-sided confidence bound was not evaluated for that archived diagnostic.
 
