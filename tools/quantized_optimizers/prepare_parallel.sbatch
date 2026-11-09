@@ -69,7 +69,7 @@ with Path(sys.argv[2]).open("x") as log:
 Path(sys.argv[1]).write_text(json.dumps({
     "elapsed_seconds": time.monotonic() - started,
     "returncode": result.returncode,
-    "scope": "Whole native preparation Python process, including imports, workers, publication, verification and shutdown. Container setup is separate and shared within this paired allocation.",
+    "scope": "Whole native preparation Python process, including imports, workers, publication, verification and shutdown. Container setup is separate. It is shared only when multiple trials run inside one allocation.",
 }) + "\n")
 raise SystemExit(result.returncode)
 PY
