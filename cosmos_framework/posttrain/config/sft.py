@@ -124,6 +124,10 @@ class SFTConfig(HFRunConfig):
     data: SFTDatasetConfig = field(default_factory=SFTDatasetConfig)
     validation: SFTValidationConfig = field(default_factory=SFTValidationConfig)
     micro_batch_size: int = 1
+    # Attempt-only absolute optimizer boundary; never changes max_steps, the LR
+    # horizon or validation identity. A pause commits full resumable state even
+    # when the ordinary checkpoint cadence is disabled or model-only.
+    pause_after_step: int | None = None
     max_length: int = 4096
     processor_kwargs: dict[str, Any] = field(default_factory=dict)
     # Optional deterministic local-Qwen preprocessing. Caches are bounded CPU
@@ -181,6 +185,10 @@ class SFTConfig(HFRunConfig):
 
     def __post_init__(self) -> None:
         super().__post_init__()
+        if self.pause_after_step is not None and (
+            type(self.pause_after_step) is not int or not 1 <= self.pause_after_step <= self.max_steps
+        ):
+            raise ValueError("SFT pause_after_step must be an integer in [1, max_steps] or None")
         if type(self.preprocessing_cache_bytes) is not int or self.preprocessing_cache_bytes < 0:
             raise ValueError("SFT preprocessing_cache_bytes must be a nonnegative integer")
         if type(self.preprocessing_prefetch) is not bool:

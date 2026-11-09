@@ -606,6 +606,8 @@ def loop(units: dict[str, Any], config: Any, run_out_dir: str) -> dict[str, Any]
     start = int(resolve(policy.iteration()))
     if start > rl.max_steps:
         raise ValueError("restored SFT iteration exceeds configured max_steps")
+    if rl.pause_after_step is not None and rl.pause_after_step <= start:
+        raise ValueError("SFT pause_after_step must exceed the restored optimizer step")
     resumed = bool(resolve(policy.resumed_from_checkpoint()))
     checkpoint = CheckpointLifecycle.from_config(config, rl, run_out_dir=run_out_dir)
     checkpoints = checkpoint.coordinator(run_out_dir, policy, data=data, initial_step=start)
@@ -680,6 +682,21 @@ def loop(units: dict[str, Any], config: Any, run_out_dir: str) -> dict[str, Any]
                 else:
                     info0(f"termination trigger ({stopped}) — already checkpointed, exiting")
                 return {"final_step": final_step, "preempted": stopped}
+            if final_step == rl.pause_after_step:
+                # The update and its ordinary validation are complete. This is
+                # an attempt boundary, not a synthetic FINAL validation or a
+                # change to the training/scheduler horizon. Upgrade partial
+                # cadence artifacts and drain asynchronous publication before
+                # reporting a resumable pause; save/finalization errors escape.
+                checkpoints.ensure_resumable(final_step)
+                CheckpointLifecycle.finalize_units(units)
+                return {
+                    "start": start,
+                    "final_step": final_step,
+                    "final_loss": final_loss,
+                    "paused": True,
+                    "checkpoint": checkpoints.last_save_location,
+                }
     finally:
         try:
             if getattr(rl, "preprocessing_prefetch", False) or getattr(rl, "preprocessing_cache_bytes", 0):

@@ -277,6 +277,24 @@ def test_adapter_contract_survives_typed_dotlist_round_trip() -> None:
     )
 
 
+def test_pause_is_attempt_only_and_preserves_native_resume_identity(tmp_path: Path) -> None:
+    from cosmos_framework.utils.config_helper import override
+
+    config = make_config()
+    checkpoint = _checkpoint(config, tmp_path)
+    expected = sft._adapter_run_contract(config, _packer(config), _objective_identity(config))
+    for limit in (1, config.rl.max_steps):
+        paused = override(config, ["--", f"rl.pause_after_step={limit}"])
+        paused.rl.__post_init__()
+        actual = sft._adapter_run_contract(paused, _packer(paused), _objective_identity(paused))
+        assert actual == expected
+        sft._preflight_adapter_resume(paused, checkpoint, *actual)
+    changed = override(config, ["--", "rl.pause_after_step=1", "rl.lr_schedule.cycle_steps=301"])
+    actual = sft._adapter_run_contract(changed, _packer(changed), _objective_identity(changed))
+    with pytest.raises(ValueError, match="schedule.*differs"):
+        sft._preflight_adapter_resume(changed, checkpoint, *actual)
+
+
 def test_cli_loaded_config_preflights_resume_without_dataclass_assumptions(tmp_path: Path) -> None:
     from cosmos_framework.utils.config import load_config
 
