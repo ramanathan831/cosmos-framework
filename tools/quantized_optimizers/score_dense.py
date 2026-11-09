@@ -380,6 +380,127 @@ def aggregate(rows: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def evaluate_substantive_batch(model, packer, objective, trajectories):
+    """Attribute the native physical batch's token CE without regrouping examples.
+
+    The observer recomputes CE from the same forward's selected logits. The native
+    objective remains authoritative and must reproduce the observed batch mean.
+    No optimizer, masking, forward arguments, labels or reduction is replaced.
+    """
+    import torch
+    import torch.nn.functional as functional
+
+    from cosmos_framework.posttrain.roles.trainer.validation.sft import evaluate_sft_batch
+
+    if getattr(model, "sft_logits_mode", "full") != "full":
+        raise ValueError("substantive batch attribution requires the qualified full-logit path")
+    captured = {}
+    collate = packer.sft_collate_fn
+
+    def observe_batch(samples, *args, **kwargs):
+        if captured or len(samples) != len(trajectories):
+            raise ValueError("substantive attribution requires one unchanged native collation")
+        batch = collate(samples, *args, **kwargs)
+        weights = [t.transitions[0].algo_extra.get("validation_weight", 1.0) for t in trajectories]
+        if any(weight not in (0.0, 1.0) for weight in weights):
+            raise ValueError("invalid native validation weights")
+        attention, labels = batch["attention_mask"], batch["labels"]
+        valid = (
+            (labels[:, 1:] != -100)
+            & attention[:, 1:].bool()
+            & attention[:, :-1].bool()
+            & torch.tensor(weights, dtype=torch.bool)[:, None]
+        )
+        captured.update(
+            labels=labels[:, 1:].clone(),
+            valid=valid,
+            sequence_lengths=[len(s.input_ids) for s in samples],
+            inputs={name: tensor_digest(value.contiguous()) for name, value in sorted(batch.items())},
+            shapes={name: list(value.shape) for name, value in sorted(batch.items())},
+        )
+        return batch
+
+    def observe_forward(_module, _args, kwargs, output):
+        if "token_losses" in captured or "inputs" not in captured:
+            raise ValueError("substantive attribution requires one native forward")
+        for name, expected in captured["inputs"].items():
+            if name != "labels" and (name not in kwargs or tensor_digest(kwargs[name].contiguous()) != expected):
+                raise ValueError(f"substantive native forward changed {name}")
+        logits = output if isinstance(output, torch.Tensor) else output.logits
+        valid, labels = captured["valid"].to(logits.device), captured["labels"].to(logits.device)
+        with torch.autocast(device_type=logits.device.type, enabled=False):
+            losses = functional.cross_entropy(logits[:, :-1][valid].float(), labels[valid], reduction="none")
+        if not torch.isfinite(losses).all():
+            raise ValueError("nonfinite substantive token losses")
+        captured["native_mean"] = float(losses.sum() / max(losses.numel(), 1))
+        captured["token_losses"] = losses.cpu()
+
+    packer.sft_collate_fn = observe_batch
+    handle = model.net.register_forward_hook(observe_forward, with_kwargs=True)
+    try:
+        metrics = evaluate_sft_batch(model, objective, trajectories)
+    finally:
+        handle.remove()
+        packer.sft_collate_fn = collate
+    count = int(metrics["sft_valid_tokens"])
+    native = float(metrics["sft_loss"])
+    if count != int(captured["valid"].sum()) or native != captured["native_mean"]:
+        raise ValueError("observed batch CE/count differs from the authoritative native objective")
+    rows, offset = [], 0
+    for index, trajectory in enumerate(trajectories):
+        valid = captured["valid"][index]
+        tokens = int(valid.sum())
+        losses = captured["token_losses"][offset : offset + tokens].tolist()
+        offset += tokens
+        rows.append(
+            {
+                "trajectory_id": trajectory.id,
+                "tokens": tokens,
+                "token_loss_sum": math.fsum(losses),
+                "token_losses": losses,
+                "target_token_ids": captured["labels"][index][valid].tolist(),
+                "sequence_length": captured["sequence_lengths"][index],
+            }
+        )
+    if not math.isclose(math.fsum(row["token_loss_sum"] for row in rows) / count, native, rel_tol=1e-6, abs_tol=1e-7):
+        raise ValueError("row attribution failed to reconstruct the native token mean")
+    return {
+        "native_loss": native,
+        "native_tokens": count,
+        "rows": rows,
+        "inputs": captured["inputs"],
+        "input_shapes": captured["shapes"],
+        "input_sha256": json_digest(captured["inputs"]),
+    }
+
+
+def substantive_batch_report(model, packer, objective, dataset, batch_size):
+    from cosmos_framework.posttrain.roles.env.sft import SFTDatasetEnv
+
+    source = SFTDatasetEnv(dataset, training=False, rank=0, world_size=1)
+    batches = []
+    for index in range(source.validation_batch_count(batch_size, 16)):
+        batch = source.get_validation_batch(index, batch_size, 16)
+        result = evaluate_substantive_batch(model, packer, objective, batch)
+        for row in result["rows"]:
+            position = int(row["trajectory_id"].rsplit(":", 1)[1])
+            row["id"] = dataset[position]["id"]
+        batches.append(result)
+    tokens = sum(batch["native_tokens"] for batch in batches)
+    # Identical order and arithmetic to entrypoints.sft._evaluate, including the
+    # FP32 per-batch mean subsequently accumulated in Python's float precision.
+    numerator = 0.0
+    for batch in batches:
+        numerator += batch["native_loss"] * batch["native_tokens"]
+    return {
+        "batch_size": batch_size,
+        "source_fingerprint": source.source_identity(),
+        "native_loss": numerator / tokens,
+        "native_tokens": tokens,
+        "batches": batches,
+    }
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--data", type=Path, required=True)
@@ -388,11 +509,20 @@ def main():
     parser.add_argument("--checkpoint")
     parser.add_argument("--checkpoint-sha256", help="Independently pinned model.pt digest; mismatch rejects scoring")
     parser.add_argument("--substantive-data", type=Path)
+    parser.add_argument("--substantive-batch-size", type=int, choices=(1, 4), default=1)
+    parser.add_argument("--expected-substantive-nll", type=float)
     parser.add_argument("--seed", type=int, required=True)
     parser.add_argument("--verification-workers", type=int, choices=(1, 2, 3, 4), default=4)
     parser.add_argument("--checkpoint-read-mode", choices=("serial", "overlap"), default="overlap")
     args = parser.parse_args()
     validate_checkpoint_digest(args.checkpoint_sha256)
+    if args.expected_substantive_nll is not None and (
+        args.substantive_data is None
+        or args.substantive_batch_size != 4
+        or not math.isfinite(args.expected_substantive_nll)
+        or args.expected_substantive_nll < 0
+    ):
+        raise ValueError("native substantive parity requires batch four and a finite recorded loss")
     if args.checkpoint_sha256 is not None and args.checkpoint is None:
         raise ValueError("a pinned checkpoint digest requires --checkpoint")
     if os.environ.get("WORLD_SIZE") != "1":
@@ -506,9 +636,17 @@ def main():
                 rows.append(scores)
             os.fsync(stream.fileno())
         phases["task_scoring"] = time.monotonic() - phase_started
-        if versions != {name: parameter._version for name, parameter in model.net.named_parameters()}:
-            raise RuntimeError("evaluation mutated model parameters")
-        if substantive is not None:
+        if substantive is not None and args.substantive_batch_size == 4:
+            extra = substantive_batch_report(model, packer, objective, substantive, 4)
+            if args.expected_substantive_nll is not None and not math.isclose(
+                extra["native_loss"], args.expected_substantive_nll, rel_tol=1e-6, abs_tol=1e-7
+            ):
+                raise ValueError(
+                    f"fresh-process substantive batch-four mismatch: {extra['native_loss']} vs {args.expected_substantive_nll}"
+                )
+            extra["expected_native_loss"] = args.expected_substantive_nll
+            (args.output / "substantive-batches.json").write_text(json.dumps(extra, indent=2) + "\n")
+        elif substantive is not None:
             from cosmos_framework.posttrain.roles.trainer.validation.sft import evaluate_sft_batch
             from cosmos_framework.posttrain.schema import ObsBundle, SFTTarget, Trajectory, Transition
 
@@ -523,6 +661,8 @@ def main():
                     {"id": row["id"], "loss": float(metrics["sft_loss"]), "tokens": int(metrics["sft_valid_tokens"])}
                 )
             (args.output / "substantive.json").write_text(json.dumps(extra, indent=2) + "\n")
+        if versions != {name: parameter._version for name, parameter in model.net.named_parameters()}:
+            raise RuntimeError("evaluation mutated model parameters")
         report = {
             "complete": True,
             "seed": args.seed,
