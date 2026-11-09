@@ -69,7 +69,7 @@ For a controlled full-versus-disabled activation-checkpointing experiment, `life
 
 ### Scheduled full-development scoring
 
-Native `rl.pause_after_step=N` stops an attempt at absolute optimizer step `N`, after ordinary validation and a complete resumable checkpoint. It leaves `rl.max_steps`, the LR horizon and validation schedule unchanged. Resume from the returned checkpoint with a larger pause boundary or `None`; a stale boundary fails. It neither saves partial accumulation nor weakens build/base/execution identity checks. The new path requires its own accelerator qualification; prior `4cd8988` results do not qualify it.
+Native `rl.pause_after_step=N` stops an attempt at absolute optimizer step `N`, after ordinary validation and a complete resumable checkpoint. It leaves `rl.max_steps`, the LR horizon and validation schedule unchanged. Resume from the returned checkpoint with a larger pause boundary or `None`; a stale boundary fails. It neither saves partial accumulation nor weakens build/base/execution identity checks. The [native `149c2cf` accelerator qualification](../../docs/post_training/native_qlora_qualification.md#committed-boundary-pauses-on-native-149c2cf) covers four-update pause/recovery and full-development scoring for both precision arms; it does not establish 300-update cadence or time-to-quality improvement. Prior `4cd8988` results remain separate.
 
 The existing `experiment` command accepts `--validation-target "$TARGET"` for fresh **development-only** runs. Before training, seal a target and increasing evaluation grid ending at the experiment's unchanged horizon. This example retains the existing 300-update development point target; it is not the paired/grouped noninferiority gate:
 
