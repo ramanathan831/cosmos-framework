@@ -85,7 +85,7 @@ def main():
                             ],
                             key=lambda v: v["delta"],
                             reverse=True,
-                        )[:8],
+                        )[:3],
                     )
                 )
         assert math.isclose(
@@ -105,7 +105,17 @@ def main():
         exact_task_observations=96,
         exact_native_substantive_aggregates=3,
         identical_native_batch_inputs=True,
-        cases=result,
+        cases={
+            name: {
+                **{key: value for key, value in case.items() if key != "batches"},
+                "batch_identities": [
+                    {key: batch[key] for key in ("input_sha256", "input_shapes", "native_loss", "native_tokens")}
+                    for batch in case["batches"]
+                ],
+            }
+            for name, case in result.items()
+        },
+        raw_token_attribution="substantive_raw.json.gz: */scores/substantive-batches.json",
         comparisons=comparisons,
     )
     (ROOT / "substantive_summary.json").write_text(json.dumps(output, indent=2) + "\n")
