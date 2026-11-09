@@ -1,6 +1,6 @@
 {
   "scope": "All round-seven evidence files except this manifest; raw outcomes and earlier failed attempts remain retained. This hashes artifacts, not model/source media binaries already bound by their native receipts.",
-  "generated_utc": "2026-11-09T22:54:33.389880+00:00",
+  "generated_utc": "2026-11-09T22:57:05.003630+00:00",
   "files": {
     "accounting_check.sbatch": {
       "bytes": 3985,
@@ -111,8 +111,8 @@
       "sha256": "967b0945949ed5a236081c5a66918e07ca9f7f6f61770868154d4f83e4bb4746"
     },
     "final_accounting.json": {
-      "bytes": 6876,
-      "sha256": "5aca6c27d87f6dd16884b6d24823909eb03b312329b9f74f427c1fe3e4e3e8a4"
+      "bytes": 7460,
+      "sha256": "f8b77e987f0cfbd4f5ee30b93301460ef7f73fdbc1566f561a67b6400b0e0031"
     },
     "focused_tests.txt": {
       "bytes": 99,

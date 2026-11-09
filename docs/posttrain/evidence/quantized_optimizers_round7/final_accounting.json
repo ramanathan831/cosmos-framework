@@ -203,5 +203,17 @@
       "start_slurm_local": "2026-11-09T14:09:57",
       "end_slurm_local": "2026-11-09T14:45:51"
     }
-  ]
+  ],
+  "requested_candidate_campaign_from_2b0fe20": {
+    "included_rounds": [
+      6,
+      7
+    ],
+    "gpu_allocation_seconds": 1169,
+    "cpu_allocation_seconds": 9447,
+    "round6_conservative_local_charge_seconds": 210,
+    "round7_recorded_pytest_wall_seconds": 26.32,
+    "known_cpu_wall_charges_seconds": 9683.32,
+    "scope": "Includes the specified0.975 fused trial, failed/retried CPU profile and subsequent budget-removal continuation. Subtotal overlaps the cumulative40885d9 window; do not add them together. Local editing/analysis wall remains incompletely metered."
+  }
 }

@@ -1067,8 +1067,9 @@ retains 439 GPU allocation-seconds, 8,657 CPU allocation-seconds and 26.32 secon
 of recorded local pytest wall for this continuation. The CPU total includes
 5,945 seconds for the three full preparations and all failed/development runs.
 Cumulative known charges from `40885d9` are 6,296 GPU / 18,938.32 CPU-wall seconds;
-local editing and analysis wall was not exhaustively metered. Aggregate ceilings
-remain removed, and no recipe sweep or final comparison is implied.
+local editing and analysis wall was not exhaustively metered. Including round six,
+the requested campaign from `2b0fe20` allocated 1,169 GPU / 9,447 CPU seconds.
+Aggregate ceilings remain removed, and no recipe sweep or final comparison is implied.
 
 The [next quality diagnostic](evidence/quantized_optimizers_round7/development_diagnosis.json)
 is an exact original/0.975 seed43 replay retaining updates 10 and 15, with
