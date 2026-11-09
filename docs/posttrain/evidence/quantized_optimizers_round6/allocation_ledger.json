@@ -7,27 +7,36 @@
     "gpu_seconds": 5127,
     "cpu_wall_seconds": 9255
   },
-  "gpu_reservations": {
-    "conditional_eightbit_with_grace": 1200,
-    "conditional_complete_final_with_grace": 13860
-  },
+  "gpu_reservations": {},
   "cpu_reservations": {
     "general_checks_analysis": 180,
-    "preparation_profile_with_grace": 540,
-    "preparation_candidate_screen_with_grace": 540,
-    "preparation_local_tests": 113
+    "preparation_local_tests": 105
   },
   "jobs": [
     {
       "job": "38278834",
       "kind": "gpu",
+      "state": "COMPLETED",
+      "receipt": "fused_launch.json",
+      "elapsed_seconds": 730
+    },
+    {
+      "job": "38279161",
+      "kind": "cpu",
+      "state": "TIMEOUT",
+      "receipt": "preparation_profile_launch.json",
+      "elapsed_seconds": 428
+    },
+    {
+      "job": "38279658",
+      "kind": "cpu",
       "state": "PENDING",
-      "reserved_seconds": 1200,
-      "receipt": "fused_launch.json"
+      "reserved_seconds": 660,
+      "receipt": "preparation_profile_retry_launch.json"
     }
   ],
-  "updated_utc": "2026-11-09T18:45:18.331980+00:00",
-  "cumulative_gpu_charged_or_reserved": 21387,
+  "updated_utc": "2026-11-09T19:10:38.569024+00:00",
+  "cumulative_gpu_charged_or_reserved": 5857,
   "cumulative_cpu_charged_or_reserved": 10635,
   "local_cpu_checks": [
     {
@@ -35,5 +44,10 @@
       "seconds": 7,
       "scope": "6 checks, wall rounded from6.181, charged against preparation_local_tests"
     }
-  ]
+  ],
+  "released_gpu_reservations": {
+    "conditional_eightbit_with_grace": 1200,
+    "conditional_complete_final_with_grace": 13860,
+    "reason": "Fused exponent.975 failed native substantive guard in seed43; accepted=false. No eight-bit/final submission."
+  }
 }
