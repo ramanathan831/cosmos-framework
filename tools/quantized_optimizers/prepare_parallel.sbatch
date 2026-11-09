@@ -13,11 +13,12 @@ set -euo pipefail
 export PREPARATION_PROFILE=${PREPARATION_PROFILE:-0}
 export DECODER_THREADS=${DECODER_THREADS:-}
 export PREPARATION_SLICE=${PREPARATION_SLICE:-}
+export VIDEO_CACHE_BYTES=${VIDEO_CACHE_BYTES:-0}
 scontrol show job "$SLURM_JOB_ID" > "$RESULTS/job-$SLURM_JOB_ID.txt"
 trap 'status=$?; echo "$status" > "$RESULTS/exit-code-$SLURM_JOB_ID.txt"' EXIT
 srun --kill-on-bad-exit=1 --container-image="$CONTAINER_IMAGE" \
  --container-mounts=/lustre:/lustre --container-workdir="$SOURCE" --container-writable \
- --container-env=SOURCE,SOURCE_ARCHIVE,ASSETS,RESULTS,MODE,REFERENCE_CORPUS,FINAL_DATA,PREPARATION_PROFILE,DECODER_THREADS,PREPARATION_SLICE bash -c '
+ --container-env=SOURCE,SOURCE_ARCHIVE,ASSETS,RESULTS,MODE,REFERENCE_CORPUS,FINAL_DATA,PREPARATION_PROFILE,DECODER_THREADS,PREPARATION_SLICE,VIDEO_CACHE_BYTES bash -c '
  set -euo pipefail
  CAMPAIGN="$SOURCE"
  SOURCE=$(mktemp -d /tmp/cosmos-optimizer-parallel.XXXXXX); export SOURCE
@@ -32,15 +33,20 @@ srun --kill-on-bad-exit=1 --container-image="$CONTAINER_IMAGE" \
    canary_parallel) trials="4" ;;
    full_one) trials="0" ;;
    slice) trials="0" ;;
+   slice_pairs) trials="control0 candidate0 candidate1 control1 control2 candidate2" ;;
    trials) trials="0 1 2" ;;
    *) exit 2 ;;
  esac
  for trial in $trials; do
-   extra=(); workers=4
+   extra=(); workers=4; cache_bytes="$VIDEO_CACHE_BYTES"
+   if [[ "$MODE" == slice_pairs ]]; then
+     if [[ "$PREPARATION_PROFILE" != 0 || -n "$DECODER_THREADS" || "$VIDEO_CACHE_BYTES" == 0 ]]; then exit 2; fi
+     if [[ "$trial" == control* ]]; then cache_bytes=0; fi
+   fi
    if [[ "$MODE" == canary* ]]; then workers=$trial; extra+=(--sample-targets 32); fi
    if [[ "$PREPARATION_PROFILE" == 1 ]]; then extra+=(--profile); fi
    if [[ -n "$DECODER_THREADS" ]]; then extra+=(--decoder-threads "$DECODER_THREADS"); fi
-   if [[ "$MODE" == slice ]]; then
+   if [[ "$MODE" == slice || "$MODE" == slice_pairs ]]; then
      extra+=(--fixed-slice "$PREPARATION_SLICE")
    else
      extra+=(--extra-data "$SFT_DATA_ROOT/train-mixed.jsonl" --extra-data "$SFT_DATA_ROOT/dev-task.jsonl"
@@ -48,7 +54,7 @@ srun --kill-on-bad-exit=1 --container-image="$CONTAINER_IMAGE" \
    fi
    python -m tools.quantized_optimizers.parallel_prepare \
     --config cosmos_framework/posttrain/configs/sft_optimizer_deployment.py \
-    --workers "$workers" --reference-corpus "$REFERENCE_CORPUS" \
+    --workers "$workers" --reference-corpus "$REFERENCE_CORPUS" --video-cache-bytes "$cache_bytes" \
     --output "$RESULTS/trial$trial" "${extra[@]}" > "$RESULTS/trial$trial.log" 2>&1
  done
  '

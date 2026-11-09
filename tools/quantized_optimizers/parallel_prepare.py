@@ -36,6 +36,7 @@ from cosmos_framework.posttrain.data.packer.sft import SFTPolicyInput, build_sft
 from cosmos_framework.posttrain.entrypoints.sft import sft_policy_source, validate_config_structure
 from cosmos_framework.utils.config import load_config
 from tools.quantized_optimizers.prepare_corpus import same
+from tools.quantized_optimizers.video_reuse import VideoReuse, single_video
 
 
 @contextmanager
@@ -162,12 +163,12 @@ def capped_cpu_decoder(threads):
         decoders.VideoDecoder = original
 
 
-def worker_target(target):
+def worker_target(target, cache=None):
     if not _PROFILE:
-        return process_target(target)
+        return process_target(target, cache)
     profiler = cProfile.Profile()
     with video_stage_times(_PACKER.processor.video_processor) as stages:
-        result = profiler.runcall(process_target, target)
+        result = profiler.runcall(process_target, target, cache)
     result["video_stages"] = stages
     result["profile"] = [
         {
@@ -180,6 +181,14 @@ def worker_target(target):
         for (path, line, name), (cc, nc, tt, ct, _) in pstats.Stats(profiler).stats.items()
     ]
     return result
+
+
+def worker_video_group(targets, source, digest, limit_bytes):
+    cache = VideoReuse(_PACKER.processor.video_processor, source, digest, limit_bytes)
+    results = {target_key(target): worker_target(target, cache) for target in targets}
+    # One receipt per group; retained buffers die before the next submitted group.
+    next(iter(results.values()))["video_reuse"] = dict(cache.stats)
+    return results
 
 
 @contextmanager
@@ -222,12 +231,18 @@ def video_stage_times(processor):
                 setattr(cls, name, original)
 
 
-def process_target(target):
+def process_target(target, cache=None):
     started = time.monotonic()
     timing = None
     if _DECODER_THREADS is None:
-        first = deterministic_sample(_PACKER, target)
+        if cache is None:
+            first = deterministic_sample(_PACKER, target)
+        else:
+            with cache.installed(_PACKER.processor):
+                first = deterministic_sample(_PACKER, target)
         first_finished = time.monotonic()
+        # Always independently decode and process with the original native
+        # implementation, including cache hits. This is part of the old endpoint.
         second = deterministic_sample(_PACKER, target)
         samples_finished = time.monotonic()
         phases = {
@@ -282,7 +297,12 @@ def main(memory=None):
     parser.add_argument("--decoder-threads", type=int, choices=(1, 2), help="CPU development canary with native replay")
     parser.add_argument("--reference-corpus", type=Path, required=True)
     parser.add_argument("--fixed-slice", type=Path, help="Pinned development-only selection and oracle identity")
+    parser.add_argument(
+        "--video-cache-bytes", type=int, default=0, help="Opt-in bounded first-pass video reuse per worker"
+    )
     args = parser.parse_args()
+    if args.video_cache_bytes < 0 or (args.video_cache_bytes and args.decoder_threads is not None):
+        raise ValueError("video reuse requires a nonnegative byte limit and unchanged native decoder settings")
     if os.environ.get("CUDA_VISIBLE_DEVICES") != "":
         raise ValueError("CPU-only preparation requires explicit empty CUDA_VISIBLE_DEVICES")
     if args.output.exists():
@@ -313,6 +333,19 @@ def main(memory=None):
         datasets = [JSONLSFTDataset(str(subset))]
         paths = [str(subset)]
     targets = {target_key(target_from_row(d[i])): target_from_row(d[i]) for d in datasets for i in range(len(d))}
+    groups, media = {}, {}
+    if args.video_cache_bytes:
+        for dataset in datasets:
+            for name, digest in dataset.media_hashes.items():
+                resolved = str(Path(name).resolve(strict=True))
+                if resolved in media and media[resolved] != digest:
+                    raise ValueError("conflicting video reuse media identities")
+                media[resolved] = digest
+        for target in targets.values():
+            source = single_video(target)
+            if source not in media:
+                raise ValueError("video reuse source was not bound by the native dataset")
+            groups.setdefault(source, []).append(target)
     identity = packer.validation_semantics_identity()
     receipts, futures = {}, {}
     with tempfile.TemporaryDirectory(prefix="native-prepare-workers-") as temporary:
@@ -328,9 +361,16 @@ def main(memory=None):
             # Submission happens only after native prepare_corpus captured and
             # verified source identities/stamps. Failure cannot publish a manifest.
             if not futures:
-                futures.update({key: pool.submit(worker_target, value) for key, value in targets.items()})
+                if args.video_cache_bytes:
+                    for source, group in groups.items():
+                        future = pool.submit(worker_video_group, group, source, media[source], args.video_cache_bytes)
+                        futures.update({target_key(value): future for value in group})
+                else:
+                    futures.update({key: pool.submit(worker_target, value) for key, value in targets.items()})
             key = target_key(target)
             result = futures[key].result()
+            if args.video_cache_bytes:
+                result = result[key]
             if result["packer"] != identity or result["cuda_initialized"]:
                 raise ValueError("worker processor identity/device mismatch")
             receipts[key] = result
@@ -377,6 +417,8 @@ def main(memory=None):
         "source_paths": paths,
         "worker_compute_seconds_sum": sum(r["seconds"] for r in receipts.values()),
         "decoder_threads": args.decoder_threads,
+        "video_cache_bytes_per_worker": args.video_cache_bytes,
+        "video_reuse": [r["video_reuse"] for r in receipts.values() if "video_reuse" in r],
         "source_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "setup_seconds": processing_started - started,
         "verification_seconds": time.monotonic() - verification_started,
