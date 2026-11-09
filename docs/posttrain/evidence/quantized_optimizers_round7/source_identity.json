@@ -265,11 +265,30 @@
     "source_archive_sha256": "6adb86af00877780616048fbf0fa509624dae888f2abeb1ff73c34c486851bae",
     "dependency_policy": "Submit only after prior owned full-reuse allocation completes successfully; first after corrected-source accounting check passes. No parallel full preparation."
   },
-  "full_preparation_analysis_commit": "e97ea644",
+  "full_preparation_analysis_commit": "1da309ca3a0b59c80d741510a64e85e2c6621fa9",
   "post_measurement_receipt_label_correction": {
     "file": "tools/quantized_optimizers/prepare_parallel.sbatch",
     "measured_launcher_sha256": "5e4508ca9937d3215c7f2e89246924b1bbc23d4ce847dee5d982e8c0b52fe36c",
     "current_launcher_sha256": "50808f8a1681c300e3c3c38a46940fc114f69681586c1b1ce93d8e980c34507d",
     "change": "Scope text only: full_one allocations are single-trial, not paired. Timer placement, commands, environment, inputs and arithmetic are byte-for-byte unchanged outside this descriptive string. All three measured archives remain75f02cfd. Full allocation time always includes its own startup; no amortization or numerical reanalysis."
-  }
+  },
+  "full_preparation_runs": [
+    {
+      "launch": "full0_launch.json",
+      "raw_evidence": "full0_raw.json.gz",
+      "job": "38284652"
+    },
+    {
+      "launch": "full1_launch.json",
+      "raw_evidence": "full1_raw.json.gz",
+      "job": "38286696"
+    },
+    {
+      "launch": "full2_launch.json",
+      "raw_evidence": "full2_raw.json.gz",
+      "job": "38288002"
+    }
+  ],
+  "post_run_runtime_metadata": "runtime_identity.json",
+  "final_identity_check_utc": "2026-11-09T22:54:33.257082+00:00"
 }
