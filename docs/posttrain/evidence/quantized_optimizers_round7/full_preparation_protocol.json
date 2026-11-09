@@ -2,7 +2,7 @@
   "locked_utc": "2026-11-09T20:19:13.678036+00:00",
   "admission": "Conditional on corrected three-pair whole-process slice screen passing its existing lower95bound>1, with all exact comparisons. Not yet submitted.",
   "runs": 3,
-  "source": "ff3b2ed1 archive source-reuse-timed.tgz; cache math unchanged from5f2eb12a",
+  "source": "Corrected payload-accounting successor offf3b2ed1, identified by immutable archive before launch; sample/cache arithmetic unchanged. Real corrected-source slice parity is required before the first full run.",
   "resources": {
     "partition": "cpu_short",
     "node": "cpu-00008",

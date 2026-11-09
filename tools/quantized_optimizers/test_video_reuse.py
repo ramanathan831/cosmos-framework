@@ -1,5 +1,6 @@
 """Ownership, identity and failure tests; real native parity is a separate CPU run."""
 
+from collections import UserDict
 from dataclasses import dataclass
 from types import SimpleNamespace
 
@@ -112,6 +113,17 @@ def test_unknown_or_live_buffers_fail():
         retained_bytes(object())
     with pytest.raises(ValueError, match="owned"):
         retained_bytes(np.arange(5)[1:])
+
+
+def test_mapping_wrapper_counts_owned_container_without_double_counting_storage():
+    import sys
+
+    tensor = torch.arange(12)
+    payload = {"pixels": tensor, "same_pixels": tensor}
+    wrapped = UserDict(payload)
+    assert retained_bytes(wrapped) == sys.getsizeof(wrapped) + retained_bytes(vars(wrapped))
+    assert retained_bytes(wrapped) > retained_bytes(payload)
+    assert retained_bytes({"pixels": tensor}) < retained_bytes(payload) < 2 * retained_bytes({"pixels": tensor})
 
 
 def test_hit_cannot_bypass_independent_native_target_replay(setup, monkeypatch, tmp_path):

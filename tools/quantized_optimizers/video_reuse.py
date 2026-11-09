@@ -36,7 +36,7 @@ def single_video(target):
 
 
 def retained_bytes(value):
-    """Count owned CPU storage plus Python containers; reject unknown buffers."""
+    """Count CPU storage and Python payload containers, not allocator/RSS overhead."""
     objects, storage = set(), set()
 
     def size(item):
@@ -57,6 +57,10 @@ def retained_bytes(value):
                 raise ValueError("video reuse requires owned numeric NumPy arrays")
             return overhead  # NumPy includes owned storage in __sizeof__.
         if isinstance(item, Mapping):
+            # BatchFeature/UserDict and VideoMetadata own an attribute dictionary
+            # as well as the visible mapping. Count the actual containers once.
+            if hasattr(item, "__dict__"):
+                return overhead + size(vars(item))
             return overhead + sum(size(k) + size(v) for k, v in item.items())
         if isinstance(item, (list, tuple)):
             return overhead + sum(map(size, item))

@@ -638,8 +638,9 @@ one local video per target and unchanged native decoder settings. Targets sharin
 a video run in one worker. Only first-pass video intermediates are reused;
 every complete target is independently replayed with the original processor.
 The cache checks complete source hashes, sampling/processor identity and buffer
-ownership, returns independent copies, and retains at most the configured bytes
-per worker. Text, target order, tokens, masks and publication checks are unchanged.
+ownership, returns independent copies, and bounds accounted tensor/array storage
+and Python payload containers per worker. This payload limit is not a process-RSS
+limit. Text, target order, tokens, masks and publication checks are unchanged.
 Oversized intermediates are explicitly reported as uncached. This flag does not
 enable reuse in training or alter the prepared-corpus format.
 
@@ -648,7 +649,8 @@ For the fixed development screen, use `MODE=slice_pairs`, the committed
 `prepare_parallel.sbatch`. It runs `control0,candidate0,candidate1,control1,control2,candidate2`
 with four workers/two Torch threads each. The launcher records whole Python
 process times in `trial*.process.json`; `preparation_receipt.json` separately
-records the inner phases and process-tree memory. Import and container time must
+records the inner phases and process-tree memory during native preparation
+(excluding imports and outer container setup). Import and container time must
 not be silently omitted from a claimed product clock. See the current evidence
 before extending a slice result to the full corpus or a cold-speed claim.
 
