@@ -12,7 +12,9 @@ import json
 import multiprocessing
 import os
 import pstats
+import sys
 import tempfile
+import threading
 import time
 from concurrent.futures import ProcessPoolExecutor
 from contextlib import contextmanager
@@ -21,11 +23,12 @@ from pathlib import Path
 
 import torch
 
-from cosmos_framework.posttrain.data.datasets.sft import JSONLSFTDataset
+from cosmos_framework.posttrain.data.datasets.sft import JSONLSFTDataset, sha256_file
 from cosmos_framework.posttrain.data.packer.prepared_sft import (
     PreparedSFTCorpus,
     deterministic_sample,
     prepare_corpus,
+    stamp,
     target_from_row,
     target_key,
 )
@@ -33,6 +36,80 @@ from cosmos_framework.posttrain.data.packer.sft import SFTPolicyInput, build_sft
 from cosmos_framework.posttrain.entrypoints.sft import sft_policy_source, validate_config_structure
 from cosmos_framework.utils.config import load_config
 from tools.quantized_optimizers.prepare_corpus import same
+
+
+@contextmanager
+def process_memory():
+    """Sample the preparation process tree, including spawned decoder workers."""
+    done = threading.Event()
+    peak = {"rss_bytes": 0, "pss_bytes": 0, "samples": 0}
+
+    def sample():
+        while not done.is_set():
+            rss = pss = 0
+            todo, seen = [os.getpid()], set()
+            while todo:
+                pid = todo.pop()
+                if pid in seen:
+                    continue
+                seen.add(pid)
+                try:
+                    todo.extend(map(int, Path(f"/proc/{pid}/task/{pid}/children").read_text().split()))
+                    values = {
+                        line.split(":")[0]: int(line.split()[1]) * 1024
+                        for line in Path(f"/proc/{pid}/smaps_rollup").read_text().splitlines()[1:]
+                        if line.startswith(("Rss:", "Pss:"))
+                    }
+                    rss += values["Rss"]
+                    pss += values["Pss"]
+                except (OSError, KeyError):
+                    continue
+            peak["rss_bytes"] = max(peak["rss_bytes"], rss)
+            peak["pss_bytes"] = max(peak["pss_bytes"], pss)
+            peak["samples"] += 1
+            done.wait(0.5)
+
+    thread = threading.Thread(target=sample, daemon=True)
+    thread.start()
+    try:
+        yield peak
+    finally:
+        done.set()
+        thread.join()
+
+
+def verify_reference_slice(plan, manifest, corpus, targets):
+    """Exact selected-entry oracle check; does not claim full source binding.
+
+    A filtered JSONL intentionally has a different cursor identity. Do not weaken
+    PreparedSFTCorpus's full-source contract to accommodate this development test.
+    """
+    reference = Path(plan["reference"])
+    path = reference / "manifest.json"
+    before = stamp(path)
+    value = path.read_bytes()
+    if hashlib.sha256(value).hexdigest() != plan["reference_sha256"]:
+        raise ValueError("slice reference manifest checksum mismatch")
+    oracle = json.loads(value)
+    if oracle["format"] != manifest["format"] or oracle["packer"] != manifest["packer"]:
+        raise ValueError("slice reference processor/format mismatch")
+    if set(targets) != {row["target"] for row in plan["targets"]}:
+        raise ValueError("slice target selection changed")
+    for name, digest in manifest["media"].items():
+        source_stamp = stamp(Path(name))
+        if oracle["media"].get(name) != digest or sha256_file(name) != digest or stamp(Path(name)) != source_stamp:
+            raise ValueError("slice reference source mismatch")
+    for key, target in targets.items():
+        payload = reference / f"{key}.pt"
+        payload_stamp = stamp(payload)
+        if sha256_file(payload) != oracle["entries"][key]["sha256"]:
+            raise ValueError("slice reference payload checksum mismatch")
+        if not same(asdict(corpus.process(target)), torch.load(payload, weights_only=True, mmap=True)):
+            raise ValueError("slice differs from qualified native reference")
+        if stamp(payload) != payload_stamp:
+            raise ValueError("slice reference payload mutated")
+    if stamp(path) != before or sha256_file(path) != plan["reference_sha256"]:
+        raise ValueError("slice reference manifest mutated")
 
 
 def make_packer(config_path):
@@ -108,7 +185,9 @@ def process_target(target):
     timing = None
     if _DECODER_THREADS is None:
         first = deterministic_sample(_PACKER, target)
+        first_finished = time.monotonic()
         second = deterministic_sample(_PACKER, target)
+        samples_finished = time.monotonic()
     else:
         # Counterbalance decode order without consulting timings or task scores.
         order = ["candidate", "control"] if int(target_key(target)[-1], 16) % 2 else ["control", "candidate"]
@@ -123,6 +202,7 @@ def process_target(target):
             seconds[mode] = time.monotonic() - before
         first, second = samples["candidate"], samples["control"]
         timing = {"target": target_key(target), "order": order, "seconds": seconds}
+        first_finished = samples_finished = time.monotonic()
     path = _DIRECTORY / (target_key(target) + ".pt")
     torch.save(asdict(first), path)
     # Both are independent native decodes; control uses the original thread setting.
@@ -136,10 +216,15 @@ def process_target(target):
         "packer": _PACKER.validation_semantics_identity(),
         "cuda_initialized": False,
         "decoder_pair": timing,
+        "phase_seconds": {
+            "first_sample": first_finished - started,
+            "independent_replay": samples_finished - first_finished,
+            "serialize_reload_compare": time.monotonic() - samples_finished,
+        },
     }
 
 
-def main():
+def main(memory=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", required=True)
     parser.add_argument("--output", type=Path, required=True)
@@ -149,6 +234,7 @@ def main():
     parser.add_argument("--profile", action="store_true", help="Development CPU profile; not a timing trial")
     parser.add_argument("--decoder-threads", type=int, choices=(1, 2), help="CPU development canary with native replay")
     parser.add_argument("--reference-corpus", type=Path, required=True)
+    parser.add_argument("--fixed-slice", type=Path, help="Pinned development-only selection and oracle identity")
     args = parser.parse_args()
     if os.environ.get("CUDA_VISIBLE_DEVICES") != "":
         raise ValueError("CPU-only preparation requires explicit empty CUDA_VISIBLE_DEVICES")
@@ -158,6 +244,16 @@ def main():
     torch.set_num_threads(8)
     rl, packer = make_packer(args.config)
     paths = [rl.data.path, rl.validation.data.path, *args.extra_data]
+    plan = None
+    if args.fixed_slice:
+        if args.sample_targets is not None or args.extra_data:
+            raise ValueError("fixed slice cannot be combined with another selection")
+        plan = json.loads(args.fixed_slice.read_text())
+        if Path(plan["reference"]).resolve() != args.reference_corpus.resolve():
+            raise ValueError("slice reference path mismatch")
+        if sha256_file(plan["data"]) != plan["data_sha256"] or sha256_file(plan["source"]) != plan["source_sha256"]:
+            raise ValueError("slice source identity mismatch")
+        paths = [plan["data"]]
     datasets = [JSONLSFTDataset(path) for path in paths]
     originals = datasets
     all_rows = {target_key(target_from_row(d[i])): d[i] for d in datasets for i in range(len(d))}
@@ -201,11 +297,19 @@ def main():
             packer.sft_process_sample = native
             pool.shutdown(wait=True, cancel_futures=True)
         processing_seconds = time.monotonic() - processing_started
+    verification_started = time.monotonic()
     corpus = PreparedSFTCorpus(packer, args.output, datasets)
-    reference = PreparedSFTCorpus(packer, args.reference_corpus, originals)
-    for target in targets.values():
-        if not same(asdict(corpus.process(target)), asdict(reference.process(target))):
-            raise ValueError("parallel preparation changed previously qualified native inputs")
+    if plan:
+        verify_reference_slice(plan, manifest, corpus, targets)
+        if sha256_file(plan["data"]) != plan["data_sha256"] or sha256_file(plan["source"]) != plan["source_sha256"]:
+            raise ValueError("slice source changed during preparation")
+        reference_identity = plan["reference_sha256"]
+    else:
+        reference = PreparedSFTCorpus(packer, args.reference_corpus, originals)
+        for target in targets.values():
+            if not same(asdict(corpus.process(target)), asdict(reference.process(target))):
+                raise ValueError("parallel preparation changed previously qualified native inputs")
+        reference_identity = reference.identity
     if torch.cuda.is_initialized():
         raise RuntimeError("CPU publisher initialized CUDA")
     result = {
@@ -219,7 +323,7 @@ def main():
         "total_verified_rows": sum(len(d) for d in datasets),
         "raw_native_calls": 2 * len(targets),
         "reference_exact_unique_targets": len(targets),
-        "reference_corpus_sha256": reference.identity,
+        "reference_corpus_sha256": reference_identity,
         "corpus_sha256": corpus.identity,
         "payload_bytes": sum(v["bytes"] for v in manifest["entries"].values()),
         "cuda_initialized": False,
@@ -227,6 +331,15 @@ def main():
         "worker_compute_seconds_sum": sum(r["seconds"] for r in receipts.values()),
         "decoder_threads": args.decoder_threads,
         "source_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        "setup_seconds": processing_started - started,
+        "verification_seconds": time.monotonic() - verification_started,
+        "process_tree_peak": dict(memory or {}),
+        "fixed_slice_sha256": sha256_file(args.fixed_slice) if plan else None,
+        "scope": "selected development targets only" if plan else "full configured sources",
+        "worker_phase_seconds_sum": {
+            key: sum(r["phase_seconds"][key] for r in receipts.values())
+            for key in next(iter(receipts.values()))["phase_seconds"]
+        },
     }
     (args.output / "preparation_receipt.json").write_text(json.dumps(result, indent=2) + "\n")
     if args.decoder_threads is not None:
@@ -258,4 +371,20 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    with process_memory() as memory:
+        if "--profile" in sys.argv:
+            profile = cProfile.Profile()
+            profile.runcall(main, memory)
+            output = Path(sys.argv[sys.argv.index("--output") + 1])
+            (output / "parent_profile.json").write_text(
+                json.dumps(
+                    [
+                        {"function": f"{path}:{line}:{name}", "calls": nc, "own_seconds": tt, "cumulative_seconds": ct}
+                        for (path, line, name), (_, nc, tt, ct, _) in pstats.Stats(profile).stats.items()
+                    ],
+                    indent=2,
+                )
+                + "\n"
+            )
+        else:
+            main(memory)

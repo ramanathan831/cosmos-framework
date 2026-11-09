@@ -12,11 +12,12 @@ set -euo pipefail
 : "${SOURCE:?}" "${SOURCE_ARCHIVE:?}" "${ASSETS:?}" "${RESULTS:?}" "${CONTAINER_IMAGE:?}" "${MODE:?}" "${REFERENCE_CORPUS:?}" "${FINAL_DATA:?}"
 export PREPARATION_PROFILE=${PREPARATION_PROFILE:-0}
 export DECODER_THREADS=${DECODER_THREADS:-}
+export PREPARATION_SLICE=${PREPARATION_SLICE:-}
 scontrol show job "$SLURM_JOB_ID" > "$RESULTS/job-$SLURM_JOB_ID.txt"
 trap 'status=$?; echo "$status" > "$RESULTS/exit-code-$SLURM_JOB_ID.txt"' EXIT
 srun --kill-on-bad-exit=1 --container-image="$CONTAINER_IMAGE" \
  --container-mounts=/lustre:/lustre --container-workdir="$SOURCE" --container-writable \
- --container-env=SOURCE,SOURCE_ARCHIVE,ASSETS,RESULTS,MODE,REFERENCE_CORPUS,FINAL_DATA,PREPARATION_PROFILE,DECODER_THREADS bash -c '
+ --container-env=SOURCE,SOURCE_ARCHIVE,ASSETS,RESULTS,MODE,REFERENCE_CORPUS,FINAL_DATA,PREPARATION_PROFILE,DECODER_THREADS,PREPARATION_SLICE bash -c '
  set -euo pipefail
  CAMPAIGN="$SOURCE"
  SOURCE=$(mktemp -d /tmp/cosmos-optimizer-parallel.XXXXXX); export SOURCE
@@ -30,6 +31,7 @@ srun --kill-on-bad-exit=1 --container-image="$CONTAINER_IMAGE" \
    canary) trials="1 4" ;;
    canary_parallel) trials="4" ;;
    full_one) trials="0" ;;
+   slice) trials="0" ;;
    trials) trials="0 1 2" ;;
    *) exit 2 ;;
  esac
@@ -38,12 +40,15 @@ srun --kill-on-bad-exit=1 --container-image="$CONTAINER_IMAGE" \
    if [[ "$MODE" == canary* ]]; then workers=$trial; extra+=(--sample-targets 32); fi
    if [[ "$PREPARATION_PROFILE" == 1 ]]; then extra+=(--profile); fi
    if [[ -n "$DECODER_THREADS" ]]; then extra+=(--decoder-threads "$DECODER_THREADS"); fi
+   if [[ "$MODE" == slice ]]; then
+     extra+=(--fixed-slice "$PREPARATION_SLICE")
+   else
+     extra+=(--extra-data "$SFT_DATA_ROOT/train-mixed.jsonl" --extra-data "$SFT_DATA_ROOT/dev-task.jsonl"
+       --extra-data "$SFT_DATA_ROOT/fixed-final.jsonl" --extra-data "$FINAL_DATA")
+   fi
    python -m tools.quantized_optimizers.parallel_prepare \
     --config cosmos_framework/posttrain/configs/sft_optimizer_deployment.py \
     --workers "$workers" --reference-corpus "$REFERENCE_CORPUS" \
-    --extra-data "$SFT_DATA_ROOT/train-mixed.jsonl" \
-    --extra-data "$SFT_DATA_ROOT/dev-task.jsonl" \
-    --extra-data "$SFT_DATA_ROOT/fixed-final.jsonl" --extra-data "$FINAL_DATA" \
     --output "$RESULTS/trial$trial" "${extra[@]}" > "$RESULTS/trial$trial.log" 2>&1
  done
  '
