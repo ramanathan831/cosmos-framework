@@ -1,0 +1,83 @@
+{
+  "scope": "Training/development labels only; descriptive counts, not a new scoring metric or candidate selection",
+  "sources": {
+    "train-mixed.jsonl": {
+      "sha256": "49111e793c6396c360f4d804359ea42a8724ee1a1abc3f92a707e3d6032d4917",
+      "rows": 346,
+      "substantive_rows": 173,
+      "label_counts": {
+        "What is the brightness level in the scene?": {
+          "Bright": 90,
+          "Dim": 51,
+          "Dark": 26
+        },
+        "What is the volume of the traffic in the scene?": {
+          "Light": 129,
+          "Usual": 24
+        },
+        "What is weather in the scenario?": {
+          "Clear": 103,
+          "Rain": 7,
+          "Cloudy": 52
+        }
+      },
+      "families_per_label": {
+        "What is the brightness level in the scene?": {
+          "Bright": 24,
+          "Dim": 14,
+          "Dark": 7
+        },
+        "What is the volume of the traffic in the scene?": {
+          "Light": 34,
+          "Usual": 7
+        },
+        "What is weather in the scenario?": {
+          "Clear": 29,
+          "Rain": 2,
+          "Cloudy": 13
+        }
+      }
+    },
+    "validation.jsonl": {
+      "sha256": "20f470c2a77747b05847264dea3d214ae7683405792df33e57a3acb226923563",
+      "rows": 56,
+      "substantive_rows": 56,
+      "label_counts": {
+        "What is the brightness level in the scene?": {
+          "Bright": 33,
+          "Dim": 14,
+          "Dark": 6
+        },
+        "What is the volume of the traffic in the scene?": {
+          "Light": 39,
+          "Usual": 10
+        },
+        "What is weather in the scenario?": {
+          "Cloudy": 21,
+          "Clear": 28
+        }
+      },
+      "families_per_label": {
+        "What is the brightness level in the scene?": {
+          "Bright": 9,
+          "Dim": 4,
+          "Dark": 2
+        },
+        "What is the volume of the traffic in the scene?": {
+          "Light": 11,
+          "Usual": 3
+        },
+        "What is weather in the scenario?": {
+          "Cloudy": 6,
+          "Clear": 8
+        }
+      }
+    }
+  },
+  "tokenizer_sha256": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+  "token_strings": {
+    "8658": " Light",
+    "8126": " Dim",
+    "12023": " Clear"
+  }
+}

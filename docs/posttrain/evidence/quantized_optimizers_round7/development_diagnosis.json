@@ -1,0 +1,18 @@
+{
+  "verified": [
+    "Three fresh-process fused seed43 checkpoints exactly reproduce all three native batch-four scalar losses and96 task observations.",
+    "Every compared batch retains exact input digests, shapes, labels, target token IDs and1346supervised tokens.",
+    "Both weighting candidates worsen10of16substantive rows, improve6; these are rows from5families, not16independent recordings.",
+    "The largest individual worsening rows share family20230728_58_SY15_T1. Key token changes correspond to Dim,Light,Clear, not only punctuation or end tokens.",
+    "At0.975, aggregate worsening is largest in20230714_44_CY8_T1; a single-family sole-cause explanation is unsupported.",
+    "The implicated labels are represented in training: Light129of153traffic answers, Clear103of162weather answers, Dim51of167brightness answers. Counts are descriptive and do not establish a causal fix."
+  ],
+  "formula": "For a row with n supervised tokens, native training objective is sum(CE)/n^e normalized by sum_rows(n^(1-e)); e=1 gives equal row weighting. Lowering to.975 raises a92-token row weight relative to a2-token choice row by(92/2)^.025. Evaluation remains ordinary token mean.",
+  "example_relative_weight_975": 1.100446531226053,
+  "example_relative_weight_95": 1.2109825680874522,
+  "conclusion": "No scoring/masking/count/checkpoint defect found. A reproducible shared optimization trade-off is localized; neither monotonic interpolation nor rare-label oversampling is supported by these observations. The.975 fused failure remains; no eight-bit or final stage admitted.",
+  "next_quality_intervention": "A prospectively locked diagnostic replay of the existing original/.975 seed43 recipes, observing native batch-four per-question loss at updates10/15 and retaining update10 explicitly, would distinguish late-update interference from persistent difficulty. No new exponent/LR candidate is selected from the current evidence. Keep the original failed outcomes and require exact update15 replay parity.",
+  "cost_estimate": "Estimated15-20GPU allocation-minutes for two exact15-update training replays plus dependent fresh-process checks, based on730seconds for the prior three-seed training allocation and439seconds for three current checkpoint diagnostics. Request25minutes including startup/grace; this is a proposed diagnostic, not an admitted job or guaranteed improvement.",
+  "limits": "Teacher-forced answer-text loss and restricted-choice scores; no new free-form generated-answer quality claim and no optimizer-specific conclusion from fused-only checkpoints.",
+  "checkpoint_availability": "Remote directory audit confirms only update15 is retained for original/.975 seed43. Update10 attribution cannot be reconstructed from a nonexistent durable state."
+}

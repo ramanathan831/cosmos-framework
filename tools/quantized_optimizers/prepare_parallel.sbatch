@@ -52,9 +52,26 @@ srun --kill-on-bad-exit=1 --container-image="$CONTAINER_IMAGE" \
      extra+=(--extra-data "$SFT_DATA_ROOT/train-mixed.jsonl" --extra-data "$SFT_DATA_ROOT/dev-task.jsonl"
        --extra-data "$SFT_DATA_ROOT/fixed-final.jsonl" --extra-data "$FINAL_DATA")
    fi
-   python -m tools.quantized_optimizers.parallel_prepare \
+   python - "$RESULTS/trial$trial.process.json" "$RESULTS/trial$trial.log" \
+    -m tools.quantized_optimizers.parallel_prepare \
     --config cosmos_framework/posttrain/configs/sft_optimizer_deployment.py \
     --workers "$workers" --reference-corpus "$REFERENCE_CORPUS" --video-cache-bytes "$cache_bytes" \
-    --output "$RESULTS/trial$trial" "${extra[@]}" > "$RESULTS/trial$trial.log" 2>&1
+    --output "$RESULTS/trial$trial" "${extra[@]}" << "PY"
+import json
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+started = time.monotonic()
+with Path(sys.argv[2]).open("x") as log:
+    result = subprocess.run([sys.executable, *sys.argv[3:]], stdout=log, stderr=subprocess.STDOUT)
+Path(sys.argv[1]).write_text(json.dumps({
+    "elapsed_seconds": time.monotonic() - started,
+    "returncode": result.returncode,
+    "scope": "Whole native preparation Python process, including imports, workers, publication, verification and shutdown. Container setup is separate and shared within this paired allocation.",
+}) + "\n")
+raise SystemExit(result.returncode)
+PY
  done
  '
