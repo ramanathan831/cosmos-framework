@@ -52,7 +52,9 @@ def main():
             key: sum(row[key] for row in receipt["video_reuse"])
             for key in ("hits", "misses", "oversized", "source_hashes")
         }
-        assert counts["hits"] == 254 and counts["misses"] == 308 and counts["oversized"] == 0
+        assert counts["hits"] + counts["misses"] == 562
+        assert counts["misses"] >= 308 and counts["oversized"] == 0
+        assert counts["source_hashes"] == counts["hits"] + 2 * counts["misses"]
         assert len(receipt["video_reuse"]) == 308
         assert max(row["retained_peak_bytes"] for row in receipt["video_reuse"]) <= 2**26
         assert (
@@ -92,6 +94,12 @@ def main():
     rng = np.random.default_rng(2026)
     draws = [float(crossed[np.ix_(rng.integers(0, 3, 3), rng.integers(0, 3, 3))].mean()) for _ in range(10000)]
     bounds = np.quantile(draws, [0.025, 0.975]).tolist()
+    path_plan = json.loads((ROOT.parent / "quantized_optimizers_round5/critical_path_plan.json").read_text())
+    target = path_plan["nonoverlapping_bucket_means"]["target"]
+    fused = target["adamw"]["prepared_total"]
+    eightbit = target["adamw_bnb_8bit"]["prepared_total"]
+    eightbit_training = target["adamw_bnb_8bit"]["training"]
+    maximum_preparation = (fused - 1.05 * (eightbit - eightbit_training)) / 0.05
     output = dict(
         complete=True,
         uninterrupted_replications=3,
@@ -111,13 +119,23 @@ def main():
             method="Crossed paired-seed/preparation percentile bootstrap,10000draws,RNG2026; three timing restarts retained within each quality seed. Same method as round five.",
             scope="Historical round-three prepared target deliveries plus three new complete CPU allocations. Both optimizer arms receive identical preparation cost. This is composed, not a directly measured cold GPU pipeline or a new final optimizer comparison.",
         ),
+        conditional_planning_bound=dict(
+            source="Unchanged round-five target critical-path decomposition, with the new measured mean full preparation cost substituted.",
+            mean_preparation_seconds=float(seconds.mean()),
+            ratio_if_candidate_training_cost_zero=float(
+                (seconds.mean() + fused) / (seconds.mean() + eightbit - eightbit_training)
+            ),
+            maximum_common_preparation_for_mean_ratio_1_05_if_candidate_training_zero=maximum_preparation,
+            required_further_preparation_reduction_fraction=float(1 - maximum_preparation / seconds.mean()),
+            limit="Planning only, holding all historical nontraining costs and target crossings fixed. Not a measured speed result, confidence bound or universal impossibility proof.",
+        ),
         clocks=dict(
             native_main="Setup, preparation, publication and exact full oracle verification after Python imports; worker timers are nested and are not added to wall time.",
             python_process="Imports through worker shutdown and final verification. Excludes shared container startup.",
             allocation="Complete parent Slurm elapsed time, including container/source setup and termination; queue wait excluded. Used for cold composition consistently with historical evidence.",
             memory="Sampled process-tree PSS/RSS during native main plus workers. Excludes imports/container startup; cache payload accounting is not an RSS bound.",
         ),
-        cache_scope="308unique source videos;254first-pass video-processor hits,308misses,562independent uncached target replays. Full hashes, deterministic ordering and native publication remain. No cache flushing; shared Lustre/storage-cache state is not controlled.",
+        cache_scope="308unique source videos and562independent uncached target replays; observed first-pass hit/miss counts are reported per run, with at most254potential hits. Full hashes, deterministic ordering and native publication remain. No cache flushing; shared Lustre/storage-cache state is not controlled.",
         limitations="Three sequential runs on one configured CPU node, historically exposed data, no new quality outcomes, no inference-latency or optimizer-specific shared-preparation claim. All failures and search costs remain in the allocation ledger rather than being discarded.",
     )
     (ROOT / "cold_preparation_summary.json").write_text(json.dumps(output, indent=2) + "\n")
