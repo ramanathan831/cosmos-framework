@@ -142,6 +142,21 @@ The promoted periodic replay, maintenance and shutdown functions preserve the qu
 
 `workloads.py` prepares actual processor-measured video workloads, including 3,840–4,096-token examples with at least 1,024 supervised tokens and a larger 16-frame input. The long task is an explicitly synthetic textual ledger alongside real media. These fixtures establish numerical, recovery and resource behavior; they do not establish WTS task quality. No token padding or truncation is used to manufacture sequence lengths.
 
+Use `workloads.py census` to measure every unchanged row in the selected ordinary training source. It uses the native cursor and processor, checks ordered membership against the grouped training manifest, and records actual token counts, video grids, tensor shapes and hashes. The selected census policy is microbatch one, accumulation eight, one preprocessing worker and a 3 GiB cache. Run it in the sealed environment with the same `SFT_MODEL_PATH` and `SFT_DATA_ROOT` as training:
+
+```bash
+python tools/native_qlora_qualification/workloads.py census \
+    --config cosmos_framework/posttrain/configs/sft_qwen3_vl_8b_qlora.py \
+    --source-manifest /absolute/grouped-training/train.manifest.json \
+    --build-receipt /absolute/build/receipt.json \
+    --output /absolute/new-input-census --expected-rows 4611 \
+    --override rl.preprocessing_cache_bytes=3221225472 \
+    --override rl.preprocessing_workers=1 \
+    --override rl.preprocessing_prefetch=true
+```
+
+The source manifest must be the actual training manifest from the grouped split, with matching ordered rows and media digests. Completion requires unchanged source, media and processor bytes and unchanged parent/worker RNG. This CPU census constructs no model and does not qualify GPU training, long-context support or task quality. A partial output without `manifest.json` is incomplete; retain it and use a new destination for another attempt.
+
 With `COSMOS_QLORA_METRICS_FILE` set, `score.py` records `scoring_start` with an allocator-peak reset followed by `scoring_complete` after row-file fsync, frozen-base/adapter/data/media integrity checks and cache close. The interval excludes summary construction/serialization and process-group teardown; it includes the resident model, not just incremental allocations. If a failure occurs after scoring starts, it attempts a `scoring_failed` record after cache cleanup and retains the original exception if cleanup also fails. The consumer labels this interval `scoring_incomplete`; a measurement event alone never proves command completion. These new boundaries have CPU contract coverage; actual CUDA peak validation is pending. Historical scoring files that recorded only loading still have unknown full-scoring allocator peaks.
 
 `monitor.py` samples owned device-process memory and host process-tree RSS/PSS. Sampled peaks are lower bounds; summed RSS may count shared pages twice. Native CUDA phase peaks end at their recorded event and reset afterward. Preprocessing processing/wait counters overlap training and each other and must not be added to elapsed wall time. Report loading, first-step/warmup, training, validation, checkpointing, publication, reload and scoring costs separately, including complete training-to-evaluation elapsed time.
