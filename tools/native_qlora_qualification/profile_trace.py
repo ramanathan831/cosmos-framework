@@ -79,6 +79,22 @@ def phase_totals(events: list[dict]) -> dict:
     return result
 
 
+def _innermost_recorded_name(active: list[dict], event: dict) -> str | None:
+    """Require one innermost, fully containing record on the caller's CPU lane."""
+    start, stop = interval(event)
+    parents = [e for e in active if interval(e)[0] <= start <= stop <= interval(e)[1]]
+    if not parents:
+        return None
+    shortest = min(e["dur"] for e in parents)
+    nearest = [e for e in parents if e["dur"] == shortest]
+    if len(nearest) != 1:
+        return None
+    a, b = interval(nearest[0])
+    if any(not (interval(e)[0] <= a <= b <= interval(e)[1]) for e in parents):
+        return None  # Crossing peer records do not establish nested ancestry.
+    return nearest[0]["name"]
+
+
 def summarize(trace: dict) -> dict:
     raw = trace.get("traceEvents")
     if not isinstance(raw, list):
@@ -98,19 +114,32 @@ def summarize(trace: dict) -> dict:
     for event in annotations + [e for e in events if e.get("cat") == "cpu_op"]:
         lanes[(event.get("pid"), event.get("tid"))].append(event)
     enclosing_by_event = {}
+    recorded_context = {}
     for lane in lanes.values():
         active = []
+        named, autograd = [], []
         for event in sorted(lane, key=lambda e: (e["ts"], -e["dur"])):
             start, stop = interval(event)
             active = [e for e in active if interval(e)[1] >= start]
+            named = [e for e in named if interval(e)[1] >= start]
+            autograd = [e for e in autograd if interval(e)[1] >= start]
             if event.get("cat") == "user_annotation":
                 if event.get("name", "").startswith(("sft.module.", "trainer.optimizer", "trainer.backward")):
                     active.append(event)
+                if event.get("name", "").startswith(("sft.", "trainer.")):
+                    named.append(event)
             else:
                 parents = [e for e in active if interval(e)[1] >= stop]
                 if parents:
                     enclosing_by_event[id(event)] = min(parents, key=lambda e: e["dur"])["name"]
+                recorded_context[id(event)] = (
+                    _innermost_recorded_name(named, event),
+                    _innermost_recorded_name(autograd, event),
+                )
+                if event.get("name", "").startswith("autograd::engine::evaluate_function:"):
+                    autograd.append(event)
     device, classes = defaultdict(list), defaultdict(list)
+    kernel_contexts = defaultdict(list)
     unresolved = 0
     for event in events:
         category = event.get("cat", "")
@@ -134,6 +163,20 @@ def summarize(trace: dict) -> dict:
                 label = "unattributed_kernel"
                 unresolved += 1
         classes[label].append(interval(event))
+        if category == "kernel":
+            candidates = external.get(str(args.get("External id")), [])
+            cpu_op = named_range = autograd_ancestor = None
+            if "External id" not in args:
+                correlation = "missing_kernel_external_id"
+            elif not candidates:
+                correlation = "unmatched_external_id"
+            elif len(candidates) != 1:
+                correlation = "ambiguous_external_id"
+            else:
+                correlation = "unique_external_id"
+                cpu_op = candidates[0]["name"]
+                named_range, autograd_ancestor = recorded_context[id(candidates[0])]
+            kernel_contexts[(label, correlation, cpu_op, named_range, autograd_ancestor)].append(interval(event))
     return {
         "protocol": "cosmos.native-qlora-trace-accounting.v1",
         "diagnostic_only": True,
@@ -145,6 +188,33 @@ def summarize(trace: dict) -> dict:
             for k, v in sorted(classes.items())
         },
         "unattributed_kernel_count": unresolved,
+        "kernel_attribution_diagnostics": {
+            "protocol": "cosmos.native-qlora-kernel-attribution-diagnostics.v1",
+            "groups": [
+                {
+                    "original_device_label": key[0],
+                    "cpu_correlation": key[1],
+                    "cpu_op": key[2],
+                    "same_thread_named_range": key[3],
+                    "same_thread_autograd_ancestor": key[4],
+                    "kernel_count": len(values),
+                    "summed_duration_us": sum(b - a for a, b in values),
+                    "wall_union_us": union(values),
+                }
+                for key, values in sorted(kernel_contexts.items(), key=lambda item: tuple(x or "" for x in item[0]))
+            ],
+            "scope": "An alternative grouping of the same kernel events, not additional device or CPU wall time.",
+            "limitations": [
+                "Original v1 labels, buckets and totals are unchanged; no missing module identity is inferred.",
+                "CPU correlation requires one unique recorded External id. Ambiguous or missing links stay unresolved.",
+                "Named ranges and autograd ancestry require unambiguous full containment on the same CPU process/thread.",
+                "Python ContextVar phase labels need not propagate to autograd workers: a recorded .forward module range "
+                "can occur inside an explicit autograd engine event. Its literal label is retained, not a pure-forward claim.",
+                "Absent ancestry means no such enclosing record, not proof of forward execution. No cross-thread "
+                "ancestry or critical-path causality is inferred from overlapping timestamps.",
+                "Group unions may overlap across streams; do not add this breakdown to the original device totals.",
+            ],
+        },
         "limitations": [
             "CPU ranges are wall time, including waits; inclusive parent/child values must not be added.",
             "Device class unions can overlap each other; summed operation durations can exceed elapsed time across streams.",
