@@ -21,20 +21,20 @@
           "Cloudy": 52
         }
       },
-      "families_per_label": {
+      "recording_groups_per_label": {
         "What is the brightness level in the scene?": {
-          "Bright": 24,
-          "Dim": 14,
+          "Bright": 25,
+          "Dim": 12,
           "Dark": 7
         },
         "What is the volume of the traffic in the scene?": {
-          "Light": 34,
+          "Light": 32,
           "Usual": 7
         },
         "What is weather in the scenario?": {
           "Clear": 29,
           "Rain": 2,
-          "Cloudy": 13
+          "Cloudy": 12
         }
       }
     },
@@ -57,7 +57,7 @@
           "Clear": 28
         }
       },
-      "families_per_label": {
+      "recording_groups_per_label": {
         "What is the brightness level in the scene?": {
           "Bright": 9,
           "Dim": 4,
@@ -79,5 +79,7 @@
     "8658": " Light",
     "8126": " Dim",
     "12023": " Clear"
-  }
+  },
+  "recording_inventory_sha256": "13477150f1dcd6326f5a7f5bf06ac1f1b972683fd9bedafd3bf03311494cd261",
+  "grouping": "Native recording_split.components across full hashed inventory: date+recording identifier, joined by exact video SHA. Prior descriptive directory-family counts are corrected; label counts and all quality guards unchanged."
 }
