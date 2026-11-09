@@ -11,7 +11,7 @@
   "current_changed_tool_paths": {
     "tools/quantized_optimizers/score_dense.py": "01cf40a22e5a80444f5069455fa62bbc919ac68580361467ab6630b64f1796a2",
     "tools/quantized_optimizers/parallel_prepare.py": "194b6ed6acb2db256930f15f9ebe5c72976fcaadb77fcc38eb4afa427540b15c",
-    "tools/quantized_optimizers/video_reuse.py": "5c7f2b2be79e4fec1d0a7743ea18261b16c1698399611a3177f490295ca5fb32",
+    "tools/quantized_optimizers/video_reuse.py": "e9739a3753a7c0481b124cb26a9a84c21a7177c77635fea660f3de08aa1c3469",
     "tools/quantized_optimizers/prepare_parallel.sbatch": "5e4508ca9937d3215c7f2e89246924b1bbc23d4ce847dee5d982e8c0b52fe36c"
   },
   "diagnostic_source": {
@@ -93,5 +93,93 @@
   },
   "full_final_optimizer_comparison_admitted": false,
   "original_qlora_checkout_modified": false,
-  "publication": "Local commits only; no push, publication, merge or PR334 reopening."
+  "publication": "Local commits only; no push, publication, merge or PR334 reopening.",
+  "corrected_timing_source": {
+    "name": "reuse-timed-pairs",
+    "node": "cpu-00008",
+    "effective_wall_seconds": 1500,
+    "grace_reserved_seconds": 120,
+    "gpu_count": 0,
+    "argv": [
+      "sbatch",
+      "--parsable",
+      "--export=ALL",
+      "--time=25",
+      "--nodelist=cpu-00008",
+      "--job-name=optimizer-r7-reuse-timed-pairs",
+      "--output=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r7-20261109T1945/reuse-timed-pairs-%j.log",
+      "--partition=cpu_short",
+      "--mem=16G",
+      "--dependency=afterok:38282639",
+      "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r7-20261109T1945/prepare_timed.sbatch"
+    ],
+    "environment": {
+      "SOURCE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850",
+      "ASSETS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z",
+      "PRIOR": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-quantized-optimizers-20261103",
+      "PREPARATION": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/prepare-evaluation-v1",
+      "CONTAINER_IMAGE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-automl-focused-20261012/image-conversion/cosmos-framework-focused.sqsh",
+      "SOURCE_ARCHIVE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r7-20261109T1945/source-reuse-timed.tgz",
+      "TASK_DATA_ROOT": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data",
+      "TASK_SPEC": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r6-20261109T1843/next_weight975_fused.json",
+      "MODE": "slice_pairs",
+      "WORK_SECONDS": "1380",
+      "RESULTS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r7-20261109T1945/reuse-timed-pairs",
+      "REFERENCE_CORPUS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/prepare-evaluation-v1/prepared-corpus",
+      "FINAL_DATA": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/validation.jsonl",
+      "PREPARATION_PROFILE": "0",
+      "PREPARATION_SLICE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r6-20261109T1843/preparation_slice_plan.json",
+      "DECODER_THREADS": "",
+      "VIDEO_CACHE_BYTES": "67108864"
+    },
+    "source_commit": "ff3b2ed1",
+    "source_archive_sha256": "713fe11a24d2725fc8bed8e9bd11206c3e1488955ec3c28cb55a3875741d78af",
+    "dependency_after_success": "38282639",
+    "job": "38283058",
+    "utc": "2026-11-09T20:12:41.653807+00:00"
+  },
+  "corrected_cache_accounting_source": {
+    "name": "accounting-check",
+    "node": "cpu-00008",
+    "effective_wall_seconds": 900,
+    "grace_reserved_seconds": 120,
+    "gpu_count": 0,
+    "argv": [
+      "sbatch",
+      "--parsable",
+      "--export=ALL",
+      "--time=15",
+      "--nodelist=cpu-00008",
+      "--job-name=optimizer-r7-accounting-check",
+      "--output=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r7-20261109T1945/accounting-check-%j.log",
+      "--partition=cpu_short",
+      "--mem=16G",
+      "--dependency=afterok:38283058",
+      "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r7-20261109T1945/accounting_check.sbatch"
+    ],
+    "environment": {
+      "SOURCE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850",
+      "ASSETS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z",
+      "PRIOR": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-quantized-optimizers-20261103",
+      "PREPARATION": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/prepare-evaluation-v1",
+      "CONTAINER_IMAGE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-automl-focused-20261012/image-conversion/cosmos-framework-focused.sqsh",
+      "SOURCE_ARCHIVE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r7-20261109T1945/source-accounted.tgz",
+      "TASK_DATA_ROOT": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data",
+      "TASK_SPEC": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r6-20261109T1843/next_weight975_fused.json",
+      "MODE": "slice",
+      "WORK_SECONDS": "780",
+      "RESULTS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r7-20261109T1945/accounting-check",
+      "REFERENCE_CORPUS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/prepare-evaluation-v1/prepared-corpus",
+      "FINAL_DATA": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/validation.jsonl",
+      "PREPARATION_PROFILE": "0",
+      "PREPARATION_SLICE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r6-20261109T1843/preparation_slice_plan.json",
+      "DECODER_THREADS": "",
+      "VIDEO_CACHE_BYTES": "67108864"
+    },
+    "source_commit": "504afb8bb84e1317df02bea28581c2a31d59aca7",
+    "source_archive_sha256": "4dd8d0d3c73a703897a2f9f41ce35c44abe8899e80a38ed3a871f6b11b0009f9",
+    "job": "38283551",
+    "utc": "2026-11-09T20:27:12.974174+00:00"
+  },
+  "native_recovery_reused_reason": "Optimizer,config,objective,prepared-corpus transaction and budgeted training source hashes remain identical. New work is optional CPU producer reuse and read-only score attribution; input equality and fresh-process scored checkpoint parity are checked separately."
 }
