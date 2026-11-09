@@ -374,6 +374,25 @@ The [late recovery evidence](evidence/native_qlora_cache_capacity_4cd8988.json) 
 
 This selects a workload-specific preprocessing override, not a generic default or release qualification. The original +4.18% NLL result, selected crossed upper NLL bound **5.879%**, accuracy-loss upper bound **1.556 percentage points**, unchanged 2%/1 pp guards and independent-data requirement remain unchanged. New recording groups and paired-seed confirmation are still required; improved quality and lower time to a fixed quality target remain open objectives.
 
+### Current 3 GiB operator diagnostics
+
+The [completed diagnostic](evidence/native_qlora_cache_profile_3gib_4cd8988.json) adds 42-update traces for both selected precision arms on native `4cd8988`, with rank 32, microbatch one/accumulation eight, full non-reentrant checkpointing, FP32 adapters/AdamW and a 3 GiB cache. Each used one A100 80GB, eight physical cores/sixteen allocated CPUs and a single CPU NUMA node. The allocations were separate; these traces do **not** establish a matched speed ratio or host-memory placement. Model warmup ended at update 30, profiler warmup was update 40, and updates 41–42 were traced.
+
+The traces remain **early cache filling**. Updates 31–39 recorded 24 video-cache misses in 72 calls for each arm; preparation waits were 12.315/68.350 seconds of summed NF4 update time and 18.203/62.584 seconds for BF16. This differs from the retained matched 300-update study: updates 201–300 had only 3.743/572.835 and 3.252/444.056 seconds of preparation wait/update time, respectively. Those later cumulative counters include scheduled validation and cannot be summed with update timers.
+
+| Two traced updates                            | NF4, seconds | BF16, seconds |
+| --------------------------------------------- | -----------: | ------------: |
+| Device-kernel interval union                  |        4.586 |         3.389 |
+| NF4 dequantization kernel intervals           |        0.750 |          None |
+| Device groups with explicit autograd ancestry |        2.939 |         2.140 |
+| Forward-labelled ranges within that ancestry  |        0.515 |         0.410 |
+
+The categories overlap. Autograd includes necessary gradient work; a forward label inside it does not identify all recomputation or prove removable critical-path time. Both traces contain the same 16 language embedding inputs, spanning 321–345 tokens, and vision-convolution operands of shape `[960,3,2,16,16]`. These are operator inputs, not a complete processor census, source-frame count or long-context training qualification.
+
+This evidence supports one next hypothesis: **test disabling activation checkpointing in both arms**. The earlier 1 GiB, 20-update screens remain negative for complete workflow time. The current mature workload has much less preparation waiting, so it merits a bounded recheck of recomputation cost. As a planning sensitivity only, carrying forward the earlier approximately 0.609-second NF4 update reduction would save about 183 seconds over 300 updates, or 6.5% of the earlier 2,800-second workflow. Neither the carry-forward assumption nor a workflow benefit is established. Full checkpointing remains selected pending exact state/recovery, memory and matched workflow checks; the quality guards are unchanged.
+
+The diagnostic consumed **2,242 GPU-seconds and 35,872 allocated CPU-seconds**, including two failed attempts (115 and 1,078 seconds) and a 1,049-second completion. The first failed during immutable-source verification; the second completed NF4 training but exceeded a checkpoint-inspection timeout. Their failure states and absent final-source checks remain unchanged. The completion freshly inspected that NF4 checkpoint and ran the missing BF16 trace. Both captured sample streams contain zero incomplete host samples, while short-phase sampling gaps and unsampled peaks remain explicit. This is diagnostic evidence, with no new quality, speed or release pass.
+
 ## Capability and precision boundary
 
 The candidate is dense `Qwen/Qwen3-VL-8B-Instruct`, revision `0c351dd01ed87e9c1b53cbc748cba10e6187ff3b`, using the native posttrain SFT entrypoint on one Linux x86-64 A100 80GB with one torchrun process. An installed quantizer, inference quantization, or an accepted configuration alone does not establish this training capability.
