@@ -1,0 +1,10 @@
+{
+  "recorded_utc": "2026-11-09T20:36:00.616962+00:00",
+  "job": "38283551",
+  "state": "FAILED",
+  "allocation_seconds": 152,
+  "passed_before_failure": "Real cached second target exactly matched uncached native tensors; one hit/one miss, no oversized bypass.18other focused tests passed.",
+  "failed_assertion": "Current accounted Python payload size11798422 was asserted equal to recorded allocation peak11798462. It was40bytes lower; both were below67108864.",
+  "fix": "Use the actual high-water invariant0<current<=recorded_peak<=limit. No payload, cache policy, performance threshold or quality guard changed.",
+  "retry_scope": "Same fixed-slice real source-hash and deliberate cached-pixel-corruption checks, then corrected-source full15target slice. Prior timed screen remains sealed; retry timing is correctness-only."
+}

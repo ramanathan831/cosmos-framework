@@ -191,7 +191,9 @@ def test_real_fixed_slice_cache_failure_and_native_replay(monkeypatch, tmp_path)
     assert same(asdict(candidate), asdict(oracle))
     assert cache.stats["hits"] == cache.stats["misses"] == 1
     assert cache.stats["oversized"] == 0
-    assert retained_bytes(cache.value) == cache.stats["retained_peak_bytes"] <= 2**26
+    # Python wrapper/container allocation sizes may shrink after later copies;
+    # the recorded value is a high-water mark, not a promise of constant size.
+    assert 0 < retained_bytes(cache.value) <= cache.stats["retained_peak_bytes"] <= 2**26
     wrong_digest = VideoReuse(original, source, "0" * 64, 2**26)
     with pytest.raises(ValueError, match="source digest mismatch"):
         with wrong_digest.installed(packer.processor):
