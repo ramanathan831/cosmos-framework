@@ -1,0 +1,152 @@
+{
+  "product_objective_achieved": false,
+  "implementation_complete_for_declared_scope": true,
+  "implemented": [
+    "Native nonpaged and paged bitsandbytes AdamW with existing explicit precision/recovery contracts.",
+    "Optional bounded within-run CPU video reuse; independent native target replay, exact oracle comparison, full hashes and atomic publication retained.",
+    "Read-only native batch-four per-row/token substantive diagnostics with exact aggregate checks."
+  ],
+  "support": {
+    "optimizer": "One CUDA GPU, ordinary contiguous FP32 trainables, independent compute precision, bitsandbytes0.49.2, consolidated same-identity recovery.",
+    "preparation": "Inspected Transformers5.8.1 Qwen3VLVideoProcessor, one local video per target, four workers/two threads,64MiB retained-payload cap per worker; default disabled.",
+    "unsupported_claims": [
+      "Distributed optimizer execution",
+      "Additional trainable dtypes without qualified master weights",
+      "Sustained paging speed or quality",
+      "Inference latency",
+      "Dense results automatically applying to LoRA/QLoRA"
+    ]
+  },
+  "gates": {
+    "quality_recipe_975": {
+      "status": "FAILED_NUMERICALLY",
+      "mean_task_nll_ratio": 0.9654968020303792,
+      "substantive_ratios": [
+        0.9922750530029897,
+        1.0066488544119987,
+        1.0129706691944087
+      ],
+      "accuracy_no_loss_per_seed": true,
+      "eightbit_stage": "NOT_ADMITTED",
+      "final_stage": "NOT_ADMITTED",
+      "evidence": "../quantized_optimizers_round6/fused_weight975_summary.json"
+    },
+    "native_recovery": {
+      "status": "RETAINED_PASS",
+      "reason": "Core optimizer/config/objective/prepared-corpus transaction code hashes unchanged. Dense40-to44 fused/nonpaged continuation remains applicable."
+    },
+    "matched_quality": {
+      "status": "HISTORICAL_FAIL",
+      "nll_ratio": 1.004584,
+      "nll_interval95": [
+        0.96779,
+        1.04138
+      ],
+      "nll_upper_limit": 1.01,
+      "accuracy_drop_upper_percentage_points": 1.381,
+      "accuracy_drop_upper_limit": 1
+    },
+    "equal_budget_nll_gain": {
+      "status": "HISTORICAL_FAIL",
+      "requirement": "Positive NLL-gain lower bound with accuracy protection; accuracy gain alone does not pass."
+    },
+    "prepared_time_to_target": {
+      "status": "HISTORICAL_FAIL",
+      "ratio": 1.05885,
+      "interval95": [
+        1.0156,
+        1.1021
+      ],
+      "required_lower_bound_strictly_above": 1.05,
+      "target": 1.7987394576095224
+    },
+    "cold_time_to_target": {
+      "status": "FAIL",
+      "mean_ratio": 1.0087351609821122,
+      "ci95": [
+        1.0063172818931152,
+        1.010647072406924
+      ],
+      "paired_seed_by_preparation_ratios": [
+        [
+          1.0111844806795127,
+          1.0105076550114056,
+          1.0097087908788243
+        ],
+        [
+          1.006578608086943,
+          1.0061866187962014,
+          1.0057229544703796
+        ],
+        [
+          1.0102287259534093,
+          1.0096129670146359,
+          1.008885647947701
+        ]
+      ],
+      "speed_lower_bound_above_1_05": false,
+      "method": "Crossed paired-seed/preparation percentile bootstrap,10000draws,RNG2026; three timing restarts retained within each quality seed. Same method as round five.",
+      "scope": "Historical round-three prepared target deliveries plus three new complete CPU allocations. Both optimizer arms receive identical preparation cost. This is composed, not a directly measured cold GPU pipeline or a new final optimizer comparison."
+    },
+    "state_memory": {
+      "status": "RETAINED_PASS",
+      "baseline_bytes": 24697144000,
+      "eightbit_bytes": 6271567872,
+      "saving_fraction": 0.7460610072160571,
+      "required_saving_fraction": 0.6
+    },
+    "preparation_slice": {
+      "status": "PASS_SCOPED",
+      "ratio": 1.2403730574372334,
+      "interval95": [
+        1.1452468777443032,
+        1.3716716872530872
+      ],
+      "source": "ff3b2ed1",
+      "limit": "Fixed15-target/eight-video paired screen before the payload-container accounting correction. Correctness retry is not pooled into its timings."
+    },
+    "full_preparation": {
+      "status": "PASS_EXACT",
+      "runs": 3,
+      "logical_rows_per_run": 751,
+      "unique_targets_per_run": 562,
+      "source": "75f02cfd",
+      "allocation_seconds": [
+        1826,
+        1965,
+        2154
+      ],
+      "limit": "New-path replications only; historical full controls are not current counterbalanced pairs."
+    }
+  },
+  "development_diagnosis": "96task observations and all three native batch-four substantive scalars reproduce exactly for existing fused seed43 original/.95/.975 checkpoints. No scoring/mask/count/checkpoint defect found. Relative candidate loss advantage at10 reverses by15; both absolute losses improve.",
+  "memory_scopes": {
+    "historical_whole_device_gib": [
+      72.58,
+      71.8
+    ],
+    "historical_training_checkpoint_host_pss_gib": [
+      5.76,
+      10.71
+    ],
+    "historical_full_delivery_host_pss_gib": [
+      33.38,
+      33.68
+    ],
+    "new_full_preparation_pss_gib": [
+      6.56245231628418,
+      6.427009582519531,
+      6.435406684875488
+    ],
+    "new_full_preparation_rss_gib": [
+      6.595252990722656,
+      6.461833953857422,
+      6.464031219482422
+    ]
+  },
+  "useful_task_adaptation": "Historical fixed-pool accuracy:59.375%frozen,76.82%fused,76.56%eight-bit. This is separate from matched quality and equal-budget NLL guards.",
+  "validation": "44local affected checks;19pinned corrected-source checks including real media-hash/cache-pixel corruption rejection. Three complete full-corpus replications; unchanged recovery reused. Overlapping test sets are not summed.",
+  "data_scope": "Authorized reused QLoRA train/eval pool with repaired recording-family separation;128final questions from32historically exposed families. No new final scores or independent-replication claim.",
+  "next_quality_work": "Exact original/.975 seed43 replay retaining update10/15, followed by native batch-four attribution and update15 state parity. Commands/cost are in development_diagnosis.json; not admitted, no new recipe selected.",
+  "publication": "Local commits and PR draft only. No push, publication, merge, PR334 reopening or modification of original QLoRA checkout."
+}

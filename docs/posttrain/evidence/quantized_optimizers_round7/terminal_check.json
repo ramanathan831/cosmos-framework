@@ -1,0 +1,16 @@
+{
+  "utc": "2026-11-09T22:47:53.640427+00:00",
+  "owned_jobs": [
+    "38282019",
+    "38282457",
+    "38282639",
+    "38283058",
+    "38283551",
+    "38283930",
+    "38284652",
+    "38286696",
+    "38288002"
+  ],
+  "active_owned_jobs": [],
+  "slurm_times": "Reported scheduler local timestamps; elapsed seconds are timezone independent."
+}

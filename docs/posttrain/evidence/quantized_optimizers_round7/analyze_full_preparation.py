@@ -153,7 +153,7 @@ def main():
         ),
         clocks=dict(
             native_main="Setup, preparation, publication and exact full oracle verification after Python imports; worker timers are nested and are not added to wall time.",
-            python_process="Imports through worker shutdown and final verification. Excludes shared container startup.",
+            python_process="Imports through worker shutdown and final verification. Excludes container startup; each full allocation charges its own startup.",
             allocation="Complete parent Slurm elapsed time, including container/source setup and termination; queue wait excluded. Used for cold composition consistently with historical evidence.",
             memory="Sampled process-tree PSS/RSS during native main plus workers. Excludes imports/container startup; cache payload accounting is not an RSS bound.",
         ),
