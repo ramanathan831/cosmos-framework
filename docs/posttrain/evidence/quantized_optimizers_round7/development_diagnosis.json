@@ -17,5 +17,71 @@
   "checkpoint_availability": "Remote directory audit confirms only update15 is retained for original/.975 seed43. Update10 attribution cannot be reconstructed from a nonexistent durable state.",
   "training_cursor_verified": "Original and.975 seed43 data.pt files are byte-identical withSHA256 91a1cdd56ff302e3c6108c6a7b6ae53327b1d6e29ba1cfe4fc984437742d0bca. Native IndexedCursor reproduces epoch1/position60 from346training rows; source fingerprint is present in the qualified corpus manifest.",
   "late_training_composition": "Steps11-15 contain8substantive and12choice rows; four of five updates mix target types, and update15 has four choice rows. Analytic row-mean coefficients at update15 are equal for all tested exponents; earlier gradients and optimizer states differ. This localizes a possible late-update interference hypothesis, without proving its cause or authorizing a new training candidate.",
-  "recording_group_accounting": "Descriptive label/order reports now use the existing recording_split.components map over the pinned full inventory (including SHA-linked recordings and normal_trimmed), not directory names. Training/development source bytes and all existing quality denominators/guards are unchanged."
+  "recording_group_accounting": "Descriptive label/order reports now use the existing recording_split.components map over the pinned full inventory (including SHA-linked recordings and normal_trimmed), not directory names. Training/development source bytes and all existing quality denominators/guards are unchanged.",
+  "next_native_replay_commands": {
+    "original": [
+      "torchrun",
+      "--standalone",
+      "--nproc-per-node=1",
+      "-m",
+      "tools.quantized_optimizers.task_development",
+      "--config",
+      "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+      "--",
+      "job.name=seed43_replay_original",
+      "rl.seed=43",
+      "rl.optimizer.name=adamw",
+      "rl.optimizer.impl=fused",
+      "rl.optimizer.bnb_min_8bit_size=4096",
+      "model_hf.grad_ckpt=true",
+      "rl.lr_schedule.cycle_steps=40",
+      "rl.optimizer.lr=1e-5",
+      "rl.ce_exponent=1.0",
+      "rl.max_steps=15",
+      "rl.save_every=10",
+      "rl.keep_optim_last=0",
+      "rl.keep_model_last=0",
+      "rl.resume=off"
+    ],
+    "weight975": [
+      "torchrun",
+      "--standalone",
+      "--nproc-per-node=1",
+      "-m",
+      "tools.quantized_optimizers.task_development",
+      "--config",
+      "cosmos_framework/posttrain/configs/sft_optimizer_task.py",
+      "--",
+      "job.name=seed43_replay_weight975",
+      "rl.seed=43",
+      "rl.optimizer.name=adamw",
+      "rl.optimizer.impl=fused",
+      "rl.optimizer.bnb_min_8bit_size=4096",
+      "model_hf.grad_ckpt=true",
+      "rl.lr_schedule.cycle_steps=40",
+      "rl.optimizer.lr=1e-5",
+      "rl.ce_exponent=0.975",
+      "rl.max_steps=15",
+      "rl.save_every=10",
+      "rl.keep_optim_last=0",
+      "rl.keep_model_last=0",
+      "rl.resume=off"
+    ]
+  },
+  "next_replay_execution_contract": "PROPOSED_NOT_ADMITTED: use fresh case directories and the existing study launcher/model/data/prepared identities. Set IMAGINAIRE_OUTPUT_ROOT, TASK_DIAGNOSTIC_OUTPUT and TASK_DEVELOPMENT_DATA as in next_weight975_fused.json. save_every=10 plus native final-save logic retains full update10/15 states. No objective, order, LR, precision or quality-guard changes. Retention adds checkpoint cost; these diagnostic timings cannot enter product performance estimates.",
+  "next_replay_analysis_contract": "Require existing update0/5/10/15 task curves and native substantive scalars to reproduce, then fresh-process native batch-four attribution at retained10/15. Compare update15 parameters/state with the original corresponding checkpoint before causal interpretation. Keep all data cursors/counters and all failed results. This does not select another recipe or unlock final evaluation.",
+  "verified_native_curve_crossing": {
+    "seed": 43,
+    "update10": {
+      "original": 0.2096853002927987,
+      "weight975": 0.2050314215281743,
+      "ratio": 0.9778054124055151
+    },
+    "update15": {
+      "original": 0.13847131080604413,
+      "weight975": 0.14026737637142547,
+      "ratio": 1.0129706691944087
+    },
+    "interpretation": "Both absolute substantive losses improve from10to15, but the candidate advantage reverses relative to control. Missing update10 artifacts prevent per-question localization from current durable states. This is not evidence that simply training less would pass all three development guards."
+  }
 }
