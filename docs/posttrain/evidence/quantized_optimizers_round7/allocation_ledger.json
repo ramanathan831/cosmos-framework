@@ -83,15 +83,27 @@
       "name": "full-reuse-0",
       "kind": "cpu",
       "gpu_count": 0,
-      "state": "RUNNING",
+      "state": "COMPLETED",
+      "exit_code": "0:0",
+      "elapsed_seconds": 1826,
+      "node": "cpu-00008",
+      "effective_wall_seconds": 3300,
+      "receipt": "full0_launch.json"
+    },
+    {
+      "job": "38286696",
+      "name": "full-reuse-1",
+      "kind": "cpu",
+      "gpu_count": 0,
+      "state": "SUBMITTED",
       "exit_code": null,
       "elapsed_seconds": null,
       "node": "cpu-00008",
       "effective_wall_seconds": 3300,
-      "receipt": "full0_launch.json"
+      "receipt": "full1_launch.json"
     }
   ],
-  "full_preparation_series": "Three sequential runs; full0 active, full1/full2 not yet submitted.",
+  "full_preparation_series": "Full0 passed exact full oracle checks; full1 submitted, full2 not yet submitted.",
   "updated_utc": "2026-11-09T21:11:05.211227+00:00",
   "accounting_policy": "Charge parent SlurmElapsedRaw once. CPU-wall is not multiplied by cores. GPU allocation includes its CPU resources; do not also charge that allocation as CPU-wall. Failed allocations retained. Local test wall is reported separately; editing/analysis wall is not fully metered."
 }
