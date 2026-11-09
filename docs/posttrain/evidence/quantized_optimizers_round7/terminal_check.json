@@ -12,5 +12,17 @@
     "38288002"
   ],
   "active_owned_jobs": [],
-  "slurm_times": "Reported scheduler local timestamps; elapsed seconds are timezone independent."
+  "slurm_times": "Reported scheduler local timestamps; elapsed seconds are timezone independent.",
+  "namespace_history_job_ids": [
+    "38282019",
+    "38282457",
+    "38282639",
+    "38283058",
+    "38283551",
+    "38283930",
+    "38284652",
+    "38286696",
+    "38288002"
+  ],
+  "all_namespace_allocations_accounted": true
 }

@@ -48,7 +48,7 @@ from optimizer isolation, where eight-bit optimizer calls were slower.
 | Native-loop throughput | Prior 1.35568× using saved state memory to remove recomputation |
 | Prepared target delivery | Prior 1.05885 [1.01560,1.10210] fails lower>1.05 |
 | Equal elapsed budgets | Actual 60-second training and 390-second product states scored; positive NLL-gain requirement fails |
-| Cold delivery | Three exact full preparation timings 2193/2166/2121s; historical composed target ratio 1.00809 [1.00573,1.00965] still fails lower>1.05 |
+| Cold delivery | New exact full preparations 1826/1965/2154s; composed historical target ratio 1.008735 [1.006317,1.010647] fails lower>1.05. Earlier preparations/results are retained. |
 
 The preceding continuation rejected LR 8.75e-6 and exponent 0.95 under the unchanged
 accuracy/substantive guards. Round six tests only the authorized exponent 0.975
@@ -69,7 +69,15 @@ process time 1.24037× [1.14525, 1.37167]. Shared container startup is separate;
 is not a full cold or optimizer speed claim. The initial inner-timer screen and
 failed peak-equality test assertion are retained. Corrected payload accounting
 passes 19 pinned tests, including real wrong-hash/cached-pixel-corruption rejection,
-and all 15 exact targets. Full 751-row/562-target repetitions are in progress.
+and all 15 exact targets. Three full 751-row/562-target preparations now pass
+with the original manifest hash, 254 first-pass cache hits, 308 misses and every
+target independently replayed. They take 1826/1965/2154 allocation-seconds and
+peak at 6.43–6.56 GiB preparation PSS. The historical/new preparation mean ratio
+is 1.0900, descriptive only: full controls were not paired on current allocations.
+The composed cold optimizer result remains below its required speed margin.
+All measured producers are from `75f02cfd`; the later launcher wording correction
+changes neither timer placement nor execution. Actual unique-target sequences
+span 567–929 tokens, with 22,427 supervised tokens across the full corpus.
 
 Three fresh-process fused seed 43 checkpoint diagnostics reproduce 96 task
 observations and all three native batch-four substantive losses exactly. The
@@ -93,7 +101,9 @@ replicated preparation variability, not three directly measured cold GPU runs.
 
 Aggregate GPU/CPU/time ceilings were removed by the user's latest instruction;
 all historical charges, failed allocations and new allocation costs remain
-recorded. Scheduler routing, numerical gates, finite prospective experiment
+recorded. All nine new allocations are terminal: 439 GPU allocation-seconds and
+8657 CPU allocation-seconds, plus 26.32 seconds of recorded local pytest wall.
+No new training or final optimizer scoring was admitted in round seven. Scheduler routing, numerical gates, finite prospective experiment
 scope and local-only publication remain unchanged. Product qualification is
 open; the failed quality and speed requirements are not relabeled as completed.
 

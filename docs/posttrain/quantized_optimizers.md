@@ -1023,11 +1023,61 @@ passes 19 pinned checks, real wrong-hash/cached-pixel-corruption rejection, and 
 15 exact targets. No source media was mutated. Earlier 44 affected local tests and
 unchanged optimizer/transaction recovery evidence retain their scope.
 
-Three full 751-row/562-target preparations are predeclared sequentially; the first
-is admitted under the [locked protocol](evidence/quantized_optimizers_round7/full_preparation_protocol.json).
-Their completion and full cold analysis remain pending. The slice gain cannot be
-extrapolated into a measured full preparation time or used to pass the unchanged
-cold lower-bound-above-1.05 gate. See the [requirement map](evidence/quantized_optimizers_round7/requirements.md).
+All three [full preparations](evidence/quantized_optimizers_round7/cold_preparation_summary.json)
+complete under the locked protocol with **751 logical rows, 562 exact target
+payloads and the unchanged corpus manifest hash in every run**. Each records
+254 first-pass video cache hits, 308 misses, zero oversized entries and 562
+independent uncached target replays. The legacy `raw_native_calls=1124` field
+counts native packer invocations, including cache hits; it is not a raw-decode
+count. Actual unique-target sequences span 567–929 tokens, with 2–132 supervised
+tokens each and 22,427 supervised tokens in total.
+
+| Full repetition | Complete allocation | Whole Python process | Native main, nested inside process | Preparation PSS peak |
+|---|---:|---:|---:|---:|
+| 0 | 1,826 s | 1,751.36 s | 1,663.33 s | 6.56 GiB |
+| 1 | 1,965 s | 1,879.20 s | 1,772.60 s | 6.43 GiB |
+| 2 | 2,154 s | 2,069.02 s | 1,918.44 s | 6.44 GiB |
+
+Each full allocation charges its own startup. RSS peaks are 6.46–6.60 GiB;
+PSS/RSS sampling covers native preparation and its workers, excluding imports
+and container setup. Retained video payloads peak at 11,798,462 bytes per worker,
+below the 64 MiB limit. Historical full controls took 2,193/2,166/2,121 seconds.
+Their mean divided by the new mean is 1.0900, a **descriptive comparison across
+dates**, without current paired full controls. It is not a qualified causal
+full-workload speedup. All measured runs use producer archive `75f02cfd`; a later
+launcher edit only corrects the receipt's generic “paired allocation” wording.
+
+Using the unchanged crossed paired-seed/preparation bootstrap, the **composed
+historical cold optimizer ratio is 1.008735 [1.006317, 1.010647]**. It fails the
+required lower bound >1.05. This combines historical GPU target deliveries with
+new CPU preparation measurements; it is not three directly measured cold GPU
+pipelines or an empty-storage-cache experiment. No new final optimizer comparison
+was admitted. The prepared, matched-quality and equal-budget NLL failures remain.
+
+The conditional planning bound also remains unfavorable. At the new mean
+preparation cost of 1,981.67 seconds, eliminating all candidate training cost
+would give only 1.01177× under the historical fixed-target costs. Even eliminating
+the entire worker/publication phase as well would give 1.03205×, because observed
+setup, verification and outer-process costs remain. Reaching a mean 1.05× under
+those assumptions requires preparation below 207.36 seconds; confidence requires
+more. These are planning bounds, not performance results or universal limits.
+
+All nine admitted allocations are terminal. [Accounting](evidence/quantized_optimizers_round7/final_accounting.json)
+retains 439 GPU allocation-seconds, 8,657 CPU allocation-seconds and 26.32 seconds
+of recorded local pytest wall for this continuation. The CPU total includes
+5,945 seconds for the three full preparations and all failed/development runs.
+Cumulative known charges from `40885d9` are 6,296 GPU / 18,938.32 CPU-wall seconds;
+local editing and analysis wall was not exhaustively metered. Aggregate ceilings
+remain removed, and no recipe sweep or final comparison is implied.
+
+The [next quality diagnostic](evidence/quantized_optimizers_round7/development_diagnosis.json)
+is an exact original/0.975 seed43 replay retaining updates 10 and 15, with
+native batch-four attribution and update-15 state parity. It is unsubmitted;
+estimated cost is 20–25 GPU allocation-minutes, with a 35-minute operational
+reservation including dependent saves/reloads and termination grace. No new
+exponent, LR, precision exception or quality threshold is selected. The product
+objective remains open. See the [requirement map](evidence/quantized_optimizers_round7/requirements.md)
+and [commands](evidence/quantized_optimizers_round7/commands.md).
 
 ## Reproduction and source identities
 

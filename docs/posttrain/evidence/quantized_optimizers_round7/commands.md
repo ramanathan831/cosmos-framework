@@ -67,6 +67,7 @@ export PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. CUDA_VISIBLE_DEVICES=
 export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1
 .venv/bin/python docs/posttrain/evidence/quantized_optimizers_round7/analyze_substantive.py
 .venv/bin/python docs/posttrain/evidence/quantized_optimizers_round7/analyze_training_order.py
+.venv/bin/python docs/posttrain/evidence/quantized_optimizers_round7/analyze_full_preparation.py
 .venv/bin/python docs/posttrain/evidence/quantized_optimizers_round7/analyze_preparation.py \
   docs/posttrain/evidence/quantized_optimizers_round7/reuse_raw.json.gz
 .venv/bin/python docs/posttrain/evidence/quantized_optimizers_round7/analyze_preparation.py \
@@ -79,3 +80,24 @@ oracles. Recording groups use `recording_split.components` and the unchanged
 full-inventory SHA `13477150f1dcd6326f5a7f5bf06ac1f1b972683fd9bedafd3bf03311494cd261`.
 Directory names are not substituted for recording groups. No recipe selection,
 threshold or evaluation denominator is changed by these descriptive analyses.
+
+Full jobs `38284652`, `38286696` and `38288002` completed in 1826, 1965 and
+2154 allocation-seconds. Their `full{0,1,2}_launch.json` records and compressed
+raw archives bind the identical producer and exact output manifests. The full
+analysis reads all three archives and the terminal allocation ledger; it refuses
+to replace a missing or failed replication with an estimate. `terminal_check.json`
+and `slurm_accounting.txt` account for all nine owned round-seven allocations.
+
+The measured archive remains `75f02cfd`. A later launcher change only clarifies
+that container startup is shared when multiple trials occupy one allocation;
+each full single-trial allocation is charged its own startup. No raw timing is
+altered by that wording correction. Package versions and metadata-file hashes
+from the common runtime are in `runtime_identity.json`, with the post-run
+snapshot limitation stated there. Original GPU runtime versions remain in the
+raw diagnostic evidence.
+
+The next quality diagnostic commands in `development_diagnosis.json` are
+**proposed, not submitted**. They retain full updates 10 and 15 through native
+`save_every=10`, `keep_optim_last=0`, `keep_model_last=0`, and a fresh run. Required
+checkpoint attribution/state comparisons are part of the proposed cost; these
+instrumented diagnostic times cannot replace product timings.

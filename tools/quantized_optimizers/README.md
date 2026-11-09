@@ -661,3 +661,12 @@ the native reduction before writing `substantive-batches.json`. This is a
 teacher-forced diagnostic; it does not change the substantive guard or measure
 free-form generation. The complete commands and artifact identities are recorded
 in [round seven](../../docs/posttrain/evidence/quantized_optimizers_round7/).
+
+The completed round-seven full series preserves all 751 logical rows and 562
+unique targets exactly in three runs (1826/1965/2154 allocation-seconds). Its
+[analysis](../../docs/posttrain/evidence/quantized_optimizers_round7/cold_preparation_summary.json)
+keeps full allocation, Python-process and native-main clocks separate. Full
+historical controls are unpaired; the new composed cold optimizer ratio
+1.008735 [1.006317,1.010647] still fails the lower-bound-above-1.05 requirement.
+A passing preparation correctness screen does not promote the rejected recipe
+or establish an optimizer end-to-end speed claim.

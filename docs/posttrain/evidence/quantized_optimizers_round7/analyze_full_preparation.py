@@ -81,7 +81,10 @@ def main():
                 job=job,
                 source=launch["source_commit"],
                 source_archive_sha256=launch["source_archive_sha256"],
-                receipt=receipt,
+                receipt={key: value for key, value in receipt.items() if key != "video_reuse"},
+                video_groups=len(receipt["video_reuse"]),
+                retained_cache_peak_bytes=max(row["retained_peak_bytes"] for row in receipt["video_reuse"]),
+                raw_evidence=f"full{index}_raw.json.gz",
                 process=process,
                 cache_counts=counts,
             )
@@ -127,6 +130,20 @@ def main():
         replications=replications,
         allocation_seconds=seconds.tolist(),
         historical_allocation_seconds=[2193, 2166, 2121],
+        reliability_and_search_costs=dict(
+            new_full_attempts=3,
+            new_uninterrupted_full_successes=3,
+            new_full_allocation_seconds=int(seconds.sum()),
+            new_preparation_development_allocation_seconds=sum(
+                row["elapsed_seconds"]
+                for row in ledger["jobs"]
+                if row["kind"] == "cpu" and not row["name"].startswith("full-reuse-")
+            ),
+            retained_failed_development_allocation_seconds=152,
+            historical_preparation_timeout_seconds=2361,
+            historical_verification_recovery_seconds=54,
+            note="The current three full runs have no failed allocation. The failed cache-test assertion remains charged development work. Historical timeout/recovery and their sensitivity analysis remain in round5/cold_preparation_summary.json; they are not new-path timing replications or a production failure-rate estimate. Search costs are separate from selected delivery clocks.",
+        ),
         descriptive_historical_preparation_ratio=float(np.mean([2193, 2166, 2121]) / seconds.mean()),
         historical_comparison_limit="Different dates/source allocations, no paired full control. Descriptive ratio only; the paired runtime evidence is the separately locked development slice.",
         composition=dict(

@@ -14,10 +14,10 @@ training defaults, quality margins, or final evaluation definitions.
 | Matched quality | Historical NLL ratio 1.004584 [0.96779, 1.04138] fails upper ≤1.01. Accuracy-drop upper bound 1.381 percentage points fails ≤1 point. No new final comparison. |
 | Equal-budget quality | The historical positive NLL-gain requirement remains unmet; accuracy gain alone does not pass it. Actual 60-second and 390-second endpoints remain unchanged. |
 | Prepared time to target | Historical ratio 1.05885 [1.01560, 1.10210] fails lower >1.05. Fixed quality target 1.7987394576095224 is unchanged. |
-| Cold speed | Historical composed ratio 1.00809 [1.00573, 1.00965] fails lower >1.05. New full preparation replications remain in progress; slice timing is not substituted for this endpoint. |
+| Cold speed | New composed historical ratio **1.008735 [1.006317, 1.010647]** fails lower >1.05. Three exact new full preparations take 1,826/1,965/2,154 seconds. This is composition with historical GPU target deliveries, not direct cold GPU replication; older outcomes remain retained. |
 | State and total memory | Historical optimizer tensor state falls 24,697,144,000→6,271,567,872 bytes (74.61%). Whole-device peaks are 72.58/71.80 GiB; training/checkpoint PSS 5.76/10.71 GiB; full-delivery PSS 33.38/33.68 GiB. These are distinct scopes. |
 | Shared preparation slice | **Passed its development runtime screen:** complete Python-process ratio 1.24037 [1.14525, 1.37167], three paired trials, 90 exact comparisons and unchanged corpus manifest. Four workers, two threads each, native decoder, independent replay and full hashes remain. See `reuse_summary.json`. |
-| Preparation correctness | 44 affected local checks pass. Corrected payload accounting passes 19 pinned checks, including real wrong-hash and cached-pixel-corruption rejection. The invalid current-size-equals-peak assertion and its failed allocation remain recorded. The first two full runs pass all 751 rows / 562 targets; the third replication is pending. |
+| Preparation correctness | 44 affected local checks pass. Corrected payload accounting passes 19 pinned checks, including real wrong-hash and cached-pixel-corruption rejection. The invalid current-size-equals-peak assertion and its failed allocation remain recorded. All three full runs pass all 751 rows / 562 targets and retain the original manifest hash. Full preparation PSS peaks are 6.43–6.56 GiB; this is separate from training memory. See `cold_preparation_summary.json`. |
 | Data honesty | Authorized reused QLoRA train/eval pool, repaired recording-family separation, final 128 questions / 32 families historically exposed. No untouched-data or independent replication claim. |
 | Publication and resources | Local commits/draft only; no push, publication or merge. PR334 remains closed and the original QLoRA checkout untouched. The user removed aggregate GPU/CPU/time ceilings; all historical and new costs, including failures, remain recorded. |
 
@@ -32,3 +32,9 @@ At update 10, the 0.975 seed43 substantive loss is lower than control; at update
 update-10 checkpoints prevent per-question attribution of that relative reversal.
 `development_diagnosis.json` records the next exact diagnostic commands and cost;
 it does not admit another training recipe or final comparison.
+
+All nine admitted allocations are terminal, including the failed assertion test
+resolved by the 19-check retry. Current charges are 439 GPU allocation-seconds,
+8,657 CPU allocation-seconds and 26.32 seconds of recorded local tests. No new
+training or final scoring occurred in round seven. `final_accounting.json`
+retains cumulative charges and the limits of local wall-time accounting.
