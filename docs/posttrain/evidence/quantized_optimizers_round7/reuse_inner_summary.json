@@ -1,0 +1,551 @@
+{
+  "scope": "Fixed15target/8video development slice; not a full cold-workflow result.",
+  "timing_scope": "Inner preparation only; gate not evaluated",
+  "pairs": [
+    {
+      "pair": 0,
+      "control_seconds": 116.86306745372713,
+      "candidate_seconds": 91.52444475283846
+    },
+    {
+      "pair": 1,
+      "control_seconds": 82.49866132391617,
+      "candidate_seconds": 72.40020140307024
+    },
+    {
+      "pair": 2,
+      "control_seconds": 94.16706697735935,
+      "candidate_seconds": 91.5597949931398
+    }
+  ],
+  "paired_speed_ratios": [
+    1.2768508759524906,
+    1.1394811026094422,
+    1.0284761666888278
+  ],
+  "geometric_mean_ratio": 1.1437923283565947,
+  "interval95": [
+    1.0284761666888278,
+    1.2768508759524906
+  ],
+  "screen_pass": null,
+  "exact_repeated_target_comparisons": 90,
+  "independent_native_replay_calls": 90,
+  "identical_corpus_manifest": true,
+  "cases": {
+    "trialcontrol0": {
+      "receipt": {
+        "workers": 4,
+        "threads_per_worker": 2,
+        "cpu_affinity": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "preparation_seconds": 109.13820139504969,
+        "total_seconds_with_independent_exact_replay": 116.86306745372713,
+        "exact_raw_prepared_rows": 15,
+        "independently_replayed_unique_targets": 15,
+        "total_verified_rows": 15,
+        "raw_native_calls": 30,
+        "reference_exact_unique_targets": 15,
+        "reference_corpus_sha256": "ea2e64893ab3d7da0f4c8be33001ae99c96dfd2c54fe293449c29255cd1f2d70",
+        "corpus_sha256": "144f0e7f6cb800e28fa39e9fe331be66c28e18c3016fe9563861be61f11adbe8",
+        "payload_bytes": 177163439,
+        "cuda_initialized": false,
+        "source_paths": [
+          "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r6-20261109T1843/preparation-slice.jsonl"
+        ],
+        "worker_compute_seconds_sum": 205.2946701501496,
+        "decoder_threads": null,
+        "video_cache_bytes_per_worker": 0,
+        "video_reuse": [],
+        "source_sha256": "194b6ed6acb2db256930f15f9ebe5c72976fcaadb77fcc38eb4afa427540b15c",
+        "setup_seconds": 4.66833795979619,
+        "verification_seconds": 3.035053265746683,
+        "process_tree_peak": {
+          "rss_bytes": 5372256256,
+          "pss_bytes": 4562909184,
+          "samples": 197
+        },
+        "fixed_slice_sha256": "43edaa797fc151e28117422811d37df58f3eb573c8286c135106a6f9328924ff",
+        "scope": "selected development targets only",
+        "worker_phase_seconds_sum": {
+          "first_sample": 115.33893739338964,
+          "independent_replay": 75.36315807327628,
+          "serialize_reload_compare": 0.6642794525250793,
+          "processor_identity": 13.92829523095861
+        }
+      },
+      "process": null,
+      "cache_counts": {
+        "hits": 0,
+        "misses": 0,
+        "oversized": 0,
+        "source_hashes": 0
+      }
+    },
+    "trialcontrol1": {
+      "receipt": {
+        "workers": 4,
+        "threads_per_worker": 2,
+        "cpu_affinity": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "preparation_seconds": 77.25532773183659,
+        "total_seconds_with_independent_exact_replay": 82.49866132391617,
+        "exact_raw_prepared_rows": 15,
+        "independently_replayed_unique_targets": 15,
+        "total_verified_rows": 15,
+        "raw_native_calls": 30,
+        "reference_exact_unique_targets": 15,
+        "reference_corpus_sha256": "ea2e64893ab3d7da0f4c8be33001ae99c96dfd2c54fe293449c29255cd1f2d70",
+        "corpus_sha256": "144f0e7f6cb800e28fa39e9fe331be66c28e18c3016fe9563861be61f11adbe8",
+        "payload_bytes": 177163439,
+        "cuda_initialized": false,
+        "source_paths": [
+          "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r6-20261109T1843/preparation-slice.jsonl"
+        ],
+        "worker_compute_seconds_sum": 171.9920822046697,
+        "decoder_threads": null,
+        "video_cache_bytes_per_worker": 0,
+        "video_reuse": [],
+        "source_sha256": "194b6ed6acb2db256930f15f9ebe5c72976fcaadb77fcc38eb4afa427540b15c",
+        "setup_seconds": 2.282869630958885,
+        "verification_seconds": 2.9398993379436433,
+        "process_tree_peak": {
+          "rss_bytes": 5684297728,
+          "pss_bytes": 4626309120,
+          "samples": 133
+        },
+        "fixed_slice_sha256": "43edaa797fc151e28117422811d37df58f3eb573c8286c135106a6f9328924ff",
+        "scope": "selected development targets only",
+        "worker_phase_seconds_sum": {
+          "first_sample": 81.96893422724679,
+          "independent_replay": 75.97756487224251,
+          "serialize_reload_compare": 0.5642786691896617,
+          "processor_identity": 13.48130443599075
+        }
+      },
+      "process": null,
+      "cache_counts": {
+        "hits": 0,
+        "misses": 0,
+        "oversized": 0,
+        "source_hashes": 0
+      }
+    },
+    "trialcontrol2": {
+      "receipt": {
+        "workers": 4,
+        "threads_per_worker": 2,
+        "cpu_affinity": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "preparation_seconds": 88.94642075616866,
+        "total_seconds_with_independent_exact_replay": 94.16706697735935,
+        "exact_raw_prepared_rows": 15,
+        "independently_replayed_unique_targets": 15,
+        "total_verified_rows": 15,
+        "raw_native_calls": 30,
+        "reference_exact_unique_targets": 15,
+        "reference_corpus_sha256": "ea2e64893ab3d7da0f4c8be33001ae99c96dfd2c54fe293449c29255cd1f2d70",
+        "corpus_sha256": "144f0e7f6cb800e28fa39e9fe331be66c28e18c3016fe9563861be61f11adbe8",
+        "payload_bytes": 177163439,
+        "cuda_initialized": false,
+        "source_paths": [
+          "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r6-20261109T1843/preparation-slice.jsonl"
+        ],
+        "worker_compute_seconds_sum": 171.508758217562,
+        "decoder_threads": null,
+        "video_cache_bytes_per_worker": 0,
+        "video_reuse": [],
+        "source_sha256": "194b6ed6acb2db256930f15f9ebe5c72976fcaadb77fcc38eb4afa427540b15c",
+        "setup_seconds": 2.3165005831979215,
+        "verification_seconds": 2.8817766732536256,
+        "process_tree_peak": {
+          "rss_bytes": 5431250944,
+          "pss_bytes": 4610081792,
+          "samples": 153
+        },
+        "fixed_slice_sha256": "43edaa797fc151e28117422811d37df58f3eb573c8286c135106a6f9328924ff",
+        "scope": "selected development targets only",
+        "worker_phase_seconds_sum": {
+          "first_sample": 82.40887228446081,
+          "independent_replay": 74.25936716934666,
+          "serialize_reload_compare": 0.7115975599735975,
+          "processor_identity": 14.12892120378092
+        }
+      },
+      "process": null,
+      "cache_counts": {
+        "hits": 0,
+        "misses": 0,
+        "oversized": 0,
+        "source_hashes": 0
+      }
+    },
+    "trialcandidate0": {
+      "receipt": {
+        "workers": 4,
+        "threads_per_worker": 2,
+        "cpu_affinity": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "preparation_seconds": 84.05639568483457,
+        "total_seconds_with_independent_exact_replay": 91.52444475283846,
+        "exact_raw_prepared_rows": 15,
+        "independently_replayed_unique_targets": 15,
+        "total_verified_rows": 15,
+        "raw_native_calls": 30,
+        "reference_exact_unique_targets": 15,
+        "reference_corpus_sha256": "ea2e64893ab3d7da0f4c8be33001ae99c96dfd2c54fe293449c29255cd1f2d70",
+        "corpus_sha256": "144f0e7f6cb800e28fa39e9fe331be66c28e18c3016fe9563861be61f11adbe8",
+        "payload_bytes": 177163439,
+        "cuda_initialized": false,
+        "source_paths": [
+          "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r6-20261109T1843/preparation-slice.jsonl"
+        ],
+        "worker_compute_seconds_sum": 132.19385788869113,
+        "decoder_threads": null,
+        "video_cache_bytes_per_worker": 67108864,
+        "video_reuse": [
+          {
+            "hits": 1,
+            "misses": 1,
+            "oversized": 0,
+            "retained_peak_bytes": 11797673,
+            "source_hashes": 3
+          },
+          {
+            "hits": 1,
+            "misses": 1,
+            "oversized": 0,
+            "retained_peak_bytes": 11797677,
+            "source_hashes": 3
+          },
+          {
+            "hits": 1,
+            "misses": 1,
+            "oversized": 0,
+            "retained_peak_bytes": 11797673,
+            "source_hashes": 3
+          },
+          {
+            "hits": 1,
+            "misses": 1,
+            "oversized": 0,
+            "retained_peak_bytes": 11797677,
+            "source_hashes": 3
+          },
+          {
+            "hits": 1,
+            "misses": 1,
+            "oversized": 0,
+            "retained_peak_bytes": 11797677,
+            "source_hashes": 3
+          },
+          {
+            "hits": 1,
+            "misses": 1,
+            "oversized": 0,
+            "retained_peak_bytes": 11797673,
+            "source_hashes": 3
+          },
+          {
+            "hits": 1,
+            "misses": 1,
+            "oversized": 0,
+            "retained_peak_bytes": 11797673,
+            "source_hashes": 3
+          },
+          {
+            "hits": 0,
+            "misses": 1,
+            "oversized": 0,
+            "retained_peak_bytes": 11797673,
+            "source_hashes": 2
+          }
+        ],
+        "source_sha256": "194b6ed6acb2db256930f15f9ebe5c72976fcaadb77fcc38eb4afa427540b15c",
+        "setup_seconds": 4.425134303048253,
+        "verification_seconds": 3.019147112965584,
+        "process_tree_peak": {
+          "rss_bytes": 5682409472,
+          "pss_bytes": 4750437376,
+          "samples": 152
+        },
+        "fixed_slice_sha256": "43edaa797fc151e28117422811d37df58f3eb573c8286c135106a6f9328924ff",
+        "scope": "selected development targets only",
+        "worker_phase_seconds_sum": {
+          "first_sample": 47.462738460395485,
+          "independent_replay": 70.64972081501037,
+          "serialize_reload_compare": 0.6454645222984254,
+          "processor_identity": 13.435934090986848
+        }
+      },
+      "process": null,
+      "cache_counts": {
+        "hits": 7,
+        "misses": 8,
+        "oversized": 0,
+        "source_hashes": 23
+      }
+    },
+    "trialcandidate1": {
+      "receipt": {
+        "workers": 4,
+        "threads_per_worker": 2,
+        "cpu_affinity": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "preparation_seconds": 67.67202748777345,
+        "total_seconds_with_independent_exact_replay": 72.40020140307024,
+        "exact_raw_prepared_rows": 15,
+        "independently_replayed_unique_targets": 15,
+        "total_verified_rows": 15,
+        "raw_native_calls": 30,
+        "reference_exact_unique_targets": 15,
+        "reference_corpus_sha256": "ea2e64893ab3d7da0f4c8be33001ae99c96dfd2c54fe293449c29255cd1f2d70",
+        "corpus_sha256": "144f0e7f6cb800e28fa39e9fe331be66c28e18c3016fe9563861be61f11adbe8",
+        "payload_bytes": 177163439,
+        "cuda_initialized": false,
+        "source_paths": [
+          "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r6-20261109T1843/preparation-slice.jsonl"
+        ],
+        "worker_compute_seconds_sum": 132.27179464697838,
+        "decoder_threads": null,
+        "video_cache_bytes_per_worker": 67108864,
+        "video_reuse": [
+          {
+            "hits": 1,
+            "misses": 1,
+            "oversized": 0,
+            "retained_peak_bytes": 11797673,
+            "source_hashes": 3
+          },
+          {
+            "hits": 1,
+            "misses": 1,
+            "oversized": 0,
+            "retained_peak_bytes": 11797677,
+            "source_hashes": 3
+          },
+          {
+            "hits": 1,
+            "misses": 1,
+            "oversized": 0,
+            "retained_peak_bytes": 11797673,
+            "source_hashes": 3
+          },
+          {
+            "hits": 1,
+            "misses": 1,
+            "oversized": 0,
+            "retained_peak_bytes": 11797677,
+            "source_hashes": 3
+          },
+          {
+            "hits": 1,
+            "misses": 1,
+            "oversized": 0,
+            "retained_peak_bytes": 11797677,
+            "source_hashes": 3
+          },
+          {
+            "hits": 1,
+            "misses": 1,
+            "oversized": 0,
+            "retained_peak_bytes": 11797673,
+            "source_hashes": 3
+          },
+          {
+            "hits": 1,
+            "misses": 1,
+            "oversized": 0,
+            "retained_peak_bytes": 11797673,
+            "source_hashes": 3
+          },
+          {
+            "hits": 0,
+            "misses": 1,
+            "oversized": 0,
+            "retained_peak_bytes": 11797673,
+            "source_hashes": 2
+          }
+        ],
+        "source_sha256": "194b6ed6acb2db256930f15f9ebe5c72976fcaadb77fcc38eb4afa427540b15c",
+        "setup_seconds": 2.22034995816648,
+        "verification_seconds": 2.485116188880056,
+        "process_tree_peak": {
+          "rss_bytes": 5747220480,
+          "pss_bytes": 4698897408,
+          "samples": 121
+        },
+        "fixed_slice_sha256": "43edaa797fc151e28117422811d37df58f3eb573c8286c135106a6f9328924ff",
+        "scope": "selected development targets only",
+        "worker_phase_seconds_sum": {
+          "first_sample": 45.83890995476395,
+          "independent_replay": 72.48396024154499,
+          "serialize_reload_compare": 0.4758678316138685,
+          "processor_identity": 13.47305661905557
+        }
+      },
+      "process": null,
+      "cache_counts": {
+        "hits": 7,
+        "misses": 8,
+        "oversized": 0,
+        "source_hashes": 23
+      }
+    },
+    "trialcandidate2": {
+      "receipt": {
+        "workers": 4,
+        "threads_per_worker": 2,
+        "cpu_affinity": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "preparation_seconds": 85.38139072619379,
+        "total_seconds_with_independent_exact_replay": 91.5597949931398,
+        "exact_raw_prepared_rows": 15,
+        "independently_replayed_unique_targets": 15,
+        "total_verified_rows": 15,
+        "raw_native_calls": 30,
+        "reference_exact_unique_targets": 15,
+        "reference_corpus_sha256": "ea2e64893ab3d7da0f4c8be33001ae99c96dfd2c54fe293449c29255cd1f2d70",
+        "corpus_sha256": "144f0e7f6cb800e28fa39e9fe331be66c28e18c3016fe9563861be61f11adbe8",
+        "payload_bytes": 177163439,
+        "cuda_initialized": false,
+        "source_paths": [
+          "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r6-20261109T1843/preparation-slice.jsonl"
+        ],
+        "worker_compute_seconds_sum": 144.31971357995644,
+        "decoder_threads": null,
+        "video_cache_bytes_per_worker": 67108864,
+        "video_reuse": [
+          {
+            "hits": 1,
+            "misses": 1,
+            "oversized": 0,
+            "retained_peak_bytes": 11797673,
+            "source_hashes": 3
+          },
+          {
+            "hits": 1,
+            "misses": 1,
+            "oversized": 0,
+            "retained_peak_bytes": 11797677,
+            "source_hashes": 3
+          },
+          {
+            "hits": 1,
+            "misses": 1,
+            "oversized": 0,
+            "retained_peak_bytes": 11797673,
+            "source_hashes": 3
+          },
+          {
+            "hits": 1,
+            "misses": 1,
+            "oversized": 0,
+            "retained_peak_bytes": 11797677,
+            "source_hashes": 3
+          },
+          {
+            "hits": 1,
+            "misses": 1,
+            "oversized": 0,
+            "retained_peak_bytes": 11797677,
+            "source_hashes": 3
+          },
+          {
+            "hits": 1,
+            "misses": 1,
+            "oversized": 0,
+            "retained_peak_bytes": 11797673,
+            "source_hashes": 3
+          },
+          {
+            "hits": 1,
+            "misses": 1,
+            "oversized": 0,
+            "retained_peak_bytes": 11797673,
+            "source_hashes": 3
+          },
+          {
+            "hits": 0,
+            "misses": 1,
+            "oversized": 0,
+            "retained_peak_bytes": 11797673,
+            "source_hashes": 2
+          }
+        ],
+        "source_sha256": "194b6ed6acb2db256930f15f9ebe5c72976fcaadb77fcc38eb4afa427540b15c",
+        "setup_seconds": 2.8511922070756555,
+        "verification_seconds": 3.3045159047469497,
+        "process_tree_peak": {
+          "rss_bytes": 4892708864,
+          "pss_bytes": 4541762560,
+          "samples": 155
+        },
+        "fixed_slice_sha256": "43edaa797fc151e28117422811d37df58f3eb573c8286c135106a6f9328924ff",
+        "scope": "selected development targets only",
+        "worker_phase_seconds_sum": {
+          "first_sample": 52.606802258174866,
+          "independent_replay": 75.80864978861064,
+          "serialize_reload_compare": 0.8428370500914752,
+          "processor_identity": 15.061424483079463
+        }
+      },
+      "process": null,
+      "cache_counts": {
+        "hits": 7,
+        "misses": 8,
+        "oversized": 0,
+        "source_hashes": 23
+      }
+    }
+  },
+  "uncertainty_limit": "Three paired timing trials on one fixed slice and one node. Questions/videos are not treated as independent timing replicates. Shared storage caches were not cleared; first/last order is counterbalanced. No full-workload speed or independent replication claim."
+}

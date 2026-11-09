@@ -1,0 +1,97 @@
+{
+  "continuation_start": "e39f7b90d256790df64ad63240d9b3d691713cd0",
+  "unchanged_optimizer_and_native_paths": {
+    "cosmos_framework/utils/quantized_optimizer.py": "914a645b5226ec426d6317a3e5b1dd0149f91f66b430978beb3a321e69a885a3",
+    "cosmos_framework/posttrain/config/build.py": "813ceac0ef92cba2a95c5cbd7fe160f90419f87ab64466dbb38b32ced107d163",
+    "cosmos_framework/posttrain/config/rl.py": "e0d544584a0f3b5a795d81b90c5c19d9abaa978ae182c61024bef43a5a814eb5",
+    "cosmos_framework/posttrain/algorithm/sft.py": "b132d1ea556f5c66c99afe952d93daab7c56e3720b1ed1fa7f6bcba47d69fe88",
+    "cosmos_framework/posttrain/data/packer/prepared_sft.py": "bed9bdffbc95a651c55ece2489da1f4bd623be388931c15ded297a2b1cb3e851",
+    "tools/quantized_optimizers/budgeted_sft.py": "c5caadc6d1441dcb4886a34ef6622ab951d14b20b11cb931c57a6a85c7ebdb33"
+  },
+  "current_changed_tool_paths": {
+    "tools/quantized_optimizers/score_dense.py": "01cf40a22e5a80444f5069455fa62bbc919ac68580361467ab6630b64f1796a2",
+    "tools/quantized_optimizers/parallel_prepare.py": "194b6ed6acb2db256930f15f9ebe5c72976fcaadb77fcc38eb4afa427540b15c",
+    "tools/quantized_optimizers/video_reuse.py": "5c7f2b2be79e4fec1d0a7743ea18261b16c1698399611a3177f490295ca5fb32",
+    "tools/quantized_optimizers/prepare_parallel.sbatch": "5e4508ca9937d3215c7f2e89246924b1bbc23d4ce847dee5d982e8c0b52fe36c"
+  },
+  "diagnostic_source": {
+    "name": "substantive-batch4",
+    "node": "batch-block4-1051",
+    "effective_wall_seconds": 1800,
+    "grace_reserved_seconds": 120,
+    "gpu_count": 1,
+    "argv": [
+      "sbatch",
+      "--parsable",
+      "--export=ALL",
+      "--time=30",
+      "--nodelist=batch-block4-1051",
+      "--job-name=optimizer-r7-substantive-batch4",
+      "--output=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r7-20261109T1945/substantive-batch4-%j.log",
+      "--partition=interactive_singlenode,polar",
+      "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r7-20261109T1945/deployment.sbatch"
+    ],
+    "environment": {
+      "SOURCE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850",
+      "ASSETS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z",
+      "PRIOR": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-quantized-optimizers-20261103",
+      "PREPARATION": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/prepare-evaluation-v1",
+      "CONTAINER_IMAGE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-automl-focused-20261012/image-conversion/cosmos-framework-focused.sqsh",
+      "SOURCE_ARCHIVE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r7-20261109T1945/source-diagnostic.tgz",
+      "TASK_DATA_ROOT": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data",
+      "TASK_SPEC": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r7-20261109T1945/substantive_spec.json",
+      "MODE": "study",
+      "WORK_SECONDS": "1680",
+      "RESULTS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r7-20261109T1945/substantive-batch4"
+    },
+    "source_commit": "71493cba",
+    "source_archive_sha256": "75e7490f75909dd644cd0245b4ed92c341d4730671c900dcff369e3a2028aa60",
+    "job": "38282457",
+    "utc": "2026-11-09T19:57:19.034969+00:00"
+  },
+  "reuse_source": {
+    "name": "reuse-slice-pairs",
+    "node": "cpu-00008",
+    "effective_wall_seconds": 1500,
+    "grace_reserved_seconds": 120,
+    "gpu_count": 0,
+    "argv": [
+      "sbatch",
+      "--parsable",
+      "--export=ALL",
+      "--time=25",
+      "--nodelist=cpu-00008",
+      "--job-name=optimizer-r7-reuse-slice-pairs",
+      "--output=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r7-20261109T1945/reuse-slice-pairs-%j.log",
+      "--partition=cpu_short",
+      "--mem=16G",
+      "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r7-20261109T1945/prepare_parallel.sbatch"
+    ],
+    "environment": {
+      "SOURCE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850",
+      "ASSETS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z",
+      "PRIOR": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-quantized-optimizers-20261103",
+      "PREPARATION": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/prepare-evaluation-v1",
+      "CONTAINER_IMAGE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-automl-focused-20261012/image-conversion/cosmos-framework-focused.sqsh",
+      "SOURCE_ARCHIVE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r7-20261109T1945/source-reuse.tgz",
+      "TASK_DATA_ROOT": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data",
+      "TASK_SPEC": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r6-20261109T1843/next_weight975_fused.json",
+      "MODE": "slice_pairs",
+      "WORK_SECONDS": "1380",
+      "RESULTS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r7-20261109T1945/reuse-slice-pairs",
+      "REFERENCE_CORPUS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/prepare-evaluation-v1/prepared-corpus",
+      "FINAL_DATA": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/evaluation-v1/validation.jsonl",
+      "PREPARATION_PROFILE": "0",
+      "PREPARATION_SLICE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r6-20261109T1843/preparation_slice_plan.json",
+      "DECODER_THREADS": "",
+      "VIDEO_CACHE_BYTES": "67108864"
+    },
+    "source_commit": "5f2eb12a49a6828a64f9544f226f03bce0bbdfe1",
+    "source_archive_sha256": "32e6c54d9704abca8e3026655fda687468a5959ae724fd8f2b632b00c6ce40ba",
+    "job": "38282639",
+    "utc": "2026-11-09T20:00:56.690915+00:00"
+  },
+  "full_final_optimizer_comparison_admitted": false,
+  "original_qlora_checkout_modified": false,
+  "publication": "Local commits only; no push, publication, merge or PR334 reopening."
+}
