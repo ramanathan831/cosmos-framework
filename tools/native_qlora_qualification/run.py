@@ -393,6 +393,8 @@ def score_command(args: argparse.Namespace, experiment: Experiment, output: Path
         ]
     if checkpoint is not None:
         command += ["--checkpoint", str(checkpoint)]
+    if getattr(args, "validation_target", None) is not None:
+        command += ["--preprocessing-cache-bytes", str(experiment.cache_bytes)]
     return command
 
 

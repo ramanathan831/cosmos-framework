@@ -3,6 +3,7 @@
 """CPU workflow contracts; these do not establish GPU cadence or time-to-quality."""
 
 import copy
+import dataclasses
 import importlib
 import json
 import math
@@ -62,6 +63,47 @@ def setup_target(tmp_path):
     }
     Path(args.validation_target).write_text(json.dumps(target))
     return args, target, Experiment("target_nf4", "nf4", rank=32, alpha=64, cache_bytes=3 * 1024**3)
+
+
+@pytest.mark.parametrize("arm", ["nf4", "bf16"])
+@pytest.mark.parametrize("cache_bytes", [0, 3 * 1024**3])
+def test_cadence_scorer_receives_its_separate_cache_flag(tmp_path, monkeypatch, arm, cache_bytes):
+    args, _, experiment = setup_target(tmp_path)
+    experiment = dataclasses.replace(experiment, arm=arm, cache_bytes=cache_bytes)
+    command = run.score_command(args, experiment, tmp_path / "scores", tmp_path / "iter_000100")
+    score = importlib.import_module("tools.native_qlora_qualification.score")
+    parsed = []
+    monkeypatch.setattr(score, "run", lambda value: parsed.append(value) or {"parser_only": True})
+    script_index = next(i for i, value in enumerate(command) if value.endswith("score.py"))
+    monkeypatch.setattr(sys, "argv", command[script_index:])
+    score.main()
+    assert len(parsed) == 1
+    assert parsed[0].preprocessing_cache_bytes == cache_bytes
+    assert parsed[0].all_rows and parsed[0].split == "development"
+    assert parsed[0].config == experiment.recipe
+    assert f"rl.preprocessing_cache_bytes={cache_bytes}" in parsed[0].override
+
+
+@pytest.mark.parametrize("attribute", ["absent", None])
+def test_non_cadence_score_command_preserves_historical_argv(tmp_path, attribute):
+    args, _, experiment = setup_target(tmp_path)
+    cadence = run.score_command(args, experiment, tmp_path / "scores", tmp_path / "iter_000100")
+    if attribute == "absent":
+        del args.validation_target
+    else:
+        args.validation_target = None
+    historical = run.score_command(args, experiment, tmp_path / "scores", tmp_path / "iter_000100")
+    assert cadence == [*historical, "--preprocessing-cache-bytes", str(experiment.cache_bytes)]
+    assert "--preprocessing-cache-bytes" not in historical
+
+
+def test_negative_cadence_capacity_cannot_reach_model_work(tmp_path):
+    _, _, experiment = setup_target(tmp_path)
+    with pytest.raises(ValueError):
+        dataclasses.replace(experiment, cache_bytes=-1)
+    score = importlib.import_module("tools.native_qlora_qualification.score")
+    with pytest.raises(ValueError, match="nonnegative integer"):
+        score.run(SimpleNamespace(preprocessing_cache_bytes=-1))
 
 
 @pytest.mark.parametrize(
