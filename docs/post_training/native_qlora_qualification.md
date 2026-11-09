@@ -407,6 +407,14 @@ Completion spans three explicit allocations. The first exceeded its outer BF16 c
 
 The total was **6,296 GPU-seconds and 100,736 allocated CPU-seconds** (5,664 + 231 + 401 GPU-seconds), each allocation counted once. Two incomplete samples in the original 4,247-row resource stream remain; the later streams contain 119 and 247 samples without incomplete rows. Sampled peaks, gaps and absent total-host watermarks remain explicit. The first local evidence-reader attempt rejected an outer-command mount-alias mismatch; the corrected reader reconstructs the exact outer and inner commands separately, without changing runtime evidence or repeating GPU work. This completes the four-update functional checks on the new native package. **Quality-preservation, quality-improvement and time-to-quality objectives remain unresolved.**
 
+### Disabled-checkpointing correctness
+
+The [completed follow-up](evidence/native_qlora_no_ac_149c2cf.json) tests `activation_checkpointing=none` on the same native `149c2cf` package, with rank 32/alpha 64, FP32 adapters and fused AdamW, full logits, one worker and a 3 GiB cache in both arms. Both NF4 and BF16 completed all 15 lifecycle stages, including committed-update and accumulation interruptions, resumed updates and fresh text/image/video checkpoint and portable-adapter reloads. Frozen-base integrity and exact 504-tensor optimizer membership passed within each lifecycle.
+
+Against each arm's accepted full-checkpointing reference, adapter/optimizer tensor values at updates two, three and four matched at zero tolerance, with exact RNG, data and trainer controls under the existing storage-publication exclusions. Four numerical updates and validation at zero, two and four also matched. The comparison acknowledges only the three declared activation-checkpointing identity fields; artifacts remain unchanged and cross-policy resume remains rejected. These are tensor-value comparisons, without a serialized-checkpoint or optimizer-byte identity claim.
+
+The allocation consumed **3,144 GPU-seconds and 50,304 allocated CPU-seconds**. Nested lifecycle/comparison clocks are not additional cost, and the prior full-checkpointing qualification is not charged again. One of 2,322 resource samples retained incomplete host-memory coverage; sampling gaps and total-host limits remain explicit. This completes the four-update correctness check. **Full checkpointing remains selected** pending sustained workflow and memory measurements; this result does not qualify 300-update or late-checkpoint recovery, task quality, or time-to-quality improvement.
+
 ## Capability and precision boundary
 
 The candidate is dense `Qwen/Qwen3-VL-8B-Instruct`, revision `0c351dd01ed87e9c1b53cbc748cba10e6187ff3b`, using the native posttrain SFT entrypoint on one Linux x86-64 A100 80GB with one torchrun process. An installed quantizer, inference quantization, or an accepted configuration alone does not establish this training capability.
