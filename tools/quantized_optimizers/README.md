@@ -624,3 +624,38 @@ The executable `next_shared_lr_probe.json` is a separate, unsubmitted shared
 recipe candidate. Its conditional development and complete final comparison
 must be reserved together; remaining allowance alone does not authorize an
 undersized final campaign.
+
+## Bounded video reuse and native loss attribution
+
+The later [round-seven protocol](../../docs/posttrain/evidence/quantized_optimizers_round7/plan.json)
+records the user's removal of aggregate GPU/CPU/time ceilings. Earlier ledgers
+and limits above remain historical records. Quality gates, recipe-selection
+conditions, scheduler routing and the local-only publication boundary remain.
+
+`parallel_prepare` accepts `--video-cache-bytes=67108864` (default `0`). This
+opt-in path requires the inspected Transformers 5.8.1 Qwen3-VL video processor,
+one local video per target and unchanged native decoder settings. Targets sharing
+a video run in one worker. Only first-pass video intermediates are reused;
+every complete target is independently replayed with the original processor.
+The cache checks complete source hashes, sampling/processor identity and buffer
+ownership, returns independent copies, and retains at most the configured bytes
+per worker. Text, target order, tokens, masks and publication checks are unchanged.
+Oversized intermediates are explicitly reported as uncached. This flag does not
+enable reuse in training or alter the prepared-corpus format.
+
+For the fixed development screen, use `MODE=slice_pairs`, the committed
+`PREPARATION_SLICE`, `VIDEO_CACHE_BYTES=67108864`, and `PREPARATION_PROFILE=0` with
+`prepare_parallel.sbatch`. It runs `control0,candidate0,candidate1,control1,control2,candidate2`
+with four workers/two Torch threads each. The launcher records whole Python
+process times in `trial*.process.json`; `preparation_receipt.json` separately
+records the inner phases and process-tree memory. Import and container time must
+not be silently omitted from a claimed product clock. See the current evidence
+before extending a slice result to the full corpus or a cold-speed claim.
+
+For existing development checkpoints, `score_dense --substantive-batch-size=4
+--expected-substantive-nll=<recorded native loss>` observes per-row/token losses
+from the same native physical batches. It verifies input/mask/token identity and
+the native reduction before writing `substantive-batches.json`. This is a
+teacher-forced diagnostic; it does not change the substantive guard or measure
+free-form generation. The complete commands and artifact identities are recorded
+in [round seven](../../docs/posttrain/evidence/quantized_optimizers_round7/).
