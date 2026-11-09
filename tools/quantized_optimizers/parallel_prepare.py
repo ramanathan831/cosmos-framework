@@ -166,7 +166,9 @@ def worker_target(target):
     if not _PROFILE:
         return process_target(target)
     profiler = cProfile.Profile()
-    result = profiler.runcall(process_target, target)
+    with video_stage_times(_PACKER.processor.video_processor) as stages:
+        result = profiler.runcall(process_target, target)
+    result["video_stages"] = stages
     result["profile"] = [
         {
             "function": f"{path}:{line}:{name}",
@@ -180,6 +182,46 @@ def worker_target(target):
     return result
 
 
+@contextmanager
+def video_stage_times(processor):
+    """Direct wall timers: cProfile call stacks can be inconsistent across native ops.
+
+    Patch the class only inside this single-worker call, leaving the instance's
+    serialized settings untouched. Inherited methods and failures restore exactly.
+    The decode time is nested inside video preprocessing; never add those totals.
+    """
+    cls = type(processor)
+    missing = object()
+    previous = {}
+    stages = {name: {"calls": 0, "seconds": 0.0} for name in ("preprocess", "_decode_and_sample_videos")}
+
+    def measured(original, name):
+        def call(instance, *args, **kwargs):
+            if instance is not processor:
+                return original(instance, *args, **kwargs)
+            started = time.monotonic()
+            try:
+                return original(instance, *args, **kwargs)
+            finally:
+                stages[name]["calls"] += 1
+                stages[name]["seconds"] += time.monotonic() - started
+
+        return call
+
+    try:
+        for name in stages:
+            original = getattr(cls, name)
+            previous[name] = cls.__dict__.get(name, missing)
+            setattr(cls, name, measured(original, name))
+        yield stages
+    finally:
+        for name, original in previous.items():
+            if original is missing:
+                delattr(cls, name)
+            else:
+                setattr(cls, name, original)
+
+
 def process_target(target):
     started = time.monotonic()
     timing = None
@@ -188,6 +230,10 @@ def process_target(target):
         first_finished = time.monotonic()
         second = deterministic_sample(_PACKER, target)
         samples_finished = time.monotonic()
+        phases = {
+            "first_sample": first_finished - started,
+            "independent_replay": samples_finished - first_finished,
+        }
     else:
         # Counterbalance decode order without consulting timings or task scores.
         order = ["candidate", "control"] if int(target_key(target)[-1], 16) % 2 else ["control", "candidate"]
@@ -202,7 +248,8 @@ def process_target(target):
             seconds[mode] = time.monotonic() - before
         first, second = samples["candidate"], samples["control"]
         timing = {"target": target_key(target), "order": order, "seconds": seconds}
-        first_finished = samples_finished = time.monotonic()
+        samples_finished = time.monotonic()
+        phases = {"decoder_pair_samples": samples_finished - started}
     path = _DIRECTORY / (target_key(target) + ".pt")
     torch.save(asdict(first), path)
     # Both are independent native decodes; control uses the original thread setting.
@@ -210,17 +257,17 @@ def process_target(target):
         raise ValueError("independent native CPU replay changed the prepared target")
     if torch.cuda.is_initialized():
         raise RuntimeError("CPU preparation worker initialized CUDA")
+    serialized = time.monotonic()
+    identity = _PACKER.validation_semantics_identity()
+    finished = time.monotonic()
+    phases.update(serialize_reload_compare=serialized - samples_finished, processor_identity=finished - serialized)
     return {
         "path": str(path),
-        "seconds": time.monotonic() - started,
-        "packer": _PACKER.validation_semantics_identity(),
+        "seconds": finished - started,
+        "packer": identity,
         "cuda_initialized": False,
         "decoder_pair": timing,
-        "phase_seconds": {
-            "first_sample": first_finished - started,
-            "independent_replay": samples_finished - first_finished,
-            "serialize_reload_compare": time.monotonic() - samples_finished,
-        },
+        "phase_seconds": phases,
     }
 
 
@@ -360,7 +407,15 @@ def main(memory=None):
             json.dumps(
                 {
                     "scope": "Summed worker profiles of independent native preparation and replay. Nested cumulative times overlap; not an uninstrumented timing result.",
+                    "cprofile_caution": "Native-operator callbacks may produce inconsistent call-stack counters. Use direct monotonic stage timers for phase attribution, not cumulative cProfile percentages.",
                     "targets": len(receipts),
+                    "direct_video_stages": {
+                        name: {
+                            field: sum(r["video_stages"][name][field] for r in receipts.values())
+                            for field in ("calls", "seconds")
+                        }
+                        for name in ("preprocess", "_decode_and_sample_videos")
+                    },
                     "functions": [{"function": name, **values} for name, values in ordered],
                 },
                 indent=2,

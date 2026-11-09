@@ -46,3 +46,71 @@ def test_pinned_slice_reference(tmp_path, damage):
             verify_reference_slice(plan, manifest, corpus, {key: target})
     else:
         verify_reference_slice(plan, manifest, corpus, {key: target})
+
+
+def test_worker_timers_include_identity_and_preserve_saved_values(tmp_path, monkeypatch):
+    from tools.quantized_optimizers import parallel_prepare as module
+
+    clock = [0.0]
+
+    class TimedPacker(Packer):
+        def sft_process_sample(self, target):
+            clock[0] += 2
+            return super().sft_process_sample(target)
+
+        def validation_semantics_identity(self):
+            clock[0] += 3
+            return super().validation_semantics_identity()
+
+    monkeypatch.setattr(module, "_PACKER", TimedPacker(), raising=False)
+    monkeypatch.setattr(module, "_DIRECTORY", tmp_path, raising=False)
+    monkeypatch.setattr(module, "_DECODER_THREADS", None, raising=False)
+    monkeypatch.setattr(module.time, "monotonic", lambda: clock[0])
+    target = target_from_row({"messages": [{"role": "assistant", "content": "answer"}]})
+    receipt = module.process_target(target)
+    assert receipt["seconds"] == sum(receipt["phase_seconds"].values()) == 7
+    assert receipt["phase_seconds"] == dict(
+        first_sample=2, independent_replay=2, serialize_reload_compare=0, processor_identity=3
+    )
+
+
+@pytest.mark.parametrize("fail", [False, True])
+def test_video_timers_preserve_identity_ownership_and_restore_inheritance(monkeypatch, fail):
+    from tools.quantized_optimizers import parallel_prepare as module
+
+    clock = [0.0]
+
+    class BaseVideo:
+        def _decode_and_sample_videos(self, value):
+            clock[0] += 2
+            if fail:
+                raise ValueError("native decoder failure")
+            return value
+
+        def preprocess(self, value):
+            result = self._decode_and_sample_videos(value)
+            clock[0] += 1
+            return result
+
+    class Video(BaseVideo):
+        pass
+
+    processor, other, value = Video(), Video(), object()
+    settings = dict(processor.__dict__)
+    methods = dict(Video.__dict__)
+    monkeypatch.setattr(module.time, "monotonic", lambda: clock[0])
+    if fail:
+        with pytest.raises(ValueError, match="native decoder failure"):
+            with module.video_stage_times(processor):
+                processor.preprocess(value)
+    else:
+        with module.video_stage_times(processor) as stages:
+            assert processor.preprocess(value) is value
+            assert other.preprocess(value) is value
+            assert processor.__dict__ == settings
+        assert stages == {
+            "preprocess": {"calls": 1, "seconds": 3},
+            "_decode_and_sample_videos": {"calls": 1, "seconds": 2},
+        }
+    assert dict(Video.__dict__) == methods
+    assert processor.__dict__ == settings
