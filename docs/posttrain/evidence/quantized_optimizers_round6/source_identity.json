@@ -1,0 +1,83 @@
+{
+  "handoff_commit": "582ee70",
+  "cumulative_budget_start_commit": "40885d9",
+  "training_source": {
+    "commit": "582ee70",
+    "archive_sha256": "987facf12879fabc0367f0e7f30f156b71fb937a8e325dcedbf1defda6d5216e",
+    "scope": "Same implementation as completedround4; no optimizer/transaction/producer changes. Full source hashes and overlapping score loading available to both arms."
+  },
+  "loading_source": {
+    "commit": "251dc2117590c2c4e492d8fbac2bb9b75deb1598",
+    "archive_sha256": "56e4dc82efc5405b1b22009a161d6983e515fde93764f40750906be36e999d28",
+    "local_helper_tests": {
+      "passed": 15,
+      "seconds": 1.16
+    },
+    "scope": "Scoring checksum/publication control only; same native optimizer/model/transaction code, same complete-input checks."
+  },
+  "preparation_source": {
+    "commit": "e65f7eac8d7536171aa92ba7f7d019a8ea4b6998",
+    "archive_sha256": "83ad99a4feaf0cbe737f83cac9f08a18aeb21964f3801d4bf725406b37044325",
+    "worker_policy": "four workers/two PyTorch threads, native decoder threads, independent raw replay and full reference verification"
+  },
+  "unchanged_core_source_paths_since_handoff": {
+    "cosmos_framework/utils/quantized_optimizer.py": "914a645b5226ec426d6317a3e5b1dd0149f91f66b430978beb3a321e69a885a3",
+    "cosmos_framework/posttrain/config/build.py": "813ceac0ef92cba2a95c5cbd7fe160f90419f87ab64466dbb38b32ced107d163",
+    "cosmos_framework/posttrain/config/rl.py": "e0d544584a0f3b5a795d81b90c5c19d9abaa978ae182c61024bef43a5a814eb5",
+    "cosmos_framework/posttrain/algorithm/sft.py": "b132d1ea556f5c66c99afe952d93daab7c56e3720b1ed1fa7f6bcba47d69fe88",
+    "cosmos_framework/posttrain/data/packer/prepared_sft.py": "bed9bdffbc95a651c55ece2489da1f4bd623be388931c15ded297a2b1cb3e851",
+    "tools/quantized_optimizers/score_dense.py": "8184fda7437e6c5db007a69a6d0dcbcf83c905a46490b40a373bc0e88a313adc",
+    "tools/quantized_optimizers/budgeted_sft.py": "c5caadc6d1441dcb4886a34ef6622ab951d14b20b11cb931c57a6a85c7ebdb33"
+  },
+  "loading_specs_exact_before_launch": true,
+  "publication": "Local commits only; original QLoRA checkout untouched; no push, PR, reopening334 or merge.",
+  "continuation_start_commit": "2b0fe201279200f1e6a01e6dd6911f356183a5c5",
+  "preparation_profile": {
+    "commit": "cc0f50c8",
+    "archive_sha256": "2d3c7c83fcfa321dac600bdd8bd7bec08246988834783a81903b6f9fd56ffd5f",
+    "scope": "Pinned15-target/8-video development-only profile with native producer, independent replay and exact selected oracle. Full training source unaffected."
+  },
+  "native_optimizer_and_transaction_code_changed": false,
+  "loading_archive_rehashed_this_session": true,
+  "separate_qlora_checkout_modified": false,
+  "new_final_comparison_admitted": false,
+  "checkpoint_directory_unchanged_since_start": true,
+  "profiling_timer_fix": {
+    "commit": "157fcf16db73b93f066b45198f210adc4d218d1f",
+    "tests": "profile_tests.txt",
+    "scope": "Nine local tests. Direct video timers are new, not rerun on the real slice. Default production sample math/checkpoint paths unchanged."
+  },
+  "new_training_runtime_evidence": {
+    "archive": "weight975_fused_raw.json.gz",
+    "member": "runtime-38278834.json",
+    "runtime": {
+      "mode": "study",
+      "versions": {
+        "torch": "2.11.0+cu128",
+        "transformers": "5.8.1",
+        "bitsandbytes": "0.49.2"
+      },
+      "node": "batch-block4-1051",
+      "gpu_uuid": "GPU-26585cb9-1048-8db4-aadd-6dd877ccb914",
+      "cpu_affinity": [
+        4,
+        5,
+        6,
+        7,
+        124,
+        125,
+        126,
+        127
+      ],
+      "source_archive": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r5-20261105/source-baseline.tgz",
+      "source_archive_sha256": "987facf12879fabc0367f0e7f30f156b71fb937a8e325dcedbf1defda6d5216e",
+      "prepared_corpus_sha256": "ea2e64893ab3d7da0f4c8be33001ae99c96dfd2c54fe293449c29255cd1f2d70",
+      "staging_seconds": 29.626104498980567,
+      "allocation_bootstrap_seconds": 43.852841215,
+      "setup_seconds": 73.47894571398056,
+      "setup_contract": "Batch-shell start through container/source setup, CUDA preflight and prepared-corpus staging; excludes scheduler queue time. Charged once to every independently delivered product run.",
+      "preparation_cpu_seconds": 760.4734641199466
+    }
+  },
+  "preparation_profile_source_sha256": "0c725971fb0b305928c9c83e2b5a4d06a6541726bdb7a4dbebfe7e2ba80a10d2"
+}

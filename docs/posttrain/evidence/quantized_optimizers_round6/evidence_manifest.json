@@ -1,0 +1,129 @@
+{
+  "scope": "Round-six source/commands, raw development/profile evidence, negative results, terminal costs and unchanged gates. No model weights or secrets.",
+  "files": {
+    "allocation_ledger.json": {
+      "bytes": 1606,
+      "sha256": "9d382b0b8c6ab9e99a9b2bb237a0c352fa50f77b2545320748d80072ad1164f8"
+    },
+    "commands.md": {
+      "bytes": 4253,
+      "sha256": "f0f1ab190472fc74f0e7685ffa8e00146fd1df6d114cbef5cd7fb45ca7d34f07"
+    },
+    "development_diagnosis.json": {
+      "bytes": 5367,
+      "sha256": "03b4b454e48da5936a3c0de64d8a486011e65232c3d19da1acaddfdfc3952bfd"
+    },
+    "eightbit_launch_input.json": {
+      "bytes": 2454,
+      "sha256": "162d07ca2abd170ed0674686f27fdebedb1150d3f12a14f46264c205874bc897"
+    },
+    "final_accounting.json": {
+      "bytes": 2439,
+      "sha256": "09bfe95607e900fdcb5dea13bc01af6fade329997b856144d1cb9b26daf6b22e"
+    },
+    "fused_launch.json": {
+      "bytes": 2481,
+      "sha256": "a16e6fc0dbbed354dfbc7cadc1f43fca29ebef48bde2fd8a6c9da1c51d62a4b2"
+    },
+    "fused_launch_input.json": {
+      "bytes": 2319,
+      "sha256": "c3ed359f57b87b0535f89b94b473297794dfb358c983e769e2a56d0ce0f84c1c"
+    },
+    "fused_weight975_summary.json": {
+      "bytes": 391742,
+      "sha256": "768f29b0774d78de1d69aa870bfd89d03fa0b8c563f6099c00af2f20ad37a4ab"
+    },
+    "lock_slice.py": {
+      "bytes": 3386,
+      "sha256": "72fcec18737dce02e03fa835601845dfdfba2ef025f43a5f8ef87b7855139180"
+    },
+    "next_intervention.json": {
+      "bytes": 2534,
+      "sha256": "bfe51033bf0326a5b17272b67b7d3a8418ad4911da31cc4d3f9fdd1c8c8c80fa"
+    },
+    "next_weight975_eightbit.json": {
+      "bytes": 2785,
+      "sha256": "39c0ff4b197af8d3a45f3d799c2c34e8261b349f572bef3668bb29a3531f726a"
+    },
+    "next_weight975_fused.json": {
+      "bytes": 2749,
+      "sha256": "a1e17556b7cde24aea5d1dc270df936de4512b4501b4bbbcda728ffe3b85ec8a"
+    },
+    "owned_queue_terminal.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "plan.json": {
+      "bytes": 4031,
+      "sha256": "c07a5a750b398fa053b8998aac9692887bbf6e4590417d880c12d625bd53750c"
+    },
+    "preparation_profile_failed_raw.json.gz": {
+      "bytes": 1211,
+      "sha256": "c145a72ba90502ee5d31f666be380607df5c9b66faefee127cda51c0048ecf63"
+    },
+    "preparation_profile_launch.json": {
+      "bytes": 3166,
+      "sha256": "59d1634d8a4c8e0451536c93ce27fb4f39ce84ed8c28da8f79e784bf189b8afb"
+    },
+    "preparation_profile_launch_input.json": {
+      "bytes": 3100,
+      "sha256": "f98f66d6c7537f7fa93d8c08c909b468e4c683202d88d963b741196a5b69c064"
+    },
+    "preparation_profile_raw.json.gz": {
+      "bytes": 147084,
+      "sha256": "0527d29e02bff5fbe0ff2300b48690614f20d302e4084da5c16ef94deb982fcc"
+    },
+    "preparation_profile_retry_launch.json": {
+      "bytes": 3530,
+      "sha256": "6e064490e8e5fe3553ede72467196b0d42d92d11daf9bea02554b9542880d58e"
+    },
+    "preparation_profile_retry_launch_input.json": {
+      "bytes": 3464,
+      "sha256": "aa392b0aebe5f9d0ae0184f9724c471bf10ccf3b9a60f9899e100c27220c12ac"
+    },
+    "preparation_slice_plan.json": {
+      "bytes": 10125,
+      "sha256": "43edaa797fc151e28117422811d37df58f3eb573c8286c135106a6f9328924ff"
+    },
+    "preparation_summary.json": {
+      "bytes": 8596,
+      "sha256": "6e0920ee70bb0cf970420b5b6c1598fe8a575623e623e2b258a65ea3775679cb"
+    },
+    "profile_tests.txt": {
+      "bytes": 98,
+      "sha256": "79e633b4b8a8585cb03f053377036ba0fed340fa116070ab960bcc651eb11a6b"
+    },
+    "proposed_pr.md": {
+      "bytes": 5955,
+      "sha256": "9a31f7a50a05db5eac00241a1bad569b0fa71cf5df000899bbc41dcbcb9386c9"
+    },
+    "qualification_summary.json": {
+      "bytes": 2964,
+      "sha256": "1804f37600a1145ac5083467a0143f4174eb5137fd5b9378a6b1d4c9e9d4246b"
+    },
+    "requirements.md": {
+      "bytes": 3298,
+      "sha256": "333ea049a3d644575da6b7510d37dfdc6bd4b19b7f49e011e0e208b602ce858d"
+    },
+    "slice_tests.txt": {
+      "bytes": 98,
+      "sha256": "d3c3d6a34a868b4beebdaa7c68850424aa1d0c680980b2372b7ac843acd5a07c"
+    },
+    "source_identity.json": {
+      "bytes": 4461,
+      "sha256": "bdfa65731b8135d08bdc4549c95d703995a15edeb33bdcc9cd907f5b66cc55f5"
+    },
+    "terminal_accounting.txt": {
+      "bytes": 181,
+      "sha256": "b4127b66b6a77fd1e3988ae376a6e9ddd05c2ebbc45133aabf97365f89e22780"
+    },
+    "terminal_receipt.json": {
+      "bytes": 807,
+      "sha256": "f63a02cbb9d304f951b4697eeabc0da6da968ebfbe38a4554a2e94f728a597cc"
+    },
+    "weight975_fused_raw.json.gz": {
+      "bytes": 191864,
+      "sha256": "0f842237c289fb3646f0b5b4992ef0073d3252e17b7521dd2f43f19324afec47"
+    }
+  }
+}

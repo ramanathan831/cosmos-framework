@@ -915,6 +915,67 @@ is a single exponent-0.975 bracket at original LR with the same guards, reservin
 is unsubmitted and outside this continuation's intervention limit; success is not
 assumed. The cold-path requirement remains a separate engineering problem.
 
+## Exponent-0.975 continuation and preparation profile
+
+The next bounded continuation starts from clean `2b0fe20`. It tests only the
+authorized `ce_exponent=0.975` bracket at LR 1e-5, retaining 15 updates, the
+40-update schedule, effective batch four, precision, inputs and original controls.
+The [fused development screen](evidence/quantized_optimizers_round6/fused_weight975_summary.json)
+improves mean task NLL 3.4503% and retains every prediction's correctness, but
+**fails the unchanged substantive guard**:
+
+| Seed | Task NLL change | Choice accuracy, unchanged | Native substantive NLL ratio |
+|---|---:|---:|---:|
+| 17 | −2.123% | 87.500% | 0.992275053 |
+| 29 | −5.323% | 84.375% | 1.006648854 |
+| 43 | −2.060% | 78.125% | **1.012970669** |
+
+These are 32-question development measurements per seed. The last ratio exceeds
+1.01 at stored full precision, so neither eight-bit confirmation nor a new final
+comparison was admitted. The smaller weighting shift is not monotonic: seed 43's
+substantive regression is larger than with 0.95. Only six of its 32 task NLLs
+improve despite the favorable mean. The [native curves](evidence/quantized_optimizers_round6/development_diagnosis.json)
+do not establish broad calibration or generated-answer improvement. This
+fused-only rejection does not implicate state quantization, and no default recipe
+or quality threshold changes.
+
+Preparation tooling now supports a prospectively pinned development slice with
+full selected-media/payload hashes and exact oracle comparison, without weakening
+production source-fingerprint checks. The [measured slice](evidence/quantized_optimizers_round6/preparation_summary.json)
+contains 15 targets from eight training videos, including seven repeated-video
+pairs and both substantive and choice supervision: 577–929 actual sequence tokens
+and 775 supervised tokens in total. All 30 independent native
+calls reproduce the qualified tensors. A first allocation times out after 428
+seconds; the unchanged retry completes in 362 seconds. Its measured main process
+takes 93.10 seconds: 4.95 setup, 85.13 publication including worker startup/waits,
+and 3.00 verification. Remaining allocation time includes container/import
+startup and teardown. These scopes are nonoverlapping; summed worker times are
+nested inside publication. Shared storage caches are uncontrolled.
+
+The profile identifies and fixes an instrumentation defect: worker totals omitted
+processor-identity checks while the serialization timer included them. Raw
+`cProfile` counters also violate own/cumulative-time consistency, so their phase
+percentages are not accepted. Disjoint monotonic clocks and direct video/decode
+timers now have nine focused local checks; the new detailed timers have not been
+rerun on the real slice. Sampled preparation process-tree PSS/RSS peaks are
+4.27/5.22 GiB, excluding container startup. No preparation acceleration has been
+selected or qualified. The remaining 380-second preparation subcap cannot cover
+the 600-second minimum reservation for another adequate paired screen; its
+[next costed intervention](evidence/quantized_optimizers_round6/next_intervention.json)
+first verifies direct phase attribution before conditional bounded video reuse.
+No slice result replaces full 751-row/562-target validation or cold replications.
+
+All three admitted allocations are terminal. This continuation charges 730 GPU
+allocation-seconds and 1,000 CPU-wall seconds (790 allocated plus 210 conservative
+local-check/analysis seconds). [Cumulative totals](evidence/quantized_optimizers_round6/final_accounting.json)
+are 5,857 GPU / 10,255 CPU-wall seconds, leaving 15,743 / 1,445 under the unchanged
+6.00/3.25-hour ceilings. The GPU allowance is not exhausted: the recipe failed,
+and its dependent reservations were released. Historical recovery, state savings
+and support limits remain applicable; matched quality, equal-budget NLL gain,
+and prepared/cold end-to-end speed requirements remain open. See the
+[requirement map](evidence/quantized_optimizers_round6/requirements.md) and
+[runnable commands](evidence/quantized_optimizers_round6/commands.md).
+
 ## Reproduction and source identities
 
 [Qualification commands](../../tools/quantized_optimizers/README.md) cover data
@@ -922,7 +983,7 @@ regeneration, immutable source archives, Slurm submission, collection and analys
 [First-campaign status](evidence/quantized_optimizers/qualification_summary.json)
 and [completed follow-up status](evidence/quantized_optimizers_round2/qualification_summary.json)
 link each result, gate and remaining requirement. The
-[current proposed PR](evidence/quantized_optimizers_round5/proposed_pr.md)
+[current proposed PR](evidence/quantized_optimizers_round6/proposed_pr.md)
 describes the combined implementation and measured limitations; it has not been published.
 [Additional campaign commands](evidence/quantized_optimizers_round4/commands.md),
 [source identities](evidence/quantized_optimizers_round4/source_identity.json) and
