@@ -11,6 +11,7 @@ schedule and validation controls are identical within the four-update comparison
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
 import math
@@ -149,6 +150,104 @@ def compare_next_metrics(reference: Path, candidate: Path, step: int) -> dict[st
             "fractions are observational. Model, optimizer, control, RNG and data payload equality requires a "
             "separately executed checkpoint comparison and is not established by this metrics result."
         ),
+    }
+
+
+def activation_checkpointing_metadata_delta(reference: dict, candidate: dict) -> dict[str, Any]:
+    """Accept only the recorded full-to-none execution change for an observation.
+
+    This never edits an artifact or relaxes native resume/reload identity checks.
+    All base, quantization, adapter, optimizer, build and training identities must
+    remain exact. Both artifacts must first pass the native metadata reader.
+    """
+    expected = {
+        ("identity", "strategy", "activation_checkpointing"): ("full_nonreentrant", "none"),
+        ("identity", "execution_policy", "activation_checkpointing", "mode"): ("full", "none"),
+        ("identity", "execution_policy", "activation_checkpointing", "implementation"): ("nonreentrant", "none"),
+    }
+    adjusted = copy.deepcopy(candidate)
+    changes = {}
+    try:
+        for metadata in (reference, candidate):
+            policy = metadata["identity"]["execution_policy"]
+            if (
+                policy["protocol"] != "cosmos.native-adapter-execution.v1"
+                or policy["adapter_compute_dtype"] != "float32"
+                or policy["sft_logits_mode"] != "full"
+                or policy["language_compile"]["enabled"] is not False
+            ):
+                raise ValueError("cross-AC observation requires ordinary eager FP32-adapter execution with full logits")
+        for path, (before, after) in expected.items():
+            left, right = reference, adjusted
+            for key in path[:-1]:
+                left, right = left[key], right[key]
+            key = path[-1]
+            if left[key] != before or right[key] != after:
+                raise ValueError("cross-AC observation requires an explicit full-to-none pair")
+            changes[".".join(path)] = {"reference": before, "candidate": after}
+            right[key] = before
+    except (KeyError, TypeError) as error:
+        raise ValueError("cross-AC observation requires complete explicit execution identities") from error
+    if digest(reference) != digest(adjusted):
+        raise ValueError("cross-AC observation found an additional metadata difference")
+    return {
+        "reference_metadata_sha256": digest(reference),
+        "candidate_metadata_sha256": digest(candidate),
+        "acknowledged_execution_differences": changes,
+    }
+
+
+def compare_activation_checkpointing_checkpoints(reference: Path, candidate: Path, *, step: int) -> dict[str, Any]:
+    """Compare trusted own-run full/no-AC payloads, without constructing a model.
+
+    Run in the allocated sealed runtime. This is a numerical experiment between
+    distinct execution identities, not permission to resume one as the other.
+    Reuse native commit validation, DCP loading and value/control comparisons.
+    """
+    import torch
+
+    from cosmos_framework.posttrain.checkpoint.adapter import read_adapter_metadata
+    from cosmos_framework.posttrain.tests.qlora_integration import (
+        _assert_close_tree,
+        _load_flat_dcp,
+        _portable_trainer_controls,
+        inspect_checkpoint,
+    )
+
+    if type(step) is not int or step < 1:
+        raise ValueError("cross-AC comparison requires a positive completed optimizer step")
+    paths = (Path(reference), Path(candidate))
+    for path in paths:
+        inspect_checkpoint(str(path), expected_step=step)
+    metadata = [read_adapter_metadata(str(path), require_resume=True) for path in paths]
+    identity = activation_checkpointing_metadata_delta(*metadata)
+    for component in ("model", "optim"):
+        left, right = [_load_flat_dcp(path / component) for path in paths]
+        _assert_close_tree(left, right, atol=0, rtol=0, path=component)
+        del left, right
+    for component in ("trainer", "data"):
+        # These are the allocated experiment's trusted native artifacts, not
+        # arbitrary uploaded pickle files. Publication IDs alone may differ.
+        left, right = [torch.load(path / f"{component}.pt", map_location="cpu", weights_only=False) for path in paths]
+        if component == "trainer":
+            left, right = _portable_trainer_controls(left), _portable_trainer_controls(right)
+        _assert_close_tree(left, right, atol=0, rtol=0, path=component)
+    return {
+        "passed": True,
+        "optimizer_step": step,
+        "atol": 0,
+        "rtol": 0,
+        "model_optimizer_values_exact": True,
+        "controls_rng_and_data_exact": True,
+        "observation_only": True,
+        "resume_compatible": False,
+        "literal_tensor_bytes_or_serialized_dcp_equality_claimed": False,
+        "excluded_storage_identity_fields": [
+            "validation.publication.destination",
+            "validation.publication.id",
+            "validation.publication.manifest",
+        ],
+        **identity,
     }
 
 
