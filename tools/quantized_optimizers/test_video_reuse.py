@@ -151,3 +151,59 @@ def test_hit_cannot_bypass_independent_native_target_replay(setup, monkeypatch, 
     assert original.calls == 3  # One reused first pass, two independent replays.
     assert cache.stats["hits"] == 1
     assert module._PACKER.processor.video_processor is original
+
+
+def test_real_fixed_slice_cache_failure_and_native_replay(monkeypatch, tmp_path):
+    """Opt-in pinned CPU integration: source media is read-only throughout."""
+    import json
+    import os
+    from dataclasses import asdict
+    from pathlib import Path
+
+    from cosmos_framework.posttrain.data.datasets.sft import JSONLSFTDataset
+    from cosmos_framework.posttrain.data.packer.prepared_sft import deterministic_sample, target_from_row
+    from tools.quantized_optimizers import parallel_prepare as module
+    from tools.quantized_optimizers.prepare_corpus import same
+    from tools.quantized_optimizers.video_reuse import single_video
+
+    selection = os.environ.get("SFT_VIDEO_REUSE_SLICE")
+    if selection is None:
+        pytest.skip("requires the pinned real CPU development slice")
+    assert os.environ.get("CUDA_VISIBLE_DEVICES") == ""
+    plan = json.loads(Path(selection).read_text())
+    assert sha256_file(plan["data"]) == plan["data_sha256"]
+    dataset = JSONLSFTDataset(plan["data"])
+    groups = {}
+    for index in range(len(dataset)):
+        target = target_from_row(dataset[index])
+        groups.setdefault(single_video(target), []).append(target)
+    source, targets = next((source, targets) for source, targets in groups.items() if len(targets) > 1)
+    digest = sha256_file(source)
+    torch.set_num_threads(8)
+    _, packer = module.make_packer("cosmos_framework/posttrain/configs/sft_optimizer_deployment.py")
+    original = packer.processor.video_processor
+    identity = packer.validation_semantics_identity()
+    cache = VideoReuse(original, source, digest, 2**26)
+    with cache.installed(packer.processor):
+        deterministic_sample(packer, targets[0])
+        candidate = deterministic_sample(packer, targets[1])
+    oracle = deterministic_sample(packer, targets[1])
+    assert same(asdict(candidate), asdict(oracle))
+    assert cache.stats["hits"] == cache.stats["misses"] == 1
+    assert cache.stats["oversized"] == 0
+    assert retained_bytes(cache.value) == cache.stats["retained_peak_bytes"] <= 2**26
+    wrong_digest = VideoReuse(original, source, "0" * 64, 2**26)
+    with pytest.raises(ValueError, match="source digest mismatch"):
+        with wrong_digest.installed(packer.processor):
+            deterministic_sample(packer, targets[0])
+    # Even deliberate corruption of the worker-local retained copy is caught by
+    # the mandatory uncached replay before a worker can return a publishable entry.
+    cache.value["pixel_values_videos"].add_(1)
+    monkeypatch.setattr(module, "_PACKER", packer, raising=False)
+    monkeypatch.setattr(module, "_DIRECTORY", tmp_path, raising=False)
+    monkeypatch.setattr(module, "_DECODER_THREADS", None, raising=False)
+    with pytest.raises(ValueError, match="independent native CPU replay"):
+        module.process_target(targets[1], cache)
+    assert packer.processor.video_processor is original
+    assert packer.validation_semantics_identity() == identity
+    assert sha256_file(source) == digest and not torch.cuda.is_initialized()
