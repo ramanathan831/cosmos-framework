@@ -12,7 +12,7 @@
   "example_relative_weight_95": 1.2109825680874522,
   "conclusion": "No scoring/masking/count/checkpoint defect found. A reproducible shared optimization trade-off is localized; neither monotonic interpolation nor rare-label oversampling is supported by these observations. The.975 fused failure remains; no eight-bit or final stage admitted.",
   "next_quality_intervention": "A prospectively locked diagnostic replay of the existing original/.975 seed43 recipes, observing native batch-four per-question loss at updates10/15 and retaining update10 explicitly, would distinguish late-update interference from persistent difficulty. No new exponent/LR candidate is selected from the current evidence. Keep the original failed outcomes and require exact update15 replay parity.",
-  "cost_estimate": "Estimated15-20GPU allocation-minutes for two exact15-update training replays plus dependent fresh-process checks, based on730seconds for the prior three-seed training allocation and439seconds for three current checkpoint diagnostics. Request25minutes including startup/grace; this is a proposed diagnostic, not an admitted job or guaranteed improvement.",
+  "cost_estimate": "Approximately20-25GPU allocation-minutes for two exact15-update replays, two additional midpoint saves, four fresh-process batch-four reloads and streamed update15 state comparisons. Reserve35minutes operational wall including120seconds termination grace; no submission. Basis: prior three-seed training730seconds, three checkpoint diagnostics439seconds, and roughly60seconds per extra dense checkpoint. The former15-20minute estimate did not explicitly include all added save/comparison costs.",
   "limits": "Teacher-forced answer-text loss and restricted-choice scores; no new free-form generated-answer quality claim and no optimizer-specific conclusion from fused-only checkpoints.",
   "checkpoint_availability": "Remote directory audit confirms only update15 is retained for original/.975 seed43. Update10 attribution cannot be reconstructed from a nonexistent durable state.",
   "training_cursor_verified": "Original and.975 seed43 data.pt files are byte-identical withSHA256 91a1cdd56ff302e3c6108c6a7b6ae53327b1d6e29ba1cfe4fc984437742d0bca. Native IndexedCursor reproduces epoch1/position60 from346training rows; source fingerprint is present in the qualified corpus manifest.",
@@ -83,5 +83,6 @@
       "ratio": 1.0129706691944087
     },
     "interpretation": "Both absolute substantive losses improve from10to15, but the candidate advantage reverses relative to control. Missing update10 artifacts prevent per-question localization from current durable states. This is not evidence that simply training less would pass all three development guards."
-  }
+  },
+  "previous_cost_estimate_retained": "Estimated15-20GPU allocation-minutes for two exact15-update training replays plus dependent fresh-process checks, based on730seconds for the prior three-seed training allocation and439seconds for three current checkpoint diagnostics. Request25minutes including startup/grace; this is a proposed diagnostic, not an admitted job or guaranteed improvement."
 }
