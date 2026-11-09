@@ -1,0 +1,72 @@
+{
+  "locked_utc": "2026-11-09T18:45:18.331980+00:00",
+  "starting_commit": "2b0fe201279200f1e6a01e6dd6911f356183a5c5",
+  "cumulative_start": "40885d9",
+  "remote_root": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r6-20261109T1843",
+  "authorization": "Current user explicitly admits only exponent.975 with conditional eight-bit/final, plus one profile-justified CPU preparation change and bounded screen. No push/publish/merge; originalQLoRAuntouched,PR334closed.",
+  "caps": {
+    "gpu_seconds": 21600,
+    "cpu_wall_seconds": 11700
+  },
+  "sealed_prior_charges": {
+    "gpu_seconds": 5127,
+    "cpu_wall_seconds": 9255
+  },
+  "gpu_reservations": {
+    "fused_development_with_grace": 1200,
+    "conditional_eightbit_with_grace": 1200,
+    "conditional_complete_final_with_grace": 13860
+  },
+  "cpu_reservations": {
+    "general_checks_analysis": 180,
+    "preparation_profile_with_grace": 540,
+    "preparation_candidate_screen_with_grace": 540,
+    "preparation_local_tests": 120
+  },
+  "preparation_ceiling_seconds": 1200,
+  "source": {
+    "handoff_commit": "582ee70",
+    "cumulative_budget_start_commit": "40885d9",
+    "training_source": {
+      "commit": "582ee70",
+      "archive_sha256": "987facf12879fabc0367f0e7f30f156b71fb937a8e325dcedbf1defda6d5216e",
+      "scope": "Same implementation as completedround4; no optimizer/transaction/producer changes. Full source hashes and overlapping score loading available to both arms."
+    },
+    "loading_source": {
+      "commit": "251dc2117590c2c4e492d8fbac2bb9b75deb1598",
+      "archive_sha256": "56e4dc82efc5405b1b22009a161d6983e515fde93764f40750906be36e999d28",
+      "local_helper_tests": {
+        "passed": 15,
+        "seconds": 1.16
+      },
+      "scope": "Scoring checksum/publication control only; same native optimizer/model/transaction code, same complete-input checks."
+    },
+    "preparation_source": {
+      "commit": "e65f7eac8d7536171aa92ba7f7d019a8ea4b6998",
+      "archive_sha256": "83ad99a4feaf0cbe737f83cac9f08a18aeb21964f3801d4bf725406b37044325",
+      "worker_policy": "four workers/two PyTorch threads, native decoder threads, independent raw replay and full reference verification"
+    },
+    "unchanged_core_source_paths_since_handoff": [],
+    "loading_specs_exact_before_launch": true,
+    "publication": "Local commits only; original QLoRA checkout untouched; no push, PR, reopening334 or merge."
+  },
+  "exact_spec_sha256": {
+    "next_weight975_fused.json": "a1e17556b7cde24aea5d1dc270df936de4512b4501b4bbbcda728ffe3b85ec8a",
+    "next_weight975_eightbit.json": "39c0ff4b197af8d3a45f3d799c2c34e8261b349f572bef3668bb29a3531f726a"
+  },
+  "development_guards": {
+    "mean_task_nll_ratio_max": 0.98,
+    "per_seed_accuracy_drop_max": 0,
+    "each_native_substantive_nll_ratio_max": 1.01,
+    "original_optimizer_matching_controls": true,
+    "seeds": [
+      17,
+      29,
+      43
+    ]
+  },
+  "final": "Only after full passes of both development stages. Retain round3final_protocol target1.7987394576095224,matched15,actual60seconds,390secondproduct,paired3seeds/3timingrestarts,familybootstrap and all original guards. Freeze recipe/source/reserves before final scoring. No unqualified preparation path in final source.",
+  "preparation": "Lock a development slice using identities/length metadata before outcomes, profile baseline then select at mostone measured-cost intervention. Same native tensor semantics/fullhashes/replay, bounded memory, no full-workload claim from slice. No unchanged decoder-thread retry.",
+  "resource_policy": "Rounded wall+120secondsguard held before launch; terminal parentElapsedRaw charged once. At most2owned GPUs on distinctA10080GB nodes,8CPUs/128GiB perGPU; existing scheduler/account policy. CPU screens8CPUs/16GiB. No speculative GPU canary.",
+  "starting_reconciliation": "All58round5artifacthashes verified; treeclean2b0fe20; all8priorjobs independentlyCOMPLETED with identicalelapsed, no newer activeownedoptimizerjob."
+}
