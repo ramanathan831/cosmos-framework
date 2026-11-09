@@ -65,6 +65,36 @@ python "$WORKFLOW_SOURCE/tools/native_qlora_qualification/run.py" experiment \
 
 `lifecycle.py` runs a separate four-update recovery qualification for each selected numerical configuration. It compares uninterrupted execution with both a completed-boundary interruption and process loss after a real accumulating microbatch. Only explicit checkpoints from that attempt may resume. The immediate next update and final update must match model, optimizer, RNG, cursor, controls and numerical metrics exactly. Fresh multimodal DCP and portable probes must also match exactly. Filter experiment output/horizon fields before passing repeated `--override` arguments: the recovery runner owns its output names and fixes horizon four, warmup one and save cadence one.
 
+### Scheduled full-development scoring
+
+Native `rl.pause_after_step=N` stops an attempt at absolute optimizer step `N`, after ordinary validation and a complete resumable checkpoint. It leaves `rl.max_steps`, the LR horizon and validation schedule unchanged. Resume from the returned checkpoint with a larger pause boundary or `None`; a stale boundary fails. It neither saves partial accumulation nor weakens build/base/execution identity checks. The new path requires its own accelerator qualification; prior `4cd8988` results do not qualify it.
+
+The existing `experiment` command accepts `--validation-target "$TARGET"` for fresh **development-only** runs. Before training, seal a target and increasing evaluation grid ending at the experiment's unchanged horizon. This example retains the existing 300-update development point target; it is not the paired/grouped noninferiority gate:
+
+```bash
+python - "$NEW_SPLITS" "$TARGET" <<'PY'
+import hashlib, json, pathlib, sys
+root, target = map(pathlib.Path, sys.argv[1:])
+digest = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
+value = {
+    "protocol": "cosmos.qlora-validation-target.v1",
+    "evaluation_steps": [50, 100, 150, 200, 250, 300],
+    "expected_rows": 584,
+    "minimum_correct": 540,
+    "maximum_token_ce": 0.12357161758062493,
+    "score_data_sha256": digest(root / "development.jsonl"),
+    "split_manifest_sha256": digest(root / "development.manifest.json"),
+}
+with target.open("x") as stream:
+    json.dump(value, stream, indent=2)
+    stream.write("\n")
+PY
+```
+
+Add the flag to the experiment command above. The runner pauses at each scheduled boundary, verifies that checkpoint, scores every sealed row in a fresh process, and resumes only if the fixed point target has not been met. Before scoring or resuming, it captures the native completion record, applied-update history and checkpoint inventory and refuses work beyond the requested boundary; merely finding an older checkpoint is insufficient. It checks target/data/manifest identities before training, before scoring and after scoring, binds the first score to the ordered sealed partition, and checks processed-input identity across observations. Complete scoring and inspection failures abort; horizon nonattainment is recorded as censored. The first observed passing checkpoint is not an interpolated crossing between evaluations. Final portable publication and reload probes run separately after the selected endpoint.
+
+This measures a **segmented workflow**: each training restart reloads the model and starts a fresh preprocessing cache. Give both precision arms the same cadence and do not substitute continuous-run timings. `target-result.json` includes all preceding verification, loading, native preprocessing, training, checkpoint and evaluation time from runner start. Pre-existing base/data acquisition, conversion, environment/build preparation and scheduler waiting remain outside that clock and must be reported separately. Stage records and `completion.json` retain final export/reload and complete runner costs. No time-to-quality superiority, complete cold-start cost or release qualification follows from CPU orchestration tests or a single point-target crossing. Freeze seed pairing, scoring cadence, resource caps and stopping rules prospectively; apply the unchanged joint quality analysis separately.
+
 ## Selection and comparison
 
 `selection.py` validates all eight predeclared development candidates against their exact specifications, final checkpoints, scorer identities and complete development rows. It retains failed candidates and refuses selection when a precision baseline is incomplete. Development selection does not authorize untouched scoring.

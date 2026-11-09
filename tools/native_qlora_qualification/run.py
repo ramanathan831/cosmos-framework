@@ -10,11 +10,14 @@ inside a single-GPU scheduler allocation with the sealed posttrain environment.
 from __future__ import annotations
 
 import argparse
+import ast
 import datetime
 import hashlib
 import importlib.metadata
 import json
+import math
 import os
+import re
 import subprocess
 import sys
 import time
@@ -264,19 +267,22 @@ class Stages:
             raise RuntimeError(f"stage {name} exited {status}; failed evidence retained")
 
 
-def final_checkpoint(output: Path, experiment: Experiment, receipt: dict) -> Path:
+def final_checkpoint(output: Path, experiment: Experiment, receipt: dict, *, step: int | None = None) -> Path:
     from cosmos_framework.posttrain.checkpoint.adapter import read_adapter_metadata
     from cosmos_framework.posttrain.checkpoint.manager import CheckpointManager
 
     manager = CheckpointManager(checkpoint_format="dcp")
-    candidates = list((output / "native").rglob(f"checkpoints/iter_{experiment.steps:06d}"))
+    expected_step = experiment.steps if step is None else step
+    if type(expected_step) is not int or not 0 < expected_step <= experiment.steps:
+        raise ValueError("checkpoint step must be within the unchanged training horizon")
+    candidates = list((output / "native").rglob(f"checkpoints/iter_{expected_step:06d}"))
     if len(candidates) != 1:
         raise ValueError("expected exactly one own-run final checkpoint")
     checkpoint = candidates[0]
     # read_adapter_metadata verifies the atomic publication/manifest contract.
     metadata = read_adapter_metadata(str(checkpoint), require_resume=True, manager=manager)
     controls = manager.load_component(str(checkpoint), "trainer")
-    if any(controls[key] != experiment.steps for key in ("optimizer_step", "iter", "attempt_id")):
+    if any(controls[key] != expected_step for key in ("optimizer_step", "iter", "attempt_id")):
         raise ValueError("training did not complete all scheduled updates")
     if controls["accum"] or controls["nonfinite_skips_total"] or controls.get("zero_grad_skips_total", 0):
         raise ValueError("final checkpoint has partial accumulation or skipped updates")
@@ -290,15 +296,180 @@ def final_checkpoint(output: Path, experiment: Experiment, receipt: dict) -> Pat
     if (identity["quantization"] is not None) != (experiment.arm == "nf4"):
         raise ValueError("checkpoint base format differs from experiment")
     write_json(
-        output / "final-checkpoint.json",
+        output / ("final-checkpoint.json" if step is None else f"checkpoint-{step:06d}.json"),
         {
             "checkpoint": str(checkpoint),
-            "optimizer_step": experiment.steps,
+            "optimizer_step": expected_step,
             "metadata": metadata,
             "provenance": manager.checkpoint_provenance(str(checkpoint)),
         },
     )
     return checkpoint
+
+
+def read_validation_target(path: str | None, args: argparse.Namespace, experiment: Experiment) -> dict | None:
+    """Freeze a development-only point target before any model or process starts.
+
+    Crossing this target is not a repeated noninferiority test or a release gate.
+    The external paired/grouped analysis and independent-data requirement remain.
+    """
+    if path is None:
+        return None
+    if args.action != "train-eval" or args.split != "development":
+        raise ValueError("validation-target cadence requires fresh development training")
+    value = json.loads(Path(path).read_text())
+    keys = {
+        "protocol",
+        "evaluation_steps",
+        "expected_rows",
+        "minimum_correct",
+        "maximum_token_ce",
+        "score_data_sha256",
+        "split_manifest_sha256",
+    }
+    if not isinstance(value, dict) or set(value) != keys or value["protocol"] != "cosmos.qlora-validation-target.v1":
+        raise ValueError("invalid validation-target contract")
+    steps = value["evaluation_steps"]
+    if (
+        not isinstance(steps, list)
+        or not steps
+        or any(type(step) is not int or not 0 < step <= experiment.steps for step in steps)
+        or steps != sorted(set(steps))
+        or steps[-1] != experiment.steps
+    ):
+        raise ValueError("evaluation_steps must increase uniquely through the unchanged training horizon")
+    if (
+        type(value["expected_rows"]) is not int
+        or value["expected_rows"] <= 0
+        or type(value["minimum_correct"]) is not int
+        or not 0 <= value["minimum_correct"] <= value["expected_rows"]
+        or type(value["maximum_token_ce"]) not in (int, float)
+        or not math.isfinite(value["maximum_token_ce"])
+        or value["maximum_token_ce"] < 0
+    ):
+        raise ValueError("invalid fixed task-accuracy or token-CE target")
+    for key, source in (("score_data_sha256", args.score_data), ("split_manifest_sha256", args.split_manifest)):
+        if value[key] != file_sha256(source):
+            raise ValueError(f"validation target differs from sealed {key}")
+    from tools.native_qlora_qualification.split import select_sealed_rows
+
+    rows, selection = select_sealed_rows(
+        Path(args.score_data), Path(args.split_manifest), value["split_manifest_sha256"]
+    )
+    if selection["split_role"] != "development" or len(rows) != value["expected_rows"]:
+        raise ValueError("validation target requires the complete sealed development partition")
+    return value
+
+
+def score_command(args: argparse.Namespace, experiment: Experiment, output: Path, checkpoint: Path | None) -> list[str]:
+    command = [
+        sys.executable,
+        "-m",
+        "torch.distributed.run",
+        "--standalone",
+        "--nproc-per-node=1",
+        str(Path(__file__).resolve().with_name("score.py")),
+        "--config",
+        experiment.recipe,
+        "--data",
+        args.score_data,
+        "--output",
+        str(output),
+        "--split-manifest",
+        args.split_manifest,
+        "--split-manifest-sha256",
+        file_sha256(args.split_manifest),
+        "--split",
+        args.split,
+        "--all-rows",
+        *[part for item in experiment.overrides() for part in ("--override", item)],
+    ]
+    if args.selection_receipt:
+        command += [
+            "--selection-receipt",
+            args.selection_receipt,
+            "--selection-receipt-sha256",
+            file_sha256(args.selection_receipt),
+        ]
+    if checkpoint is not None:
+        command += ["--checkpoint", str(checkpoint)]
+    return command
+
+
+def target_observation(
+    directory: Path, checkpoint: Path, target: dict, expected_inputs: str | None, *, manifest_path: Path
+) -> dict:
+    """Check complete owned scoring rows, not a rounded accuracy summary alone."""
+    from tools.native_qlora_qualification.common import digest_json
+    from tools.native_qlora_qualification.quality import INPUT_KEYS, validate_scores
+
+    summary = json.loads((directory / "summary.json").read_text())
+    rows_file = directory / "scores.jsonl"
+    rows = [json.loads(line) for line in rows_file.read_text().splitlines() if line.strip()]
+    validate_scores(rows)
+    selection = json.loads((directory / "selection.json").read_text())
+    selected_file = directory / "selected_rows.jsonl"
+    selected = [json.loads(line) for line in selected_file.read_text().splitlines() if line.strip()]
+    if file_sha256(manifest_path) != target["split_manifest_sha256"]:
+        raise ValueError("validation target manifest changed before score acceptance")
+    sealed_rows = json.loads(manifest_path.read_text())["rows"]
+    if (
+        selection.get("source_sha256") != target["score_data_sha256"]
+        or selection.get("split_manifest_sha256") != target["split_manifest_sha256"]
+        or selection.get("split_role") != "development"
+        or selection.get("selected_rows_file_sha256") != file_sha256(selected_file)
+        or summary.get("selection_sha256") != digest_json(selection)
+        or not len(rows) == len(selected) == len(sealed_rows) == target["expected_rows"]
+    ):
+        raise ValueError("actual scoring selection differs from the frozen target")
+    for index, (row, frozen, sealed) in enumerate(zip(rows, selected, sealed_rows, strict=True), 1):
+        if (
+            row["source_line"] != index
+            or frozen["source_line"] != index
+            or any(
+                row[key] != frozen[key]
+                for key in ("id", "row_identity", "raw_row_sha256", "media_sha256", "gold", "choices")
+            )
+            or any(row[key] != sealed[key] for key in ("id", "raw_row_sha256", "media_sha256"))
+        ):
+            raise ValueError("scored ordered rows differ from the sealed target partition")
+    if (
+        summary.get("complete") is not True
+        or summary.get("checkpoint") != str(checkpoint.resolve())
+        or summary.get("scores_sha256") != file_sha256(rows_file)
+        or len(rows) != target["expected_rows"]
+        or any(type(row["restricted_choice_correct"]) is not bool for row in rows)
+    ):
+        raise ValueError("incomplete, changed or foreign checkpoint scores cannot meet a target")
+    inputs = hashlib.sha256(
+        json.dumps(
+            [{key: row[key] for key in INPUT_KEYS} for row in rows],
+            sort_keys=True,
+            separators=(",", ":"),
+            allow_nan=False,
+        ).encode()
+    ).hexdigest()
+    if expected_inputs is not None and inputs != expected_inputs:
+        raise ValueError("processed scoring inputs changed across validation checkpoints")
+    correct = sum(row["restricted_choice_correct"] for row in rows)
+    tokens = sum(row["native_supervised_tokens"] for row in rows)
+    ce = math.fsum(row["native_sft_ce"] * row["native_supervised_tokens"] for row in rows) / tokens
+    metrics = summary["metrics"]
+    if (
+        metrics["rows"] != len(rows)
+        or metrics["restricted_choice_accuracy"] != correct / len(rows)
+        or metrics["token_weighted_ce"] != ce
+    ):
+        raise ValueError("scoring summary disagrees with complete rows")
+    return {
+        "correct": correct,
+        "rows": len(rows),
+        "native_supervised_tokens": tokens,
+        "token_weighted_ce": ce,
+        "processed_inputs_sha256": inputs,
+        "score_summary_sha256": file_sha256(directory / "summary.json"),
+        "target_met": correct >= target["minimum_correct"] and ce <= target["maximum_token_ce"],
+    }
 
 
 def validate_action_checkpoint(action: str, checkpoint: str | None) -> None:
@@ -313,14 +484,137 @@ def validate_action_checkpoint(action: str, checkpoint: str | None) -> None:
         raise ValueError(f"{action} requires a fresh base and rejects an inherited checkpoint")
 
 
+def verify_segment_boundary(output: Path, checkpoint: Path, *, start: int, stop: int, horizon: int) -> dict:
+    """A saved earlier checkpoint cannot conceal an ignored pause or extra work."""
+    metrics = checkpoint.parent.parent / "metrics.jsonl"
+    rows = [json.loads(line) for line in metrics.read_text().splitlines() if line.strip()]
+    updates = [row for row in rows if "train/loss_avg" in row]
+    steps = [row.get("step") for row in updates]
+    if any(type(step) is not int for step in steps) or steps != list(range(1, stop + 1)):
+        raise ValueError("native metrics must stop exactly at the requested boundary without duplicate/missing updates")
+    observed = sorted(
+        int(path.name.removeprefix("iter_"))
+        for path in checkpoint.parent.iterdir()
+        if path.is_dir() and re.fullmatch(r"iter_[0-9]+", path.name)
+    )
+    if not observed or observed[-1] != stop:
+        raise ValueError("native checkpoint inventory extends beyond or lacks the requested boundary")
+    log = output / "stages" / f"training_{stop:06d}" / "output.log"
+    summaries = []
+    for line in log.read_text().splitlines():
+        if "SFT DONE " in line:
+            summaries.append(ast.literal_eval(re.sub(r"\x1b\[[0-9;]*m", "", line.split("SFT DONE ", 1)[1]).strip()))
+    if len(summaries) != 1 or not isinstance(summaries[0], dict):
+        raise ValueError("one native completion summary is required for each segment")
+    summary = summaries[0]
+    if (
+        type(summary.get("start")) is not int
+        or type(summary.get("final_step")) is not int
+        or summary.get("start") != start
+        or summary.get("final_step") != stop
+        or "preempted" in summary
+        or summary.get("final_loss") != updates[-1]["train/loss_avg"]
+        or (stop < horizon and (summary.get("paused") is not True or summary.get("checkpoint") != str(checkpoint)))
+        or (stop == horizon and summary.get("paused", False) is not False)
+    ):
+        raise ValueError("native completion does not establish the requested committed pause/completion")
+    result = {
+        "start": start,
+        "stop": stop,
+        "new_updates": stop - start,
+        "native_summary": summary,
+        "checkpoint_steps": observed,
+        "metrics_sha256": file_sha256(metrics),
+        "log_sha256": file_sha256(log),
+    }
+    write_json(output / f"boundary-{stop:06d}.json", result)
+    return result
+
+
+def train_to_target(args, experiment, output, receipt, stages, target, started):
+    """Native committed-boundary segments; every restart and scoring cost is timed.
+
+    This deliberately measures a segmented workflow, whose CPU caches restart.
+    It is not interchangeable with uninterrupted training or full cold preparation.
+    """
+    checkpoint, observations, inputs = None, [], None
+    script = [
+        sys.executable,
+        "-m",
+        "torch.distributed.run",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "cosmos_framework.posttrain.entrypoints.sft",
+        "--config",
+        experiment.recipe,
+        "--",
+    ]
+    for step in target["evaluation_steps"]:
+        # Refuse mutated data/targets before a new segment; identity guards in native
+        # resume additionally verify the original schedule, optimizer and cursor.
+        if read_validation_target(args.validation_target, args, experiment) != target:
+            raise ValueError("validation target changed after experiment start")
+        overrides = [*experiment.overrides(), "rl.resume=" + json.dumps(str(checkpoint) if checkpoint else "off")]
+        if step < experiment.steps:
+            overrides.append(f"rl.pause_after_step={step}")
+        stages.run(f"training_{step:06d}", [*script, *overrides])
+        checkpoint = final_checkpoint(output, experiment, receipt, step=step)
+        boundary = verify_segment_boundary(
+            output,
+            checkpoint,
+            start=observations[-1]["optimizer_step"] if observations else 0,
+            stop=step,
+            horizon=experiment.steps,
+        )
+        directory = output / f"scores_{step:06d}"
+        if read_validation_target(args.validation_target, args, experiment) != target:
+            raise ValueError("validation target changed during native training")
+        stages.run(f"scoring_{step:06d}", score_command(args, experiment, directory, checkpoint))
+        if read_validation_target(args.validation_target, args, experiment) != target:
+            raise ValueError("validation target changed during scoring")
+        observation = target_observation(directory, checkpoint, target, inputs, manifest_path=Path(args.split_manifest))
+        inputs = observation["processed_inputs_sha256"]
+        observation.update(optimizer_step=step, elapsed_from_runner_start_seconds=time.monotonic() - started)
+        observation["native_boundary"] = boundary
+        write_json(output / f"target-{step:06d}.json", observation)
+        observations.append(observation)
+        if observation["target_met"]:
+            break
+    result = {
+        "protocol": "cosmos.qlora-validation-target-result.v1",
+        "observations": observations,
+        "target_met": observations[-1]["target_met"],
+        "first_validated_checkpoint_seconds": observations[-1]["elapsed_from_runner_start_seconds"]
+        if observations[-1]["target_met"]
+        else None,
+        "last_validated_step": observations[-1]["optimizer_step"],
+        "censored_at_training_horizon": not observations[-1]["target_met"],
+        "timing_scope": "Runner start through first passing scheduled full-data score: includes verification, preflight, native model/processor loading, preprocessing, every resumed segment, validation and checkpointing. Pre-existing base/data acquisition, conversion, environment/build preparation and scheduler wait are excluded and must be reported separately. Final portable export/reload follows separately.",
+        "execution_scope": "Each validation checkpoint starts a fresh native process and preprocessing cache. Apply the same cadence to both arms; do not substitute uninterrupted-run timings.",
+        "quality_qualified": False,
+    }
+    write_json(output / "target-result.json", result)
+    return checkpoint, directory, result
+
+
 def execute(args: argparse.Namespace) -> None:
+    # Cadence measurements include their initial sealed-data/target validation.
+    # Keep the established default experiment's clock origin unchanged.
+    cadence_started = time.monotonic() if getattr(args, "validation_target", None) is not None else None
     validate_action_checkpoint(args.action, args.checkpoint)
     experiment = Experiment.read(args.spec)
+    target = read_validation_target(getattr(args, "validation_target", None), args, experiment)
     output = Path(args.output).absolute()
     output.mkdir(parents=True, exist_ok=False)
-    started = time.monotonic()
+    started = time.monotonic() if cadence_started is None else cadence_started
     receipt = verify_build(Path(args.build))
     verify_kernel_gate(Path(args.kernel_gate), receipt)
+    if target is not None:
+        from cosmos_framework.posttrain.config.sft import SFTConfig
+
+        if not hasattr(SFTConfig, "pause_after_step"):
+            raise ValueError("validation-target cadence requires native committed-boundary pause support")
     if os.environ.get("PYTHONHASHSEED") != str(experiment.seed):
         raise ValueError("PYTHONHASHSEED must match the experiment before process start")
     if os.environ.get("CUBLAS_WORKSPACE_CONFIG") != ":4096:8":
@@ -345,6 +639,8 @@ def execute(args: argparse.Namespace) -> None:
         Path(args.data_root) / "validation.jsonl",
         Path(args.kernel_gate),
     ]
+    if target is not None:
+        provenance_files.append(Path(args.validation_target))
     write_json(
         output / "contract.json",
         {
@@ -359,12 +655,15 @@ def execute(args: argparse.Namespace) -> None:
             "started_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
             "checkpoint": args.checkpoint,
             "preflight_measurement": "separately timed before external sampler",
+            **({"validation_target": target} if target is not None else {}),
         },
     )
     stages = Stages(output, Path(args.time_binary))
     sampler = None
     passed = False
     failure = None
+    target_result = None
+    scores_directory = output / "scores"
     try:
         stages.run("preflight", [sys.executable, str(script), "preflight", "--output", str(output / "runtime.json")])
         runtime = json.loads((output / "runtime.json").read_text())
@@ -382,7 +681,17 @@ def execute(args: argparse.Namespace) -> None:
                 stderr=subprocess.STDOUT,
             )
         checkpoint = Path(args.checkpoint) if args.checkpoint else None
-        if args.action == "train-eval":
+        if target is not None:
+            checkpoint, scores_directory, target_result = train_to_target(
+                args,
+                experiment,
+                output,
+                receipt,
+                stages,
+                target,
+                started,
+            )
+        elif args.action == "train-eval":
             stages.run(
                 "training",
                 [
@@ -400,7 +709,12 @@ def execute(args: argparse.Namespace) -> None:
         integration = "cosmos_framework.posttrain.tests.qlora_integration"
         probe_overrides = [part for item in common for part in ("--override", item)]
         if checkpoint is not None:
-            portable_iter = output / "portable" / "checkpoints" / f"iter_{experiment.steps:06d}"
+            portable_iter = (
+                output
+                / "portable"
+                / "checkpoints"
+                / (checkpoint.name if target is not None else f"iter_{experiment.steps:06d}")
+            )
             stages.run(
                 "portable_publication",
                 [
@@ -453,34 +767,8 @@ def execute(args: argparse.Namespace) -> None:
                     "0",
                 ],
             )
-        score = [
-            *torchrun,
-            str(script.parent / "score.py"),
-            "--config",
-            experiment.recipe,
-            "--data",
-            args.score_data,
-            "--output",
-            str(output / "scores"),
-            "--split-manifest",
-            args.split_manifest,
-            "--split-manifest-sha256",
-            file_sha256(args.split_manifest),
-            "--split",
-            args.split,
-            "--all-rows",
-            *probe_overrides,
-        ]
-        if args.selection_receipt:
-            score += [
-                "--selection-receipt",
-                args.selection_receipt,
-                "--selection-receipt-sha256",
-                file_sha256(args.selection_receipt),
-            ]
-        if checkpoint is not None:
-            score += ["--checkpoint", str(checkpoint)]
-        stages.run("scoring", score)
+        if target is None:
+            stages.run("scoring", score_command(args, experiment, scores_directory, checkpoint))
         if sampler.poll() is not None:
             raise RuntimeError("external sampler failed; complete resource evidence unavailable")
         passed = True
@@ -506,6 +794,17 @@ def execute(args: argparse.Namespace) -> None:
                 "finished_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
                 "quality_qualified": False,
                 "quality_gate_requires_external_paired_analysis": True,
+                **(
+                    {
+                        "validation_target_result": target_result,
+                        "scores_directory": str(scores_directory),
+                        "post_target_export_reload_seconds": time.monotonic()
+                        - started
+                        - target_result["observations"][-1]["elapsed_from_runner_start_seconds"],
+                    }
+                    if target_result is not None
+                    else {}
+                ),
             },
         )
 
@@ -537,6 +836,10 @@ def main() -> None:
     )
     command.add_argument("--checkpoint")
     command.add_argument("--selection-receipt")
+    command.add_argument(
+        "--validation-target",
+        help="Frozen development target/cadence JSON; pauses and resumes native training without changing its horizon. Separate process/cache per segment; requires a qualified build with pause support.",
+    )
     args = parser.parse_args()
     if args.command == "preflight":
         preflight(Path(args.output))
