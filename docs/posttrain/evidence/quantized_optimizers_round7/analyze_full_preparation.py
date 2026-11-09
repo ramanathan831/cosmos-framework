@@ -18,6 +18,18 @@ def main():
     ledger = json.loads((ROOT / "allocation_ledger.json").read_text())
     old = read_raw(ROOT.parent / "quantized_optimizers_round5/cold_replacement_raw.json.gz")
     reference = json.loads(old["trial0/preparation_receipt.json"])
+    entries = list(json.loads(old["trial0/manifest.json"])["entries"].values())
+    actual_tokens = {
+        key: {
+            "min": min(row[key] for row in entries),
+            "max": max(row[key] for row in entries),
+            "sum_unique_targets": sum(row[key] for row in entries),
+        }
+        for key in ("sequence_length", "supervised_tokens")
+    }
+    source = json.loads((ROOT / "source_identity.json").read_text())
+    expected_producer = source["current_changed_tool_paths"]["tools/quantized_optimizers/parallel_prepare.py"]
+    expected_archive = source["full_preparation_source"]["source_archive_sha256"]
     replications = []
     for index in range(3):
         launch = json.loads((ROOT / f"full{index}_launch.json").read_text())
@@ -26,6 +38,8 @@ def main():
         raw = read_raw(ROOT / f"full{index}_raw.json.gz")
         assert raw[f"exit-code-{launch['job']}.txt"].strip() == "0"
         receipt = json.loads(raw["trial0/preparation_receipt.json"])
+        assert receipt["source_sha256"] == expected_producer
+        assert launch["source_archive_sha256"] == expected_archive
         process = json.loads(raw["trial0.process.json"])
         assert process["returncode"] == 0
         for key in (
@@ -100,12 +114,16 @@ def main():
     eightbit = target["adamw_bnb_8bit"]["prepared_total"]
     eightbit_training = target["adamw_bnb_8bit"]["training"]
     maximum_preparation = (fused - 1.05 * (eightbit - eightbit_training)) / 0.05
+    outside_processing = np.array(
+        [row["job"]["elapsed_seconds"] - row["receipt"]["preparation_seconds"] for row in replications]
+    )
     output = dict(
         complete=True,
         uninterrupted_replications=3,
         exact_unique_targets_per_run=562,
         logical_rows_per_run=751,
         all_input_target_reference_checks_exact=True,
+        actual_unique_target_token_counts=actual_tokens,
         replications=replications,
         allocation_seconds=seconds.tolist(),
         historical_allocation_seconds=[2193, 2166, 2121],
@@ -127,6 +145,10 @@ def main():
             ),
             maximum_common_preparation_for_mean_ratio_1_05_if_candidate_training_zero=maximum_preparation,
             required_further_preparation_reduction_fraction=float(1 - maximum_preparation / seconds.mean()),
+            observed_allocation_seconds_outside_worker_publication_phase=outside_processing.tolist(),
+            ratio_if_entire_worker_publication_phase_and_candidate_training_were_free=float(
+                (outside_processing.mean() + fused) / (outside_processing.mean() + eightbit - eightbit_training)
+            ),
             limit="Planning only, holding all historical nontraining costs and target crossings fixed. Not a measured speed result, confidence bound or universal impossibility proof.",
         ),
         clocks=dict(
@@ -135,6 +157,7 @@ def main():
             allocation="Complete parent Slurm elapsed time, including container/source setup and termination; queue wait excluded. Used for cold composition consistently with historical evidence.",
             memory="Sampled process-tree PSS/RSS during native main plus workers. Excludes imports/container startup; cache payload accounting is not an RSS bound.",
         ),
+        legacy_counter_note="raw_native_calls counts1124native packer invocations, including254first-pass video cache hits. It does not mean1124raw decodes.",
         cache_scope="308unique source videos and562independent uncached target replays; observed first-pass hit/miss counts are reported per run, with at most254potential hits. Full hashes, deterministic ordering and native publication remain. No cache flushing; shared Lustre/storage-cache state is not controlled.",
         limitations="Three sequential runs on one configured CPU node, historically exposed data, no new quality outcomes, no inference-latency or optimizer-specific shared-preparation claim. All failures and search costs remain in the allocation ledger rather than being discarded.",
     )
