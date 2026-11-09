@@ -981,53 +981,53 @@ and prepared/cold end-to-end speed requirements remain open. See the
 The [next continuation](evidence/quantized_optimizers_round7/plan.json) removes the
 previous aggregate GPU/CPU/time ceilings at the user's instruction; historical
 charges remain recorded. It does not reopen recipe selection or change quality
-margins. Exponent0.975 remains rejected, and no eight-bit confirmation or new
+margins. Exponent 0.975 remains rejected, and no eight-bit confirmation or new
 final optimizer comparison is admitted.
 
-Three fresh-process seed43 diagnostics reproduce **all96 task observations and
+Three fresh-process seed 43 diagnostics reproduce **all 96 task observations and
 all three native batch-four substantive losses exactly**. Batch inputs, labels,
 1,346 supervised tokens and checkpoint checksums/provenance are verified.
 The [attribution](evidence/quantized_optimizers_round7/substantive_summary.json)
-finds ten of16 answer-text rows worsen under both weighting candidates. Prominent
+finds ten of 16 answer-text rows worsen under both weighting candidates. Prominent
 terms include `Dim`, `Light`, and `Clear`, which are represented in training.
 The original/.975 saved data cursors are byte-identical; the native cursor
-reconstructs the same60 training rows. These observations locate a shared recipe
+reconstructs the same 60 training rows. These observations locate a shared recipe
 trade-off without proving a single cause or measuring free-form generation.
 [Recording groups](evidence/quantized_optimizers_round7/development_groups.json)
 use the existing full-inventory component mapping, including normal-trimmed and
 SHA-linked recordings; no evaluation split or statistical unit changes.
 
-Direct monotonic timers attribute153.71 of158.58 summed worker sample seconds to
-video decoding on the fixed15-target/eight-video training slice. A new opt-in
+Direct monotonic timers attribute 153.71 of 158.58 summed worker sample seconds to
+video decoding on the fixed 15-target/eight-video training slice. A new opt-in
 `parallel_prepare --video-cache-bytes=67108864` reuses bounded video-processor
 outputs within a worker's same-video group. Every target still receives an
 independent uncached native replay. Text/tokens/masks, deterministic publication
 order, complete hashes, mutation detection and qualified-reference checks remain.
-The default stays disabled. It requires the inspected Transformers5.8.1
+The default stays disabled. It requires the inspected Transformers 5.8.1
 Qwen3-VL processor and one local video per target; unsupported layouts fail.
 
 The [paired slice screen](evidence/quantized_optimizers_round7/reuse_summary.json)
-passes: complete Python-process ratio **1.24037[1.14525,1.37167]**, three paired
-trials,90 exact comparisons and identical corpus manifests. Control/candidate
-mean process times are159.89/128.43seconds. This clock includes imports and
+passes: complete Python-process ratio **1.24037 [1.14525, 1.37167]**, three paired
+trials, 90 exact comparisons and identical corpus manifests. Control/candidate
+mean process times are 159.89/128.43 seconds. This clock includes imports and
 shutdown, with shared container startup separate; it is not a cold-workflow or
-optimizer speed result. Preparation-phase process-tree PSS ranges4.19–4.30GiB
-for controls and4.24–4.26GiB for candidates. The payload cap does not represent
+optimizer speed result. Preparation-phase process-tree PSS ranges 4.19–4.30 GiB
+for controls and 4.24–4.26 GiB for candidates. The payload cap does not represent
 process RSS. Shared storage caches were not flushed.
 
 The initial inner-timer screen is retained separately because it omitted imports.
 Corrected payload accounting includes processor wrapper dictionaries. A failed
-real test incorrectly required current size to equal its earlier peak (40bytes
+real test incorrectly required current size to equal its earlier peak (40 bytes
 lower); the corrected high-water assertion passes. The [retry](evidence/quantized_optimizers_round7/accounting_check_summary.json)
-passes19 pinned checks, real wrong-hash/cached-pixel-corruption rejection, and all
-15 exact targets. No source media was mutated. Earlier44 affected local tests and
+passes 19 pinned checks, real wrong-hash/cached-pixel-corruption rejection, and all
+15 exact targets. No source media was mutated. Earlier 44 affected local tests and
 unchanged optimizer/transaction recovery evidence retain their scope.
 
-Three full751-row/562-target preparations are predeclared sequentially; the first
+Three full 751-row/562-target preparations are predeclared sequentially; the first
 is admitted under the [locked protocol](evidence/quantized_optimizers_round7/full_preparation_protocol.json).
 Their completion and full cold analysis remain pending. The slice gain cannot be
 extrapolated into a measured full preparation time or used to pass the unchanged
-cold lower-bound-above1.05 gate. See the [requirement map](evidence/quantized_optimizers_round7/requirements.md).
+cold lower-bound-above-1.05 gate. See the [requirement map](evidence/quantized_optimizers_round7/requirements.md).
 
 ## Reproduction and source identities
 
@@ -1036,7 +1036,7 @@ regeneration, immutable source archives, Slurm submission, collection and analys
 [First-campaign status](evidence/quantized_optimizers/qualification_summary.json)
 and [completed follow-up status](evidence/quantized_optimizers_round2/qualification_summary.json)
 link each result, gate and remaining requirement. The
-[current proposed PR](evidence/quantized_optimizers_round6/proposed_pr.md)
+[current proposed PR](evidence/quantized_optimizers_round7/proposed_pr.md)
 describes the combined implementation and measured limitations; it has not been published.
 [Additional campaign commands](evidence/quantized_optimizers_round4/commands.md),
 [source identities](evidence/quantized_optimizers_round4/source_identity.json) and

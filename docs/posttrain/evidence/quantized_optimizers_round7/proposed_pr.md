@@ -56,7 +56,7 @@ at original LR 1e-5, retaining 15 updates/40-update horizon, data and precision.
 Its three fused runs improve mean task NLL 3.4503%, with no per-seed accuracy loss,
 but seed 43 substantive loss rises 1.2970669%, exceeding the 1% guard. The candidate
 is rejected. No eight-bit candidate or new final comparison is admitted, and
-unused GPU headroom does not authorize another sweep. Original recipe defaults
+removal of the aggregate resource ceilings does not authorize another recipe sweep. Original recipe defaults
 remain unchanged. This fused-only result does not implicate state quantization.
 
 The next continuation implements bounded, worker-local video-intermediate reuse
@@ -64,20 +64,20 @@ in the existing native preparation tool. Every target still receives an uncached
 native replay, complete source/payload hashes and exact qualified-reference
 comparison. The default remains disabled; the inspected scope is the pinned
 Qwen3-VL CPU video processor with one local video per target. Three paired
-15-target slice trials preserve90 exact comparisons and improve complete Python
-process time1.24037×[1.14525,1.37167]. Shared container startup is separate; this
+15-target slice trials preserve 90 exact comparisons and improve complete Python
+process time 1.24037× [1.14525, 1.37167]. Shared container startup is separate; this
 is not a full cold or optimizer speed claim. The initial inner-timer screen and
 failed peak-equality test assertion are retained. Corrected payload accounting
-passes19 pinned tests, including real wrong-hash/cached-pixel-corruption rejection,
-and all15 exact targets. Full751-row/562-target repetitions are in progress.
+passes 19 pinned tests, including real wrong-hash/cached-pixel-corruption rejection,
+and all 15 exact targets. Full 751-row/562-target repetitions are in progress.
 
-Three fresh-process fused seed43 checkpoint diagnostics reproduce96 task
+Three fresh-process fused seed 43 checkpoint diagnostics reproduce 96 task
 observations and all three native batch-four substantive losses exactly. The
 observer retains inputs, masks, counts and native reductions. Both weighting
-candidates worsen10of16 substantive rows, with prominent brightness/traffic/weather
+candidates worsen 10 of 16 substantive rows, with prominent brightness/traffic/weather
 terms represented in training; this is a shared recipe trade-off, without an
 established sole cause. Original/.975 saved data cursors are byte-identical and
-reconstruct the same60 training rows. No new final optimizer comparison is admitted.
+reconstruct the same 60 training rows. No new final optimizer comparison is admitted.
 
 Prior whole-device peaks 72.58/71.80GiB, training/checkpoint host PSS 5.76/10.71GiB,
 and full-delivery host PSS 33.38/33.68GiB remain separate from state savings. New

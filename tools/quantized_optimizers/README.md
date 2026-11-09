@@ -7,7 +7,7 @@ calls the native SFT entrypoint and adds synchronized timing/shape hooks. Its
 instrumented timings must not be presented as uninstrumented performance.
 
 The latest bounded continuation is recorded in
-[round-five commands](../../docs/posttrain/evidence/quantized_optimizers_round5/commands.md).
+[round-seven commands](../../docs/posttrain/evidence/quantized_optimizers_round7/commands.md).
 Its development recipe selection is separate from the historical final comparisons.
 
 For dense fresh-process scoring, `score_dense.py --checkpoint-sha256 DIGEST`
