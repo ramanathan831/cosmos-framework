@@ -1198,11 +1198,11 @@
     "validation_sequences_each": 64,
     "validation_supervised_tokens_each": 128
   },
-  "execution_choice_scope": "none/none is locked for follow-up experiments; default full checkpointing and full recipe promotion are unchanged pending selected-policy mature recovery and later qualification.",
+  "execution_choice_scope": "none/none is promoted for the measured workload and locked for the required follow-up TTQ experiments. The public default full-checkpointing configuration remains unchanged; broader recipe, quality and release claims remain unqualified.",
   "independent_quality_confirmation_complete": false,
   "measurement_limits": [
     "Two same-seed-42 reversed-order engineering blocks do not supply a timing confidence interval, independent seed evidence, or an optimally tuned BF claim. The failed fragmented-placement attempt remains charged and supplies no selected scientific result.",
-    "The endpoint at 300 score is descriptive; it is not the earliest scheduled pass or total cold TTQ. T17/T123 and selected-policy 250-to-300 recovery remain pending.",
+    "The endpoint at 300 score is descriptive; it is not the earliest scheduled pass or total cold TTQ. Selected-policy 250-to-300 recovery is accepted within its stated scope; T17/T123 remain pending.",
     "GPU memory evidence is valid in all four retry cases. NF-none host PSS is incomplete at retained row 5379; the NF-full boundary-straddling sample 7678 is excluded by the fixed containment rule. Preserve gap and edge-gap limits; sampled peaks are lower bounds.",
     "Raw allocator phase watermarks are not re-reduced here. Sampled whole-case memory is not an allocator or whole-machine watermark, and no small-GPU fitting claim follows.",
     "Full 4611-row geometry census, long-context sustained training, additional hardware and independent quality confirmation remain pending. Existing quality bounds are unchanged.",
@@ -1210,15 +1210,18 @@
   ],
   "native_revision": "149c2cf1a147caa8956fed1b319b140f958e8731",
   "native_wheel_sha256": "6f3550c37b408a8a11c5b651a0b413e696a39bcb655858aa6fea0c1cceb9783b",
-  "policy_promoted": false,
+  "policy_promoted": true,
+  "policy_promotion_scope": "Workload-scoped execution promotion only: selected none/none for the measured native149 seed-42 rank-32 3 GiB-cache WTS workload, after both engineering blocks and own same-policy mature recovery. This is not release, full-recipe, independent-quality or TTQ promotion.",
   "protocol": "cosmos.native-qlora-ac-performance-e2-evidence.v1",
   "qualification": {
     "default_full_checkpointing_unchanged": true,
+    "execution_policy_promoted_for_measured_workload": true,
     "full_4611_processed_input_census_complete": false,
+    "full_recipe_or_release_promotion": false,
     "independent_quality_confirmation_complete": false,
     "long_context_or_additional_hardware_qualified": false,
     "quality_noninferiority_or_release_qualified": false,
-    "selected_policy_250_to_300_recovery_complete": false,
+    "selected_policy_250_to_300_recovery_complete": true,
     "serialized_checkpoint_or_optimizer_byte_equality_claimed": false,
     "time_to_quality_complete": false
   },
@@ -1226,6 +1229,18 @@
   "selected_checkpointing": {
     "bf16": "none",
     "nf4": "none"
+  },
+  "selected_policy_mature_recovery": {
+    "accepted_capture_sha256": "5eaa9e25fc72e3556913ee4c1b0956ee60472210c9d5c909c72817e4127afdde",
+    "accepted_report_sha256": "ddb960a83721e31f85ee80aee9c0ec41cc050cc61dcf25bea446e0c7b363d6ba",
+    "canonical_reader_sha256": "b9ba71efbd442c1d57ffb073cd055e5d2d6c222803142fb5416df81e9e5656b1",
+    "e2_cost_unchanged": true,
+    "mature_allocation_costs_already_reported_separately": true,
+    "policy_lock_sha256": "52f4e0f6773cb9a036bc118d18f0af32148c302a300b7236a9f2401779c4455a",
+    "public_evidence": "native_qlora_selected_mature_149c2cf.json",
+    "public_evidence_sha256": "fa9f9e80d35bf975b66e193b56b55e81389390cd5a1e2c69e476bc4c1cd0741e",
+    "qualified": true,
+    "scope": "Own E1 selected-policy seed42 update250-to300,50 new updates per arm, same world size1 and observed other host; no cross-policy/general migration, release, quality or TTQ claim."
   },
   "time_to_quality_complete": false,
   "two_block_selection": {
@@ -1297,7 +1312,7 @@
       "T17",
       "T123"
     ],
-    "scope": "Locked execution choices for subsequent selected-policy recovery and required T17/T123 experiments. Two reversed seed-42 development blocks, no timing confidence interval or independent-seed generalization; recipe promotion remains pending.",
+    "scope": "The unchanged two-block rule selects none/none; accepted own same-policy 250-to-300 recovery now supports workload-scoped execution promotion. These remain two reversed seed-42 development blocks, without a timing confidence interval or independent-seed generalization. T17/T123 remain required.",
     "selected_policies": {
       "bf16": "none",
       "nf4": "none"
