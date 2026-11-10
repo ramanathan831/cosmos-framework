@@ -1,0 +1,62 @@
+{
+  "attempts": [
+    {
+      "checkpoint_tensor_bytes_copied_for_review": 0,
+      "cost": {
+        "allocated_cpu_seconds": 1248,
+        "allocation_cost_sum_once": true,
+        "exploration_debit_seconds": 78,
+        "gpu_allocation_seconds": 78,
+        "outer_phase_seconds_nonadditive": "35.6802767140325185",
+        "outside_outer_phase_seconds": "42.3197232859674815",
+        "per_arm_measured_clock_claimed": false,
+        "per_precision_opportunity_seconds": {
+          "bf16": "39",
+          "nf4": "39"
+        },
+        "shared_allocation_seconds": "78"
+      },
+      "exit_code": "1:0",
+      "failure_cause": "one actual NUMA node required",
+      "failure_checks_are_not_accelerator_recovery_qualification": true,
+      "failure_metadata_cpu_checks": 33,
+      "failure_site": "allocation placement before per-arm stages",
+      "inherited_distinct_physical_cores_by_numa": {
+        "0": 6,
+        "1": 4,
+        "3": 4
+      },
+      "job_id": "38310827",
+      "neither_arm_entered": true,
+      "operationally_censored": true,
+      "recovered_updates": 0,
+      "scientific_success_or_quality_or_resume_claimed": false,
+      "selected_distinct_physical_cores_by_numa": {
+        "0": 6,
+        "1": 2
+      },
+      "source_sha256": {
+        "closed_capture": "40b70f84f38c63b0da36d110e1a67e920375faf63916ee17d97f8a0da276f046",
+        "failure_only_reader": "759f1090d426a7ea83dc2a18d1b4e7ee265b6ce0f49e3541afdb4675bb36a655",
+        "failure_only_review": "2e713ad6aa961be55668289c97b779180bb99be5d72ef6e6fe8a561a898a6499",
+        "issued_plan": "cbedc311678a1910e8ca6bc3e8fb210072ef27828924f1e5c9986a72e3cc2fa7",
+        "unchanged_producer": "3c16e352eba8f2bc2959db9a74d6ffd763cb63799b5e5651a825342c347aaa09"
+      },
+      "state": "FAILED",
+      "success_only_reader_refusal_preserved": true,
+      "valid_eight_core_single_numa_subset_existed": false
+    }
+  ],
+  "independent_quality_confirmation_complete": false,
+  "native_revision": "149c2cf1a147caa8956fed1b319b140f958e8731",
+  "native_wheel_sha256": "6f3550c37b408a8a11c5b651a0b413e696a39bcb655858aa6fea0c1cceb9783b",
+  "policy_lock_sha256": "52f4e0f6773cb9a036bc118d18f0af32148c302a300b7236a9f2401779c4455a",
+  "protocol": "cosmos.native-qlora-selected-mature-evidence.v1",
+  "scope": "Selected-policy update-250-to-300 recovery is pending. This allocation was rejected before per-arm source/resume/compare stages; it supplies no model-recovery result. Earlier four-update and 300-update endpoint evidence keeps its own scope.",
+  "selected_checkpointing": {
+    "bf16": "none",
+    "nf4": "none"
+  },
+  "selected_policy_late_recovery_qualified": false,
+  "time_to_quality_complete": false
+}
