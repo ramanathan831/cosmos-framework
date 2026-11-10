@@ -1,4 +1,31 @@
 {
+  "allocator_evidence": {
+    "added_projection_only": true,
+    "native_training_rerun": false,
+    "performance_source_sha256": "939e354910e719a4ffa4c567a84682620ad618f366c6918be43d845619b59069",
+    "phase_semantics": "Peaks end at the current boundary after the preceding reset. checkpoint_begin records the preceding validation/boundary window; only checkpoint_complete after checkpoint_begin is checkpoint writing. Loading excludes earlier source verification and process startup.",
+    "previous_public_projection_sha256": "650fa935149f6f6d7c57fac1bb8181023d20fa0d5f260981b1a93eb7cb83749a",
+    "scope": "Per-rank PyTorch allocator boundaries. Probe records cover loading only; portable-publication CPU memory and post-loading probe forwards have no allocator watermark. Whole-case owned GPU/process and host PSS samples are reported separately. Allocator and sampled values must not be added.",
+    "source_sha256": {
+      "bf16_full/probe_dcp": "9448fd4e9ab957c32fc2c20de6f786c14047a4a2b8c2dfc1bbf5dc6737068195",
+      "bf16_full/probe_portable": "3af9f468a3ed1dbb2637d774e59ee395cfb3fce394502244a5b8cce3e6a37f43",
+      "bf16_full/scoring_000300": "1f2505ec368b25443a262dbaf7da8ecad8dc144cb4cc8849e4bba4df1bac1d23",
+      "bf16_full/training_000300": "74ebfcc58448ac6f5a22d9a53a7ce9a9abec9a42341660352865a95cbad43b7b",
+      "bf16_none/probe_dcp": "c15092f8a1b6a048f46d4ced9060a06ed65644a60c5bb786360b8b3af01ba3e0",
+      "bf16_none/probe_portable": "0d00ef12ba68e76b934c9ef23363974d6480c34160b5150c33e43a15eb169a3f",
+      "bf16_none/scoring_000300": "9a129099c5a091205d09240406f0ace21da6cb04076d51b10d6a3cfae275b7f3",
+      "bf16_none/training_000300": "0397a6bcb476f62c11a77ae7bf6eb1ad0375390620f0eac3ca40548ede763b8f",
+      "nf4_full/probe_dcp": "9b4fbfd1318b42b39970daac01f9ea1d1df6e28dd5563b5d7b2a328f2bc986cb",
+      "nf4_full/probe_portable": "8bf4e0eb1dfbe4789ef29e84a0d636811cc1d8d0d7526c43fd77693104692edb",
+      "nf4_full/scoring_000300": "b9af2e0e1aa0807f24e5ff977a150ac42eb61bf98874a42a5b34b633f1ad4677",
+      "nf4_full/training_000300": "39a22767dd337faf2ec4c2e3b5d62059cdc44a2a7bde79c3f22956f3d6c5324f",
+      "nf4_none/probe_dcp": "2a9f58c769a9786fc566aa80549c5c4add4bb95904756ec34bcbc3581feaf036",
+      "nf4_none/probe_portable": "eb8a8771e9798c5d20597d9074c4a0fa89221dfe6818792883f3e0809016e476",
+      "nf4_none/scoring_000300": "aa862b2613b55df6e7cf458721e2459e3c287f4812febcf00d5ace0b414e8f2e",
+      "nf4_none/training_000300": "99f16e1f946c5b9c38ca2ef5ccc0ed14b6173533ae8bf26ad43bd89f82f117fc"
+    },
+    "whole_workflow_allocator_peak_claimed": false
+  },
   "base": {
     "config_sha256": "5cd452860dc1e9c29dd71cc3cef7f39b338b7a40793f7a260655c2d3568f3661",
     "processor_sha256": "9d674c4ab12ba55505f763912e1fadf3d8660125dcb774c20462743582d8b180",
@@ -17,6 +44,228 @@
       "activation_checkpointing": "full",
       "adapter_inventory_sha256": "a691296efb3dc99743ff97c7b11b5210df6ce3eb30d0d4b083e7ff0b7bbe7290",
       "all504_own_adapter_byte_digests_exact": true,
+      "allocator_memory": {
+        "probe_dcp": {
+          "allocator_evidence_complete": true,
+          "allocator_peak_allocated_bytes": 17931589632,
+          "allocator_peak_reserved_bytes": 17966301184,
+          "phase_marker_counts": {
+            "adapter_loading_complete": 1,
+            "adapter_loading_start": 1
+          },
+          "phases": {
+            "loading": {
+              "allocator_peak_allocated_bytes": 17931589632,
+              "allocator_peak_reserved_bytes": 17966301184,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 26.208232451986987,
+                "mean": 26.208232451986987,
+                "median": 26.208232451986987,
+                "p95": 26.208232451986987,
+                "sum": 26.208232451986987
+              }
+            }
+          },
+          "rank": 0,
+          "records": 2,
+          "scope": "Loading only; no post-forward allocator watermark"
+        },
+        "probe_portable": {
+          "allocator_evidence_complete": true,
+          "allocator_peak_allocated_bytes": 17931589632,
+          "allocator_peak_reserved_bytes": 17966301184,
+          "phase_marker_counts": {
+            "adapter_loading_complete": 1,
+            "adapter_loading_start": 1
+          },
+          "phases": {
+            "loading": {
+              "allocator_peak_allocated_bytes": 17931589632,
+              "allocator_peak_reserved_bytes": 17966301184,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 24.66037520201644,
+                "mean": 24.66037520201644,
+                "median": 24.66037520201644,
+                "p95": 24.66037520201644,
+                "sum": 24.66037520201644
+              }
+            }
+          },
+          "rank": 0,
+          "records": 2,
+          "scope": "Loading only; no post-forward allocator watermark"
+        },
+        "scoring_000300": {
+          "allocator_evidence_complete": true,
+          "allocator_peak_allocated_bytes": 18082661376,
+          "allocator_peak_reserved_bytes": 18306039808,
+          "phase_marker_counts": {
+            "adapter_loading_complete": 1,
+            "adapter_loading_start": 1,
+            "scoring_complete": 1,
+            "scoring_start": 1
+          },
+          "phases": {
+            "loading": {
+              "allocator_peak_allocated_bytes": 17931589632,
+              "allocator_peak_reserved_bytes": 17966301184,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 25.314084450015798,
+                "mean": 25.314084450015798,
+                "median": 25.314084450015798,
+                "p95": 25.314084450015798,
+                "sum": 25.314084450015798
+              }
+            },
+            "scoring": {
+              "allocator_peak_allocated_bytes": 18082661376,
+              "allocator_peak_reserved_bytes": 18306039808,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 223.011255919002,
+                "mean": 223.011255919002,
+                "median": 223.011255919002,
+                "p95": 223.011255919002,
+                "sum": 223.011255919002
+              }
+            },
+            "scoring_setup": {
+              "allocator_peak_allocated_bytes": 17931781120,
+              "allocator_peak_reserved_bytes": 17966301184,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 20.844484519970138,
+                "mean": 20.844484519970138,
+                "median": 20.844484519970138,
+                "p95": 20.844484519970138,
+                "sum": 20.844484519970138
+              }
+            }
+          },
+          "rank": 0,
+          "records": 4,
+          "scope": "From adapter-loading marker through scoring_complete"
+        },
+        "training_000300": {
+          "allocator_evidence_complete": true,
+          "allocator_peak_allocated_bytes": 19450315776,
+          "allocator_peak_reserved_bytes": 19855835136,
+          "phase_marker_counts": {
+            "adapter_loading_complete": 1,
+            "adapter_loading_start": 1,
+            "checkpoint_begin": 6,
+            "checkpoint_complete": 6,
+            "initial_validation": 1,
+            "optimizer_step_{step}": 300,
+            "trainer_ready": 1,
+            "validation_checkpoint_boundary_{step}": 300
+          },
+          "phases": {
+            "checkpoint_write": {
+              "allocator_peak_allocated_bytes": 19080001024,
+              "allocator_peak_reserved_bytes": 19855835136,
+              "interval_seconds": {
+                "count": 6,
+                "maximum": 24.484758510021493,
+                "mean": 22.148092726352235,
+                "median": 22.720883710018825,
+                "p95": 24.196280253279838,
+                "sum": 132.88855635811342
+              }
+            },
+            "first_update": {
+              "allocator_peak_allocated_bytes": 19072376320,
+              "allocator_peak_reserved_bytes": 19277021184,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 14.520179414015729,
+                "mean": 14.520179414015729,
+                "median": 14.520179414015729,
+                "p95": 14.520179414015729,
+                "sum": 14.520179414015729
+              }
+            },
+            "initial_validation": {
+              "allocator_peak_allocated_bytes": 18079789568,
+              "allocator_peak_reserved_bytes": 18199085056,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 41.36920158297289,
+                "mean": 41.36920158297289,
+                "median": 41.36920158297289,
+                "p95": 41.36920158297289,
+                "sum": 41.36920158297289
+              }
+            },
+            "loading": {
+              "allocator_peak_allocated_bytes": 17931589632,
+              "allocator_peak_reserved_bytes": 17966301184,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 23.78485922794789,
+                "mean": 23.78485922794789,
+                "median": 23.78485922794789,
+                "p95": 23.78485922794789,
+                "sum": 23.78485922794789
+              }
+            },
+            "post_checkpoint_boundary": {
+              "allocator_peak_allocated_bytes": 19193807360,
+              "allocator_peak_reserved_bytes": 19855835136,
+              "interval_seconds": {
+                "count": 6,
+                "maximum": 14.113929296960123,
+                "mean": 13.674157378157057,
+                "median": 13.661326096014818,
+                "p95": 14.033301187460893,
+                "sum": 82.04494426894234
+              }
+            },
+            "trainer_setup": {
+              "allocator_peak_allocated_bytes": 17931589632,
+              "allocator_peak_reserved_bytes": 17966301184,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 0.044571833044756204,
+                "mean": 0.044571833044756204,
+                "median": 0.044571833044756204,
+                "p95": 0.044571833044756204,
+                "sum": 0.044571833044756204
+              }
+            },
+            "updates": {
+              "allocator_peak_allocated_bytes": 19450315776,
+              "allocator_peak_reserved_bytes": 19855835136,
+              "interval_seconds": {
+                "count": 299,
+                "maximum": 13.866415114956908,
+                "mean": 5.145789381482617,
+                "median": 4.498479194007814,
+                "p95": 8.679277205478863,
+                "sum": 1538.5910250633024
+              }
+            },
+            "validation_or_boundary_overhead": {
+              "allocator_peak_allocated_bytes": 19124865536,
+              "allocator_peak_reserved_bytes": 19855835136,
+              "interval_seconds": {
+                "count": 300,
+                "maximum": 0.04658399597974494,
+                "mean": 0.02336091073870193,
+                "median": 0.023132709990022704,
+                "p95": 0.028241833491483702,
+                "sum": 7.00827322161058
+              }
+            }
+          },
+          "rank": 0,
+          "records": 616,
+          "scope": "From adapter-loading marker through final validation/checkpoint boundary300"
+        }
+      },
       "applied_updates": 300,
       "endpoint_observation": {
         "correct": 547,
@@ -115,6 +364,228 @@
       "activation_checkpointing": "none",
       "adapter_inventory_sha256": "a691296efb3dc99743ff97c7b11b5210df6ce3eb30d0d4b083e7ff0b7bbe7290",
       "all504_own_adapter_byte_digests_exact": true,
+      "allocator_memory": {
+        "probe_dcp": {
+          "allocator_evidence_complete": true,
+          "allocator_peak_allocated_bytes": 17931589632,
+          "allocator_peak_reserved_bytes": 17966301184,
+          "phase_marker_counts": {
+            "adapter_loading_complete": 1,
+            "adapter_loading_start": 1
+          },
+          "phases": {
+            "loading": {
+              "allocator_peak_allocated_bytes": 17931589632,
+              "allocator_peak_reserved_bytes": 17966301184,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 28.066884561034385,
+                "mean": 28.066884561034385,
+                "median": 28.066884561034385,
+                "p95": 28.066884561034385,
+                "sum": 28.066884561034385
+              }
+            }
+          },
+          "rank": 0,
+          "records": 2,
+          "scope": "Loading only; no post-forward allocator watermark"
+        },
+        "probe_portable": {
+          "allocator_evidence_complete": true,
+          "allocator_peak_allocated_bytes": 17931589632,
+          "allocator_peak_reserved_bytes": 17966301184,
+          "phase_marker_counts": {
+            "adapter_loading_complete": 1,
+            "adapter_loading_start": 1
+          },
+          "phases": {
+            "loading": {
+              "allocator_peak_allocated_bytes": 17931589632,
+              "allocator_peak_reserved_bytes": 17966301184,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 24.715237191994675,
+                "mean": 24.715237191994675,
+                "median": 24.715237191994675,
+                "p95": 24.715237191994675,
+                "sum": 24.715237191994675
+              }
+            }
+          },
+          "rank": 0,
+          "records": 2,
+          "scope": "Loading only; no post-forward allocator watermark"
+        },
+        "scoring_000300": {
+          "allocator_evidence_complete": true,
+          "allocator_peak_allocated_bytes": 18082661376,
+          "allocator_peak_reserved_bytes": 18306039808,
+          "phase_marker_counts": {
+            "adapter_loading_complete": 1,
+            "adapter_loading_start": 1,
+            "scoring_complete": 1,
+            "scoring_start": 1
+          },
+          "phases": {
+            "loading": {
+              "allocator_peak_allocated_bytes": 17931589632,
+              "allocator_peak_reserved_bytes": 17966301184,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 23.94870072498452,
+                "mean": 23.94870072498452,
+                "median": 23.94870072498452,
+                "p95": 23.94870072498452,
+                "sum": 23.94870072498452
+              }
+            },
+            "scoring": {
+              "allocator_peak_allocated_bytes": 18082661376,
+              "allocator_peak_reserved_bytes": 18306039808,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 213.67020254395902,
+                "mean": 213.67020254395902,
+                "median": 213.67020254395902,
+                "p95": 213.67020254395902,
+                "sum": 213.67020254395902
+              }
+            },
+            "scoring_setup": {
+              "allocator_peak_allocated_bytes": 17931781120,
+              "allocator_peak_reserved_bytes": 17966301184,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 20.019670644018333,
+                "mean": 20.019670644018333,
+                "median": 20.019670644018333,
+                "p95": 20.019670644018333,
+                "sum": 20.019670644018333
+              }
+            }
+          },
+          "rank": 0,
+          "records": 4,
+          "scope": "From adapter-loading marker through scoring_complete"
+        },
+        "training_000300": {
+          "allocator_evidence_complete": true,
+          "allocator_peak_allocated_bytes": 23228466176,
+          "allocator_peak_reserved_bytes": 23676846080,
+          "phase_marker_counts": {
+            "adapter_loading_complete": 1,
+            "adapter_loading_start": 1,
+            "checkpoint_begin": 6,
+            "checkpoint_complete": 6,
+            "initial_validation": 1,
+            "optimizer_step_{step}": 300,
+            "trainer_ready": 1,
+            "validation_checkpoint_boundary_{step}": 300
+          },
+          "phases": {
+            "checkpoint_write": {
+              "allocator_peak_allocated_bytes": 19110393344,
+              "allocator_peak_reserved_bytes": 23676846080,
+              "interval_seconds": {
+                "count": 6,
+                "maximum": 24.093845224997494,
+                "mean": 21.275962272688048,
+                "median": 20.460817547515035,
+                "p95": 23.888626515254145,
+                "sum": 127.65577363612829
+              }
+            },
+            "first_update": {
+              "allocator_peak_allocated_bytes": 22199579648,
+              "allocator_peak_reserved_bytes": 22821208064,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 14.000089238979854,
+                "mean": 14.000089238979854,
+                "median": 14.000089238979854,
+                "p95": 14.000089238979854,
+                "sum": 14.000089238979854
+              }
+            },
+            "initial_validation": {
+              "allocator_peak_allocated_bytes": 18079789568,
+              "allocator_peak_reserved_bytes": 18199085056,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 40.18919264001306,
+                "mean": 40.18919264001306,
+                "median": 40.18919264001306,
+                "p95": 40.18919264001306,
+                "sum": 40.18919264001306
+              }
+            },
+            "loading": {
+              "allocator_peak_allocated_bytes": 17931589632,
+              "allocator_peak_reserved_bytes": 17966301184,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 23.55000744201243,
+                "mean": 23.55000744201243,
+                "median": 23.55000744201243,
+                "p95": 23.55000744201243,
+                "sum": 23.55000744201243
+              }
+            },
+            "post_checkpoint_boundary": {
+              "allocator_peak_allocated_bytes": 19223994880,
+              "allocator_peak_reserved_bytes": 23676846080,
+              "interval_seconds": {
+                "count": 6,
+                "maximum": 12.629237860033754,
+                "mean": 12.258023770496948,
+                "median": 12.134894824499497,
+                "p95": 12.58338309226383,
+                "sum": 73.54814262298169
+              }
+            },
+            "trainer_setup": {
+              "allocator_peak_allocated_bytes": 17931589632,
+              "allocator_peak_reserved_bytes": 17966301184,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 0.045159835019148886,
+                "mean": 0.045159835019148886,
+                "median": 0.045159835019148886,
+                "p95": 0.045159835019148886,
+                "sum": 0.045159835019148886
+              }
+            },
+            "updates": {
+              "allocator_peak_allocated_bytes": 23228466176,
+              "allocator_peak_reserved_bytes": 23676846080,
+              "interval_seconds": {
+                "count": 299,
+                "maximum": 13.379249391029589,
+                "mean": 3.6846197079028076,
+                "median": 2.7598204980022274,
+                "p95": 8.340196714404733,
+                "sum": 1101.7012926629395
+              }
+            },
+            "validation_or_boundary_overhead": {
+              "allocator_peak_allocated_bytes": 19128437248,
+              "allocator_peak_reserved_bytes": 23676846080,
+              "interval_seconds": {
+                "count": 300,
+                "maximum": 0.042638738988898695,
+                "mean": 0.020621475433193457,
+                "median": 0.01985863846493885,
+                "p95": 0.026063487489591353,
+                "sum": 6.186442629958037
+              }
+            }
+          },
+          "rank": 0,
+          "records": 616,
+          "scope": "From adapter-loading marker through final validation/checkpoint boundary300"
+        }
+      },
       "applied_updates": 300,
       "endpoint_observation": {
         "correct": 547,
@@ -213,6 +684,228 @@
       "activation_checkpointing": "full",
       "adapter_inventory_sha256": "bb981148231b23c4ff054cba60002f632dc854dd21e3afa1331de6a3620d707e",
       "all504_own_adapter_byte_digests_exact": true,
+      "allocator_memory": {
+        "probe_dcp": {
+          "allocator_evidence_complete": true,
+          "allocator_peak_allocated_bytes": 7765099520,
+          "allocator_peak_reserved_bytes": 7790919680,
+          "phase_marker_counts": {
+            "adapter_loading_complete": 1,
+            "adapter_loading_start": 1
+          },
+          "phases": {
+            "loading": {
+              "allocator_peak_allocated_bytes": 7765099520,
+              "allocator_peak_reserved_bytes": 7790919680,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 18.207718328980263,
+                "mean": 18.207718328980263,
+                "median": 18.207718328980263,
+                "p95": 18.207718328980263,
+                "sum": 18.207718328980263
+              }
+            }
+          },
+          "rank": 0,
+          "records": 2,
+          "scope": "Loading only; no post-forward allocator watermark"
+        },
+        "probe_portable": {
+          "allocator_evidence_complete": true,
+          "allocator_peak_allocated_bytes": 7765099520,
+          "allocator_peak_reserved_bytes": 7790919680,
+          "phase_marker_counts": {
+            "adapter_loading_complete": 1,
+            "adapter_loading_start": 1
+          },
+          "phases": {
+            "loading": {
+              "allocator_peak_allocated_bytes": 7765099520,
+              "allocator_peak_reserved_bytes": 7790919680,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 18.849184632999822,
+                "mean": 18.849184632999822,
+                "median": 18.849184632999822,
+                "p95": 18.849184632999822,
+                "sum": 18.849184632999822
+              }
+            }
+          },
+          "rank": 0,
+          "records": 2,
+          "scope": "Loading only; no post-forward allocator watermark"
+        },
+        "scoring_000300": {
+          "allocator_evidence_complete": true,
+          "allocator_peak_allocated_bytes": 7812234240,
+          "allocator_peak_reserved_bytes": 8109686784,
+          "phase_marker_counts": {
+            "adapter_loading_complete": 1,
+            "adapter_loading_start": 1,
+            "scoring_complete": 1,
+            "scoring_start": 1
+          },
+          "phases": {
+            "loading": {
+              "allocator_peak_allocated_bytes": 7765099520,
+              "allocator_peak_reserved_bytes": 7790919680,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 19.563932919991203,
+                "mean": 19.563932919991203,
+                "median": 19.563932919991203,
+                "p95": 19.563932919991203,
+                "sum": 19.563932919991203
+              }
+            },
+            "scoring": {
+              "allocator_peak_allocated_bytes": 7812234240,
+              "allocator_peak_reserved_bytes": 8109686784,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 242.62399288499728,
+                "mean": 242.62399288499728,
+                "median": 242.62399288499728,
+                "p95": 242.62399288499728,
+                "sum": 242.62399288499728
+              }
+            },
+            "scoring_setup": {
+              "allocator_peak_allocated_bytes": 7663716352,
+              "allocator_peak_reserved_bytes": 7790919680,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 10.375332006020471,
+                "mean": 10.375332006020471,
+                "median": 10.375332006020471,
+                "p95": 10.375332006020471,
+                "sum": 10.375332006020471
+              }
+            }
+          },
+          "rank": 0,
+          "records": 4,
+          "scope": "From adapter-loading marker through scoring_complete"
+        },
+        "training_000300": {
+          "allocator_evidence_complete": true,
+          "allocator_peak_allocated_bytes": 9114888192,
+          "allocator_peak_reserved_bytes": 9525264384,
+          "phase_marker_counts": {
+            "adapter_loading_complete": 1,
+            "adapter_loading_start": 1,
+            "checkpoint_begin": 6,
+            "checkpoint_complete": 6,
+            "initial_validation": 1,
+            "optimizer_step_{step}": 300,
+            "trainer_ready": 1,
+            "validation_checkpoint_boundary_{step}": 300
+          },
+          "phases": {
+            "checkpoint_write": {
+              "allocator_peak_allocated_bytes": 8740239872,
+              "allocator_peak_reserved_bytes": 9525264384,
+              "interval_seconds": {
+                "count": 6,
+                "maximum": 13.434477189963218,
+                "mean": 11.156726251996588,
+                "median": 10.697449459490599,
+                "p95": 13.18571235172567,
+                "sum": 66.94035751197953
+              }
+            },
+            "first_update": {
+              "allocator_peak_allocated_bytes": 8738128384,
+              "allocator_peak_reserved_bytes": 8950644736,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 14.605306859011762,
+                "mean": 14.605306859011762,
+                "median": 14.605306859011762,
+                "p95": 14.605306859011762,
+                "sum": 14.605306859011762
+              }
+            },
+            "initial_validation": {
+              "allocator_peak_allocated_bytes": 7811153408,
+              "allocator_peak_reserved_bytes": 8002732032,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 48.162058532994706,
+                "mean": 48.162058532994706,
+                "median": 48.162058532994706,
+                "p95": 48.162058532994706,
+                "sum": 48.162058532994706
+              }
+            },
+            "loading": {
+              "allocator_peak_allocated_bytes": 7765099520,
+              "allocator_peak_reserved_bytes": 7790919680,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 19.029641133034602,
+                "mean": 19.029641133034602,
+                "median": 19.029641133034602,
+                "p95": 19.029641133034602,
+                "sum": 19.029641133034602
+              }
+            },
+            "post_checkpoint_boundary": {
+              "allocator_peak_allocated_bytes": 8887250432,
+              "allocator_peak_reserved_bytes": 9525264384,
+              "interval_seconds": {
+                "count": 6,
+                "maximum": 17.31635483301943,
+                "mean": 16.82331110733018,
+                "median": 16.642080547986552,
+                "p95": 17.279700409271754,
+                "sum": 100.93986664398108
+              }
+            },
+            "trainer_setup": {
+              "allocator_peak_allocated_bytes": 7663524864,
+              "allocator_peak_reserved_bytes": 7790919680,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 0.05271680495934561,
+                "mean": 0.05271680495934561,
+                "median": 0.05271680495934561,
+                "p95": 0.05271680495934561,
+                "sum": 0.05271680495934561
+              }
+            },
+            "updates": {
+              "allocator_peak_allocated_bytes": 9114888192,
+              "allocator_peak_reserved_bytes": 9525264384,
+              "interval_seconds": {
+                "count": 299,
+                "maximum": 14.072883595945314,
+                "mean": 6.155742784114445,
+                "median": 5.639053575985599,
+                "p95": 9.058782930782757,
+                "sum": 1840.5670924502192
+              }
+            },
+            "validation_or_boundary_overhead": {
+              "allocator_peak_allocated_bytes": 8788585984,
+              "allocator_peak_reserved_bytes": 9525264384,
+              "interval_seconds": {
+                "count": 300,
+                "maximum": 0.04905726597644389,
+                "mean": 0.023855808276178624,
+                "median": 0.02218416699906811,
+                "p95": 0.031906024608179005,
+                "sum": 7.156742482853588
+              }
+            }
+          },
+          "rank": 0,
+          "records": 616,
+          "scope": "From adapter-loading marker through final validation/checkpoint boundary300"
+        }
+      },
       "applied_updates": 300,
       "endpoint_observation": {
         "correct": 546,
@@ -311,6 +1004,228 @@
       "activation_checkpointing": "none",
       "adapter_inventory_sha256": "bb981148231b23c4ff054cba60002f632dc854dd21e3afa1331de6a3620d707e",
       "all504_own_adapter_byte_digests_exact": true,
+      "allocator_memory": {
+        "probe_dcp": {
+          "allocator_evidence_complete": true,
+          "allocator_peak_allocated_bytes": 7765099520,
+          "allocator_peak_reserved_bytes": 7790919680,
+          "phase_marker_counts": {
+            "adapter_loading_complete": 1,
+            "adapter_loading_start": 1
+          },
+          "phases": {
+            "loading": {
+              "allocator_peak_allocated_bytes": 7765099520,
+              "allocator_peak_reserved_bytes": 7790919680,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 17.800831827975344,
+                "mean": 17.800831827975344,
+                "median": 17.800831827975344,
+                "p95": 17.800831827975344,
+                "sum": 17.800831827975344
+              }
+            }
+          },
+          "rank": 0,
+          "records": 2,
+          "scope": "Loading only; no post-forward allocator watermark"
+        },
+        "probe_portable": {
+          "allocator_evidence_complete": true,
+          "allocator_peak_allocated_bytes": 7765099520,
+          "allocator_peak_reserved_bytes": 7790919680,
+          "phase_marker_counts": {
+            "adapter_loading_complete": 1,
+            "adapter_loading_start": 1
+          },
+          "phases": {
+            "loading": {
+              "allocator_peak_allocated_bytes": 7765099520,
+              "allocator_peak_reserved_bytes": 7790919680,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 16.977553578966763,
+                "mean": 16.977553578966763,
+                "median": 16.977553578966763,
+                "p95": 16.977553578966763,
+                "sum": 16.977553578966763
+              }
+            }
+          },
+          "rank": 0,
+          "records": 2,
+          "scope": "Loading only; no post-forward allocator watermark"
+        },
+        "scoring_000300": {
+          "allocator_evidence_complete": true,
+          "allocator_peak_allocated_bytes": 7812234240,
+          "allocator_peak_reserved_bytes": 8109686784,
+          "phase_marker_counts": {
+            "adapter_loading_complete": 1,
+            "adapter_loading_start": 1,
+            "scoring_complete": 1,
+            "scoring_start": 1
+          },
+          "phases": {
+            "loading": {
+              "allocator_peak_allocated_bytes": 7765099520,
+              "allocator_peak_reserved_bytes": 7790919680,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 20.995545103040058,
+                "mean": 20.995545103040058,
+                "median": 20.995545103040058,
+                "p95": 20.995545103040058,
+                "sum": 20.995545103040058
+              }
+            },
+            "scoring": {
+              "allocator_peak_allocated_bytes": 7812234240,
+              "allocator_peak_reserved_bytes": 8109686784,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 232.82468123402214,
+                "mean": 232.82468123402214,
+                "median": 232.82468123402214,
+                "p95": 232.82468123402214,
+                "sum": 232.82468123402214
+              }
+            },
+            "scoring_setup": {
+              "allocator_peak_allocated_bytes": 7663716352,
+              "allocator_peak_reserved_bytes": 7790919680,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 11.79204937495524,
+                "mean": 11.79204937495524,
+                "median": 11.79204937495524,
+                "p95": 11.79204937495524,
+                "sum": 11.79204937495524
+              }
+            }
+          },
+          "rank": 0,
+          "records": 4,
+          "scope": "From adapter-loading marker through scoring_complete"
+        },
+        "training_000300": {
+          "allocator_evidence_complete": true,
+          "allocator_peak_allocated_bytes": 12819431936,
+          "allocator_peak_reserved_bytes": 13123977216,
+          "phase_marker_counts": {
+            "adapter_loading_complete": 1,
+            "adapter_loading_start": 1,
+            "checkpoint_begin": 6,
+            "checkpoint_complete": 6,
+            "initial_validation": 1,
+            "optimizer_step_{step}": 300,
+            "trainer_ready": 1,
+            "validation_checkpoint_boundary_{step}": 300
+          },
+          "phases": {
+            "checkpoint_write": {
+              "allocator_peak_allocated_bytes": 8732826112,
+              "allocator_peak_reserved_bytes": 13123977216,
+              "interval_seconds": {
+                "count": 6,
+                "maximum": 10.72454267903231,
+                "mean": 10.101235316513339,
+                "median": 10.00331629900029,
+                "p95": 10.700171276024776,
+                "sum": 60.607411899080034
+              }
+            },
+            "first_update": {
+              "allocator_peak_allocated_bytes": 11867146240,
+              "allocator_peak_reserved_bytes": 12475957248,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 14.319474463001825,
+                "mean": 14.319474463001825,
+                "median": 14.319474463001825,
+                "p95": 14.319474463001825,
+                "sum": 14.319474463001825
+              }
+            },
+            "initial_validation": {
+              "allocator_peak_allocated_bytes": 7811153408,
+              "allocator_peak_reserved_bytes": 8002732032,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 43.714660614030436,
+                "mean": 43.714660614030436,
+                "median": 43.714660614030436,
+                "p95": 43.714660614030436,
+                "sum": 43.714660614030436
+              }
+            },
+            "loading": {
+              "allocator_peak_allocated_bytes": 7765099520,
+              "allocator_peak_reserved_bytes": 7790919680,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 16.953924010973424,
+                "mean": 16.953924010973424,
+                "median": 16.953924010973424,
+                "p95": 16.953924010973424,
+                "sum": 16.953924010973424
+              }
+            },
+            "post_checkpoint_boundary": {
+              "allocator_peak_allocated_bytes": 8879521792,
+              "allocator_peak_reserved_bytes": 13123977216,
+              "interval_seconds": {
+                "count": 6,
+                "maximum": 16.710819611966144,
+                "mean": 15.980288386655351,
+                "median": 15.868075689999387,
+                "p95": 16.611741505214013,
+                "sum": 95.8817303199321
+              }
+            },
+            "trainer_setup": {
+              "allocator_peak_allocated_bytes": 7663524864,
+              "allocator_peak_reserved_bytes": 7790919680,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 0.05082709598354995,
+                "mean": 0.05082709598354995,
+                "median": 0.05082709598354995,
+                "p95": 0.05082709598354995,
+                "sum": 0.05082709598354995
+              }
+            },
+            "updates": {
+              "allocator_peak_allocated_bytes": 12819431936,
+              "allocator_peak_reserved_bytes": 13123977216,
+              "interval_seconds": {
+                "count": 299,
+                "maximum": 13.799484247982036,
+                "mean": 4.349922793508542,
+                "median": 3.5179000479984097,
+                "p95": 8.555648455396293,
+                "sum": 1300.626915259054
+              }
+            },
+            "validation_or_boundary_overhead": {
+              "allocator_peak_allocated_bytes": 8774397440,
+              "allocator_peak_reserved_bytes": 13123977216,
+              "interval_seconds": {
+                "count": 300,
+                "maximum": 0.04044509801315144,
+                "mean": 0.020725066613134308,
+                "median": 0.019905782013665885,
+                "p95": 0.024523892547586003,
+                "sum": 6.217519983940292
+              }
+            }
+          },
+          "rank": 0,
+          "records": 616,
+          "scope": "From adapter-loading marker through final validation/checkpoint boundary300"
+        }
+      },
       "applied_updates": 300,
       "endpoint_observation": {
         "correct": 546,
