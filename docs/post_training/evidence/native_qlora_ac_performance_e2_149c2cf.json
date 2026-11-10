@@ -1,4 +1,18 @@
 {
+  "accounting_reconciliation": {
+    "additional_allocation_cost": 0,
+    "allocated_cpu_seconds": 46096,
+    "exact_agreement_with_retained_terminal_controller": true,
+    "gpu_allocation_seconds": 2881,
+    "job_id": "38302898",
+    "observed_utc": "2026-11-10T05:58:10.704420+00:00",
+    "original_evidence_and_costs_preserved": true,
+    "prior_pending_fields_describe_initial_settlement": true,
+    "raw_exit_code": "1:0",
+    "raw_query_sha256": "af2836a1b3592dd704835ff150d1e452b6b854fe00c6ffedff9a2cc409094760",
+    "raw_terminal_state": "FAILED",
+    "reconciliation_sha256": "ceb6985127f60c24b54d3555808e154c767f35edaa95aa071530502e2b5eabdd"
+  },
   "attempts": [
     {
       "capture_sha256": "96822b6ac83309e65bd832985a866561f74dec561e6013c046aa56b79574c00a",
