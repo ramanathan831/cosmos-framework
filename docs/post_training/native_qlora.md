@@ -125,11 +125,11 @@ The default comparison recipe is 300 updates, accumulation 8, sequence limit 409
 
 ## Reproduce the selected development recipe
 
-The selected rank-32 study uses the existing native recipe with explicit overrides. Its [completed three-seed results](native_qlora_qualification.md#completed-selected-three-seed-development-comparison) remain experimental: the crossed NLL uncertainty bound fails the unchanged 2% gate. This is the fixed-execution development choice, not a successful same-budget best-fit search or a universal default.
+The current selected WTS variant uses native `149c2cf`, rank 32/alpha 64, disabled activation checkpointing and 3 GiB preprocessing caches in both precision arms. These are explicit workload-specific overrides; generic rank-16 recipe defaults remain unchanged. The historical [three-seed full-checkpointing, 1 GiB study](native_qlora_qualification.md#completed-selected-three-seed-development-comparison) remains separate: its crossed NLL uncertainty bound fails the unchanged 2% gate. Neither study completes a same-budget best-fit search or establishes a universal default.
 
 The [final native build](native_qlora_qualification.md#final-native-build-ordinary-execution), `4cd8988`, passed its real-kernel/artifact gate and both precision arms' native four-update interruption, recovery and fresh multimodal checkpoint/portable reload checks. NF4 uses ordinary `bnb` execution; the BF16 control retains its dense base. Both use full logits, FP32 adapters and fused AdamW, with one preprocessing worker. These checks preserve the failed quality bounds and do not qualify rank-32 long-context training. The subsequent [completed cache comparison](native_qlora_qualification.md#completed-300-update-cache-comparison) selects a scoped **3 GiB WTS cache override for both NF4 and BF16**: same-precision update-300 adapter/optimizer/RNG/data/control comparisons passed, and checked endpoint times fell by 22.03%/24.69% in the respective fixed-order pairs. This is one seed and one pair per precision, without a timing confidence interval or a new quality-gate pass.
 
-Use the sealed build and pinned processor above. Set `SFT_DATA_ROOT` to the source-bound grouped training directory containing the fresh 4,611-row `train.jsonl` and a `validation.jsonl` copy of the 584-row development partition. Preserve the corresponding manifests; do not substitute the earlier raw conversion's split. The [qualification runner](../../tools/native_qlora_qualification/README.md#native-experiments) supplies preflight, measurement, portable publication, fresh reload and complete development scoring around this native launch. The training command alone does not perform that qualification. The command below retains the historical 1 GiB setting for reproduction.
+Use the sealed native `149c2cf` build and the pinned processor above. Set `SFT_DATA_ROOT` to the source-bound grouped training directory containing the fresh 4,611-row `train.jsonl` and a `validation.jsonl` copy of the 584-row development partition. Preserve the corresponding manifests; do not substitute the earlier raw conversion's split. The [qualification runner](../../tools/native_qlora_qualification/README.md#native-experiments) supplies preflight, measurement, portable publication, fresh reload and complete development scoring around this native launch. The training command alone does not perform that qualification. The command below directly selects the current WTS execution settings for new training.
 
 ```bash
 export SFT_DATA_ROOT=/absolute/work/qlora/grouped-training
@@ -140,7 +140,7 @@ torchrun --standalone --nproc-per-node=1 \
     job.name="qlora_rank32_seed${QLORA_SEED}" \
     model.model_config.adapter.rank=32 model.model_config.adapter.alpha=64 \
     model.model_config.adapter.initialization_seed="$QLORA_SEED" \
-    model.model_config.activation_checkpointing=full \
+    model.model_config.activation_checkpointing=none \
     model.model_config.adapter_compute_dtype=float32 \
     model.model_config.quantized_linear_execution=bnb \
     model.model_config.sft_logits_mode=full \
@@ -149,7 +149,7 @@ torchrun --standalone --nproc-per-node=1 \
     rl.max_steps=300 rl.lr_schedule.cycle_steps=300 \
     rl.optimizer.lr=0.0001 rl.optimizer.warmup_steps=30 \
     rl.micro_batch_size=1 rl.grad_accum=8 rl.max_length=4096 \
-    rl.preprocessing_cache_bytes=1073741824 rl.preprocessing_prefetch=true \
+    rl.preprocessing_cache_bytes=3221225472 rl.preprocessing_prefetch=true \
     rl.preprocessing_workers=1 \
     rl.checkpoint_format=dcp rl.save_async=false rl.save_every=50 \
     'rl.checkpoint_components=["model","optimizer","training_state"]' \
@@ -164,20 +164,22 @@ torchrun --standalone --nproc-per-node=1 \
     rl.processor_kwargs.videos_kwargs.size.longest_edge=524288
 ```
 
-Run the BF16 control with `sft_qwen3_vl_8b_lora.py`, a distinct output name and identical overrides. The paired seed policy is 17, 42 and 123; set the environment, training, adapter-initialization and validation seeds together before each launch. The recorded study reused the audited seed-42 pair and ran fresh pairs for 17 and 123. Reproducing these commands creates new evidence and does not turn that historical reuse into a fresh trial. Eight processed temporal slots and a 4,096-token limit are configuration values, not measured frame uniqueness or a training-length distribution.
+Run the BF16 control with `sft_qwen3_vl_8b_lora.py`, a distinct output name and identical overrides. Set the environment, training, adapter-initialization and validation seeds together before each launch. NF4 alone uses the `bnb` quantized execution path; BF16 retains its dense base. Eight processed temporal slots and a 4,096-token limit are configuration values, not measured frame uniqueness or a training-length distribution.
 
-For **new training with the selected native `149c2cf` WTS execution variant**, replace the cache and activation-checkpointing overrides in that command with the following in **both** precision arms, keeping one worker, prefetch and every other model/data/schedule setting unchanged:
+For historical reproduction of the selected three-seed study, use its sealed `55e7f14` build and original source identities with these settings in **both** arms:
 
 ```bash
-rl.preprocessing_cache_bytes=3221225472
-model.model_config.activation_checkpointing=none
+rl.preprocessing_cache_bytes=1073741824
+model.model_config.activation_checkpointing=full
 ```
+
+That historical study reused its audited seed-42 pair and ran fresh seeds 17 and 123. The current native `149c2cf` engineering blocks and scheduled-scoring runs are separate evidence; changing this command does not relabel the historical full/1 GiB results as none/3 GiB results.
 
 Use a new output name. The generic recipe defaults, including full checkpointing, remain unchanged. Exact resume must retain the checkpoint's original cache capacity, preprocessing identity and activation-checkpointing policy: neither a 1 GiB-to-3 GiB cache switch nor a full-to-none policy switch is authorized during resume. The earlier [cache evidence](evidence/native_qlora_cache_capacity_4cd8988.json) retains its own recovery checks, failed first BF16 block, complete retry and CPU payload audit. Cache capacity bounds retained entries, not total worker or host memory.
 
 The [two valid seed-42 engineering blocks](native_qlora_qualification.md#completed-reverse-block-and-execution-choice) measured **21.37%/22.06% lower NF4 complete experiment time** with checkpointing disabled; the matched BF16 control also improved by **18.27%/17.20%**. Selected NF4 retained a **9.828 GiB sampled GPU-memory advantage**, while remaining **4.21%/3.67% slower** than selected BF16. The [selected-policy mature recovery](native_qlora_qualification.md#selected-policy-mature-recovery-on-native-149c2cf) subsequently passed own update-250-to-300 checks for both arms. This promotes only the measured rank-32, 3 GiB-cache WTS execution variant. Two same-seed blocks provide no timing confidence interval, independent-seed result, long-context qualification or time-to-quality improvement. The failed quality bounds and need for new independent evaluation data remain unchanged.
 
-The newer native `149c2cf` package adds committed-boundary pauses for scheduled development scoring. Its [completed four-update accelerator qualification](native_qlora_qualification.md#committed-boundary-pauses-on-native-149c2cf) covers both selected precision arms, interruptions, exact resumed state and fresh portable reload with 3 GiB caches. The [runner example](../../tools/native_qlora_qualification/README.md#scheduled-full-development-scoring) preserves the original training horizon and records the first observed scheduled target crossing, including restarted model/cache costs. This has not yet established 300-update cadence, a time-to-quality improvement or a new quality-gate pass. Keep build identity unchanged during exact resume.
+Native `149c2cf` adds committed-boundary pauses for scheduled development scoring. Its [four-update accelerator qualification](native_qlora_qualification.md#committed-boundary-pauses-on-native-149c2cf) covers both precision arms, interruptions, exact resumed state and fresh portable reload. The [completed two-seed scheduled study](native_qlora_qualification.md#completed-scheduled-development-ttq-on-native-149c2cf) used the [existing runner](../../tools/native_qlora_qualification/README.md#scheduled-full-development-scoring) with the fixed full-development target every 50 updates. At seed 17 both arms first passed at update 150: NF4 took 2,912.486 seconds versus BF16 2,866.243 seconds, **1.61% longer**. At seed 123 both completed 300 updates without a scheduled pass. These exposed-development observations do not establish a time-to-quality advantage, exact equal-compute quality or a new quality-gate pass. Each segment restarts the model/cache; keep build and execution identity unchanged during exact resume.
 
 ## Experimental residual initialization
 
