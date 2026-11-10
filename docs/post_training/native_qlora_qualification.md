@@ -415,6 +415,25 @@ Against each arm's accepted full-checkpointing reference, adapter/optimizer tens
 
 The allocation consumed **3,144 GPU-seconds and 50,304 allocated CPU-seconds**. Nested lifecycle/comparison clocks are not additional cost, and the prior full-checkpointing qualification is not charged again. One of 2,322 resource samples retained incomplete host-memory coverage; sampling gaps and total-host limits remain explicit. This completes the four-update correctness check. **Full checkpointing remains selected** pending sustained workflow and memory measurements; this result does not qualify 300-update or late-checkpoint recovery, task quality, or time-to-quality improvement.
 
+### First 300-update activation-checkpointing screen
+
+The [completed E1 screen](evidence/native_qlora_ac_performance_e1_149c2cf.json) ran native `149c2cf` with the same rank-32/alpha-64 recipe, FP32 adapters and fused AdamW, full logits, microbatch one accumulated eight times, one worker and 3 GiB training/scoring caches in both precisions. All four cases completed 300 updates with cycle 300 and warmup 30 on one A100 80GB and the same eight physical CPUs. The fixed seed-42 order was NF4/full, NF4/none, BF16/none, BF16/full.
+
+| Precision | Checkpointing | Complete experiment seconds | Mean update seconds, 201–300 | Sampled owned-GPU peak GiB |
+| --------- | ------------- | --------------------------: | ---------------------------: | -------------------------: |
+| NF4       | Full          |                   2,840.015 |                        5.535 |                      9.869 |
+| NF4       | None          |                   2,233.167 |                        3.523 |                     13.221 |
+| BF16      | Full          |                   2,622.119 |                        4.402 |                     19.490 |
+| BF16      | None          |                   2,143.039 |                        2.757 |                     23.049 |
+
+Disabling checkpointing reduced complete experiment time by **21.4% for NF4 and 18.3% for BF16** in this block. Those timers include preflight/loading, continuous training, native validation/checkpoints, endpoint scoring, publication and fresh reload; separate cross-policy state checks are included in allocation cost. The memory screen uses the whole case interval, including post-case metadata checks. NF4/none retained a **6.270 GiB sampled margin against the predeclared BF16/full reference**. All 7,623 resource rows had complete recorded host coverage, with a maximum sampling gap of 1.840 seconds; peaks remain sampled lower bounds, without a total-host watermark or smaller-GPU support claim.
+
+Within each precision, full and disabled checkpointing matched all 300 declared numerical updates, seven native validations, all 584 ordered score/input records and all 504 adapter tensor byte inventories. Update-300 model/optimizer values matched at zero tolerance with exact RNG, data and trainer controls, acknowledging only the three execution-policy identity fields and existing publication exclusions. Fresh text/image/video DCP/portable reloads passed. This is not serialized optimizer-byte equality or permission to resume across execution policies. NF4 scored 546/584 with token CE 0.102329; BF16 scored 547/584 with CE 0.106537, identically across policies. The full 584-row development task evaluation occurred only at update 300, so these are not earliest-crossing or complete time-to-quality measurements.
+
+A descriptive bridge to the retained `4cd8988` seed-42 full-checkpointing runs also matched both arms' 504 adapter inventories, 300 numerical updates and clip fractions, seven validations, and all 584 score/selected-row bytes. The evaluator was unchanged while its cache increased from 1 GiB to 3 GiB. That bridge establishes neither cross-build optimizer/RNG payload equality nor cross-build resume or timing equivalence.
+
+The terminal controller record charges **9,962 GPU-seconds and 159,392 allocated CPU-seconds** once; raw scheduler-accounting reconciliation is pending. Historical search and failed-allocation costs remain separate and retained. This single fixed-order block passes the engineering screen for a reverse-order follow-up, with no confidence interval or execution-policy promotion. **Full checkpointing remains selected.** Reverse-block evidence, selected-policy late recovery and scheduled two-seed time-to-quality remain pending. Ordinary WTS runs do not qualify long-context training; the full input-geometry census is still pending. Historical quality bounds, independent-data requirements and release gates are unchanged.
+
 ## Capability and precision boundary
 
 The candidate is dense `Qwen/Qwen3-VL-8B-Instruct`, revision `0c351dd01ed87e9c1b53cbc748cba10e6187ff3b`, using the native posttrain SFT entrypoint on one Linux x86-64 A100 80GB with one torchrun process. An installed quantizer, inference quantization, or an accepted configuration alone does not establish this training capability.
