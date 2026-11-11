@@ -1,9 +1,13 @@
 {
   "completed_campaign_cost": {
-    "allocated_cpu_seconds": 368208,
-    "distinct_allocations": 14,
-    "gpu_allocation_seconds": 23013,
-    "scope": "Completed November 11 qualification, diagnostic, failed first screen, seed17 timing and verification allocations. Includes all failures once. Excludes active learning retry and seed123 timing; nested phase clocks and reused evidence are not additional charges. Acquisition/local preparation remain unmeasured."
+    "additional_post_cleanup_startup_failures_gpu_seconds": 174,
+    "additional_quota_failed_nf4_seed123_gpu_seconds": 6114,
+    "additional_quota_failed_screen_gpu_seconds": 7583,
+    "allocated_cpu_seconds": 590144,
+    "distinct_allocations": 18,
+    "gpu_allocation_seconds": 36884,
+    "previous_fourteen_terminal_gpu_seconds": 23013,
+    "scope": "Completed November 11 qualification, diagnostic, first screen failure, seed-17 timing and verification, quota-failed learning retry, quota-failed NF4 seed-123 attempt and both later startup failures. Includes all 18 failed or completed allocations once; no active allocations remain at this readout. Nested phase clocks and reused evidence are not additional charges. Acquisition, local preparation and cleanup CPU time remain unmeasured, not zero."
   },
   "completed_qualification_and_diagnostic_cost": {
     "allocated_cpu_seconds": 165280,
@@ -45,7 +49,7 @@
       "Both checkpoint comparisons freshly bracket their current source files. Native model/optimizer zero-tolerance values and RNG/data/journal equality do not establish serialized DCP equality or original raw optimizer-shard bytes.",
       "Only revision and wheel metadata differ in the observational cross-build comparison. Production cross-build resume remains refused; the prior 2f7a66d interruption suites were not repeated on dadfc89.",
       "Cache snapshots are cumulative within one evaluator attempt, not additive across evaluations; retained cache bytes are not total host memory, and preprocessing seconds are nested in validation wall time.",
-      "Full-development timing is outside these four-row bridges; the separate seed17 comparison is complete. Second-seed timing, current-build mature recovery and learning selection remain pending."
+      "Full-development timing is outside these four-row bridges; the separate seed17 comparison is complete. Second-seed timing and current-build mature recovery remain incomplete. The learning hypothesis was discarded by its frozen quality guard; its quota-censored allocation was not a complete four-case screen."
     ],
     "native_revision": "dadfc89f64ba2a47f2ffd68c37f84a29d664544d",
     "precision_arms": {
@@ -391,6 +395,276 @@
   },
   "learning_screen": {
     "complete_four_case_screen": false,
+    "negative_quality_diagnostic": {
+      "all_four_score_parities_passed": true,
+      "bf16_descriptive_rule_result": {
+        "candidate_to_control_ce_ratio": 0.8414949700417764,
+        "correct_gain": 5,
+        "policy_locked": false,
+        "would_choose_dropout": 0.05
+      },
+      "captured_members_rehashed": 482,
+      "cases_in_frozen_execution_order": [
+        {
+          "adapter_and_processor_identity_exact": true,
+          "applied_updates": 100,
+          "arm": "nf4",
+          "dropout": 0.0,
+          "fresh_scores_sha256": "6e0f0714f1e3d8947d07a615183b1478a4abc2cacc2c4f99fcdb08710f0c4a76",
+          "fresh_selected_rows_sha256": "ce2ad315e2e0e9a4b408c4503f9c2a97105da0f111fa3d9bfdb84812230713b8",
+          "fresh_selection_sha256": "a8a3e578dbc06ec3a19dbda4b400df6528f1b35764d7c82ff0c9c81b23b0e894",
+          "fresh_summary_sha256": "d54b81cf82df1ec0ba04e3dcb1aad37908e84c981bcf9647098d89087f7bd275",
+          "native_fresh_per_example_and_selection_exact": true,
+          "native_horizon": 300,
+          "native_log_sha256": "f29aa8035af38bfd00f53f08951d48848cad7ca6fc045ee1e573a8b2f2cb0bbd",
+          "native_metrics_sha256": "504e7dc4179ff4f9efa462032716badfe304715badc3c35b74df5db5bedbfab4",
+          "native_schedule_observed": [
+            50,
+            100
+          ],
+          "original_acceptance_present": true,
+          "original_case_finish_present": true,
+          "paused": true,
+          "restricted_choice_accuracy": 0.9041095890410958,
+          "restricted_correct": 528,
+          "rows": 584,
+          "seed": 123,
+          "supervised_tokens": 1168,
+          "token_weighted_ce": 0.14771907522889993
+        },
+        {
+          "adapter_and_processor_identity_exact": true,
+          "applied_updates": 100,
+          "arm": "bf16",
+          "dropout": 0.05,
+          "fresh_scores_sha256": "bbf98757e4aa5c942ee4b16447e67addfa83ad4d1c3bd8080db2ee630a7d61c4",
+          "fresh_selected_rows_sha256": "ce2ad315e2e0e9a4b408c4503f9c2a97105da0f111fa3d9bfdb84812230713b8",
+          "fresh_selection_sha256": "a8a3e578dbc06ec3a19dbda4b400df6528f1b35764d7c82ff0c9c81b23b0e894",
+          "fresh_summary_sha256": "92fdfbe6a92803a2135f0c04893ce14a617e9d655f3c31fd580dfe097cf06044",
+          "native_fresh_per_example_and_selection_exact": true,
+          "native_horizon": 300,
+          "native_log_sha256": "9bee44932bf0fb06efa24502fd535f66dc32ed69aa5dbad16a6f25953faebb3f",
+          "native_metrics_sha256": "a9e5f3ff391460871142e67cb0898cd32e326b397e5eb4e9e5756315013aa9b8",
+          "native_schedule_observed": [
+            50,
+            100
+          ],
+          "original_acceptance_present": true,
+          "original_case_finish_present": true,
+          "paused": true,
+          "restricted_choice_accuracy": 0.9075342465753424,
+          "restricted_correct": 530,
+          "rows": 584,
+          "seed": 123,
+          "supervised_tokens": 1168,
+          "token_weighted_ce": 0.1375932472665102
+        },
+        {
+          "adapter_and_processor_identity_exact": true,
+          "applied_updates": 100,
+          "arm": "bf16",
+          "dropout": 0.0,
+          "fresh_scores_sha256": "8ea1d4881da7c4f72249551693eedf13d7c206750ceb4a6e84976d7c73ee4fac",
+          "fresh_selected_rows_sha256": "ce2ad315e2e0e9a4b408c4503f9c2a97105da0f111fa3d9bfdb84812230713b8",
+          "fresh_selection_sha256": "a8a3e578dbc06ec3a19dbda4b400df6528f1b35764d7c82ff0c9c81b23b0e894",
+          "fresh_summary_sha256": "6d06978cb6a72ea74db38e52b2702543e6ebedc793d041ab5a4e345cea9d748a",
+          "native_fresh_per_example_and_selection_exact": true,
+          "native_horizon": 300,
+          "native_log_sha256": "f1fc261f6d87355418311534776eda38bffe5d04699ced62f3ea59f798cec5e7",
+          "native_metrics_sha256": "438a161e1a344d1ea66832bab1f5260ce41d235014247cbb683f96c547f05caf",
+          "native_schedule_observed": [
+            50,
+            100
+          ],
+          "original_acceptance_present": true,
+          "original_case_finish_present": true,
+          "paused": true,
+          "restricted_choice_accuracy": 0.898972602739726,
+          "restricted_correct": 525,
+          "rows": 584,
+          "seed": 123,
+          "supervised_tokens": 1168,
+          "token_weighted_ce": 0.1635104809475918
+        },
+        {
+          "adapter_and_processor_identity_exact": true,
+          "applied_updates": 100,
+          "arm": "nf4",
+          "dropout": 0.05,
+          "fresh_scores_sha256": "1802fc063f3e9308d4f58d1777c1ff552624d74fb3930f8c25a2a4b38414910d",
+          "fresh_selected_rows_sha256": "ce2ad315e2e0e9a4b408c4503f9c2a97105da0f111fa3d9bfdb84812230713b8",
+          "fresh_selection_sha256": "a8a3e578dbc06ec3a19dbda4b400df6528f1b35764d7c82ff0c9c81b23b0e894",
+          "fresh_summary_sha256": "bdb030bd8a511fb35885da796a8afaaa4d4962c2d4d0bf78fc2cb8053532e881",
+          "native_fresh_per_example_and_selection_exact": true,
+          "native_horizon": 300,
+          "native_log_sha256": "675d6afbecce78fc917171541f319292db9d93dd8bf41bf228cbf7f91d1ad570",
+          "native_metrics_sha256": "a44b1d12f274bf095ba0cf0e184e71dbbe1a9cdb60afdc0a7d309a40d7720ad9",
+          "native_schedule_observed": [
+            50,
+            100
+          ],
+          "original_acceptance_present": false,
+          "original_case_finish_present": false,
+          "paused": true,
+          "restricted_choice_accuracy": 0.9263698630136986,
+          "restricted_correct": 541,
+          "rows": 584,
+          "seed": 123,
+          "supervised_tokens": 1168,
+          "token_weighted_ce": 0.14809163229929004
+        }
+      ],
+      "decision": "Discard this dropout hypothesis because the frozen NF4 CE guard failed despite the accuracy gain. The BF16 conditional rule is descriptive; no candidate policy or follow-up is promoted.",
+      "descriptive_slices": {
+        "bf16": {
+          "recording_groups_with_higher_ce": 9,
+          "recording_groups_with_lower_ce": 3,
+          "right_to_wrong": 1,
+          "wrong_to_right": 6
+        },
+        "nf4": {
+          "recording_excerpts": [
+            {
+              "ce_candidate": 0.30094528183626074,
+              "ce_control": 0.25911654545908436,
+              "ce_difference": 0.04182873637717638,
+              "correct_candidate": 60,
+              "correct_control": 63,
+              "correct_gain": -3,
+              "label": "group_09",
+              "right_to_wrong": 4,
+              "rows": 68,
+              "wrong_to_right": 1
+            },
+            {
+              "ce_candidate": 0.6178565090325291,
+              "ce_control": 0.4527450304260984,
+              "ce_difference": 0.16511147860643066,
+              "correct_candidate": 34,
+              "correct_control": 35,
+              "correct_gain": -1,
+              "label": "group_12",
+              "right_to_wrong": 2,
+              "rows": 51,
+              "wrong_to_right": 1
+            }
+          ],
+          "recording_groups_with_higher_ce": 2,
+          "recording_groups_with_lower_ce": 10,
+          "right_to_wrong": 8,
+          "task_excerpts": [
+            {
+              "ce_candidate": 0.3326390540158307,
+              "ce_control": 0.4345480027022185,
+              "ce_difference": -0.10190894868638778,
+              "correct_candidate": 19,
+              "correct_control": 8,
+              "correct_gain": 11,
+              "label": "traffic_volume",
+              "right_to_wrong": 0,
+              "rows": 27,
+              "wrong_to_right": 11
+            },
+            {
+              "ce_candidate": 0.255653068351631,
+              "ce_control": 0.3384687141873516,
+              "ce_difference": -0.0828156458357206,
+              "correct_candidate": 31,
+              "correct_control": 26,
+              "correct_gain": 5,
+              "label": "scene_brightness",
+              "right_to_wrong": 2,
+              "rows": 39,
+              "wrong_to_right": 7
+            },
+            {
+              "ce_candidate": 0.23160914942855015,
+              "ce_control": 0.12783831635820925,
+              "ce_difference": 0.1037708330703409,
+              "correct_candidate": 35,
+              "correct_control": 35,
+              "correct_gain": 0,
+              "label": "upper_clothing_color",
+              "right_to_wrong": 0,
+              "rows": 38,
+              "wrong_to_right": 0
+            },
+            {
+              "ce_candidate": 0.24690508963478924,
+              "ce_control": 0.18623366564555144,
+              "ce_difference": 0.060671423989237805,
+              "correct_candidate": 35,
+              "correct_control": 35,
+              "correct_gain": 0,
+              "label": "lower_clothing_color",
+              "right_to_wrong": 0,
+              "rows": 38,
+              "wrong_to_right": 0
+            },
+            {
+              "ce_candidate": 0.42915495206283305,
+              "ce_control": 0.39484773721778765,
+              "ce_difference": 0.0343072148450454,
+              "correct_candidate": 34,
+              "correct_control": 34,
+              "correct_gain": 0,
+              "label": "road_inclination",
+              "right_to_wrong": 0,
+              "rows": 38,
+              "wrong_to_right": 0
+            },
+            {
+              "ce_candidate": 1.7464406092961628,
+              "ce_control": 1.4661368529001872,
+              "ce_difference": 0.2803037563959756,
+              "correct_candidate": 0,
+              "correct_control": 0,
+              "correct_gain": 0,
+              "label": "walking_cane",
+              "right_to_wrong": 0,
+              "rows": 3,
+              "wrong_to_right": 0
+            }
+          ],
+          "wrong_to_right": 21
+        },
+        "recording_group_count": 12,
+        "scope": "Descriptive reductions on the same exposed seed-123 development rows. Task excerpts show the two largest NF4 accuracy gains and four largest row-weighted CE increases; recording excerpts include both groups whose NF4 CE increased. No exclusion, reweighting, new decision rule, confidence interval or independent confirmation.",
+        "task_count": 22
+      },
+      "formal_complete_four_case_screen": false,
+      "frozen_nf4_rule": {
+        "candidate_to_control_ce_ratio": 1.0025220647354636,
+        "ce_guard_passed": false,
+        "correct_gain": 13,
+        "correct_guard_passed": true,
+        "joint_quality_guard_passed": false,
+        "maximum_candidate_to_control_ce_ratio": 0.99,
+        "minimum_correct_gain": 1
+      },
+      "interpretation_locked_before_point_results": {
+        "full_protocol_rerun_required_for_positive_promotion": true,
+        "original_allocation_failed_and_operationally_censored": true,
+        "quality_pass_cannot_promote_with_missing_original_case_finish_and_memory_endpoint": true,
+        "valid_quality_failure_suffices_to_discard_hypothesis": true
+      },
+      "memory_gate_evaluated": false,
+      "promotion_accepted": false,
+      "recorded_scientific_command_and_ownership_checks": 70,
+      "scope": "Closed metadata and score replay only. All four native-100/fresh-584 per-example and selection comparisons passed before reducing point results. Captured pause summaries and 100 updates were checked with existing strict helpers using a temporary metadata view; no original receipt was fabricated, tensor payload read or fresh checkpoint-health proof claimed.",
+      "source_inputs_matched": 105,
+      "sources": {
+        "development_manifest_sha256": "05999cc64e0e9207cdfdf936a2521de7403b59a85db6e5c5eec46ad00e01ea28",
+        "development_source_sha256": "3e30b40fd2a80968c943b062804f9286a5c5349fdfa3966c2bf2ce672f492ecf",
+        "diagnostic_result_sha256": "1eb253125583af81c56743cf03abd14bc12b0b2348e3e4c1ce890021a72db358",
+        "diagnostic_source_sha256": "32df91bd6b7c48b187410902985b8d6b34ef6ea48b125689ca632b7792fd8dd7",
+        "learning_plan_sha256": "357364e42f2f7ea6e1e68efdf5de76885f4d3294842bb7251cec5ed8318516f2",
+        "lifecycle_helper_sha256": "04b20dc82edb76161c2b04080081f4c39cf306d7f176942e4014450745979e2d",
+        "quality_helper_sha256": "76b0addb18297478108b1f565646526ddd30100b032735e1c939c231445e9038",
+        "runner_helper_sha256": "a8a16cefdc9fc3790f6829738df553a39670b0fc89b041656bdc48e38bf32307",
+        "target_sha256": "56c958e6e2ebfb5120080a0d15f6b4dcba1f8947f0e819da51e5c1cbb573dd5f"
+      }
+    },
     "preserved_first_attempt": {
       "allocated_cpu_seconds": 29584,
       "capture_sha256": "5533d4a1e808308d71e86774e82ab6f9a466d5b456d1e17da7ee9fd4fae2ac04",
@@ -425,6 +699,27 @@
       "source_inputs_rehashed": 105,
       "state": "FAILED"
     },
+    "preserved_quota_failed_retry": {
+      "all_four_training_inspection_export_probes_reload_and_fresh_scores_exited_zero": true,
+      "allocated_cpu_seconds": 121328,
+      "capture_sha256": "b9e3ad64c50526283095eedf9239781ea7d90a64f184bf5bac0fbdd2eb30b4f3",
+      "captured_files": 482,
+      "cause": "Disk quota exceeded while publishing the next-stage marker after the final NF4 dropout-0.05 fresh score exited zero. The final acceptance stage did not start; the generic completion write also failed.",
+      "complete_final_case_clock_available": false,
+      "exit_code": "1:0",
+      "final_case_acceptance_present": false,
+      "gpu_allocation_seconds": 7583,
+      "matched_complete_case_memory_gate_evaluated": false,
+      "operationally_censored": true,
+      "original_case_acceptances_present": 3,
+      "original_completion_present": false,
+      "original_failed_attempt_and_missing_receipts_preserved": true,
+      "original_final_case_finish_present": false,
+      "plan_sha256": "f2360dbae6e346000368957a5072a58f0319820ed3e8120795a4148a4c8b7fe8",
+      "recorded_zero_exit_outcomes": 71,
+      "source_inputs_rehashed": 105,
+      "state": "FAILED"
+    },
     "private_correction": {
       "admitted_plan_sha256": "f2360dbae6e346000368957a5072a58f0319820ed3e8120795a4148a4c8b7fe8",
       "approved_plan_sha256": "f2360dbae6e346000368957a5072a58f0319820ed3e8120795a4148a4c8b7fe8",
@@ -441,13 +736,14 @@
       "retry_admitted": true,
       "retry_scope": "All four cases must run fresh in one allocation under the unchanged frozen screen; no reuse of the failed allocation as another independent seed.",
       "science_commands_targets_order_and_caps_changed": false,
-      "submission_status": "submitted_running",
+      "submission_status": "terminal_failed_storage_quota",
       "test_scope": "Hash-bound captured pause summary, all 100 update metrics and checkpoint record in a temporary alias-to-real-directory fixture. Old acceptance reproduces the refusal; corrected acceptance passes. Foreign checkpoint, nonpause, wrong start/final step/loss, preemption, missing/extra updates, later checkpoint and shortened horizon still refuse.",
       "test_source_sha256": "305e9b65b9bc04b47da34d29b06ddcf5b40a57f962f40468331396cd01403c1e",
       "unadmitted_source_plan_sha256": "fff43fcc49338d6d44b25b2a55bd210373f8dc72b1b23615943918e439ebf825"
     },
-    "quality_decision_made": false,
-    "status": "corrected_four_case_retry_running_no_selection"
+    "promotion_accepted": false,
+    "quality_decision_made": true,
+    "status": "discarded_frozen_quality_guard_failed"
   },
   "native_revision": "dadfc89f64ba2a47f2ffd68c37f84a29d664544d",
   "paired_runtime": {
@@ -460,10 +756,11 @@
       "test_source_sha256": "38681dad3e68a2de4fd6ffa74db10081ee35680e4701920ccbfaf638be8188cf"
     },
     "seed123": {
-      "bf16": "prepared_not_submitted",
+      "bf16": "terminal_failed_before_training",
       "bf16_plan_sha256": "0212a20f1ac3c5e6cca483d83cfc99f3bd22c5f50dab87bc21d021ed642aeb19",
+      "current_evidence_section": "seed123_timing",
       "native_then_restart_nf4": true,
-      "nf4": "admitted_running",
+      "nf4": "first_attempt_quota_failed_retry_failed_before_training",
       "nf4_plan_sha256": "12a10356ed6204884701d73434c26c74877e1ddfa03aea24b4f4b6920d99d7e8",
       "restart_then_native_bf16": true
     },
@@ -1947,7 +2244,7 @@
       }
     },
     "seed17_readout_sha256": "30e94f7c808ec234b3a6b4d623a15f458418915d25b35757ed2606163647ca2d",
-    "status": "seed17_complete_seed123_pending"
+    "status": "seed17_complete_seed123_incomplete_all_attempts_terminal"
   },
   "prior_build_correctness": {
     "cost": {
@@ -2107,6 +2404,105 @@
   },
   "protocol": "cosmos.native-qlora-native-evaluation.v1",
   "release_qualified": false,
+  "seed123_timing": {
+    "active_allocations": 0,
+    "admissions_after_cleanup": [
+      {
+        "allocated_cpu_seconds": 1376,
+        "allocation_preflight_passed": true,
+        "arm": "bf16",
+        "capture_sha256": "de6f9e7d444474a9a8e402b12d87ea4069dbf9a6045a6f93f227ca858b754ce2",
+        "captured_files": 28,
+        "cause": "Disk quota exceeded creating the first experiment work directory before any training. Admission-time aggregate user-quota headroom did not establish effective write availability.",
+        "completed": false,
+        "completion_sha256": "72564fee744866b045a5f765980310a016ee35685263f354178c8672f37b7ebc",
+        "exit_code": "1:0",
+        "failure_log_sha256": "4469804d678c7965808442da7c7cc070fd6e3c06e68d6019292742fe1395e496",
+        "first_mode": "restart",
+        "gpu_allocation_seconds": 86,
+        "local_transport_receipt_sha256": "27d41bb2ab6e753b2fab15da83ad708adf255d72e8d1cf55a5006d423b8c558f",
+        "new_metrics_or_checkpoints": false,
+        "plan_sha256": "0212a20f1ac3c5e6cca483d83cfc99f3bd22c5f50dab87bc21d021ed642aeb19",
+        "protected_slots_at_check": 1,
+        "remaining_inodes_at_check": 10580,
+        "required_additional_bytes": 34359738368,
+        "required_additional_inodes": 4096,
+        "reservation_created": false,
+        "sampler_exit_code": 0,
+        "scientific_plan_unchanged": true,
+        "seed": 123,
+        "single_numa_guard_passed": true,
+        "source_inputs_rehashed": 93,
+        "state": "FAILED",
+        "status": "terminal_failed_before_training",
+        "training_started": false
+      },
+      {
+        "allocated_cpu_seconds": 1408,
+        "allocation_preflight_passed": true,
+        "arm": "nf4",
+        "capture_sha256": "9a665a63e462486c39c25eb425e49ad4e98b7c9b2640fb72a04683576b627ef6",
+        "captured_files": 28,
+        "cause": "Disk quota exceeded creating the first experiment work directory before any training. Admission-time aggregate user-quota headroom did not establish effective write availability.",
+        "completed": false,
+        "completion_sha256": "321de68a1cad81338b517328acaa83c7698a1bf41a3909a88928b0ef3d3d9104",
+        "exit_code": "1:0",
+        "failure_log_sha256": "398b52e90db78cf364549abe6ab880a00cf61aa0c00cf3e4e3bcc0a9c0938e23",
+        "first_mode": "native",
+        "gpu_allocation_seconds": 88,
+        "local_transport_receipt_sha256": "6d5e503a30c49e29be5c9f86db98f3a58cec27f3a5f2c5fe81d4d2894e133881",
+        "new_metrics_or_checkpoints": false,
+        "plan_sha256": "12a10356ed6204884701d73434c26c74877e1ddfa03aea24b4f4b6920d99d7e8",
+        "protected_slots_at_check": 2,
+        "remaining_inodes_at_check": 10578,
+        "required_additional_bytes": 68719476736,
+        "required_additional_inodes": 8192,
+        "reservation_created": false,
+        "sampler_exit_code": 0,
+        "scientific_plan_unchanged": true,
+        "seed": 123,
+        "single_numa_guard_passed": true,
+        "source_inputs_rehashed": 93,
+        "state": "FAILED",
+        "status": "terminal_failed_before_training",
+        "training_started": false
+      }
+    ],
+    "paired_comparison_accepted": false,
+    "pending_retries": 0,
+    "preserved_nf4_quota_failed_attempt": {
+      "allocated_cpu_seconds": 97824,
+      "allocation_failure_log_sha256": "9f8b92a7466cc45f5ad0f3ff7bf8aa4847689fbd225cd88565b8ed69b80293d4",
+      "capture_sha256": "c7178de12c8a1bd67844fec1b374fff85962ec78e5aa3f9f4e826bb3e328bb20",
+      "captured_files": 176,
+      "cause": "Disk quota exceeded while the restart case created checkpoint 150. Its stage outcome and completion, then the allocation outcome and completion, could not be written. The completed native case is retained separately; the pair is incomplete.",
+      "exit_code": "1:0",
+      "gpu_allocation_seconds": 6114,
+      "native_mode_completion_present": true,
+      "native_mode_completion_sha256": "4e38a96f35a76dcd129009c246df8232cfd72d698bc9d14ad8ddb19bcb4f3296",
+      "native_mode_final_step": 300,
+      "native_mode_zero_exit_stages": [
+        "preflight",
+        "training_wts",
+        "portable_publication",
+        "probe_dcp",
+        "probe_portable",
+        "reload_exact"
+      ],
+      "no_paired_timing_or_quality_claim": true,
+      "original_allocation_completion_present": false,
+      "pair_exactness_comparison_ran": false,
+      "plan_sha256": "12a10356ed6204884701d73434c26c74877e1ddfa03aea24b4f4b6920d99d7e8",
+      "restart_completion_present": false,
+      "restart_failed_checkpoint_publication_step": 150,
+      "restart_last_committed_and_scored_step": 100,
+      "restart_training_failure_log_sha256": "ce7dafbbdf4f71d3100b676a1cc31196173c760392f48c48a4eb30c1d02639f2",
+      "source_inputs_rehashed": 93,
+      "state": "FAILED"
+    },
+    "scope": "All recorded seed-123 attempts are terminal failures. The first NF4 attempt retains a completed native case but an incomplete restart case; both later allocations failed before training. No paired seed-123 acceptance or outcome is inferred, and no failed-attempt work is spliced into a later result.",
+    "status": "incomplete_all_attempts_terminal_storage_diagnosis_pending"
+  },
   "source_annotation_verification": {
     "checked_utc": "2026-11-11T05:05:16.686681+00:00",
     "conversion_manifest_sha256": "50cfe55a8b79e27c169d585397c2c874fcb94c4c67ee37c0c68a30652427e1b1",
@@ -2192,5 +2588,139 @@
     "unique_families": 141,
     "unused_rows_in_current_training_families": 0,
     "verification_code_sha256": "37b42f0203e1e20c8c88ca692b110b3b42fa9bfca3edd6897d2a1704932ba173"
+  },
+  "storage_cleanup_and_admission_headroom": {
+    "cleanup_cpu_cases_passed": 13,
+    "cleanup_helper_sha256": "0ee680291f2a8621503a3fcff7de6e72d35fca24f29b6b6521ab05db72497ec0",
+    "cleanup_junit_sha256": "8553ddc24cf1ab81b4e680bfdc66a819c76039b47bfc75e7150823db76668538",
+    "closed_quota_domain_and_write_probe": {
+      "additional_admissions_performed": false,
+      "aggregate_user_quota": {
+        "hard_limit_reported_kbytes": 268435456000,
+        "inode_hard_limit": 26214400,
+        "inode_soft_limit": 26214400,
+        "soft_limit_reported_kbytes": 268435456000,
+        "used_inodes": 26203898,
+        "used_reported_kbytes": 142669996352
+      },
+      "dataset_deleted": false,
+      "effective_limiting_quota_domain_identified": false,
+      "external_storage_dependency": "An administrator must restore reliable campaign writes or provide an approved artifact destination before the same-plan timing and mature recovery checks can proceed.",
+      "fragmentation_proven": false,
+      "inherited_project_quota": {
+        "all_snapshots_below_reported_byte_and_inode_limits": true,
+        "inode_soft_and_hard_limits": 571473920,
+        "snapshots": [
+          {
+            "path_role": "campaign_root",
+            "used_inodes": 465971022,
+            "used_reported_kbytes": 1381295622576
+          },
+          {
+            "path_role": "failed_bf16_restart_parent",
+            "used_inodes": 465971078,
+            "used_reported_kbytes": 1381295728496
+          },
+          {
+            "path_role": "failed_nf4_native_parent",
+            "used_inodes": 465971129,
+            "used_reported_kbytes": 1381295798380
+          }
+        ],
+        "soft_and_hard_limits_reported_kbytes": 1454920171520
+      },
+      "owning_group_quota": {
+        "interpretation": "No finite limits shown in these group quota snapshots.",
+        "reported_byte_soft_and_hard_limits": 0,
+        "reported_inode_soft_and_hard_limits": 0
+      },
+      "probe_utc": "2026-11-11T11:08:19.585168+00:00",
+      "quota_domain_read_sha256": "29cd79e1654e17564b5c37b2c6fc3311dbde8e058d2966546892706621e449f1",
+      "resource_or_storage_policy_changed": false,
+      "scope": "Read-only quota snapshots and tiny disposable write probes from the login client only. Path roles replace private paths; owning group and inherited project identities are bound in the retained source. These observations do not establish sustained capacity or compute-node write availability.",
+      "sustained_storage_capacity_established": false,
+      "tiny_write_probes": [
+        {
+          "cleanup_complete": true,
+          "errno": 122,
+          "error": "Disk quota exceeded",
+          "mkdir_succeeded": false,
+          "path_role": "campaign_root"
+        },
+        {
+          "cleanup_complete": true,
+          "completed_operations": [
+            "mkdir",
+            "write-fsync",
+            "rename",
+            "readback"
+          ],
+          "path_role": "failed_bf16_restart_parent"
+        },
+        {
+          "cleanup_complete": true,
+          "completed_operations": [
+            "mkdir",
+            "write-fsync",
+            "rename",
+            "readback"
+          ],
+          "path_role": "failed_nf4_native_parent"
+        }
+      ],
+      "write_probe_sha256": "0dfcd42b26fdf4e5830fde306b0dcb4c74a82815f019631c54d8ed94f301bb5c"
+    },
+    "completed": true,
+    "completed_recovery": {
+      "additional_files_removed": 7507,
+      "receipt_sha256": "daeb338ead06c430553b7e0c6ee9aa0072e7a82a6ab7c7529deb07f343da7872"
+    },
+    "current_native_and_prior_qualified_builds_unchanged": [
+      "dadfc89",
+      "2f7a66d"
+    ],
+    "headroom_guard": {
+      "bytes_per_protected_slot": 34359738368,
+      "cpu_cases_passed": 32,
+      "inodes_per_protected_slot": 4096,
+      "junit_sha256": "fb68bb545e6dc78ef7ea5ab5de85763f07da0c1f64dbf19f6001de28a2acebc9",
+      "limit_policy": "Use the stricter nonzero soft/hard byte and inode limits for active plus requested slots.",
+      "observed_insufficient_for_write_availability": {
+        "both_attempts_failed_with_edquot_before_training": true,
+        "limiting_quota_domain_identified": false,
+        "scope": "The numeric aggregate user-quota response still showed headroom, while the actual experiment directory creation failed. This does not establish whether another quota domain or enforcement condition caused the refusal; storage diagnosis remains open.",
+        "terminal_snapshot_sha256": "340d5604723bb1047e7b565120e5dfd9ec87406ae428362ab4ff1acf610d7d3a",
+        "user_inodes_remaining_at_terminal_observation": 10502
+      },
+      "reservation_created": false,
+      "scope": "Admission-time aggregate user-quota headroom check only. It reserves no space and was insufficient to establish actual directory write availability in the subsequent attempts; it is not a storage-resolution guarantee.",
+      "source_sha256": "ca415767c75966fa5b6cb8b46210e41a9a8be8697fb8e558a8b8f002e5c4777d"
+    },
+    "initial_permission_failure": {
+      "partial_files_removed": 1886,
+      "receipt_sha256": "0e7b47f3458db9b4f7aa2eb2c1a697199f3d6353baaf9a92ace2c8f375821607",
+      "state": "FAILED"
+    },
+    "local_cleanup_cpu_time_measured": false,
+    "manifest_sha256": "90e84b9fb5c5f41fb19f290405d025977aaa7ace4a7450c121e022b5c0435257",
+    "original_inode_identity_preserved": false,
+    "recorded_user_quota": {
+      "after_recovery_used_inodes": 26203819,
+      "before_recovery_used_inodes": 26212276,
+      "inode_limit": 26214400,
+      "scope": "Shared user quota at the selected filesystem path, not campaign-only inode usage. Before is the recorded recovery check after the partial retirement; concurrent filesystem changes mean the net quota delta is not a deleted-file count."
+    },
+    "retired_build_revisions": [
+      "105d314",
+      "5fac0d8",
+      "94f1b4b",
+      "ddd4a6d",
+      "f5e40cf"
+    ],
+    "retired_derived_files": 9393,
+    "scientific_source_commands_and_results_changed": false,
+    "scope": "Retired inactive, derived installed package copies from five older builds. Their contents remain restorable from retained wheels and the hash-bound manifest; this is not a claim that restoration was performed or original inode identity preserved.",
+    "storage_write_availability_resolved": false,
+    "wheels_receipts_checkpoints_and_results_retained": true
   }
 }
