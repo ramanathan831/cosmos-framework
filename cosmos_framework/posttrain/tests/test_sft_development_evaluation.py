@@ -375,22 +375,27 @@ def test_readback_and_ancestor_durability_precede_availability(tmp_path, monkeyp
     evaluator, policy, optimizer, _ = _fixture(tmp_path, monkeypatch)
     evaluator.evaluate(policy, optimizer, 2)
     events = []
+    codec = policy.net._cosmos_adapter_checkpoint_codec
+    metadata = codec.metadata(optimizer)
+    validate_metadata = codec.validate_metadata
+
+    def validate_with_live_optimizer(saved, live_optimizer, *, purpose):
+        assert live_optimizer is optimizer
+        events.append(("identity", {"purpose": purpose}))
+        validate_metadata(saved, live_optimizer, purpose=purpose)
+
     monkeypatch.setattr(
         "cosmos_framework.posttrain.checkpoint.adapter.read_adapter_metadata",
-        lambda *a, **kw: events.append(("read", kw)) or {"toy": True},
+        lambda *a, **kw: events.append(("read", kw)) or metadata,
     )
-    monkeypatch.setattr(
-        policy.net._cosmos_adapter_checkpoint_codec,
-        "validate_metadata",
-        lambda *a, **kw: events.append(("identity", kw)),
-    )
+    monkeypatch.setattr(codec, "validate_metadata", validate_with_live_optimizer)
     manager = SimpleNamespace(
         load_component=lambda *a: {
             "validation": {"wts": evaluator.state_dict(), "progress": {"pending_step": None}, "publication": None}
         }
     )
     monkeypatch.setattr(development, "_fsync_directory", lambda path: events.append(("fsync", path)))
-    evaluator.verify_checkpoint("cp", manager, policy)
+    evaluator.verify_checkpoint("cp", manager, policy, optimizer)
     synced = [value for name, value in events if name == "fsync"]
     leaf = evaluator.output / evaluator.artifacts[2]["directory"]
     assert synced == [leaf, leaf.parent, leaf.parent.parent, evaluator.output]
@@ -403,7 +408,34 @@ def test_readback_and_ancestor_durability_precede_availability(tmp_path, monkeyp
         load_component=lambda *a: {"validation": {"wts": evaluator.state_dict(), "progress": {"pending_step": 2}}}
     )
     with pytest.raises(RuntimeError, match="readback"):
-        evaluator.verify_checkpoint("cp", bad, policy)
+        evaluator.verify_checkpoint("cp", bad, policy, optimizer)
+
+
+@pytest.mark.parametrize("defect", ["missing", "membership", "options"])
+def test_checkpoint_readback_requires_exact_live_optimizer_before_availability(tmp_path, monkeypatch, defect):
+    evaluator, policy, optimizer, _ = _fixture(tmp_path, monkeypatch)
+    evaluator.evaluate(policy, optimizer, 2)
+    metadata = policy.net._cosmos_adapter_checkpoint_codec.metadata(optimizer)
+    monkeypatch.setattr(
+        "cosmos_framework.posttrain.checkpoint.adapter.read_adapter_metadata", lambda *a, **kw: metadata
+    )
+    if defect == "missing":
+        optimizer = None
+        message = "requires the live optimizer"
+    elif defect == "membership":
+        optimizer.param_groups[0]["params"].pop()
+        message = "optimizer membership"
+    else:
+        optimizer.param_groups[0]["weight_decay"] += 0.1
+        message = "optimizer identity differs"
+
+    def cannot_load(*args):
+        raise AssertionError("trainer state must not be read before optimizer validation")
+
+    with pytest.raises(ValueError, match=message):
+        evaluator.verify_checkpoint("cp", SimpleNamespace(load_component=cannot_load), policy, optimizer)
+    assert "available_monotonic_seconds" not in evaluator.artifacts[2]
+    assert not (evaluator.output / "wts/target-result.json").exists()
 
 
 def test_evaluation_cache_is_separate_persistent_bounded_and_score_exact(tmp_path, monkeypatch):

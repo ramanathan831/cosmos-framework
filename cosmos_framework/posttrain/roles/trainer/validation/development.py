@@ -423,11 +423,11 @@ class DevelopmentEvaluation:
         _write_json(self.output / "wts" / "target-result.json", result)
         return result
 
-    def verify_checkpoint(self, checkpoint: str, manager: Any, model: Any) -> None:
+    def verify_checkpoint(self, checkpoint: str, manager: Any, model: Any, optimizer: Any) -> None:
         from cosmos_framework.posttrain.checkpoint.adapter import read_adapter_metadata
 
         metadata = read_adapter_metadata(checkpoint, require_resume=True, manager=manager)
-        model.net._cosmos_adapter_checkpoint_codec.validate_metadata(metadata, purpose="resume")
+        model.net._cosmos_adapter_checkpoint_codec.validate_metadata(metadata, optimizer, purpose="resume")
         trainer = manager.load_component(checkpoint, "trainer")
         validation = trainer.get("validation", {}) if isinstance(trainer, dict) else {}
         if (

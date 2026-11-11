@@ -68,8 +68,9 @@ class _ScoringJournal(DevelopmentEvaluation):
         }
         return {"val/wts_correct": correct, "val/wts_rows": 4, "val/wts_token_weighted_ce": ce}
 
-    def verify_checkpoint(self, checkpoint, manager, model):
+    def verify_checkpoint(self, checkpoint, manager, model, optimizer):
         # The fixture is a real dense CPU trainer, not the native adapter codec.
+        assert optimizer is self.optimizer
         assert manager.resolve_resume(checkpoint, str(self.output / "checkpoints")) == checkpoint
         state = manager.load_component(checkpoint, "trainer")["validation"]
         assert state["version"] == 3
@@ -104,6 +105,7 @@ def _development_runtime(source: Path, output: Path, *, pass_at=None, stop_on_ta
         stop_on_target=stop_on_target,
     )
     evaluator = _ScoringJournal(config.rl.validation.wts, output, pass_at=pass_at)
+    evaluator.optimizer = trainer.opt
     trainer.development_evaluator = evaluator
     trainer.validation_state.configured = False
     trainer.configure_validation(

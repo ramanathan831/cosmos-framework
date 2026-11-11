@@ -1260,7 +1260,7 @@ class LLMTrainer(BaseTrainer):
         if not evaluator.history or evaluator.history[-1]["step"] != step:
             return None
         self.finalize_checkpoints()
-        evaluator.verify_checkpoint(checkpoint, self.checkpoint_manager, self.model)
+        evaluator.verify_checkpoint(checkpoint, self.checkpoint_manager, self.model, self.opt)
         return evaluator.publish(step=step, checkpoint=checkpoint, started_at=started_at, resumed=resumed)
 
     def close_development_evaluation(self) -> None:
