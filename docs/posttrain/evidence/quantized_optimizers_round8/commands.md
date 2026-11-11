@@ -80,8 +80,8 @@ The second/final recipe trial is locked in `smoothing_protocol.json` and
 `fused_smoothing_spec.json`. Native override: `rl.label_smoothing=0.01`, with
 original order (`interleave_window=0`), exponent1.0 and LR1e-5. The exact source,
 Slurm argv and environment are in `fused_smoothing_launch.json`. It includes
-pinned CPU/CUDA objective checks, an unchanged-default seed43 regression, all
-three candidate seeds and fresh-process seed17 continuation. The pending initial
+pinned CPU/CUDA objective checks, an unchanged-default seed 43 regression, all
+three candidate seeds and fresh-process seed 17 continuation. The pending initial
 submission was cancelled without allocation to disable pytest_env's CUDA-visibility
 reset; the final pinned test invocation uses `-p no:env`.
 
@@ -109,3 +109,44 @@ components (no model/optimizer tensors); its receipt binds each source/hash.
 exclusion: full trainer value digests match for both replay arms and the first
 recipe's resume pair. Current verification helpers now compare that journal too.
 No full training or dense-state replay was needed for this additional proof.
+
+The completed smoothing study and one dependent reconstruction check use
+`smoothing_failure_spec.json` / `smoothing_failure_launch.json`. The reload pins
+its actual checkpoint and derives the expected native loss from the completed
+training curve. It does not change the authoritative batch-four reduction.
+
+```bash
+.venv/bin/python docs/posttrain/evidence/quantized_optimizers_round8/analyze_interleave_failure.py \
+  --candidate smoothing
+```
+
+The default and smoothing control archives separately reproduce complete trainer
+value digests, including all validation-journal fields. `all_accounting.txt` and
+`terminal_receipt.json` close every admitted submission. No final comparison was
+admitted after either rejected fused screen. Existing historical quality/time
+and memory/throughput plots remain the applicable optimizer-comparison figures;
+these instrumented development runs supply no new product timing points.
+
+To reproduce a completed study **on the configured cluster**, use its exact
+recorded Slurm command/environment and a fresh output directory. This is a manual
+reproduction command, not an automatic resubmission:
+
+```python
+import json, os, subprocess
+from pathlib import Path
+receipt = json.loads(Path("docs/posttrain/evidence/quantized_optimizers_round8/fused_smoothing_launch.json").read_text())
+environment = dict(os.environ, **receipt["environment"])
+environment["RESULTS"] += "-reproduction"  # must be fresh
+assert not Path(environment["RESULTS"]).exists()
+subprocess.run(receipt["argv"], env=environment, check=True)
+```
+
+Source archive/model/data paths and SHA256 identities are in the receipt and
+`source_identity.json`; the actual source is8ff0198. Local shell credentials are
+not part of these artifacts. The prospective `next_matched_batch_diagnostic.json`
+uses the same native launcher, `window=4`, original exponent1.0/LR1e-5/seed43 and
+15 updates. It is **not admitted**. Its single-factor purpose is to preserve every
+original four-example update set while permuting row order, separating numerical
+reduction sensitivity from cross-update redistribution. Expected 250–450 GPU
+allocation-seconds; a prospective 15-minute request includes 120 seconds grace and
+filesystem variance. A new scientific scope is needed before submission.

@@ -1,0 +1,121 @@
+{
+  "cumulative_start_commit": "40885d9",
+  "continuation_start_commit": "26a5fa14b9c0a57daaf6098ded81142b3164242d",
+  "aggregate_caps": null,
+  "remaining_headroom": null,
+  "all_admitted_allocations_terminal": true,
+  "this_continuation": {
+    "gpu_allocation_seconds": 5518,
+    "gpu_allocation_hours": 1.5327777777777778,
+    "cpu_allocation_seconds": 1761,
+    "cpu_allocation_hours": 0.4891666666666667,
+    "reported_local_test_wall_seconds": 67.36,
+    "other_metered_small_checks_seconds": 0.4199466644786298,
+    "local_cuda_test_wall_seconds_included_in_local_tests": 6.27,
+    "submissions": 8,
+    "resource_bearing_allocations": 7
+  },
+  "cumulative_known_charges_from_40885d9": {
+    "gpu_allocation_seconds": 11814,
+    "known_cpu_wall_seconds": 20767.09994666448
+  },
+  "jobs": [
+    {
+      "job": "38354071",
+      "purpose": "replay",
+      "requested_seconds": 2700,
+      "gpu_count": 1,
+      "state": "COMPLETED",
+      "charged_seconds": 1629,
+      "exit_code": "0:0",
+      "allocation_elapsed_seconds": 1627,
+      "cleanup_seconds": 2
+    },
+    {
+      "job": "38354273",
+      "purpose": "verification",
+      "requested_seconds": 2700,
+      "gpu_count": 0,
+      "state": "COMPLETED",
+      "charged_seconds": 1761,
+      "exit_code": "0:0",
+      "allocation_elapsed_seconds": 1754,
+      "cleanup_seconds": 7
+    },
+    {
+      "job": "38357148",
+      "purpose": "fused interleave development and native seed17 continuation",
+      "requested_seconds": 2700,
+      "gpu_count": 1,
+      "state": "COMPLETED",
+      "charged_seconds": 1453,
+      "exit_code": "0:0",
+      "allocation_elapsed_seconds": 1453,
+      "cleanup_seconds": 0
+    },
+    {
+      "job": "38359776",
+      "purpose": "Three native batch-four failure-localization reloads, no new recipe or final examples",
+      "requested_seconds": 1200,
+      "gpu_count": 1,
+      "state": "FAILED",
+      "dependency": "afterok:38357148",
+      "charged_seconds": 63,
+      "exit_code": "1:0",
+      "allocation_elapsed_seconds": 54,
+      "extern_cleanup_seconds": 9,
+      "reason": "New diagnostic spec omitted prepared_verified_rows=751; native preflight rejected the default623 before CUDA/scoring. Conservatively include extern cleanup through last resource-bearing step.",
+      "cleanup_seconds": 9
+    },
+    {
+      "job": "38360129",
+      "purpose": "Corrected three-checkpoint native attribution retry",
+      "requested_seconds": 1200,
+      "gpu_count": 1,
+      "state": "COMPLETED",
+      "charged_seconds": 428,
+      "exit_code": "0:0",
+      "allocation_elapsed_seconds": 426,
+      "extern_cleanup_seconds": 2,
+      "cleanup_seconds": 2
+    },
+    {
+      "job": "38361257",
+      "purpose": "Initial smoothing submission, cancelled while pending to preserve pytest GPU visibility",
+      "requested_seconds": 2700,
+      "gpu_count": 1,
+      "state": "CANCELLED by 41852",
+      "charged_seconds": 0,
+      "exit_code": "0:0",
+      "allocated": false,
+      "allocation_elapsed_seconds": 0,
+      "cleanup_seconds": 0
+    },
+    {
+      "job": "38361299",
+      "purpose": "Second/final recipe: fused smoothing, default regression and exact seed17 continuation",
+      "requested_seconds": 2700,
+      "gpu_count": 1,
+      "state": "COMPLETED",
+      "charged_seconds": 1766,
+      "allocation_elapsed_seconds": 1764,
+      "cleanup_seconds": 2,
+      "exit_code": "0:0",
+      "note": "Conservatively includes resource-bearing step ending2seconds after allocation record."
+    },
+    {
+      "job": "38362820",
+      "purpose": "One native batch-four seed43 reconstruction and semantic/format attribution after rejected smoothing recipe",
+      "requested_seconds": 600,
+      "gpu_count": 1,
+      "state": "COMPLETED",
+      "dependency": "afterok:38361299",
+      "charged_seconds": 179,
+      "exit_code": "0:0",
+      "allocation_elapsed_seconds": 175,
+      "cleanup_seconds": 4
+    }
+  ],
+  "accounting_rule": "Slurm allocation elapsed, conservatively extended through the latest resource-bearing step end when later. Requested rounded wall limits retained separately; pending cancellation costs zero. No aggregate ceilings.",
+  "completeness": "Failures and pending cancellation retained. Local CUDA tests are separate from Slurm allocation time. Pinned test time is already inside allocations. Editing, packaging and analysis wall was not exhaustively metered; known CPU totals are not all workstation wall. Historical charges from40885d9 are retained rather than called the whole project cost. No aggregate spending ceiling or budget-blocked status."
+}

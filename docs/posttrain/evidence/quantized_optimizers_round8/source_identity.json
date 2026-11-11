@@ -286,5 +286,22 @@
       "prepared_verified_rows": 751,
       "case_argument_formatting_verified": true
     }
-  }
+  },
+  "final_local_implementation_parent": "65b492057700ee013c9d5343c754b828e3eb9bfa",
+  "current_changed_native_paths_sha256": {
+    "cosmos_framework/posttrain/algorithm/sft.py": "72f551331da092ddd874e27e044cf3426cfcb29e4f1b90a1ef75ccc858fe89be",
+    "cosmos_framework/posttrain/config/sft.py": "3c7bf99d4b54d287af840a38b28880e868c5e0a0faf4d603c2cb1f5af07ae670",
+    "cosmos_framework/posttrain/entrypoints/sft.py": "67b7ffcc095fae370855526cea1ec3f8884eaf7f2d6820c66eb31fe299bccf1f",
+    "cosmos_framework/posttrain/roles/env/sft.py": "676f95ed373eb8adcab4420c9ed5f7c3c33ccf26f8afd94bad53190467dcd956",
+    "cosmos_framework/posttrain/roles/env/interleaved_cursor.py": "405cfd3dae770e05038eb66337a1b0d1b3620e5d21d52f42e4b559966bd6e022",
+    "tools/quantized_optimizers/task_development.py": "902030a9023a8aa177c70d29e7a6110b37ddce5de0c6149a7d2f5bffd81cbadb",
+    "tools/quantized_optimizers/score_dense.py": "01cf40a22e5a80444f5069455fa62bbc919ac68580361467ab6630b64f1796a2",
+    "tools/quantized_optimizers/verify_published_corpus.py": "9950402c6268128565a8fe409fea610f8b86681738a9c01ba44a173db47a96fe",
+    "tools/quantized_optimizers/parallel_prepare.py": "4a358c0968b61767f7426b56ea64f1e21cb98b3bdecda576fca68768df951f11"
+  },
+  "complete_control_proofs": [
+    "validation_control_parity.json",
+    "validation_smoothing_parity.json"
+  ],
+  "all_jobs_terminal_receipt": "terminal_receipt.json"
 }

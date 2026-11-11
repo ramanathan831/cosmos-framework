@@ -224,7 +224,7 @@ and 47.30 GiB paged. Paired reductions are 13.9% [7.9%, 19.8%] and
 peaks. Available paged device-wide samples are about 3 GiB above the post-update
 process readings. Seed17's device-wide peaks are 57.69 GiB fused, 48.99 GiB nonpaged
 and 50.30 GiB paged; these counters have different sampling/accounting boundaries.
-Only seed17 has all three device-wide traces, so there is no three-seed physical
+Only seed 17 has all three device-wide traces, so there is no three-seed physical
 peak-memory confidence bound. The larger paged process reduction must not be
 interpreted as a complete physical-memory saving. PyTorch allocator peaks are
 55.29, 46.71 and 43.83 GiB, and omit managed moments. Post-update host RSS samples are 2.30–2.55 GiB, not full-lifetime host
@@ -305,7 +305,7 @@ for eight-bit without it: a 1.047 ratio, below the 1.05 gate even before uncerta
 These are capacity canaries, not a three-seed speed or task-quality comparison.
 
 After the validation-gradient cleanup, the native full-model pressure pair trains
-8,767,123,696 FP32 elements on the same A100 node with seed29, microbatch 1 and
+8,767,123,696 FP32 elements on the same A100 node with seed 29, microbatch 1 and
 checkpointing. Nonpaged state allocation OOMs. Paged completes two updates and
 held-out validation, with 117/121 supervised tokens and sequence lengths 893/897.
 All trainable state is initialized: 8,766,353,408 elements have quantized moments,
@@ -508,16 +508,16 @@ Across the three seeds, development accuracy at update 15 matches between
 optimizers (87.5%, 84.375%, 78.125%), with slightly lower eight-bit task NLL in
 each seed. These quality observations do not justify adopting additional
 FP32-state exceptions.
-Both arms show late NLL deterioration for seed29. A separately locked development
+Both arms show late NLL deterioration for seed 29. A separately locked development
 probe shortened the cosine horizon from 40 to 15 while keeping the same 15 updates,
-initial LR, data order and trainables. It helped seed29's NLL but worsened mean
+initial LR, data order and trainables. It helped seed 29's NLL but worsened mean
 task NLL by 4.31%, reduced accuracy in all three seeds and worsened substantive
 NLL in two. The candidate failed its prespecified guards and was rejected without
 new final scoring. Its [raw results and decision](evidence/quantized_optimizers_round3/short_schedule_summary.json)
 and 812 GPU-seconds remain in the evidence and ledger.
 
 The [development confidence audit](evidence/quantized_optimizers_round3/development_confidence.json)
-helps explain the accuracy/NLL trade-off. For seed29, both arms improve accuracy
+helps explain the accuracy/NLL trade-off. For seed 29, both arms improve accuracy
 from 78.125% at update10 to 84.375% at update15 while NLL worsens. On the largest
 shared deteriorating example, the same wrong letter remains selected: its
 four-choice probability rises from about 0.80/0.78 to 0.99956, and gold-answer
@@ -529,7 +529,7 @@ on these development curves, without post-hoc final checkpoint selection.
 
 A [native arithmetic diagnostic](evidence/quantized_optimizers_round3/native_arithmetic_summary.json)
 compared fused AdamW, bitsandbytes FP32-state AdamW and eight-bit AdamW under
-identical full recomputation for seed17 and 15 updates. All three reached 87.5%
+identical full recomputation for seed 17 and 15 updates. All three reached 87.5%
 development accuracy; task NLL was 0.522715, 0.524023 and 0.519571 respectively.
 The FP32-state control uses the supported minimum-size setting above every
 trainable tensor, with zero quantized state elements verified after allocation.
@@ -666,7 +666,7 @@ actual `video_grid_thw=[[4,16,30]]`. Substantive rows supervise 41–132 tokens;
 single-choice rows supervise two. Configured context limits are not substituted for
 those observed lengths.
 
-The original 390-second product endpoint is censored: seed43 eight-bit committed
+The original 390-second product endpoint is censored: seed 43 eight-bit committed
 update15 with its required validation still pending. Its durable journal retains
 the real update metric, scheduler and data position; it is not an eligible
 completed product. The qualification wrapper had treated an advance budget notice
@@ -1118,7 +1118,7 @@ substantive guard. At update 15:
 | 43 | 0.50138 → 0.25479 | 78.125% → 90.625% | **1.208833** |
 
 All evaluation identities, exact five-update exposure windows and update counters
-pass. Fresh-process seed17 continuation from update10 matches all five next input
+pass. Fresh-process seed 17 continuation from update10 matches all five next input
 batches, every resumed update's live parameters/moments, scheduler, RNG and
 counters, and final model/optimizer/data/trainer components. The supplemental complete control comparison also matches its entire validation
 journal, without exclusions. This establishes ordering recovery,
@@ -1136,10 +1136,46 @@ exponent 1.0 and LR 1e-5. Native PyTorch uniform-vocabulary CE changes only the
 backward objective: evaluation and `loss_avg` retain hard-target CE, original
 masks/counts and reductions. The actual regularized objective is reported
 separately. Default zero smoothing preserves old objective identities;
-nonzero settings bind exact resume to their explicit policy. Fused development,
-unchanged-default regression and fresh-process continuation are admitted;
-eight-bit and final comparisons remain conditional on the full screen.
-Defaults remain unchanged.
+nonzero settings bind exact resume to their explicit policy. The native aggregate
+validation report retains its existing hard-CE/count schema.
+
+The [smoothing screen](evidence/quantized_optimizers_round8/fused_smoothing_summary.json)
+**fails all three development guards**: mean task NLL increases **2.4075%**,
+seed 17 loses one correct answer and seed 43 substantive loss regresses:
+
+| Seed | Original → smoothed task NLL | Accuracy | Substantive-NLL ratio, limit ≤1.01 |
+|---|---|---|---:|
+| 17 | 0.52271 → 0.62516 | 87.5% → 84.375% | 0.813654 |
+| 29 | 0.74272 → 0.61890 | 84.375% → 84.375% | 0.902196 |
+| 43 | 0.50138 → 0.56529 | 78.125% → 78.125% | **1.139053** |
+
+Seventeen pinned objective checks pass, including real CUDA gradients and
+variable-length accumulated updates. A focused local native-validation check
+also passes; counts overlap. The disabled-default seed 43 run reproduces its
+original curves and complete final state exactly. Seed17 fresh-process10→15
+continuation reproduces all five next inputs and updates plus complete final
+components. [Supplemental control parity](evidence/quantized_optimizers_round8/validation_smoothing_parity.json)
+includes every validation-journal field without exclusions. The recipe is rejected;
+no eight-bit confirmation or final optimizer comparison is admitted. Defaults
+remain unchanged. The [single native batch-four seed43 reload](evidence/quantized_optimizers_round8/smoothing_failure_summary.json)
+reproduces all 32 task observations and the 1,346-token substantive loss exactly.
+Of its signed loss increase, 62.8% is answer-bearing, 35.9% formatting and 1.3% end-token
+loss. Traffic-volume answers remain the largest worsening component; weather and
+brightness improve. Uniform smoothing adds a formatting cost and leaves semantic
+regressions. This does not establish improved calibration or free-generation quality.
+
+Both authorized recipe interventions are complete and rejected. The exact
+[current status](evidence/quantized_optimizers_round8/qualification_summary.json)
+and [requirement map](evidence/quantized_optimizers_round8/requirements.md) retain
+all historical product gates. All 8 submissions are terminal, including one failed
+allocation and a pending cancellation. Conservative accounting through the latest
+resource-bearing step is 5,518 GPU allocation-seconds and 1,761 CPU allocation-seconds,
+plus 67.36 seconds of reported local tests and separately recorded small checks.
+No aggregate ceilings apply. No eight-bit confirmation or final comparison ran.
+The [next executable diagnostic](evidence/quantized_optimizers_round8/next_intervention.json)
+is not admitted: a within-batch permutation control would preserve each original
+four-row update set and isolate reduction/order sensitivity before selecting any
+further recipe. It requires a new scientific continuation scope.
 
 Shared preparation tooling now offers `--reference-verification bytes` while
 retaining `tensors` as the default. Exact serialized payload identity allows

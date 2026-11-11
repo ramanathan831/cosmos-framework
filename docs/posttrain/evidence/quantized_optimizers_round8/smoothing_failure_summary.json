@@ -1,0 +1,345 @@
+{
+  "complete": true,
+  "exact_task_observations": 32,
+  "scope": "Development only, native batch four. Teacher-forced text loss; no free-generation or optimizer-specific claim. Original seed43 attribution reuses its already verified exact replay.",
+  "comparisons": [
+    {
+      "seed": 43,
+      "original_native_loss": 0.13847131080604413,
+      "candidate_native_loss": 0.15772617007169823,
+      "ratio": 1.139053058381344,
+      "exact_native_tokens": 1346,
+      "question_components": {
+        "What is the volume of the traffic in the scene? / answer-bearing": 0.014544202665014893,
+        "What is weather in the scenario? / answer-bearing": -0.006145864344990078,
+        "What is the brightness level in the scene? / answer-bearing": -0.006046555387644987,
+        "What is the color of pedestrian's lower body clothing? / answer-bearing": 0.00383554344767093,
+        "What is the height of the pedestrian? / answer-bearing": 0.002223728380289129,
+        "What is the color of pedestrian's upper body clothing? / answer-bearing": -0.0015868346966570585,
+        "What pedestrian is wearing on upper body? / answer-bearing": 0.0015296957688319618,
+        "What is the position of the obstacle in the scene? / answer-bearing": 0.0010301819483557214,
+        "Are there street lights in the scene? / format-only": 0.00102459979894845,
+        "What is the age group of the pedestrian? / format-only": 0.001010064710624817,
+        "How many lanes are there? / format-only": 0.0009949605507986916,
+        "Where is the roadside strip in the scene? / answer-bearing": 0.0006638247936655787,
+        "Are there street lights in the scene? / answer-bearing": 0.0006102582098664314,
+        "How many lanes are there? / answer-bearing": 0.0005620235859420403,
+        "What is the height of obstacle in the scene? / answer-bearing": 0.0005295639484013703,
+        "What is the color of pedestrian's lower body clothing? / format-only": 0.00047303536066809913,
+        "What is the brightness level in the scene? / format-only": 0.00041219467993273864,
+        "What is the volume of the traffic in the scene? / format-only": 0.0004105058330066498,
+        "What is the age group of the pedestrian? / answer-bearing": -0.0004047817237327974,
+        "What pedestrian is wearing on lower body? / format-only": 0.00029939263489206855,
+        "What is the type of the road? / answer-bearing": 0.00028501805174060686,
+        "What is the height of the pedestrian? / format-only": 0.0002695973069057279,
+        "What are road surface conditions? / format-only": 0.00026794658012131196,
+        "end token / end token": 0.0002593040938067414,
+        "Where is the sidewalk in the scene? / answer-bearing": 0.00024113787929425402,
+        "What pedestrian is wearing on upper body? / format-only": 0.00023656918127173743,
+        "What is the color of pedestrian's upper body clothing? / format-only": 0.00022673711195954935,
+        "What is the road inclination in the scene? / format-only": 0.00022649476052978394,
+        "What pedestrian is wearing on lower body? / answer-bearing": -0.00022603496983952606,
+        "What is weather in the scenario? / format-only": 0.00021587971067855096,
+        "Where is the roadside strip in the scene? / format-only": 0.00020966527357809618,
+        "What is the type of the road? / format-only": 0.00019293645174560072,
+        "Is pedestrian wearning a hat? / answer-bearing": 0.00013709382706198614,
+        "What is the road inclination in the scene? / answer-bearing": 0.00012812076870249626,
+        "What is the height of obstacle in the scene? / format-only": 0.0001255514963866718,
+        "What is color of pedestrian's hat? / answer-bearing": 7.951383604868738e-05,
+        "What are road surface conditions? / answer-bearing": 7.383628759341507e-05,
+        "What is the position of the obstacle in the scene? / format-only": 6.134905999400848e-05,
+        "Where is the sidewalk in the scene? / format-only": 5.225876616740335e-05,
+        "What is the width of obstacle in the scene? / format-only": 5.036150107231762e-05,
+        "What is color of pedestrian's hat? / format-only": 4.9690667391895465e-05,
+        "Is pedestrian wearning a hat? / format-only": 4.722310204109234e-05,
+        "What is surface type of the road? / format-only": 4.673978832964669e-05,
+        "What is surface type of the road? / answer-bearing": 2.8887448745059578e-05,
+        "What is the width of obstacle in the scene? / answer-bearing": -7.52400700971619e-07
+      },
+      "rows": [
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "native_delta_contribution": 0.0007979921229447237
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+          "native_delta_contribution": 0.000895571960326178
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_0.mp4",
+          "native_delta_contribution": 0.0019742072990238365
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_4.mp4",
+          "native_delta_contribution": 0.0016846090750350345
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+          "native_delta_contribution": 0.00160124451705026
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+          "native_delta_contribution": 0.0018571089175450804
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera1_0.mp4",
+          "native_delta_contribution": 5.014883717425866e-06
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera1_3.mp4",
+          "native_delta_contribution": 8.53789313032041e-05
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera3_1.mp4",
+          "native_delta_contribution": -5.201191813718876e-05
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera4_2.mp4",
+          "native_delta_contribution": -5.5818833515861203e-05
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera1_0.mp4",
+          "native_delta_contribution": 0.004042956874969508
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera2_3.mp4",
+          "native_delta_contribution": 0.0039040096503027283
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+          "native_delta_contribution": 0.0037586407636584127
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera4_2.mp4",
+          "native_delta_contribution": 0.003886528004174305
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera2_0.mp4",
+          "native_delta_contribution": -0.002670001871739178
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera3_1.mp4",
+          "native_delta_contribution": -0.0024605646321476746
+        }
+      ],
+      "largest_token_changes": [
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera2_3.mp4",
+          "question": "What is the volume of the traffic in the scene?",
+          "kind": "answer-bearing",
+          "token": "\u0120Us",
+          "delta": 4.152834802865982,
+          "original_loss": 0.15057000517845154,
+          "candidate_loss": 4.303404808044434
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera1_0.mp4",
+          "question": "What is the volume of the traffic in the scene?",
+          "kind": "answer-bearing",
+          "token": "\u0120Us",
+          "delta": 3.791382610797882,
+          "original_loss": 0.15149444341659546,
+          "candidate_loss": 3.9428770542144775
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera4_2.mp4",
+          "question": "What is the volume of the traffic in the scene?",
+          "kind": "answer-bearing",
+          "token": "\u0120Us",
+          "delta": 3.7202272564172745,
+          "original_loss": 0.0947565883398056,
+          "candidate_loss": 3.81498384475708
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+          "question": "What is the volume of the traffic in the scene?",
+          "kind": "answer-bearing",
+          "token": "\u0120Us",
+          "delta": 3.6758522167801857,
+          "original_loss": 0.07252439111471176,
+          "candidate_loss": 3.7483766078948975
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+          "question": "What is the volume of the traffic in the scene?",
+          "kind": "answer-bearing",
+          "token": "\u0120Us",
+          "delta": 3.615224726498127,
+          "original_loss": 0.08529650419950485,
+          "candidate_loss": 3.700521230697632
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_0.mp4",
+          "question": "What is the volume of the traffic in the scene?",
+          "kind": "answer-bearing",
+          "token": "\u0120Us",
+          "delta": 3.5463436245918274,
+          "original_loss": 0.0942193865776062,
+          "candidate_loss": 3.6405630111694336
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_4.mp4",
+          "question": "What is the volume of the traffic in the scene?",
+          "kind": "answer-bearing",
+          "token": "\u0120Us",
+          "delta": 3.3422395922243595,
+          "original_loss": 0.05837276205420494,
+          "candidate_loss": 3.4006123542785645
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+          "question": "What is the volume of the traffic in the scene?",
+          "kind": "answer-bearing",
+          "token": "\u0120Us",
+          "delta": 3.337813090533018,
+          "original_loss": 0.05806617811322212,
+          "candidate_loss": 3.3958792686462402
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera2_0.mp4",
+          "question": "What is the volume of the traffic in the scene?",
+          "kind": "answer-bearing",
+          "token": "\u0120Light",
+          "delta": -2.980742298066616,
+          "original_loss": 3.0525200366973877,
+          "candidate_loss": 0.07177773863077164
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera3_1.mp4",
+          "question": "What is the volume of the traffic in the scene?",
+          "kind": "answer-bearing",
+          "token": "\u0120Light",
+          "delta": -2.296443358063698,
+          "original_loss": 2.3573179244995117,
+          "candidate_loss": 0.060874566435813904
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+          "question": "What is the volume of the traffic in the scene?",
+          "kind": "answer-bearing",
+          "token": "\u0120Light",
+          "delta": -2.2875194922089577,
+          "original_loss": 2.359616279602051,
+          "candidate_loss": 0.07209678739309311
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "question": "What is the volume of the traffic in the scene?",
+          "kind": "answer-bearing",
+          "token": "\u0120Light",
+          "delta": -2.062520533800125,
+          "original_loss": 2.1354005336761475,
+          "candidate_loss": 0.07287999987602234
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+          "question": "What is the brightness level in the scene?",
+          "kind": "answer-bearing",
+          "token": "\u0120Dim",
+          "delta": -1.9586777687072754,
+          "original_loss": 6.646106243133545,
+          "candidate_loss": 4.6874284744262695
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+          "question": "What is the brightness level in the scene?",
+          "kind": "answer-bearing",
+          "token": "\u0120Dim",
+          "delta": -1.800443172454834,
+          "original_loss": 5.783752918243408,
+          "candidate_loss": 3.983309745788574
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_4.mp4",
+          "question": "What is the brightness level in the scene?",
+          "kind": "answer-bearing",
+          "token": "\u0120Dim",
+          "delta": -1.5364665985107422,
+          "original_loss": 5.067511081695557,
+          "candidate_loss": 3.5310444831848145
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_0.mp4",
+          "question": "What is the brightness level in the scene?",
+          "kind": "answer-bearing",
+          "token": "\u0120Dim",
+          "delta": -1.3773484230041504,
+          "original_loss": 4.235715866088867,
+          "candidate_loss": 2.858367443084717
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+          "question": "What is the position of the obstacle in the scene?",
+          "kind": "answer-bearing",
+          "token": "\u0120victim",
+          "delta": 1.2745094299316406,
+          "original_loss": 1.2545485496520996,
+          "candidate_loss": 2.5290579795837402
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera3_1.mp4",
+          "question": "What is the brightness level in the scene?",
+          "kind": "answer-bearing",
+          "token": "\u0120Dim",
+          "delta": -1.2668776512145996,
+          "original_loss": 4.04783296585083,
+          "candidate_loss": 2.7809553146362305
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "question": "What is the position of the obstacle in the scene?",
+          "kind": "answer-bearing",
+          "token": "\u0120victim",
+          "delta": 1.225827157497406,
+          "original_loss": 0.7838945984840393,
+          "candidate_loss": 2.0097217559814453
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_4.mp4",
+          "question": "What is weather in the scenario?",
+          "kind": "answer-bearing",
+          "token": "\u0120Clear",
+          "delta": -1.0457394123077393,
+          "original_loss": 3.6644222736358643,
+          "candidate_loss": 2.618682861328125
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_0.mp4",
+          "question": "What is weather in the scenario?",
+          "kind": "answer-bearing",
+          "token": "\u0120Clear",
+          "delta": -1.0324463844299316,
+          "original_loss": 3.421743869781494,
+          "candidate_loss": 2.3892974853515625
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera2_0.mp4",
+          "question": "What is weather in the scenario?",
+          "kind": "answer-bearing",
+          "token": "\u0120Clear",
+          "delta": -0.9647800922393799,
+          "original_loss": 1.809427261352539,
+          "candidate_loss": 0.8446471691131592
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+          "question": "What is weather in the scenario?",
+          "kind": "answer-bearing",
+          "token": "\u0120Clear",
+          "delta": -0.9250593185424805,
+          "original_loss": 3.5442392826080322,
+          "candidate_loss": 2.6191799640655518
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+          "question": "What is weather in the scenario?",
+          "kind": "answer-bearing",
+          "token": "\u0120Clear",
+          "delta": -0.9182974100112915,
+          "original_loss": 2.3596739768981934,
+          "candidate_loss": 1.4413765668869019
+        }
+      ]
+    }
+  ]
+}

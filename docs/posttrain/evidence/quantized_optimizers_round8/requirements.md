@@ -10,6 +10,7 @@ gates and uses development examples only for diagnosis and recipe selection.
 | Controlled diagnosis | **Passed:** original and .975 seed43 curves and full final training states reproduce; four fresh-process native batch-four endpoint reloads match. `replay_summary.json` and `replay_raw.json.gz`. |
 | Mechanism | Relative reversal occurs mainly at updates 13–14, chiefly traffic-volume answer tokens, before all-choice 15. Transient competition is a testable hypothesis, not proof of a sole cause. `development_diagnosis.json`. |
 | Shared ordering correction | Opt-in proportional interleaving preserves exact 20-row-window/epoch exposure and within-kind order. Local checks and native seed 17 next-input/every-update/final-state 10→15 recovery pass. Three-seed task NLL improves 19.07%, no accuracy loss, but substantive ratios 0.694146/1.542966/1.208833 reject the recipe against ≤1.01. No eight-bit/final stage. `fused_interleave_summary.json`. |
+| Second shared correction | Training-only smoothing0.01, original order: **rejected**. Mean task NLL increases2.4075%; seed17 accuracy28/32→27/32; substantive ratios0.813654/0.902196/1.139053. Pinned objective checks, exact disabled-default regression and seed17 continuation pass. Complete trainer controls include validation journals. `fused_smoothing_summary.json`, `validation_smoothing_parity.json`. |
 | Shared reference verification | **Passed its measured phase screen:** three counterbalanced full-corpus pairs, exact751 rows/562 targets. Verification ratio 4.0882 [3.9940,4.2654], whole verifier-process 1.7174 [1.5804,1.8340]. Existing corpora, uncontrolled storage caches; not cold preparation. `verification_summary.json`. |
 | Verification correctness | Full hashes, source/processor binding, mutation detection, all independent native target replays and final success sequencing retained. Fresh 15-target slice and affected local/pinned checks pass. Counts overlap. |
 | Useful adaptation | Historical final accuracy 59.375% frozen / 76.82% fused / 76.56% eight-bit. New teacher-forced development attribution does not establish generated-answer quality. |
@@ -27,8 +28,15 @@ per-seed accuracy loss and every native substantive ratio ≤1.01 against origin
 matching controls. Completed native attribution of the rejected ordering trial reproduces 96 task
 observations and all three native substantive aggregates. Multiple semantic
 answers change confidence; formatting/end losses do not explain the regressions.
-The second/final intervention is training-only label smoothing0.01, restoring
+The second/final intervention is training-only label smoothing 0.01, restoring
 original ordering and all original controls. `smoothing_protocol.json` freezes
-its prediction and unchanged guards. The fused stage includes pinned gradient
-checks, unchanged-default final-state/curve regression and exact native10→15
-continuation. Eight-bit/final stages remain conditional, with no third trial.
+its prediction and unchanged guards. The fused stage completed pinned gradient
+checks, unchanged-default final-state/curve regression and exact native 10→15
+continuation. It fails all three development guards. No eight-bit/final stage is
+admitted and no third recipe trial is authorized. One native batch-four seed 43
+reload reproduces 32 task observations and the 1,346-token text aggregate exactly.
+Semantic/formatting/end-token contributions to its signed loss increase are
+62.8%/35.9%/1.3%; the semantic trade-off remains. All 8 submissions are terminal;
+`final_accounting.json` charges5,518 GPU and1,761 CPU allocation-seconds, with
+local checks separate. `next_intervention.json` is a runnable, unadmitted
+within-batch permutation diagnostic; no third outcome recipe is selected.

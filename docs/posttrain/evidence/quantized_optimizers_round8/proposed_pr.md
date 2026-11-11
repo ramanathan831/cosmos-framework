@@ -29,7 +29,7 @@ training/development separation. It is an authorized comparative benchmark,
 not independent replication. No inference-latency or automatic LoRA/QLoRA benefit
 is claimed.
 
-Round-eight exact original/.975 seed43 replay and four fresh-process endpoint
+Round-eight exact original/.975 seed 43 replay and four fresh-process endpoint
 reloads localize the relative substantive-loss reversal primarily to updates 13–14
 and traffic-volume answer tokens. Inputs, masks, 1,346 supervised tokens, final
 parameters, optimizer, RNG, scheduler and cursor all match their respective
@@ -44,10 +44,20 @@ The recipe is rejected; defaults remain unchanged, with no eight-bit/final stage
 Three further native batch-four reloads reproduce96 task observations and all
 substantive losses, identifying shared semantic-confidence shifts across families.
 The second/final trial adds optional training-only uniform-vocabulary label
-smoothing0.01 while restoring original order. Hard-target evaluation and reported
+smoothing 0.01 while restoring original order. Hard-target evaluation and reported
 CE remain unchanged; nonzero regularization enters the exact-resume identity.
-Its fused screen includes unchanged-default regression and native continuation;
-conditional outcomes are pending. This is not a promoted quality recipe.
+Its fused screen fails: mean task NLL increases 2.4075%, seed 17 loses one correct
+answer, and seed 43 substantive loss rises 13.9053%. No eight-bit/final stage follows.
+Seventeen pinned objective checks (including CUDA) pass. The disabled default
+reproduces the stored seed 43 run exactly, and new-objective seed 17 continuation
+matches all five inputs/updates and final state, including the validation journal.
+Both recipe trials remain rejected; no product quality or end-to-end speed gate
+is promoted from these development results.
+A native batch-four seed 43 reload reproduces 32 task observations and all 1,346
+supervised-token losses in aggregate. Its worsening combines semantic-answer
+(62.8%), formatting (35.9%) and end-token (1.3%) contributions. No scoring/masking
+or checkpoint-identity defect explains the failed guards. All admitted work is
+terminal, with failed/cancelled attempts retained in actual accounting.
 
 Shared preparation reference verification can now compare exact serialized
 identities using bounded complete hashing, retaining source/processor checks,
