@@ -53,6 +53,10 @@ class SFTDatasetConfig:
     factory_kwargs: dict[str, Any] = field(default_factory=dict)
     media_root: str = ""
     shuffle: bool = True
+    # Optional binary interleaving within fixed windows of the seeded order.
+    # Prefix matches form one group, other IDs the second. Exposure is unchanged.
+    interleave_id_prefix: str = ""
+    interleave_window: int = 0
     credentials: str = "credentials/<credential>.secret"
 
     def __post_init__(self) -> None:
@@ -62,6 +66,12 @@ class SFTDatasetConfig:
             raise ValueError("SFT factory_kwargs requires factory")
         if not isinstance(self.shuffle, bool):
             raise TypeError("SFT data.shuffle must be bool")
+        if not isinstance(self.interleave_id_prefix, str):
+            raise TypeError("SFT data.interleave_id_prefix must be a string")
+        if type(self.interleave_window) is not int or self.interleave_window < 0:
+            raise ValueError("SFT data.interleave_window must be a nonnegative integer")
+        if bool(self.interleave_id_prefix) != bool(self.interleave_window) or self.interleave_window == 1:
+            raise ValueError("SFT interleaving requires both a nonempty ID prefix and a window >=2")
         self.factory_kwargs = _normalize_factory_kwargs(self.factory_kwargs)
         json.dumps(self.factory_kwargs, allow_nan=False)
 

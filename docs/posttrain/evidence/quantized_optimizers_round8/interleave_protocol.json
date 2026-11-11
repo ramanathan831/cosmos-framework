@@ -1,0 +1,31 @@
+{
+  "locked_before_outcomes": true,
+  "factor": "Deterministic proportional binary interleaving within20consecutive shuffled rows, grouping by ID prefix mcq:.",
+  "seeds": [
+    17,
+    29,
+    43
+  ],
+  "updates": 15,
+  "schedule_horizon": 40,
+  "lr": 1e-05,
+  "ce_exponent": 1.0,
+  "effective_batch": 4,
+  "controls": "Original matching fused/eight-bit controls from round3; never the rejected.975 or.95 variants.",
+  "preserved": [
+    "Exact membership at every5-update boundary and every epoch",
+    "Every substantive and choice target, native tensors, labels, masks and reductions",
+    "Within-kind order from native seeded shuffle",
+    "No duplication/drop including partial final windows or epoch-spanning batches",
+    "Same trainables, clipping, compute/storage precision and recomputation settings per optimizer"
+  ],
+  "prediction": "Reduce transient semantic competition caused by uneven per-update target-kind composition, improving mean task NLL while protecting substantive loss. This is not a proof of a sole causal mechanism.",
+  "falsification": {
+    "mean_task_nll_ratio_max": 0.98,
+    "per_seed_accuracy_loss_max": 0,
+    "each_substantive_nll_ratio_max": 1.01
+  },
+  "execution": "Fused three seeds first. Same candidate to eight-bit only after full fused pass. Seed17 interrupted fresh-process10to15continuation must match next inputs and every resumed update; unchanged optimizer recovery retained. Final study only after both passes.",
+  "second_intervention": "Not selected or admitted; only if first outcome supports a concrete revised mechanism.",
+  "defaults": "Ordering policy off by default; old cursor format preserved. Explicit new cursor identity prevents cross-policy exact resume."
+}

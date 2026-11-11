@@ -6,8 +6,9 @@
       "purpose": "replay",
       "requested_seconds": 2700,
       "gpu_count": 1,
-      "state": "PENDING",
-      "charged_seconds": null
+      "state": "COMPLETED",
+      "charged_seconds": 1627,
+      "exit_code": "0:0"
     },
     {
       "job": "38354273",

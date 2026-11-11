@@ -1,0 +1,4234 @@
+{
+  "complete": true,
+  "scope": "One controlled fused seed43 replay; exact native batch-four teacher-forced text loss, not free generation or optimizer-specific evidence.",
+  "parity": {
+    "complete": true,
+    "arms": {
+      "original": {
+        "state_match": {
+          "model": true,
+          "optim": true,
+          "data": true,
+          "trainer": true
+        },
+        "task_observations": 128,
+        "reload_steps": [
+          10,
+          15
+        ],
+        "excluded_trainer_key": "validation: publication/timing bookkeeping only",
+        "provenance": {
+          "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/final-seed43/matched_adamw/native/cosmos3_reasoner/optimizer_task/matched_adamw/20261104150948/checkpoints/iter_000015": {
+            "version": 1,
+            "source": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/final-seed43/matched_adamw/native/cosmos3_reasoner/optimizer_task/matched_adamw/20261104150948/checkpoints/iter_000015",
+            "signature": "2024a256376bd7ff3ada1d6603c1bbae0f1d741a34ceb6ab6f4361509074895f"
+          },
+          "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/replay/original/native/cosmos3_reasoner/optimizer_task/seed43_replay_original/20261110180210/checkpoints/iter_000015": {
+            "version": 1,
+            "source": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/replay/original/native/cosmos3_reasoner/optimizer_task/seed43_replay_original/20261110180210/checkpoints/iter_000015",
+            "signature": "48c7db2c6bae5fdf095c8390bdfc204d0a2c019fbfeeb9064e34feb3c5401422"
+          }
+        }
+      },
+      "weight975": {
+        "state_match": {
+          "model": true,
+          "optim": true,
+          "data": true,
+          "trainer": true
+        },
+        "task_observations": 128,
+        "reload_steps": [
+          10,
+          15
+        ],
+        "excluded_trainer_key": "validation: publication/timing bookkeeping only",
+        "provenance": {
+          "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r6-20261109T1843/weight975-fused/fused_weight975_seed43/native/cosmos3_reasoner/optimizer_task/fused_weight975_seed43/20261109110600/checkpoints/iter_000015": {
+            "version": 1,
+            "source": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r6-20261109T1843/weight975-fused/fused_weight975_seed43/native/cosmos3_reasoner/optimizer_task/fused_weight975_seed43/20261109110600/checkpoints/iter_000015",
+            "signature": "dd36b8ec59e5994ac1b02f319c72083dc1b54c536ab528523951116e768aedc9"
+          },
+          "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/replay/weight975/native/cosmos3_reasoner/optimizer_task/seed43_replay_weight975/20261110180748/checkpoints/iter_000015": {
+            "version": 1,
+            "source": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/replay/weight975/native/cosmos3_reasoner/optimizer_task/seed43_replay_weight975/20261110180748/checkpoints/iter_000015",
+            "signature": "0442b659cf33b06b4275d4e4c60cd0ed1ec3f0f7030214e439415c0411871a6f"
+          }
+        }
+      }
+    }
+  },
+  "updates": [
+    {
+      "step": 10,
+      "original_native_nll": 0.2096853002927987,
+      "candidate_native_nll": 0.2050314215281743,
+      "ratio": 0.9778054124055151,
+      "delta": -0.004653878764624392,
+      "training_text_rows": 2,
+      "rows": [
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "native_mean_delta_contribution": -0.0005124562148161851,
+          "original_nll": 0.3163361474806293,
+          "candidate_nll": 0.3109049186212389
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+          "native_mean_delta_contribution": -0.0003764293618424573,
+          "original_nll": 0.3126432686183312,
+          "candidate_nll": 0.3086537101849458
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_0.mp4",
+          "native_mean_delta_contribution": -0.0002626110964982574,
+          "original_nll": 0.21458668927646496,
+          "candidate_nll": 0.2105699331868439
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_4.mp4",
+          "native_mean_delta_contribution": -0.0003699177823463027,
+          "original_nll": 0.22986473064048668,
+          "candidate_nll": 0.22420667001505346
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+          "native_mean_delta_contribution": -3.5225190095705855e-05,
+          "original_nll": 0.22699651167197937,
+          "candidate_nll": 0.2264577263780155
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+          "native_mean_delta_contribution": -0.0001587440642030651,
+          "original_nll": 0.23072629501933203,
+          "candidate_nll": 0.22829823240095334
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera1_0.mp4",
+          "native_mean_delta_contribution": -4.587975676495542e-05,
+          "original_nll": 0.022692115908040163,
+          "candidate_nll": 0.02131980140569283
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera1_3.mp4",
+          "native_mean_delta_contribution": -4.1264383602811635e-05,
+          "original_nll": 0.025656215552223215,
+          "candidate_nll": 0.024421951989348007
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera3_1.mp4",
+          "native_mean_delta_contribution": -6.867990978874294e-06,
+          "original_nll": 0.022445517765185406,
+          "candidate_nll": 0.022240088523906187
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera4_2.mp4",
+          "native_mean_delta_contribution": -1.816541083917924e-05,
+          "original_nll": 0.023084006443793707,
+          "candidate_nll": 0.022540658821804036
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera1_0.mp4",
+          "native_mean_delta_contribution": -0.0006642502245330363,
+          "original_nll": 0.29611787020209385,
+          "candidate_nll": 0.2866063723061208
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera2_3.mp4",
+          "native_mean_delta_contribution": -0.0006173962511539798,
+          "original_nll": 0.31101234925290466,
+          "candidate_nll": 0.30217176037999766
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+          "native_mean_delta_contribution": -0.0008558473552405207,
+          "original_nll": 0.3015303348693224,
+          "candidate_nll": 0.289275329123006
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera4_2.mp4",
+          "native_mean_delta_contribution": -0.0008222561566186391,
+          "original_nll": 0.3120243327440333,
+          "candidate_nll": 0.30025032437372806
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera2_0.mp4",
+          "native_mean_delta_contribution": -8.293687254742627e-05,
+          "original_nll": 0.016076055318411088,
+          "candidate_nll": 0.014862652813532438
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera3_1.mp4",
+          "native_mean_delta_contribution": 0.00021637031802169095,
+          "original_nll": 0.027356708179613932,
+          "candidate_nll": 0.030522300006322584
+        }
+      ],
+      "largest_token_relative_changes": [
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 0,
+          "token_id": 16,
+          "token_text": "1",
+          "question": "Are there street lights in the scene?",
+          "component": "format-only",
+          "delta": -0.008182916790246964,
+          "increment_since_previous": null,
+          "original_loss": 0.04159882292151451,
+          "candidate_loss": 0.03341590613126755
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 1,
+          "token_id": 13,
+          "token_text": ".",
+          "question": "Are there street lights in the scene?",
+          "component": "format-only",
+          "delta": -7.269263733178377e-06,
+          "increment_since_previous": null,
+          "original_loss": 0.00034707720624282956,
+          "candidate_loss": 0.0003398079425096512
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 2,
+          "token_id": 7414,
+          "token_text": "\u0120Yes",
+          "question": "Are there street lights in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.0011316929012537003,
+          "increment_since_previous": null,
+          "original_loss": 0.012156562879681587,
+          "candidate_loss": 0.011024869978427887
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 3,
+          "token_id": 198,
+          "token_text": "\u010a",
+          "question": "Are there street lights in the scene?",
+          "component": "format-only",
+          "delta": -8.276151493191719e-05,
+          "increment_since_previous": null,
+          "original_loss": 0.002552824327722192,
+          "candidate_loss": 0.0024700628127902746
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 4,
+          "token_id": 17,
+          "token_text": "2",
+          "question": "How many lanes are there?",
+          "component": "format-only",
+          "delta": 0.0001051617437042296,
+          "increment_since_previous": null,
+          "original_loss": 0.0008989107445813715,
+          "candidate_loss": 0.0010040724882856011
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 5,
+          "token_id": 13,
+          "token_text": ".",
+          "question": "How many lanes are there?",
+          "component": "format-only",
+          "delta": 2.3841676011215895e-07,
+          "increment_since_previous": null,
+          "original_loss": 8.702239938429557e-06,
+          "candidate_loss": 8.940656698541716e-06
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 6,
+          "token_id": 9043,
+          "token_text": "\u0120Two",
+          "question": "How many lanes are there?",
+          "component": "answer-bearing",
+          "delta": -0.0026294244453310966,
+          "increment_since_previous": null,
+          "original_loss": 0.014500945806503296,
+          "candidate_loss": 0.0118715213611722
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 7,
+          "token_id": 26798,
+          "token_text": "-way",
+          "question": "How many lanes are there?",
+          "component": "answer-bearing",
+          "delta": -0.001577253919094801,
+          "increment_since_previous": null,
+          "original_loss": 0.007420240435749292,
+          "candidate_loss": 0.005842986516654491
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 8,
+          "token_id": 9442,
+          "token_text": "\u0120traffic",
+          "question": "How many lanes are there?",
+          "component": "answer-bearing",
+          "delta": -8.734973380342126e-05,
+          "increment_since_previous": null,
+          "original_loss": 0.0003946240758523345,
+          "candidate_loss": 0.00030727434204891324
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 9,
+          "token_id": 198,
+          "token_text": "\u010a",
+          "question": "How many lanes are there?",
+          "component": "format-only",
+          "delta": -8.76913545653224e-05,
+          "increment_since_previous": null,
+          "original_loss": 0.0005760917556472123,
+          "candidate_loss": 0.0004884004010818899
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 10,
+          "token_id": 18,
+          "token_text": "3",
+          "question": "Is pedestrian wearning a hat?",
+          "component": "format-only",
+          "delta": -4.242348950356245e-05,
+          "increment_since_previous": null,
+          "original_loss": 0.00037508129025809467,
+          "candidate_loss": 0.0003326578007545322
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 11,
+          "token_id": 13,
+          "token_text": ".",
+          "question": "Is pedestrian wearning a hat?",
+          "component": "format-only",
+          "delta": -1.1920917586394353e-07,
+          "increment_since_previous": null,
+          "original_loss": 1.0728830375228426e-06,
+          "candidate_loss": 9.536738616588991e-07
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 12,
+          "token_id": 7414,
+          "token_text": "\u0120Yes",
+          "question": "Is pedestrian wearning a hat?",
+          "component": "answer-bearing",
+          "delta": -0.0368211567401886,
+          "increment_since_previous": null,
+          "original_loss": 0.3305925130844116,
+          "candidate_loss": 0.293771356344223
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 13,
+          "token_id": 198,
+          "token_text": "\u010a",
+          "question": "Is pedestrian wearning a hat?",
+          "component": "format-only",
+          "delta": -0.00029908953001722693,
+          "increment_since_previous": null,
+          "original_loss": 0.0009683449170552194,
+          "candidate_loss": 0.0006692553870379925
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 14,
+          "token_id": 19,
+          "token_text": "4",
+          "question": "What are road surface conditions?",
+          "component": "format-only",
+          "delta": -5.958718247711658e-07,
+          "increment_since_previous": null,
+          "original_loss": 0.00027450130437500775,
+          "candidate_loss": 0.0002739054325502366
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 15,
+          "token_id": 13,
+          "token_text": ".",
+          "question": "What are road surface conditions?",
+          "component": "format-only",
+          "delta": -3.57626959157642e-07,
+          "increment_since_previous": null,
+          "original_loss": 2.622600959512056e-06,
+          "candidate_loss": 2.264974000354414e-06
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 16,
+          "token_id": 30841,
+          "token_text": "\u0120Dry",
+          "question": "What are road surface conditions?",
+          "component": "answer-bearing",
+          "delta": -6.292593025136739e-05,
+          "increment_since_previous": null,
+          "original_loss": 0.00029488030122593045,
+          "candidate_loss": 0.00023195437097456306
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 17,
+          "token_id": 198,
+          "token_text": "\u010a",
+          "question": "What are road surface conditions?",
+          "component": "format-only",
+          "delta": -5.053680797573179e-05,
+          "increment_since_previous": null,
+          "original_loss": 0.0001821352052502334,
+          "candidate_loss": 0.00013159839727450162
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 18,
+          "token_id": 20,
+          "token_text": "5",
+          "question": "What is color of pedestrian's hat?",
+          "component": "format-only",
+          "delta": 1.5496998457820155e-06,
+          "increment_since_previous": null,
+          "original_loss": 1.3112935448589269e-05,
+          "candidate_loss": 1.4662635294371285e-05
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 19,
+          "token_id": 13,
+          "token_text": ".",
+          "question": "What is color of pedestrian's hat?",
+          "component": "format-only",
+          "delta": -1.1920906217710581e-07,
+          "increment_since_previous": null,
+          "original_loss": 1.9073468138230965e-06,
+          "candidate_loss": 1.7881377516459906e-06
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 20,
+          "token_id": 5807,
+          "token_text": "\u0120White",
+          "question": "What is color of pedestrian's hat?",
+          "component": "answer-bearing",
+          "delta": -0.001392364501953125,
+          "increment_since_previous": null,
+          "original_loss": 6.410644054412842,
+          "candidate_loss": 6.409251689910889
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 21,
+          "token_id": 198,
+          "token_text": "\u010a",
+          "question": "What is color of pedestrian's hat?",
+          "component": "format-only",
+          "delta": 4.7152163460850716e-05,
+          "increment_since_previous": null,
+          "original_loss": 0.0011363723315298557,
+          "candidate_loss": 0.0011835244949907064
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 22,
+          "token_id": 21,
+          "token_text": "6",
+          "question": "What is surface type of the road?",
+          "component": "format-only",
+          "delta": 0.0,
+          "increment_since_previous": null,
+          "original_loss": 1.2755313036905136e-05,
+          "candidate_loss": 1.2755313036905136e-05
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 23,
+          "token_id": 13,
+          "token_text": ".",
+          "question": "What is surface type of the road?",
+          "component": "format-only",
+          "delta": -2.3841835172788706e-07,
+          "increment_since_previous": null,
+          "original_loss": 1.0728830375228426e-06,
+          "candidate_loss": 8.344646857949556e-07
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 24,
+          "token_id": 89314,
+          "token_text": "\u0120Asphalt",
+          "question": "What is surface type of the road?",
+          "component": "answer-bearing",
+          "delta": -1.311193045694381e-06,
+          "increment_since_previous": null,
+          "original_loss": 8.49926145747304e-05,
+          "candidate_loss": 8.368142152903602e-05
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 25,
+          "token_id": 198,
+          "token_text": "\u010a",
+          "question": "What is surface type of the road?",
+          "component": "format-only",
+          "delta": -5.361755029298365e-05,
+          "increment_since_previous": null,
+          "original_loss": 0.0005235493299551308,
+          "candidate_loss": 0.00046993177966214716
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 26,
+          "token_id": 22,
+          "token_text": "7",
+          "question": "What is the age group of the pedestrian?",
+          "component": "format-only",
+          "delta": -8.344613888766617e-07,
+          "increment_since_previous": null,
+          "original_loss": 4.6491513785440475e-06,
+          "candidate_loss": 3.814689989667386e-06
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 27,
+          "token_id": 13,
+          "token_text": ".",
+          "question": "What is the age group of the pedestrian?",
+          "component": "format-only",
+          "delta": -2.3841835172788706e-07,
+          "increment_since_previous": null,
+          "original_loss": 1.0728830375228426e-06,
+          "candidate_loss": 8.344646857949556e-07
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 28,
+          "token_id": 220,
+          "token_text": "\u0120",
+          "question": "What is the age group of the pedestrian?",
+          "component": "format-only",
+          "delta": -0.00020131608471274376,
+          "increment_since_previous": null,
+          "original_loss": 0.0014254419365897775,
+          "candidate_loss": 0.0012241258518770337
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 29,
+          "token_id": 18,
+          "token_text": "3",
+          "question": "What is the age group of the pedestrian?",
+          "component": "answer-bearing",
+          "delta": -0.008079826831817627,
+          "increment_since_previous": null,
+          "original_loss": 0.37320616841316223,
+          "candidate_loss": 0.3651263415813446
+        }
+      ],
+      "question_component_contributions": {
+        "Are there street lights in the scene? / answer-bearing": {
+          "tokens": 8,
+          "delta": -1.8897626194743132e-05,
+          "increment": 0.0
+        },
+        "Are there street lights in the scene? / format-only": {
+          "tokens": 24,
+          "delta": -4.26061585926787e-05,
+          "increment": 0.0
+        },
+        "How many lanes are there? / answer-bearing": {
+          "tokens": 36,
+          "delta": -3.3938561561503576e-05,
+          "increment": 0.0
+        },
+        "How many lanes are there? / format-only": {
+          "tokens": 36,
+          "delta": -4.210598600456754e-06,
+          "increment": 0.0
+        },
+        "Is pedestrian wearning a hat? / answer-bearing": {
+          "tokens": 2,
+          "delta": -5.255535488497095e-05,
+          "increment": 0.0
+        },
+        "Is pedestrian wearning a hat? / format-only": {
+          "tokens": 6,
+          "delta": -4.6894137091217095e-07,
+          "increment": 0.0
+        },
+        "What are road surface conditions? / answer-bearing": {
+          "tokens": 12,
+          "delta": -3.6348991742444794e-07,
+          "increment": 0.0
+        },
+        "What are road surface conditions? / format-only": {
+          "tokens": 36,
+          "delta": -5.365766016984978e-07,
+          "increment": 0.0
+        },
+        "What is color of pedestrian's hat? / answer-bearing": {
+          "tokens": 2,
+          "delta": 9.490724481409761e-05,
+          "increment": 0.0
+        },
+        "What is color of pedestrian's hat? / format-only": {
+          "tokens": 6,
+          "delta": -2.6856546146234873e-07,
+          "increment": 0.0
+        },
+        "What is surface type of the road? / answer-bearing": {
+          "tokens": 12,
+          "delta": -1.6055356999246866e-07,
+          "increment": 0.0
+        },
+        "What is surface type of the road? / format-only": {
+          "tokens": 36,
+          "delta": -8.100229100606809e-07,
+          "increment": 0.0
+        },
+        "What is the age group of the pedestrian? / answer-bearing": {
+          "tokens": 48,
+          "delta": 0.0003521796934077656,
+          "increment": 0.0
+        },
+        "What is the age group of the pedestrian? / format-only": {
+          "tokens": 64,
+          "delta": -5.028029788774158e-05,
+          "increment": 0.0
+        },
+        "What is the brightness level in the scene? / answer-bearing": {
+          "tokens": 16,
+          "delta": 0.0015380613050557798,
+          "increment": 0.0
+        },
+        "What is the brightness level in the scene? / format-only": {
+          "tokens": 48,
+          "delta": -6.6598648225862485e-06,
+          "increment": 0.0
+        },
+        "What is the color of pedestrian's lower body clothing? / answer-bearing": {
+          "tokens": 16,
+          "delta": -0.000257606613954853,
+          "increment": 0.0
+        },
+        "What is the color of pedestrian's lower body clothing? / format-only": {
+          "tokens": 48,
+          "delta": -2.5596444938507726e-06,
+          "increment": 0.0
+        },
+        "What is the color of pedestrian's upper body clothing? / answer-bearing": {
+          "tokens": 20,
+          "delta": 0.00045661987767265603,
+          "increment": 0.0
+        },
+        "What is the color of pedestrian's upper body clothing? / format-only": {
+          "tokens": 50,
+          "delta": -4.7208764322930856e-07,
+          "increment": 0.0
+        },
+        "What is the height of obstacle in the scene? / answer-bearing": {
+          "tokens": 4,
+          "delta": -0.00026461198638133804,
+          "increment": 0.0
+        },
+        "What is the height of obstacle in the scene? / format-only": {
+          "tokens": 10,
+          "delta": -5.976949916338827e-06,
+          "increment": 0.0
+        },
+        "What is the height of the pedestrian? / answer-bearing": {
+          "tokens": 64,
+          "delta": -0.0009339268886510128,
+          "increment": 0.0
+        },
+        "What is the height of the pedestrian? / format-only": {
+          "tokens": 66,
+          "delta": -6.748362685223151e-07,
+          "increment": 0.0
+        },
+        "What is the position of the obstacle in the scene? / answer-bearing": {
+          "tokens": 10,
+          "delta": -0.0005484638918318508,
+          "increment": 0.0
+        },
+        "What is the position of the obstacle in the scene? / format-only": {
+          "tokens": 8,
+          "delta": 4.041178866636078e-07,
+          "increment": 0.0
+        },
+        "What is the road inclination in the scene? / answer-bearing": {
+          "tokens": 16,
+          "delta": -1.7940576401593462e-07,
+          "increment": 0.0
+        },
+        "What is the road inclination in the scene? / format-only": {
+          "tokens": 56,
+          "delta": -1.2362476518193605e-07,
+          "increment": 0.0
+        },
+        "What is the type of the road? / answer-bearing": {
+          "tokens": 24,
+          "delta": -3.999505637637041e-06,
+          "increment": 0.0
+        },
+        "What is the type of the road? / format-only": {
+          "tokens": 48,
+          "delta": -1.9401808987275749e-07,
+          "increment": 0.0
+        },
+        "What is the volume of the traffic in the scene? / answer-bearing": {
+          "tokens": 20,
+          "delta": -0.004259142914882122,
+          "increment": 0.0
+        },
+        "What is the volume of the traffic in the scene? / format-only": {
+          "tokens": 48,
+          "delta": -2.8580787633339955e-05,
+          "increment": 0.0
+        },
+        "What is the width of obstacle in the scene? / answer-bearing": {
+          "tokens": 8,
+          "delta": 5.026552327984686e-05,
+          "increment": 0.0
+        },
+        "What is the width of obstacle in the scene? / format-only": {
+          "tokens": 10,
+          "delta": -1.2431876226283837e-06,
+          "increment": 0.0
+        },
+        "What is weather in the scenario? / answer-bearing": {
+          "tokens": 18,
+          "delta": 0.00012378922207416783,
+          "increment": 0.0
+        },
+        "What is weather in the scenario? / format-only": {
+          "tokens": 60,
+          "delta": -2.586652759839311e-07,
+          "increment": 0.0
+        },
+        "What pedestrian is wearing on lower body? / answer-bearing": {
+          "tokens": 32,
+          "delta": -3.946981712837661e-06,
+          "increment": 0.0
+        },
+        "What pedestrian is wearing on lower body? / format-only": {
+          "tokens": 60,
+          "delta": -6.120402337133889e-07,
+          "increment": 0.0
+        },
+        "What pedestrian is wearing on upper body? / answer-bearing": {
+          "tokens": 30,
+          "delta": -0.0006536818225349107,
+          "increment": 0.0
+        },
+        "What pedestrian is wearing on upper body? / format-only": {
+          "tokens": 56,
+          "delta": -1.4365257981639933e-06,
+          "increment": 0.0
+        },
+        "Where is the roadside strip in the scene? / answer-bearing": {
+          "tokens": 36,
+          "delta": -2.4629393142837808e-05,
+          "increment": 0.0
+        },
+        "Where is the roadside strip in the scene? / format-only": {
+          "tokens": 48,
+          "delta": -1.284760797750398e-06,
+          "increment": 0.0
+        },
+        "Where is the sidewalk in the scene? / answer-bearing": {
+          "tokens": 36,
+          "delta": -6.466564692368829e-05,
+          "increment": 0.0
+        },
+        "Where is the sidewalk in the scene? / format-only": {
+          "tokens": 36,
+          "delta": -1.5941788764093992e-09,
+          "increment": 0.0
+        },
+        "end token / end token": {
+          "tokens": 16,
+          "delta": -7.439173989384849e-08,
+          "increment": 0.0
+        }
+      }
+    },
+    {
+      "step": 11,
+      "original_native_nll": 0.18522433181574227,
+      "candidate_native_nll": 0.17900258373541073,
+      "ratio": 0.966409661088583,
+      "delta": -0.006221748080331546,
+      "training_text_rows": 2,
+      "rows": [
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "native_mean_delta_contribution": -0.0006583765440064086,
+          "original_nll": 0.3068974672027839,
+          "candidate_nll": 0.2999197126497711
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+          "native_mean_delta_contribution": -0.0007196389002706621,
+          "original_nll": 0.3006930577093221,
+          "candidate_nll": 0.2930660186560598
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_0.mp4",
+          "native_mean_delta_contribution": -0.0003075840741155573,
+          "original_nll": 0.18277423211354946,
+          "candidate_nll": 0.17806959388900923
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_4.mp4",
+          "native_mean_delta_contribution": -0.00025085582712009493,
+          "original_nll": 0.19460541241969959,
+          "candidate_nll": 0.19076845851852176
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+          "native_mean_delta_contribution": -0.00021621636695751478,
+          "original_nll": 0.19600062437487606,
+          "candidate_nll": 0.19269349676209407
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+          "native_mean_delta_contribution": -0.00029276227693348283,
+          "original_nll": 0.201564658854387,
+          "candidate_nll": 0.19708672675492717
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera1_0.mp4",
+          "native_mean_delta_contribution": 3.2718189135892285e-05,
+          "original_nll": 0.020689035403268954,
+          "candidate_nll": 0.021667672793866978
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera1_3.mp4",
+          "native_mean_delta_contribution": 7.609234679397725e-06,
+          "original_nll": 0.023330828159157276,
+          "candidate_nll": 0.02355842882312326
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera3_1.mp4",
+          "native_mean_delta_contribution": -2.8300822338930736e-05,
+          "original_nll": 0.022028526747644623,
+          "candidate_nll": 0.021182017706129052
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera4_2.mp4",
+          "native_mean_delta_contribution": -5.944824145135256e-06,
+          "original_nll": 0.022958845150170583,
+          "candidate_nll": 0.022781028854629425
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera1_0.mp4",
+          "native_mean_delta_contribution": -0.0010604096301473369,
+          "original_nll": 0.2439950440916303,
+          "candidate_nll": 0.22881088066420144
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera2_3.mp4",
+          "native_mean_delta_contribution": -0.0009866787603067001,
+          "original_nll": 0.2552291877153712,
+          "candidate_nll": 0.24110078759438372
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+          "native_mean_delta_contribution": -0.0011265242062299314,
+          "original_nll": 0.24478586978964623,
+          "candidate_nll": 0.2286550019004389
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera4_2.mp4",
+          "native_mean_delta_contribution": -0.001220823530993455,
+          "original_nll": 0.25307594625864616,
+          "candidate_nll": 0.23559479229356967
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera2_0.mp4",
+          "native_mean_delta_contribution": 0.00018652755345468375,
+          "original_nll": 0.021435423139056786,
+          "candidate_nll": 0.024164402345035092
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera3_1.mp4",
+          "native_mean_delta_contribution": 0.00042551677210088683,
+          "original_nll": 0.04618835929114649,
+          "candidate_nll": 0.05241385467427468
+        }
+      ],
+      "largest_token_relative_changes": [
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+          "position": 60,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -1.2408185005187988,
+          "increment_since_previous": -0.49291181564331055,
+          "original_loss": 6.89717435836792,
+          "candidate_loss": 5.656355857849121
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+          "position": 54,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -1.1075868606567383,
+          "increment_since_previous": -0.48927879333496094,
+          "original_loss": 6.221447944641113,
+          "candidate_loss": 5.113861083984375
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_0.mp4",
+          "position": 54,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -1.100858211517334,
+          "increment_since_previous": -0.47580766677856445,
+          "original_loss": 6.830947399139404,
+          "candidate_loss": 5.73008918762207
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera1_0.mp4",
+          "position": 60,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.9981594085693359,
+          "increment_since_previous": -0.37328433990478516,
+          "original_loss": 7.5059027671813965,
+          "candidate_loss": 6.5077433586120605
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera4_2.mp4",
+          "position": 60,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -1.1219353675842285,
+          "increment_since_previous": -0.3719305992126465,
+          "original_loss": 7.25911283493042,
+          "candidate_loss": 6.137177467346191
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+          "position": 54,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -1.1100196838378906,
+          "increment_since_previous": -0.3652315139770508,
+          "original_loss": 6.448817253112793,
+          "candidate_loss": 5.338797569274902
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_0.mp4",
+          "position": 23,
+          "token_id": 8126,
+          "token_text": "\u0120Dim",
+          "question": "What is the brightness level in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.5997109413146973,
+          "increment_since_previous": 0.3091297149658203,
+          "original_loss": 3.192014217376709,
+          "candidate_loss": 3.7917251586914062
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera2_0.mp4",
+          "position": 27,
+          "token_id": 8126,
+          "token_text": "\u0120Dim",
+          "question": "What is the brightness level in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.3288792371749878,
+          "increment_since_previous": 0.2715369462966919,
+          "original_loss": 1.0259195566177368,
+          "candidate_loss": 1.3547987937927246
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+          "position": 23,
+          "token_id": 8126,
+          "token_text": "\u0120Dim",
+          "question": "What is the brightness level in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.7466616630554199,
+          "increment_since_previous": 0.26073122024536133,
+          "original_loss": 5.885855674743652,
+          "candidate_loss": 6.632517337799072
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera2_3.mp4",
+          "position": 60,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.9982781410217285,
+          "increment_since_previous": -0.24835634231567383,
+          "original_loss": 7.755830764770508,
+          "candidate_loss": 6.757552623748779
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera2_3.mp4",
+          "position": 35,
+          "token_id": 19036,
+          "token_text": "\u0120Navy",
+          "question": "What is the color of pedestrian's upper body clothing?",
+          "component": "answer-bearing",
+          "delta": 0.000102996826171875,
+          "increment_since_previous": -0.23124217987060547,
+          "original_loss": 8.438983917236328,
+          "candidate_loss": 8.4390869140625
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera3_1.mp4",
+          "position": 27,
+          "token_id": 8126,
+          "token_text": "\u0120Dim",
+          "question": "What is the brightness level in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.6017825603485107,
+          "increment_since_previous": 0.22810721397399902,
+          "original_loss": 3.30881404876709,
+          "candidate_loss": 3.9105966091156006
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera2_3.mp4",
+          "position": 42,
+          "token_id": 21,
+          "token_text": "6",
+          "question": "What is the height of the pedestrian?",
+          "component": "answer-bearing",
+          "delta": -0.3479793071746826,
+          "increment_since_previous": -0.22679805755615234,
+          "original_loss": 2.812619686126709,
+          "candidate_loss": 2.4646403789520264
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_4.mp4",
+          "position": 54,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -1.0946803092956543,
+          "increment_since_previous": -0.22008275985717773,
+          "original_loss": 6.352999210357666,
+          "candidate_loss": 5.258318901062012
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+          "position": 31,
+          "token_id": 23366,
+          "token_text": "\u0120Gray",
+          "question": "What is the color of pedestrian's lower body clothing?",
+          "component": "answer-bearing",
+          "delta": 0.09809684753417969,
+          "increment_since_previous": 0.20602154731750488,
+          "original_loss": 1.5168614387512207,
+          "candidate_loss": 1.6149582862854004
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+          "position": 65,
+          "token_id": 758,
+          "token_text": "\u0120In",
+          "question": "What is the position of the obstacle in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.015414237976074219,
+          "increment_since_previous": -0.17175912857055664,
+          "original_loss": 4.498329162597656,
+          "candidate_loss": 4.5137434005737305
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera4_2.mp4",
+          "position": 21,
+          "token_id": 17,
+          "token_text": "2",
+          "question": "What is the age group of the pedestrian?",
+          "component": "answer-bearing",
+          "delta": 0.018744945526123047,
+          "increment_since_previous": -0.17062044143676758,
+          "original_loss": 2.031214475631714,
+          "candidate_loss": 2.049959421157837
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_4.mp4",
+          "position": 23,
+          "token_id": 8126,
+          "token_text": "\u0120Dim",
+          "question": "What is the brightness level in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.6135683059692383,
+          "increment_since_previous": 0.16604065895080566,
+          "original_loss": 4.156334400177002,
+          "candidate_loss": 4.76990270614624
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+          "position": 23,
+          "token_id": 8126,
+          "token_text": "\u0120Dim",
+          "question": "What is the brightness level in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.6198768615722656,
+          "increment_since_previous": 0.15183639526367188,
+          "original_loss": 4.893855094909668,
+          "candidate_loss": 5.513731956481934
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+          "position": 20,
+          "token_id": 5807,
+          "token_text": "\u0120White",
+          "question": "What is color of pedestrian's hat?",
+          "component": "answer-bearing",
+          "delta": -6.0558319091796875e-05,
+          "increment_since_previous": -0.1291980743408203,
+          "original_loss": 5.934586048126221,
+          "candidate_loss": 5.934525489807129
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+          "position": 35,
+          "token_id": 19036,
+          "token_text": "\u0120Navy",
+          "question": "What is the color of pedestrian's upper body clothing?",
+          "component": "answer-bearing",
+          "delta": 0.00043010711669921875,
+          "increment_since_previous": -0.12427616119384766,
+          "original_loss": 8.70860481262207,
+          "candidate_loss": 8.70903491973877
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 44,
+          "token_id": 5807,
+          "token_text": "\u0120White",
+          "question": "What is the color of pedestrian's upper body clothing?",
+          "component": "answer-bearing",
+          "delta": -0.12437868118286133,
+          "increment_since_previous": -0.1241607666015625,
+          "original_loss": 6.299447059631348,
+          "candidate_loss": 6.175068378448486
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 99,
+          "token_id": 14817,
+          "token_text": "\u0120Cloud",
+          "question": "What is weather in the scenario?",
+          "component": "answer-bearing",
+          "delta": -0.35799145698547363,
+          "increment_since_previous": -0.11879897117614746,
+          "original_loss": 3.290019989013672,
+          "candidate_loss": 2.9320285320281982
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+          "position": 111,
+          "token_id": 54770,
+          "token_text": "\u0120Jacket",
+          "question": "What pedestrian is wearing on upper body?",
+          "component": "answer-bearing",
+          "delta": -0.13569211959838867,
+          "increment_since_previous": -0.1184844970703125,
+          "original_loss": 4.961257457733154,
+          "candidate_loss": 4.825565338134766
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+          "position": 44,
+          "token_id": 5807,
+          "token_text": "\u0120White",
+          "question": "What is the color of pedestrian's upper body clothing?",
+          "component": "answer-bearing",
+          "delta": -9.441375732421875e-05,
+          "increment_since_previous": -0.11812353134155273,
+          "original_loss": 6.559928894042969,
+          "candidate_loss": 6.5598344802856445
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 111,
+          "token_id": 54770,
+          "token_text": "\u0120Jacket",
+          "question": "What pedestrian is wearing on upper body?",
+          "component": "answer-bearing",
+          "delta": -0.012221813201904297,
+          "increment_since_previous": -0.1162252426147461,
+          "original_loss": 4.710037708282471,
+          "candidate_loss": 4.697815895080566
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_0.mp4",
+          "position": 27,
+          "token_id": 23366,
+          "token_text": "\u0120Gray",
+          "question": "What is the color of pedestrian's lower body clothing?",
+          "component": "answer-bearing",
+          "delta": 0.0006079673767089844,
+          "increment_since_previous": 0.11345577239990234,
+          "original_loss": 1.9259527921676636,
+          "candidate_loss": 1.9265607595443726
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera4_2.mp4",
+          "position": 42,
+          "token_id": 21,
+          "token_text": "6",
+          "question": "What is the height of the pedestrian?",
+          "component": "answer-bearing",
+          "delta": -0.47872209548950195,
+          "increment_since_previous": -0.11006498336791992,
+          "original_loss": 3.408978223800659,
+          "candidate_loss": 2.9302561283111572
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera1_0.mp4",
+          "position": 31,
+          "token_id": 23366,
+          "token_text": "\u0120Gray",
+          "question": "What is the color of pedestrian's lower body clothing?",
+          "component": "answer-bearing",
+          "delta": -0.11023092269897461,
+          "increment_since_previous": -0.10969138145446777,
+          "original_loss": 2.142796277999878,
+          "candidate_loss": 2.0325653553009033
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+          "position": 27,
+          "token_id": 23366,
+          "token_text": "\u0120Gray",
+          "question": "What is the color of pedestrian's lower body clothing?",
+          "component": "answer-bearing",
+          "delta": -0.10875725746154785,
+          "increment_since_previous": -0.1075143814086914,
+          "original_loss": 2.1409685611724854,
+          "candidate_loss": 2.0322113037109375
+        }
+      ],
+      "question_component_contributions": {
+        "Are there street lights in the scene? / answer-bearing": {
+          "tokens": 8,
+          "delta": -9.163878553645217e-06,
+          "increment": 9.733747641097914e-06
+        },
+        "Are there street lights in the scene? / format-only": {
+          "tokens": 24,
+          "delta": -9.607333629125699e-06,
+          "increment": 3.2998824963553e-05
+        },
+        "How many lanes are there? / answer-bearing": {
+          "tokens": 36,
+          "delta": -2.064897305286111e-05,
+          "increment": 1.3289588508642464e-05
+        },
+        "How many lanes are there? / format-only": {
+          "tokens": 36,
+          "delta": -5.0192383934935195e-06,
+          "increment": -8.086397930367642e-07
+        },
+        "Is pedestrian wearning a hat? / answer-bearing": {
+          "tokens": 2,
+          "delta": -2.0670722533476833e-05,
+          "increment": 3.188463235149412e-05
+        },
+        "Is pedestrian wearning a hat? / format-only": {
+          "tokens": 6,
+          "delta": -2.343676978082882e-07,
+          "increment": 2.3457367310388277e-07
+        },
+        "What are road surface conditions? / answer-bearing": {
+          "tokens": 12,
+          "delta": -1.2893270957006907e-07,
+          "increment": 2.3455720785437885e-07
+        },
+        "What are road surface conditions? / format-only": {
+          "tokens": 36,
+          "delta": -3.1427072989279223e-07,
+          "increment": 2.223058718057056e-07
+        },
+        "What is color of pedestrian's hat? / answer-bearing": {
+          "tokens": 2,
+          "delta": -2.5648596028162146e-07,
+          "increment": -9.516373077437924e-05
+        },
+        "What is color of pedestrian's hat? / format-only": {
+          "tokens": 6,
+          "delta": -7.8425705920181e-08,
+          "increment": 1.9013975554216773e-07
+        },
+        "What is surface type of the road? / answer-bearing": {
+          "tokens": 12,
+          "delta": -6.64196547984324e-08,
+          "increment": 9.413391519403625e-08
+        },
+        "What is surface type of the road? / format-only": {
+          "tokens": 36,
+          "delta": 2.059992101994848e-06,
+          "increment": 2.8700150120555297e-06
+        },
+        "What is the age group of the pedestrian? / answer-bearing": {
+          "tokens": 48,
+          "delta": 0.00029284216954495644,
+          "increment": -5.9337523862809006e-05
+        },
+        "What is the age group of the pedestrian? / format-only": {
+          "tokens": 64,
+          "delta": -7.840654066824974e-06,
+          "increment": 4.243964382091661e-05
+        },
+        "What is the brightness level in the scene? / answer-bearing": {
+          "tokens": 16,
+          "delta": 0.0025973838539849444,
+          "increment": 0.0010593225489291646
+        },
+        "What is the brightness level in the scene? / format-only": {
+          "tokens": 48,
+          "delta": -7.872303249417473e-06,
+          "increment": -1.2124384268312253e-06
+        },
+        "What is the color of pedestrian's lower body clothing? / answer-bearing": {
+          "tokens": 16,
+          "delta": -0.0001120353103746808,
+          "increment": 0.00014557130358017217
+        },
+        "What is the color of pedestrian's lower body clothing? / format-only": {
+          "tokens": 48,
+          "delta": -1.4085192890653572e-06,
+          "increment": 1.151125204785415e-06
+        },
+        "What is the color of pedestrian's upper body clothing? / answer-bearing": {
+          "tokens": 20,
+          "delta": 3.165317309071015e-05,
+          "increment": -0.00042496670458194583
+        },
+        "What is the color of pedestrian's upper body clothing? / format-only": {
+          "tokens": 50,
+          "delta": -2.09406770306046e-07,
+          "increment": 2.626808729232625e-07
+        },
+        "What is the height of obstacle in the scene? / answer-bearing": {
+          "tokens": 4,
+          "delta": -0.00018480422326749716,
+          "increment": 7.980776311384091e-05
+        },
+        "What is the height of obstacle in the scene? / format-only": {
+          "tokens": 10,
+          "delta": -8.481530488450348e-06,
+          "increment": -2.504580572111521e-06
+        },
+        "What is the height of the pedestrian? / answer-bearing": {
+          "tokens": 64,
+          "delta": -0.001168051416687817,
+          "increment": -0.00023412452803680403
+        },
+        "What is the height of the pedestrian? / format-only": {
+          "tokens": 66,
+          "delta": -3.0895437165455715e-07,
+          "increment": 3.658818968677581e-07
+        },
+        "What is the position of the obstacle in the scene? / answer-bearing": {
+          "tokens": 10,
+          "delta": -0.0006287556147150264,
+          "increment": -8.02917228831756e-05
+        },
+        "What is the position of the obstacle in the scene? / format-only": {
+          "tokens": 8,
+          "delta": 7.793080380386472e-08,
+          "increment": -3.26187082859743e-07
+        },
+        "What is the road inclination in the scene? / answer-bearing": {
+          "tokens": 16,
+          "delta": -1.4797065133167664e-07,
+          "increment": 3.1435112684257976e-08
+        },
+        "What is the road inclination in the scene? / format-only": {
+          "tokens": 56,
+          "delta": -1.8109244619173458e-07,
+          "increment": -5.7467681009798493e-08
+        },
+        "What is the type of the road? / answer-bearing": {
+          "tokens": 24,
+          "delta": -2.2746831262387324e-06,
+          "increment": 1.7248225113983098e-06
+        },
+        "What is the type of the road? / format-only": {
+          "tokens": 48,
+          "delta": -1.0595757140498705e-07,
+          "increment": 8.806051846777045e-08
+        },
+        "What is the volume of the traffic in the scene? / answer-bearing": {
+          "tokens": 20,
+          "delta": -0.006502875518903346,
+          "increment": -0.002243732604021221
+        },
+        "What is the volume of the traffic in the scene? / format-only": {
+          "tokens": 48,
+          "delta": -1.700870733675625e-05,
+          "increment": 1.1572080296583705e-05
+        },
+        "What is the width of obstacle in the scene? / answer-bearing": {
+          "tokens": 8,
+          "delta": 4.181712672092231e-05,
+          "increment": -8.44839655892456e-06
+        },
+        "What is the width of obstacle in the scene? / format-only": {
+          "tokens": 10,
+          "delta": -1.2294765023535718e-06,
+          "increment": 1.3711120274811996e-08
+        },
+        "What is weather in the scenario? / answer-bearing": {
+          "tokens": 18,
+          "delta": 8.87426335611422e-05,
+          "increment": -3.5046588513025614e-05
+        },
+        "What is weather in the scenario? / format-only": {
+          "tokens": 60,
+          "delta": -1.5639089946456445e-07,
+          "increment": 1.0227437651936665e-07
+        },
+        "What pedestrian is wearing on lower body? / answer-bearing": {
+          "tokens": 32,
+          "delta": 2.7936648364340747e-06,
+          "increment": 6.740646549271735e-06
+        },
+        "What pedestrian is wearing on lower body? / format-only": {
+          "tokens": 60,
+          "delta": -3.790081348715084e-07,
+          "increment": 2.330320988418806e-07
+        },
+        "What pedestrian is wearing on upper body? / answer-bearing": {
+          "tokens": 30,
+          "delta": -0.0005086977802404517,
+          "increment": 0.00014498404229445908
+        },
+        "What pedestrian is wearing on upper body? / format-only": {
+          "tokens": 56,
+          "delta": -1.7340378384132427e-06,
+          "increment": -2.975120402492493e-07
+        },
+        "Where is the roadside strip in the scene? / answer-bearing": {
+          "tokens": 36,
+          "delta": -8.94974994549357e-06,
+          "increment": 1.5679643197344232e-05
+        },
+        "Where is the roadside strip in the scene? / format-only": {
+          "tokens": 48,
+          "delta": -6.010513765469242e-07,
+          "increment": 6.837094212034744e-07
+        },
+        "Where is the sidewalk in the scene? / answer-bearing": {
+          "tokens": 36,
+          "delta": -4.8776830518318955e-05,
+          "increment": 1.588881640536932e-05
+        },
+        "Where is the sidewalk in the scene? / format-only": {
+          "tokens": 36,
+          "delta": -8.856550744559626e-10,
+          "increment": 7.085238019534366e-10
+        },
+        "end token / end token": {
+          "tokens": 16,
+          "delta": -3.84357913883239e-08,
+          "increment": 3.595594850552459e-08
+        }
+      }
+    },
+    {
+      "step": 12,
+      "original_native_nll": 0.15778073325288242,
+      "candidate_native_nll": 0.15129679128151238,
+      "ratio": 0.958905362919198,
+      "delta": -0.006483941971370033,
+      "training_text_rows": 3,
+      "rows": [
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "native_mean_delta_contribution": -0.0008126067514256007,
+          "original_nll": 0.26365487078237015,
+          "candidate_nll": 0.25504251891293034
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+          "native_mean_delta_contribution": -0.0006995326294359171,
+          "original_nll": 0.2573322844622634,
+          "candidate_nll": 0.24991834021643078
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_0.mp4",
+          "native_mean_delta_contribution": -0.000339408960128235,
+          "original_nll": 0.1551813332241058,
+          "candidate_nll": 0.1499899189021444
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_4.mp4",
+          "native_mean_delta_contribution": -0.0001725323870484371,
+          "original_nll": 0.1658150592641059,
+          "candidate_nll": 0.16317609798038776
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+          "native_mean_delta_contribution": -0.0002383899007435522,
+          "original_nll": 0.1699713236956403,
+          "candidate_nll": 0.16632504180472188
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+          "native_mean_delta_contribution": -0.00027323702111384896,
+          "original_nll": 0.17047460616098184,
+          "candidate_nll": 0.16629532172439954
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera1_0.mp4",
+          "native_mean_delta_contribution": 8.298189634769036e-05,
+          "original_nll": 0.022092286046955678,
+          "candidate_nll": 0.02457436676882215
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera1_3.mp4",
+          "native_mean_delta_contribution": 4.406669967166165e-05,
+          "original_nll": 0.023607551028698028,
+          "candidate_nll": 0.02492563497887706
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera3_1.mp4",
+          "native_mean_delta_contribution": 7.582674784043387e-05,
+          "original_nll": 0.024021505609466785,
+          "candidate_nll": 0.026289567889316207
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera4_2.mp4",
+          "native_mean_delta_contribution": 6.903206399859386e-05,
+          "original_nll": 0.02409960291215864,
+          "candidate_nll": 0.026164428648649915
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera1_0.mp4",
+          "native_mean_delta_contribution": -0.001311685573912624,
+          "original_nll": 0.2007298616327011,
+          "candidate_nll": 0.18194764054242035
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera2_3.mp4",
+          "native_mean_delta_contribution": -0.0013437442196020412,
+          "original_nll": 0.21353032116221612,
+          "candidate_nll": 0.19428904754961668
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+          "native_mean_delta_contribution": -0.0012889831685682803,
+          "original_nll": 0.1973404631478451,
+          "candidate_nll": 0.17888332118089928
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera4_2.mp4",
+          "native_mean_delta_contribution": -0.0010809313467342657,
+          "original_nll": 0.20077969816009794,
+          "candidate_nll": 0.18530168121643492
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera2_0.mp4",
+          "native_mean_delta_contribution": 0.0003744888932171931,
+          "original_nll": 0.026787259529416952,
+          "candidate_nll": 0.032266194858442405
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera3_1.mp4",
+          "native_mean_delta_contribution": 0.0004307177782773987,
+          "original_nll": 0.0538092374792943,
+          "candidate_nll": 0.06011082584409189
+        }
+      ],
+      "largest_token_relative_changes": [
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera4_2.mp4",
+          "position": 42,
+          "token_id": 21,
+          "token_text": "6",
+          "question": "What is the height of the pedestrian?",
+          "component": "answer-bearing",
+          "delta": -0.2309410572052002,
+          "increment_since_previous": 0.24778103828430176,
+          "original_loss": 2.695578098297119,
+          "candidate_loss": 2.464637041091919
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 111,
+          "token_id": 54770,
+          "token_text": "\u0120Jacket",
+          "question": "What pedestrian is wearing on upper body?",
+          "component": "answer-bearing",
+          "delta": -0.24407625198364258,
+          "increment_since_previous": -0.23185443878173828,
+          "original_loss": 4.584822177886963,
+          "candidate_loss": 4.34074592590332
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera2_3.mp4",
+          "position": 60,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -1.2206082344055176,
+          "increment_since_previous": -0.22233009338378906,
+          "original_loss": 4.521421432495117,
+          "candidate_loss": 3.3008131980895996
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera1_0.mp4",
+          "position": 60,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -1.2131462097167969,
+          "increment_since_previous": -0.21498680114746094,
+          "original_loss": 4.275463104248047,
+          "candidate_loss": 3.06231689453125
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+          "position": 17,
+          "token_id": 17,
+          "token_text": "2",
+          "question": "What is the age group of the pedestrian?",
+          "component": "answer-bearing",
+          "delta": -0.08681154251098633,
+          "increment_since_previous": -0.2090456485748291,
+          "original_loss": 2.2666823863983154,
+          "candidate_loss": 2.179870843887329
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera4_2.mp4",
+          "position": 60,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -1.3113937377929688,
+          "increment_since_previous": -0.18945837020874023,
+          "original_loss": 3.90958571434021,
+          "candidate_loss": 2.598191976547241
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 91,
+          "token_id": 15,
+          "token_text": "0",
+          "question": "What is the width of obstacle in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.12700271606445312,
+          "increment_since_previous": -0.18286705017089844,
+          "original_loss": 3.5144505500793457,
+          "candidate_loss": 3.3874478340148926
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 99,
+          "token_id": 14817,
+          "token_text": "\u0120Cloud",
+          "question": "What is weather in the scenario?",
+          "component": "answer-bearing",
+          "delta": -0.17623615264892578,
+          "increment_since_previous": 0.18175530433654785,
+          "original_loss": 1.318434476852417,
+          "candidate_loss": 1.1421983242034912
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 65,
+          "token_id": 758,
+          "token_text": "\u0120In",
+          "question": "What is the position of the obstacle in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.05399131774902344,
+          "increment_since_previous": -0.17501449584960938,
+          "original_loss": 4.969109535217285,
+          "candidate_loss": 5.023100852966309
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+          "position": 111,
+          "token_id": 54770,
+          "token_text": "\u0120Jacket",
+          "question": "What pedestrian is wearing on upper body?",
+          "component": "answer-bearing",
+          "delta": -0.010660648345947266,
+          "increment_since_previous": 0.1250314712524414,
+          "original_loss": 4.592761516571045,
+          "candidate_loss": 4.582100868225098
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera1_0.mp4",
+          "position": 35,
+          "token_id": 19036,
+          "token_text": "\u0120Navy",
+          "question": "What is the color of pedestrian's upper body clothing?",
+          "component": "answer-bearing",
+          "delta": 0.00015687942504882812,
+          "increment_since_previous": -0.12442302703857422,
+          "original_loss": 7.943910598754883,
+          "candidate_loss": 7.944067478179932
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera2_3.mp4",
+          "position": 35,
+          "token_id": 19036,
+          "token_text": "\u0120Navy",
+          "question": "What is the color of pedestrian's upper body clothing?",
+          "component": "answer-bearing",
+          "delta": -0.1242218017578125,
+          "increment_since_previous": -0.12432479858398438,
+          "original_loss": 8.462185859680176,
+          "candidate_loss": 8.337964057922363
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+          "position": 23,
+          "token_id": 8126,
+          "token_text": "\u0120Dim",
+          "question": "What is the brightness level in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.6223611831665039,
+          "increment_since_previous": -0.12430047988891602,
+          "original_loss": 6.385275363922119,
+          "candidate_loss": 7.007636547088623
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera2_0.mp4",
+          "position": 59,
+          "token_id": 8658,
+          "token_text": "\u0120Light",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.1299121156334877,
+          "increment_since_previous": 0.12278468906879425,
+          "original_loss": 0.08178194612264633,
+          "candidate_loss": 0.21169406175613403
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+          "position": 60,
+          "token_id": 12023,
+          "token_text": "\u0120Clear",
+          "question": "What is weather in the scenario?",
+          "component": "answer-bearing",
+          "delta": 0.15433239936828613,
+          "increment_since_previous": 0.12034553289413452,
+          "original_loss": 0.9085448980331421,
+          "candidate_loss": 1.0628772974014282
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 44,
+          "token_id": 5807,
+          "token_text": "\u0120White",
+          "question": "What is the color of pedestrian's upper body clothing?",
+          "component": "answer-bearing",
+          "delta": -0.0056552886962890625,
+          "increment_since_previous": 0.11872339248657227,
+          "original_loss": 5.9317474365234375,
+          "candidate_loss": 5.926092147827148
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera3_1.mp4",
+          "position": 27,
+          "token_id": 8126,
+          "token_text": "\u0120Dim",
+          "question": "What is the brightness level in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.4841024875640869,
+          "increment_since_previous": -0.11768007278442383,
+          "original_loss": 3.561654806137085,
+          "candidate_loss": 4.045757293701172
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+          "position": 20,
+          "token_id": 5807,
+          "token_text": "\u0120White",
+          "question": "What is color of pedestrian's hat?",
+          "component": "answer-bearing",
+          "delta": -0.11771011352539062,
+          "increment_since_previous": -0.11764955520629883,
+          "original_loss": 5.6912736892700195,
+          "candidate_loss": 5.573563575744629
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+          "position": 44,
+          "token_id": 5807,
+          "token_text": "\u0120White",
+          "question": "What is the color of pedestrian's upper body clothing?",
+          "component": "answer-bearing",
+          "delta": -0.11743927001953125,
+          "increment_since_previous": -0.11734485626220703,
+          "original_loss": 6.310627460479736,
+          "candidate_loss": 6.193188190460205
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_0.mp4",
+          "position": 23,
+          "token_id": 8126,
+          "token_text": "\u0120Dim",
+          "question": "What is the brightness level in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.4855353832244873,
+          "increment_since_previous": -0.11417555809020996,
+          "original_loss": 3.677905797958374,
+          "candidate_loss": 4.163441181182861
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera2_0.mp4",
+          "position": 64,
+          "token_id": 12023,
+          "token_text": "\u0120Clear",
+          "question": "What is weather in the scenario?",
+          "component": "answer-bearing",
+          "delta": 0.12309285998344421,
+          "increment_since_previous": 0.11127196252346039,
+          "original_loss": 0.2277098000049591,
+          "candidate_loss": 0.3508026599884033
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera2_3.mp4",
+          "position": 31,
+          "token_id": 23366,
+          "token_text": "\u0120Gray",
+          "question": "What is the color of pedestrian's lower body clothing?",
+          "component": "answer-bearing",
+          "delta": 0.001516580581665039,
+          "increment_since_previous": -0.10343790054321289,
+          "original_loss": 1.8229854106903076,
+          "candidate_loss": 1.8245019912719727
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+          "position": 17,
+          "token_id": 17,
+          "token_text": "2",
+          "question": "What is the age group of the pedestrian?",
+          "component": "answer-bearing",
+          "delta": 0.017223596572875977,
+          "increment_since_previous": -0.09846019744873047,
+          "original_loss": 1.8085424900054932,
+          "candidate_loss": 1.8257660865783691
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+          "position": 42,
+          "token_id": 21,
+          "token_text": "6",
+          "question": "What is the height of the pedestrian?",
+          "component": "answer-bearing",
+          "delta": -0.5677194595336914,
+          "increment_since_previous": -0.09809088706970215,
+          "original_loss": 2.6954898834228516,
+          "candidate_loss": 2.12777042388916
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera2_3.mp4",
+          "position": 42,
+          "token_id": 21,
+          "token_text": "6",
+          "question": "What is the height of the pedestrian?",
+          "component": "answer-bearing",
+          "delta": -0.4460597038269043,
+          "increment_since_previous": -0.09808039665222168,
+          "original_loss": 2.4648425579071045,
+          "candidate_loss": 2.0187828540802
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera1_0.mp4",
+          "position": 42,
+          "token_id": 21,
+          "token_text": "6",
+          "question": "What is the height of the pedestrian?",
+          "component": "answer-bearing",
+          "delta": -0.44600629806518555,
+          "increment_since_previous": -0.09804773330688477,
+          "original_loss": 2.4651007652282715,
+          "candidate_loss": 2.019094467163086
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+          "position": 35,
+          "token_id": 19036,
+          "token_text": "\u0120Navy",
+          "question": "What is the color of pedestrian's upper body clothing?",
+          "component": "answer-bearing",
+          "delta": -0.0974740982055664,
+          "increment_since_previous": -0.09790420532226562,
+          "original_loss": 8.485297203063965,
+          "candidate_loss": 8.387823104858398
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+          "position": 31,
+          "token_id": 23366,
+          "token_text": "\u0120Gray",
+          "question": "What is the color of pedestrian's lower body clothing?",
+          "component": "answer-bearing",
+          "delta": 0.0014775991439819336,
+          "increment_since_previous": -0.09661924839019775,
+          "original_loss": 1.4235963821411133,
+          "candidate_loss": 1.4250739812850952
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+          "position": 54,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -1.0113325119018555,
+          "increment_since_previous": 0.09625434875488281,
+          "original_loss": 3.0472259521484375,
+          "candidate_loss": 2.035893440246582
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+          "position": 27,
+          "token_id": 23366,
+          "token_text": "\u0120Gray",
+          "question": "What is the color of pedestrian's lower body clothing?",
+          "component": "answer-bearing",
+          "delta": -0.09508335590362549,
+          "increment_since_previous": -0.09481096267700195,
+          "original_loss": 1.618821144104004,
+          "candidate_loss": 1.5237377882003784
+        }
+      ],
+      "question_component_contributions": {
+        "Are there street lights in the scene? / answer-bearing": {
+          "tokens": 8,
+          "delta": -2.6891119418358553e-06,
+          "increment": 6.4747666118093615e-06
+        },
+        "Are there street lights in the scene? / format-only": {
+          "tokens": 24,
+          "delta": -5.815630216659345e-06,
+          "increment": 3.791703412466354e-06
+        },
+        "How many lanes are there? / answer-bearing": {
+          "tokens": 36,
+          "delta": -1.1262327580659804e-05,
+          "increment": 9.386645472201312e-06
+        },
+        "How many lanes are there? / format-only": {
+          "tokens": 36,
+          "delta": -3.206204948439788e-06,
+          "increment": 1.8130334450537323e-06
+        },
+        "Is pedestrian wearning a hat? / answer-bearing": {
+          "tokens": 2,
+          "delta": -3.007704178964578e-05,
+          "increment": -9.40631925616895e-06
+        },
+        "Is pedestrian wearning a hat? / format-only": {
+          "tokens": 6,
+          "delta": -3.5588661190615683e-07,
+          "increment": -1.2151891409786865e-07
+        },
+        "What are road surface conditions? / answer-bearing": {
+          "tokens": 12,
+          "delta": -1.3371383537604773e-07,
+          "increment": -4.781125805978653e-09
+        },
+        "What are road surface conditions? / format-only": {
+          "tokens": 36,
+          "delta": -7.669367140634943e-08,
+          "increment": 2.375770584864428e-07
+        },
+        "What is color of pedestrian's hat? / answer-bearing": {
+          "tokens": 2,
+          "delta": -8.79654735548181e-05,
+          "increment": -8.770898759453647e-05
+        },
+        "What is color of pedestrian's hat? / format-only": {
+          "tokens": 6,
+          "delta": -3.6617052230961393e-07,
+          "increment": -2.87744816389433e-07
+        },
+        "What is surface type of the road? / answer-bearing": {
+          "tokens": 12,
+          "delta": -4.339387472696467e-08,
+          "increment": 2.3025780071467746e-08
+        },
+        "What is surface type of the road? / format-only": {
+          "tokens": 36,
+          "delta": 1.352251180854717e-05,
+          "increment": 1.1462519706552326e-05
+        },
+        "What is the age group of the pedestrian? / answer-bearing": {
+          "tokens": 48,
+          "delta": 0.000220373991830428,
+          "increment": -7.246817771452861e-05
+        },
+        "What is the age group of the pedestrian? / format-only": {
+          "tokens": 64,
+          "delta": 2.5339638027191487e-05,
+          "increment": 3.3180292094016466e-05
+        },
+        "What is the brightness level in the scene? / answer-bearing": {
+          "tokens": 16,
+          "delta": 0.002277807391215431,
+          "increment": -0.0003195764627695128
+        },
+        "What is the brightness level in the scene? / format-only": {
+          "tokens": 48,
+          "delta": -5.163179070338668e-06,
+          "increment": 2.7091241790788043e-06
+        },
+        "What is the color of pedestrian's lower body clothing? / answer-bearing": {
+          "tokens": 16,
+          "delta": -0.00024021627245827916,
+          "increment": -0.00012818096208359832
+        },
+        "What is the color of pedestrian's lower body clothing? / format-only": {
+          "tokens": 48,
+          "delta": -8.019195441180843e-07,
+          "increment": 6.065997449472733e-07
+        },
+        "What is the color of pedestrian's upper body clothing? / answer-bearing": {
+          "tokens": 20,
+          "delta": -0.0001769655081062933,
+          "increment": -0.0002086186811970035
+        },
+        "What is the color of pedestrian's upper body clothing? / format-only": {
+          "tokens": 50,
+          "delta": 1.7821868013715805e-07,
+          "increment": 3.8762545044320395e-07
+        },
+        "What is the height of obstacle in the scene? / answer-bearing": {
+          "tokens": 4,
+          "delta": -0.0001429203803613671,
+          "increment": 4.188384290613002e-05
+        },
+        "What is the height of obstacle in the scene? / format-only": {
+          "tokens": 10,
+          "delta": -6.8872328047345435e-06,
+          "increment": 1.5942976837158058e-06
+        },
+        "What is the height of the pedestrian? / answer-bearing": {
+          "tokens": 64,
+          "delta": -0.0010717379502543456,
+          "increment": 9.631346643347107e-05
+        },
+        "What is the height of the pedestrian? / format-only": {
+          "tokens": 66,
+          "delta": -1.652326830406223e-07,
+          "increment": 1.4372168861393488e-07
+        },
+        "What is the position of the obstacle in the scene? / answer-bearing": {
+          "tokens": 10,
+          "delta": -0.0007870207190580035,
+          "increment": -0.00015826510434297712
+        },
+        "What is the position of the obstacle in the scene? / format-only": {
+          "tokens": 8,
+          "delta": 2.007267228746897e-06,
+          "increment": 1.9293364249430326e-06
+        },
+        "What is the road inclination in the scene? / answer-bearing": {
+          "tokens": 16,
+          "delta": 2.1855471749827377e-07,
+          "increment": 3.665253688299505e-07
+        },
+        "What is the road inclination in the scene? / format-only": {
+          "tokens": 56,
+          "delta": 9.605642286665851e-08,
+          "increment": 2.771488690583931e-07
+        },
+        "What is the type of the road? / answer-bearing": {
+          "tokens": 24,
+          "delta": 3.753836485688722e-06,
+          "increment": 6.028519611927455e-06
+        },
+        "What is the type of the road? / format-only": {
+          "tokens": 48,
+          "delta": 1.4689337626714554e-06,
+          "increment": 1.5748913340764427e-06
+        },
+        "What is the volume of the traffic in the scene? / answer-bearing": {
+          "tokens": 20,
+          "delta": -0.006663368350502037,
+          "increment": -0.00016049283159869367
+        },
+        "What is the volume of the traffic in the scene? / format-only": {
+          "tokens": 48,
+          "delta": -9.030760650313844e-06,
+          "increment": 7.9779466864424e-06
+        },
+        "What is the width of obstacle in the scene? / answer-bearing": {
+          "tokens": 8,
+          "delta": -6.637936471829976e-05,
+          "increment": -0.00010819649143922202
+        },
+        "What is the width of obstacle in the scene? / format-only": {
+          "tokens": 10,
+          "delta": -1.3471930111082342e-07,
+          "increment": 1.0947572012427484e-06
+        },
+        "What is weather in the scenario? / answer-bearing": {
+          "tokens": 18,
+          "delta": 0.0006133281026605689,
+          "increment": 0.0005245854690994266
+        },
+        "What is weather in the scenario? / format-only": {
+          "tokens": 60,
+          "delta": -1.254758035205578e-07,
+          "increment": 3.091509594400661e-08
+        },
+        "What pedestrian is wearing on lower body? / answer-bearing": {
+          "tokens": 32,
+          "delta": 2.0605500546708855e-05,
+          "increment": 1.7811835710274782e-05
+        },
+        "What pedestrian is wearing on lower body? / format-only": {
+          "tokens": 60,
+          "delta": -1.6789758866880398e-07,
+          "increment": 2.111105462027044e-07
+        },
+        "What pedestrian is wearing on upper body? / answer-bearing": {
+          "tokens": 30,
+          "delta": -0.0003067673118072347,
+          "increment": 0.00020193046843321695
+        },
+        "What pedestrian is wearing on upper body? / format-only": {
+          "tokens": 56,
+          "delta": -1.8276846769472765e-06,
+          "increment": -9.364683853403404e-08
+        },
+        "Where is the roadside strip in the scene? / answer-bearing": {
+          "tokens": 36,
+          "delta": 1.19716725159519e-06,
+          "increment": 1.014691719708876e-05
+        },
+        "Where is the roadside strip in the scene? / format-only": {
+          "tokens": 48,
+          "delta": -4.029630599258212e-07,
+          "increment": 1.9808831662110292e-07
+        },
+        "Where is the sidewalk in the scene? / answer-bearing": {
+          "tokens": 36,
+          "delta": -4.1753305569516865e-05,
+          "increment": 7.023524948802119e-06
+        },
+        "Where is the sidewalk in the scene? / format-only": {
+          "tokens": 36,
+          "delta": 7.970889842175133e-10,
+          "increment": 1.6827440586734761e-09
+        },
+        "end token / end token": {
+          "tokens": 16,
+          "delta": -7.970521014538714e-09,
+          "increment": 3.046527037378518e-08
+        }
+      }
+    },
+    {
+      "step": 13,
+      "original_native_nll": 0.1417882108471369,
+      "candidate_native_nll": 0.1386199107208188,
+      "ratio": 0.9776546998696961,
+      "delta": -0.00316830012631808,
+      "training_text_rows": 1,
+      "rows": [
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "native_mean_delta_contribution": -0.0003883371042635297,
+          "original_nll": 0.23280804335855612,
+          "candidate_nll": 0.22869228160785762
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+          "native_mean_delta_contribution": -0.00048370385402663976,
+          "original_nll": 0.229834364096142,
+          "candidate_nll": 0.22470786498181242
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_0.mp4",
+          "native_mean_delta_contribution": -0.00015209193868552908,
+          "original_nll": 0.13778061028446473,
+          "candidate_nll": 0.13545429494957018
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_4.mp4",
+          "native_mean_delta_contribution": -4.5169491970455225e-06,
+          "original_nll": 0.15072492907081153,
+          "candidate_nll": 0.150655840279684
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+          "native_mean_delta_contribution": -0.0002258880570436493,
+          "original_nll": 0.15638736583415644,
+          "candidate_nll": 0.15293230532528426
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+          "native_mean_delta_contribution": 1.588588656928417e-05,
+          "original_nll": 0.1518171628971479,
+          "candidate_nll": 0.1520601447530826
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera1_0.mp4",
+          "native_mean_delta_contribution": 0.00011465941600026794,
+          "original_nll": 0.02745199119478975,
+          "candidate_nll": 0.030881581726708872
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera1_3.mp4",
+          "native_mean_delta_contribution": 7.224091852508837e-05,
+          "original_nll": 0.027175403805191914,
+          "candidate_nll": 0.02933620994596456
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera3_1.mp4",
+          "native_mean_delta_contribution": 6.0772794487077174e-05,
+          "original_nll": 0.03254107469433873,
+          "candidate_nll": 0.03435885650277441
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera4_2.mp4",
+          "native_mean_delta_contribution": 7.635087924348295e-05,
+          "original_nll": 0.030183680808919967,
+          "candidate_nll": 0.032467420441402814
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera1_0.mp4",
+          "native_mean_delta_contribution": -0.0008916372056275428,
+          "original_nll": 0.1692628600833074,
+          "candidate_nll": 0.156495374138896
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera2_3.mp4",
+          "native_mean_delta_contribution": -0.000994134630223362,
+          "original_nll": 0.17840866554531504,
+          "candidate_nll": 0.16417350371254222
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+          "native_mean_delta_contribution": -0.000890187511615667,
+          "original_nll": 0.16547721524047623,
+          "candidate_nll": 0.15273048768053274
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera4_2.mp4",
+          "native_mean_delta_contribution": -0.0009331276796348566,
+          "original_nll": 0.1718231538950933,
+          "candidate_nll": 0.15846155967393888
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera2_0.mp4",
+          "native_mean_delta_contribution": 0.0006712528011758065,
+          "original_nll": 0.04190963905207753,
+          "candidate_nll": 0.051730359382323565
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera3_1.mp4",
+          "native_mean_delta_contribution": 0.0007841722064158692,
+          "original_nll": 0.06583649928092822,
+          "candidate_nll": 0.07730927960522996
+        }
+      ],
+      "largest_token_relative_changes": [
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera4_2.mp4",
+          "position": 60,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.7472097277641296,
+          "increment_since_previous": 0.5641840100288391,
+          "original_loss": 1.5229333639144897,
+          "candidate_loss": 0.7757236361503601
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_4.mp4",
+          "position": 54,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.5750425755977631,
+          "increment_since_previous": 0.5602394640445709,
+          "original_loss": 1.0643351078033447,
+          "candidate_loss": 0.48929253220558167
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+          "position": 60,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.6885669231414795,
+          "increment_since_previous": 0.4790768623352051,
+          "original_loss": 1.3516203165054321,
+          "candidate_loss": 0.6630533933639526
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_0.mp4",
+          "position": 54,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.734404981136322,
+          "increment_since_previous": 0.4350128769874573,
+          "original_loss": 1.503689169883728,
+          "candidate_loss": 0.769284188747406
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera2_0.mp4",
+          "position": 59,
+          "token_id": 8658,
+          "token_text": "\u0120Light",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.5407350659370422,
+          "increment_since_previous": 0.41082295030355453,
+          "original_loss": 0.4520406126976013,
+          "candidate_loss": 0.9927756786346436
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera3_1.mp4",
+          "position": 59,
+          "token_id": 8658,
+          "token_text": "\u0120Light",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.40559008717536926,
+          "increment_since_previous": 0.3579239025712013,
+          "original_loss": 0.2495655119419098,
+          "candidate_loss": 0.655155599117279
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera1_0.mp4",
+          "position": 60,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.8572053909301758,
+          "increment_since_previous": 0.3559408187866211,
+          "original_loss": 1.9295902252197266,
+          "candidate_loss": 1.0723848342895508
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+          "position": 54,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.6561772227287292,
+          "increment_since_previous": 0.3551552891731262,
+          "original_loss": 1.1427541971206665,
+          "candidate_loss": 0.48657697439193726
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 85,
+          "token_id": 8658,
+          "token_text": "\u0120Light",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.3959730267524719,
+          "increment_since_previous": 0.3465152233839035,
+          "original_loss": 0.20152980089187622,
+          "candidate_loss": 0.5975028276443481
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+          "position": 85,
+          "token_id": 8658,
+          "token_text": "\u0120Light",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.40424904227256775,
+          "increment_since_previous": 0.33491312339901924,
+          "original_loss": 0.25428107380867004,
+          "candidate_loss": 0.6585301160812378
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+          "position": 54,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.7229804396629333,
+          "increment_since_previous": 0.3134482502937317,
+          "original_loss": 1.297975778579712,
+          "candidate_loss": 0.5749953389167786
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 111,
+          "token_id": 54770,
+          "token_text": "\u0120Jacket",
+          "question": "What pedestrian is wearing on upper body?",
+          "component": "answer-bearing",
+          "delta": 0.006394863128662109,
+          "increment_since_previous": 0.2504711151123047,
+          "original_loss": 4.110874652862549,
+          "candidate_loss": 4.117269515991211
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_4.mp4",
+          "position": 23,
+          "token_id": 8126,
+          "token_text": "\u0120Dim",
+          "question": "What is the brightness level in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.3689594268798828,
+          "increment_since_previous": -0.24741220474243164,
+          "original_loss": 4.909509658813477,
+          "candidate_loss": 5.278469085693359
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+          "position": 23,
+          "token_id": 8126,
+          "token_text": "\u0120Dim",
+          "question": "What is the brightness level in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.3732438087463379,
+          "increment_since_previous": -0.2470388412475586,
+          "original_loss": 5.644185543060303,
+          "candidate_loss": 6.017429351806641
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+          "position": 111,
+          "token_id": 54770,
+          "token_text": "\u0120Jacket",
+          "question": "What pedestrian is wearing on upper body?",
+          "component": "answer-bearing",
+          "delta": -0.24592351913452148,
+          "increment_since_previous": -0.23526287078857422,
+          "original_loss": 4.359391689300537,
+          "candidate_loss": 4.113468170166016
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera2_3.mp4",
+          "position": 42,
+          "token_id": 21,
+          "token_text": "6",
+          "question": "What is the height of the pedestrian?",
+          "component": "answer-bearing",
+          "delta": -0.2127002477645874,
+          "increment_since_previous": 0.2333594560623169,
+          "original_loss": 2.019151210784912,
+          "candidate_loss": 1.8064509630203247
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera2_3.mp4",
+          "position": 60,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.9884488582611084,
+          "increment_since_previous": 0.23215937614440918,
+          "original_loss": 2.1436455249786377,
+          "candidate_loss": 1.1551966667175293
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera4_2.mp4",
+          "position": 35,
+          "token_id": 19036,
+          "token_text": "\u0120Navy",
+          "question": "What is the color of pedestrian's upper body clothing?",
+          "component": "answer-bearing",
+          "delta": -0.0987844467163086,
+          "increment_since_previous": -0.2239828109741211,
+          "original_loss": 8.337198257446289,
+          "candidate_loss": 8.23841381072998
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera4_2.mp4",
+          "position": 42,
+          "token_id": 21,
+          "token_text": "6",
+          "question": "What is the height of the pedestrian?",
+          "component": "answer-bearing",
+          "delta": -0.45163965225219727,
+          "increment_since_previous": -0.22069859504699707,
+          "original_loss": 2.5797295570373535,
+          "candidate_loss": 2.1280899047851562
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera3_1.mp4",
+          "position": 64,
+          "token_id": 12023,
+          "token_text": "\u0120Clear",
+          "question": "What is weather in the scenario?",
+          "component": "answer-bearing",
+          "delta": 0.23906874656677246,
+          "increment_since_previous": 0.19378802180290222,
+          "original_loss": 0.9044617414474487,
+          "candidate_loss": 1.1435304880142212
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera2_0.mp4",
+          "position": 27,
+          "token_id": 8126,
+          "token_text": "\u0120Dim",
+          "question": "What is the brightness level in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.10110414028167725,
+          "increment_since_previous": -0.14664435386657715,
+          "original_loss": 1.5369175672531128,
+          "candidate_loss": 1.63802170753479
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+          "position": 42,
+          "token_id": 21,
+          "token_text": "6",
+          "question": "What is the height of the pedestrian?",
+          "component": "answer-bearing",
+          "delta": -0.4327049255371094,
+          "increment_since_previous": 0.13501453399658203,
+          "original_loss": 2.2389023303985596,
+          "candidate_loss": 1.8061974048614502
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+          "position": 44,
+          "token_id": 5807,
+          "token_text": "\u0120White",
+          "question": "What is the color of pedestrian's upper body clothing?",
+          "component": "answer-bearing",
+          "delta": 0.007358551025390625,
+          "increment_since_previous": 0.12479782104492188,
+          "original_loss": 5.937131881713867,
+          "candidate_loss": 5.944490432739258
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 20,
+          "token_id": 5807,
+          "token_text": "\u0120White",
+          "question": "What is color of pedestrian's hat?",
+          "component": "answer-bearing",
+          "delta": -0.12522506713867188,
+          "increment_since_previous": -0.12453365325927734,
+          "original_loss": 5.690526485443115,
+          "candidate_loss": 5.565301418304443
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera1_0.mp4",
+          "position": 42,
+          "token_id": 21,
+          "token_text": "6",
+          "question": "What is the height of the pedestrian?",
+          "component": "answer-bearing",
+          "delta": -0.3217020034790039,
+          "increment_since_previous": 0.12430429458618164,
+          "original_loss": 2.1286332607269287,
+          "candidate_loss": 1.8069312572479248
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+          "position": 23,
+          "token_id": 8126,
+          "token_text": "\u0120Dim",
+          "question": "What is the brightness level in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.49810028076171875,
+          "increment_since_previous": -0.12426090240478516,
+          "original_loss": 6.512881755828857,
+          "candidate_loss": 7.010982036590576
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_0.mp4",
+          "position": 23,
+          "token_id": 8126,
+          "token_text": "\u0120Dim",
+          "question": "What is the brightness level in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.3651397228240967,
+          "increment_since_previous": -0.12039566040039062,
+          "original_loss": 3.940908193588257,
+          "candidate_loss": 4.3060479164123535
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera3_1.mp4",
+          "position": 27,
+          "token_id": 8126,
+          "token_text": "\u0120Dim",
+          "question": "What is the brightness level in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.36525893211364746,
+          "increment_since_previous": -0.11884355545043945,
+          "original_loss": 3.824476957321167,
+          "candidate_loss": 4.1897358894348145
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 44,
+          "token_id": 5807,
+          "token_text": "\u0120White",
+          "question": "What is the color of pedestrian's upper body clothing?",
+          "component": "answer-bearing",
+          "delta": -0.12393474578857422,
+          "increment_since_previous": -0.11827945709228516,
+          "original_loss": 5.683751583099365,
+          "candidate_loss": 5.559816837310791
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+          "position": 27,
+          "token_id": 23366,
+          "token_text": "\u0120Gray",
+          "question": "What is the color of pedestrian's lower body clothing?",
+          "component": "answer-bearing",
+          "delta": 0.0019237995147705078,
+          "increment_since_previous": 0.10757553577423096,
+          "original_loss": 1.8259062767028809,
+          "candidate_loss": 1.8278300762176514
+        }
+      ],
+      "question_component_contributions": {
+        "Are there street lights in the scene? / answer-bearing": {
+          "tokens": 8,
+          "delta": -1.6547246167732383e-06,
+          "increment": 1.0343873250626174e-06
+        },
+        "Are there street lights in the scene? / format-only": {
+          "tokens": 24,
+          "delta": -2.085771524959024e-07,
+          "increment": 5.607053064163441e-06
+        },
+        "How many lanes are there? / answer-bearing": {
+          "tokens": 36,
+          "delta": -1.1451535642075797e-05,
+          "increment": -1.8920806141599275e-07
+        },
+        "How many lanes are there? / format-only": {
+          "tokens": 36,
+          "delta": -1.622999607044852e-06,
+          "increment": 1.5832053413949348e-06
+        },
+        "Is pedestrian wearning a hat? / answer-bearing": {
+          "tokens": 2,
+          "delta": -2.6243446840396782e-05,
+          "increment": 3.833594949248996e-06
+        },
+        "Is pedestrian wearning a hat? / format-only": {
+          "tokens": 6,
+          "delta": -1.1150438541655743e-07,
+          "increment": 2.443822264895994e-07
+        },
+        "What are road surface conditions? / answer-bearing": {
+          "tokens": 12,
+          "delta": 5.839620876011125e-09,
+          "increment": 1.3955345625205884e-07
+        },
+        "What are road surface conditions? / format-only": {
+          "tokens": 36,
+          "delta": 1.481485303527484e-08,
+          "increment": 9.150852444162426e-08
+        },
+        "What is color of pedestrian's hat? / answer-bearing": {
+          "tokens": 2,
+          "delta": -0.00017967656321192567,
+          "increment": -9.171108965710757e-05
+        },
+        "What is color of pedestrian's hat? / format-only": {
+          "tokens": 6,
+          "delta": -5.357592481515926e-07,
+          "increment": -1.6958872584197868e-07
+        },
+        "What is surface type of the road? / answer-bearing": {
+          "tokens": 12,
+          "delta": -6.801232191862714e-08,
+          "increment": -2.461844719166246e-08
+        },
+        "What is surface type of the road? / format-only": {
+          "tokens": 36,
+          "delta": 5.212009542769865e-05,
+          "increment": 3.8597583619151484e-05
+        },
+        "What is the age group of the pedestrian? / answer-bearing": {
+          "tokens": 48,
+          "delta": 0.00010939419416291778,
+          "increment": -0.00011097979766751025
+        },
+        "What is the age group of the pedestrian? / format-only": {
+          "tokens": 64,
+          "delta": 2.962869587431066e-06,
+          "increment": -2.2376768439760432e-05
+        },
+        "What is the brightness level in the scene? / answer-bearing": {
+          "tokens": 16,
+          "delta": 0.0015345276613618745,
+          "increment": -0.0007432797298535572
+        },
+        "What is the brightness level in the scene? / format-only": {
+          "tokens": 48,
+          "delta": -3.971504018809193e-06,
+          "increment": 1.191675051529475e-06
+        },
+        "What is the color of pedestrian's lower body clothing? / answer-bearing": {
+          "tokens": 16,
+          "delta": -0.00015281468496988645,
+          "increment": 8.740158748839262e-05
+        },
+        "What is the color of pedestrian's lower body clothing? / format-only": {
+          "tokens": 48,
+          "delta": -6.307565110734267e-07,
+          "increment": 1.7116303304465758e-07
+        },
+        "What is the color of pedestrian's upper body clothing? / answer-bearing": {
+          "tokens": 20,
+          "delta": -0.0004825480600589274,
+          "increment": -0.00030558255195263414
+        },
+        "What is the color of pedestrian's upper body clothing? / format-only": {
+          "tokens": 50,
+          "delta": 1.6073109815535067e-08,
+          "increment": -1.6214557032162302e-07
+        },
+        "What is the height of obstacle in the scene? / answer-bearing": {
+          "tokens": 4,
+          "delta": -6.816746531411408e-05,
+          "increment": 7.475291504725306e-05
+        },
+        "What is the height of obstacle in the scene? / format-only": {
+          "tokens": 10,
+          "delta": -3.1102493707656518e-06,
+          "increment": 3.7769834339688917e-06
+        },
+        "What is the height of the pedestrian? / answer-bearing": {
+          "tokens": 64,
+          "delta": -0.0007320606591894454,
+          "increment": 0.0003396772910649
+        },
+        "What is the height of the pedestrian? / format-only": {
+          "tokens": 66,
+          "delta": -1.73295432011323e-07,
+          "increment": -8.062748970700748e-09
+        },
+        "What is the position of the obstacle in the scene? / answer-bearing": {
+          "tokens": 10,
+          "delta": -0.0007156890375542428,
+          "increment": 7.133168150376069e-05
+        },
+        "What is the position of the obstacle in the scene? / format-only": {
+          "tokens": 8,
+          "delta": 3.4467224450163727e-06,
+          "increment": 1.4394552162694756e-06
+        },
+        "What is the road inclination in the scene? / answer-bearing": {
+          "tokens": 16,
+          "delta": 8.050366540932073e-07,
+          "increment": 5.864819365949334e-07
+        },
+        "What is the road inclination in the scene? / format-only": {
+          "tokens": 56,
+          "delta": 6.456180845212823e-07,
+          "increment": 5.495616616546237e-07
+        },
+        "What is the type of the road? / answer-bearing": {
+          "tokens": 24,
+          "delta": 9.220521353921379e-06,
+          "increment": 5.466684868232654e-06
+        },
+        "What is the type of the road? / format-only": {
+          "tokens": 48,
+          "delta": 4.058260583988874e-06,
+          "increment": 2.5893268213174185e-06
+        },
+        "What is the volume of the traffic in the scene? / answer-bearing": {
+          "tokens": 20,
+          "delta": -0.003137814498164546,
+          "increment": 0.0035255538523374904
+        },
+        "What is the volume of the traffic in the scene? / format-only": {
+          "tokens": 48,
+          "delta": -1.2331735958879752e-05,
+          "increment": -3.30097530856591e-06
+        },
+        "What is the width of obstacle in the scene? / answer-bearing": {
+          "tokens": 8,
+          "delta": -0.000142973417313811,
+          "increment": -7.659405259551124e-05
+        },
+        "What is the width of obstacle in the scene? / format-only": {
+          "tokens": 10,
+          "delta": -1.9688095896422674e-06,
+          "increment": -1.834090288531444e-06
+        },
+        "What is weather in the scenario? / answer-bearing": {
+          "tokens": 18,
+          "delta": 0.0009445323953737144,
+          "increment": 0.00033120429271314553
+        },
+        "What is weather in the scenario? / format-only": {
+          "tokens": 60,
+          "delta": 9.2204923174922e-09,
+          "increment": 1.3469629583804991e-07
+        },
+        "What pedestrian is wearing on lower body? / answer-bearing": {
+          "tokens": 32,
+          "delta": 4.133837225599239e-05,
+          "increment": 2.0732871709283533e-05
+        },
+        "What pedestrian is wearing on lower body? / format-only": {
+          "tokens": 60,
+          "delta": 1.2052773286931077e-07,
+          "increment": 2.8842532153811475e-07
+        },
+        "What pedestrian is wearing on upper body? / answer-bearing": {
+          "tokens": 30,
+          "delta": -0.00014412712074337423,
+          "increment": 0.00016264019106386056
+        },
+        "What pedestrian is wearing on upper body? / format-only": {
+          "tokens": 56,
+          "delta": -9.097912981053652e-07,
+          "increment": 9.178933788419111e-07
+        },
+        "Where is the roadside strip in the scene? / answer-bearing": {
+          "tokens": 36,
+          "delta": -1.874424610542096e-05,
+          "increment": -1.9941413357016155e-05
+        },
+        "Where is the roadside strip in the scene? / format-only": {
+          "tokens": 48,
+          "delta": -4.87433786335461e-07,
+          "increment": -8.447072640963986e-08
+        },
+        "Where is the sidewalk in the scene? / answer-bearing": {
+          "tokens": 36,
+          "delta": -3.142352148916097e-05,
+          "increment": 1.0329784080355892e-05
+        },
+        "Where is the sidewalk in the scene? / format-only": {
+          "tokens": 36,
+          "delta": 9.742179920630289e-10,
+          "increment": 1.7712900784551547e-10
+        },
+        "end token / end token": {
+          "tokens": 16,
+          "delta": 1.0184675730477029e-08,
+          "increment": 1.8155196745015742e-08
+        }
+      }
+    },
+    {
+      "step": 14,
+      "original_native_nll": 0.1364980923761939,
+      "candidate_native_nll": 0.13798777907422535,
+      "ratio": 1.0109136081838113,
+      "delta": 0.001489686698031456,
+      "training_text_rows": 2,
+      "rows": [
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "native_mean_delta_contribution": -0.0003277483952544901,
+          "original_nll": 0.2223244382970975,
+          "candidate_nll": 0.21885082144660503
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+          "native_mean_delta_contribution": -0.0002396712013281412,
+          "original_nll": 0.21946071563075908,
+          "candidate_nll": 0.2169205783316435
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_0.mp4",
+          "native_mean_delta_contribution": 0.00012085466695159238,
+          "original_nll": 0.12965747478083267,
+          "candidate_nll": 0.13150600184579678
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_4.mp4",
+          "native_mean_delta_contribution": 0.0005538163522219181,
+          "original_nll": 0.1405339258106232,
+          "candidate_nll": 0.149004798652563
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+          "native_mean_delta_contribution": 0.0005180326173992877,
+          "original_nll": 0.14420424343629623,
+          "candidate_nll": 0.15212778778878988
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+          "native_mean_delta_contribution": 0.0005170067938661327,
+          "original_nll": 0.14301957409872842,
+          "candidate_nll": 0.15092742801399905
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera1_0.mp4",
+          "native_mean_delta_contribution": 9.44386897016071e-05,
+          "original_nll": 0.035761631114813494,
+          "candidate_nll": 0.03858639725566601
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera1_3.mp4",
+          "native_mean_delta_contribution": 0.00011806769499355376,
+          "original_nll": 0.03137551873105227,
+          "candidate_nll": 0.034907054674637235
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera3_1.mp4",
+          "native_mean_delta_contribution": 0.0001585001528968979,
+          "original_nll": 0.042256714431968746,
+          "candidate_nll": 0.04699763011639596
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera4_2.mp4",
+          "native_mean_delta_contribution": 0.00012345757565700069,
+          "original_nll": 0.03750974508811835,
+          "candidate_nll": 0.0412024983511033
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera1_0.mp4",
+          "native_mean_delta_contribution": -0.0003963154095914664,
+          "original_nll": 0.1503148133488461,
+          "candidate_nll": 0.1446399139732066
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera2_3.mp4",
+          "native_mean_delta_contribution": -0.00046056395630250386,
+          "original_nll": 0.16083567807130042,
+          "candidate_nll": 0.15424079418637307
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+          "native_mean_delta_contribution": -0.0005779724635359263,
+          "original_nll": 0.1510168346845841,
+          "candidate_nll": 0.14274076089820797
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera4_2.mp4",
+          "native_mean_delta_contribution": -0.0004950660607792506,
+          "original_nll": 0.15467272131177895,
+          "candidate_nll": 0.14758379665423776
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera2_0.mp4",
+          "native_mean_delta_contribution": 0.0008921632525687377,
+          "original_nll": 0.0667790514658958,
+          "candidate_nll": 0.07983178774804277
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera3_1.mp4",
+          "native_mean_delta_contribution": 0.0008906943936393397,
+          "original_nll": 0.08510729502225577,
+          "candidate_nll": 0.09813854125963131
+        }
+      ],
+      "largest_token_relative_changes": [
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera2_3.mp4",
+          "position": 60,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.3557475209236145,
+          "increment_since_previous": 0.6327013373374939,
+          "original_loss": 0.6489116549491882,
+          "candidate_loss": 0.29316413402557373
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera1_0.mp4",
+          "position": 60,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.2991880178451538,
+          "increment_since_previous": 0.558017373085022,
+          "original_loss": 0.5921390056610107,
+          "candidate_loss": 0.29295098781585693
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+          "position": 54,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.18376091122627258,
+          "increment_since_previous": 0.5392195284366608,
+          "original_loss": 0.3138431906700134,
+          "candidate_loss": 0.13008227944374084
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera4_2.mp4",
+          "position": 60,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.21094325184822083,
+          "increment_since_previous": 0.5362664759159088,
+          "original_loss": 0.40035387873649597,
+          "candidate_loss": 0.18941062688827515
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+          "position": 60,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.17661596834659576,
+          "increment_since_previous": 0.5119509547948837,
+          "original_loss": 0.3304784297943115,
+          "candidate_loss": 0.15386246144771576
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_0.mp4",
+          "position": 54,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.22686675190925598,
+          "increment_since_previous": 0.507538229227066,
+          "original_loss": 0.3952297270298004,
+          "candidate_loss": 0.16836297512054443
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+          "position": 54,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.15436863899230957,
+          "increment_since_previous": 0.5018085837364197,
+          "original_loss": 0.26010560989379883,
+          "candidate_loss": 0.10573697090148926
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_4.mp4",
+          "position": 54,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.11291556060314178,
+          "increment_since_previous": 0.4621270149946213,
+          "original_loss": 0.23147627711296082,
+          "candidate_loss": 0.11856071650981903
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera3_1.mp4",
+          "position": 59,
+          "token_id": 8658,
+          "token_text": "\u0120Light",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.663164496421814,
+          "increment_since_previous": 0.2575744092464447,
+          "original_loss": 1.1522846221923828,
+          "candidate_loss": 1.8154491186141968
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+          "position": 85,
+          "token_id": 8658,
+          "token_text": "\u0120Light",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.6615989208221436,
+          "increment_since_previous": 0.2573498785495758,
+          "original_loss": 1.1567209959030151,
+          "candidate_loss": 1.8183199167251587
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 65,
+          "token_id": 758,
+          "token_text": "\u0120In",
+          "question": "What is the position of the obstacle in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.14961814880371094,
+          "increment_since_previous": -0.2398386001586914,
+          "original_loss": 4.8974714279174805,
+          "candidate_loss": 4.7478532791137695
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_0.mp4",
+          "position": 23,
+          "token_id": 8126,
+          "token_text": "\u0120Dim",
+          "question": "What is the brightness level in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.12569284439086914,
+          "increment_since_previous": -0.23944687843322754,
+          "original_loss": 4.204321384429932,
+          "candidate_loss": 4.330014228820801
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera2_0.mp4",
+          "position": 59,
+          "token_id": 8658,
+          "token_text": "\u0120Light",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.7584395408630371,
+          "increment_since_previous": 0.21770447492599487,
+          "original_loss": 1.711836576461792,
+          "candidate_loss": 2.470276117324829
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+          "position": 17,
+          "token_id": 17,
+          "token_text": "2",
+          "question": "What is the age group of the pedestrian?",
+          "component": "answer-bearing",
+          "delta": 0.10492110252380371,
+          "increment_since_previous": 0.19508063793182373,
+          "original_loss": 1.3629472255706787,
+          "candidate_loss": 1.4678683280944824
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera4_2.mp4",
+          "position": 21,
+          "token_id": 17,
+          "token_text": "2",
+          "question": "What is the age group of the pedestrian?",
+          "component": "answer-bearing",
+          "delta": -0.05438530445098877,
+          "increment_since_previous": -0.14941823482513428,
+          "original_loss": 1.0624217987060547,
+          "candidate_loss": 1.008036494255066
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+          "position": 69,
+          "token_id": 11734,
+          "token_text": "\u0120victim",
+          "question": "What is the position of the obstacle in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.3903062343597412,
+          "increment_since_previous": 0.1424574851989746,
+          "original_loss": 1.8882031440734863,
+          "candidate_loss": 1.4978969097137451
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera3_1.mp4",
+          "position": 64,
+          "token_id": 12023,
+          "token_text": "\u0120Clear",
+          "question": "What is weather in the scenario?",
+          "component": "answer-bearing",
+          "delta": 0.0990515947341919,
+          "increment_since_previous": -0.14001715183258057,
+          "original_loss": 1.5089209079742432,
+          "candidate_loss": 1.607972502708435
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+          "position": 111,
+          "token_id": 54770,
+          "token_text": "\u0120Jacket",
+          "question": "What pedestrian is wearing on upper body?",
+          "component": "answer-bearing",
+          "delta": -0.10774898529052734,
+          "increment_since_previous": 0.13817453384399414,
+          "original_loss": 4.11829137802124,
+          "candidate_loss": 4.010542392730713
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 20,
+          "token_id": 5807,
+          "token_text": "\u0120White",
+          "question": "What is color of pedestrian's hat?",
+          "component": "answer-bearing",
+          "delta": 0.007982254028320312,
+          "increment_since_previous": 0.1332073211669922,
+          "original_loss": 5.323184967041016,
+          "candidate_loss": 5.331167221069336
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+          "position": 44,
+          "token_id": 5807,
+          "token_text": "\u0120White",
+          "question": "What is the color of pedestrian's upper body clothing?",
+          "component": "answer-bearing",
+          "delta": -0.12403488159179688,
+          "increment_since_previous": -0.1313934326171875,
+          "original_loss": 5.695773124694824,
+          "candidate_loss": 5.571738243103027
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 85,
+          "token_id": 8658,
+          "token_text": "\u0120Light",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.5225960612297058,
+          "increment_since_previous": 0.1266230344772339,
+          "original_loss": 0.9919410347938538,
+          "candidate_loss": 1.5145370960235596
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera2_3.mp4",
+          "position": 35,
+          "token_id": 19036,
+          "token_text": "\u0120Navy",
+          "question": "What is the color of pedestrian's upper body clothing?",
+          "component": "answer-bearing",
+          "delta": -0.0968942642211914,
+          "increment_since_previous": 0.12620067596435547,
+          "original_loss": 8.117674827575684,
+          "candidate_loss": 8.020780563354492
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 111,
+          "token_id": 54770,
+          "token_text": "\u0120Jacket",
+          "question": "What pedestrian is wearing on upper body?",
+          "component": "answer-bearing",
+          "delta": -0.11973905563354492,
+          "increment_since_previous": -0.12613391876220703,
+          "original_loss": 4.003493785858154,
+          "candidate_loss": 3.8837547302246094
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+          "position": 23,
+          "token_id": 8126,
+          "token_text": "\u0120Dim",
+          "question": "What is the brightness level in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.6230659484863281,
+          "increment_since_previous": 0.12496566772460938,
+          "original_loss": 6.515933036804199,
+          "candidate_loss": 7.138998985290527
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera4_2.mp4",
+          "position": 42,
+          "token_id": 21,
+          "token_text": "6",
+          "question": "What is the height of the pedestrian?",
+          "component": "answer-bearing",
+          "delta": -0.3270859718322754,
+          "increment_since_previous": 0.12455368041992188,
+          "original_loss": 2.2391059398651123,
+          "candidate_loss": 1.912019968032837
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_0.mp4",
+          "position": 60,
+          "token_id": 12023,
+          "token_text": "\u0120Clear",
+          "question": "What is weather in the scenario?",
+          "component": "answer-bearing",
+          "delta": 0.23850727081298828,
+          "increment_since_previous": 0.12429261207580566,
+          "original_loss": 3.063600778579712,
+          "candidate_loss": 3.3021080493927
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+          "position": 35,
+          "token_id": 19036,
+          "token_text": "\u0120Navy",
+          "question": "What is the color of pedestrian's upper body clothing?",
+          "component": "answer-bearing",
+          "delta": -0.21727323532104492,
+          "increment_since_previous": -0.12378454208374023,
+          "original_loss": 8.142340660095215,
+          "candidate_loss": 7.92506742477417
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+          "position": 60,
+          "token_id": 12023,
+          "token_text": "\u0120Clear",
+          "question": "What is weather in the scenario?",
+          "component": "answer-bearing",
+          "delta": 0.2393510341644287,
+          "increment_since_previous": 0.12316036224365234,
+          "original_loss": 3.184797763824463,
+          "candidate_loss": 3.4241487979888916
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera4_2.mp4",
+          "position": 35,
+          "token_id": 19036,
+          "token_text": "\u0120Navy",
+          "question": "What is the color of pedestrian's upper body clothing?",
+          "component": "answer-bearing",
+          "delta": -0.22005558013916016,
+          "increment_since_previous": -0.12127113342285156,
+          "original_loss": 8.11539363861084,
+          "candidate_loss": 7.89533805847168
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+          "position": 42,
+          "token_id": 21,
+          "token_text": "6",
+          "question": "What is the height of the pedestrian?",
+          "component": "answer-bearing",
+          "delta": -0.315584659576416,
+          "increment_since_previous": 0.11712026596069336,
+          "original_loss": 2.0192830562591553,
+          "candidate_loss": 1.7036983966827393
+        }
+      ],
+      "question_component_contributions": {
+        "Are there street lights in the scene? / answer-bearing": {
+          "tokens": 8,
+          "delta": 1.034868208561396e-07,
+          "increment": 1.7582114376293781e-06
+        },
+        "Are there street lights in the scene? / format-only": {
+          "tokens": 24,
+          "delta": 1.7615837737105587e-06,
+          "increment": 1.9701609262064615e-06
+        },
+        "How many lanes are there? / answer-bearing": {
+          "tokens": 36,
+          "delta": -6.481473941984205e-06,
+          "increment": 4.970061700091592e-06
+        },
+        "How many lanes are there? / format-only": {
+          "tokens": 36,
+          "delta": -2.6687104033168624e-06,
+          "increment": -1.045710796272011e-06
+        },
+        "Is pedestrian wearning a hat? / answer-bearing": {
+          "tokens": 2,
+          "delta": -2.5116997656106593e-05,
+          "increment": 1.1264491842901901e-06
+        },
+        "Is pedestrian wearning a hat? / format-only": {
+          "tokens": 6,
+          "delta": -1.0681754451405597e-07,
+          "increment": 4.6868409025014916e-09
+        },
+        "What are road surface conditions? / answer-bearing": {
+          "tokens": 12,
+          "delta": -5.887315697126632e-08,
+          "increment": -6.471277784727747e-08
+        },
+        "What are road surface conditions? / format-only": {
+          "tokens": 36,
+          "delta": 3.9273773014958756e-08,
+          "increment": 2.4458919979683923e-08
+        },
+        "What is color of pedestrian's hat? / answer-bearing": {
+          "tokens": 2,
+          "delta": -8.494078138785058e-05,
+          "increment": 9.473578182407509e-05
+        },
+        "What is color of pedestrian's hat? / format-only": {
+          "tokens": 6,
+          "delta": 1.0496785408978493e-07,
+          "increment": 6.407271022413776e-07
+        },
+        "What is surface type of the road? / answer-bearing": {
+          "tokens": 12,
+          "delta": 3.3829473031693055e-08,
+          "increment": 1.0184179495032018e-07
+        },
+        "What is surface type of the road? / format-only": {
+          "tokens": 36,
+          "delta": 0.00011587789755193348,
+          "increment": 6.375780212423481e-05
+        },
+        "What is the age group of the pedestrian? / answer-bearing": {
+          "tokens": 48,
+          "delta": 0.00013746494166945683,
+          "increment": 2.8070747506539066e-05
+        },
+        "What is the age group of the pedestrian? / format-only": {
+          "tokens": 64,
+          "delta": 2.4895349013653225e-05,
+          "increment": 2.1932479426222157e-05
+        },
+        "What is the brightness level in the scene? / answer-bearing": {
+          "tokens": 16,
+          "delta": 0.0014880736089307384,
+          "increment": -4.645405243113524e-05
+        },
+        "What is the brightness level in the scene? / format-only": {
+          "tokens": 48,
+          "delta": 2.007946701782106e-06,
+          "increment": 5.979450720591298e-06
+        },
+        "What is the color of pedestrian's lower body clothing? / answer-bearing": {
+          "tokens": 16,
+          "delta": -7.06219832574808e-06,
+          "increment": 0.0001457524866441383
+        },
+        "What is the color of pedestrian's lower body clothing? / format-only": {
+          "tokens": 48,
+          "delta": -1.9638523344554382e-07,
+          "increment": 4.343712776278828e-07
+        },
+        "What is the color of pedestrian's upper body clothing? / answer-bearing": {
+          "tokens": 20,
+          "delta": -0.0004651439646023698,
+          "increment": 1.7404095456557655e-05
+        },
+        "What is the color of pedestrian's upper body clothing? / format-only": {
+          "tokens": 50,
+          "delta": 7.839040101751118e-07,
+          "increment": 7.678309003595769e-07
+        },
+        "What is the height of obstacle in the scene? / answer-bearing": {
+          "tokens": 4,
+          "delta": -6.402568423907435e-05,
+          "increment": 4.141781075039731e-06
+        },
+        "What is the height of obstacle in the scene? / format-only": {
+          "tokens": 10,
+          "delta": -1.9215215043413515e-06,
+          "increment": 1.1887278664243002e-06
+        },
+        "What is the height of the pedestrian? / answer-bearing": {
+          "tokens": 64,
+          "delta": -0.0005170513580758896,
+          "increment": 0.00021500930111355613
+        },
+        "What is the height of the pedestrian? / format-only": {
+          "tokens": 66,
+          "delta": -9.855692729226635e-08,
+          "increment": 7.473850471905669e-08
+        },
+        "What is the position of the obstacle in the scene? / answer-bearing": {
+          "tokens": 10,
+          "delta": -0.0007876352265886795,
+          "increment": -7.194618903443676e-05
+        },
+        "What is the position of the obstacle in the scene? / format-only": {
+          "tokens": 8,
+          "delta": 4.178782116744624e-06,
+          "increment": 7.320596717282515e-07
+        },
+        "What is the road inclination in the scene? / answer-bearing": {
+          "tokens": 16,
+          "delta": 2.537120798226296e-06,
+          "increment": 1.7320841441330896e-06
+        },
+        "What is the road inclination in the scene? / format-only": {
+          "tokens": 56,
+          "delta": 1.1947923192387504e-06,
+          "increment": 5.49174234717468e-07
+        },
+        "What is the type of the road? / answer-bearing": {
+          "tokens": 24,
+          "delta": 1.1751733447513632e-05,
+          "increment": 2.531212093592254e-06
+        },
+        "What is the type of the road? / format-only": {
+          "tokens": 48,
+          "delta": 9.0447366144766e-06,
+          "increment": 4.986476030487727e-06
+        },
+        "What is the volume of the traffic in the scene? / answer-bearing": {
+          "tokens": 20,
+          "delta": 0.0006577923207690449,
+          "increment": 0.003795606818933591
+        },
+        "What is the volume of the traffic in the scene? / format-only": {
+          "tokens": 48,
+          "delta": -2.2077765372742055e-06,
+          "increment": 1.0123959421605546e-05
+        },
+        "What is the width of obstacle in the scene? / answer-bearing": {
+          "tokens": 8,
+          "delta": -0.0001876450553370355,
+          "increment": -4.467163802322449e-05
+        },
+        "What is the width of obstacle in the scene? / format-only": {
+          "tokens": 10,
+          "delta": -8.613972363390129e-07,
+          "increment": 1.1074123533032545e-06
+        },
+        "What is weather in the scenario? / answer-bearing": {
+          "tokens": 18,
+          "delta": 0.0012062116142311844,
+          "increment": 0.0002616792188574702
+        },
+        "What is weather in the scenario? / format-only": {
+          "tokens": 60,
+          "delta": 3.537095284324478e-07,
+          "increment": 3.4448903611495543e-07
+        },
+        "What pedestrian is wearing on lower body? / answer-bearing": {
+          "tokens": 32,
+          "delta": 5.403538974883309e-05,
+          "increment": 1.2697017492840691e-05
+        },
+        "What pedestrian is wearing on lower body? / format-only": {
+          "tokens": 60,
+          "delta": 1.2569127000107473e-06,
+          "increment": 1.1363849671414367e-06
+        },
+        "What pedestrian is wearing on upper body? / answer-bearing": {
+          "tokens": 30,
+          "delta": -2.881775165245182e-05,
+          "increment": 0.00011530936909092237
+        },
+        "What pedestrian is wearing on upper body? / format-only": {
+          "tokens": 56,
+          "delta": 1.599872950007037e-06,
+          "increment": 2.5096642481124023e-06
+        },
+        "Where is the roadside strip in the scene? / answer-bearing": {
+          "tokens": 36,
+          "delta": -1.2716654670000263e-05,
+          "increment": 6.0275914354206925e-06
+        },
+        "Where is the roadside strip in the scene? / format-only": {
+          "tokens": 48,
+          "delta": -1.3417488687746584e-07,
+          "increment": 3.532588994579951e-07
+        },
+        "Where is the sidewalk in the scene? / answer-bearing": {
+          "tokens": 36,
+          "delta": -3.657828477334284e-05,
+          "increment": -5.15476328418189e-06
+        },
+        "Where is the sidewalk in the scene? / format-only": {
+          "tokens": 36,
+          "delta": 3.7197373647505823e-09,
+          "increment": 2.7455193726875538e-09
+        },
+        "end token / end token": {
+          "tokens": 16,
+          "delta": 5.6853251674255415e-08,
+          "increment": 4.666857594377839e-08
+        }
+      }
+    },
+    {
+      "step": 15,
+      "original_native_nll": 0.13847131080604413,
+      "candidate_native_nll": 0.14026737637142547,
+      "ratio": 1.0129706691944087,
+      "delta": 0.0017960655653813384,
+      "training_text_rows": 0,
+      "rows": [
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "native_mean_delta_contribution": -0.00017382224121545884,
+          "original_nll": 0.21925296729348834,
+          "candidate_nll": 0.21741072527241742
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+          "native_mean_delta_contribution": -0.00023231985231330493,
+          "original_nll": 0.21640446049604875,
+          "candidate_nll": 0.21394223591956288
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_0.mp4",
+          "native_mean_delta_contribution": 0.00018183192335803316,
+          "original_nll": 0.12976527913019476,
+          "candidate_nll": 0.13254648104883013
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_4.mp4",
+          "native_mean_delta_contribution": 0.0003476404318513147,
+          "original_nll": 0.14252189239332377,
+          "candidate_nll": 0.14783921081686777
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+          "native_mean_delta_contribution": 0.0003853560465521962,
+          "original_nll": 0.14650204601853403,
+          "candidate_nll": 0.1523962419123892
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+          "native_mean_delta_contribution": 0.00044837536682632907,
+          "original_nll": 0.14325225109866047,
+          "candidate_nll": 0.1501103561412541
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera1_0.mp4",
+          "native_mean_delta_contribution": 9.101882649892568e-05,
+          "original_nll": 0.044765804089402964,
+          "candidate_nll": 0.04748827832201528
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera1_3.mp4",
+          "native_mean_delta_contribution": 6.865512713794927e-05,
+          "original_nll": 0.03733917128000318,
+          "candidate_nll": 0.039392722416173837
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera3_1.mp4",
+          "native_mean_delta_contribution": 0.00021747984336383373,
+          "original_nll": 0.04951384121464078,
+          "candidate_nll": 0.05601890497392345
+        },
+        {
+          "id": "20230728_27_CN34_T1/overhead_view/20230728_27_CN34_T1_Camera4_2.mp4",
+          "native_mean_delta_contribution": 0.0001812881214166711,
+          "original_nll": 0.0453482926282441,
+          "candidate_nll": 0.050770821771062756
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera1_0.mp4",
+          "native_mean_delta_contribution": -0.00018232067273112585,
+          "original_nll": 0.14563627566315834,
+          "candidate_nll": 0.1430255987961786
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera2_3.mp4",
+          "native_mean_delta_contribution": -0.000404437471036225,
+          "original_nll": 0.1551850315435478,
+          "candidate_nll": 0.14939383116041205
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+          "native_mean_delta_contribution": -0.0001105858928276511,
+          "original_nll": 0.1442136895035128,
+          "candidate_nll": 0.1426301936338743
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera4_2.mp4",
+          "native_mean_delta_contribution": -0.0002016812772812166,
+          "original_nll": 0.1467527440423183,
+          "candidate_nll": 0.14386483979529152
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera2_0.mp4",
+          "native_mean_delta_contribution": 0.0005813591132797597,
+          "original_nll": 0.09016287658138289,
+          "candidate_nll": 0.09866841317349763
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera3_1.mp4",
+          "native_mean_delta_contribution": 0.0005982304806295014,
+          "original_nll": 0.10551833190964002,
+          "candidate_nll": 0.11427070394145859
+        }
+      ],
+      "largest_token_relative_changes": [
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera2_0.mp4",
+          "position": 59,
+          "token_id": 8658,
+          "token_text": "\u0120Light",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.3591456413269043,
+          "increment_since_previous": -0.3992938995361328,
+          "original_loss": 3.0525200366973877,
+          "candidate_loss": 3.411665678024292
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera2_3.mp4",
+          "position": 60,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.0546274334192276,
+          "increment_since_previous": 0.3011200875043869,
+          "original_loss": 0.15057000517845154,
+          "candidate_loss": 0.09594257175922394
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+          "position": 23,
+          "token_id": 8126,
+          "token_text": "\u0120Dim",
+          "question": "What is the brightness level in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.37567806243896484,
+          "increment_since_previous": -0.24738788604736328,
+          "original_loss": 6.646106243133545,
+          "candidate_loss": 7.02178430557251
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera1_0.mp4",
+          "position": 60,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.06627445667982101,
+          "increment_since_previous": 0.2329135611653328,
+          "original_loss": 0.15149444341659546,
+          "candidate_loss": 0.08521998673677444
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera3_1.mp4",
+          "position": 27,
+          "token_id": 8126,
+          "token_text": "\u0120Dim",
+          "question": "What is the brightness level in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.13077068328857422,
+          "increment_since_previous": -0.22893190383911133,
+          "original_loss": 4.04783296585083,
+          "candidate_loss": 4.178603649139404
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 65,
+          "token_id": 758,
+          "token_text": "\u0120In",
+          "question": "What is the position of the obstacle in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.06758880615234375,
+          "increment_since_previous": 0.2172069549560547,
+          "original_loss": 4.90419340133667,
+          "candidate_loss": 4.971782207489014
+        },
+        {
+          "id": "20230728_58_SY15_T1/overhead_view/20230728_58_SY15_T1_Camera3_1.mp4",
+          "position": 59,
+          "token_id": 8658,
+          "token_text": "\u0120Light",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.4602358341217041,
+          "increment_since_previous": -0.20292866230010986,
+          "original_loss": 2.3573179244995117,
+          "candidate_loss": 2.817553758621216
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+          "position": 85,
+          "token_id": 8658,
+          "token_text": "\u0120Light",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.4593217372894287,
+          "increment_since_previous": -0.20227718353271484,
+          "original_loss": 2.359616279602051,
+          "candidate_loss": 2.8189380168914795
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_0.mp4",
+          "position": 54,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.03611946478486061,
+          "increment_since_previous": 0.19074728712439537,
+          "original_loss": 0.0942193865776062,
+          "candidate_loss": 0.05809992179274559
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 69,
+          "token_id": 11734,
+          "token_text": "\u0120victim",
+          "question": "What is the position of the obstacle in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.18748050928115845,
+          "increment_since_previous": 0.1848134994506836,
+          "original_loss": 0.7838945984840393,
+          "candidate_loss": 0.5964140892028809
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+          "position": 31,
+          "token_id": 23366,
+          "token_text": "\u0120Gray",
+          "question": "What is the color of pedestrian's lower body clothing?",
+          "component": "answer-bearing",
+          "delta": 0.0956038236618042,
+          "increment_since_previous": 0.18314993381500244,
+          "original_loss": 1.255501389503479,
+          "candidate_loss": 1.3511052131652832
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera4_2.mp4",
+          "position": 60,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.03538588061928749,
+          "increment_since_previous": 0.17555737122893333,
+          "original_loss": 0.0947565883398056,
+          "candidate_loss": 0.05937070772051811
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+          "position": 54,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.027446404099464417,
+          "increment_since_previous": 0.15631450712680817,
+          "original_loss": 0.07252439111471176,
+          "candidate_loss": 0.045077987015247345
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+          "position": 60,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.025111455470323563,
+          "increment_since_previous": 0.1515045128762722,
+          "original_loss": 0.08529650419950485,
+          "candidate_loss": 0.06018504872918129
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera2_3.mp4",
+          "position": 35,
+          "token_id": 19036,
+          "token_text": "\u0120Navy",
+          "question": "What is the color of pedestrian's upper body clothing?",
+          "component": "answer-bearing",
+          "delta": -0.24565887451171875,
+          "increment_since_previous": -0.14876461029052734,
+          "original_loss": 8.020882606506348,
+          "candidate_loss": 7.775223731994629
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+          "position": 54,
+          "token_id": 3985,
+          "token_text": "\u0120Us",
+          "question": "What is the volume of the traffic in the scene?",
+          "component": "answer-bearing",
+          "delta": -0.01711948961019516,
+          "increment_since_previous": 0.1372491493821144,
+          "original_loss": 0.05806617811322212,
+          "candidate_loss": 0.04094668850302696
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+          "position": 35,
+          "token_id": 19036,
+          "token_text": "\u0120Navy",
+          "question": "What is the color of pedestrian's upper body clothing?",
+          "component": "answer-bearing",
+          "delta": -0.09058570861816406,
+          "increment_since_previous": 0.12668752670288086,
+          "original_loss": 7.926058769226074,
+          "candidate_loss": 7.83547306060791
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_4.mp4",
+          "position": 23,
+          "token_id": 8126,
+          "token_text": "\u0120Dim",
+          "question": "What is the brightness level in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.2475285530090332,
+          "increment_since_previous": -0.12332725524902344,
+          "original_loss": 5.067511081695557,
+          "candidate_loss": 5.31503963470459
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera1_0.mp4",
+          "position": 20,
+          "token_id": 5807,
+          "token_text": "\u0120White",
+          "question": "What is color of pedestrian's hat?",
+          "component": "answer-bearing",
+          "delta": -0.11530923843383789,
+          "increment_since_previous": -0.1232914924621582,
+          "original_loss": 5.207940578460693,
+          "candidate_loss": 5.0926313400268555
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+          "position": 23,
+          "token_id": 8126,
+          "token_text": "\u0120Dim",
+          "question": "What is the brightness level in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.25168848037719727,
+          "increment_since_previous": -0.12014341354370117,
+          "original_loss": 5.783752918243408,
+          "candidate_loss": 6.0354413986206055
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_1.mp4",
+          "position": 60,
+          "token_id": 12023,
+          "token_text": "\u0120Clear",
+          "question": "What is weather in the scenario?",
+          "component": "answer-bearing",
+          "delta": 0.12052202224731445,
+          "increment_since_previous": -0.11882901191711426,
+          "original_loss": 3.5442392826080322,
+          "candidate_loss": 3.6647613048553467
+        },
+        {
+          "id": "20230707_18_CY23_T1/overhead_view/20230707_18_CY23_T1_Camera2_1.mp4",
+          "position": 65,
+          "token_id": 758,
+          "token_text": "\u0120In",
+          "question": "What is the position of the obstacle in the scene?",
+          "component": "answer-bearing",
+          "delta": 0.04082155227661133,
+          "increment_since_previous": 0.11837577819824219,
+          "original_loss": 4.1733222007751465,
+          "candidate_loss": 4.214143753051758
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_0.mp4",
+          "position": 60,
+          "token_id": 12023,
+          "token_text": "\u0120Clear",
+          "question": "What is weather in the scenario?",
+          "component": "answer-bearing",
+          "delta": 0.12022566795349121,
+          "increment_since_previous": -0.11828160285949707,
+          "original_loss": 3.421743869781494,
+          "candidate_loss": 3.5419695377349854
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera1_4.mp4",
+          "position": 60,
+          "token_id": 12023,
+          "token_text": "\u0120Clear",
+          "question": "What is weather in the scenario?",
+          "component": "answer-bearing",
+          "delta": 0.12259697914123535,
+          "increment_since_previous": -0.11740350723266602,
+          "original_loss": 3.6644222736358643,
+          "candidate_loss": 3.7870192527770996
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera4_2.mp4",
+          "position": 42,
+          "token_id": 21,
+          "token_text": "6",
+          "question": "What is the height of the pedestrian?",
+          "component": "answer-bearing",
+          "delta": -0.2123420238494873,
+          "increment_since_previous": 0.11474394798278809,
+          "original_loss": 2.019570827484131,
+          "candidate_loss": 1.8072288036346436
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera3_1.mp4",
+          "position": 42,
+          "token_id": 21,
+          "token_text": "6",
+          "question": "What is the height of the pedestrian?",
+          "component": "answer-bearing",
+          "delta": -0.20364999771118164,
+          "increment_since_previous": 0.11193466186523438,
+          "original_loss": 1.8069355487823486,
+          "candidate_loss": 1.603285551071167
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera1_0.mp4",
+          "position": 42,
+          "token_id": 21,
+          "token_text": "6",
+          "question": "What is the height of the pedestrian?",
+          "component": "answer-bearing",
+          "delta": -0.1985316276550293,
+          "increment_since_previous": 0.11093294620513916,
+          "original_loss": 1.7045490741729736,
+          "candidate_loss": 1.5060174465179443
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera2_3.mp4",
+          "position": 66,
+          "token_id": 12023,
+          "token_text": "\u0120Clear",
+          "question": "What is weather in the scenario?",
+          "component": "answer-bearing",
+          "delta": 0.1767667531967163,
+          "increment_since_previous": 0.10428881645202637,
+          "original_loss": 1.1403610706329346,
+          "candidate_loss": 1.3171278238296509
+        },
+        {
+          "id": "20230714_44_CY8_T1/overhead_view/20230714_44_CY8_T1_Camera2_5.mp4",
+          "position": 27,
+          "token_id": 23366,
+          "token_text": "\u0120Gray",
+          "question": "What is the color of pedestrian's lower body clothing?",
+          "component": "answer-bearing",
+          "delta": -0.1011272668838501,
+          "increment_since_previous": -0.10280203819274902,
+          "original_loss": 1.8325178623199463,
+          "candidate_loss": 1.7313905954360962
+        },
+        {
+          "id": "20230728_37_CN38_T1/overhead_view/20230728_37_CN38_T1_Camera1_0.mp4",
+          "position": 35,
+          "token_id": 19036,
+          "token_text": "\u0120Navy",
+          "question": "What is the color of pedestrian's upper body clothing?",
+          "component": "answer-bearing",
+          "delta": -0.09646797180175781,
+          "increment_since_previous": -0.09932613372802734,
+          "original_loss": 7.598644733428955,
+          "candidate_loss": 7.502176761627197
+        }
+      ],
+      "question_component_contributions": {
+        "Are there street lights in the scene? / answer-bearing": {
+          "tokens": 8,
+          "delta": -1.2332828159140962e-07,
+          "increment": -2.2681510244754948e-07
+        },
+        "Are there street lights in the scene? / format-only": {
+          "tokens": 24,
+          "delta": 2.4572398218106235e-06,
+          "increment": 6.956560481000652e-07
+        },
+        "How many lanes are there? / answer-bearing": {
+          "tokens": 36,
+          "delta": -6.569447145481798e-06,
+          "increment": -8.797320349759126e-08
+        },
+        "How many lanes are there? / format-only": {
+          "tokens": 36,
+          "delta": -6.388784426002921e-07,
+          "increment": 2.029831960716572e-06
+        },
+        "Is pedestrian wearning a hat? / answer-bearing": {
+          "tokens": 2,
+          "delta": -2.2007919084086992e-05,
+          "increment": 3.1090785720196022e-06
+        },
+        "Is pedestrian wearning a hat? / format-only": {
+          "tokens": 6,
+          "delta": 4.705306651820758e-09,
+          "increment": 1.115228511658767e-07
+        },
+        "What are road surface conditions? / answer-bearing": {
+          "tokens": 12,
+          "delta": 3.525281791508829e-07,
+          "increment": 4.114013361221492e-07
+        },
+        "What are road surface conditions? / format-only": {
+          "tokens": 36,
+          "delta": 2.9956049104638273e-07,
+          "increment": 2.6028671803142393e-07
+        },
+        "What is color of pedestrian's hat? / answer-bearing": {
+          "tokens": 2,
+          "delta": -0.00016871214267226244,
+          "increment": -8.377136128441186e-05
+        },
+        "What is color of pedestrian's hat? / format-only": {
+          "tokens": 6,
+          "delta": 3.232410005422332e-07,
+          "increment": 2.182731464524483e-07
+        },
+        "What is surface type of the road? / answer-bearing": {
+          "tokens": 12,
+          "delta": 8.014248654901577e-08,
+          "increment": 4.631301351732272e-08
+        },
+        "What is surface type of the road? / format-only": {
+          "tokens": 36,
+          "delta": 0.0002040116595703849,
+          "increment": 8.813376201845146e-05
+        },
+        "What is the age group of the pedestrian? / answer-bearing": {
+          "tokens": 48,
+          "delta": 4.589970611274709e-05,
+          "increment": -9.156523555670975e-05
+        },
+        "What is the age group of the pedestrian? / format-only": {
+          "tokens": 64,
+          "delta": -3.8905036635453635e-06,
+          "increment": -2.8785852677198593e-05
+        },
+        "What is the brightness level in the scene? / answer-bearing": {
+          "tokens": 16,
+          "delta": 0.0009748438825722879,
+          "increment": -0.0005132297263584511
+        },
+        "What is the brightness level in the scene? / format-only": {
+          "tokens": 48,
+          "delta": 4.313605825659627e-06,
+          "increment": 2.3056591238775217e-06
+        },
+        "What is the color of pedestrian's lower body clothing? / answer-bearing": {
+          "tokens": 16,
+          "delta": 3.3283725181624853e-06,
+          "increment": 1.039057084391055e-05
+        },
+        "What is the color of pedestrian's lower body clothing? / format-only": {
+          "tokens": 48,
+          "delta": 7.829646347969014e-07,
+          "increment": 9.793498682424455e-07
+        },
+        "What is the color of pedestrian's upper body clothing? / answer-bearing": {
+          "tokens": 20,
+          "delta": -0.0005863051485120809,
+          "increment": -0.00012116118390971096
+        },
+        "What is the color of pedestrian's upper body clothing? / format-only": {
+          "tokens": 50,
+          "delta": 9.487865142960278e-07,
+          "increment": 1.6488250412091587e-07
+        },
+        "What is the height of obstacle in the scene? / answer-bearing": {
+          "tokens": 4,
+          "delta": -1.4093827683185221e-05,
+          "increment": 4.9931856555889124e-05
+        },
+        "What is the height of obstacle in the scene? / format-only": {
+          "tokens": 10,
+          "delta": -8.270807489966508e-07,
+          "increment": 1.094440755344701e-06
+        },
+        "What is the height of the pedestrian? / answer-bearing": {
+          "tokens": 64,
+          "delta": -0.0003561618258340266,
+          "increment": 0.00016088953224186297
+        },
+        "What is the height of the pedestrian? / format-only": {
+          "tokens": 66,
+          "delta": -1.1456996474203001e-09,
+          "increment": 9.741122764484605e-08
+        },
+        "What is the position of the obstacle in the scene? / answer-bearing": {
+          "tokens": 10,
+          "delta": -0.00038991503854784537,
+          "increment": 0.0003977201880408343
+        },
+        "What is the position of the obstacle in the scene? / format-only": {
+          "tokens": 8,
+          "delta": 5.124396941775787e-06,
+          "increment": 9.456148250311623e-07
+        },
+        "What is the road inclination in the scene? / answer-bearing": {
+          "tokens": 16,
+          "delta": 6.162382615245824e-06,
+          "increment": 3.6252618170195264e-06
+        },
+        "What is the road inclination in the scene? / format-only": {
+          "tokens": 56,
+          "delta": 2.9414633094301033e-06,
+          "increment": 1.7466709901913536e-06
+        },
+        "What is the type of the road? / answer-bearing": {
+          "tokens": 24,
+          "delta": 1.635276360463567e-05,
+          "increment": 4.601030157122036e-06
+        },
+        "What is the type of the road? / format-only": {
+          "tokens": 48,
+          "delta": 1.8345122874205705e-05,
+          "increment": 9.300386259729106e-06
+        },
+        "What is the volume of the traffic in the scene? / answer-bearing": {
+          "tokens": 20,
+          "delta": 0.0010732422827855867,
+          "increment": 0.0004154499620165419
+        },
+        "What is the volume of the traffic in the scene? / format-only": {
+          "tokens": 48,
+          "delta": 3.712857315509679e-06,
+          "increment": 5.920633852783887e-06
+        },
+        "What is the width of obstacle in the scene? / answer-bearing": {
+          "tokens": 8,
+          "delta": -0.00020015685587988565,
+          "increment": -1.2511800542850191e-05
+        },
+        "What is the width of obstacle in the scene? / format-only": {
+          "tokens": 10,
+          "delta": -1.0545431060856968e-07,
+          "increment": 7.559429257304432e-07
+        },
+        "What is weather in the scenario? / answer-bearing": {
+          "tokens": 18,
+          "delta": 0.0010991375060024826,
+          "increment": -0.00010707410822870188
+        },
+        "What is weather in the scenario? / format-only": {
+          "tokens": 60,
+          "delta": 1.1462176451106135e-06,
+          "increment": 7.925081166781659e-07
+        },
+        "What pedestrian is wearing on lower body? / answer-bearing": {
+          "tokens": 32,
+          "delta": 6.602612361422619e-05,
+          "increment": 1.1990733865393112e-05
+        },
+        "What pedestrian is wearing on lower body? / format-only": {
+          "tokens": 60,
+          "delta": 2.06423059026216e-06,
+          "increment": 8.073178902514123e-07
+        },
+        "What pedestrian is wearing on upper body? / answer-bearing": {
+          "tokens": 30,
+          "delta": 8.156399108001747e-05,
+          "increment": 0.0001103817427324693
+        },
+        "What pedestrian is wearing on upper body? / format-only": {
+          "tokens": 56,
+          "delta": 9.60931683604121e-07,
+          "increment": -6.389412664029159e-07
+        },
+        "Where is the roadside strip in the scene? / answer-bearing": {
+          "tokens": 36,
+          "delta": -3.837030900768205e-05,
+          "increment": -2.5653654337681782e-05
+        },
+        "Where is the roadside strip in the scene? / format-only": {
+          "tokens": 48,
+          "delta": 1.73143377956323e-07,
+          "increment": 3.073182648337888e-07
+        },
+        "Where is the sidewalk in the scene? / answer-bearing": {
+          "tokens": 36,
+          "delta": -3.083278899867071e-05,
+          "increment": 5.7454957746721406e-06
+        },
+        "Where is the sidewalk in the scene? / format-only": {
+          "tokens": 36,
+          "delta": 5.491027237327828e-09,
+          "increment": 1.7712898725772442e-09
+        },
+        "end token / end token": {
+          "tokens": 16,
+          "delta": 1.7426852035657248e-07,
+          "increment": 1.1741526868231706e-07
+        }
+      }
+    }
+  ],
+  "interpretation_limit": "Temporal contributions localize where the recipe effect changes; they do not isolate a sole causal role for batch composition versus inherited parameters/moments."
+}

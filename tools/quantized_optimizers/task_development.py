@@ -158,6 +158,29 @@ def step(*args, **kwargs):
             )
         report = observe(trainer.model, captured["packer"], trainer.objective, captured["substantive_dataset"])
         record("late_substantive.jsonl", {"step": result["optim/optimizer_step"], **report})
+    recovery_from = int(os.environ.get("TASK_RECOVERY_OBSERVER_FROM", "0"))
+    if recovery_from and result["optim/optimizer_step"] >= recovery_from:
+        import torch
+
+        from cosmos_framework.posttrain.checkpoint.rng import collect_rng_state
+        from tools.quantized_optimizers.state_digest import digest
+
+        trainer = captured["trainer"]
+        data = args[0] if args else kwargs["data"]
+        # Same streaming value proof as the retained40-to44 recovery test. Avoid
+        # the backend's eager full snapshot; observe live state tensor by tensor.
+        record(
+            "recovery_states.jsonl",
+            {
+                "step": result["optim/optimizer_step"],
+                "trainables": digest({n: p for n, p in trainer._net().named_parameters() if p.requires_grad}),
+                "optimizer": digest(torch.optim.Optimizer.state_dict(trainer.opt)),
+                "scheduler": digest(trainer.lr_scheduler.state_dict()),
+                "update": digest(trainer._update_state_dict()),
+                "cursor": digest(entry.resolve(data.state_dict())),
+                "rng": digest(collect_rng_state()),
+            },
+        )
     return result
 
 
@@ -179,6 +202,24 @@ def install():
     entry.build_trainer = build
     entry._evaluate = evaluate
     entry.train_step = step
+    if os.environ.get("TASK_RECOVERY_OBSERVER_FROM") or os.environ.get("TASK_RECORD_TRAINING_INPUTS") == "1":
+        from cosmos_framework.posttrain.data.packer.prepared_sft import target_key
+        from cosmos_framework.posttrain.roles.env.sft import SFTDatasetEnv
+
+        original_samples = SFTDatasetEnv.get_samples
+
+        def samples(source, count):
+            batch = original_samples(source, count)
+            record(
+                "training_inputs.jsonl",
+                {
+                    "ids": [trajectory.id for trajectory in batch],
+                    "targets": [target_key(trajectory.transitions[0].targets) for trajectory in batch],
+                },
+            )
+            return batch
+
+        SFTDatasetEnv.get_samples = samples
 
 
 def finish():

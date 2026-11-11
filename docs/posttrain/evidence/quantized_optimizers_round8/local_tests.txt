@@ -1,1 +1,3 @@
 Observer/substantive: 7 passed in4.33s. Combined affected verification/slice/observer/substantive:28 passed in5.22s. Sets overlap.
+
+Ordering:26 passed in2.86s; affected ordering/legacy SFT/cursor regressions62 passed in3.03s. CLI fixture initially omitted required -- separator:1failed/62passed in4.03s; corrected fixture and full affected set63passed in4.09s. These sets overlap. Verifier Python compatibility:12passed in0.04s.

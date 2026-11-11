@@ -1,0 +1,4 @@
+38354071|optimizer-r8-replay|COMPLETED|0:0|1627|45|8|billing=1,cpu=8,gres/gpu=1,mem=128G,node=1|batch-block4-1051|
+38354071.batch|batch|COMPLETED|0:0|1627||8|cpu=8,gres/gpu=1,mem=128G,node=1|batch-block4-1051|5452K
+38354071.extern|extern|COMPLETED|0:0|1627||8|billing=1,cpu=8,gres/gpu=1,mem=128G,node=1|batch-block4-1051|0
+38354071.0|bash|COMPLETED|0:0|1621||8|cpu=8,gres/gpu=1,mem=128G,node=1|batch-block4-1051|4727452K

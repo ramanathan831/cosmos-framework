@@ -132,7 +132,14 @@ def main():
     (ROOT / "replay_summary.json").write_text(json.dumps(output, indent=2) + "\n")
     print(
         json.dumps(
-            [{k: v for k, v in x.items() if k not in ("rows", "largest_token_relative_changes")} for x in observations],
+            [
+                {
+                    k: v
+                    for k, v in x.items()
+                    if k not in ("rows", "largest_token_relative_changes", "question_component_contributions")
+                }
+                for x in observations
+            ],
             indent=2,
         )
     )

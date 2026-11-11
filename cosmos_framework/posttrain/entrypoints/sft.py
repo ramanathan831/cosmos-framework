@@ -184,9 +184,11 @@ def build_trainer(config: Any, rl: SFTConfig, data: Any, validation: Any | None,
         moe_lbl_method=rl.moe_lbl_method,
         serve_contract=rl.serve_contract,
     )
+    ordering_identity = getattr(data, "ordering_identity", lambda: None)()
     objective.identity = {
         **objective.identity,
         "training_source": data.source_fingerprint,
+        **({"training_order": ordering_identity} if ordering_identity is not None else {}),
         "micro_batch_size": rl.micro_batch_size,
         "grad_accum": rl.grad_accum,
         "dp_world": world_size_or_1(),

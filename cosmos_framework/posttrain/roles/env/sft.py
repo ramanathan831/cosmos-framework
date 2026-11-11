@@ -23,6 +23,8 @@ class SFTDatasetEnv:
         shuffle: bool = True,
         seed: int = 0,
         training: bool = True,
+        interleave_id_prefix: str = "",
+        interleave_window: int = 0,
     ) -> None:
         if type(world_size) is not int or world_size < 1 or type(rank) is not int or not 0 <= rank < world_size:
             raise ValueError("invalid SFT data-parallel coordinates")
@@ -35,7 +37,15 @@ class SFTDatasetEnv:
         self.world_size: int = world_size
         self.training: bool = training
         self.source_fingerprint: str = dataset.cursor_fingerprint()
-        self.cursor: IndexedCursor = IndexedCursor(
+        cursor_type, cursor_options = IndexedCursor, {}
+        if interleave_id_prefix or interleave_window:
+            if not training:
+                raise ValueError("SFT interleaving applies to training only; validation order is fixed")
+            from cosmos_framework.posttrain.roles.env.interleaved_cursor import InterleavedCursor
+
+            cursor_type = InterleavedCursor
+            cursor_options = {"id_prefix": interleave_id_prefix, "window": interleave_window}
+        self.cursor: IndexedCursor = cursor_type(
             dataset,
             shard_index=rank,
             shard_count=world_size,
@@ -43,6 +53,7 @@ class SFTDatasetEnv:
             seed=seed,
             cursor_resume="strict",
             label="SFT source",
+            **cursor_options,
         )
         self._loaded_checkpoint_provenance: dict[str, int | str] | None = None
 
@@ -105,6 +116,10 @@ class SFTDatasetEnv:
     def source_identity(self) -> str:
         return self.source_fingerprint
 
+    def ordering_identity(self) -> dict[str, Any] | None:
+        identity = getattr(self.cursor, "ordering_identity", None)
+        return identity() if identity is not None else None
+
     def state_dict(self) -> dict[str, Any]:
         """Collect rank cursors: the LLM engine persists control-owned data components verbatim."""
         from cosmos_framework.posttrain.utils.dist import run_rank_converged
@@ -141,4 +156,6 @@ def build_sft_env(
         shuffle=config.shuffle,
         seed=seed,
         training=training,
+        interleave_id_prefix=config.interleave_id_prefix,
+        interleave_window=config.interleave_window,
     )
