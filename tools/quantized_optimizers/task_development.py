@@ -147,6 +147,17 @@ def step(*args, **kwargs):
             "elapsed_seconds": time.monotonic() - started,
         },
     )
+    if os.environ.get("TASK_OBSERVE_LATE_SUBSTANTIVE") == "1" and 10 <= result["optim/optimizer_step"] <= 15:
+        from cosmos_framework.posttrain.data.datasets.sft import JSONLSFTDataset
+        from tools.quantized_optimizers.late_observer import observe
+
+        trainer = captured["trainer"]
+        if "substantive_dataset" not in captured:
+            captured["substantive_dataset"] = JSONLSFTDataset(
+                str(Path(os.environ["SFT_DATA_ROOT"]) / "validation.jsonl")
+            )
+        report = observe(trainer.model, captured["packer"], trainer.objective, captured["substantive_dataset"])
+        record("late_substantive.jsonl", {"step": result["optim/optimizer_step"], **report})
     return result
 
 

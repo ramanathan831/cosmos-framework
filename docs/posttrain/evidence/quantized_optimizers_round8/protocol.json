@@ -1,0 +1,14 @@
+{
+  "starting_commit": "26a5fa14b9c0a57daaf6098ded81142b3164242d",
+  "aggregate_caps": null,
+  "scope": "Two exact seed43 diagnostic replays, then at most two sequential mechanism-driven single-factor shared interventions; fused first, conditional eight-bit and complete locked final comparison. One shared critical-path runtime improvement. No push/publication/QLoRA checkout changes.",
+  "replay": "Original and0.975; retain10/15; read-only attribution10..15 is necessary to localize update-specific contributions which endpoints alone cannot identify. Require stored curves and final state parity before interpretation. Fresh-process native batch4 checks at10/15 in both arms. No product timing claim.",
+  "guards": {
+    "task_mean_ratio_max": 0.98,
+    "per_seed_accuracy_loss_max": 0,
+    "each_native_substantive_ratio_max": 1.01
+  },
+  "final_protocol": "../quantized_optimizers_round3/final_protocol.json",
+  "wall_estimate": "45minutes with120seconds grace includes added observations,midpoint saves,full-state comparisons andfourreloads. A scheduler request, not aggregate spending ceiling.",
+  "live_owned_gpu_jobs_at_start": []
+}
