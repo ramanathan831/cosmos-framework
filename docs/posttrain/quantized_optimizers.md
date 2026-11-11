@@ -1102,9 +1102,27 @@ resumes. Defaults and ordinary cursor checkpoints remain unchanged. The
 [prospective development trial](evidence/quantized_optimizers_round8/interleave_protocol.json)
 uses `rl.data.interleave_id_prefix=mcq:` and `rl.data.interleave_window=20`,
 original exponent 1.0, LR 1e-5 and all original development guards. Sixty-three
-affected local ordering/legacy/CLI checks pass; the admitted fused study includes
-native fresh-process next-input and every-update recovery. Selection remains
-pending; this policy is not a qualified recipe improvement.
+affected local ordering/legacy/CLI checks pass. A subsequent disabled-persistence
+edge-case fix passes 28 focused checks; strict persistence is unchanged.
+
+The [fused screen](evidence/quantized_optimizers_round8/fused_interleave_summary.json)
+improves mean task NLL **19.07%** and loses no seed's accuracy, but **fails** the
+substantive guard. At update 15:
+
+| Seed | Original → interleaved task NLL | Accuracy | Substantive-NLL ratio, limit ≤1.01 |
+|---|---|---|---:|
+| 17 | 0.52271 → 0.51078 | 87.5% → 87.5% | 0.694146 |
+| 29 | 0.74272 → 0.66440 | 84.375% → 87.5% | **1.542966** |
+| 43 | 0.50138 → 0.25479 | 78.125% → 90.625% | **1.208833** |
+
+All evaluation identities, exact five-update exposure windows and update counters
+pass. Fresh-process seed17 continuation from update10 matches all five next input
+batches, every resumed update's live parameters/moments, scheduler, RNG and
+counters, and final model/optimizer/data/trainer components. Only validation
+publication/timing bookkeeping is excluded. This establishes ordering recovery,
+not recipe quality. The rejected recipe receives no eight-bit or final stage.
+Targeted native batch-four attribution of both substantive failures is admitted;
+no second intervention has yet been selected. Defaults remain unchanged.
 
 Shared preparation tooling now offers `--reference-verification bytes` while
 retaining `tensors` as the default. Exact serialized payload identity allows
@@ -1140,7 +1158,7 @@ regeneration, immutable source archives, Slurm submission, collection and analys
 [First-campaign status](evidence/quantized_optimizers/qualification_summary.json)
 and [completed follow-up status](evidence/quantized_optimizers_round2/qualification_summary.json)
 link each result, gate and remaining requirement. The
-[current proposed PR](evidence/quantized_optimizers_round7/proposed_pr.md)
+[current proposed PR](evidence/quantized_optimizers_round8/proposed_pr.md)
 describes the combined implementation and measured limitations; it has not been published.
 [Additional campaign commands](evidence/quantized_optimizers_round4/commands.md),
 [source identities](evidence/quantized_optimizers_round4/source_identity.json) and

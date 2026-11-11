@@ -34,10 +34,15 @@ reloads localize the relative substantive-loss reversal primarily to updates 13�
 and traffic-volume answer tokens. Inputs, masks, 1,346 supervised tokens, final
 parameters, optimizer, RNG, scheduler and cursor all match their respective
 stored runs. No scoring or optimizer defect was found. An opt-in resumable
-within-window ordering policy now tests the resulting competition hypothesis;
-defaults remain unchanged, and development selection is pending. Its local
-coverage includes window/epoch membership, tails, legacy compatibility and
-next-input/update recovery; the admitted GPU study includes native continuation.
+within-window ordering policy tests the resulting competition hypothesis.
+Its local coverage includes window/epoch membership, tails and legacy
+compatibility. Native seed 17 fresh-process 10→15 continuation matches every next
+input batch and update, plus final model/optimizer/data/trainer components.
+The three-seed fused screen improves mean task NLL 19.07% without accuracy loss,
+but substantive ratios 0.694146/1.542966/1.208833 fail the unchanged ≤1.01 guard.
+The recipe is rejected; defaults remain unchanged, with no eight-bit/final stage.
+Native batch-four attribution of both failed seeds is admitted before any
+second intervention is selected.
 
 Shared preparation reference verification can now compare exact serialized
 identities using bounded complete hashing, retaining source/processor checks,
