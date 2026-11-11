@@ -1,5 +1,39 @@
 {
   "final_build_diagnostics": {
+    "preserved_start_failures": {
+      "allocated_cpu_seconds": 1184,
+      "attempts": 2,
+      "cause": "The input hash guard pinned local submission-transport envelope bytes for a remote path containing the inner submission receipt. Both attempts stopped before job-output creation or model work.",
+      "correction": "Versioned plans pin the preserved raw remote receipt bytes; commands, native build, scientific settings and resource caps are unchanged. Parsed job/plan identities agree; byte serializations are kept distinct.",
+      "cost_scope": "Whole bare allocation clocks charged once; nested batch/step clocks are not additional allocations. Retry outcomes remain pending.",
+      "elapsed_seconds_each": 37,
+      "exit_code": "1:0",
+      "failure_evidence_sha256": "07c7084407cd6b5a3cb27c47babeead7e1fbce29deaa62a9deae1c7c1de89530",
+      "gpu_allocation_seconds": 74,
+      "model_work_started": false,
+      "qualification_accepted": false,
+      "receipt_byte_evidence_sha256": "0d1f77af820ed821b521c9f60483cd0c83161e064e598c0b26af17e10e83c535",
+      "state": "FAILED",
+      "terminal_snapshot_sha256": "9edaefb2bfd955cdb16aa4ae254d3be642591cb7a2b77b066c7ca7fb52fdccac"
+    },
+    "retry_input_preflight": {
+      "bf16": {
+        "bytes_hashed": 12687943,
+        "elapsed_seconds": 0.5223361644893885,
+        "passed": true,
+        "plan_sha256": "ca4c9703c3db6cba0299eb0e9e11a525cd5c895d84c635f10e39e586e9d629e8",
+        "source_sha256": "0b957b792c823f25933165d5c8f04805df358fa730789b988d667f1a665fac2e",
+        "unique_inputs": 88
+      },
+      "nf4": {
+        "bytes_hashed": 14958027,
+        "elapsed_seconds": 0.673671911470592,
+        "passed": true,
+        "plan_sha256": "370ff2936b147ab22e862cdf90a3422ae542ae96e0814c8015ea3672d227b83a",
+        "source_sha256": "d866b03cdc59738ec15d3964061b264af200949987bf40f5a7ba0696027aa7ab",
+        "unique_inputs": 88
+      }
+    },
     "status": "pending"
   },
   "learning_screen": {
