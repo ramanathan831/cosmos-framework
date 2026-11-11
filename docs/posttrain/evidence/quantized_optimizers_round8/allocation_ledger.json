@@ -18,6 +18,15 @@
       "state": "COMPLETED",
       "charged_seconds": 1754,
       "exit_code": "0:0"
+    },
+    {
+      "job": "38357148",
+      "purpose": "fused interleave development and native seed17 continuation",
+      "requested_seconds": 2700,
+      "gpu_count": 1,
+      "state": "PENDING",
+      "charged_seconds": null,
+      "exit_code": null
     }
   ],
   "local_checks": [
@@ -34,6 +43,27 @@
       "reported_seconds": 0.04,
       "passed": 12,
       "scope": "Python compatibility correction; overlap"
+    },
+    {
+      "reported_seconds": 2.86,
+      "passed": 26,
+      "scope": "ordering; overlap"
+    },
+    {
+      "reported_seconds": 3.03,
+      "passed": 62,
+      "scope": "ordering and legacy; overlap"
+    },
+    {
+      "reported_seconds": 4.03,
+      "passed": 62,
+      "failed": 1,
+      "scope": "CLI fixture lacked required separator; corrected next"
+    },
+    {
+      "reported_seconds": 4.09,
+      "passed": 63,
+      "scope": "complete affected ordering/legacy/CLI checks; overlap"
     }
   ],
   "historical_totals_from_40885d9": {

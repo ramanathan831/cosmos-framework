@@ -51,3 +51,27 @@ Collect terminal raw evidence using the existing `collect_evidence.py`; do not
 copy dense checkpoints locally. `analyze_replay.py` refuses analysis until the
 full replay-parity receipt exists. Recipe selection remains conditional on that
 evidence and the unchanged three-seed development guards.
+
+The first shared recipe trial is locked in `interleave_protocol.json` and
+`fused_interleave_spec.json`. `fused_interleave_launch.json` records the submitted
+archive (`d0948599`), environment and exact `sbatch` argv. The native overrides
+are `rl.data.interleave_id_prefix=mcq:` and `rl.data.interleave_window=20`;
+`rl.ce_exponent=1.0` and LR 1e-5 retain their original values. Seed17 keeps the
+update10 checkpoint and resumes it in a fresh process. The final verification
+case compares actual next inputs, every resumed update and all final components.
+Do not use the earlier incomplete `03051145` archive: its newly added cursor was
+caught under the repository's generic `env/` ignore rule before submission.
+
+After collecting a terminal study with the existing collector:
+
+```bash
+.venv/bin/python docs/posttrain/evidence/quantized_optimizers_round8/analyze_screen.py \
+  docs/posttrain/evidence/quantized_optimizers_round8/fused_interleave_raw.json.gz \
+  fused_interleave adamw --lr-ratio 1 \
+  --output docs/posttrain/evidence/quantized_optimizers_round8/fused_interleave_summary.json
+```
+
+The analogous eight-bit spec is conditional and must not run before all fused
+guards pass. Analysis uses the original matching controls, fixed evaluation
+identities and exact exposure within each five-update window. Diagnostic state
+hashing and midpoint saving are correctness work, excluded from product timing.

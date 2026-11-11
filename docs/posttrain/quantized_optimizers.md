@@ -1071,14 +1071,67 @@ local editing and analysis wall was not exhaustively metered. Including round si
 the requested campaign from `2b0fe20` allocated 1,169 GPU / 9,447 CPU seconds.
 Aggregate ceilings remain removed, and no recipe sweep or final comparison is implied.
 
-The [next quality diagnostic](evidence/quantized_optimizers_round7/development_diagnosis.json)
-is an exact original/0.975 seed43 replay retaining updates 10 and 15, with
-native batch-four attribution and update-15 state parity. It is unsubmitted;
-estimated cost is 20–25 GPU allocation-minutes, with a 35-minute operational
-reservation including dependent saves/reloads and termination grace. No new
-exponent, LR, precision exception or quality threshold is selected. The product
-objective remains open. See the [requirement map](evidence/quantized_optimizers_round7/requirements.md)
-and [commands](evidence/quantized_optimizers_round7/commands.md).
+The round-seven [proposed diagnostic](evidence/quantized_optimizers_round7/development_diagnosis.json)
+was subsequently completed in round eight, below. Its original proposal and
+cost estimate remain historical evidence.
+
+## Controlled replay and reference verification (round eight)
+
+The [two seed43 replays](evidence/quantized_optimizers_round8/replay_summary.json)
+reproduce original/exponent-0.975 curves at updates 0/5/10/15 and their respective
+complete update-15 model, optimizer, scheduler, RNG, cursor and counters exactly.
+Only validation publication/timing bookkeeping is excluded from trainer-state
+comparison. Four fresh-process reloads reproduce native batch-four row/token
+losses at updates 10/15. Read-only observations after updates 10–15 preserve
+all 1,346 supervised tokens and do not perturb final training state.
+
+The [attribution](evidence/quantized_optimizers_round8/development_diagnosis.json)
+locates the relative reversal primarily at updates 13–14, before the all-choice
+update 15. Traffic-volume answer tokens account for about 92% of the relative
+worsening from update 12 to 14. The original/0.975 substantive NLL ratios at
+updates 12/13/14/15 are 0.95891/0.97765/1.01091/1.01297. Both losses improve
+overall from update 10 to 15, although both rise locally from 14 to 15. This
+supports testing transient supervision competition; it does not establish a
+sole causal family, a quantization defect or free-generation quality.
+
+An opt-in native ordering policy interleaves prefix-matching and other row IDs
+proportionally within windows of the original seeded permutation. It preserves
+exact window/epoch membership, within-kind order and all targets, including
+tails. Its distinct cursor and objective identities reject incompatible exact
+resumes. Defaults and ordinary cursor checkpoints remain unchanged. The
+[prospective development trial](evidence/quantized_optimizers_round8/interleave_protocol.json)
+uses `rl.data.interleave_id_prefix=mcq:` and `rl.data.interleave_window=20`,
+original exponent 1.0, LR 1e-5 and all original development guards. Sixty-three
+affected local ordering/legacy/CLI checks pass; the admitted fused study includes
+native fresh-process next-input and every-update recovery. Selection remains
+pending; this policy is not a qualified recipe improvement.
+
+Shared preparation tooling now offers `--reference-verification bytes` while
+retaining `tensors` as the default. Exact serialized payload identity allows
+bounded parallel full hashing to replace redundant deserialization and repeated
+source verification in the reference comparison. Native processor/source binding,
+every independent uncached target replay and final success sequencing remain.
+Byte verification fails closed if serialization differs, even for semantically
+equal tensors; it does not silently fall back.
+
+Three [counterbalanced pairs](evidence/quantized_optimizers_round8/verification_summary.json)
+on existing complete corpora preserve all 751 rows / 562 targets and the original
+manifest identity. Verification-phase speed ratio is **4.0882 [3.9940, 4.2654]**;
+whole verifier-process ratio is **1.7174 [1.5804, 1.8340]**. Whole-process controls
+take 288.44/293.89/298.73 seconds and byte verification 182.51/168.18/162.88 seconds.
+These are verifier measurements, not full preparations or cold optimizer
+deliveries. Storage caches were uncontrolled. Inner process-tree PSS peaks are
+0.80–0.87 GiB for controls and 0.71–0.81 GiB for byte verification; imports before
+the sampler are excluded. A fresh 15-target development preparation also retains
+all independent replay and exact-reference checks.
+
+Affected local and pinned tests pass, including checksum/mutation rejection;
+their overlapping counts are recorded rather than added. The standalone verifier
+also passes Python 3.8 compatibility and corruption checks on the cluster host.
+The [critical-path calculation](evidence/quantized_optimizers_round8/critical_path_plan.json)
+shows that even eliminating the entire historical verification phase gives only
+1.00966× cold speed with other historical costs fixed. No equivalent full cold
+campaign is repeated, and no historical product gate is reclassified as passed.
 
 ## Reproduction and source identities
 

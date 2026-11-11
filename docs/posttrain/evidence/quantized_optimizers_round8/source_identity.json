@@ -81,5 +81,40 @@
     "tools/quantized_optimizers/budgeted_sft.py": "c5caadc6d1441dcb4886a34ef6622ab951d14b20b11cb931c57a6a85c7ebdb33"
   },
   "final_protocol_sha256": "aff3b3d9e32418a784f894de24e645bf72692fb18d2e5f9603c0a3d0d5faad65",
-  "scope": "No optimizer or checkpoint transaction change. The optional native development observer and preparation reference verification change only; same-identity optimizer recovery evidence retained. New data-order policy, if selected, will require its own resume checks."
+  "scope": "Optimizer and checkpoint transaction paths unchanged. Optional read-only development attribution, exact-byte preparation verification and opt-in native data interleaving change. New ordering policy requires and includes separate next-input/every-update fresh-process continuation.",
+  "fused_interleave": {
+    "name": "fused-interleave",
+    "source_commit": "d0948599f0ab694939099c6d997eabcc9e9f65ae",
+    "source_archive_sha256": "92c3048f58810e8994bebbb848407daa1419a7f8ec0148009c44710b16ce1065",
+    "environment": {
+      "SOURCE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850",
+      "ASSETS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z",
+      "PRIOR": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-quantized-optimizers-20261103",
+      "PREPARATION": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/prepare-evaluation-v1",
+      "CONTAINER_IMAGE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-automl-focused-20261012/image-conversion/cosmos-framework-focused.sqsh",
+      "SOURCE_ARCHIVE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/source-interleave-complete.tgz",
+      "TASK_DATA_ROOT": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data",
+      "TASK_SPEC": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/fused_interleave_spec.json",
+      "MODE": "study",
+      "WORK_SECONDS": "2580",
+      "RESULTS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/fused-interleave"
+    },
+    "argv": [
+      "sbatch",
+      "--parsable",
+      "--export=ALL",
+      "--time=45",
+      "--nodelist=batch-block4-1051",
+      "--job-name=optimizer-r8-fused-interleave",
+      "--output=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/fused-interleave-%j.log",
+      "--partition=interactive_singlenode,polar",
+      "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/deployment.sbatch"
+    ],
+    "wall_seconds": 2700,
+    "grace_seconds": 120,
+    "root": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111",
+    "pre_admission_packaging_correction": "The generic env/ ignore rule excluded the new cursor file from03051145. It was explicitly added and archive bytes checked before any job submission; no failed allocation.",
+    "job": "38357148",
+    "utc": "2026-11-11T02:46:57.609452+00:00"
+  }
 }
