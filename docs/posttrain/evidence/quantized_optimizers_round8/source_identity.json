@@ -76,12 +76,11 @@
     "cosmos_framework/utils/quantized_optimizer.py": "914a645b5226ec426d6317a3e5b1dd0149f91f66b430978beb3a321e69a885a3",
     "cosmos_framework/posttrain/config/build.py": "813ceac0ef92cba2a95c5cbd7fe160f90419f87ab64466dbb38b32ced107d163",
     "cosmos_framework/posttrain/config/rl.py": "e0d544584a0f3b5a795d81b90c5c19d9abaa978ae182c61024bef43a5a814eb5",
-    "cosmos_framework/posttrain/algorithm/sft.py": "b132d1ea556f5c66c99afe952d93daab7c56e3720b1ed1fa7f6bcba47d69fe88",
     "cosmos_framework/posttrain/data/packer/prepared_sft.py": "bed9bdffbc95a651c55ece2489da1f4bd623be388931c15ded297a2b1cb3e851",
     "tools/quantized_optimizers/budgeted_sft.py": "c5caadc6d1441dcb4886a34ef6622ab951d14b20b11cb931c57a6a85c7ebdb33"
   },
   "final_protocol_sha256": "aff3b3d9e32418a784f894de24e645bf72692fb18d2e5f9603c0a3d0d5faad65",
-  "scope": "Optimizer and checkpoint transaction paths unchanged. Optional read-only development attribution, exact-byte preparation verification and opt-in native data interleaving change. New ordering policy requires and includes separate next-input/every-update fresh-process continuation.",
+  "scope": "Optimizer and checkpoint transaction code unchanged. Optional read-only observations, exact-byte preparation verification, opt-in data interleaving and training-only label smoothing change. Each changed recipe requires its own native continuation; default objective regression included for smoothing.",
   "fused_interleave": {
     "name": "fused-interleave",
     "source_commit": "d0948599f0ab694939099c6d997eabcc9e9f65ae",
@@ -197,5 +196,53 @@
       "source_and_spec_hashes_verified": true,
       "case_argument_formatting_verified": true
     }
+  },
+  "historical_objective_sha256_before_smoothing": "b132d1ea556f5c66c99afe952d93daab7c56e3720b1ed1fa7f6bcba47d69fe88",
+  "fused_smoothing": {
+    "name": "fused-smoothing",
+    "source_commit": "8ff0198ebd22167811d77d87b7c1f6807388b22b",
+    "source_archive_sha256": "b45a3aa06231f9de2adcc515c04104a936b7f7b2e45a0711e54056517197e1f6",
+    "environment": {
+      "SOURCE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850",
+      "ASSETS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z",
+      "PRIOR": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-quantized-optimizers-20261103",
+      "PREPARATION": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/prepare-evaluation-v1",
+      "CONTAINER_IMAGE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-automl-focused-20261012/image-conversion/cosmos-framework-focused.sqsh",
+      "SOURCE_ARCHIVE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/source-smoothing-v2.tgz",
+      "TASK_DATA_ROOT": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data",
+      "TASK_SPEC": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/fused_smoothing_v2_spec.json",
+      "MODE": "study",
+      "WORK_SECONDS": "2580",
+      "RESULTS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/fused-smoothing"
+    },
+    "argv": [
+      "sbatch",
+      "--parsable",
+      "--export=ALL",
+      "--time=45",
+      "--nodelist=batch-block4-1051",
+      "--job-name=optimizer-r8-fused-smoothing",
+      "--output=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/fused-smoothing-%j.log",
+      "--partition=interactive_singlenode,polar",
+      "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/deployment.sbatch"
+    ],
+    "wall_seconds": 2700,
+    "grace_seconds": 120,
+    "root": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111",
+    "spec_sha256": "f84b90eeabff13767bd0d8a10f230410d69e1207d054adfebb59bdf560efda0a",
+    "admission": "Second and final shared recipe trial; original order, epsilon0.01. Default high-precision regression, pinned objective tests, three fused seeds and seed17 exact continuation included. Conditional eight-bit/final stages unadmitted.",
+    "supersedes_pending_job": "38361257 cancelled before allocation; disable pytest_env which otherwise clears GPU visibility. No recipe change.",
+    "job": "38361299",
+    "utc": "2026-11-11T04:10:42.984653+00:00",
+    "preflight": {
+      "source_and_spec_hashes_verified": true,
+      "prepared_verified_rows": 751,
+      "case_argument_formatting_verified": true
+    }
+  },
+  "smoothing_changed_paths_sha256": {
+    "cosmos_framework/posttrain/algorithm/sft.py": "72f551331da092ddd874e27e044cf3426cfcb29e4f1b90a1ef75ccc858fe89be",
+    "cosmos_framework/posttrain/config/sft.py": "3c7bf99d4b54d287af840a38b28880e868c5e0a0faf4d603c2cb1f5af07ae670",
+    "cosmos_framework/posttrain/entrypoints/sft.py": "67b7ffcc095fae370855526cea1ec3f8884eaf7f2d6820c66eb31fe299bccf1f"
   }
 }

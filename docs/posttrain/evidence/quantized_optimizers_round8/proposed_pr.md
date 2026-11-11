@@ -41,8 +41,13 @@ input batch and update, plus final model/optimizer/data/trainer components.
 The three-seed fused screen improves mean task NLL 19.07% without accuracy loss,
 but substantive ratios 0.694146/1.542966/1.208833 fail the unchanged ≤1.01 guard.
 The recipe is rejected; defaults remain unchanged, with no eight-bit/final stage.
-Native batch-four attribution of both failed seeds is admitted before any
-second intervention is selected.
+Three further native batch-four reloads reproduce96 task observations and all
+substantive losses, identifying shared semantic-confidence shifts across families.
+The second/final trial adds optional training-only uniform-vocabulary label
+smoothing0.01 while restoring original order. Hard-target evaluation and reported
+CE remain unchanged; nonzero regularization enters the exact-resume identity.
+Its fused screen includes unchanged-default regression and native continuation;
+conditional outcomes are pending. This is not a promoted quality recipe.
 
 Shared preparation reference verification can now compare exact serialized
 identities using bounded complete hashing, retaining source/processor checks,

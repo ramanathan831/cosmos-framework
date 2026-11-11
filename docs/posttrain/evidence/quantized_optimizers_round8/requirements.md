@@ -24,5 +24,11 @@ gates and uses development examples only for diagnosis and recipe selection.
 The first recipe intervention changes only order, at original exponent 1.0 and
 LR 1e-5, 15 updates / 40-update horizon. Its screen requires ≥2% lower mean task NLL, no
 per-seed accuracy loss and every native substantive ratio ≤1.01 against original
-matching controls. A second intervention is not selected or admitted. It requires
-evidence supporting a concrete revised mechanism after the first result.
+matching controls. Completed native attribution of the rejected ordering trial reproduces 96 task
+observations and all three native substantive aggregates. Multiple semantic
+answers change confidence; formatting/end losses do not explain the regressions.
+The second/final intervention is training-only label smoothing0.01, restoring
+original ordering and all original controls. `smoothing_protocol.json` freezes
+its prediction and unchanged guards. The fused stage includes pinned gradient
+checks, unchanged-default final-state/curve regression and exact native10→15
+continuation. Eight-bit/final stages remain conditional, with no third trial.

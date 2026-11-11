@@ -1,0 +1,41 @@
+{
+  "name": "fused-smoothing",
+  "source_commit": "5644732d3017a2f2242fbdbed07c46816ffafa3e",
+  "source_archive_sha256": "9e629368fe51e74e31529c53cf208816ce4612cb233e3879aae1de10cdf30098",
+  "environment": {
+    "SOURCE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850",
+    "ASSETS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z",
+    "PRIOR": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-quantized-optimizers-20261103",
+    "PREPARATION": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/prepare-evaluation-v1",
+    "CONTAINER_IMAGE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-automl-focused-20261012/image-conversion/cosmos-framework-focused.sqsh",
+    "SOURCE_ARCHIVE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/source-smoothing.tgz",
+    "TASK_DATA_ROOT": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data",
+    "TASK_SPEC": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/fused_smoothing_spec.json",
+    "MODE": "study",
+    "WORK_SECONDS": "2580",
+    "RESULTS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/fused-smoothing"
+  },
+  "argv": [
+    "sbatch",
+    "--parsable",
+    "--export=ALL",
+    "--time=45",
+    "--nodelist=batch-block4-1051",
+    "--job-name=optimizer-r8-fused-smoothing",
+    "--output=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/fused-smoothing-%j.log",
+    "--partition=interactive_singlenode,polar",
+    "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/deployment.sbatch"
+  ],
+  "wall_seconds": 2700,
+  "grace_seconds": 120,
+  "root": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111",
+  "spec_sha256": "0dbe4fafc29505c4bc79b17a6d5a850f3079e9c0d814d5981d83ff64d97e80d8",
+  "admission": "Second and final shared recipe trial; original order, epsilon0.01. Default high-precision regression, pinned objective tests, three fused seeds and seed17 exact continuation included. Conditional eight-bit/final stages unadmitted.",
+  "job": "38361257",
+  "utc": "2026-11-11T04:09:21.162567+00:00",
+  "preflight": {
+    "source_and_spec_hashes_verified": true,
+    "prepared_verified_rows": 751,
+    "case_argument_formatting_verified": true
+  }
+}

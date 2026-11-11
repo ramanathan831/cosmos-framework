@@ -51,6 +51,24 @@
       "exit_code": "0:0",
       "allocation_elapsed_seconds": 426,
       "extern_cleanup_seconds": 2
+    },
+    {
+      "job": "38361257",
+      "purpose": "Initial smoothing submission, cancelled while pending to preserve pytest GPU visibility",
+      "requested_seconds": 2700,
+      "gpu_count": 1,
+      "state": "CANCELLED",
+      "charged_seconds": 0,
+      "exit_code": "0:0",
+      "allocated": false
+    },
+    {
+      "job": "38361299",
+      "purpose": "Second/final recipe: fused smoothing, default regression and exact seed17 continuation",
+      "requested_seconds": 2700,
+      "gpu_count": 1,
+      "state": "PENDING",
+      "charged_seconds": null
     }
   ],
   "local_checks": [

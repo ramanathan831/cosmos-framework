@@ -1121,8 +1121,23 @@ batches, every resumed update's live parameters/moments, scheduler, RNG and
 counters, and final model/optimizer/data/trainer components. Only validation
 publication/timing bookkeeping is excluded. This establishes ordering recovery,
 not recipe quality. The rejected recipe receives no eight-bit or final stage.
-Targeted native batch-four attribution of both substantive failures is admitted;
-no second intervention has yet been selected. Defaults remain unchanged.
+Three completed native batch-four reloads reproduce all 96 task observations and
+all substantive losses exactly. The [failure attribution](evidence/quantized_optimizers_round8/interleave_failure_summary.json)
+shows confidence switching between traffic-volume labels across multiple families,
+with additional clothing and other semantic regressions. Formatting/end tokens
+do not explain the failures. This supports testing a mild shared confidence
+regularizer; it does not prove calibration or a sole cause.
+
+The second and final [prospective trial](evidence/quantized_optimizers_round8/smoothing_protocol.json)
+uses training-only `rl.label_smoothing=0.01`, restoring original ordering,
+exponent 1.0 and LR 1e-5. Native PyTorch uniform-vocabulary CE changes only the
+backward objective: evaluation and `loss_avg` retain hard-target CE, original
+masks/counts and reductions. The actual regularized objective is reported
+separately. Default zero smoothing preserves old objective identities;
+nonzero settings bind exact resume to their explicit policy. Fused development,
+unchanged-default regression and fresh-process continuation are admitted;
+eight-bit and final comparisons remain conditional on the full screen.
+Defaults remain unchanged.
 
 Shared preparation tooling now offers `--reference-verification bytes` while
 retaining `tensors` as the default. Exact serialized payload identity allows

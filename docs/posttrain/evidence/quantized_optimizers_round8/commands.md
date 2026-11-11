@@ -75,3 +75,30 @@ The analogous eight-bit spec is conditional and must not run before all fused
 guards pass. Analysis uses the original matching controls, fixed evaluation
 identities and exact exposure within each five-update window. Diagnostic state
 hashing and midpoint saving are correctness work, excluded from product timing.
+
+The second/final recipe trial is locked in `smoothing_protocol.json` and
+`fused_smoothing_spec.json`. Native override: `rl.label_smoothing=0.01`, with
+original order (`interleave_window=0`), exponent1.0 and LR1e-5. The exact source,
+Slurm argv and environment are in `fused_smoothing_launch.json`. It includes
+pinned CPU/CUDA objective checks, an unchanged-default seed43 regression, all
+three candidate seeds and fresh-process seed17 continuation. The pending initial
+submission was cancelled without allocation to disable pytest_env's CUDA-visibility
+reset; the final pinned test invocation uses `-p no:env`.
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' \
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 .venv/bin/python -m pytest \
+  cosmos_framework/posttrain/tests/test_sft_label_smoothing.py \
+  --confcutdir=cosmos_framework/posttrain/tests --override-ini=addopts= -p no:env -q
+
+.venv/bin/python docs/posttrain/evidence/quantized_optimizers_round8/analyze_screen.py \
+  docs/posttrain/evidence/quantized_optimizers_round8/fused_smoothing_raw.json.gz \
+  fused_smoothing adamw --lr-ratio 1 --original-order --label-smoothing 0.01 \
+  --require-default-regression \
+  --output docs/posttrain/evidence/quantized_optimizers_round8/fused_smoothing_summary.json
+```
+
+The candidate keeps all15 updates and the40-update horizon. The hard-label
+substantive guard remains authoritative. No exponent, LR, ordering or evaluation
+change is combined with smoothing. The eight-bit spec remains conditional on a
+complete fused pass; no additional recipe trial follows a failure.
