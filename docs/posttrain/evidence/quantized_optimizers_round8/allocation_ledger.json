@@ -67,15 +67,19 @@
       "purpose": "Second/final recipe: fused smoothing, default regression and exact seed17 continuation",
       "requested_seconds": 2700,
       "gpu_count": 1,
-      "state": "RUNNING",
-      "charged_seconds": null
+      "state": "COMPLETED",
+      "charged_seconds": 1766,
+      "allocation_elapsed_seconds": 1764,
+      "cleanup_seconds": 2,
+      "exit_code": "0:0",
+      "note": "Conservatively includes resource-bearing step ending2seconds after allocation record."
     },
     {
       "job": "38362820",
       "purpose": "One native batch-four seed43 reconstruction and semantic/format attribution after rejected smoothing recipe",
       "requested_seconds": 600,
       "gpu_count": 1,
-      "state": "PENDING",
+      "state": "RUNNING",
       "dependency": "afterok:38361299",
       "charged_seconds": null
     }
@@ -172,5 +176,10 @@
     "driver": "580.126.20",
     "torch": "2.10.0+cu130",
     "note": "Four CUDA parameter cases among17checks; pytest_env cleared explicit CUDA visibility. Pinned scheduled checks separately completed17pass in41.89s within GPU allocation38361299."
+  },
+  "smoothing_control_comparison": {
+    "host_read_seconds": 0.04158741421997547,
+    "local_compare_seconds": 0.00876299710944295,
+    "scope": "Four small trainer controls, no training or GPU allocation."
   }
 }
