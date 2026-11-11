@@ -1,9 +1,15 @@
 {
+  "completed_campaign_cost": {
+    "allocated_cpu_seconds": 194864,
+    "distinct_allocations": 9,
+    "gpu_allocation_seconds": 12179,
+    "scope": "Sum of completed_qualification_and_diagnostic_cost plus the first failed learning-screen allocation, counted once. Includes all five failed attempts; excludes the two ongoing timing allocations and unmeasured acquisition/local preparation. Nested clocks and reused evidence are not additional costs."
+  },
   "completed_qualification_and_diagnostic_cost": {
     "allocated_cpu_seconds": 165280,
     "distinct_allocations": 8,
     "gpu_allocation_seconds": 10330,
-    "scope": "Sum of the disjoint prior_build_correctness and final_build_diagnostics allocation totals, including all four failed attempts. Excludes ongoing timing/learning work and unmeasured acquisition/local preparation. Nested stages and reused evidence are not charged again."
+    "scope": "Sum of the disjoint prior_build_correctness and final_build_diagnostics allocation totals, including all four failed attempts. The learning-screen failure is separate and included once in completed_campaign_cost; ongoing timing and unmeasured acquisition/local preparation are excluded. Nested stages and reused evidence are not charged again."
   },
   "final_build_diagnostics": {
     "acknowledged_cross_build_metadata_fields": [
@@ -384,7 +390,62 @@
     "wheel_sha256": "dfaff88beb64b0caf07bf4f58cf32e68c6293b29ac2a339245998e51a72208a0"
   },
   "learning_screen": {
-    "status": "pending"
+    "complete_four_case_screen": false,
+    "preserved_first_attempt": {
+      "allocated_cpu_seconds": 29584,
+      "capture_sha256": "5533d4a1e808308d71e86774e82ab6f9a466d5b456d1e17da7ee9fd4fae2ac04",
+      "captured_files": 134,
+      "cause": "Private acceptance resolved the output mount alias before comparing the native pause checkpoint path literally. The committed pause used the original path spelling; start, final step, paused status and final loss matched.",
+      "completion_sha256": "e976807f762a6b1af1f9a9d824029d0ff5301682eb5f69b1623290c89e1a7bf0",
+      "exit_code": "1:0",
+      "first_case": {
+        "acceptance_exit_code": 1,
+        "applied_updates": 100,
+        "arm": "nf4",
+        "dropout": 0.0,
+        "fresh_score_rows": 584,
+        "native_horizon": 300,
+        "paused": true,
+        "seed": 123,
+        "zero_exit_stages": [
+          "training_000100",
+          "checkpoint_inspect",
+          "portable_publication",
+          "probe_dcp",
+          "probe_portable",
+          "reload_exact",
+          "fresh_score"
+        ]
+      },
+      "gpu_allocation_seconds": 1849,
+      "original_plan_and_receipts_retained": true,
+      "other_cases_started": 0,
+      "plan_sha256": "e3809de91455abe1e8501ceab3a9a97bb7a2c4bebfecbf526d1fc083dd2f8402",
+      "scope": "Completed first-case stages support the operational diagnosis only. No four-case learning decision, independent seed, memory-margin acceptance or quality promotion is inferred.",
+      "source_inputs_rehashed": 105,
+      "state": "FAILED"
+    },
+    "private_correction": {
+      "approved_plan_sha256": "f2360dbae6e346000368957a5072a58f0319820ed3e8120795a4148a4c8b7fe8",
+      "change": "Preserve the admitted absolute output path with Path(...).absolute() instead of Path(...).resolve(); retain the public strict checkpoint equality and later resolved ownership checks.",
+      "changed_acceptance_stages": 4,
+      "cpu_cases_passed": 12,
+      "cpu_cases_skipped": 0,
+      "input_preflight_passed": true,
+      "junit_sha256": "67ca27c2c0314702b35515413b2bdd253e01978db75d63c78ad31ff662d96341",
+      "native_public_source_changed": false,
+      "preflight_receipt_sha256": "f1fe0cd4d3a30429ad10abba49422e8a9629391a7a12e60d88cb6a503b1173bb",
+      "preflight_source_inputs": 105,
+      "published": true,
+      "retry_scope": "All four cases must run fresh in one allocation under the unchanged frozen screen; no reuse of the failed allocation as another independent seed.",
+      "science_commands_targets_order_and_caps_changed": false,
+      "submission_status": "approved_not_submitted",
+      "test_scope": "Hash-bound captured pause summary, all 100 update metrics and checkpoint record in a temporary alias-to-real-directory fixture. Old acceptance reproduces the refusal; corrected acceptance passes. Foreign checkpoint, nonpause, wrong start/final step/loss, preemption, missing/extra updates, later checkpoint and shortened horizon still refuse.",
+      "test_source_sha256": "305e9b65b9bc04b47da34d29b06ddcf5b40a57f962f40468331396cd01403c1e",
+      "unadmitted_source_plan_sha256": "fff43fcc49338d6d44b25b2a55bd210373f8dc72b1b23615943918e439ebf825"
+    },
+    "quality_decision_made": false,
+    "status": "incomplete_first_attempt_failed"
   },
   "native_revision": "dadfc89f64ba2a47f2ffd68c37f84a29d664544d",
   "paired_runtime": {
