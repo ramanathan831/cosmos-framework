@@ -12,6 +12,27 @@ def rows(path):
     return [json.loads(x) for x in path.read_text().splitlines()]
 
 
+def compare_components(paths):
+    """Reuse the completed full-value proof for default-objective regression."""
+    assert len(paths) == 2
+    manager = CheckpointManager()
+    provenance = {str(p): manager.checkpoint_provenance(p) for p in paths}
+    matches = {}
+    for component in ("model", "optim", "data", "trainer"):
+        hashes = []
+        for path in paths:
+            value = manager.load_component(path, component)
+            assert value is not None
+            if component == "trainer":
+                value = {k: v for k, v in value.items() if k != "validation"}
+            hashes.append(digest(value))
+            del value
+        assert hashes[0] == hashes[1], component
+        matches[component] = hashes[0]
+    assert all(manager.checkpoint_provenance(p) == v for p, v in provenance.items())
+    return matches, provenance
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("root", type=Path)
@@ -30,21 +51,7 @@ def main():
         matches = list((run / "native").rglob("iter_000015/model.pt"))
         assert len(matches) == 1
         paths.append(matches[0].parent)
-    manager = CheckpointManager()
-    provenance = {str(p): manager.checkpoint_provenance(p) for p in paths}
-    matches = {}
-    for component in ("model", "optim", "data", "trainer"):
-        hashes = []
-        for path in paths:
-            value = manager.load_component(path, component)
-            assert value is not None
-            if component == "trainer":
-                value = {k: v for k, v in value.items() if k != "validation"}
-            hashes.append(digest(value))
-            del value
-        assert hashes[0] == hashes[1], component
-        matches[component] = hashes[0]
-    assert all(manager.checkpoint_provenance(p) == v for p, v in provenance.items())
+    matches, provenance = compare_components(paths)
     (args.root / "recovery_verified.json").write_text(
         json.dumps(
             {

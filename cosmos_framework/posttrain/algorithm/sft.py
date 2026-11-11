@@ -33,6 +33,7 @@ _METRIC_ADAPTER = MetricAdapter(
     internal_prefix="sft_",
     names={
         "sft_loss": "loss_avg",
+        "sft_label_smoothing": "label_smoothing",
         "sft_valid_tokens": "valid_token_count",
         "sft_valid_sequences": "valid_sequence_count",
         # Present only when the objective is not the plain token mean: the value the gradient descends
@@ -81,6 +82,7 @@ def make_objective(
     packer: DataPacker,
     *,
     ce_exponent: float = 0.0,
+    label_smoothing: float = 0.0,
     moe_lbl_coeff: float = 0.0,
     moe_lbl_method: str = "global",
     serve_contract: str = SFT_SERVE_CONTRACT_DEFAULT,
@@ -97,6 +99,11 @@ def make_objective(
     of the same forward, read through the model's ``LoadBalancingPolicy`` capability (``model/protocol.py``:
     ``begin_lbl_collection`` before the forward, ``collect_lbl_metadata`` after it); a policy without the
     capability is refused with ``TypeError`` before any forward, and this module imports no model module.
+
+    ``label_smoothing>0`` uses PyTorch's uniform-vocabulary smoothed CE only while
+    the network is in training mode. Masks, counts and the reduction divisor are
+    unchanged. Evaluation and ``loss_avg`` always report ordinary hard-target CE;
+    ``objective`` reports the actual regularized backward objective.
 
     ``{train,val}/loss_avg`` is a LOCAL token mean, weighted by
     ``{train,val}/valid_token_count``. Both valid counts are LOCAL sums, to be summed
@@ -116,6 +123,12 @@ def make_objective(
     ):
         raise ValueError(f"SFT ce_exponent={ce_exponent!r} must be a real in [0, 1]")
     if (
+        isinstance(label_smoothing, bool)
+        or not isinstance(label_smoothing, (int, float))
+        or not 0.0 <= float(label_smoothing) < 1.0
+    ):
+        raise ValueError(f"SFT label_smoothing={label_smoothing!r} must be a real in [0, 1)")
+    if (
         isinstance(moe_lbl_coeff, bool)
         or not isinstance(moe_lbl_coeff, (int, float))
         or not 0.0 <= float(moe_lbl_coeff) < 1.0
@@ -125,20 +138,31 @@ def make_objective(
         raise ValueError(f"SFT moe_lbl_method={moe_lbl_method!r} must be 'local' or 'global'")
     if serve_contract not in SFT_SERVE_CONTRACTS:
         raise ValueError(f"SFT serve_contract={serve_contract!r} must be one of {SFT_SERVE_CONTRACTS}")
-    ce_exponent, moe_lbl_coeff = float(ce_exponent), float(moe_lbl_coeff)
+    ce_exponent, label_smoothing, moe_lbl_coeff = float(ce_exponent), float(label_smoothing), float(moe_lbl_coeff)
     weighted = ce_exponent != 0.0
     identity = normalize_json_dict(
         {
             "algorithm": "sft",
             "loss": "masked_next_token_cross_entropy_v1",
             "ignore_label_id": _IGNORE_LABEL,
-            # The two optional keys appear only when set, so every existing run's identity is unchanged.
+            # Optional policies appear only when enabled, preserving existing identities.
             "reduction": (
                 f"global_row_weighted_token_sum_exponent_{ce_exponent:g}"
                 if weighted
                 else "global_supervised_token_mean"
             ),
             **({"ce_exponent": ce_exponent} if weighted else {}),
+            **(
+                {
+                    "label_smoothing": {
+                        "epsilon": label_smoothing,
+                        "distribution": "uniform_vocabulary",
+                        "training_only": True,
+                    }
+                }
+                if label_smoothing > 0
+                else {}
+            ),
             **({"moe_lbl": {"coeff": moe_lbl_coeff, "method": moe_lbl_method}} if moe_lbl_coeff > 0 else {}),
             # The serve contract the run declared (``rl.serve_contract``): present
             # only when it is not the default, so every existing run's identity is unchanged.
@@ -239,8 +263,20 @@ def make_objective(
             selected_logits = logits[:, :-1][valid].float()  # [N,V]
             selected_labels = labels[valid]  # [N]
             # Sum reduction on an empty local selection yields a graph-connected zero.
-            per_token = F.cross_entropy(selected_logits, selected_labels, reduction="none")  # [N]
-            numerator = per_token.sum()  # []
+            smoothing_applied = label_smoothing > 0 and net.training
+            if smoothing_applied:
+                per_token = F.cross_entropy(
+                    selected_logits, selected_labels, reduction="none", label_smoothing=label_smoothing
+                )  # [N], the backward objective
+                # Do not retain a second CE autograd graph for reporting. Keep
+                # the upstream hard-target reduction exact, including empty ranks.
+                with torch.no_grad():
+                    hard_numerator = F.cross_entropy(selected_logits, selected_labels, reduction="none").sum()
+            else:
+                # Preserve the default and evaluation kernel/reduction path.
+                per_token = F.cross_entropy(selected_logits, selected_labels, reduction="none")
+                hard_numerator = per_token.sum()
+            numerator = per_token.sum() if smoothing_applied else hard_numerator  # []
             if weighted:
                 rows = torch.nonzero(valid)[:, 0]  # [N] the row of every selected token, in selection order
                 row_sums = torch.zeros(valid.shape[0], dtype=per_token.dtype, device=per_token.device).scatter_add(
@@ -251,17 +287,19 @@ def make_objective(
             else:
                 objective_value = numerator / denominator
             metrics: dict[str, Any] = {
-                "sft_loss": numerator.detach() / max(token_count, 1),
+                "sft_loss": hard_numerator.detach() / max(token_count, 1),
                 "sft_valid_tokens": token_count,
                 "sft_valid_sequences": sequence_count,
                 OBJECTIVE_WEIGHT_SUM: denominator,
             }
+            if label_smoothing > 0:
+                metrics["sft_label_smoothing"] = label_smoothing if smoothing_applied else 0.0
             loss = objective_value
             if lbl_term is not None:
                 loss = objective_value + lbl_term
                 metrics["sft_lbl_loss"] = lbl_term.detach()
                 metrics["sft_moe_load_max_rel"] = load_max_rel
-            if weighted or lbl_term is not None:
+            if weighted or lbl_term is not None or smoothing_applied:
                 metrics["sft_objective"] = loss.detach()
             return loss, metrics
 

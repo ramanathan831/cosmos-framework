@@ -1,0 +1,38 @@
+{
+  "locked_before_candidate_outcomes": true,
+  "intervention_number": 2,
+  "factor": "Training-only uniform-vocabulary label smoothing epsilon0.01 using pinned torch.nn.functional.cross_entropy. Original order, ce_exponent1.0 and all other controls restored; no interleaving combination.",
+  "evidence": {
+    "attribution_sha256": "58731af74645d28455abe1fdb675969eda8dcebf1f6bf8e9baa1da110636ee6b",
+    "raw_sha256": "588e0114decb5a711077430346b6afc78157b5419ac204956a5d0b5d1dc87010",
+    "observation": "Both failed seeds switch high confidence between Usual/Light across multiple development recordings. Seed29 Usual gold-token losses rise from roughly0.002\u20130.004 to8.2\u20138.9 across eight rows, while Light improves. Clothing and other semantic answers also regress; format/end tokens do not explain the failure. This supports a shared overconfidence hypothesis, not rare-class oversampling or an optimizer-specific defect."
+  },
+  "prediction": "A mild fixed uniform-target regularizer may reduce extreme semantic confidence and wrong-answer penalties while retaining useful task adaptation. It does not guarantee calibration, correct decisions, or a held-out probability cap. The format-token cost is a possible falsification, not excluded from evaluation.",
+  "epsilon_selection": "0.01 is a single mild prespecified regularization trial; no epsilon sweep, clipping of scores, calibration of final outputs, or changes to evaluation targets.",
+  "preserved": {
+    "lr": 1e-05,
+    "ce_exponent": 1.0,
+    "updates": 15,
+    "schedule_horizon": 40,
+    "seeds": [
+      17,
+      29,
+      43
+    ],
+    "effective_batch": 4,
+    "original_per_step_training_membership": true,
+    "trainable_elements": 3087142912,
+    "precision": "FP32 trainables, BF16 compute",
+    "all_targets_masks_and_counts": true,
+    "evaluation": "Unsmoothed native hard CE and unchanged restricted-choice/gold-answer scoring; original0/5/10/15 cadence."
+  },
+  "guards": {
+    "mean_task_nll_ratio_max": 0.98,
+    "per_seed_accuracy_loss_max": 0,
+    "each_native_substantive_nll_ratio_max": 1.01
+  },
+  "execution": "Fused three seeds first, including fresh-process seed17 update10to15 next-input/every-update/final-state recovery. Include unchanged default seed43 regression against stored original state/curves because objective code changes. Only after a full fused pass, identical eight-bit stage. Complete locked final comparison only if both stages pass. No third recipe intervention.",
+  "operational_estimate": "45-minute Slurm request with120seconds grace for fused stage including default regression and dependent checks, estimated about1800allocation-seconds from completed studies. This is not an aggregate compute ceiling.",
+  "final_protocol": "../quantized_optimizers_round3/final_protocol.json",
+  "remaining_uncertainty": "Endpoint losses do not isolate current gradients from inherited moments or prove a single cause. Class-prior shifts affect multiple answer components; all substantive guards remain authoritative."
+}

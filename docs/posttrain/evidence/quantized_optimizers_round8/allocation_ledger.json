@@ -104,6 +104,22 @@
       "reported_seconds": 9.83,
       "passed": 31,
       "scope": "New smoothing and existing objective tests, including CPU distributed default regression; overlapping coverage."
+    },
+    {
+      "reported_seconds": 5.27,
+      "passed": 12,
+      "failed": 1,
+      "scope": "New resume test expected ValueError; implementation correctly raises RuntimeError. Fixed test expectation."
+    },
+    {
+      "reported_seconds": 5.16,
+      "passed": 13,
+      "scope": "Corrected smoothing and resume identity tests; overlap."
+    },
+    {
+      "reported_seconds": 6.27,
+      "passed": 17,
+      "scope": "Smoothing gradient, accumulation, hard-CE, config and identity tests; overlap. Pinned CUDA check separately required."
     }
   ],
   "historical_totals_from_40885d9": {

@@ -180,6 +180,7 @@ def build_trainer(config: Any, rl: SFTConfig, data: Any, validation: Any | None,
     objective = make_objective(
         packer,
         ce_exponent=rl.ce_exponent,
+        label_smoothing=rl.label_smoothing,
         moe_lbl_coeff=rl.moe_lbl_coeff,
         moe_lbl_method=rl.moe_lbl_method,
         serve_contract=rl.serve_contract,

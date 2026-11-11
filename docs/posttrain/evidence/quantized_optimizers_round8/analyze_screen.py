@@ -47,11 +47,16 @@ def main():
     parser.add_argument("prefix")
     parser.add_argument("arm", choices=("adamw", "adamw_bnb_8bit"))
     parser.add_argument("--lr-ratio", type=float, required=True)
+    parser.add_argument("--original-order", action="store_true")
+    parser.add_argument("--label-smoothing", type=float, default=0.0)
+    parser.add_argument("--require-default-regression", action="store_true")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     raw = read_raw(args.raw)
     recovery = json.loads(raw["recovery_verified.json"])
     assert recovery["complete"] and recovery["resumed_updates"] == [11, 12, 13, 14, 15]
+    if args.require_default_regression:
+        assert json.loads(raw["default_verified.json"])["complete"]
     control = read_raw(ROOT.parent / "quantized_optimizers_round3/outcomes_raw.json.gz")
     result = []
     for seed in (17, 29, 43):
@@ -72,6 +77,8 @@ def main():
         for x, y in zip(curve, old_curve, strict=True):
             for key in ("val/valid_token_count", "val/valid_sequence_count"):
                 assert x["substantive_validation"][key] == y["substantive_validation"][key]
+            if args.label_smoothing:
+                assert x["substantive_validation"]["val/label_smoothing"] == 0.0
         metrics_key = next(k for k in raw if k.startswith(prefix + "native/") and k.endswith("/metrics.jsonl"))
         old_key = next(k for k in control if k.startswith(old + "native/") and k.endswith("/metrics.jsonl"))
         updates = [x for x in rows(raw, metrics_key) if "train/valid_token_count" in x]
@@ -82,6 +89,10 @@ def main():
             assert x["optim/nonfinite_skips_total"] == 0
             assert x["train/valid_sequence_count"] == y["train/valid_sequence_count"] == 4
             assert math.isclose(x["train/learning_rate"], y["train/learning_rate"] * args.lr_ratio, abs_tol=1e-15)
+            if args.label_smoothing:
+                assert x["train/label_smoothing"] == args.label_smoothing
+            if args.original_order:
+                assert x["train/valid_token_count"] == y["train/valid_token_count"]
         # Intentional single-factor order change: exact exposure at each5-update
         # boundary, not identical per-update token counts or padding.
         actual_inputs = rows(raw, prefix + "diagnostics/training_inputs.jsonl")
@@ -89,6 +100,8 @@ def main():
         actual_indices = [int(item.rsplit(":", 1)[1]) for x in actual_inputs for item in x["ids"]]
         original_indices = list(range(346))
         random.Random(seed).shuffle(original_indices)
+        if args.original_order:
+            assert actual_indices == original_indices[:60]
         for start in (0, 20, 40):
             assert sorted(actual_indices[start : start + 20]) == sorted(original_indices[start : start + 20])
             a_updates, b_updates = updates[start // 4 : start // 4 + 5], old_updates[start // 4 : start // 4 + 5]
@@ -135,7 +148,11 @@ def main():
         "gates": gates,
         "accepted": all(gates.values()),
         "rows": result,
-        "scope": "Development only. Same evaluation inputs/masks/counts and initialization; intentionally interleaved training order with exact20-row window membership and token exposure,15applied updates. No final scores read; no free-generation quality claim.",
+        "scope": (
+            "Development only. Original per-step training membership, counts, evaluation inputs/masks and initialization. Training-only label smoothing; all evaluation losses remain hard-target CE,15applied updates. No final scores or free-generation claim."
+            if args.original_order
+            else "Development only. Same evaluation inputs/masks/counts and initialization; intentionally interleaved training order with exact20-row window membership and token exposure,15applied updates. No final scores read; no free-generation quality claim."
+        ),
     }
     args.output.write_text(json.dumps(output, indent=2) + "\n")
     print(json.dumps({k: v for k, v in output.items() if k != "rows"}))

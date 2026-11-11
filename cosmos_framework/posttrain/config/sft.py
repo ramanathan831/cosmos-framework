@@ -148,6 +148,9 @@ class SFTConfig(HFRunConfig):
     # (``weighted_ce_exponent=0.5``, ``cosmos3/algorithm/loss/cross_entropy.py::weighted_cross_entropy_loss``): a row
     # weighs ``sqrt(n)``. ``1.0`` = every row weighs the same.
     ce_exponent: float = 0.0
+    # Uniform-vocabulary smoothing in training only. Reported/evaluation CE
+    # remains the original hard-target loss, with unchanged labels and masks.
+    label_smoothing: float = 0.0
     # Unsupervise the ``<think>`` token that opens an assistant turn, and only that token.
     # Keep ``False``: on the lab's serving path of record Codex ``--thinking high`` sends
     # ``reasoning.effort`` AND a tools array on every call, and with tools present vLLM 0.24 prefills no opener -- the
@@ -209,6 +212,12 @@ class SFTConfig(HFRunConfig):
             or not 0.0 <= float(self.ce_exponent) <= 1.0
         ):
             raise ValueError(f"SFT ce_exponent={self.ce_exponent!r} must be a real in [0, 1]")
+        if (
+            isinstance(self.label_smoothing, bool)
+            or not isinstance(self.label_smoothing, (int, float))
+            or not 0.0 <= float(self.label_smoothing) < 1.0
+        ):
+            raise ValueError(f"SFT label_smoothing={self.label_smoothing!r} must be a real in [0, 1)")
         if not isinstance(self.mask_think_opener, bool):
             raise TypeError("SFT mask_think_opener must be bool")
         if self.serve_contract not in SFT_SERVE_CONTRACTS:
