@@ -1,11 +1,339 @@
 {
+  "completed_qualification_and_diagnostic_cost": {
+    "allocated_cpu_seconds": 165280,
+    "distinct_allocations": 8,
+    "gpu_allocation_seconds": 10330,
+    "scope": "Sum of the disjoint prior_build_correctness and final_build_diagnostics allocation totals, including all four failed attempts. Excludes ongoing timing/learning work and unmeasured acquisition/local preparation. Nested stages and reused evidence are not charged again."
+  },
   "final_build_diagnostics": {
+    "acknowledged_cross_build_metadata_fields": [
+      "identity.training_contract.code_revision",
+      "identity.training_contract.wheel_sha256"
+    ],
+    "cost": {
+      "failed_start_allocated_cpu_seconds": 1184,
+      "failed_start_allocations": 2,
+      "failed_start_gpu_allocation_seconds": 74,
+      "scope": "Whole allocation clocks once, including failed starts. Kernel, training, scoring, comparison, publication and reload stages are nested; prior-build qualification is separate.",
+      "successful_allocated_cpu_seconds": 25760,
+      "successful_allocations": 2,
+      "successful_gpu_allocation_seconds": 1610,
+      "total_allocated_cpu_seconds": 26944,
+      "total_distinct_allocations": 4,
+      "total_gpu_allocation_seconds": 1684
+    },
+    "historical_interruptions_repeated": false,
+    "kernel_gate": {
+      "completion_sha256": "23e5eee7ced3c326cad6ae819441081b7bb8314cef5645ade5d49ced1f459828",
+      "higher_precision_junit_sha256": "0634ab66ebea844dd70b5e8fd050596b63265a237ba51eade124500844ee3fdc",
+      "higher_precision_native_regression_cases_passed": 1,
+      "junit_sha256": "1e2a8e7d223ea45b4fd1ffa2c9969415edee5bfa968c1472aec56058e316d960",
+      "native_revision": "dadfc89f64ba2a47f2ffd68c37f84a29d664544d",
+      "real_cuda_cases_passed": 14,
+      "skips": 0,
+      "wheel_sha256": "dfaff88beb64b0caf07bf4f58cf32e68c6293b29ac2a339245998e51a72208a0"
+    },
+    "limits": [
+      "Four updates and four development rows at dropout 0.05 only; no full-development quality, measured performance improvement, long-context or release claim.",
+      "The impossible fixture target was not attained; these runs do not establish observed early-target stopping.",
+      "Both checkpoint comparisons freshly bracket their current source files. Native model/optimizer zero-tolerance values and RNG/data/journal equality do not establish serialized DCP equality or original raw optimizer-shard bytes.",
+      "Only revision and wheel metadata differ in the observational cross-build comparison. Production cross-build resume remains refused; the prior 2f7a66d interruption suites were not repeated on dadfc89.",
+      "Cache snapshots are cumulative within one evaluator attempt, not additive across evaluations; retained cache bytes are not total host memory, and preprocessing seconds are nested in validation wall time.",
+      "Full-development timing, current-build mature recovery and learning outcomes remain pending."
+    ],
+    "native_revision": "dadfc89f64ba2a47f2ffd68c37f84a29d664544d",
+    "precision_arms": {
+      "bf16": {
+        "accepted": true,
+        "allocated_cpu_seconds": 12144,
+        "capture_sha256": "06633f900fc1110c022e4c119761e3906e8a581522c0e9ba8ac2d923672a7659",
+        "completion_sha256": "eb7d032e8239e887d5c32fe0796e9da2ccf389bb34027c4b908592c18e6bbcd1",
+        "diagnostic_comparison_sha256": "2fedfdff559ae287b61cc48408210d66dc72a4fd39b69a6aa971b2a988a4f51d",
+        "fresh_score_parity": {
+          "adapter_and_processor_identity_exact": true,
+          "passed": true,
+          "per_example_and_selection_exact": true,
+          "quality_qualified": false,
+          "rows": 4
+        },
+        "gpu_allocation_seconds": 759,
+        "numerical_update_steps": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "ordinary_validation_steps": [
+          0,
+          2,
+          4
+        ],
+        "own_reload": {
+          "adapter_byte_digest_inventories_equal": true,
+          "adapter_tensors": 504,
+          "comparison_outcome_sha256": "b5f5fa864d1027b35962e8de488d0ec8dbc9f03db5d6e766fc5da34487e66c65",
+          "dcp_probe_sha256": "cd21f1cd97e9414c32710ae6d2fd22a2459668e189d704cb4f537bac79530968",
+          "optimizer_parameters": 504,
+          "portable_probe_sha256": "9dae214de45f0784a68115558e1caeca0b10491c96c8dd1883a70eaf4ebb2359",
+          "text_image_video_exact": true,
+          "updated_adapter_factors": {
+            "A": 252,
+            "B": 252
+          }
+        },
+        "preprocessing_cache_snapshots": [
+          {
+            "counter_scope": "Cumulative within this native evaluator attempt, including earlier scheduled evaluations; not restored from a checkpoint. Successive snapshots must not be summed.",
+            "elapsed_scope": "Processing counters include cache hits and exclude model evaluation; they are nested in validation wall time, not an additional elapsed-time charge.",
+            "memory_scope": "bounded retained CPU cache entries, not total host memory",
+            "policy": {
+              "cache_bytes": 3221225472,
+              "max_pending": 1,
+              "prefetch": false,
+              "workers": 1
+            },
+            "stats": {
+              "samples": {
+                "bytes": 23702844,
+                "hits": 0,
+                "limit": 805306368,
+                "misses": 4
+              },
+              "timing": {
+                "processing_calls": 4,
+                "processing_seconds": 3.4591531839978416,
+                "wait_calls": 0,
+                "wait_seconds": 0.0
+              },
+              "videos": {
+                "bytes": 11798994,
+                "hits": 2,
+                "limit": 2415919104,
+                "misses": 2
+              }
+            }
+          },
+          {
+            "counter_scope": "Cumulative within this native evaluator attempt, including earlier scheduled evaluations; not restored from a checkpoint. Successive snapshots must not be summed.",
+            "elapsed_scope": "Processing counters include cache hits and exclude model evaluation; they are nested in validation wall time, not an additional elapsed-time charge.",
+            "memory_scope": "bounded retained CPU cache entries, not total host memory",
+            "policy": {
+              "cache_bytes": 3221225472,
+              "max_pending": 1,
+              "prefetch": false,
+              "workers": 1
+            },
+            "stats": {
+              "samples": {
+                "bytes": 23702844,
+                "hits": 4,
+                "limit": 805306368,
+                "misses": 4
+              },
+              "timing": {
+                "processing_calls": 8,
+                "processing_seconds": 3.470481623982778,
+                "wait_calls": 0,
+                "wait_seconds": 0.0
+              },
+              "videos": {
+                "bytes": 11798994,
+                "hits": 2,
+                "limit": 2415919104,
+                "misses": 2
+              }
+            }
+          }
+        ],
+        "scheduled_score_checks": [
+          {
+            "original_rows_and_inputs_exact": true,
+            "scores_sha256": "409a6d03c6014b320adaa63f05857109c39fc047bb20e5ee6c49753924ed1e55",
+            "step": 2
+          },
+          {
+            "original_rows_and_inputs_exact": true,
+            "scores_sha256": "efaa7d4d91ede508fcf173f009d8bf66723ed65b5e618315b11cea0dd461b7dd",
+            "step": 4
+          }
+        ],
+        "state_comparisons": [
+          {
+            "atol": 0,
+            "controls_rng_data_and_wts_journal_exact": true,
+            "historical_raw_optimizer_bytes_claimed": false,
+            "model_optimizer_values_exact": true,
+            "observation_only": true,
+            "optimizer_step": 2,
+            "passed": true,
+            "resume_compatible": false,
+            "rtol": 0,
+            "serialized_dcp_equality_claimed": false
+          },
+          {
+            "atol": 0,
+            "controls_rng_data_and_wts_journal_exact": true,
+            "historical_raw_optimizer_bytes_claimed": false,
+            "model_optimizer_values_exact": true,
+            "observation_only": true,
+            "optimizer_step": 4,
+            "passed": true,
+            "resume_compatible": false,
+            "rtol": 0,
+            "serialized_dcp_equality_claimed": false
+          }
+        ],
+        "successful_stages_including_allocation_preflight": 9
+      },
+      "nf4": {
+        "accepted": true,
+        "allocated_cpu_seconds": 13616,
+        "capture_sha256": "c5438391d75e4cb4c05c755a7459fc18359e8ee83a3ae1c6c00c89e2ecbde049",
+        "completion_sha256": "44a448d68435448aa89c96619e9048e35a5dd6fd9e6d9a2f4d3af5e0a36c8a02",
+        "diagnostic_comparison_sha256": "3c5233f98fba90d5de8e5b75ef8a1910bb5aceccd0d462f0eea939810c5236da",
+        "fresh_score_parity": {
+          "adapter_and_processor_identity_exact": true,
+          "passed": true,
+          "per_example_and_selection_exact": true,
+          "quality_qualified": false,
+          "rows": 4
+        },
+        "gpu_allocation_seconds": 851,
+        "numerical_update_steps": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "ordinary_validation_steps": [
+          0,
+          2,
+          4
+        ],
+        "own_reload": {
+          "adapter_byte_digest_inventories_equal": true,
+          "adapter_tensors": 504,
+          "comparison_outcome_sha256": "28aa3dfee67dc6000517ba01efe0e2b793cc306a8eb9fd15d59a93b03c624963",
+          "dcp_probe_sha256": "2acaa6c2940b56dd2a6db7080680bb647e6f8f800f24f05e67e56de9d18f4bc0",
+          "optimizer_parameters": 504,
+          "portable_probe_sha256": "f4efdfd2bf9738902cf42f3cf21425f850792d18808831d8cbe0df03ba27e746",
+          "text_image_video_exact": true,
+          "updated_adapter_factors": {
+            "A": 252,
+            "B": 252
+          }
+        },
+        "preprocessing_cache_snapshots": [
+          {
+            "counter_scope": "Cumulative within this native evaluator attempt, including earlier scheduled evaluations; not restored from a checkpoint. Successive snapshots must not be summed.",
+            "elapsed_scope": "Processing counters include cache hits and exclude model evaluation; they are nested in validation wall time, not an additional elapsed-time charge.",
+            "memory_scope": "bounded retained CPU cache entries, not total host memory",
+            "policy": {
+              "cache_bytes": 3221225472,
+              "max_pending": 1,
+              "prefetch": false,
+              "workers": 1
+            },
+            "stats": {
+              "samples": {
+                "bytes": 23702844,
+                "hits": 0,
+                "limit": 805306368,
+                "misses": 4
+              },
+              "timing": {
+                "processing_calls": 4,
+                "processing_seconds": 3.544170056004077,
+                "wait_calls": 0,
+                "wait_seconds": 0.0
+              },
+              "videos": {
+                "bytes": 11798994,
+                "hits": 2,
+                "limit": 2415919104,
+                "misses": 2
+              }
+            }
+          },
+          {
+            "counter_scope": "Cumulative within this native evaluator attempt, including earlier scheduled evaluations; not restored from a checkpoint. Successive snapshots must not be summed.",
+            "elapsed_scope": "Processing counters include cache hits and exclude model evaluation; they are nested in validation wall time, not an additional elapsed-time charge.",
+            "memory_scope": "bounded retained CPU cache entries, not total host memory",
+            "policy": {
+              "cache_bytes": 3221225472,
+              "max_pending": 1,
+              "prefetch": false,
+              "workers": 1
+            },
+            "stats": {
+              "samples": {
+                "bytes": 23702844,
+                "hits": 4,
+                "limit": 805306368,
+                "misses": 4
+              },
+              "timing": {
+                "processing_calls": 8,
+                "processing_seconds": 3.5617973166517913,
+                "wait_calls": 0,
+                "wait_seconds": 0.0
+              },
+              "videos": {
+                "bytes": 11798994,
+                "hits": 2,
+                "limit": 2415919104,
+                "misses": 2
+              }
+            }
+          }
+        ],
+        "scheduled_score_checks": [
+          {
+            "original_rows_and_inputs_exact": true,
+            "scores_sha256": "1b286cc5789b522c4449a7f471f142d2f860dad90e911e7a44739cff7735e59e",
+            "step": 2
+          },
+          {
+            "original_rows_and_inputs_exact": true,
+            "scores_sha256": "4eb9965ffd827a8ea071748c6165368c1120a44929e1d24270521e332cb5e464",
+            "step": 4
+          }
+        ],
+        "state_comparisons": [
+          {
+            "atol": 0,
+            "controls_rng_data_and_wts_journal_exact": true,
+            "historical_raw_optimizer_bytes_claimed": false,
+            "model_optimizer_values_exact": true,
+            "observation_only": true,
+            "optimizer_step": 2,
+            "passed": true,
+            "resume_compatible": false,
+            "rtol": 0,
+            "serialized_dcp_equality_claimed": false
+          },
+          {
+            "atol": 0,
+            "controls_rng_data_and_wts_journal_exact": true,
+            "historical_raw_optimizer_bytes_claimed": false,
+            "model_optimizer_values_exact": true,
+            "observation_only": true,
+            "optimizer_step": 4,
+            "passed": true,
+            "resume_compatible": false,
+            "rtol": 0,
+            "serialized_dcp_equality_claimed": false
+          }
+        ],
+        "successful_stages_including_allocation_preflight": 10
+      }
+    },
     "preserved_start_failures": {
       "allocated_cpu_seconds": 1184,
       "attempts": 2,
       "cause": "The input hash guard pinned local submission-transport envelope bytes for a remote path containing the inner submission receipt. Both attempts stopped before job-output creation or model work.",
       "correction": "Versioned plans pin the preserved raw remote receipt bytes; commands, native build, scientific settings and resource caps are unchanged. Parsed job/plan identities agree; byte serializations are kept distinct.",
-      "cost_scope": "Whole bare allocation clocks charged once; nested batch/step clocks are not additional allocations. Retry outcomes remain pending.",
+      "cost_scope": "Whole bare allocation clocks charged once; nested batch/step clocks are not additional allocations. Accepted retries are recorded separately below.",
       "elapsed_seconds_each": 37,
       "exit_code": "1:0",
       "failure_evidence_sha256": "07c7084407cd6b5a3cb27c47babeead7e1fbce29deaa62a9deae1c7c1de89530",
@@ -15,6 +343,24 @@
       "receipt_byte_evidence_sha256": "0d1f77af820ed821b521c9f60483cd0c83161e064e598c0b26af17e10e83c535",
       "state": "FAILED",
       "terminal_snapshot_sha256": "9edaefb2bfd955cdb16aa4ae254d3be642591cb7a2b77b066c7ca7fb52fdccac"
+    },
+    "recipe_scope": {
+      "activation_checkpointing": "none",
+      "alpha": 64,
+      "dropout": 0.05,
+      "optimizer_updates": 4,
+      "precision_arms": [
+        "nf4",
+        "bf16"
+      ],
+      "preprocessing_cache_bytes": 3221225472,
+      "rank": 32,
+      "seed": 42,
+      "wts_rows": 4,
+      "wts_steps": [
+        2,
+        4
+      ]
     },
     "retry_input_preflight": {
       "bf16": {
@@ -34,7 +380,8 @@
         "unique_inputs": 88
       }
     },
-    "status": "pending"
+    "status": "accepted_four_update_diagnostic_bridge",
+    "wheel_sha256": "dfaff88beb64b0caf07bf4f58cf32e68c6293b29ac2a339245998e51a72208a0"
   },
   "learning_screen": {
     "status": "pending"
