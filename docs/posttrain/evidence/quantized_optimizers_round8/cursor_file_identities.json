@@ -1,0 +1,6 @@
+{
+  "replay/weight975/native/cosmos3_reasoner/optimizer_task/seed43_replay_weight975/20261110180748/checkpoints/iter_000010/data.pt": "f2cb93780d25b396eba23cc0e7c0ebecd09062d93dbb55a26481a15736fc4887",
+  "replay/weight975/native/cosmos3_reasoner/optimizer_task/seed43_replay_weight975/20261110180748/checkpoints/iter_000015/data.pt": "91a1cdd56ff302e3c6108c6a7b6ae53327b1d6e29ba1cfe4fc984437742d0bca",
+  "replay/original/native/cosmos3_reasoner/optimizer_task/seed43_replay_original/20261110180210/checkpoints/iter_000015/data.pt": "91a1cdd56ff302e3c6108c6a7b6ae53327b1d6e29ba1cfe4fc984437742d0bca",
+  "replay/original/native/cosmos3_reasoner/optimizer_task/seed43_replay_original/20261110180210/checkpoints/iter_000010/data.pt": "f2cb93780d25b396eba23cc0e7c0ebecd09062d93dbb55a26481a15736fc4887"
+}

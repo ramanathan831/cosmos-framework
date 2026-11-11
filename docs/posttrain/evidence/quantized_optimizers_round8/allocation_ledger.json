@@ -14,8 +14,9 @@
       "purpose": "verification",
       "requested_seconds": 2700,
       "gpu_count": 0,
-      "state": "PENDING",
-      "charged_seconds": null
+      "state": "COMPLETED",
+      "charged_seconds": 1754,
+      "exit_code": "0:0"
     }
   ],
   "local_checks": [
@@ -27,11 +28,17 @@
       "reported_seconds": 5.22,
       "passed": 28,
       "overlaps_previous": true
+    },
+    {
+      "reported_seconds": 0.04,
+      "passed": 12,
+      "scope": "Python compatibility correction; overlap"
     }
   ],
   "historical_totals_from_40885d9": {
     "gpu_allocation_seconds": 6296,
     "known_cpu_wall_seconds": 18938.32
   },
-  "note": "Queued requests are not completed evidence. Actual terminal allocations, including failures, will be charged. No remaining-budget field."
+  "note": "Queued requests are not completed evidence. Actual terminal allocations, including failures, will be charged. No remaining-budget field.",
+  "host_compatibility_seconds": 0.26007959712296724
 }
