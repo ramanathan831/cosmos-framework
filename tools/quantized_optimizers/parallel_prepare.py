@@ -36,6 +36,7 @@ from cosmos_framework.posttrain.data.packer.sft import SFTPolicyInput, build_sft
 from cosmos_framework.posttrain.entrypoints.sft import sft_policy_source, validate_config_structure
 from cosmos_framework.utils.config import load_config
 from tools.quantized_optimizers.prepare_corpus import same
+from tools.quantized_optimizers.verify_published_corpus import verify as verify_bytes
 from tools.quantized_optimizers.video_reuse import VideoReuse, single_video
 
 
@@ -297,6 +298,7 @@ def main(memory=None):
     parser.add_argument("--decoder-threads", type=int, choices=(1, 2), help="CPU development canary with native replay")
     parser.add_argument("--reference-corpus", type=Path, required=True)
     parser.add_argument("--fixed-slice", type=Path, help="Pinned development-only selection and oracle identity")
+    parser.add_argument("--reference-verification", choices=("tensors", "bytes"), default="tensors")
     parser.add_argument(
         "--video-cache-bytes", type=int, default=0, help="Opt-in bounded first-pass video reuse per worker"
     )
@@ -387,15 +389,29 @@ def main(memory=None):
     verification_started = time.monotonic()
     corpus = PreparedSFTCorpus(packer, args.output, datasets)
     if plan:
-        verify_reference_slice(plan, manifest, corpus, targets)
+        if args.reference_verification == "bytes":
+            if set(targets) != {row["target"] for row in plan["targets"]}:
+                raise ValueError("slice target selection changed")
+            verify_bytes(
+                args.output,
+                args.reference_corpus,
+                plan["reference_sha256"],
+                candidate_manifest_sha256=corpus.identity,
+                selected_keys=targets,
+            )
+        else:
+            verify_reference_slice(plan, manifest, corpus, targets)
         if sha256_file(plan["data"]) != plan["data_sha256"] or sha256_file(plan["source"]) != plan["source_sha256"]:
             raise ValueError("slice source changed during preparation")
         reference_identity = plan["reference_sha256"]
     else:
         reference = PreparedSFTCorpus(packer, args.reference_corpus, originals)
-        for target in targets.values():
-            if not same(asdict(corpus.process(target)), asdict(reference.process(target))):
-                raise ValueError("parallel preparation changed previously qualified native inputs")
+        if args.reference_verification == "bytes":
+            verify_bytes(args.output, args.reference_corpus, reference.identity)
+        else:
+            for target in targets.values():
+                if not same(asdict(corpus.process(target)), asdict(reference.process(target))):
+                    raise ValueError("parallel preparation changed previously qualified native inputs")
         reference_identity = reference.identity
     if torch.cuda.is_initialized():
         raise RuntimeError("CPU publisher initialized CUDA")
@@ -422,6 +438,7 @@ def main(memory=None):
         "source_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "setup_seconds": processing_started - started,
         "verification_seconds": time.monotonic() - verification_started,
+        "reference_verification": args.reference_verification,
         "process_tree_peak": dict(memory or {}),
         "fixed_slice_sha256": sha256_file(args.fixed_slice) if plan else None,
         "scope": "selected development targets only" if plan else "full configured sources",

@@ -32,20 +32,38 @@ def checked_hash(path):
     return digest.hexdigest(), before
 
 
-def verify(candidate, reference, expected_manifest_sha256):
+def verify(candidate, reference, expected_manifest_sha256, *, candidate_manifest_sha256=None, selected_keys=None):
+    """Hash every byte, with an explicit pinned-subset mode for development.
+
+    Native source/processor binding remains the caller's responsibility in subset
+    mode. Equal serialized bytes establish exact tensor/token/mask equality without
+    deserializing and rehashing a source video once for every target using it.
+    """
     started = time.monotonic()
     manifests = [root / "manifest.json" for root in (candidate, reference)]
     stamps = {}
-    for path in manifests:
+    if (selected_keys is None) != (candidate_manifest_sha256 is None):
+        raise ValueError("subset verification requires both selection and candidate identity")
+    expected_hashes = [candidate_manifest_sha256 or expected_manifest_sha256, expected_manifest_sha256]
+    parsed = []
+    for path, expected in zip(manifests, expected_hashes, strict=True):
         digest, stamps[path] = checked_hash(path)
-        if digest != expected_manifest_sha256:
+        if digest != expected:
             raise ValueError("manifest differs from the externally qualified identity")
-    # Parse the bytes whose digest is checked, rather than relying on a stat
-    # identity to connect separate hash and parse reads on coarse filesystems.
-    value = manifests[0].read_bytes()
-    if hashlib.sha256(value).hexdigest() != expected_manifest_sha256:
-        raise ValueError("manifest changed before parsing its qualified identity")
-    manifest = json.loads(value)
+        value = path.read_bytes()
+        if hashlib.sha256(value).hexdigest() != expected:
+            raise ValueError("manifest changed before parsing its qualified identity")
+        parsed.append(json.loads(value))
+    manifest, oracle = parsed
+    if selected_keys is not None:
+        if set(selected_keys) != set(manifest["entries"]):
+            raise ValueError("subset target selection mismatch")
+        if any(manifest.get(k) != oracle.get(k) for k in ("format", "packer")):
+            raise ValueError("subset processor/format mismatch")
+        if any(oracle["entries"].get(k) != v for k, v in manifest["entries"].items()):
+            raise ValueError("subset serialized entry identity mismatch")
+        if any(oracle["media"].get(k) != v for k, v in manifest["media"].items()):
+            raise ValueError("subset media identity mismatch")
     checks = {}
     for key, entry in manifest["entries"].items():
         if len(key) != 64 or any(c not in "0123456789abcdef" for c in key):
@@ -76,10 +94,11 @@ def verify(candidate, reference, expected_manifest_sha256):
             raise ValueError(f"file changed before verification completed: {path}")
     return {
         "complete": True,
-        "scope": "Published corpus byte-identity recovery; not an uninterrupted preparation receipt",
+        "scope": "Published corpus byte-identity verification; not an uninterrupted preparation receipt",
         "candidate": str(candidate),
         "reference": str(reference),
-        "manifest_sha256": expected_manifest_sha256,
+        "manifest_sha256": expected_hashes[0],
+        "reference_manifest_sha256": expected_manifest_sha256,
         "exact_payloads_per_corpus": len(manifest["entries"]),
         "payload_bytes_per_corpus": sum(x["bytes"] for x in manifest["entries"].values()),
         "source_media_files": len(manifest["media"]),
