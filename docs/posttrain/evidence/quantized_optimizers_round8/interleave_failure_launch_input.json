@@ -24,11 +24,13 @@
     "--job-name=optimizer-r8-interleave-failure",
     "--output=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/interleave-failure-%j.log",
     "--partition=interactive_singlenode,polar",
+    "--dependency=afterok:38357148",
     "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/deployment.sbatch"
   ],
   "wall_seconds": 1200,
   "grace_seconds": 120,
   "root": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111",
   "pre_admission_packaging_correction": "The generic env/ ignore rule excluded the new cursor file from03051145. It was explicitly added and archive bytes checked before any job submission; no failed allocation.",
-  "admission": "Wait for terminal fused study; exactly three dev-only attribution reloads, no additional training candidate."
+  "admission": "Three dev-only attribution reloads; scheduler afterok dependency prevents allocation before the complete fused study succeeds. No new recipe selected.",
+  "spec_sha256": "7ddc3f69d23a84e0a39fc588f07f66b310478b9a47d1f93ef22b72787eb3d6e5"
 }

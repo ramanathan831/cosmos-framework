@@ -24,7 +24,17 @@
       "purpose": "fused interleave development and native seed17 continuation",
       "requested_seconds": 2700,
       "gpu_count": 1,
-      "state": "PENDING",
+      "state": "RUNNING",
+      "charged_seconds": null,
+      "exit_code": null
+    },
+    {
+      "job": "38359776",
+      "purpose": "Three native batch-four failure-localization reloads, no new recipe or final examples",
+      "requested_seconds": 1200,
+      "gpu_count": 1,
+      "state": "PENDING_DEPENDENCY",
+      "dependency": "afterok:38357148",
       "charged_seconds": null,
       "exit_code": null
     }

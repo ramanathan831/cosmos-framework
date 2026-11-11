@@ -1,0 +1,38 @@
+{
+  "name": "interleave-failure",
+  "source_commit": "d0948599f0ab694939099c6d997eabcc9e9f65ae",
+  "source_archive_sha256": "92c3048f58810e8994bebbb848407daa1419a7f8ec0148009c44710b16ce1065",
+  "environment": {
+    "SOURCE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850",
+    "ASSETS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z",
+    "PRIOR": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-quantized-optimizers-20261103",
+    "PREPARATION": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/prepare-evaluation-v1",
+    "CONTAINER_IMAGE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-automl-focused-20261012/image-conversion/cosmos-framework-focused.sqsh",
+    "SOURCE_ARCHIVE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/source-interleave-complete.tgz",
+    "TASK_DATA_ROOT": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data",
+    "TASK_SPEC": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/interleave_failure_spec.json",
+    "MODE": "study",
+    "WORK_SECONDS": "1080",
+    "RESULTS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/interleave-failure"
+  },
+  "argv": [
+    "sbatch",
+    "--parsable",
+    "--export=ALL",
+    "--time=20",
+    "--nodelist=batch-block4-1051",
+    "--job-name=optimizer-r8-interleave-failure",
+    "--output=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/interleave-failure-%j.log",
+    "--partition=interactive_singlenode,polar",
+    "--dependency=afterok:38357148",
+    "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/deployment.sbatch"
+  ],
+  "wall_seconds": 1200,
+  "grace_seconds": 120,
+  "root": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111",
+  "pre_admission_packaging_correction": "The generic env/ ignore rule excluded the new cursor file from03051145. It was explicitly added and archive bytes checked before any job submission; no failed allocation.",
+  "admission": "Three dev-only attribution reloads; scheduler afterok dependency prevents allocation before the complete fused study succeeds. No new recipe selected.",
+  "spec_sha256": "7ddc3f69d23a84e0a39fc588f07f66b310478b9a47d1f93ef22b72787eb3d6e5",
+  "job": "38359776",
+  "utc": "2026-11-11T03:24:06.309366+00:00"
+}
