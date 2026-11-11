@@ -1,0 +1,170 @@
+{
+  "final_build_diagnostics": {
+    "status": "pending"
+  },
+  "learning_screen": {
+    "status": "pending"
+  },
+  "native_revision": "dadfc89f64ba2a47f2ffd68c37f84a29d664544d",
+  "paired_runtime": {
+    "status": "pending"
+  },
+  "prior_build_correctness": {
+    "cost": {
+      "failed_allocated_cpu_seconds": 13808,
+      "failed_allocations": 2,
+      "failed_gpu_allocation_seconds": 863,
+      "scope": "Whole allocated clocks, including failed attempts; lifecycle/stage clocks and reuse of evidence are nested, not added again. Final-build bridges and later work are not included. Local preparation and acquisition are not measured here.",
+      "successful_allocated_cpu_seconds": 124528,
+      "successful_gpu_allocation_seconds": 7783,
+      "successful_qualification_allocations": 2,
+      "total_allocated_cpu_seconds": 138336,
+      "total_distinct_allocations": 4,
+      "total_gpu_allocation_seconds": 8646
+    },
+    "limits": [
+      "Four optimizer updates and four sealed development rows at WTS steps 2 and 4, seed42, rank32/alpha64, no activation checkpointing, 3 GiB training/evaluation caches.",
+      "Both observed WTS points deliberately miss the fixture target; real-GPU early-target stopping and full584 runtime/learning evidence are not established by these canaries.",
+      "Zero-tolerance model/optimizer values and RNG/data/control equivalence are not serialized checkpoint-byte equality.",
+      "Final dadfc89 adds score-summary-only cumulative cache diagnostics; prior-build interruption tests remain prior-build evidence. Exact-build kernel/diagnostic bridges, planned full timing/state comparisons and own mature recovery are separate requirements.",
+      "Production resume continues to require unchanged build and full training/evaluation identity. No quality, speed, long-context, release or merged-export promotion."
+    ],
+    "preserved_initial_failure": {
+      "allocated_cpu_seconds": 13808,
+      "allocations": 2,
+      "cause": "Native WTS checkpoint readback omitted the required live optimizer. Exact resume validation refused; the later fix passes the actual optimizer and retains strict membership/options checks.",
+      "gpu_allocation_seconds": 863,
+      "native_revision": "ddd4a6d",
+      "qualification_accepted": false,
+      "source_sha256": "ccf1245769080c873c16b726a832eedfbe5343d8f1c82786e98a5c1f322918e6"
+    },
+    "prior_build": {
+      "kernel_gate": {
+        "higher_precision_native_regression_cases_passed": 1,
+        "real_cuda_cases_passed": 14,
+        "skips": 0
+      },
+      "precision_arms": {
+        "bf16": {
+          "accepted": true,
+          "accepted_review_sha256": "8dbeff3dfd6309a2eade904fcd5c7a99ef7bfc488042c5b4826889de342b8070",
+          "allocated_cpu_seconds": 66016,
+          "capture_sha256": "56ac45ec93289204de40cd1d999b0518a64e39968949556872c56f87ecf7864c",
+          "gpu_allocation_seconds": 4126,
+          "lifecycles": {
+            "dropout0": {
+              "boundary_and_accumulation_resumed_updates": [
+                3,
+                4
+              ],
+              "completion_sha256": "1bdb3806b464fe30e91aee760215a371bdfffb050aa213c343c7c5382b1edd45",
+              "dcp_portable_multimodal_reload_exact": true,
+              "dropout": 0.0,
+              "evaluation_inserted_state_steps": [
+                2,
+                4
+              ],
+              "expected_interruption_stages": 2,
+              "interruption_outer_exit_codes": [
+                1,
+                1
+              ],
+              "model_optimizer_rng_data_exact": true,
+              "native_fresh_score_and_selection_exact": true,
+              "ordinary_successful_stages": 17,
+              "stages": 19,
+              "validated_interrupted_rank_exit_code": 86,
+              "wts_rows": 4
+            },
+            "dropout005": {
+              "boundary_and_accumulation_resumed_updates": [
+                3,
+                4
+              ],
+              "completion_sha256": "a7066a74551a24fba7e67a8c0588bfbe253a99dcbad64f80f8be0a3f8398b8c2",
+              "dcp_portable_multimodal_reload_exact": true,
+              "dropout": 0.05,
+              "evaluation_inserted_state_steps": [
+                2,
+                4
+              ],
+              "expected_interruption_stages": 2,
+              "interruption_outer_exit_codes": [
+                1,
+                1
+              ],
+              "model_optimizer_rng_data_exact": true,
+              "native_fresh_score_and_selection_exact": true,
+              "ordinary_successful_stages": 17,
+              "stages": 19,
+              "validated_interrupted_rank_exit_code": 86,
+              "wts_rows": 4
+            }
+          }
+        },
+        "nf4": {
+          "accepted": true,
+          "accepted_review_sha256": "ec38b488c5c8852d7bd8459bef5d480b39de70cbe062311a501120233c67f7ab",
+          "allocated_cpu_seconds": 58512,
+          "capture_sha256": "2cdc9d95081958869bce30e99313a565ef77e8c5fb75af1eeb643b2ea74e87ca",
+          "gpu_allocation_seconds": 3657,
+          "lifecycles": {
+            "dropout0": {
+              "boundary_and_accumulation_resumed_updates": [
+                3,
+                4
+              ],
+              "completion_sha256": "f1d0cbd77c6556819a99c1de3ce587a501993e497b7fb68aa220649dfb5e48c8",
+              "dcp_portable_multimodal_reload_exact": true,
+              "dropout": 0.0,
+              "evaluation_inserted_state_steps": [
+                2,
+                4
+              ],
+              "expected_interruption_stages": 2,
+              "interruption_outer_exit_codes": [
+                1,
+                1
+              ],
+              "model_optimizer_rng_data_exact": true,
+              "native_fresh_score_and_selection_exact": true,
+              "ordinary_successful_stages": 17,
+              "stages": 19,
+              "validated_interrupted_rank_exit_code": 86,
+              "wts_rows": 4
+            },
+            "dropout005": {
+              "boundary_and_accumulation_resumed_updates": [
+                3,
+                4
+              ],
+              "completion_sha256": "f6fa85078fac3769a43af3cf6ad469b01c2dd57ae663b6eb72805a7a31c243d5",
+              "dcp_portable_multimodal_reload_exact": true,
+              "dropout": 0.05,
+              "evaluation_inserted_state_steps": [
+                2,
+                4
+              ],
+              "expected_interruption_stages": 2,
+              "interruption_outer_exit_codes": [
+                1,
+                1
+              ],
+              "model_optimizer_rng_data_exact": true,
+              "native_fresh_score_and_selection_exact": true,
+              "ordinary_successful_stages": 17,
+              "stages": 19,
+              "validated_interrupted_rank_exit_code": 86,
+              "wts_rows": 4
+            }
+          }
+        }
+      },
+      "revision": "2f7a66d2058485ed0c401b86493378e3001033ad",
+      "wheel_sha256": "dfc194d69024008d4ddf9fc515d10ff85f440c0cd777284d5a08ff9088cf7b1c"
+    },
+    "scope": "Completed prior-build correctness section for one eventual native-evaluation artifact; no current-build, timing, learning or release acceptance is represented here."
+  },
+  "protocol": "cosmos.native-qlora-native-evaluation.v1",
+  "release_qualified": false
+}
