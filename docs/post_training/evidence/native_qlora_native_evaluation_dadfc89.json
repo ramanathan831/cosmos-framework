@@ -166,5 +166,91 @@
     "scope": "Completed prior-build correctness section for one eventual native-evaluation artifact; no current-build, timing, learning or release acceptance is represented here."
   },
   "protocol": "cosmos.native-qlora-native-evaluation.v1",
-  "release_qualified": false
+  "release_qualified": false,
+  "source_annotation_verification": {
+    "checked_utc": "2026-11-11T05:05:16.686681+00:00",
+    "conversion_manifest_sha256": "50cfe55a8b79e27c169d585397c2c874fcb94c4c67ee37c0c68a30652427e1b1",
+    "excluded_families_overlap_regression": true,
+    "inputs": [
+      {
+        "bytes": 3162540,
+        "converted_sha256": "1947d4b1c021bc5685f337d1b612e50754aa3ff58284e1d5e36455be6bb45afa",
+        "exact_question_answer_rows": 5555,
+        "road_formation_label_counts": {
+          "Intersection (with signal)": 75,
+          "Single road (straight line)": 3
+        },
+        "rows": 5555,
+        "source_sha256": "e816e5efcd9863329de1ed027fe7d20693a298a18e34997ee417d3dfd5a755a6",
+        "source_stat_and_hash_before_after_equal": true,
+        "split": "train"
+      },
+      {
+        "bytes": 1703566,
+        "converted_sha256": "5f089716af2c78460118b707ef0774c23da8002c3e8a840e8849c8cf2bee7c11",
+        "exact_question_answer_rows": 2676,
+        "road_formation_label_counts": {
+          "Intersection (with signal)": 41
+        },
+        "rows": 2676,
+        "source_sha256": "5c930b91dabbc156f0912700d38b6ce24175705eced6a49b2fe48018f8a92562",
+        "source_stat_and_hash_before_after_equal": true,
+        "split": "validation"
+      }
+    ],
+    "limits": [
+      "Only the two recorded original annotation files and their converted/partitioned rows were checked.",
+      "This validates annotation IDs, roles and text preservation, not visual labels or media associations.",
+      "Shared source scarcity and the intended group split do not establish the cause of an NF4 versus BF16 quality difference.",
+      "No data, experiment, selection rule or confirmation claim changed; new training support must preserve development/regression family separation.",
+      "This metadata-only read has no GPU allocation; local/login resource cost was not measured."
+    ],
+    "original_question_answer_check": "all conversation roles/text exact after removal of the single first-human video marker; row IDs exact; optional injected system prompt excluded",
+    "partition_summary_sha256": "b61ea62baf711c97538e4605fda98d76ccbdb485c56d09cb7d6042f6f050c1f4",
+    "partitions": {
+      "development": {
+        "families": 12,
+        "rows": 584
+      },
+      "excluded": {
+        "families": 7,
+        "rows": 360
+      },
+      "formerly_untouched_diagnostic_now_exposed": {
+        "families": 1,
+        "rows": 32
+      },
+      "regression_pool": {
+        "families": 51,
+        "rows": 2644
+      },
+      "train": {
+        "families": 77,
+        "rows": 4611
+      }
+    },
+    "regression_scoring_subset_rows": 256,
+    "road_formation_by_current_partition": {
+      "development": {
+        "Intersection (with signal)": 12,
+        "Single road (straight line)": 3
+      },
+      "excluded": {
+        "Intersection (with signal)": 5
+      },
+      "regression": {
+        "Intersection (with signal)": 41
+      },
+      "train": {
+        "Intersection (with signal)": 58
+      }
+    },
+    "source_receipt_sha256": "1d20cbd766f2cd7f381937a081e56a3aad7d2c63d90820616aa07b14747b7c45",
+    "stdout_sha256": "ad26b24fdd441c3a80e1c52b171de5245b793be03b5aaea13c82e0bfde2c9d77",
+    "straight_road_examples_share_one_development_family": true,
+    "total_rows": 8231,
+    "unique_families": 141,
+    "unused_rows_in_current_training_families": 0,
+    "verification_code_sha256": "37b42f0203e1e20c8c88ca692b110b3b42fa9bfca3edd6897d2a1704932ba173"
+  }
 }
