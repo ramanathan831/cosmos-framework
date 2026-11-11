@@ -5,3 +5,5 @@ Ordering:26 passed in2.86s; affected ordering/legacy SFT/cursor regressions62 pa
 Disabled-persistence contract fix:28 ordering checks passed in4.00s. Strict-persistence behavior used by admitted source d0948599 is unchanged.
 
 Smoothing+existing objective: initial fixture2failed/29passed in9.88s (mixed missing/explicit validation weights, corrected);31passed in9.83s after correction. Includes existing CPU distributed default tests. Counts overlap.
+
+Native validation integration:1passed,17deselected in3.35s (-p no:env, CPU). Native validation intentionally drops per-batch diagnostics; analyzer now checks unchanged published schema. No quality guards or evaluator code changed.

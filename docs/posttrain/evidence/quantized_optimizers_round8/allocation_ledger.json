@@ -67,7 +67,7 @@
       "purpose": "Second/final recipe: fused smoothing, default regression and exact seed17 continuation",
       "requested_seconds": 2700,
       "gpu_count": 1,
-      "state": "PENDING",
+      "state": "RUNNING",
       "charged_seconds": null
     }
   ],
@@ -138,6 +138,11 @@
       "reported_seconds": 6.27,
       "passed": 17,
       "scope": "Smoothing checks include4 real local CUDA cases: repository pytest_env unset CUDA_VISIBLE_DEVICES despite shell override. Local pinned versions differ; scheduled pinned CUDA checks remain required. Subsequent invocations disable pytest_env to respect supplied visibility."
+    },
+    {
+      "reported_seconds": 3.35,
+      "passed": 1,
+      "scope": "Native validation integration: smoothed training policy still publishes only hard CE/counts; preserves RNG/modes. Analysis-only schema expectation corrected, no reduction or guard change."
     }
   ],
   "historical_totals_from_40885d9": {
@@ -150,5 +155,13 @@
     "host_read_seconds": 0.09762366488575935,
     "local_compare_seconds": 0.01189299114048481,
     "scope": "Six small trainer control components, no training or GPU allocation."
+  },
+  "local_cuda_checks": {
+    "included_in_local_check_seconds": 6.27,
+    "device": "NVIDIA A100-SXM4-80GB",
+    "memory_mib": 81920,
+    "driver": "580.126.20",
+    "torch": "2.10.0+cu130",
+    "note": "Four CUDA parameter cases among17checks; pytest_env cleared explicit CUDA visibility. Pinned scheduled checks separately completed17pass in41.89s within GPU allocation38361299."
   }
 }

@@ -77,8 +77,9 @@ def main():
         for x, y in zip(curve, old_curve, strict=True):
             for key in ("val/valid_token_count", "val/valid_sequence_count"):
                 assert x["substantive_validation"][key] == y["substantive_validation"][key]
-            if args.label_smoothing:
-                assert x["substantive_validation"]["val/label_smoothing"] == 0.0
+            # Native _evaluate deliberately publishes only hard CE and its
+            # counts/timer; it does not forward per-batch diagnostic metrics.
+            assert set(x["substantive_validation"]) == set(y["substantive_validation"])
         metrics_key = next(k for k in raw if k.startswith(prefix + "native/") and k.endswith("/metrics.jsonl"))
         old_key = next(k for k in control if k.startswith(old + "native/") and k.endswith("/metrics.jsonl"))
         updates = [x for x in rows(raw, metrics_key) if "train/valid_token_count" in x]

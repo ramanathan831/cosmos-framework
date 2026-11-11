@@ -124,3 +124,46 @@ def test_exact_resume_rejects_changed_regularization():
         other = make_objective(packer, label_smoothing=epsilon)
         with pytest.raises(RuntimeError, match="identity"):
             trainer._validate_objective_identity({"objective_identity": other.identity})
+
+
+def test_native_validation_publishes_only_hard_ce_and_counts():
+    from types import SimpleNamespace
+
+    from cosmos_framework.posttrain.control.validation.lifecycle import ValidationTrigger
+    from cosmos_framework.posttrain.entrypoints.sft import _evaluate
+    from cosmos_framework.posttrain.roles.trainer.validation.sft import evaluate_sft_batch
+
+    packer = MemoryPacker()
+    batch = sample_batch(packer)
+    policy = Policy().eval()
+    _, expected = make_objective(packer)(policy, batch)
+    policy.train()
+    trainer = LLMTrainer(
+        policy,
+        make_objective(packer, label_smoothing=0.01),
+        torch.optim.AdamW(policy.parameters()),
+        objective_evaluator=evaluate_sft_batch,
+    )
+    source = SimpleNamespace(
+        validation_batch_count=lambda *args: 1,
+        get_validation_batch=lambda *args: batch,
+        source_identity=lambda: "unchanged-validation-fixture",
+    )
+    rng_before = torch.get_rng_state().clone()
+    report = _evaluate(
+        {"validation": source, "policy": trainer},
+        SFTConfig(label_smoothing=0.01),
+        0,
+        frozenset({ValidationTrigger.BEFORE_TRAINING}),
+    )
+    assert report.metrics["val/loss_avg"] == expected["sft_loss"].item()
+    assert report.metrics["val/valid_token_count"] == 5
+    assert report.metrics["val/valid_sequence_count"] == 2
+    assert set(report.metrics) == {
+        "val/loss_avg",
+        "val/valid_token_count",
+        "val/valid_sequence_count",
+        "timer/validation_s",
+    }
+    assert all(module.training for module in policy.modules())
+    assert torch.equal(torch.get_rng_state(), rng_before)
