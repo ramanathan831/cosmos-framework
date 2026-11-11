@@ -33,11 +33,6 @@ def main():
                 value = manager.load_component(checkpoint, component)
                 if value is None:
                     raise ValueError(f"missing {component}")
-                if component == "trainer":
-                    # Validation publication histories/timers differ with the extra
-                    # midpoint save. All other fields, including objective identity,
-                    # scheduler, clocks and RNG, must match without tolerances.
-                    value = {k: v for k, v in value.items() if k != "validation"}
                 values.append(digest(value))
                 del value
             matches[component] = values[0] == values[1]
@@ -101,7 +96,7 @@ def main():
             "state_match": matches,
             "task_observations": 128,
             "reload_steps": [10, 15],
-            "excluded_trainer_key": "validation: publication/timing bookkeeping only",
+            "excluded_trainer_key": None,
             "provenance": provenance,
         }
         (args.root / "replay_parity.json").write_text(json.dumps(results, indent=2))

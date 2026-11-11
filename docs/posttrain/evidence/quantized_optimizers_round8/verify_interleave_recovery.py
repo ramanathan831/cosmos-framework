@@ -23,8 +23,6 @@ def compare_components(paths):
         for path in paths:
             value = manager.load_component(path, component)
             assert value is not None
-            if component == "trainer":
-                value = {k: v for k, v in value.items() if k != "validation"}
             hashes.append(digest(value))
             del value
         assert hashes[0] == hashes[1], component
@@ -61,7 +59,7 @@ def main():
                 "exact_next_input_batches": 5,
                 "exact_final_components": matches,
                 "provenance": provenance,
-                "excluded": "validation publication/timing bookkeeping; all training clocks, RNG, objective identity and scheduler retained",
+                "excluded": [],
             },
             indent=2,
         )

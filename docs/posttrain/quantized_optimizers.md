@@ -1080,8 +1080,10 @@ cost estimate remain historical evidence.
 The [two seed43 replays](evidence/quantized_optimizers_round8/replay_summary.json)
 reproduce original/exponent-0.975 curves at updates 0/5/10/15 and their respective
 complete update-15 model, optimizer, scheduler, RNG, cursor and counters exactly.
-Only validation publication/timing bookkeeping is excluded from trainer-state
-comparison. Four fresh-process reloads reproduce native batch-four row/token
+The original proof omitted the validation journal; a subsequent
+[complete control comparison](evidence/quantized_optimizers_round8/validation_control_parity.json)
+also proves every validation identity/progress/publication field equal, leaving
+no trainer field excluded. Four fresh-process reloads reproduce native batch-four row/token
 losses at updates 10/15. Read-only observations after updates 10–15 preserve
 all 1,346 supervised tokens and do not perturb final training state.
 
@@ -1118,8 +1120,8 @@ substantive guard. At update 15:
 All evaluation identities, exact five-update exposure windows and update counters
 pass. Fresh-process seed17 continuation from update10 matches all five next input
 batches, every resumed update's live parameters/moments, scheduler, RNG and
-counters, and final model/optimizer/data/trainer components. Only validation
-publication/timing bookkeeping is excluded. This establishes ordering recovery,
+counters, and final model/optimizer/data/trainer components. The supplemental complete control comparison also matches its entire validation
+journal, without exclusions. This establishes ordering recovery,
 not recipe quality. The rejected recipe receives no eight-bit or final stage.
 Three completed native batch-four reloads reproduce all 96 task observations and
 all substantive losses exactly. The [failure attribution](evidence/quantized_optimizers_round8/interleave_failure_summary.json)

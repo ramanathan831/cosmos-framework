@@ -145,5 +145,10 @@
     "known_cpu_wall_seconds": 18938.32
   },
   "note": "Queued requests are not completed evidence. Actual terminal allocations, including failures, will be charged. No remaining-budget field.",
-  "host_compatibility_seconds": 0.26007959712296724
+  "host_compatibility_seconds": 0.26007959712296724,
+  "control_comparison": {
+    "host_read_seconds": 0.09762366488575935,
+    "local_compare_seconds": 0.01189299114048481,
+    "scope": "Six small trainer control components, no training or GPU allocation."
+  }
 }

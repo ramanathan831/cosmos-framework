@@ -102,3 +102,10 @@ The candidate keeps all15 updates and the40-update horizon. The hard-label
 substantive guard remains authoritative. No exponent, LR, ordering or evaluation
 change is combined with smoothing. The eight-bit spec remains conditional on a
 complete fused pass; no additional recipe trial follows a failure.
+
+`validation_control_components.tgz` contains only six small native trainer control
+components (no model/optimizer tensors); its receipt binds each source/hash.
+`validation_control_parity.json` closes the earlier broad validation-journal
+exclusion: full trainer value digests match for both replay arms and the first
+recipe's resume pair. Current verification helpers now compare that journal too.
+No full training or dense-state replay was needed for this additional proof.
