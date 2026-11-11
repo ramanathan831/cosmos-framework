@@ -1,0 +1,35 @@
+{
+  "purpose": "development diagnosis",
+  "protocol": "smoothing_failure_protocol.json",
+  "cases": [
+    {
+      "name": "smoothing43",
+      "read_model": false,
+      "argv": [
+        "python",
+        "-c",
+        "import os,sys,json; from pathlib import Path; from tools.quantized_optimizers.score_dense import read_checkpoint_file; base=Path(sys.argv[1]); p=list(base.rglob(\"iter_000015/model.pt\")); assert len(p)==1; curve=json.loads((base.parent/\"diagnostics/task_curve.jsonl\").read_text().splitlines()[-1]); assert curve[\"step\"]==15; pin=read_checkpoint_file(p[0]); Path(sys.argv[2]).write_text(json.dumps(pin,indent=2)); os.execvp(sys.argv[3],sys.argv[3:]+[\"--checkpoint\",str(p[0].parent),\"--checkpoint-sha256\",pin[\"sha256\"],\"--expected-substantive-nll\",repr(curve[\"substantive_validation\"][\"val/loss_avg\"])])",
+        "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/fused-smoothing/fused_smoothing_seed43/native",
+        "{case}/pin.json",
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.score_dense",
+        "--data",
+        "{data}/dev-task.jsonl",
+        "--selection",
+        "{data}/dev-task-manifest.json",
+        "--substantive-data",
+        "{data}/validation.jsonl",
+        "--substantive-batch-size",
+        "4",
+        "--output",
+        "{case}/scores",
+        "--seed",
+        "43"
+      ]
+    }
+  ],
+  "prepared_verified_rows": 751
+}
