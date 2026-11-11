@@ -1,0 +1,25 @@
+{
+  "purpose": "Development-only localization of a verified new substantive failure; no new recipe, no final scoring.",
+  "first_intervention_observation": {
+    "seed": 29,
+    "original_update15_native_nll": 0.17763557675866104,
+    "interleaved_update15_native_nll": 0.2740857164980221,
+    "accuracy_original": 0.84375,
+    "accuracy_interleaved": 0.875,
+    "task_nll_original": 0.7427160304051199,
+    "task_nll_interleaved": 0.66439929104763
+  },
+  "scope": "Three fresh-process native batch-four endpoint attributions: original seed29 update15 and interleaved seeds29/43 update15. Original seed43 batch-four token records already exist in the exact replay and are reused. Both newly failed seeds are included prospectively before attribution; no batch-one substitute or final examples. Require exact native aggregate/input/mask/count and checkpoint identity parity.",
+  "decision": "Use attribution plus unchanged training labels/order to determine whether one revised mechanism justifies the second authorized single-factor intervention. No candidate selected in this protocol.",
+  "scheduler_reservation_seconds": 1200,
+  "termination_grace_seconds": 120,
+  "aggregate_cap": null,
+  "dependency": "After the admitted fused development/recovery study terminates; do not duplicate running work.",
+  "additional_observed_failure": {
+    "seed": 43,
+    "original_native_nll": 0.13847131080604413,
+    "candidate_native_nll": 0.1673886302144531,
+    "accuracy_original": 0.78125,
+    "accuracy_candidate": 0.90625
+  }
+}
