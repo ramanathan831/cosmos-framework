@@ -123,16 +123,28 @@
         0.9677897569774802,
         1.04137912145846
       ],
-      "upper_max": 1.01
+      "upper_max": 1.01,
+      "crossed_seed_family_ci95": [
+        0.9885353119414556,
+        1.0225542217096608
+      ]
     },
     "matched_accuracy": {
       "status": "FAIL statistical guard",
       "degradation_upper": 0.013808991483722558,
-      "upper_max": 0.01
+      "upper_max": 0.01,
+      "crossed_seed_family_ci95": [
+        0.0,
+        0.015625
+      ]
     },
     "equal_budget_nll_gain": {
       "status": "FAIL; no new final comparison",
-      "required_lower_bound_exclusive": 0
+      "required_lower_bound_exclusive": 0,
+      "distinct_endpoints": {
+        "actual_60_second_training_budget": false,
+        "390_second_prepared_product_budget": false
+      }
     },
     "prepared_time_to_target": {
       "status": "FAIL margin",
@@ -191,5 +203,6 @@
   "resources": "All8submissions terminal, including one failed allocation and one zero-allocation cancellation. No aggregate ceilings. See final_accounting.json.",
   "publication": "Local commits/draft only; no push, publication, merge or QLoRA checkout/PR334 actions.",
   "diagnosis_evidence": "recipe_diagnosis.json",
-  "exact_next_unadmitted_plan": "next_intervention.json"
+  "exact_next_unadmitted_plan": "next_intervention.json",
+  "historical_final_evidence": "../quantized_optimizers_round3/corrected_product/summary.json"
 }
