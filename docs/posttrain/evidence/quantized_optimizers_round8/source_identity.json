@@ -244,5 +244,47 @@
     "cosmos_framework/posttrain/algorithm/sft.py": "72f551331da092ddd874e27e044cf3426cfcb29e4f1b90a1ef75ccc858fe89be",
     "cosmos_framework/posttrain/config/sft.py": "3c7bf99d4b54d287af840a38b28880e868c5e0a0faf4d603c2cb1f5af07ae670",
     "cosmos_framework/posttrain/entrypoints/sft.py": "67b7ffcc095fae370855526cea1ec3f8884eaf7f2d6820c66eb31fe299bccf1f"
+  },
+  "smoothing_failure": {
+    "name": "smoothing-failure",
+    "source_commit": "8ff0198ebd22167811d77d87b7c1f6807388b22b",
+    "source_archive_sha256": "b45a3aa06231f9de2adcc515c04104a936b7f7b2e45a0711e54056517197e1f6",
+    "environment": {
+      "SOURCE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850",
+      "ASSETS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z",
+      "PRIOR": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-quantized-optimizers-20261103",
+      "PREPARATION": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/prepare-evaluation-v1",
+      "CONTAINER_IMAGE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-automl-focused-20261012/image-conversion/cosmos-framework-focused.sqsh",
+      "SOURCE_ARCHIVE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/source-smoothing-v2.tgz",
+      "TASK_DATA_ROOT": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data",
+      "TASK_SPEC": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/smoothing_failure_spec.json",
+      "MODE": "study",
+      "WORK_SECONDS": "480",
+      "RESULTS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/smoothing-failure"
+    },
+    "argv": [
+      "sbatch",
+      "--parsable",
+      "--export=ALL",
+      "--time=10",
+      "--nodelist=batch-block4-1051",
+      "--job-name=optimizer-r8-smoothing-failure",
+      "--output=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/smoothing-failure-%j.log",
+      "--partition=interactive_singlenode,polar",
+      "--dependency=afterok:38361299",
+      "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111/deployment.sbatch"
+    ],
+    "wall_seconds": 600,
+    "grace_seconds": 120,
+    "root": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r8-20261111",
+    "spec_sha256": "518b2e61d69ca9527a40b4d988385c9ee38716bd6cd1aa81661f1a3698fd13b2",
+    "admission": "One native batch-four seed43 artifact/loss attribution, dependent on completed smoothing study. No new recipe or final scores.",
+    "job": "38362820",
+    "utc": "2026-11-11T05:19:01.789930+00:00",
+    "preflight": {
+      "source_and_spec_hashes_verified": true,
+      "prepared_verified_rows": 751,
+      "case_argument_formatting_verified": true
+    }
   }
 }

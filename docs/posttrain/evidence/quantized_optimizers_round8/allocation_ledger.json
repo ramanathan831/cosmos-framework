@@ -69,6 +69,15 @@
       "gpu_count": 1,
       "state": "RUNNING",
       "charged_seconds": null
+    },
+    {
+      "job": "38362820",
+      "purpose": "One native batch-four seed43 reconstruction and semantic/format attribution after rejected smoothing recipe",
+      "requested_seconds": 600,
+      "gpu_count": 1,
+      "state": "PENDING",
+      "dependency": "afterok:38361299",
+      "charged_seconds": null
     }
   ],
   "local_checks": [
