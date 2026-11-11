@@ -13,7 +13,9 @@
         "cosmos_framework/posttrain/tests/test_sft_label_smoothing.py",
         "--confcutdir=cosmos_framework/posttrain/tests",
         "--override-ini=addopts=",
-        "-q"
+        "-q",
+        "-p",
+        "no:env"
       ]
     },
     {

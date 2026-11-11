@@ -119,7 +119,7 @@
     {
       "reported_seconds": 6.27,
       "passed": 17,
-      "scope": "Smoothing gradient, accumulation, hard-CE, config and identity tests; overlap. Pinned CUDA check separately required."
+      "scope": "Smoothing checks include4 real local CUDA cases: repository pytest_env unset CUDA_VISIBLE_DEVICES despite shell override. Local pinned versions differ; scheduled pinned CUDA checks remain required. Subsequent invocations disable pytest_env to respect supplied visibility."
     }
   ],
   "historical_totals_from_40885d9": {
