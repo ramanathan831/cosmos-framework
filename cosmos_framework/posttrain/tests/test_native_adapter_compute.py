@@ -4,6 +4,8 @@
 
 from __future__ import annotations
 
+import copy
+
 import pytest
 import torch
 from torch import nn
@@ -29,7 +31,10 @@ def test_default_adapter_arithmetic_remains_exact(compute_dtype):
         adapter.lora_B.weight.fill_(0.25)
     x = torch.randn(2, 7, 16, dtype=torch.bfloat16)
     expected = F.linear(x, adapter.weight) + 2 * adapter.lora_B(adapter.lora_A(x.float())).bfloat16()
+    rng = torch.get_rng_state().clone()
     torch.testing.assert_close(adapter(x), expected, atol=0, rtol=0)
+    assert isinstance(adapter.lora_dropout, nn.Identity)
+    assert torch.equal(torch.get_rng_state(), rng)
 
 
 def test_bf16_arithmetic_matches_explicit_reference_and_retains_fp32_leaf_gradients():
@@ -91,3 +96,66 @@ def test_explicit_compute_policy_rejects_unsupported_dtype_or_non_fp32_masters()
         _adapter(torch.float16)
     with pytest.raises(ValueError, match="FP32 adapter parameters"):
         LoraInjectedLinear(nn.Linear(16, 16), 4, 8, adapter_dtype=torch.bfloat16, adapter_compute_dtype=torch.bfloat16)
+
+
+@pytest.mark.parametrize("checkpoint", [False, True])
+def test_dropout_restored_rng_and_eval_preserve_next_updates(checkpoint):
+    """Exercise the real dense adapter; full CUDA/native-DCP qualification is separate."""
+
+    def build():
+        base = nn.Linear(16, 16, bias=False, dtype=torch.bfloat16).requires_grad_(False)
+        adapter = LoraInjectedLinear(base, 4, 8, dropout=0.05, adapter_dtype=torch.float32)
+        adapter.reset_adapter_parameters(generator=torch.Generator().manual_seed(84))
+        optimizer = torch.optim.AdamW(adapter.adapter_parameters().values(), lr=0.01)
+        block = checkpoint_wrapper(adapter, preserve_rng_state=True) if checkpoint else adapter
+        return adapter, optimizer, block
+
+    def update(adapter, optimizer, block, inputs):
+        optimizer.zero_grad(set_to_none=True)
+        loss = block(inputs).float().square().mean()
+        loss.backward()
+        assert adapter.weight.grad is None
+        assert all(torch.isfinite(p.grad).all() for p in adapter.adapter_parameters().values())
+        optimizer.step()
+        return loss.detach().clone()
+
+    with torch.random.fork_rng(devices=[]):
+        torch.manual_seed(123)
+        adapter, optimizer, block = build()
+        inputs = torch.randn(2, 7, 16, dtype=torch.bfloat16)
+        frozen = adapter.weight.detach().clone()
+        rng_before = torch.get_rng_state().clone()
+        for _ in range(2):
+            update(adapter, optimizer, block, inputs)
+        assert not torch.equal(torch.get_rng_state(), rng_before)
+        state = copy.deepcopy(adapter.state_dict())
+        optim_state = copy.deepcopy(optimizer.state_dict())
+        rng = torch.get_rng_state().clone()
+        expected_losses = [update(adapter, optimizer, block, inputs) for _ in range(2)]
+        expected_rng = torch.get_rng_state().clone()
+
+        resumed, resumed_optimizer, resumed_block = build()
+        resumed.load_state_dict(state)
+        resumed_optimizer.load_state_dict(optim_state)
+        torch.set_rng_state(rng)
+        resumed.eval()
+        with torch.no_grad():
+            first, second = resumed(inputs), resumed(inputs)
+            torch.testing.assert_close(first, second, atol=0, rtol=0)
+            expected_eval = (
+                F.linear(inputs, resumed.weight) + 2 * resumed.lora_B(resumed.lora_A(inputs.float())).bfloat16()
+            )
+            torch.testing.assert_close(first, expected_eval, atol=0, rtol=0)
+        assert torch.equal(torch.get_rng_state(), rng)
+        resumed.train()
+        actual_losses = [update(resumed, resumed_optimizer, resumed_block, inputs) for _ in range(2)]
+        for actual, expected in zip(actual_losses, expected_losses, strict=True):
+            torch.testing.assert_close(actual, expected, atol=0, rtol=0)
+        for name, expected in adapter.state_dict().items():
+            torch.testing.assert_close(resumed.state_dict()[name], expected, atol=0, rtol=0)
+        for saved, restored in zip(optimizer.state.values(), resumed_optimizer.state.values(), strict=True):
+            assert saved.keys() == restored.keys()
+            for key in saved:
+                torch.testing.assert_close(restored[key], saved[key], atol=0, rtol=0)
+        torch.testing.assert_close(resumed.weight, frozen, atol=0, rtol=0)
+        assert torch.equal(torch.get_rng_state(), expected_rng)

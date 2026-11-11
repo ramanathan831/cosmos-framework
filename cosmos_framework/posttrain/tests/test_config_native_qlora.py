@@ -45,7 +45,13 @@ def _root(model_cfg):
         {"rank": 0},
         {"rank": True},
         {"alpha": float("nan")},
-        {"dropout": 0.1},
+        {"dropout": -0.1},
+        {"dropout": 1.0},
+        {"dropout": float("nan")},
+        {"dropout": float("inf")},
+        {"dropout": -float("inf")},
+        {"dropout": True},
+        {"dropout": "0.05"},
         {"bias": "all"},
         {"modules_to_save": ["lm_head"]},
         {"initialization_seed": -1},
@@ -67,6 +73,19 @@ def _root(model_cfg):
 def test_adapter_rejects_unsupported_training_contract(override):
     with pytest.raises(ValueError, match="NativeLoRAConfig"):
         NativeLoRAConfig(**override)
+
+
+@pytest.mark.parametrize("dropout", [0, 0.0, 0.05, 0.5, 0.999])
+def test_adapter_dropout_is_explicit_and_part_of_model_identity(dropout):
+    baseline = NativeLoRAConfig()
+    candidate = NativeLoRAConfig(dropout=dropout)
+    expected = native_adapter_config_identity(baseline)
+    expected["dropout"] = dropout
+    assert native_adapter_config_identity(candidate) == expected
+    assert baseline.dropout == 0.0
+    for quantized_base in (None, QuantizedBaseTrainingConfig()):
+        cfg = Qwen3VLModelConfig(attn_impl="sdpa", adapter=candidate, quantized_base=quantized_base)
+        assert cfg.adapter.dropout == dropout
 
 
 def test_residual_initialization_identity_is_content_bound_and_preserves_legacy():

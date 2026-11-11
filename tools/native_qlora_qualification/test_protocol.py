@@ -33,6 +33,11 @@ def test_paired_arms_change_only_base_recipe_and_label():
         {"prefetch": 1},
         {"video_min_pixels": 999999},
         {"initialization": "unknown"},
+        {"dropout": True},
+        {"dropout": -0.1},
+        {"dropout": 1.0},
+        {"dropout": float("nan")},
+        {"dropout": float("inf")},
         {"initialization_artifact": "/unexpected/manifest.json"},
         {"initialization": "nf4_residual_svd"},
         {
@@ -75,3 +80,19 @@ def test_residual_experiment_is_explicit_and_baseline_serialization_unchanged():
     assert 'model.model_config.adapter.initialization_artifact="/prepared/manifest.json"' in residual.overrides()
     with pytest.raises(ValueError, match="requires NF4"):
         dataclasses.replace(residual, arm="bf16")
+
+
+def test_dropout_recipe_is_explicit_and_equal_between_precision_arms(tmp_path):
+    import json
+
+    baseline = Experiment("nf4_control", "nf4")
+    assert "dropout" not in baseline.as_dict()
+    assert not any("dropout" in value for value in baseline.overrides())
+    candidate = dataclasses.replace(baseline, dropout=0.05)
+    path = tmp_path / "recipe.json"
+    path.write_text(json.dumps(candidate.as_dict()))
+    assert Experiment.read(path) == candidate
+    assert "model.model_config.adapter.dropout=0.05" in candidate.overrides()
+    control = dataclasses.replace(candidate, arm="bf16")
+    assert control.overrides() == candidate.overrides()
+    assert control.as_dict()["dropout"] == 0.05

@@ -193,8 +193,8 @@ class NativeLoRAConfig:
             raise ValueError("NativeLoRAConfig.rank must be a positive integer")
         if type(self.alpha) not in (int, float) or not math.isfinite(self.alpha) or self.alpha <= 0:
             raise ValueError("NativeLoRAConfig.alpha must be finite and positive")
-        if type(self.dropout) not in (int, float) or self.dropout != 0:
-            raise ValueError("NativeLoRAConfig.dropout supports only 0.0 in the initial native capability")
+        if type(self.dropout) not in (int, float) or not math.isfinite(self.dropout) or not 0 <= self.dropout < 1:
+            raise ValueError("NativeLoRAConfig.dropout must be finite and in [0, 1)")
         if (
             not isinstance(self.modules_to_save, Sequence)
             or isinstance(self.modules_to_save, (str, bytes))
