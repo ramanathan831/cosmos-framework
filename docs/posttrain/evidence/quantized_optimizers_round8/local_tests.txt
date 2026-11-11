@@ -3,3 +3,5 @@ Observer/substantive: 7 passed in4.33s. Combined affected verification/slice/obs
 Ordering:26 passed in2.86s; affected ordering/legacy SFT/cursor regressions62 passed in3.03s. CLI fixture initially omitted required -- separator:1failed/62passed in4.03s; corrected fixture and full affected set63passed in4.09s. These sets overlap. Verifier Python compatibility:12passed in0.04s.
 
 Disabled-persistence contract fix:28 ordering checks passed in4.00s. Strict-persistence behavior used by admitted source d0948599 is unchanged.
+
+Smoothing+existing objective: initial fixture2failed/29passed in9.88s (mixed missing/explicit validation weights, corrected);31passed in9.83s after correction. Includes existing CPU distributed default tests. Counts overlap.

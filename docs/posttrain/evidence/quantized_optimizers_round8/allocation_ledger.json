@@ -46,9 +46,11 @@
       "purpose": "Corrected three-checkpoint native attribution retry",
       "requested_seconds": 1200,
       "gpu_count": 1,
-      "state": "PENDING",
-      "charged_seconds": null,
-      "exit_code": null
+      "state": "COMPLETED",
+      "charged_seconds": 428,
+      "exit_code": "0:0",
+      "allocation_elapsed_seconds": 426,
+      "extern_cleanup_seconds": 2
     }
   ],
   "local_checks": [
@@ -91,6 +93,17 @@
       "reported_seconds": 4.0,
       "passed": 28,
       "scope": "ordering, including disabled persistence contract; overlap"
+    },
+    {
+      "reported_seconds": 9.88,
+      "passed": 29,
+      "failed": 2,
+      "scope": "Initial smoothing test fixture omitted required real-row validation weights; guard correctly rejected it. Corrected next."
+    },
+    {
+      "reported_seconds": 9.83,
+      "passed": 31,
+      "scope": "New smoothing and existing objective tests, including CPU distributed default regression; overlapping coverage."
     }
   ],
   "historical_totals_from_40885d9": {
