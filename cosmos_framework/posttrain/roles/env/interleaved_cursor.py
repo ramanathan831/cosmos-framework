@@ -59,7 +59,10 @@ class InterleavedCursor(IndexedCursor):
     def state_dict(self):
         # The ordinary cursor rejects version2, preventing an unrecorded switch
         # back to untransformed order. Ordinary version1 checkpoints stay intact.
-        return {**super().state_dict(), "version": 2, "interleave": deepcopy(self._policy)}
+        state = super().state_dict()
+        if state is None:
+            return None
+        return {**state, "version": 2, "interleave": deepcopy(self._policy)}
 
     def ordering_identity(self):
         return deepcopy(self._policy)

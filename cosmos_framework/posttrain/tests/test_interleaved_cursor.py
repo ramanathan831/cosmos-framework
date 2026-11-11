@@ -111,6 +111,13 @@ def test_cross_policy_restore_rejected_and_legacy_state_unchanged():
     assert ordinary.state_dict() == saved
 
 
+def test_disabled_cursor_persistence_retains_base_contract():
+    candidate = InterleavedCursor(Dataset(), id_prefix="mcq:", window=20, cursor_resume="off")
+    take(candidate, 7)
+    assert candidate.state_dict() is None
+    assert candidate.load_state_dict({"invalid": True}) is False
+
+
 def test_next_inputs_and_adam_updates_match_after_interruption():
     data = Dataset(23)
     reference = cursor(data)
