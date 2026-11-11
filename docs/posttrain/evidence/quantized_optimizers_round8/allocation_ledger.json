@@ -1,0 +1,37 @@
+{
+  "aggregate_caps": null,
+  "jobs": [
+    {
+      "job": "38354071",
+      "purpose": "replay",
+      "requested_seconds": 2700,
+      "gpu_count": 1,
+      "state": "PENDING",
+      "charged_seconds": null
+    },
+    {
+      "job": "38354273",
+      "purpose": "verification",
+      "requested_seconds": 2700,
+      "gpu_count": 0,
+      "state": "PENDING",
+      "charged_seconds": null
+    }
+  ],
+  "local_checks": [
+    {
+      "reported_seconds": 4.33,
+      "passed": 7
+    },
+    {
+      "reported_seconds": 5.22,
+      "passed": 28,
+      "overlaps_previous": true
+    }
+  ],
+  "historical_totals_from_40885d9": {
+    "gpu_allocation_seconds": 6296,
+    "known_cpu_wall_seconds": 18938.32
+  },
+  "note": "Queued requests are not completed evidence. Actual terminal allocations, including failures, will be charged. No remaining-budget field."
+}
