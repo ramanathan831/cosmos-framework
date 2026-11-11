@@ -1,0 +1,4 @@
+38359776|FAILED|2026-11-10T19:26:56|2026-11-10T19:27:50|54|1:0|batch-block4-1051|billing=1,cpu=8,gres/gpu=1,mem=128G,node=1|
+38359776.batch|FAILED|2026-11-10T19:26:56|2026-11-10T19:27:50|54|1:0|batch-block4-1051|cpu=8,gres/gpu=1,mem=128G,node=1|5456K
+38359776.extern|COMPLETED|2026-11-10T19:26:56|2026-11-10T19:27:59|63|0:0|batch-block4-1051|billing=1,cpu=8,gres/gpu=1,mem=128G,node=1|0
+38359776.0|FAILED|2026-11-10T19:27:06|2026-11-10T19:27:55|49|1:0|batch-block4-1051|cpu=8,gres/gpu=1,mem=128G,node=1|2160K
