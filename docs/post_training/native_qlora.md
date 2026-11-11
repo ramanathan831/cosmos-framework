@@ -183,6 +183,20 @@ Native `149c2cf` adds committed-boundary pauses for scheduled development scorin
 
 The [completed CPU input census](native_qlora_qualification.md#complete-ordinary-source-input-census) processed all **4,611 unchanged training-source rows** with the pinned native processor and 3 GiB cache: **317–362 tokens**, two supervised tokens per row, video grid `[4,12,20]` and pixel tensor shape `[960,1536]`. Source, media and processor checks and parent/worker RNG checks passed around the full pass, including its final three-row window. This measures the ordinary source's preprocessing geometry; it does not establish that every row was trained, unique decoded frame counts, or current rank-32 long-context/larger-media GPU training support. The [tracked development-cost total](native_qlora_qualification.md#tracked-development-allocation-cost) includes failures and prior search allocations, with unmeasured acquisition/local CPU work left explicit.
 
+## Native in-process development scoring
+
+Native `ddd4a6d` adds opt-in evaluation of the complete sealed development partition inside the training process. **Accelerator qualification is pending**; the completed `149c2cf` results above remain evidence for their original restart-based workflow. Use a newly sealed build and its own kernel/artifact gate. The [qualification runner](../../tools/native_qlora_qualification/README.md#native-in-process-evaluation) accepts:
+
+```bash
+--evaluation-mode native --validation-target "$TARGET"
+```
+
+The target retains the frozen 584-row development source, its manifest hashes, the grid `[50,100,150,200,250,300]`, and the joint point threshold of 540 correct and token CE at most `0.12357161758062493`. This is separate from the release uncertainty gates. Native scoring uses the same per-example scorer as fresh-process evaluation, with a separate persistent bounded cache. Training keeps its model and cache resident. Source/media/processor identities, RNG, module modes and data cursors are checked or preserved; exact resume retains the evaluation policy and deterministic checkpoint journal.
+
+The first scheduled pass stops only after full scoring, a committed resumable checkpoint and checkpoint readback. Availability time includes runner setup, model loading, training, evaluation and checkpointing. Final target-index serialization, process cleanup and fresh export/reload remain in separately reported completion costs. Acquisition, build preparation and scheduler waiting remain outside the target clock. GPU parity, recovery and any runtime benefit must be measured before promotion.
+
+For a prospective nonstopping learning screen, direct native overrides `rl.validation.wts.stop_on_target=false` and `rl.pause_after_step=100` retain the 300-update horizon and full evaluation grid while recording observations at updates 50 and 100, even after an early pass. This is a paused screen, not completed or censored 300-update TTQ. The runner's native TTQ mode uses `stop_on_target=true`. Separately, `model.model_config.adapter.dropout=0.05` is an opt-in setting awaiting accelerator qualification; zero dropout remains the default. Changing dropout or evaluation policy requires new training, not an exact-resume waiver. Historical quality failures and the need for independent evaluation data remain unchanged.
+
 ## Experimental residual initialization
 
 The opt-in `nf4_residual_svd` initializer compensates for the **actual fixed NF4 base** before training. Accelerator preparation, 100-update training, fresh-process reload and a separate completed 15-stage four-update recovery suite are recorded for the sealed `1ac6a7f` native package in the [ongoing qualification](native_qlora_qualification.md#ongoing-improvement-campaign). The first full-development pilot did not pass its locked follow-up gate; quality and complete time-to-quality qualification remain open. Ordinary zero-B LoRA remains the default.
