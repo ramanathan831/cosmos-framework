@@ -366,6 +366,24 @@ class DevelopmentEvaluation:
                         {k: v for k, v in codec.identity.items() if k != "training_contract"}
                     ),
                     "checkpoint_publication_required": True,
+                    **(
+                        {
+                            "preprocessing_cache": {
+                                "policy": {
+                                    "cache_bytes": self.settings.cache_bytes,
+                                    "prefetch": False,
+                                    "workers": 1,
+                                    "max_pending": 1,
+                                },
+                                "stats": copy.deepcopy(self.pipeline.preprocessing_stats),
+                                "memory_scope": "bounded retained CPU cache entries, not total host memory",
+                                "counter_scope": "Cumulative within this native evaluator attempt, including earlier scheduled evaluations; not restored from a checkpoint. Successive snapshots must not be summed.",
+                                "elapsed_scope": "Processing counters include cache hits and exclude model evaluation; they are nested in validation wall time, not an additional elapsed-time charge.",
+                            }
+                        }
+                        if self.pipeline is not None
+                        else {}
+                    ),
                 },
             )
             record_qlora_phase(f"wts_scoring_{step:06d}_complete")

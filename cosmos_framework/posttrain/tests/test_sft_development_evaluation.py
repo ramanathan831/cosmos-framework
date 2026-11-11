@@ -254,6 +254,7 @@ def test_full_pass_matches_shared_scorer_and_preserves_all_training_state(tmp_pa
     for row, want in zip(scores, expected, strict=True):
         assert {key: row[key] for key in want} == want
     assert evaluator.history[0]["metrics"] == aggregate(scores)
+    assert "preprocessing_cache" not in json.loads((directory / "summary.json").read_text())
     assert metrics["val/wts_rows"] == 2
     assert evaluator.history[0]["metrics"]["native_supervised_tokens"] == 4
     assert not (evaluator.output / "wts/target-result.json").exists(), "evaluation alone is not a committed target"
@@ -444,8 +445,21 @@ def test_evaluation_cache_is_separate_persistent_bounded_and_score_exact(tmp_pat
     assert pipeline is evaluator.packer and pipeline._executor is None
     assert pipeline._max_pending == 1 and pipeline._spec.cache_bytes == 100_000
     before = _snapshot(evaluator, policy, optimizer)
+    before_calls = pipeline.preprocessing_stats["timing"]["processing_calls"]
     evaluator.evaluate(policy, optimizer, 2)
     first = copy.deepcopy(evaluator.history[0])
+    first_directory = evaluator.output / evaluator.artifacts[2]["directory"]
+    first_summary_bytes = (first_directory / "summary.json").read_bytes()
+    first_cache = json.loads(first_summary_bytes)["preprocessing_cache"]
+    first_stats = copy.deepcopy(pipeline.preprocessing_stats)
+    assert first_cache["stats"] == first_stats
+    assert first_cache["policy"] == {
+        "cache_bytes": 100_000,
+        "prefetch": False,
+        "workers": 1,
+        "max_pending": 1,
+    }
+    assert first_stats["timing"]["processing_calls"] == before_calls + len(evaluator.selected)
     misses = pipeline.preprocessing_stats["samples"]["misses"]
     evaluator.evaluate(policy, optimizer, 4)
     _exact(_snapshot(evaluator, policy, optimizer), before)
@@ -454,6 +468,15 @@ def test_evaluation_cache_is_separate_persistent_bounded_and_score_exact(tmp_pat
     assert pipeline.preprocessing_stats["samples"]["hits"] >= 2
     assert pipeline.preprocessing_stats["samples"]["misses"] == misses
     assert sum(pipeline.preprocessing_stats[name]["bytes"] for name in ("samples", "videos")) <= 100_000
+    second_directory = evaluator.output / evaluator.artifacts[4]["directory"]
+    second_cache = json.loads((second_directory / "summary.json").read_text())["preprocessing_cache"]
+    assert second_cache["stats"] == pipeline.preprocessing_stats
+    assert second_cache["stats"]["timing"]["processing_calls"] == before_calls + 2 * len(evaluator.selected)
+    assert second_cache["stats"]["samples"]["hits"] > first_stats["samples"]["hits"]
+    assert (first_directory / "summary.json").read_bytes() == first_summary_bytes
+    assert (first_directory / "scores.jsonl").read_bytes() == (second_directory / "scores.jsonl").read_bytes()
+    assert "preprocessing_cache" not in evaluator.state_dict()
+    assert all("preprocessing_cache" not in row for row in evaluator.history)
     evaluator.close()
     assert pipeline._closed
 
