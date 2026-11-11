@@ -46,7 +46,9 @@ def verify(candidate, reference, expected_manifest_sha256, *, candidate_manifest
         raise ValueError("subset verification requires both selection and candidate identity")
     expected_hashes = [candidate_manifest_sha256 or expected_manifest_sha256, expected_manifest_sha256]
     parsed = []
-    for path, expected in zip(manifests, expected_hashes, strict=True):
+    # Both fixed lists have two elements. Keep this standalone verifier usable
+    # on the cluster host's Python 3.8 as well as inside the pinned container.
+    for path, expected in zip(manifests, expected_hashes):
         digest, stamps[path] = checked_hash(path)
         if digest != expected:
             raise ValueError("manifest differs from the externally qualified identity")

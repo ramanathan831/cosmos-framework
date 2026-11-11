@@ -1,0 +1,9 @@
+{
+  "scope": "Prospective conditional planning only; historical GPU target clocks held fixed. Not measured speed or uncertainty.",
+  "historical_mean_preparation_seconds": 1981.6666666666667,
+  "historical_mean_verification_seconds": 229.9881333333333,
+  "ratio_if_all_verification_free": 1.0096572831903095,
+  "maximum_common_preparation_for_mean_ratio_1_05_with_measured_historical_target_clocks": 59.38821145235465,
+  "maximum_common_preparation_if_candidate_training_also_free": 207.35849384209814,
+  "conclusion": "Verification is a worthwhile shared phase optimization; even eliminating it cannot plausibly pass the unchanged historical cold gate. No complete cold timing campaign admitted for this change."
+}
