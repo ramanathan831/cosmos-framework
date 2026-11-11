@@ -263,6 +263,7 @@ class LLMTrainer(BaseTrainer):
         validation_normalizer: Callable[[dict], dict] = normalize_rollout_validation_identity,
         validation_state: ValidationState | None = None,
         objective_evaluator: Callable[[Any, Objective, list[Trajectory]], dict[str, Any]] | None = None,
+        development_evaluator: Any | None = None,
     ) -> None:
         from cosmos_framework.posttrain.callbacks.base import CallbackList
 
@@ -345,6 +346,7 @@ class LLMTrainer(BaseTrainer):
             objective_evaluator
         )
         self.validation_publication = PublicationJournal(self.validation_state)
+        self.development_evaluator = development_evaluator
         # The colocated hand-off is deliberately split in two. Update-only state moves first while
         # policy shards remain on GPU as the direct IPC weight-sync source; the policy moves only
         # after publication. This changes ordering, not transfer volume.
@@ -1220,13 +1222,50 @@ class LLMTrainer(BaseTrainer):
             extra_fields_by_version={
                 1: frozenset(),
                 2: frozenset({"publication"}),
+                3: frozenset({"publication", "wts"}),
             },
         )
         if restored_extra is not None:
+            if self.development_evaluator is not None and self._resumed_from_checkpoint:
+                if "wts" not in restored_extra:
+                    raise RuntimeError("exact resume requires the WTS evaluation journal")
+                self.development_evaluator.load_state_dict(
+                    restored_extra["wts"],
+                    iteration=self._iter,
+                    pending_step=self.validation_state.progress.pending_step,
+                )
+            elif "wts" in restored_extra:
+                raise RuntimeError("exact resume cannot disable WTS evaluation")
             self.validation_publication.restore(
                 restored_extra.get("publication"),
                 iteration=self._iter,
             )
+
+    def evaluate_development(self, model_step: int) -> dict[str, int | float]:
+        self._require_checkpoint_boundary()
+        if self.development_evaluator is None or model_step != self._iter:
+            raise RuntimeError("WTS evaluation requires its configured committed model step")
+        return self.development_evaluator.evaluate(self.model, self.opt, model_step)
+
+    def publish_development_result(self, *, step: int, checkpoint: str, started_at: float, resumed: bool) -> Any:
+        self._require_checkpoint_boundary()
+        evaluator = self.development_evaluator
+        if evaluator is None or step != self._iter:
+            raise RuntimeError("WTS result requires its configured model step")
+        if (
+            self.validation_state.progress.pending_step is not None
+            or self.validation_publication.pending_step is not None
+        ):
+            raise RuntimeError("WTS target result requires committed validation publication")
+        if not evaluator.history or evaluator.history[-1]["step"] != step:
+            return None
+        self.finalize_checkpoints()
+        evaluator.verify_checkpoint(checkpoint, self.checkpoint_manager, self.model)
+        return evaluator.publish(step=step, checkpoint=checkpoint, started_at=started_at, resumed=resumed)
+
+    def close_development_evaluation(self) -> None:
+        if self.development_evaluator is not None:
+            self.development_evaluator.close()
 
     def _require_validation_enabled(self) -> None:
         self.validation_state.require_enabled("model validation is not enabled/configured on this trainer")
@@ -1316,8 +1355,15 @@ class LLMTrainer(BaseTrainer):
             if self.validation_state.configured:
                 self.validation_publication.validate_checkpoint_state()
                 state["validation"] = self.validation_state.state_dict(
-                    version=2,
-                    extra={"publication": self.validation_publication.checkpoint_record()},
+                    version=3 if self.development_evaluator is not None else 2,
+                    extra={
+                        "publication": self.validation_publication.checkpoint_record(),
+                        **(
+                            {"wts": self.development_evaluator.state_dict()}
+                            if self.development_evaluator is not None
+                            else {}
+                        ),
+                    },
                 )
             if self.lr_scheduler is not None:
                 # Persist scheduler progress so resume does not replay warmup.

@@ -251,6 +251,181 @@ def compare_activation_checkpointing_checkpoints(reference: Path, candidate: Pat
     }
 
 
+def compare_wts_scores(native: Path, fresh: Path, *, checkpoint: Path, expected_rows: int) -> dict[str, Any]:
+    """Require exact selected rows, every numerical score and loaded adapter identity."""
+    from tools.native_qlora_qualification.quality import validate_scores
+
+    summaries, selections, score_rows, selected_rows, pins = [], [], [], [], {}
+    for folder in (Path(native), Path(fresh)):
+        for name in ("summary.json", "selection.json", "scores.jsonl", "selected_rows.jsonl"):
+            pins[str(folder / name)] = hashlib.sha256((folder / name).read_bytes()).hexdigest()
+        summary = json.loads((folder / "summary.json").read_text())
+        selection = json.loads((folder / "selection.json").read_text())
+        scores = [json.loads(line) for line in (folder / "scores.jsonl").read_text().splitlines() if line.strip()]
+        selected = [
+            json.loads(line) for line in (folder / "selected_rows.jsonl").read_text().splitlines() if line.strip()
+        ]
+        validate_scores(scores)
+        if (
+            summary.get("complete") is not True
+            or summary.get("checkpoint") != str(checkpoint.resolve())
+            or summary.get("scores_sha256") != pins[str(folder / "scores.jsonl")]
+            or summary.get("selection_sha256") != digest(selection)
+            or selection.get("selected_rows_file_sha256") != pins[str(folder / "selected_rows.jsonl")]
+            or len(scores) != expected_rows
+            or len(selected) != expected_rows
+        ):
+            raise ValueError("native/fresh WTS parity requires complete owned scoring artifacts")
+        summaries.append(summary)
+        selections.append(selection)
+        score_rows.append(scores)
+        selected_rows.append(selected)
+    if score_rows[0] != score_rows[1] or selected_rows[0] != selected_rows[1]:
+        raise AssertionError("native and fresh WTS per-example scores or selected rows differ")
+    for key in (
+        "source_sha256",
+        "split_manifest_sha256",
+        "split_role",
+        "ordered_ids",
+        "ordered_row_identities",
+        "selected_content_sha256",
+        "selected_rows_file_sha256",
+    ):
+        if selections[0][key] != selections[1][key]:
+            raise AssertionError(f"native/fresh WTS selection differs: {key}")
+    for key in (
+        "metrics",
+        "adapter_tensors_sha256",
+        "processor_contract",
+        "objective_identity",
+        "model_identity_sha256",
+    ):
+        if summaries[0][key] != summaries[1][key]:
+            raise AssertionError(f"native/fresh WTS numerical or loaded identity differs: {key}")
+    if any(hashlib.sha256(Path(path).read_bytes()).hexdigest() != pin for path, pin in pins.items()):
+        raise ValueError("WTS parity artifacts changed during comparison")
+    return {
+        "passed": True,
+        "rows": expected_rows,
+        "per_example_and_selection_exact": True,
+        "adapter_and_processor_identity_exact": True,
+        "source_sha256": pins,
+        "quality_qualified": False,
+    }
+
+
+def wts_metadata_delta(reference: dict, candidate: dict, expected: dict) -> dict[str, Any]:
+    """Acknowledge only enabling the declared evaluation contract; never permit cross-resume."""
+    adjusted = copy.deepcopy(candidate)
+    try:
+        left = reference["identity"]["training_contract"]["validation"]["fields"]
+        right = adjusted["identity"]["training_contract"]["validation"]["fields"]
+        if (
+            "wts" in left
+            or right.pop("wts") != expected
+            or expected["__dataclass_type__"] != "cosmos_framework.posttrain.config.sft.SFTWTSConfig"
+            or expected["fields"]["enabled"] is not True
+        ):
+            raise ValueError("expected explicit disabled-to-declared-WTS evaluation identity")
+    except (KeyError, TypeError) as error:
+        raise ValueError("missing explicit native WTS identity") from error
+    if digest(reference) != digest(adjusted):
+        raise ValueError("an additional native metadata difference is not an evaluation journal")
+    return {
+        "reference_metadata_sha256": digest(reference),
+        "candidate_metadata_sha256": digest(candidate),
+        "acknowledged_metadata_field": "identity.training_contract.validation.fields.wts",
+        "wts_config": expected,
+    }
+
+
+def wts_control_delta(reference: dict, candidate: dict, *, expected: dict, journal: dict) -> tuple[dict, dict]:
+    """Normalize the explicit evaluation-only journal, retaining all ordinary controls."""
+    from cosmos_framework.posttrain.tests.qlora_integration import _portable_trainer_controls
+
+    left, right = _portable_trainer_controls(reference), _portable_trainer_controls(candidate)
+    a, b = left["validation"], right["validation"]
+    if a["version"] != 2 or b["version"] != 3 or "wts" in a or b.pop("wts") != journal:
+        raise ValueError("unexpected evaluation journal/version delta")
+    if "wts" in a["identity"]:
+        raise ValueError("disabled reference unexpectedly contains WTS identity")
+    identity = b["identity"].pop("wts")
+    expected = expected["fields"]
+    fixed = {
+        "protocol": "cosmos.native-sft-wts.v1",
+        "source_sha256": expected["source_sha256"],
+        "manifest_sha256": expected["manifest_sha256"],
+        "expected_rows": expected["expected_rows"],
+        "steps": expected["steps"],
+        "cache_bytes": expected["cache_bytes"],
+        "min_correct": expected["min_correct"],
+        "max_token_ce": expected["max_token_ce"],
+        "stop_on_target": expected["stop_on_target"],
+    }
+    if set(identity) != {*fixed, "source_fingerprint", "processor", "objective", "selection_sha256"} or any(
+        identity[key] != value for key, value in fixed.items()
+    ):
+        raise ValueError("evaluation journal identity differs from its fixed configuration")
+    if any(not re.fullmatch("[a-f0-9]{64}", identity[key]) for key in ("source_fingerprint", "selection_sha256")):
+        raise ValueError("evaluation source/selection identity is not pinned")
+    b["version"] = 2
+    return left, right
+
+
+def compare_wts_checkpoints(
+    reference: Path, candidate: Path, *, step: int, expected: dict, journal: dict
+) -> dict[str, Any]:
+    """Allocated own-run tensor/control parity with only explicit evaluation bookkeeping differences."""
+    import torch
+
+    from cosmos_framework.posttrain.checkpoint.adapter import read_adapter_metadata
+    from cosmos_framework.posttrain.tests.qlora_integration import (
+        _assert_close_tree,
+        _load_flat_dcp,
+        inspect_checkpoint,
+    )
+
+    paths = (Path(reference), Path(candidate))
+    before = [inspect_checkpoint(str(path), expected_step=step) for path in paths]
+    metadata = [read_adapter_metadata(str(path), require_resume=True) for path in paths]
+    delta = wts_metadata_delta(*metadata, expected)
+    for component in ("model", "optim"):
+        left, right = [_load_flat_dcp(path / component) for path in paths]
+        _assert_close_tree(left, right, atol=0, rtol=0, path=component)
+        del left, right
+    for component in ("trainer", "data"):
+        values = [torch.load(path / f"{component}.pt", map_location="cpu", weights_only=False) for path in paths]
+        if component == "trainer":
+            identity = values[1]["validation"]["identity"]["wts"]
+            if identity["processor"] != metadata[1]["identity"]["processor_contract"]:
+                raise ValueError("evaluation and training processor identities differ")
+            training_objective = metadata[1]["identity"]["training_contract"]["objective"]
+            scoring_objective = {
+                key: value
+                for key, value in training_objective.items()
+                if key
+                not in {"training_source", "micro_batch_size", "grad_accum", "dp_world", "precision", "preprocessing"}
+            }
+            if identity["objective"] != scoring_objective:
+                raise ValueError("evaluation objective differs from the native training arithmetic")
+            values = wts_control_delta(*values, expected=expected, journal=journal)
+        _assert_close_tree(*values, atol=0, rtol=0, path=component)
+    if [inspect_checkpoint(str(path), expected_step=step) for path in paths] != before:
+        raise ValueError("WTS comparison checkpoint source changed during payload reads")
+    return {
+        "passed": True,
+        "optimizer_step": step,
+        "atol": 0,
+        "rtol": 0,
+        "model_optimizer_values_exact": True,
+        "remaining_controls_rng_and_data_exact": True,
+        "observation_only": True,
+        "resume_compatible": False,
+        "wts_journal_sha256": digest(journal),
+        **delta,
+    }
+
+
 class Stages:
     def __init__(self, output: Path, environment: dict[str, str], timeout: int):
         self.process_capability = OwnedProcessTree.check_support()
@@ -336,6 +511,18 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         config = load_config(args.config, ["--", *overrides])
         rl = validate_config_structure(config)
         model = instantiate(select_policy_backend(config).model_config)
+        qualify_wts = getattr(args, "qualify_wts", False)
+        if qualify_wts and (
+            not rl.validation.wts.enabled
+            or not rl.validation.wts.stop_on_target
+            or rl.validation.wts.steps != [2, 4]
+            or rl.validation.wts.expected_rows != 4
+            or rl.validation.wts.min_correct != 4
+            or rl.validation.wts.max_token_ce != 0
+        ):
+            raise ValueError(
+                "WTS qualification requires a sealed four-row development source, steps[2,4], correct4/CE0"
+            )
         if getattr(model, "adapter", None) is None or rl.grad_accum < 2:
             raise ValueError("recovery qualification requires native adapters and grad_accum>=2")
         receipt = {
@@ -381,10 +568,17 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         launcher = [sys.executable, "-m", "torch.distributed.run", "--standalone", "--nproc-per-node=1", "-m"]
         roots = {}
 
-        def native(name: str, *, mode: str | None = None, source: str = "off") -> tuple[Path, list[str]]:
+        def native(
+            name: str, *, mode: str | None = None, source: str = "off", disable_wts: bool = False
+        ) -> tuple[Path, list[str]]:
             root = output / "native/qualification/recovery" / name / "canary"
             roots[name] = root
-            opts = overrides + [
+            owned_overrides = (
+                [v for v in overrides if not v.startswith("rl.validation.wts.")] + ["rl.validation.wts.enabled=false"]
+                if disable_wts
+                else overrides
+            )
+            opts = owned_overrides + [
                 "job.project=qualification",
                 "job.group=recovery",
                 f"job.name={name}",
@@ -524,6 +718,107 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 "0",
             ],
         )
+        wts_proof = None
+        if qualify_wts:
+            reference = roots["reference"]
+            result_path = reference / "wts/target-result.json"
+            native_result = json.loads(result_path.read_text())
+            observations = native_result["observations"]
+            if (
+                native_result["protocol"] != "cosmos.native-sft-wts-target.v1"
+                or native_result["complete"] is not True
+                or native_result["final_step"] != 4
+                or native_result["first_passing_step"] is not None
+                or native_result["horizon_censored"] is not True
+                or [v["step"] for v in observations] != [2, 4]
+                or any(v["target_met"] is not False for v in observations)
+            ):
+                raise ValueError("WTS qualification must complete both nonpassing scheduled observations")
+            checkpoint = reference / "checkpoints/iter_000004"
+            selected = (reference / observations[-1]["directory"]).resolve()
+            if not selected.is_relative_to((reference / "wts").resolve()):
+                raise ValueError("native WTS qualification scores are not owned")
+            fresh = output / "fresh-wts-scores"
+            score = Path(__file__).with_name("score.py")
+            stages.run(
+                "fresh_wts_score",
+                [
+                    sys.executable,
+                    "-m",
+                    "torch.distributed.run",
+                    "--standalone",
+                    "--nproc-per-node=1",
+                    str(score),
+                    "--config",
+                    args.config,
+                    "--checkpoint",
+                    str(checkpoint),
+                    "--data",
+                    rl.validation.wts.data.path,
+                    "--output",
+                    str(fresh),
+                    "--all-rows",
+                    "--split",
+                    "development",
+                    "--split-manifest",
+                    rl.validation.wts.manifest_path,
+                    "--split-manifest-sha256",
+                    rl.validation.wts.manifest_sha256,
+                    "--preprocessing-cache-bytes",
+                    str(rl.validation.wts.cache_bytes),
+                    *[part for value in overrides for part in ("--override", value)],
+                ],
+            )
+            parity = compare_wts_scores(selected, fresh, checkpoint=checkpoint, expected_rows=4)
+            write_json(output / "wts-score-parity.json", parity)
+            disabled, _ = native("without_wts", disable_wts=True)
+            comparisons = {}
+            journal_keys = {
+                "step",
+                "rows",
+                "correct",
+                "token_weighted_ce",
+                "target_met",
+                "metrics",
+                "scores_sha256",
+                "selected_content_sha256",
+                "processed_inputs_sha256",
+            }
+            for step in (2, 4):
+                settings = {
+                    "expected": canonical_config_value(rl.validation.wts),
+                    "journal": {
+                        "version": 1,
+                        "observations": [{k: v[k] for k in journal_keys} for v in observations if v["step"] <= step],
+                    },
+                }
+                settings_path = output / f"wts-comparison-{step}.json"
+                write_json(settings_path, settings)
+                comparison_path = output / f"wts-state-parity-{step}.json"
+                stages.run(
+                    f"wts_state_compare_{step}",
+                    [
+                        sys.executable,
+                        "-c",
+                        "import json,sys; from pathlib import Path; "
+                        "from tools.native_qlora_qualification.lifecycle import compare_wts_checkpoints,write_json; "
+                        "settings=json.loads(Path(sys.argv[4]).read_text()); "
+                        "write_json(Path(sys.argv[5]),compare_wts_checkpoints(Path(sys.argv[1]),Path(sys.argv[2]),"
+                        "step=int(sys.argv[3]),**settings))",
+                        str(disabled / f"checkpoints/iter_{step:06d}"),
+                        str(reference / f"checkpoints/iter_{step:06d}"),
+                        str(step),
+                        str(settings_path),
+                        str(comparison_path),
+                    ],
+                )
+                comparisons[str(step)] = json.loads(comparison_path.read_text())
+            wts_proof = {
+                "fresh_score_parity": parity,
+                "evaluation_disabled_state_comparisons": comparisons,
+                "native_result_sha256": hashlib.sha256(result_path.read_bytes()).hexdigest(),
+                "scope": "Four-row CUDA parity and own recovery only; not full-development quality or continuous timing.",
+            }
         result = {
             "protocol": "cosmos.native-qlora-recovery-result.v1",
             "complete": True,
@@ -533,6 +828,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             "outcomes": stages.outcomes,
             "reload_exact": True,
             "release_quality_qualified": False,
+            **({"wts_qualification": wts_proof} if qualify_wts else {}),
         }
         write_json(output / "completion.json", result)
         return result
@@ -560,6 +856,11 @@ def main() -> None:
         "--plan-only", action="store_true", help="Resolve and persist the immutable spec without launching"
     )
     parser.add_argument("--override", action="append", default=[])
+    parser.add_argument(
+        "--qualify-wts",
+        action="store_true",
+        help="After own recovery, qualify four-row native/fresh scoring and evaluation-only state differences.",
+    )
     parser.add_argument("--stage-timeout", type=int, default=3600)
     args = parser.parse_args()
     if args.stage_timeout < 1:

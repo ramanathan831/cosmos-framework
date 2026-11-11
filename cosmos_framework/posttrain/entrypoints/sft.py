@@ -88,7 +88,11 @@ def sft_policy_source(config: Any) -> tuple[str, bool]:
 
 def enabled_sources(rl: SFTConfig) -> list[SFTDatasetConfig]:
     """The training source, then the held-out source when validation is enabled."""
-    return [rl.data, *([rl.validation.data] if rl.validation.enabled else [])]
+    return [
+        rl.data,
+        *([rl.validation.data] if rl.validation.enabled else []),
+        *([rl.validation.wts.data] if rl.validation.wts.enabled else []),
+    ]
 
 
 def _validate_determinism(config: Any) -> bool:
@@ -132,6 +136,13 @@ def validate_config_structure(config: Any) -> SFTConfig:
     # ``SFTConfig.__post_init__`` judges ``mask_think_opener=True`` by the typed ``serve_contract`` field for every source
     # of the value (the recipe variant, a YAML, a ``--`` override; review round 142b, review threads b196e5e99f / 12f2ce563b).
     rl.__post_init__()
+    if rl.validation.wts.enabled:
+        from cosmos_framework.posttrain.config.build import select_policy_backend
+        from cosmos_framework.posttrain.utils.dist import world_size_or_1
+
+        spec = select_policy_backend(config).native_spec
+        if spec is None or getattr(spec.model_config, "adapter", None) is None or world_size_or_1() != 1:
+            raise ValueError("validation.wts initially requires one native adapter process")
     if rl.lr_schedule.kind == "cosine" and (rl.lr_schedule.cycle_steps or rl.max_steps) <= rl.optimizer.warmup_steps:
         # Legal (a short canary of a long warmup) but worth one line: the run never leaves the warmup ramp.
         info0(
@@ -204,6 +215,9 @@ def _adapter_run_contract(
     processor = adapter_processor_identity(
         packer, source_path=selection.model_id, source_identity=spec.model_config.source_identity
     )
+    validation_contract = canonical_config_value(rl.validation)
+    if not rl.validation.wts.enabled:
+        validation_contract["fields"].pop("wts", None)
     training = normalize_json_dict(
         {
             "objective": objective_identity,
@@ -213,7 +227,7 @@ def _adapter_run_contract(
             "seed": rl.seed,
             "deterministic": rl.deterministic,
             "determinism_mode": "strict",
-            "validation": canonical_config_value(rl.validation),
+            "validation": validation_contract,
             "code_revision": revision,
             "wheel_sha256": wheel_sha256,
         },
@@ -348,6 +362,20 @@ def build_trainer(config: Any, rl: SFTConfig, data: Any, validation: Any | None,
                 affinity="partition_inherited_all_worker_threads_v1",
                 cache_budget="sum_of_worker_limits",
             )
+    development = None
+    if rl.validation.wts.enabled:
+        from cosmos_framework.posttrain.roles.rollout.validation import distributed_validation_rng
+        from cosmos_framework.posttrain.roles.trainer.validation.development import DevelopmentEvaluation
+
+        with distributed_validation_rng("SFT development setup"):
+            development = DevelopmentEvaluation(
+                rl.validation.wts,
+                rl,
+                data,
+                model_source=name_or_path,
+                trust=trust_remote_code,
+                output=out_dir(config),
+            )
     adapter_contract = _adapter_run_contract(config, packer, objective.identity)
     if adapter_contract is not None:
         _preflight_adapter_resume(config, checkpoint, *adapter_contract)
@@ -386,6 +414,7 @@ def build_trainer(config: Any, rl: SFTConfig, data: Any, validation: Any | None,
         checkpoint_manager=checkpoint.manager,
         validation_state=ValidationState(),
         objective_evaluator=evaluate_sft_batch,
+        development_evaluator=development,
     )
     # Exact resume replaces this rank-local stream with the checkpoint's RNG state.
     misc.set_random_seed(seed=rl.seed, by_rank=True)
@@ -412,6 +441,8 @@ def build_trainer(config: Any, rl: SFTConfig, data: Any, validation: Any | None,
                 "train_total_steps": rl.max_steps,
             },
         }
+        if development is not None:
+            validation_identity["wts"] = development.identity
     trainer.configure_validation(validation_identity)
     record_qlora_phase("trainer_ready", reset_peak=True)
     return trainer
@@ -559,6 +590,7 @@ def _evaluate(
             local["sequences"] += float(metrics["val/valid_sequence_count"])
 
         run_rank_converged(collect, "SFT held-out metric preparation")
+    development_metrics = resolve(policy.evaluate_development(model_step)) if rl.validation.wts.enabled else {}
     local["duration"] = time.monotonic() - started
     gathered = gather_rank_states(local, context="SFT held-out totals")
     tokens = sum(row["tokens"] for row in gathered.values())
@@ -576,6 +608,7 @@ def _evaluate(
             "val/valid_token_count": int(tokens),
             "val/valid_sequence_count": int(sequences),
             "timer/validation_s": duration,
+            **development_metrics,
         },
         source_fingerprint=fingerprint,
         trigger_reasons=reasons,
@@ -583,7 +616,7 @@ def _evaluate(
     )
 
 
-def loop(units: dict[str, Any], config: Any, run_out_dir: str) -> dict[str, Any]:
+def loop(units: dict[str, Any], config: Any, run_out_dir: str, *, started_at: float | None = None) -> dict[str, Any]:
     from cosmos_framework.posttrain.control.checkpointing import CheckpointLifecycle
     from cosmos_framework.posttrain.control.termination import TerminationWatch
     from cosmos_framework.posttrain.control.validation import ValidationSchedule
@@ -602,6 +635,7 @@ def loop(units: dict[str, Any], config: Any, run_out_dir: str) -> dict[str, Any]
     from cosmos_framework.utils.lazy_config import instantiate
 
     rl = instantiate(config.rl)
+    started_at = time.monotonic() if started_at is None else started_at
     data, policy = units["data"], units["policy"]
     start = int(resolve(policy.iteration()))
     if start > rl.max_steps:
@@ -639,11 +673,38 @@ def loop(units: dict[str, Any], config: Any, run_out_dir: str) -> dict[str, Any]
     # fraction below is the share of the RUN's updates, not of this attempt's (review R134-05).
     clipped_steps, counted_steps = prior_clip_counts(reporters)
     profiler = NativeStepProfiler()
+
+    def publish_development(step: int) -> dict[str, Any] | None:
+        if not rl.validation.wts.enabled:
+            return None
+        location = checkpoints.path(step)
+        if resumed and step == start and checkpoint.resume_checkpoint is not None and not os.path.isdir(location):
+            # Completed external validation needs no copied checkpoint. Pending
+            # evaluation/publication recovery above creates its own successor.
+            location = checkpoint.resume_checkpoint
+        return resolve(
+            policy.publish_development_result(
+                step=step,
+                checkpoint=location,
+                started_at=started_at,
+                resumed=resumed,
+            )
+        )
+
     try:
         initial = boundary.resume_or_initial(start, resumed_from_checkpoint=resumed)
         record_qlora_phase("initial_validation", reset_peak=True)
         if initial.preempted:
             return {"final_step": start, "preempted": initial.preempted}
+        initial_target = publish_development(start)
+        if initial_target is not None and initial_target["complete"]:
+            return {
+                "start": start,
+                "final_step": start,
+                "final_loss": final_loss,
+                "target_reached": initial_target["first_passing_step"] is not None,
+                "target_result": os.path.join(run_out_dir, "wts", "target-result.json"),
+            }
         profiler.start()
         for step in range(start, rl.max_steps):
             began = time.monotonic()
@@ -672,6 +733,16 @@ def loop(units: dict[str, Any], config: Any, run_out_dir: str) -> dict[str, Any]
             if save_due:
                 checkpoints.save_configured_if_needed(final_step)
             record_qlora_phase(f"validation_checkpoint_boundary_{final_step}", reset_peak=True)
+            target = publish_development(final_step)
+            if target is not None and target["complete"]:
+                CheckpointLifecycle.finalize_units(units)
+                return {
+                    "start": start,
+                    "final_step": final_step,
+                    "final_loss": final_loss,
+                    "target_reached": target["first_passing_step"] is not None,
+                    "target_result": os.path.join(run_out_dir, "wts", "target-result.json"),
+                }
             stopped = watch.should_stop()
             if stopped:
                 # rl.emergency_checkpoint_components: "full" upgrades to the exact-resume plan; "run" writes
@@ -699,8 +770,12 @@ def loop(units: dict[str, Any], config: Any, run_out_dir: str) -> dict[str, Any]
                 }
     finally:
         try:
-            if getattr(rl, "preprocessing_prefetch", False) or getattr(rl, "preprocessing_cache_bytes", 0):
-                resolve(policy.close_input_pipeline())
+            try:
+                if rl.validation.wts.enabled:
+                    resolve(policy.close_development_evaluation())
+            finally:
+                if getattr(rl, "preprocessing_prefetch", False) or getattr(rl, "preprocessing_cache_bytes", 0):
+                    resolve(policy.close_input_pipeline())
         finally:
             try:
                 profiler.close()
@@ -710,6 +785,7 @@ def loop(units: dict[str, Any], config: Any, run_out_dir: str) -> dict[str, Any]
 
 
 def run(config: Any, config_path: str, opts: list[str], run_out_dir: str) -> dict[str, Any]:
+    started_at = time.monotonic()
     from cosmos_framework.posttrain.control.bind import bind_check
     from cosmos_framework.posttrain.control.checkpointing import CheckpointLifecycle
     from cosmos_framework.posttrain.control.placement import ActorGroup, DeviceGroup, bind_device_groups
@@ -733,7 +809,7 @@ def run(config: Any, config_path: str, opts: list[str], run_out_dir: str) -> dic
         group = ActorGroup(members=tuple(units.values()), setup=make_setup(config_path, list(attempt.opts)))
         # torchrun owns the CUDA process group; local placement does not allocate another mesh.
         bind_device_groups([DeviceGroup(actor_groups=(group,), device="cpu")], backend="local")
-        summary = loop(units, config, attempt.out_dir)
+        summary = loop(units, config, attempt.out_dir, started_at=started_at)
         info0(f"SFT DONE {summary}")
         return summary
     finally:

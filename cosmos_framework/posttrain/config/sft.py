@@ -5,8 +5,12 @@
 from __future__ import annotations
 
 import json
+import math
+import re
 from dataclasses import dataclass, field
 from typing import Any
+
+from omegaconf import ListConfig
 
 from cosmos_framework.posttrain.config.rl import HFRunConfig, ValidationScheduleConfig, _normalize_factory_kwargs
 
@@ -78,8 +82,64 @@ class SFTDatasetConfig:
 
 
 @dataclass
+class SFTWTSConfig:
+    """Opt-in, source-bound full-development scoring at committed validation steps."""
+
+    enabled: bool = False
+    stop_on_target: bool = True
+    data: SFTDatasetConfig = field(default_factory=lambda: SFTDatasetConfig(shuffle=False))
+    source_sha256: str = ""
+    manifest_path: str = ""
+    manifest_sha256: str = ""
+    expected_rows: int = 0
+    steps: list[int] = field(default_factory=list)
+    cache_bytes: int = 0
+    min_correct: int = 0
+    max_token_ce: float = 0.0
+
+    def __post_init__(self) -> None:
+        if type(self.enabled) is not bool:
+            raise TypeError("validation.wts.enabled must be bool")
+        if type(self.stop_on_target) is not bool:
+            raise TypeError("validation.wts.stop_on_target must be bool")
+        if not self.enabled:
+            return
+        self.data.require_source()
+        if self.data.factory or self.data.path.startswith("s3://") or self.data.shuffle:
+            raise ValueError("validation.wts requires an ordered local JSONL source")
+        for name in ("source_sha256", "manifest_sha256"):
+            if not isinstance(getattr(self, name), str) or not re.fullmatch("[0-9a-f]{64}", getattr(self, name)):
+                raise ValueError(f"validation.wts.{name} must be a SHA256")
+        if not isinstance(self.manifest_path, str) or not self.manifest_path.strip():
+            raise ValueError("validation.wts requires its sealed manifest path")
+        if type(self.expected_rows) is not int or self.expected_rows < 1:
+            raise ValueError("validation.wts.expected_rows must be positive")
+        if type(self.min_correct) is not int or not 0 <= self.min_correct <= self.expected_rows:
+            raise ValueError("validation.wts.min_correct must lie within its row count")
+        if (
+            isinstance(self.max_token_ce, bool)
+            or not isinstance(self.max_token_ce, (int, float))
+            or not (math.isfinite(self.max_token_ce) and self.max_token_ce >= 0)
+        ):
+            raise ValueError("validation.wts.max_token_ce must be finite and nonnegative")
+        if type(self.cache_bytes) is not int or self.cache_bytes < 0:
+            raise ValueError("validation.wts.cache_bytes must be nonnegative")
+        if isinstance(self.steps, ListConfig):
+            self.steps = list(self.steps)
+        if not isinstance(self.steps, list) or not self.steps or any(type(s) is not int or s < 1 for s in self.steps):
+            raise ValueError("validation.wts.steps must be positive optimizer steps")
+        if self.steps != sorted(set(self.steps)):
+            raise ValueError("validation.wts.steps must be unique and increasing")
+
+
+@dataclass
 class SFTValidationConfig(ValidationScheduleConfig):
     data: SFTDatasetConfig = field(default_factory=lambda: SFTDatasetConfig(shuffle=False))
+    wts: SFTWTSConfig = field(default_factory=SFTWTSConfig)
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        self.wts.__post_init__()
 
 
 SFT_LR_SCHEDULE_KINDS = ("constant", "cosine")
@@ -229,5 +289,23 @@ class SFTConfig(HFRunConfig):
         self.validation.__post_init__()
         if self.validation.enabled:
             self.validation.data.require_source()
+        if self.validation.wts.enabled:
+            from cosmos_framework.posttrain.config.rl import FULL_CHECKPOINT_COMPONENTS
+
+            if (
+                not self.validation.enabled
+                or not self.validation.save_checkpoint
+                or set(self.validation.checkpoint_components) != set(FULL_CHECKPOINT_COMPONENTS)
+            ):
+                raise ValueError("validation.wts requires enabled full-checkpoint validation")
+            if self.checkpoint_format != "dcp" or self.save_async or self.checkpoint_store.backend != "local":
+                raise ValueError("validation.wts requires synchronous local DCP checkpoints")
+            if not self.deterministic or self.ce_exponent != 0 or self.moe_lbl_coeff != 0:
+                raise ValueError("validation.wts requires deterministic ordinary token-mean CE")
+            if self.validation.wts.steps[-1] != self.max_steps or any(
+                s != self.max_steps and (not self.validation.every_steps or s % self.validation.every_steps)
+                for s in self.validation.wts.steps
+            ):
+                raise ValueError("validation.wts steps must be validation boundaries ending at max_steps")
         if self.export_dir or self.export_every:
             raise ValueError("SFT uses the offline checkpoint conversion tools, not reserved rl.export_* fields")

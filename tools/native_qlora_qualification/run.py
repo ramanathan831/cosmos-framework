@@ -486,6 +486,36 @@ def validate_action_checkpoint(action: str, checkpoint: str | None) -> None:
         raise ValueError(f"{action} requires a fresh base and rejects an inherited checkpoint")
 
 
+def evaluation_mode(args: argparse.Namespace) -> str:
+    """Preserve historical restart mode; native mode needs an explicit fixed target."""
+    mode = getattr(args, "evaluation_mode", "restart")
+    if mode not in {"restart", "native"}:
+        raise ValueError("evaluation mode must be restart or native")
+    if mode == "native" and (
+        not getattr(args, "validation_target", None) or args.action != "train-eval" or args.split != "development"
+    ):
+        raise ValueError("native evaluation requires fresh development training and a validation target")
+    return mode
+
+
+def native_evaluation_overrides(args: argparse.Namespace, experiment: Experiment, target: dict) -> list[str]:
+    """Bind the resident native evaluator to the same full partition and point target."""
+    settings = {
+        "enabled": True,
+        "stop_on_target": True,
+        "data.path": str(Path(args.score_data).resolve()),
+        "source_sha256": target["score_data_sha256"],
+        "manifest_path": str(Path(args.split_manifest).resolve()),
+        "manifest_sha256": target["split_manifest_sha256"],
+        "expected_rows": target["expected_rows"],
+        "steps": target["evaluation_steps"],
+        "cache_bytes": experiment.cache_bytes,
+        "min_correct": target["minimum_correct"],
+        "max_token_ce": target["maximum_token_ce"],
+    }
+    return [f"rl.validation.wts.{key}={json.dumps(value)}" for key, value in settings.items()]
+
+
 def verify_segment_boundary(output: Path, checkpoint: Path, *, start: int, stop: int, horizon: int) -> dict:
     """A saved earlier checkpoint cannot conceal an ignored pause or extra work."""
     metrics = checkpoint.parent.parent / "metrics.jsonl"
@@ -600,11 +630,176 @@ def train_to_target(args, experiment, output, receipt, stages, target, started):
     return checkpoint, directory, result
 
 
+def train_native_to_target(args, experiment, output, receipt, stages, target, started):
+    """One native process owns training and scheduled full-data evaluation."""
+    if read_validation_target(args.validation_target, args, experiment) != target:
+        raise ValueError("validation target changed after experiment start")
+    child_started = time.monotonic()
+    stages.run(
+        "training_wts",
+        [
+            sys.executable,
+            "-m",
+            "torch.distributed.run",
+            "--standalone",
+            "--nproc-per-node=1",
+            "-m",
+            "cosmos_framework.posttrain.entrypoints.sft",
+            "--config",
+            experiment.recipe,
+            "--",
+            *experiment.overrides(),
+            "rl.resume=off",
+            *native_evaluation_overrides(args, experiment, target),
+        ],
+    )
+    child_finished = time.monotonic()
+    if read_validation_target(args.validation_target, args, experiment) != target:
+        raise ValueError("validation target changed during native training")
+    candidates = list((output / "native").rglob("wts/target-result.json"))
+    if len(candidates) != 1:
+        raise ValueError("exactly one own native evaluation result is required")
+    path = candidates[0]
+    native_root = path.parent.parent.resolve()
+    if not native_root.is_relative_to((output / "native").resolve()):
+        raise ValueError("native evaluation result is outside the own run")
+    source_sha = file_sha256(path)
+    native = json.loads(path.read_text())
+    records = native.get("observations")
+    if (
+        native.get("protocol") != "cosmos.native-sft-wts-target.v1"
+        or native.get("complete") is not True
+        or native.get("stop_on_target") is not True
+        or native.get("resumed_from_checkpoint") is not False
+        or type(native.get("horizon")) is not int
+        or native["horizon"] != experiment.steps
+        or not isinstance(records, list)
+        or not records
+        or [record.get("step") for record in records] != target["evaluation_steps"][: len(records)]
+        or any(type(record.get("step")) is not int for record in records)
+        or type(native.get("final_step")) is not int
+        or native["final_step"] != records[-1]["step"]
+    ):
+        raise ValueError("native evaluation result lacks the complete scheduled prefix")
+    final_step = native["final_step"]
+    metrics = native_root / "metrics.jsonl"
+    updates = [json.loads(line) for line in metrics.read_text().splitlines() if line.strip()]
+    updates = [row for row in updates if "train/loss_avg" in row]
+    if any(type(row.get("step")) is not int for row in updates) or [row["step"] for row in updates] != list(
+        range(1, final_step + 1)
+    ):
+        raise ValueError("native updates must end exactly at the final evaluated checkpoint")
+    checkpoint_steps = sorted(
+        int(p.name.removeprefix("iter_"))
+        for p in (native_root / "checkpoints").iterdir()
+        if p.is_dir() and re.fullmatch(r"iter_[0-9]+", p.name)
+    )
+    if not checkpoint_steps or checkpoint_steps[-1] != final_step:
+        raise ValueError("native checkpoint inventory exceeds or lacks the selected endpoint")
+    log = output / "stages/training_wts/output.log"
+    summaries = [
+        ast.literal_eval(re.sub(r"\x1b\[[0-9;]*m", "", line.split("SFT DONE ", 1)[1]).strip())
+        for line in log.read_text().splitlines()
+        if "SFT DONE " in line
+    ]
+    if (
+        len(summaries) != 1
+        or not isinstance(summaries[0], dict)
+        or summaries[0].get("start") != 0
+        or summaries[0].get("final_step") != final_step
+        or "preempted" in summaries[0]
+        or summaries[0].get("final_loss") != updates[-1]["train/loss_avg"]
+    ):
+        raise ValueError("native completion does not establish the exact fresh training boundary")
+    observations, inputs, seen_directories = [], None, set()
+    previous_available = child_started
+    for index, record in enumerate(records):
+        step = record["step"]
+        relative = record.get("directory")
+        if (
+            not isinstance(relative, str)
+            or not relative
+            or Path(relative).is_absolute()
+            or ".." in Path(relative).parts
+        ):
+            raise ValueError("native evaluation directory must be an own relative path")
+        directory = (native_root / relative).resolve()
+        if not directory.is_relative_to(path.parent.resolve()) or directory in seen_directories:
+            raise ValueError("native evaluation directories must be unique and owned")
+        seen_directories.add(directory)
+        checkpoint = final_checkpoint(output, experiment, receipt, step=step)
+        if checkpoint.resolve() != native_root / "checkpoints" / f"iter_{step:06d}" or record.get("checkpoint") != str(
+            checkpoint.resolve()
+        ):
+            raise ValueError("native evaluation names a foreign checkpoint")
+        observation = target_observation(directory, checkpoint, target, inputs, manifest_path=Path(args.split_manifest))
+        if record.get("target_met") is not observation["target_met"] or record.get("scores_sha256") != file_sha256(
+            directory / "scores.jsonl"
+        ):
+            raise ValueError("native target publication disagrees with complete scoring artifacts")
+        if index < len(records) - 1 and observation["target_met"]:
+            raise ValueError("native training continued after its first passing evaluation")
+        available = record.get("available_monotonic_seconds")
+        if (
+            type(available) not in (int, float)
+            or not math.isfinite(available)
+            or not previous_available < available <= child_finished
+        ):
+            raise ValueError("native checkpoint/score availability must belong to this training attempt")
+        previous_available = available
+        inputs = observation["processed_inputs_sha256"]
+        observation.update(
+            optimizer_step=step,
+            elapsed_from_runner_start_seconds=available - started,
+            native_publication={
+                "checkpoint": str(checkpoint),
+                "directory": str(directory),
+                "available_monotonic_seconds": available,
+            },
+        )
+        observations.append(observation)
+    passed = observations[-1]["target_met"]
+    if (
+        native.get("first_passing_step") != (final_step if passed else None)
+        or native.get("horizon_censored") is not (not passed)
+        or native.get("checkpoint") != str(checkpoint.resolve())
+        or summaries[0].get("target_reached") is not passed
+        or not passed
+        and final_step != experiment.steps
+    ):
+        raise ValueError("native target termination or horizon censoring is inconsistent")
+    if file_sha256(path) != source_sha or read_validation_target(args.validation_target, args, experiment) != target:
+        raise ValueError("native result or validation target changed during acceptance")
+    result = {
+        "protocol": "cosmos.qlora-validation-target-result.v1",
+        "evaluation_mode": "native",
+        "observations": observations,
+        "target_met": passed,
+        "first_validated_checkpoint_seconds": observations[-1]["elapsed_from_runner_start_seconds"] if passed else None,
+        "last_validated_step": final_step,
+        "censored_at_training_horizon": not passed,
+        "native_result_sha256": source_sha,
+        "native_metrics_sha256": file_sha256(metrics),
+        "native_completion_log_sha256": file_sha256(log),
+        "native_process_complete_from_runner_start_seconds": child_finished - started,
+        "native_process_elapsed_seconds": child_finished - child_started,
+        "publication_to_child_return_seconds": child_finished - previous_available,
+        "timing_scope": "Runner start through native durable checkpoint and full-data score publication/readback on the same host monotonic clock. Includes initial runner verification/preflight, model loading, continuous training, evaluation and checkpointing. Final native target-index serialization and process cleanup are excluded from publication time but included in native process completion. Subsequent reader verification and final portable export/reload are separately included in complete runner time. Pre-existing acquisition/build preparation and scheduler waiting are excluded.",
+        "execution_scope": "One native process retains the training model and preprocessing cache; scheduled full-data evaluation uses its separate persistent cache. No per-boundary model reload or training restart.",
+        "quality_qualified": False,
+    }
+    for observation in observations:
+        write_json(output / f"target-{observation['optimizer_step']:06d}.json", observation)
+    write_json(output / "target-result.json", result)
+    return checkpoint, directory, result
+
+
 def execute(args: argparse.Namespace) -> None:
     # Cadence measurements include their initial sealed-data/target validation.
     # Keep the established default experiment's clock origin unchanged.
     cadence_started = time.monotonic() if getattr(args, "validation_target", None) is not None else None
     validate_action_checkpoint(args.action, args.checkpoint)
+    mode = evaluation_mode(args)
     experiment = Experiment.read(args.spec)
     target = read_validation_target(getattr(args, "validation_target", None), args, experiment)
     output = Path(args.output).absolute()
@@ -615,8 +810,13 @@ def execute(args: argparse.Namespace) -> None:
     if target is not None:
         from cosmos_framework.posttrain.config.sft import SFTConfig
 
-        if not hasattr(SFTConfig, "pause_after_step"):
+        if mode == "restart" and not hasattr(SFTConfig, "pause_after_step"):
             raise ValueError("validation-target cadence requires native committed-boundary pause support")
+        if mode == "native":
+            from cosmos_framework.posttrain.config.sft import SFTValidationConfig
+
+            if "wts" not in SFTValidationConfig.__dataclass_fields__:
+                raise ValueError("native evaluation requires the full-data WTS validation implementation")
     if os.environ.get("PYTHONHASHSEED") != str(experiment.seed):
         raise ValueError("PYTHONHASHSEED must match the experiment before process start")
     if os.environ.get("CUBLAS_WORKSPACE_CONFIG") != ":4096:8":
@@ -658,6 +858,7 @@ def execute(args: argparse.Namespace) -> None:
             "checkpoint": args.checkpoint,
             "preflight_measurement": "separately timed before external sampler",
             **({"validation_target": target} if target is not None else {}),
+            **({"evaluation_mode": mode} if mode == "native" else {}),
         },
     )
     stages = Stages(output, Path(args.time_binary))
@@ -684,7 +885,8 @@ def execute(args: argparse.Namespace) -> None:
             )
         checkpoint = Path(args.checkpoint) if args.checkpoint else None
         if target is not None:
-            checkpoint, scores_directory, target_result = train_to_target(
+            train = train_native_to_target if mode == "native" else train_to_target
+            checkpoint, scores_directory, target_result = train(
                 args,
                 experiment,
                 output,
@@ -839,8 +1041,14 @@ def main() -> None:
     command.add_argument("--checkpoint")
     command.add_argument("--selection-receipt")
     command.add_argument(
+        "--evaluation-mode",
+        choices=("restart", "native"),
+        default="restart",
+        help="Fixed-target evaluation: historical pause/reload segments, or one resident native training process.",
+    )
+    command.add_argument(
         "--validation-target",
-        help="Frozen development target/cadence JSON; pauses and resumes native training without changing its horizon. Separate process/cache per segment; requires a qualified build with pause support.",
+        help="Frozen development target/grid JSON. Restart mode pauses and reloads each segment; native mode evaluates in one resident process. Both preserve the declared training horizon and require a qualified build.",
     )
     args = parser.parse_args()
     if args.command == "preflight":
