@@ -28,6 +28,7 @@ from pathlib import Path
 
 from processes import OwnedProcessTree
 from protocol import Experiment, file_sha256, write_json
+from storage import StorageProbeError, require_storage
 
 
 def verify_build(build: Path) -> dict:
@@ -805,6 +806,14 @@ def execute(args: argparse.Namespace) -> None:
     output = Path(args.output).absolute()
     output.mkdir(parents=True, exist_ok=False)
     started = time.monotonic() if cadence_started is None else cadence_started
+    try:
+        storage_probe = require_storage([output], context="compute" if os.environ.get("SLURM_JOB_ID") else "process")
+    except StorageProbeError as error:
+        # Storage failure can also prevent writing a receipt; preserve it in the
+        # existing parent stage log before any build/model-loading work.
+        print(json.dumps({"storage_probe": error.report}), file=sys.stderr, flush=True)
+        raise
+    write_json(output / "storage-probe.json", storage_probe)
     receipt = verify_build(Path(args.build))
     verify_kernel_gate(Path(args.kernel_gate), receipt)
     if target is not None:
