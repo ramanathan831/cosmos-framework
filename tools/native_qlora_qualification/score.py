@@ -203,7 +203,66 @@ def select_rows(source: Path, max_rows: int, seed: int) -> tuple[list[tuple[int,
     return rows, metadata
 
 
+def dense_scoring_config(config: Any, manifest: dict[str, Any]) -> Any:
+    """Validate scoring semantics without reopening original base or training data.
+
+    The committed dense artifact owns weights and processor files. Its recorded
+    source identity remains bound to the requested native recipe.
+    """
+    from cosmos_framework.posttrain.config.build import select_policy_backend
+    from cosmos_framework.posttrain.configs.sft_qwen3_vl_8b_lora import NATIVE_POLICY_BUILDER
+    from cosmos_framework.utils.lazy_config import instantiate
+
+    selected = select_policy_backend(config)
+    spec = selected.native_spec
+    if (
+        selected.backend != "i4"
+        or spec is None
+        or spec.builder != NATIVE_POLICY_BUILDER
+        or config.grid.backend != "local"
+        or config.grid.grouping != "single"
+        or getattr(config.grid, "gpu_node_domains", None)
+        or spec.parallelism.dp_replicate != 1
+        or spec.parallelism.dp_shard != 1
+    ):
+        raise ValueError("dense scoring requires the single-device native Qwen3-VL recipe")
+    requested = spec.model_config.source_identity
+    if not requested or any(manifest["base_identity"].get(key) != value for key, value in requested.items()):
+        raise ValueError("dense export base differs from the requested recipe identity")
+    rl = instantiate(config.rl)
+    rl.__post_init__()
+    return rl
+
+
+def verify_dense_parameters(net: Any, manifest: dict[str, Any]) -> None:
+    """Bind actual loaded frozen tensors to the export, with one tensor copy at a time."""
+    from cosmos_framework.posttrain.model.quantization.loader import tensor_digest
+    from cosmos_framework.posttrain.model.qwen3_vl import canonical_qwen3_vl_weight_name
+
+    parameters = {}
+    objects = set()
+    for name, value in net.named_parameters(remove_duplicate=False):
+        name = canonical_qwen3_vl_weight_name(name)
+        if name in parameters or id(value) in objects or value.requires_grad:
+            raise ValueError("dense scoring requires distinct frozen parameters and no adapters")
+        parameters[name] = value
+        objects.add(id(value))
+    expected = manifest["tensors"]
+    if set(parameters) != set(expected):
+        raise ValueError("loaded dense parameter membership differs from the export")
+    for name, parameter in parameters.items():
+        record = {key: value for key, value in expected[name].items() if key != "file"}
+        if tensor_digest(parameter) != record:
+            raise ValueError(f"loaded dense parameter differs from exported bytes: {name}")
+
+
 def run(args: argparse.Namespace) -> dict[str, Any]:
+    dense_path = getattr(args, "dense_export", None)
+    dense_pin = getattr(args, "dense_export_sha256", None)
+    if bool(dense_path) != bool(dense_pin) or dense_path and args.checkpoint:
+        raise ValueError("dense scoring requires an export plus its manifest SHA256, and no adapter checkpoint")
+    if dense_pin and re.fullmatch(r"[0-9a-f]{64}", dense_pin) is None:
+        raise ValueError("dense export manifest SHA256 must be a lowercase SHA256")
     cache_bytes = getattr(args, "preprocessing_cache_bytes", 0)
     if type(cache_bytes) is not int or cache_bytes < 0:
         raise ValueError("preprocessing cache bytes must be a nonnegative integer")
@@ -315,7 +374,14 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     saved = read_adapter_metadata(args.checkpoint) if args.checkpoint else None
     if saved is not None:
         _restore_probe_execution(config, saved["identity"], args.override)
-    rl = validate_config(config)
+    dense_manifest = None
+    if dense_path:
+        from cosmos_framework.posttrain.checkpoint.dense_adapter import read_dense_export
+
+        dense_manifest = read_dense_export(dense_path, expected_manifest_sha256=dense_pin)
+        rl = dense_scoring_config(config, dense_manifest)
+    else:
+        rl = validate_config(config)
     if not rl.deterministic or rl.ce_exponent != 0 or rl.moe_lbl_coeff != 0:
         raise ValueError("heldout comparison requires deterministic=True and ordinary dense token-mean CE")
     enable_determinism(strict=True)
@@ -325,7 +391,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     scoring_error = None
     try:
         misc.set_random_seed(rl.seed, by_rank=False)
-        model_source, trust = sft_policy_source(config)
+        model_source, trust = (dense_path, False) if dense_manifest is not None else sft_policy_source(config)
         packer = build_sft_packer(
             model_source,
             max_length=rl.max_length,
@@ -333,22 +399,59 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             trust_remote_code=trust,
             mask_think_opener=rl.mask_think_opener,
         )
-        model = build_backbone(config)
-        optimizer = build_optimizer(model.net, rl.optimizer)
-        codec = model.net._cosmos_adapter_checkpoint_codec
-        codec.bind_processor_identity(
-            adapter_processor_identity(packer, source_path=model_source, source_identity=codec.identity["base"])
-        )
-        codec.assert_live(model.net, optimizer)
-        if saved is not None:
-            load_adapter_weights(
-                args.checkpoint,
-                codec,
-                manager=CheckpointManager(checkpoint_format="dcp"),
+        if dense_manifest is None:
+            model = build_backbone(config)
+            optimizer = build_optimizer(model.net, rl.optimizer)
+            codec = model.net._cosmos_adapter_checkpoint_codec
+            codec.bind_processor_identity(
+                adapter_processor_identity(packer, source_path=model_source, source_identity=codec.identity["base"])
             )
-        adapters_before = {name: tensor_digest(parameter) for name, parameter in codec.parameters.items()}
-        if saved is None and adapters_before != codec.identity["initial_adapters"]:
-            raise RuntimeError("frozen-baseline arm must use exact initial adapters")
+            codec.assert_live(model.net, optimizer)
+            if saved is not None:
+                load_adapter_weights(args.checkpoint, codec, manager=CheckpointManager(checkpoint_format="dcp"))
+            adapters_before = {name: tensor_digest(parameter) for name, parameter in codec.parameters.items()}
+            if saved is None and adapters_before != codec.identity["initial_adapters"]:
+                raise RuntimeError("frozen-baseline arm must use exact initial adapters")
+            identity = {key: value for key, value in codec.identity.items() if key != "training_contract"}
+            processor_contract = codec.identity["processor_contract"]
+            runtime_precision = model.net._cosmos_adapter_runtime_precision
+        else:
+            from transformers import AutoModelForImageTextToText
+
+            from cosmos_framework.posttrain.model.qwen3_vl import Qwen3VLPolicy
+            from cosmos_framework.posttrain.utils.adapter_identity import dense_adapter_processor_identity
+
+            processor_contract = dense_adapter_processor_identity(
+                packer, export_path=dense_path, expected_manifest_sha256=dense_pin
+            )
+            dtype = {"bfloat16": torch.bfloat16, "float32": torch.float32}[dense_manifest["output_dtype"]]
+            record_qlora_phase("dense_reload_start", reset_peak=True)
+            net = AutoModelForImageTextToText.from_pretrained(
+                dense_path,
+                dtype=dtype,
+                attn_implementation="sdpa",
+                device_map={"": torch.cuda.current_device()},
+                local_files_only=True,
+                trust_remote_code=False,
+            )
+            net.requires_grad_(False)
+            model = Qwen3VLPolicy(net, "qwen3_vl")
+            verify_dense_parameters(model.net, dense_manifest)
+            record_qlora_phase("dense_reload_complete")
+            adapters_before = dense_manifest["adapter_tensors"]
+            identity = {
+                "model_format": "cosmos_dense_qwen3_vl_export",
+                "dense_export_sha256": dense_pin,
+                "source_identity": dense_manifest["source_metadata"]["identity"],
+                "output_dtype": dense_manifest["output_dtype"],
+            }
+            runtime_precision = {
+                "parameter_dtype": dense_manifest["output_dtype"],
+                "compute_dtype": dense_manifest["output_dtype"],
+                "attention": "sdpa",
+                "adapter_branches": False,
+                "quantized_base": False,
+            }
         model.net.eval()
         if cache_bytes:
             from cosmos_framework.posttrain.data.packer.sft_preprocess import build_sft_preprocessing
@@ -372,7 +475,6 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             moe_lbl_method=rl.moe_lbl_method,
             serve_contract=rl.serve_contract,
         )
-        identity = {key: value for key, value in codec.identity.items() if key != "training_contract"}
         _write_json(output / "model_identity.json", identity)
         report_rows = []
         # Loading has its own reset boundaries. Keep these two scoring events
@@ -401,9 +503,14 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                         flush=True,
                     )
             os.fsync(stream.fileno())
-        codec.validate_frozen_base()
-        if adapters_before != {name: tensor_digest(parameter) for name, parameter in codec.parameters.items()}:
-            raise RuntimeError("evaluation changed adapter tensors")
+        if dense_manifest is None:
+            codec.validate_frozen_base()
+            if adapters_before != {name: tensor_digest(parameter) for name, parameter in codec.parameters.items()}:
+                raise RuntimeError("evaluation changed adapter tensors")
+        else:
+            verify_dense_parameters(model.net, dense_manifest)
+            if read_dense_export(dense_path, expected_manifest_sha256=dense_pin) != dense_manifest:
+                raise RuntimeError("dense export changed during scoring")
         if file_stamp(source) != source_stamp or file_digest(source) != selection["source_sha256"]:
             raise RuntimeError("data source changed during evaluation")
         for path in media:
@@ -425,20 +532,29 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             "complete": True,
             "arm": args.arm,
             "checkpoint": str(Path(args.checkpoint).resolve()) if args.checkpoint else None,
-            "adapter_state": adapter_state_label(identity, reloaded=saved is not None),
+            "adapter_state": (
+                "merged_effective_base"
+                if dense_manifest is not None
+                else adapter_state_label(identity, reloaded=saved is not None)
+            ),
             "metrics": aggregate(report_rows),
             "selection_sha256": _json_digest(selection),
             "selected_content_sha256": selection["selected_content_sha256"],
             "scores_sha256": file_digest(output / "scores.jsonl"),
             "model_identity_sha256": _json_digest(identity),
             "adapter_tensors_sha256": _json_digest(adapters_before),
-            "processor_contract": codec.identity["processor_contract"],
+            "processor_contract": processor_contract,
             "objective_identity": objective.identity,
-            "quantized_matrices": len(identity["quantized_tensors"]),
+            "quantized_matrices": 0 if dense_manifest is not None else len(identity["quantized_tensors"]),
+            **(
+                {"dense_export": str(Path(dense_path).resolve()), "dense_export_sha256": dense_pin}
+                if dense_manifest is not None
+                else {}
+            ),
             "recipe": args.config,
             "overrides": args.override,
             "model_seed": rl.seed,
-            "runtime_precision": model.net._cosmos_adapter_runtime_precision,
+            "runtime_precision": runtime_precision,
             "compile_diagnostics": native_compile_diagnostics(model.net.modules()),
             "max_length": rl.max_length,
             "processor_kwargs": canonical_config_value(rl.processor_kwargs),
@@ -494,6 +610,8 @@ def main() -> None:
         "--checkpoint",
         help="committed DCP or portable adapter; omit for the frozen-base arm",
     )
+    parser.add_argument("--dense-export", help="Completed effective-base dense HF export; excludes --checkpoint")
+    parser.add_argument("--dense-export-sha256", help="Required SHA256 of the dense export commit manifest")
     parser.add_argument("--data", required=True, help="converted native WTS validation JSONL")
     parser.add_argument(
         "--output",

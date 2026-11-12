@@ -84,6 +84,51 @@ def adapter_processor_identity(
     supplied = normalize_json_dict(canonical_config_value(source_identity), context="adapter verified source identity")
     if not json_identity_equal(verified, supplied, context="adapter verified source identity"):
         raise ValueError("adapter processor source identity differs from the verified snapshot")
+    return _verified_adapter_processor_identity(packer, root=root, verified=verified)
+
+
+def dense_adapter_processor_identity(
+    packer: Any,
+    *,
+    export_path: str | os.PathLike[str],
+    expected_manifest_sha256: str,
+) -> dict[str, Any]:
+    """Prove a dense export's processor without access to the original base.
+
+    The caller must pin the completed export manifest. Its copied non-weight,
+    non-config files must match the original immutable source byte for byte;
+    only then are known local tokenizer references normalized to that source.
+    All processor settings must still equal the saved adapter contract.
+    """
+    from cosmos_framework.posttrain.checkpoint.dense_adapter import read_dense_export
+
+    if (
+        not isinstance(expected_manifest_sha256, str)
+        or len(expected_manifest_sha256) != 64
+        or any(c not in "0123456789abcdef" for c in expected_manifest_sha256)
+    ):
+        raise ValueError("dense processor verification requires the pinned export manifest SHA256")
+    root = Path(export_path).expanduser().resolve()
+    manifest = read_dense_export(root, expected_manifest_sha256=expected_manifest_sha256)
+    verified = manifest["base_identity"]
+
+    def processor_files(files: Mapping[str, Any]) -> dict[str, Any]:
+        return {
+            name: record
+            for name, record in files.items()
+            if name not in {"config.json", "model.safetensors.index.json"} and not name.endswith(".safetensors")
+        }
+
+    if processor_files(manifest["files"]) != processor_files(verified["files"]):
+        raise ValueError("dense export processor files differ from the original immutable source")
+    identity = _verified_adapter_processor_identity(packer, root=root, verified=verified)
+    if not json_identity_equal(identity, manifest["processor_identity"], context="dense export processor identity"):
+        raise ValueError("dense export processor settings differ from the saved adapter contract")
+    return identity
+
+
+def _verified_adapter_processor_identity(packer: Any, *, root: Path, verified: Mapping[str, Any]) -> dict[str, Any]:
+    """Normalize against caller-verified bytes, preserving the original source ID."""
     source_ref = {
         "repository": verified["repository"],
         "revision": verified["revision"],

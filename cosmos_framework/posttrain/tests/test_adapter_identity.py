@@ -15,7 +15,10 @@ from transformers import PreTrainedTokenizerFast
 
 from cosmos_framework.posttrain.data.packer.sft import QwenSFTDataPacker
 from cosmos_framework.posttrain.utils import adapter_source
-from cosmos_framework.posttrain.utils.adapter_identity import adapter_processor_identity
+from cosmos_framework.posttrain.utils.adapter_identity import (
+    adapter_processor_identity,
+    dense_adapter_processor_identity,
+)
 
 
 class _Media:
@@ -163,3 +166,90 @@ def test_hydra_manifest_preserves_nested_content_identity(tmp_path):
     configured.files["tokenizer.json"].sha256 = "0" * 64
     with pytest.raises(ValueError, match="identity differs"):
         adapter_processor_identity(packer, source_path=root, source_identity=configured)
+
+
+def _dense_export(tmp_path):
+    from safetensors.torch import save_file
+
+    from cosmos_framework.posttrain.checkpoint.adapter import save_adapter_artifact
+    from cosmos_framework.posttrain.checkpoint.manager import CheckpointManager
+    from cosmos_framework.posttrain.model.checkpoint import build_adapter_checkpoint_codec
+    from cosmos_framework.posttrain.tests.test_checkpoint_dense_adapter import Tiny, export
+
+    root, _ = _source(tmp_path)
+    net = Tiny()
+    save_file(
+        {name: parameter.detach() for name, parameter in net.named_parameters() if "lora_" not in name},
+        root / "model.safetensors",
+    )
+    source = adapter_source._identity(root)
+    (root / adapter_source.SOURCE_MANIFEST).write_text(json.dumps(source))
+    expected = adapter_processor_identity(_packer(root), source_path=root, source_identity=source)
+    codec = build_adapter_checkpoint_codec(
+        net,
+        identity={
+            "format": "cosmos.adapter-model.v1",
+            "model_format": "cosmos_native_qwen3_vl",
+            "base": source,
+            "targets": {"linear": [3, 4]},
+            "quantization": None,
+        },
+    )
+    codec.bind_processor_identity(expected)
+    net._cosmos_adapter_checkpoint_codec = codec
+    checkpoint = save_adapter_artifact(
+        str(tmp_path / "checkpoints/iter_000002"),
+        codec.parameters,
+        codec.metadata(),
+        manager=CheckpointManager(checkpoint_format="consolidated"),
+        publish=False,
+    )
+    output = tmp_path / "dense"
+    export(net, root, checkpoint, output)
+    return root, output, expected
+
+
+def test_dense_processor_uses_original_identity_without_original_snapshot(tmp_path):
+    from cosmos_framework.posttrain.checkpoint.dense_adapter import DENSE_EXPORT_MANIFEST, _file_record
+
+    source, output, expected = _dense_export(tmp_path)
+    packer = _packer(output)
+    raw = copy.deepcopy(packer.validation_semantics_identity())
+    shutil.rmtree(source)  # Fresh consumers need only the completed dense export.
+    assert (
+        dense_adapter_processor_identity(
+            packer,
+            export_path=output,
+            expected_manifest_sha256=_file_record(output / DENSE_EXPORT_MANIFEST)["sha256"],
+        )
+        == expected
+    )
+    assert packer.validation_semantics_identity() == raw
+    assert str(output) not in json.dumps(expected)
+
+
+@pytest.mark.parametrize("change", ["unbound", "wrong_hash", "settings", "changed_file", "extra_file", "missing_file"])
+def test_dense_processor_refuses_wrong_binding_settings_or_original_sidecars(tmp_path, change):
+    from cosmos_framework.posttrain.checkpoint.dense_adapter import DENSE_EXPORT_MANIFEST, _file_record
+
+    _, output, _ = _dense_export(tmp_path)
+    packer = _packer(output)
+    marker = output / DENSE_EXPORT_MANIFEST
+    manifest = json.loads(marker.read_text())
+    if change == "settings":
+        packer.max_length = 128
+    elif change == "changed_file":
+        (output / "video_preprocessor_config.json").write_text('{"fixture":"changed"}')
+        manifest["files"]["video_preprocessor_config.json"] = _file_record(output / "video_preprocessor_config.json")
+    elif change == "extra_file":
+        (output / "processor_config.json").write_text("{}")
+        manifest["files"]["processor_config.json"] = _file_record(output / "processor_config.json")
+    elif change == "missing_file":
+        (output / "video_preprocessor_config.json").unlink()
+        del manifest["files"]["video_preprocessor_config.json"]
+    marker.write_text(json.dumps(manifest))
+    digest = _file_record(marker)["sha256"]
+    if change in {"wrong_hash", "unbound"}:
+        digest = "0" * 64 if change == "wrong_hash" else None
+    with pytest.raises(ValueError, match="dense.*(manifest|processor)"):
+        dense_adapter_processor_identity(packer, export_path=output, expected_manifest_sha256=digest)
