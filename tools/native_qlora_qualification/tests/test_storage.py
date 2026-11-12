@@ -3,6 +3,7 @@
 """Actual CPU filesystem operations and injected failures; no quota/Slurm queries."""
 
 import errno
+import hashlib
 import importlib
 import json
 import os
@@ -126,12 +127,15 @@ def test_duplicate_symlink_missing_and_relative_paths_refuse(tmp_path):
 
 def test_compute_identity_requires_job_and_matching_uid(tmp_path, monkeypatch):
     monkeypatch.delenv("SLURM_JOB_ID", raising=False)
-    with pytest.raises(ValueError, match="actual SLURM_JOB_ID"):
+    with pytest.raises(storage.StorageProbeError) as error:
         storage.require_storage([tmp_path], context="compute")
+    assert "actual SLURM_JOB_ID" in error.value.report["error"]["message"]
+    assert "uid_map" in error.value.report["identity"]
     monkeypatch.setenv("SLURM_JOB_ID", "12345")
     monkeypatch.setenv("SLURM_JOB_UID", str(os.geteuid() + 1))
-    with pytest.raises(ValueError, match="UID differs"):
+    with pytest.raises(storage.StorageProbeError) as error:
         storage.require_storage([tmp_path], context="compute")
+    assert "UID differs" in error.value.report["error"]["message"]
     monkeypatch.setenv("SLURM_JOB_UID", str(os.geteuid()))
     report = storage.require_storage([tmp_path], context="compute")
     assert report["passed"] and report["allocation_id"] == "12345"
@@ -236,3 +240,84 @@ def test_identity_read_failure_after_creation_does_not_claim_cleanup(tmp_path, m
     row = report["paths"][0]
     assert not row["cleanup_complete"] and row["cleanup_errors"]
     assert (Path(row["probe"]) / "new-parent").exists()
+
+
+def identity_fixture(raw="0 41852 1\n", uid=0, host="41852"):
+    identity = storage.process_identity()
+    identity.update(uid=uid, effective_uid=uid, slurm_job_id="12345", slurm_job_uid=host)
+    identity["uid_map"] = {"path": "/proc/self/uid_map", "raw": raw, "sha256": hashlib.sha256(raw.encode()).hexdigest()}
+    return identity
+
+
+@pytest.mark.parametrize(
+    "raw,uid,host,method",
+    [
+        ("0 0 4294967295\n", 41852, "41852", "direct"),
+        ("0 41852 1\n", 0, "41852", "kernel_uid_map"),
+        ("0 1000 10\n20 41850 5\n", 22, "41852", "kernel_uid_map"),
+    ],
+)
+def test_direct_and_namespace_identity_proofs(raw, uid, host, method):
+    proof = storage.compute_identity(identity_fixture(raw, uid, host), expected_host_uid=41852)
+    assert proof["host_uid"] == proof["slurm_job_uid"] == 41852 and proof["method"] == method
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        "",
+        "\n",
+        "0 41852",
+        "0 41852 1 extra",
+        "-1 41852 1",
+        "0 -1 1",
+        "0 41852 -1",
+        "0 41852 0",
+        "0 41852 4294967295",
+        "4294967295 0 1",
+        "0 4294967295 1",
+        "0 41852 2\n1 50000 1",
+        "0 41852 2\n5 41853 1",
+        "0 41852 1\n0 41852 1",
+        "1 41852 1",
+        "0 40000 1",
+        "0 41852 1\n\n",
+        "0 41852 1\n" + " " * 8192,
+    ],
+)
+def test_malformed_ambiguous_overflow_unmapped_and_wrong_uid_refuse(raw):
+    with pytest.raises(ValueError):
+        storage.compute_identity(identity_fixture(raw), expected_host_uid=41852)
+
+
+@pytest.mark.parametrize("host", [None, "", "root", "-1", "4294967295", "41853"])
+def test_missing_invalid_or_unexpected_host_uid_refuses(host):
+    with pytest.raises(ValueError):
+        storage.compute_identity(identity_fixture(host=host), expected_host_uid=41852)
+
+
+def test_compute_mapping_refusal_retains_raw_ids_maps_before_writes(tmp_path, monkeypatch):
+    identity = identity_fixture("0 40000 1\n")
+    monkeypatch.setattr(storage, "process_identity", lambda: identity)
+    report = storage.probe_storage([tmp_path], context="compute", expected_host_uid=41852)
+    assert not report["passed"] and not list(tmp_path.iterdir())
+    assert report["identity"] == identity and report["paths"] == []
+    assert report["identity"]["effective_uid"] == 0 and report["identity"]["slurm_job_uid"] == "41852"
+    assert report["identity"]["uid_map"]["raw"] == "0 40000 1\n"
+
+
+def test_namespace_fixture_allows_real_disposable_storage_operations(tmp_path, monkeypatch):
+    identity = identity_fixture()
+    monkeypatch.setattr(storage, "process_identity", lambda: identity)
+    report = storage.probe_storage([tmp_path], context="compute", expected_host_uid=41852)
+    assert report["passed"] and report["identity_proof"]["method"] == "kernel_uid_map"
+    assert report["paths"][0]["cleanup_complete"] and not list(tmp_path.iterdir())
+
+
+def test_unavailable_map_refuses_and_preserves_read_error(tmp_path, monkeypatch):
+    identity = identity_fixture()
+    identity["uid_map"]["error"] = {"errno": errno.EACCES, "message": "unavailable"}
+    monkeypatch.setattr(storage, "process_identity", lambda: identity)
+    report = storage.probe_storage([tmp_path], context="compute", expected_host_uid=41852)
+    assert not report["passed"] and report["identity"]["uid_map"]["error"]["errno"] == errno.EACCES
+    assert not list(tmp_path.iterdir())
