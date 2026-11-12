@@ -107,15 +107,32 @@ def main():
     all_seeds, curves = [], {}
     paired = {"fused": [], "eightbit": []}
     frozen = None
+    model_files = None
     metadata = json.loads((ROOT / "development_manifest.json").read_text())["rows"]
     groups = {row["id"]: row["group"] for row in metadata}
+    exposure = json.loads((ROOT / "training_exposure.json").read_text())
+    entries = exposure["entries"]
     for seed in (17, 29, 43):
         raw = read_raw(ROOT / f"full_seed{seed}_raw.json.gz")
         assert "complete.json" in raw
+        launch = json.loads(
+            (ROOT / ("full_seed17_retry2_launch.json" if seed == 17 else f"full_seed{seed}_launch.json")).read_text()
+        )
+        runtime = json.loads(raw[f"runtime-{launch['job']}.json"])
+        assert runtime["source_archive_sha256"] == launch["source_archive_sha256"]
+        assert runtime["prepared_corpus_sha256"] == exposure["prepared_manifest_sha256"]
+        assert runtime["versions"] == {"torch": "2.11.0+cu128", "transformers": "5.8.1", "bitsandbytes": "0.49.2"}
+        assert json.loads(raw["spec_identity.json"])["sha256"] == launch["spec_sha256"]
+        assert json.loads(raw[f"device-preflight-{launch['job']}.json"])["name"] == "NVIDIA A100-SXM4-80GB"
         arms = {}
         for arm in ("fused", "eightbit"):
             prefix = f"{arm}_seed{seed}/"
             assert json.loads(raw[prefix + "attempt.json"])["returncode"] == 0
+            observed_files = json.loads(raw[prefix + "model-file-reads.json"])["files"]
+            if model_files is None:
+                model_files = observed_files
+            else:
+                assert model_files == observed_files
             curve = rows(raw, prefix + "diagnostics/task_curve.jsonl")
             assert [x["step"] for x in curve] == [0, 29, 58, 87, 116, 145, 174]
             assert all(x["substantive_validation"]["val/valid_token_count"] == 1346 for x in curve)
@@ -127,6 +144,7 @@ def main():
                 expected = list(range(346))
                 random.Random(seed + start // 87).shuffle(expected)
                 assert [int(i.rsplit(":", 1)[1]) for i in ids] == expected
+                assert sorted(k for batch in inputs[start : start + 87] for k in batch["targets"]) == sorted(entries)
             metrics = rows(
                 raw, next(k for k in raw if k.startswith(prefix + "native/") and k.endswith("/metrics.jsonl"))
             )
@@ -137,6 +155,9 @@ def main():
             )
             assert [x["optim/optimizer_step"] for x in updates] == list(range(1, 175))
             assert [x["train/valid_sequence_count"] for x in updates] == ([4] * 86 + [2]) * 2
+            assert [x["train/valid_token_count"] for x in updates] == [
+                sum(entries[k]["supervised_tokens"] for k in batch["targets"]) for batch in inputs
+            ]
             complete = json.loads(raw[prefix + "diagnostics/complete.json"])
             assert complete["complete"] and complete["trainable_elements"] == 3087142912
             state = complete["state_report"]
@@ -192,6 +213,7 @@ def main():
         all_seeds.append(
             dict(
                 seed=seed,
+                runtime=runtime,
                 arms=arms,
                 nll_ratio=b["task_nll"] / a["task_nll"],
                 accuracy_drop=a["accuracy"] - b["accuracy"],
@@ -222,6 +244,8 @@ def main():
         complete=True,
         study="Two-pass development, update174 fixed endpoint; not original15-update or final held-out qualification",
         per_seed=all_seeds,
+        model_files=model_files,
+        exposure={k: v for k, v in exposure.items() if k != "entries"},
         paired_seed_family_quality=quality,
         nll_ratio_ci95=nll_ci,
         accuracy_degradation_ci95=acc_ci,

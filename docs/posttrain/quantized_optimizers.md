@@ -1213,16 +1213,30 @@ The live training manifest contains 346 rows. Native opt-in
 tail per pass, for 174 updates and 692 exposures across two passes. It preserves
 all rows and equal-row loss accounting; it currently requires one rank and
 accumulation one. Exact resume binds this policy into the objective identity.
-The default remains epoch wrapping. Local tail/normalization/cursor tests pass;
-real epoch-boundary recovery and training outcomes are still pending.
+The default remains epoch wrapping. Tail/normalization/cursor tests and 72 pinned
+native regressions pass (one unrelated skip). Both seed-17 arms pass real
+fresh-process recovery from update 87 through 174: all 87 next input batches and
+semantic update records match, full live state matches at updates 88/89/174,
+and final model/optimizer/trainer/data components match without exclusions,
+including the validation journal. Timing and the descriptive clipping frequency
+in a fresh output directory differ; per-update clipping and all saved counters
+are exact. See [recovery details](evidence/quantized_optimizers_round9/epoch_recovery_metrics.json).
 
 The [row-permutation diagnostic](evidence/quantized_optimizers_round9/permutation_protocol.json)
 preserves every original four-example update set for seed43. CPU checks in the
 pinned environment reproduce all 60 target identities and prove per-row
-labels/masks/counts and concatenated media alignment in both orders. Accelerator
-comparisons and full reference nonperturbation remain pending. These observations
-will distinguish same-state first-update numerical differences from later
-inherited trajectory changes; no ordering is selected from this diagnostic.
+labels/masks/counts and concatenated media alignment in both orders. The CUDA
+reference reproduces all saved components, four curves and 128 task observations
+exactly. First-update aligned supervised-token CE and sampled top-four logit
+values match; full clipped gradients differ by 0.0138248% relative L2 and sampled
+parameter updates by at most 8.38e-9. No nonzero stochastic module probability
+or RNG change was observed. Later trajectories diverge: update-15 task NLL rises
+1.89%, accuracy stays 25/32, and native substantive NLL falls 0.75%. This supports
+backward numerical sensitivity, without identifying a unique kernel, gradient
+conflict or optimizer defect. No ordering is selected. The failed first launch
+exposed a diagnostic integer-index bug above 2**24 elements; exact integer
+sampling fixes it, with nine pinned checks including real CUDA. Failed costs
+remain recorded. See [permutation diagnosis](evidence/quantized_optimizers_round9/permutation_diagnosis.json).
 
 Shared JSONL source construction now accepts `media_hash_workers=1..4` through
 native training/validation configuration. The default remains one. Four workers
