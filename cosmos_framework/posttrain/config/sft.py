@@ -205,6 +205,11 @@ class SFTConfig(HFRunConfig):
     # (``weighted_ce_exponent=0.5``, ``cosmos3/algorithm/loss/cross_entropy.py::weighted_cross_entropy_loss``): a row
     # weighs ``sqrt(n)``. ``1.0`` = every row weighs the same.
     ce_exponent: float = 0.0
+    # Opt-in WTS training regularization: mix the first answer-token target with
+    # uniform mass over that question's actual choices, using the full vocabulary
+    # denominator. End-token loss and every evaluation metric remain hard-gold CE.
+    # Zero preserves the original arithmetic and objective identity.
+    wts_answer_smoothing: float = 0.0
     # Unsupervise the ``<think>`` token that opens an assistant turn, and only that token (reviews R134-01 / R134-02,
     # corrected by review R138-01). Keep ``False``: on the lab's serving path of record Codex ``--thinking high`` sends
     # ``reasoning.effort`` AND a tools array on every call, and with tools present vLLM 0.24 prefills no opener -- the
@@ -269,6 +274,14 @@ class SFTConfig(HFRunConfig):
             or not 0.0 <= float(self.ce_exponent) <= 1.0
         ):
             raise ValueError(f"SFT ce_exponent={self.ce_exponent!r} must be a real in [0, 1]")
+        if (
+            isinstance(self.wts_answer_smoothing, bool)
+            or not isinstance(self.wts_answer_smoothing, (int, float))
+            or not 0.0 <= float(self.wts_answer_smoothing) < 1.0
+        ):
+            raise ValueError("SFT wts_answer_smoothing must be a finite real in [0, 1)")
+        if self.wts_answer_smoothing and (self.ce_exponent != 0 or self.moe_lbl_coeff != 0):
+            raise ValueError("WTS answer smoothing requires ordinary supervised-token normalization without MoE loss")
         if not isinstance(self.mask_think_opener, bool):
             raise TypeError("SFT mask_think_opener must be bool")
         if self.serve_contract not in SFT_SERVE_CONTRACTS:

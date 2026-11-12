@@ -82,7 +82,7 @@ def test_fresh_score_parity_rejects_numeric_selection_or_identity_damage(tmp_pat
         lifecycle.compare_wts_scores(*paths, checkpoint=checkpoint, expected_rows=6)
 
 
-def state_pair():
+def state_pair(smoothing=0):
     from cosmos_framework.posttrain.config.sft import SFTDatasetConfig, SFTValidationConfig, SFTWTSConfig
     from cosmos_framework.posttrain.utils.identity import canonical_config_value
 
@@ -140,6 +140,17 @@ def state_pair():
         "processor": processor,
         "objective": {"same": "ce"},
     }
+    if smoothing:
+        from cosmos_framework.posttrain.algorithm.sft import make_objective
+        from cosmos_framework.posttrain.tests.test_sft_development_evaluation import VideoPacker
+
+        for record in (metadata, enabled):
+            record["identity"]["training_contract"]["objective"] = {
+                **make_objective(VideoPacker(), wts_answer_smoothing=smoothing).identity,
+                "training_source": "unchanged",
+                "grad_accum": 8,
+            }
+        candidate["validation"]["identity"]["wts"]["objective"] = make_objective(VideoPacker()).identity
     return expected, [metadata, enabled], journal, [state, candidate]
 
 
@@ -159,11 +170,12 @@ def state_pair():
         "wts_config",
     ],
 )
-def test_real_cpu_checkpoint_payloads_allow_only_explicit_wts_bookkeeping(tmp_path, monkeypatch, damage):
+@pytest.mark.parametrize("smoothing", [0, 0.02])
+def test_real_cpu_checkpoint_payloads_allow_only_explicit_wts_bookkeeping(tmp_path, monkeypatch, damage, smoothing):
     from cosmos_framework.posttrain.checkpoint import adapter
     from cosmos_framework.posttrain.tests import qlora_integration as integration
 
-    expected, metadata, journal, states = state_pair()
+    expected, metadata, journal, states = state_pair(smoothing)
     paths = [tmp_path / name for name in ("disabled", "enabled")]
     if damage == "build":
         metadata[1]["identity"]["training_contract"]["build"] = "other"
@@ -204,6 +216,51 @@ def test_real_cpu_checkpoint_payloads_allow_only_explicit_wts_bookkeeping(tmp_pa
         assert result["observation_only"] and result["resume_compatible"] is False
         with pytest.raises(AssertionError):
             integration.compare_checkpoints(SimpleNamespace(reference=paths[0], candidate=paths[1], atol=0, rtol=0))
+
+
+@pytest.mark.parametrize(
+    "damage",
+    [
+        "epsilon_zero",
+        "epsilon_bool",
+        "epsilon_nan",
+        "epsilon_one",
+        "version_bool",
+        "denominator",
+        "scope",
+        "extra",
+        "reduction",
+        "ce_exponent",
+        "moe_lbl",
+    ],
+)
+def test_hard_gold_identity_refuses_unrecognized_training_regularizer(damage):
+    _, metadata, _, _ = state_pair(0.02)
+    objective = metadata[0]["identity"]["training_contract"]["objective"]
+    leaf = objective["wts_answer_smoothing"]
+    if damage.startswith("epsilon_"):
+        leaf["epsilon"] = {"zero": 0, "bool": True, "nan": float("nan"), "one": 1}[damage[8:]]
+    elif damage == "version_bool":
+        leaf["version"] = True
+    elif damage in {"denominator", "scope", "extra"}:
+        leaf[damage] = "other"
+    elif damage == "reduction":
+        objective[damage] = "different"
+    else:
+        objective[damage] = 0
+    with pytest.raises(ValueError, match="training-only WTS smoothing"):
+        lifecycle.hard_gold_evaluation_identity(objective)
+
+
+def test_hard_gold_identity_preserves_all_other_objective_fields_and_source():
+    _, metadata, _, states = state_pair(0.02)
+    objective = metadata[0]["identity"]["training_contract"]["objective"]
+    before = copy.deepcopy(objective)
+    assert lifecycle.hard_gold_evaluation_identity(objective) == states[1]["validation"]["identity"]["wts"]["objective"]
+    objective["future_loss_change"] = "must-not-be-normalized"
+    assert lifecycle.hard_gold_evaluation_identity(objective)["future_loss_change"] == "must-not-be-normalized"
+    objective.pop("future_loss_change")
+    assert objective == before
 
 
 @pytest.mark.parametrize("precision", ["qlora", "lora"])

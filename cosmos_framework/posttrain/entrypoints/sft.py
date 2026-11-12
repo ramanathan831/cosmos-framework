@@ -272,6 +272,12 @@ def _preflight_adapter_resume(
         require_resume=True,
         manager=checkpoint.manager,
     )
+    # The early metadata reader accepts an expected subset. This optional leaf
+    # must also match when the current objective omits it (epsilon=0), before
+    # allocating the backbone; authoritative resume still compares all identity.
+    saved_objective = metadata["identity"]["training_contract"]["objective"]
+    if saved_objective.get("wts_answer_smoothing") != training_identity["objective"].get("wts_answer_smoothing"):
+        raise ValueError("adapter training_contract.objective.wts_answer_smoothing differs")
     validate_execution_policy_identity(cfg, metadata["identity"])
 
 
@@ -332,6 +338,7 @@ def build_trainer(config: Any, rl: SFTConfig, data: Any, validation: Any | None,
     objective = make_objective(
         packer,
         ce_exponent=rl.ce_exponent,
+        wts_answer_smoothing=rl.wts_answer_smoothing,
         moe_lbl_coeff=rl.moe_lbl_coeff,
         moe_lbl_method=rl.moe_lbl_method,
         serve_contract=rl.serve_contract,

@@ -372,6 +372,40 @@ def wts_control_delta(reference: dict, candidate: dict, *, expected: dict, journ
     return left, right
 
 
+def hard_gold_evaluation_identity(training_objective: dict) -> dict:
+    """Remove only recorded training context and the exact training-only WTS regularizer."""
+    scoring = {
+        key: value
+        for key, value in training_objective.items()
+        if key not in {"training_source", "micro_batch_size", "grad_accum", "dp_world", "precision", "preprocessing"}
+    }
+    if "wts_answer_smoothing" in scoring:
+        smoothing = scoring["wts_answer_smoothing"]
+        epsilon = smoothing.get("epsilon") if isinstance(smoothing, dict) else None
+        if (
+            type(epsilon) not in (int, float)
+            or not 0 < epsilon < 1
+            or type(smoothing.get("version")) is not int
+            or scoring.get("reduction") != "global_supervised_token_mean"
+            or "ce_exponent" in scoring
+            or "moe_lbl" in scoring
+            or smoothing
+            != {
+                "version": 1,
+                "epsilon": epsilon,
+                "distribution": "gold_plus_uniform_actual_2_to_4_choices",
+                "denominator": "full_vocabulary_log_softmax",
+                "alignment": "context_stable_first_answer_after_native_assistant_header_v1",
+                "supervision": "single_answer_and_im_end",
+                "scope": "training_only_first_answer",
+                "remaining_tokens_and_evaluation": "hard_gold_cross_entropy",
+            }
+        ):
+            raise ValueError("unrecognized training-only WTS smoothing contract")
+        scoring.pop("wts_answer_smoothing")
+    return scoring
+
+
 def compare_wts_checkpoints(
     reference: Path, candidate: Path, *, step: int, expected: dict, journal: dict
 ) -> dict[str, Any]:
@@ -400,12 +434,7 @@ def compare_wts_checkpoints(
             if identity["processor"] != metadata[1]["identity"]["processor_contract"]:
                 raise ValueError("evaluation and training processor identities differ")
             training_objective = metadata[1]["identity"]["training_contract"]["objective"]
-            scoring_objective = {
-                key: value
-                for key, value in training_objective.items()
-                if key
-                not in {"training_source", "micro_batch_size", "grad_accum", "dp_world", "precision", "preprocessing"}
-            }
+            scoring_objective = hard_gold_evaluation_identity(training_objective)
             if identity["objective"] != scoring_objective:
                 raise ValueError("evaluation objective differs from the native training arithmetic")
             values = wts_control_delta(*values, expected=expected, journal=journal)

@@ -350,6 +350,32 @@ python -m cosmos_framework.posttrain.checkpoint.adapter \
 
 The command prints the committed artifact location in the sibling `checkpoint_artifacts/iter_*` namespace. It does not advance the training latest pointer. Incomplete checkpoints, incompatible identities, unsupported topology, and adapter-only artifacts presented as resumes fail explicitly.
 
+### Effective-base dense export
+
+The native exporter reconstructs the recorded base and adapters, dequantizes each attached NF4 matrix on its owned CUDA device, and merges `FP32(dequantize(Q(W))) + (alpha/rank) * FP32(B @ A)` in bounded CPU row blocks. It casts the completed sum to the explicitly requested output dtype. It never merges into the original higher-precision `W`, requantizes, or mutates the source artifact. Non-adapter components are copied and cast to the same output dtype. Separate-branch adapter evaluation and dense BF16 evaluation need not have identical rounding.
+
+```bash
+torchrun --standalone --nproc-per-node=1 \
+    -m cosmos_framework.posttrain.checkpoint.tools.export_adapter_dense \
+    --config cosmos_framework/posttrain/configs/sft_qwen3_vl_8b_qlora.py \
+    --checkpoint /absolute/committed/adapter \
+    --output /absolute/new/dense-model --output-dtype bfloat16 \
+    --override model.model_id=/absolute/pinned/base \
+    --override model.model_config.adapter.rank=32 \
+    --override model.model_config.adapter.alpha=64 \
+    --override model.model_config.activation_checkpointing=none
+```
+
+Supply the original processor and execution overrides as well as the installed `COSMOS_TRAINING_CODE_REVISION` and `COSMOS_TRAINING_WHEEL_SHA256`. The source identity must match; the example is not an automatic reconstruction of arbitrary artifacts. Output creation is exclusive. The exporter writes ordinary HF safetensors, config and verified processor files, then publishes `cosmos_dense_export.json` last with source identities, arithmetic, file/tensor hashes and exporter revision. Interrupted exports remain incomplete. `read_dense_export(..., expected_manifest_sha256=...)` verifies the committed artifact before an ordinary HF load. Dense exports are evaluation artifacts, not exact training resumes.
+
+The existing WTS scorer accepts `--dense-export PATH --dense-export-sha256 SHA256` instead of `--checkpoint`, retaining the hard-gold objective, masks, input identities and answer-choice rules. CPU tests cover real tiny HF text/image/video reload, strict artifact verification and score-path parity. Full-model accelerator export, peak memory and task qualification are pending; neither BF16 nor FP32 dense output is yet a serving or inference-latency claim. The ordinary quantized-base adapter-reload contract remains separate.
+
+### Development-only answer-choice smoothing
+
+`rl.wts_answer_smoothing=0.02` opts into a narrowly scoped training intervention: mix the answer target with uniform mass over the question's actual two to four choices while retaining the full-vocabulary softmax denominator. The termination token and every validation metric remain hard-gold CE. Strict WTS/token alignment is required; the objective is incompatible with weighted sequence loss and MoE balancing. The default zero retains the previous arithmetic and artifact identity. Nonzero values enter the training identity and cannot be changed during exact resume.
+
+This intervention tests retained evidence of concentrated confident answer errors shared by both precision arms. It is not the selected recipe. Its prospective seed-123, 100-update development screen requires at least one extra correct answer and at least 1% lower token CE for NF4, alongside correctness and memory checks, before further seeds are admitted. BF16 receives the same tuning opportunity. CPU objective/recovery guards pass; accelerator qualification and the screen remain pending. The earlier dropout-0.05 rejection and historical quality bounds are unchanged.
+
 The [integration driver](../../cosmos_framework/posttrain/tests/qlora_integration.py) evaluates the native model; it contains no training loop. Run its `probe` subcommand in a fresh torchrun process for the saved DCP checkpoint and again for its portable artifact, using the same fixed image and video row. Supply an existing image, or omit `--image` on the first probe and reuse its generated `video_first_frame.png`:
 
 ```bash
