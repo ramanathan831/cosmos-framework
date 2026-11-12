@@ -62,5 +62,12 @@
     "seconds": 1.43,
     "scope": "parallel identity, native dataset environment/object-store and scoring checkpoint reader; overlapping coverage",
     "ruff": "passed"
+  },
+  "parallel_media_hash_pinned": {
+    "passed": 34,
+    "seconds": 19.59,
+    "job": "38451358",
+    "source": "0cc7ffc2f1bf593ca753b6621ecf718682292d15",
+    "overlaps_local_tests": true
   }
 }

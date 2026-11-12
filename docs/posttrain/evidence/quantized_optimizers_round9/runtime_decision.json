@@ -21,5 +21,14 @@
     "before_training_model_ready_seconds": 51.1493,
     "prepared_verification_seconds": 3.36668,
     "decision": "One opt-in bounded parallel JSONL media hash implementation and three counterbalanced CPU pairs; full hashing, identities and error handling retained. Does not remove independent uncached replay or close historical cold requirement."
+  },
+  "source_hash_completed_screen": {
+    "summary": "source_hash_summary.json",
+    "job": "38451358",
+    "conservative_cpu_allocation_seconds": 540,
+    "scope": "434 training/development logical rows; six fresh Python processes on one CPU node; shared storage cache uncontrolled",
+    "identity_ratio": 4.5344909177448995,
+    "whole_process_ratio": 1.2480936733754249,
+    "cold_requirement": "Unchanged; source setup reduction alone is insufficient under retained critical-path bound"
   }
 }

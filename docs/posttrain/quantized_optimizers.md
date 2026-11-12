@@ -1204,6 +1204,50 @@ shows that even eliminating the entire historical verification phase gives only
 1.00966× cold speed with other historical costs fixed. No equivalent full cold
 campaign is repeated, and no historical product gate is reclassified as passed.
 
+## Complete-exposure continuation (round nine, in progress)
+
+The authorized continuation retains the original short-horizon gates and adds a
+separate [two-pass development study](evidence/quantized_optimizers_round9/full_exposure_protocol.json).
+The live training manifest contains 346 rows. Native opt-in
+`rl.data.epoch_boundary=partial` processes 86 batches of four and a real two-row
+tail per pass, for 174 updates and 692 exposures across two passes. It preserves
+all rows and equal-row loss accounting; it currently requires one rank and
+accumulation one. Exact resume binds this policy into the objective identity.
+The default remains epoch wrapping. Local tail/normalization/cursor tests pass;
+real epoch-boundary recovery and training outcomes are still pending.
+
+The [row-permutation diagnostic](evidence/quantized_optimizers_round9/permutation_protocol.json)
+preserves every original four-example update set for seed43. CPU checks in the
+pinned environment reproduce all 60 target identities and prove per-row
+labels/masks/counts and concatenated media alignment in both orders. Accelerator
+comparisons and full reference nonperturbation remain pending. These observations
+will distinguish same-state first-update numerical differences from later
+inherited trajectory changes; no ordering is selected from this diagnostic.
+
+Shared JSONL source construction now accepts `media_hash_workers=1..4` through
+native training/validation configuration. The default remains one. Four workers
+perform complete SHA256 reads with bounded concurrency, stable first-occurrence
+ordering and mutation/error rejection before publishing the source fingerprint.
+The task diagnostic and fresh-process scorer expose the same optional setting;
+optimizer state, model loading and checkpoint transactions are unchanged.
+
+The [three-pair CPU screen](evidence/quantized_optimizers_round9/source_hash_summary.json)
+preserves all 434 training/development rows, normalized identities, ordered
+media hashes and target keys. Source-construction ratio is **4.5345
+[3.5142, 7.0356]** and whole fresh-process ratio **1.2481 [1.1092, 1.4520]**.
+Serial construction takes 30.11/27.85/27.41 seconds; parallel construction takes
+7.99/3.96/7.80 seconds. Process-tree PSS peaks, sampled from child launch including
+imports, are 0.45–0.52 versus 0.49–0.63 GiB. The benchmark parent is excluded.
+There are three timing pairs on one CPU node with uncontrolled shared storage
+cache, not independent training seeds or cold-storage replications. All 34
+pinned checks and 47 affected local checks pass; coverage overlaps. Conservative
+allocation cost including termination is 540 CPU-wall seconds.
+
+This removes a measured setup cost shared by both optimizer arms. It does not
+change the retained cold planning bound or establish a new optimizer speed,
+quality, recovery or full-preparation result. Native commands, exact study specs
+and source receipts are in [round-nine commands](evidence/quantized_optimizers_round9/commands.md).
+
 ## Reproduction and source identities
 
 [Qualification commands](../../tools/quantized_optimizers/README.md) cover data
