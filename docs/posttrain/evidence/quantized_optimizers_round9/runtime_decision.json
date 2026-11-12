@@ -1,0 +1,14 @@
+{
+  "scope": "Retained measured phases; conditional bounds only, no new cold performance measurement",
+  "historical_mean_preparation_seconds": 1981.6666666666667,
+  "same_work_independent_uncached_replay_ideal_four_worker_lower_bounds_seconds": [
+    717.7093068716349,
+    741.380380009301,
+    764.6093049457995
+  ],
+  "mean_replay_lower_bound_seconds": 741.2329972755784,
+  "historical_common_preparation_required_if_candidate_training_free_seconds": 207.35849384209814,
+  "conclusion": "Even eliminating first-pass preparation, serialization, identity and final verification leaves the retained independent replay work above the207.36second planning target at the measured worker rates. Reusing replay decode would violate the historical endpoint. A substantial independently verified decoder-throughput improvement or wider critical-path change is needed; no cosmetic runtime change or equivalent full cold campaign admitted.",
+  "retained_runtime": "Round8 exact-byte verifier speedup and round7 full-corpus bounded video reuse remain implemented and qualified in their measured scopes.",
+  "nested_timer_policy": "Worker sums overlap across four processes; divide by workers only as ideal same-work lower bound. Do not add nested video preprocessing/decode timers."
+}

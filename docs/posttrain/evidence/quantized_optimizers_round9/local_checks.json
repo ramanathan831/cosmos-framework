@@ -43,6 +43,14 @@
       "passed": true,
       "seconds": 2.9036350469104946,
       "details": "First transfer used unresolved fsw symlink target keys and failed before loading; corrected with remote canonical fs11 paths. Original CPU pinned job remains admitted."
+    },
+    {
+      "command": "SFT config/env/entrypoint regressions",
+      "passed": 55,
+      "skipped": 3,
+      "failed": 1,
+      "seconds": 10.44,
+      "limitation": "Existing local environment lacks torchvision required by unrelated served-prefix processor fixture; no dependencies installed or QLoRA environment changed. Selected real prepared collation separately passes."
     }
   ],
   "overlapping_counts": true,

@@ -1,0 +1,39 @@
+{
+  "name": "full-seed17",
+  "source_commit": "8858db8a8799888d8874922144ea51ecb409d82b",
+  "source_archive_sha256": "36e8a31ee699e303dfb393acbdea0794fa586cd3b86b2fd89f1d0d0c5a32d422",
+  "spec_sha256": "66de0b86c53dbc00325076a9f5cfaef2e694961064b8f8fc2bcfd17eebafdf09",
+  "environment": {
+    "SOURCE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850",
+    "ASSETS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z",
+    "PRIOR": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-quantized-optimizers-20261103",
+    "PREPARATION": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/prepare-evaluation-v1",
+    "CONTAINER_IMAGE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-automl-focused-20261012/image-conversion/cosmos-framework-focused.sqsh",
+    "SOURCE_ARCHIVE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r9-20261112/full-study.tgz",
+    "TASK_DATA_ROOT": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/data",
+    "TASK_SPEC": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r9-20261112/full_seed17_spec.json",
+    "MODE": "study",
+    "WORK_SECONDS": "3480",
+    "RESULTS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r9-20261112/full-seed17"
+  },
+  "argv": [
+    "sbatch",
+    "--parsable",
+    "--export=ALL",
+    "--time=60",
+    "--nodelist=batch-block4-1051",
+    "--partition=interactive_singlenode,polar",
+    "--job-name=optimizer-r9-full-seed17",
+    "--output=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r9-20261112/full-seed17-%j.log",
+    "--dependency=afterok:38450035",
+    "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r9-20261112/deployment.sbatch"
+  ],
+  "wall_seconds": 3600,
+  "grace_seconds": 120,
+  "root": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r9-20261112",
+  "preflight": "346 live training rows/sourceSHA verified; local partial/default/normalization/resume checks passed; pinned CPU preflight pending, no claim of its success",
+  "admission": "Independent original-recipe two-pass development baseline, both arms, seed17 epoch-boundary continuation; no recipe selected or final scores. Existing second matched A100 node from round4. Serialized on existing healthy node1051; same recipe/source/resources.",
+  "supersedes": "38450350 cancelled pending: node0052 draining with Epilog error. No allocated resources or training.",
+  "job": "38450382",
+  "utc": "2026-11-12T20:30:53.765989+00:00"
+}
