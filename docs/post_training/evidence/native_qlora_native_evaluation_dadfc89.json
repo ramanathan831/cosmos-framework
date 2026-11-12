@@ -393,6 +393,82 @@
     "status": "accepted_four_update_diagnostic_bridge",
     "wheel_sha256": "dfaff88beb64b0caf07bf4f58cf32e68c6293b29ac2a339245998e51a72208a0"
   },
+  "implementation_status_ea6cdc1": {
+    "answer_choice_smoothing": {
+      "accelerator_qualified": false,
+      "default_epsilon": 0.0,
+      "introduced_revision": "ea6cdc1aa70bd188124f2333f22bc73f71ddc43a",
+      "prospective_opt_in_epsilon": 0.02,
+      "quality_promoted": false,
+      "scope": "Training-only smoothing of the first answer token over validated answer choices. Evaluation remains hard-gold; nonzero smoothing changes the strict training contract. No quality improvement or accelerator qualification is claimed.",
+      "source": "cosmos_framework/posttrain/algorithm/sft.py"
+    },
+    "build_receipt_sha256": "0cb920b0e3e013452cde4b53bcb8a685a05f0ef47b911c94448c6735a083f5d8",
+    "cpu_test_groups": [
+      {
+        "cases": 53,
+        "failed": 0,
+        "junit_sha256": "a58305837ada3797777fb71e9d0d56f9c87d5c145f5d4390826f669b685809e0",
+        "name": "dense_export_contract",
+        "passed": 53,
+        "skipped": 0
+      },
+      {
+        "cases": 1,
+        "failed": 0,
+        "junit_sha256": "7bd1bce9c93eb2173778fcb97acb37125b4c7e186a623f4a356f6c0518cdd942",
+        "name": "dense_export_source_alias_refusal",
+        "passed": 1,
+        "skipped": 0
+      },
+      {
+        "cases": 36,
+        "failed": 0,
+        "junit_sha256": "a7ddae7e0d88571ce0086287c5081f9e7fd425568f3ce7265e69f77a0762d967",
+        "name": "dense_scoring_regression",
+        "passed": 36,
+        "skipped": 0
+      },
+      {
+        "cases": 17,
+        "failed": 0,
+        "junit_sha256": "ccf53170a30a0a0a2bbd24ea59f1a91e4ae1573274cfbd2d8f4cc8b90a654305",
+        "name": "dense_scoring_standalone_source_contract",
+        "passed": 17,
+        "skipped": 0
+      },
+      {
+        "cases": 212,
+        "failed": 0,
+        "junit_sha256": "e126b8d3fc9ac5aeb45c52627b1947be55c54afa671ee59edbbeb8acd1f6d129",
+        "name": "answer_smoothing_regression",
+        "passed": 211,
+        "skipped": 1
+      },
+      {
+        "cases": 53,
+        "failed": 0,
+        "junit_sha256": "6e07c747783260386c68f74ba417295e598632c99b0fefaba58f937d6bafa088",
+        "name": "answer_smoothing_lifecycle_contract",
+        "passed": 53,
+        "skipped": 0
+      }
+    ],
+    "dense_export": {
+      "accelerator_qualified": false,
+      "introduced_revision": "dffe06764e7ad67d48a260668aaf0899a6781018",
+      "scope": "Implementation and small CPU contract tests for effective-base-plus-adapter dense export, FP32 accumulation, BF16 or FP32 output, identity-bound completed publication and standalone dense scoring. Full-size accelerator export, own fresh reload and cross-format quality qualification remain pending.",
+      "source": "cosmos_framework/posttrain/checkpoint/dense_adapter.py"
+    },
+    "local_validation_sha256": "c903193354296fac35c5be6565c01b262d43d5e17fee75c571ac53677590e8b8",
+    "open_accelerator_and_scientific_requirements_met": false,
+    "prior_build_evidence_reclassified_as_current_build": false,
+    "revision": "ea6cdc1aa70bd188124f2333f22bc73f71ddc43a",
+    "skipped_test_scope": "The optional real-base-sidecar tokenization check requires an externally supplied base checkpoint directory; it was skipped, not passed.",
+    "test_counts_scope": "Scorer v6 includes the 11 dense cases also in v5; do not sum as unique tests. Other focused results retained separately.",
+    "wheel_sha256": "25c3ad65f2dd2304292ab425dae8009255057b300a0d66fcdf199509f46f9cac",
+    "workflow_receipt_sha256": "d8938325bcfb428ebe807c8576a329a347a054391aa05512bdc2c8133b48739d"
+  },
   "learning_screen": {
     "complete_four_case_screen": false,
     "negative_quality_diagnostic": {
@@ -2722,5 +2798,188 @@
     "scope": "Retired inactive, derived installed package copies from five older builds. Their contents remain restorable from retained wheels and the hash-bound manifest; this is not a claim that restoration was performed or original inode identity preserved.",
     "storage_write_availability_resolved": false,
     "wheels_receipts_checkpoints_and_results_retained": true
+  },
+  "storage_observations_20261112": {
+    "accepted_compute_diagnostic": {
+      "all_file_write_fsync_rename_readback_checks_passed": true,
+      "all_paths_passed": true,
+      "all_probe_cleanup_complete": true,
+      "allocated_cpu_seconds": 1152,
+      "bytes_per_file": 65536,
+      "capture_members": 23,
+      "capture_sha256": "33afdd07b74f7f14ddca46ff55b5e6619b3dc99a21b4041c5295f5c75a4c9643",
+      "completed": true,
+      "completion_sha256": "8df9c8ff21b7cc7cb6830899dacea3cbbe8801737f62056b6b2e1201471b551d",
+      "exit_code": "0:0",
+      "files_per_path": 4,
+      "files_written": 20,
+      "gpu_allocation_seconds": 72,
+      "identity_proof": {
+        "effective_uid": 0,
+        "exact_expected_host_uid_match": true,
+        "exact_slurm_allocation_uid_match": true,
+        "mapping_interval_count": 1,
+        "method": "kernel_uid_map",
+        "scope": "The account-specific host UID remains in the hash-bound raw proof; the unique kernel mapping is projected without that identifier.",
+        "uid_map_sha256": "a189b5c52ad3585c6a634289988832d71c40be846e0aa41adbb96752b511c10c"
+      },
+      "model_training_or_scoring_performed": false,
+      "observed_utc": "2026-11-12T20:27:23.952173+00:00",
+      "passed": true,
+      "path_roles": [
+        "owned_allocation_parent",
+        "jobs_parent",
+        "signals_parent",
+        "logs_parent",
+        "campaign_metadata_parent"
+      ],
+      "payload_bytes_written": 1310720,
+      "plan_sha256": "2e70a314d6da6fc1002ab80f749d45651e2bdb3f13c9d83730f20f17e3685918",
+      "reservation_created": false,
+      "role": "namespace_and_small_write_diagnostic",
+      "sampler_exit_code": 0,
+      "scope": "Point-in-time small-file and nested-directory availability only; not sustained capacity or checkpoint-size assurance.",
+      "source_pins_rehashed_before_after": 63,
+      "stage_exit_codes": {
+        "allocation_preflight": 0,
+        "identity_storage_probe": 0
+      },
+      "state": "COMPLETED",
+      "storage_probe_sha256": "9702d6d7924962f3d5cb47b94c2c6565532d672f8e00ac943c8ea203bbd926ac"
+    },
+    "capacity_reservation_created": false,
+    "completed_cost": {
+      "allocated_cpu_seconds": 3712,
+      "distinct_allocations": 3,
+      "gpu_allocation_seconds": 232,
+      "scope": "Only these two failed startup allocations and the completed diagnostic. Active timing-v8 allocations and unmeasured login/local CPU work are excluded; nested phase clocks are not added."
+    },
+    "dataset_or_scientific_artifact_deleted": false,
+    "failed_startup_allocations": [
+      {
+        "allocated_cpu_seconds": 1280,
+        "capture_members": 28,
+        "capture_sha256": "dc00d4a04c44f13548281279793b0a15a1d2b690fbcdc73a016a2361d4ce2282",
+        "completed": false,
+        "completion_sha256": "d29997ebf20fb11960ce09a1af0066b3c45a6e0a169dc8d8d1bd5d5409042384",
+        "exit_code": "1:0",
+        "failure": "UID guard compared the container effective UID directly with the Slurm host UID.",
+        "gpu_allocation_seconds": 80,
+        "model_training_or_scoring_performed": false,
+        "plan_sha256": "199395df213d905cb1a6d2053bf2cfa14055ec3e66db74b0036c154280c5116c",
+        "role": "nf4_seed123_v7_startup",
+        "sampler_exit_code": 0,
+        "scientific_result_accepted": false,
+        "source_pins_rehashed_before_after": 94,
+        "stage_exit_codes": {
+          "allocation_preflight": 0,
+          "durable_storage_guard": 1,
+          "single_numa_guard": 0
+        },
+        "state": "FAILED",
+        "storage_probe_sha256": "7b4c978297049ce12e759dd27f368794bef3e7b383c1a80afe2adda3f72d0d8d",
+        "storage_writes_attempted": false
+      },
+      {
+        "allocated_cpu_seconds": 1280,
+        "capture_members": 22,
+        "capture_sha256": "fb77007d60a7b7fd901340a9050482d75f5426db256fdeb414c9fe62aed99f57",
+        "completed": false,
+        "completion_sha256": "cc9fc34f25b2d4a22012561434e9cd694e322c8789493ecf1210bd153472ca9e",
+        "exit_code": "1:0",
+        "failure": "The inherited physical cores did not satisfy the unchanged eight-core single-NUMA placement requirement.",
+        "gpu_allocation_seconds": 80,
+        "model_training_or_scoring_performed": false,
+        "plan_sha256": "2d4799f721c3cffed1388ce6b46629c583e2eb0dd1c6176765a930ce7e4d5d25",
+        "role": "bf16_seed123_v7_startup",
+        "sampler_exit_code": 0,
+        "scientific_result_accepted": false,
+        "source_pins_rehashed_before_after": 94,
+        "stage_exit_codes": {
+          "allocation_preflight": 0,
+          "single_numa_guard": 1
+        },
+        "state": "FAILED",
+        "storage_guard_entered": false
+      }
+    ],
+    "filesystem_repair_or_prior_quota_cause_established": false,
+    "login_probes": [
+      {
+        "observed_utc": "2026-11-12T20:01:13.112746+00:00",
+        "passed": false,
+        "paths": [
+          {
+            "cleanup_complete": true,
+            "files_written": 4,
+            "passed": true,
+            "path_role": "campaign_root"
+          },
+          {
+            "cleanup_complete": true,
+            "files_written": 3,
+            "passed": true,
+            "path_role": "jobs_parent"
+          },
+          {
+            "cleanup_complete": true,
+            "files_written": 0,
+            "passed": false,
+            "path_role": "requested_evidence_parent",
+            "refusal": "Requested parent did not exist; this was not a quota error."
+          },
+          {
+            "cleanup_complete": true,
+            "files_written": 0,
+            "passed": false,
+            "path_role": "requested_status_parent",
+            "refusal": "Requested parent did not exist; this was not a quota error."
+          },
+          {
+            "cleanup_complete": true,
+            "files_written": 3,
+            "passed": true,
+            "path_role": "campaign_metadata_parent"
+          }
+        ],
+        "scope": "Login-client tiny disposable writes with file fsync, rename/readback, directory fsync and cleanup; not compute-client or sustained-capacity evidence.",
+        "source_sha256": "8584f841426c1246b5f03568103f66fdb49b2b98eb8d7d85a819aefeff77dc8f"
+      },
+      {
+        "observed_utc": "2026-11-12T20:02:38.025245+00:00",
+        "passed": true,
+        "paths": [
+          {
+            "cleanup_complete": true,
+            "files_written": 4,
+            "passed": true,
+            "path_role": "signals_parent"
+          },
+          {
+            "cleanup_complete": true,
+            "files_written": 4,
+            "passed": true,
+            "path_role": "logs_parent"
+          }
+        ],
+        "scope": "Login-client tiny disposable writes with file fsync, rename/readback, directory fsync and cleanup; not compute-client or sustained-capacity evidence.",
+        "source_sha256": "a06963bd7f862f9d2b64ca20bc3cbbdee9e6a4a874a3a8cf5e259ce6981fad92"
+      }
+    ],
+    "namespace_guard_correction": {
+      "contract": "Validate the effective UID through the actual kernel UID map against the expected host UID and Slurm allocation UID; reject missing, ambiguous or mismatched identity. This does not change filesystem ownership or the resource policy.",
+      "cpu_cases_passed": 86,
+      "cpu_cases_skipped": 0,
+      "junit_sha256": "1f2d5dec7c63b4c7370b03026a7f5f2c0d9304c6dd2fe85baa0c079f28226cfc",
+      "revision": "756e61b0e9d5e45b092e5e5b82d4c5d91719a545",
+      "source": "tools/native_qlora_qualification/storage.py",
+      "source_sha256": "0a8d563e58cd650d64f1227abfbf69df5162eb21cd9310b0f62593387e94a53f",
+      "tests": "tools/native_qlora_qualification/tests/test_storage.py",
+      "tests_sha256": "ea51c83764a5d212cf23625079aa31d79feede704c79fca92638d4bb06649ecd"
+    },
+    "scope": "Subsequent November 12 observations. Earlier quota failures, cleanup records and historical cost snapshots are retained unchanged; these observations do not identify or repair the cause of the earlier filesystem refusals.",
+    "sustained_or_checkpoint_size_capacity_established": false,
+    "timing_mature_or_quality_requirements_closed": false,
+    "timing_v8_status_at_projection": "active; results and allocation costs excluded"
   }
 }
