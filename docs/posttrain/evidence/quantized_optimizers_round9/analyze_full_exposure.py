@@ -1,7 +1,10 @@
 """Apply prospectively locked development gates, keeping the short study separate."""
 
 import json
+import math
+import random
 import sys
+from collections import defaultdict
 from pathlib import Path
 from statistics import mean
 
@@ -9,7 +12,52 @@ from tools.quantized_optimizers.outcome_statistics import paired_quality
 
 ROOT = Path(__file__).parent
 sys.path.insert(0, str(ROOT.parent / "quantized_optimizers_round8"))
+from analyze_replay import components
 from analyze_screen import IDENTITY, read_raw, rows
+
+
+def descriptive_changes(raw, prefix, task_rows):
+    """Retain every development row; component views never replace native guards."""
+    prior = ROOT.parent / "quantized_optimizers_round8"
+    texts = {x["id"]: x for x in json.loads((prior / "development_texts.json").read_text())["rows"]}
+    vocabulary = json.loads((prior / "token_strings.json").read_text())["raw_vocabulary_strings"]
+    observations = rows(raw, prefix + "diagnostics/late_substantive.jsonl")
+    assert [x["step"] for x in observations] == [87, 174]
+    parts = []
+    for observation in observations:
+        assert observation["batch_size"] == 4 and observation["native_tokens"] == 1346
+        grouped = defaultdict(lambda: dict(tokens=0, loss_sum=0.0))
+        for batch in observation["batches"]:
+            for row in batch["rows"]:
+                labels = components(row, texts[row["id"]], vocabulary)
+                for loss, (question, component) in zip(row["token_losses"], labels, strict=True):
+                    cell = grouped[question + " / " + component]
+                    cell["tokens"] += 1
+                    cell["loss_sum"] += loss
+        assert sum(v["tokens"] for v in grouped.values()) == 1346
+        assert math.isclose(
+            sum(v["loss_sum"] for v in grouped.values()) / 1346, observation["native_loss"], abs_tol=1e-7
+        )
+        parts.append(dict(step=observation["step"], native_loss=observation["native_loss"], components=dict(grouped)))
+    earlier = {x["id"]: x for x in task_rows if x["step"] == 87}
+    changes = []
+    for row in task_rows:
+        if row["step"] != 174:
+            continue
+        previous = earlier[row["id"]]
+        assert all(row[k] == previous[k] for k in IDENTITY if k != "step")
+        changes.append(
+            dict(
+                id=row["id"],
+                gold=row["gold"],
+                nll=[previous["answer_nll"], row["answer_nll"]],
+                correct=[previous["restricted_choice_correct"], row["restricted_choice_correct"]],
+                prediction=[previous["restricted_choice_prediction"], row["restricted_choice_prediction"]],
+                candidate_logits=[previous["candidate_logits"], row["candidate_logits"]],
+            )
+        )
+    assert len(changes) == 32
+    return dict(native_substantive_components=parts, task_changes_87_to_174=changes)
 
 
 def main():
@@ -33,6 +81,9 @@ def main():
             for start in (0, 87):
                 ids = [i for x in inputs[start : start + 87] for i in x["ids"]]
                 assert len(ids) == len(set(ids)) == 346
+                expected = list(range(346))
+                random.Random(seed + start // 87).shuffle(expected)
+                assert [int(i.rsplit(":", 1)[1]) for i in ids] == expected
             metrics = rows(
                 raw, next(k for k in raw if k.startswith(prefix + "native/") and k.endswith("/metrics.jsonl"))
             )
@@ -74,6 +125,7 @@ def main():
                     for k in sorted({x["phase"] for x in phases})
                 },
             )
+            arms[arm]["descriptive_changes"] = descriptive_changes(raw, prefix, arms[arm]["task_rows"])
             curves[f"{arm}{seed}"] = curve
         a, b = arms["fused"], arms["eightbit"]
         assert a["inputs"] == b["inputs"]

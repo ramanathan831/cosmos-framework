@@ -1,0 +1,39 @@
+{
+  "raw_sha256": "0c1ab6943bcf56f0fe45091185574cff7da7a191213638e4caceadd9c5364822",
+  "complete": true,
+  "arms": {
+    "fused": {
+      "exact_semantic_update_records": 87,
+      "observed_reporting_differences": {
+        "timer/e2e_step_s": 87,
+        "time": 87,
+        "train/grad_clip_fraction": 87,
+        "timer/validation_s": 3
+      },
+      "first_update": 88,
+      "last_update": 174,
+      "full_state_comparisons": [
+        88,
+        89,
+        174
+      ]
+    },
+    "eightbit": {
+      "exact_semantic_update_records": 87,
+      "observed_reporting_differences": {
+        "timer/e2e_step_s": 87,
+        "time": 87,
+        "train/grad_clip_fraction": 87,
+        "timer/validation_s": 3
+      },
+      "first_update": 88,
+      "last_update": 174,
+      "full_state_comparisons": [
+        88,
+        89,
+        174
+      ]
+    }
+  },
+  "reporting_scope": "Fresh resume outputs use a new directory without the original metric journal. JsonlReporter restores historical clipping frequency only from an existing journal (utils/report.py); this attempt-local descriptive fraction differs, but per-update grad_clipped, gradient norm, clipping coefficient, loss, learning rate, token counts and all optimizer counters are exact. Timing fields intentionally differ. Saved final components and validation journal compare without exclusions. Full parameter/moment state is hashed at88/89/174, not all87updates."
+}
