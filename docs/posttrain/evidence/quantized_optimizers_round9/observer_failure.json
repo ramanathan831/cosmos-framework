@@ -1,0 +1,11 @@
+{
+  "job": "38450035",
+  "gpu_allocation_seconds_including_latest_resource_step": 202,
+  "first_applied_update": false,
+  "error": "CUDA IndexKernel out of bounds in diagnostic sampler before optimizer step",
+  "verified_mechanism": "torch.linspace float32 rounds 3072*8192-1 to3072*8192; converted long index exceeds tensor extent",
+  "fix": "Exact integer arange multiplication and floor division for deterministic256-entry sampling; no training/optimizer computation changed",
+  "local_regression": "8passed1CUDA-skipped; large actual CPUtensor and exact endpoints beyond2**24 and2**31 tested",
+  "dependent_job": "38450382 cancelled by scheduler with0allocated seconds",
+  "research_status": "No permutation outcome or quality inference from failed attempt; fresh reference/permutation required"
+}

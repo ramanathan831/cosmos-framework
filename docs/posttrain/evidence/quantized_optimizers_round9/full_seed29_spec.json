@@ -4,27 +4,6 @@
   "protocol": "full_exposure_protocol.json",
   "cases": [
     {
-      "name": "affected_regressions",
-      "read_model": false,
-      "argv": [
-        "python",
-        "-m",
-        "pytest",
-        "cosmos_framework/posttrain/tests/test_config_sft.py",
-        "cosmos_framework/posttrain/tests/test_roles_env_sft.py",
-        "cosmos_framework/posttrain/tests/test_entrypoints_sft.py",
-        "cosmos_framework/posttrain/tests/test_sft_epoch_tail.py",
-        "--confcutdir=cosmos_framework/posttrain/tests",
-        "--override-ini=addopts=",
-        "-p",
-        "no:env",
-        "-q"
-      ],
-      "env": {
-        "CUDA_VISIBLE_DEVICES": ""
-      }
-    },
-    {
       "name": "eightbit_seed29",
       "argv": [
         "torchrun",

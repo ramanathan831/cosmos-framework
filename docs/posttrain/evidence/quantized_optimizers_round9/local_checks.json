@@ -69,5 +69,20 @@
     "job": "38451358",
     "source": "0cc7ffc2f1bf593ca753b6621ecf718682292d15",
     "overlaps_local_tests": true
+  },
+  "pinned_native_regressions": {
+    "passed": 72,
+    "skipped": 1,
+    "seconds": 163.97,
+    "job": "38453341",
+    "cpu_allocation_seconds_including_termination": 308,
+    "resolves": "local missing-torchvision fixture; full actual Qwen multimodal CPU recipe passes",
+    "overlapping_counts": true
+  },
+  "observer_integer_sampling": {
+    "passed_local": 8,
+    "skipped_cuda_local": 1,
+    "seconds": 3.68,
+    "real_cuda_check": "included in diagnostic retry before training"
   }
 }

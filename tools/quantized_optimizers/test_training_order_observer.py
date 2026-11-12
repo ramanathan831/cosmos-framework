@@ -9,7 +9,33 @@ from cosmos_framework.posttrain.checkpoint.rng import collect_rng_state, restore
 from cosmos_framework.posttrain.roles.trainer.llm import LLMTrainer
 from cosmos_framework.posttrain.tests.helpers.sft_objective import MemoryPacker, Policy, sample_batch
 from tools.quantized_optimizers.state_digest import digest
-from tools.quantized_optimizers.training_order_observer import check_collation, install
+from tools.quantized_optimizers.training_order_observer import check_collation, install, sample_indices, tensor_stats
+
+
+@pytest.mark.parametrize("elements", [1, 17, 2**24 + 2, 3072 * 8192, 2**31 + 13])
+def test_integer_sampling_has_exact_in_range_endpoints(elements):
+    indices = sample_indices(elements, "cpu")
+    assert indices.dtype == torch.int64
+    assert len(indices) == min(elements, 256)
+    assert indices[0] == 0 and indices[-1] == elements - 1
+    assert len(indices.unique()) == len(indices)
+    assert bool(((indices >= 0) & (indices < elements)).all())
+
+
+@pytest.mark.parametrize("device", ["cpu", "cuda"])
+def test_large_actual_tensor_sampling_avoids_float_endpoint_rounding(device):
+    if device == "cuda" and not torch.cuda.is_available():
+        pytest.skip("accelerator test runs inside the admitted CUDA diagnostic")
+    elements = 3072 * 8192
+    # This was the real observer failure: float32 rounds n-1 up to n.
+    assert int(torch.linspace(0, elements - 1, 256, dtype=torch.float32)[-1]) == elements
+    value = torch.zeros(elements, device=device)
+    value[-1] = 1
+    before = digest(collect_rng_state())
+    stats = tensor_stats(value)
+    assert stats["samples"][-1] == stats["l2"] == stats["max_abs"] == 1
+    assert stats["elements"] == elements
+    assert before == digest(collect_rng_state())
 
 
 def test_observer_preserves_multistep_updates_rng_and_modes(tmp_path):

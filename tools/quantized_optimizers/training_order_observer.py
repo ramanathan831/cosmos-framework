@@ -100,9 +100,17 @@ def forward_observation(trainer, packer, trajectories, output):
         packer.sft_collate_fn = original
 
 
+def sample_indices(elements, device):
+    """Exact endpoints even beyond float32's integer precision (2**24)."""
+    if elements < 1:
+        raise ValueError("diagnostic sampling requires a nonempty tensor")
+    count = min(256, elements)
+    return torch.arange(count, dtype=torch.int64, device=device) * (elements - 1) // max(count - 1, 1)
+
+
 def tensor_stats(value):
     flat = value.detach().reshape(-1)
-    indexes = torch.linspace(0, max(0, flat.numel() - 1), min(256, flat.numel()), device=flat.device).long()
+    indexes = sample_indices(flat.numel(), flat.device)
     return {
         "l2": float(torch.linalg.vector_norm(flat)),
         "max_abs": float(flat.abs().max()),
@@ -150,7 +158,7 @@ def install(trainer, packer, root, *, reference=None, write_full=False):
             if not p.requires_grad:
                 continue
             flat = p.detach().reshape(-1)
-            indexes = torch.linspace(0, flat.numel() - 1, min(256, flat.numel()), device=p.device).long()
+            indexes = sample_indices(flat.numel(), p.device)
             before[name] = (indexes, flat[indexes].clone())
             if p.grad is None:
                 records[name] = None
