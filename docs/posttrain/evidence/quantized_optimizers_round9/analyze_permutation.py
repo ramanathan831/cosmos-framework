@@ -3,12 +3,14 @@
 import json
 import math
 import sys
+from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
 
 ROOT = Path(__file__).parent
 sys.path.insert(0, str(ROOT.parent / "quantized_optimizers_round8"))
+from analyze_replay import components
 from analyze_screen import IDENTITY, read_raw, rows
 
 
@@ -107,12 +109,48 @@ def main():
         assert all(x[k] == y[k] for k in IDENTITY)
         if x["step"] == 0:
             assert x == y
+    prior = ROOT.parent / "quantized_optimizers_round8"
+    texts = {r["id"]: r for r in json.loads((prior / "development_texts.json").read_text())["rows"]}
+    vocabulary = json.loads((prior / "token_strings.json").read_text())["raw_vocabulary_strings"]
+    late = []
+    left, right = [rows(raw, n + "/diagnostics/late_substantive.jsonl") for n in names]
+    assert [x["step"] for x in left] == list(range(10, 16))
+    for x, y in zip(left, right, strict=True):
+        assert x["step"] == y["step"] and x["source_fingerprint"] == y["source_fingerprint"]
+        assert x["native_tokens"] == y["native_tokens"] == 1346
+        grouped = defaultdict(lambda: {"tokens": 0, "delta_sum": 0.0})
+        for bx, by in zip(x["batches"], y["batches"], strict=True):
+            assert bx["input_sha256"] == by["input_sha256"] and bx["input_shapes"] == by["input_shapes"]
+            for rx, ry in zip(bx["rows"], by["rows"], strict=True):
+                assert all(
+                    rx[k] == ry[k] for k in ("id", "tokens", "target_token_ids", "trajectory_id", "sequence_length")
+                )
+                parts = components(rx, texts[rx["id"]], vocabulary)
+                for cx, cy, (question, component) in zip(rx["token_losses"], ry["token_losses"], parts, strict=True):
+                    key = question + " / " + component
+                    grouped[key]["tokens"] += 1
+                    grouped[key]["delta_sum"] += cy - cx
+        assert sum(v["tokens"] for v in grouped.values()) == 1346
+        assert math.isclose(
+            sum(v["delta_sum"] for v in grouped.values()) / 1346, y["native_loss"] - x["native_loss"], abs_tol=1e-7
+        )
+        late.append(
+            {
+                "step": x["step"],
+                "original_nll": x["native_loss"],
+                "permuted_nll": y["native_loss"],
+                "ratio": y["native_loss"] / x["native_loss"],
+                "tokens": 1346,
+                "question_components": dict(grouped),
+            }
+        )
     result = {
         "complete": True,
         "reference_nonperturbation": parity,
         "changed_updates": changed,
         "stochastic_audit": a["audit"],
         "observations": observations,
+        "late_native_substantive": late,
         "curves": {n: series[n]["curve"] for n in names},
         "limits": [
             "Only step1 compares gradients at identical parameter/moment state.",
