@@ -60,6 +60,49 @@ def descriptive_changes(raw, prefix, task_rows):
     return dict(native_substantive_components=parts, task_changes_87_to_174=changes)
 
 
+def plot_curves(all_seeds):
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    fig, axes = plt.subplots(1, 3, figsize=(13, 4))
+    for arm, color, label in (
+        ("fused", "#4477AA", "Fused + recomputation"),
+        ("eightbit", "#CC6677", "Eight-bit, no recomputation"),
+    ):
+        for panel, (key, title) in enumerate(
+            (
+                ("answer_nll", "Choice gold-answer NLL"),
+                ("restricted_choice_accuracy", "Restricted-choice accuracy"),
+                ("val/loss_avg", "Native substantive NLL"),
+            )
+        ):
+            traces = []
+            for seed in all_seeds:
+                curve = seed["arms"][arm]["curve"]
+                steps = [x["step"] for x in curve]
+                values = [x["substantive_validation" if panel == 2 else "metrics"][key] for x in curve]
+                traces.append(values)
+                axes[panel].plot(steps, values, color=color, alpha=0.25, linewidth=1)
+            axes[panel].plot(steps, np.mean(traces, axis=0), color=color, marker="o", label=label)
+            axes[panel].set(xlabel="Completed optimizer updates", title=title)
+            axes[panel].grid(alpha=0.2)
+    axes[0].legend(fontsize=8)
+    fig.suptitle("Two complete passes: three development seeds, fixed update-174 endpoint")
+    fig.text(
+        0.5,
+        0.01,
+        "Thin lines: individual seeds; bold: mean. Not final held-out quality or product timing evidence.",
+        ha="center",
+        fontsize=9,
+    )
+    fig.tight_layout(rect=(0, 0.035, 1, 0.94))
+    fig.savefig(ROOT / "full_exposure_curves.png", dpi=160)
+    plt.close(fig)
+
+
 def main():
     all_seeds, curves = [], {}
     paired = {"fused": [], "eightbit": []}
@@ -188,6 +231,7 @@ def main():
         timing_scope="Instrumented development includes native attribution and seed17 recovery digests. No product speed inference; phase timers nest, do not sum them.",
     )
     (ROOT / "full_exposure_summary.json").write_text(json.dumps(result, indent=2) + "\n")
+    plot_curves(all_seeds)
     print(json.dumps({k: v for k, v in result.items() if k != "per_seed"}, indent=2))
 
 

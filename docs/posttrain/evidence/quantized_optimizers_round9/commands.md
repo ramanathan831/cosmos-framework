@@ -67,3 +67,40 @@ Analysis requires the respective complete receipts; queued or partial runs are
 not outcomes. The original short-horizon and final protocols remain unchanged.
 The full-exposure study has its own prospective development guards and never
 selects a best checkpoint retrospectively.
+
+The effective GPU route is the configured `polar` pool, with no fixed node,
+eight CPUs, 128 GiB host memory and one checked A100-SXM4-80GB. Both arms of a
+seed share one allocation. `routing_update.json` retains the removal of the
+unrequested stale node pin; no new account, pool or QoS was introduced.
+The copied cluster batch script matches `tools/quantized_optimizers/deployment.sbatch`
+exactly (SHA256 `7454235f87f610242250cb3226407d0fdba4adbc81849d9e8b18ae75c420eb36`).
+
+For example, from a checkout on the configured Slurm host, this submits the
+recorded seed-29 pair to a new output directory, retaining its exact immutable
+source archive, specification, model and prepared data. Run seed groups serially
+and monitor each through completion; do not overwrite existing results.
+
+```bash
+python - <<'PY'
+import json, os, subprocess
+from pathlib import Path
+receipt = json.loads(Path('docs/posttrain/evidence/quantized_optimizers_round9/full_seed29_launch.json').read_text())
+env = os.environ.copy()
+env.update(receipt['environment'])
+env['RESULTS'] += '-reproduction'
+assert not Path(env['RESULTS']).exists(), 'fresh output directory required'
+subprocess.run([
+    'sbatch', '--parsable', '--export=ALL', '--time=45', '--partition=polar',
+    '--job-name=optimizer-r9-full-seed29-reproduction',
+    '--output=' + env['RESULTS'] + '-%j.log',
+    'tools/quantized_optimizers/deployment.sbatch',
+], env=env, check=True)
+PY
+```
+
+The full study uses source `8858db8a8799888d8874922144ea51ecb409d82b`,
+archive SHA256 `36e8a31ee699e303dfb393acbdea0794fa586cd3b86b2fd89f1d0d0c5a32d422`.
+It deliberately retains serial source hashing in both arms. The separate shared
+hashing screen uses `0cc7ffc2f1bf593ca753b6621ecf718682292d15`; its CPU result is
+not retroactively included in these GPU timings. The corrected permutation
+archive uses `29aaf9dd`; launch receipts bind its complete revision and archive hash.
