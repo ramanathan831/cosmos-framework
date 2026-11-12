@@ -42,7 +42,17 @@ def main():
                 x["optim/update_outcome"] == "applied" and x["optim/nonfinite_skips_total"] == 0 for x in updates
             )
             assert [x["optim/optimizer_step"] for x in updates] == list(range(1, 175))
+            assert [x["train/valid_sequence_count"] for x in updates] == ([4] * 86 + [2]) * 2
             complete = json.loads(raw[prefix + "diagnostics/complete.json"])
+            assert complete["complete"] and complete["trainable_elements"] == 3087142912
+            state = complete["state_report"]
+            if arm == "eightbit":
+                assert state["uninitialized_elements"] == 0 and state["paged_moment_bytes"] == 0
+                assert state["quantized_elements"] + state["fp32_elements"] == 3087142912
+                assert state["backend"]["name"] == "adamw_bnb_8bit" and state["backend"]["version"] == "0.49.2"
+                tensor_state_bytes = state["moment_bytes"] + state["metadata_bytes"]
+            else:
+                tensor_state_bytes = state["state_bytes"]
             mem = rows(raw, prefix + "memory.jsonl")
             phases = rows(raw, prefix + "diagnostics/phases.jsonl")
             arms[arm] = dict(
@@ -53,6 +63,7 @@ def main():
                 accuracy=curve[-1]["metrics"]["restricted_choice_accuracy"],
                 substantive_nll=curve[-1]["substantive_validation"]["val/loss_avg"],
                 complete=complete,
+                optimizer_tensor_state_bytes=tensor_state_bytes,
                 attempt=json.loads(raw[prefix + "attempt.json"]),
                 memory_peaks={
                     k: max(x.get(k) or 0 for x in mem)
@@ -90,6 +101,7 @@ def main():
                 nll_ratio=b["task_nll"] / a["task_nll"],
                 accuracy_drop=a["accuracy"] - b["accuracy"],
                 substantive_ratio=b["substantive_nll"] / a["substantive_nll"],
+                optimizer_tensor_state_saving=1 - b["optimizer_tensor_state_bytes"] / a["optimizer_tensor_state_bytes"],
             )
         )
     quality = paired_quality(paired["fused"], paired["eightbit"], frozen)
@@ -106,6 +118,7 @@ def main():
         nll_upper_le_1_01=quality["guards"]["nll"],
         accuracy_drop_upper_le_01=quality["guards"]["accuracy"],
         each_substantive_ratio_le_1_01=all(x["substantive_ratio"] <= 1.01 for x in all_seeds),
+        retained_state_saving_ge_60=all(x["optimizer_tensor_state_saving"] >= 0.60 for x in all_seeds),
         adaptation=all(adaptation.values())
         and quality["guards"]["positive_baseline_adaptation"]
         and quality["guards"]["positive_quantized_adaptation"],
