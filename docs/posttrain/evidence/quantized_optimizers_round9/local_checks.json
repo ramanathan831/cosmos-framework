@@ -1,0 +1,36 @@
+{
+  "checks": [
+    {
+      "command": "CPU pytest epoch_tail + interleaved_cursor",
+      "passed": 41,
+      "seconds": 3.32
+    },
+    {
+      "command": "observer initial fixture",
+      "passed": 1,
+      "failed": 1,
+      "seconds": 3.71,
+      "fix": "fixture used read-only pad_token_id property; assign tokenizer instead"
+    },
+    {
+      "command": "observer + epoch_tail",
+      "passed": 15,
+      "seconds": 3.66
+    },
+    {
+      "command": "partial update test initial fixture",
+      "passed": 13,
+      "failed": 1,
+      "seconds": 3.42,
+      "fix": "reference erroneously clipped gradients to0 when native clipping disabled; conditional reference clipping"
+    },
+    {
+      "command": "epoch_tail corrected",
+      "passed": 14,
+      "seconds": 3.48
+    }
+  ],
+  "overlapping_counts": true,
+  "local_cuda_used": false,
+  "aggregate_caps": null
+}

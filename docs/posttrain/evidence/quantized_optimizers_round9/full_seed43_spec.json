@@ -1,0 +1,59 @@
+{
+  "purpose": "development diagnosis",
+  "prepared_verified_rows": 751,
+  "protocol": "full_exposure_protocol.json",
+  "cases": [
+    {
+      "name": "fused_seed43",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_full_exposure.py",
+        "--",
+        "job.name=fused_seed43",
+        "rl.seed=43",
+        "rl.optimizer.name=adamw",
+        "model_hf.grad_ckpt=true",
+        "rl.resume=off",
+        "rl.optimizer.impl=fused",
+        "rl.optimizer.bnb_min_8bit_size=4096"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl",
+        "TASK_RECORD_TRAINING_INPUTS": "1",
+        "TASK_SUBSTANTIVE_STEPS": "87,174"
+      }
+    },
+    {
+      "name": "eightbit_seed43",
+      "argv": [
+        "torchrun",
+        "--standalone",
+        "--nproc-per-node=1",
+        "-m",
+        "tools.quantized_optimizers.task_development",
+        "--config",
+        "cosmos_framework/posttrain/configs/sft_optimizer_full_exposure.py",
+        "--",
+        "job.name=eightbit_seed43",
+        "rl.seed=43",
+        "rl.optimizer.name=adamw_bnb_8bit",
+        "model_hf.grad_ckpt=false",
+        "rl.resume=off"
+      ],
+      "env": {
+        "IMAGINAIRE_OUTPUT_ROOT": "{case}/native",
+        "TASK_DIAGNOSTIC_OUTPUT": "{case}/diagnostics",
+        "TASK_DEVELOPMENT_DATA": "{data}/dev-task.jsonl",
+        "TASK_RECORD_TRAINING_INPUTS": "1",
+        "TASK_SUBSTANTIVE_STEPS": "87,174"
+      }
+    }
+  ]
+}

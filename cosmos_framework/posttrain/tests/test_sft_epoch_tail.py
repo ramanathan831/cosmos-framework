@@ -60,3 +60,35 @@ def test_tail_is_real_two_row_batch_without_padding():
     sizes = [len(env.get_samples(4)) for _ in range(174)]
     assert sizes == ([4] * 86 + [2]) * 2
     assert env.cursor.consumed == 692
+
+
+def test_two_row_tail_update_uses_two_row_denominator_and_resume_identity():
+    import torch
+
+    from cosmos_framework.posttrain.algorithm.sft import make_objective
+    from cosmos_framework.posttrain.roles.trainer.llm import LLMTrainer
+    from cosmos_framework.posttrain.tests.helpers.sft_objective import MemoryPacker, Policy, sample_batch
+
+    torch.manual_seed(5)
+    packer = MemoryPacker()
+    batch = sample_batch(packer)
+    policy = Policy()
+    expected = copy.deepcopy(policy)
+    objective = make_objective(packer, ce_exponent=1)
+    objective.identity["training_order"] = {"epoch_boundary": "partial_v1", "order": None}
+    trainer = LLMTrainer(policy, objective, torch.optim.AdamW(policy.parameters(), lr=1e-3))
+    reference = torch.optim.AdamW(expected.parameters(), lr=1e-3)
+    for rows in (batch * 2, batch):
+        reference.zero_grad(set_to_none=True)
+        loss, metrics = objective(expected, rows)
+        loss.backward()
+        if trainer.max_grad_norm > 0:
+            torch.nn.utils.clip_grad_norm_(expected.parameters(), trainer.max_grad_norm)
+        reference.step()
+        trainer.train(rows)
+        assert trainer._denom_at_last_step == len(rows)
+        for a, b in zip(policy.parameters(), expected.parameters(), strict=True):
+            torch.testing.assert_close(a, b, rtol=0, atol=0)
+    changed = make_objective(packer, ce_exponent=1)
+    with pytest.raises(RuntimeError, match="identity"):
+        trainer._validate_objective_identity({"objective_identity": changed.identity})
