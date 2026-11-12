@@ -84,5 +84,12 @@
     "skipped_cuda_local": 1,
     "seconds": 3.68,
     "real_cuda_check": "included in diagnostic retry before training"
+  },
+  "observer_integer_sampling_pinned": {
+    "passed": 9,
+    "seconds": 32.42,
+    "job": "38453792",
+    "includes_real_cuda_large_tensor": true,
+    "overlaps_local": true
   }
 }

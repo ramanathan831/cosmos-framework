@@ -32,12 +32,18 @@ def main():
     series = {}
     for name in names:
         assert json.loads(raw[name + "/attempt.json"])["returncode"] == 0
+        native_metrics = rows(
+            raw, next(k for k in raw if k.startswith(name + "/native/") and k.endswith("/metrics.jsonl"))
+        )
+        updates = [x for x in native_metrics if "train/valid_token_count" in x]
+        assert [x["optim/optimizer_step"] for x in updates] == list(range(1, 16))
         series[name] = {
             "inputs": rows(raw, name + "/diagnostics/training_inputs.jsonl"),
             "observations": rows(raw, name + "/diagnostics/training_observations.jsonl"),
             "curve": rows(raw, name + "/diagnostics/task_curve.jsonl"),
             "task": rows(raw, name + "/diagnostics/task_rows.jsonl"),
             "audit": json.loads(raw[name + "/diagnostics/stochastic_audit.json"]),
+            "updates": updates,
         }
     a, b = (series[n] for n in names)
     assert len(a["inputs"]) == len(b["inputs"]) == 15
@@ -92,7 +98,8 @@ def main():
                 "rng_unchanged_within_training": [v["rng_before"] == v["rng_after"] for v in (x, y)],
                 "grad_norms": [v["metrics"].get("train/grad_norm") for v in (x, y)],
                 "clip_coefficients": [v["metrics"].get("train/grad_clip_coef") for v in (x, y)],
-                "training_losses": [v["metrics"].get("train/loss_avg") for v in (x, y)],
+                "training_token_nll": [v["updates"][x["step"] - 1]["train/loss_avg"] for v in (a, b)],
+                "training_equal_row_objective": [v["updates"][x["step"] - 1]["train/objective"] for v in (a, b)],
                 "full_first_gradient": None
                 if x["step"] != 1
                 else {
