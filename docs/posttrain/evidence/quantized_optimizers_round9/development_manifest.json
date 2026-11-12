@@ -1,0 +1,198 @@
+{
+  "output_sha256": "6c0b2b1af85f1a96e820c01e7f8dad9a911d186bfad288a5eddddbc7b44e8f91",
+  "rows": [
+    {
+      "id": "20230929_39_SY19_T1_192.168.0.11_1_18",
+      "group": "22964d01e64fd00aa19bda21635410da2ee6f1bd5abbc70a4dcee10b4759ab12",
+      "recording": "20230929_39",
+      "sha256": "c2573b4a05133e8519d2552540e48b7827289b6dce38d8593c76580ab0f3a1c0"
+    },
+    {
+      "id": "20230929_39_SY19_T1_192.168.0.12_2_11",
+      "group": "22964d01e64fd00aa19bda21635410da2ee6f1bd5abbc70a4dcee10b4759ab12",
+      "recording": "20230929_39",
+      "sha256": "60ccaa0cdd7b8e9f440afa4b7479bc36c61edadf428f312125a78bbdb8b29122"
+    },
+    {
+      "id": "20230728_60_SY11_T1_Camera2_0_13",
+      "group": "241d877397d0b7582f3748694d8e3ccc688048759ee63ff3ffbdd7e1fac5b86c",
+      "recording": "20230728_60",
+      "sha256": "d0b760351e2b34fca6078ab657bdc4b06f026b9d7929990ca269318ef5cf7944"
+    },
+    {
+      "id": "20230728_60_SY11_T1_Camera2_0_2",
+      "group": "241d877397d0b7582f3748694d8e3ccc688048759ee63ff3ffbdd7e1fac5b86c",
+      "recording": "20230728_60",
+      "sha256": "d0b760351e2b34fca6078ab657bdc4b06f026b9d7929990ca269318ef5cf7944"
+    },
+    {
+      "id": "20230929_12_CN38_T1_192.168.0.12_4_2",
+      "group": "278a6ad8187fdd147780d9101ab69585f5130f18544da6129ac204ca59fe2a28",
+      "recording": "20230929_12",
+      "sha256": "ebb18ce6a19f8e975d4a51502c87d171cb5c8ca77c0199cafd7d4f1ad45fdbb5"
+    },
+    {
+      "id": "20230929_12_CN38_T1_192.168.0.12_4_11",
+      "group": "278a6ad8187fdd147780d9101ab69585f5130f18544da6129ac204ca59fe2a28",
+      "recording": "20230929_12",
+      "sha256": "ebb18ce6a19f8e975d4a51502c87d171cb5c8ca77c0199cafd7d4f1ad45fdbb5"
+    },
+    {
+      "id": "20230728_37_CN38_T1_Camera4_2_12",
+      "group": "27f82f28b45c45daeed1f4d4532fa2f0d04920107b82c1f22fcd707c60c7542b",
+      "recording": "20230728_37",
+      "sha256": "1637d75540978b42d41c4261d0ad9b5e4c958d0176192939f80c34bcca3c68c0"
+    },
+    {
+      "id": "20230728_37_CN38_T1_Camera1_0_6",
+      "group": "27f82f28b45c45daeed1f4d4532fa2f0d04920107b82c1f22fcd707c60c7542b",
+      "recording": "20230728_37",
+      "sha256": "4b3d437d2b82d4595677ffa0261cca4310933ea7a4aa2c1c484f1f2a6b26556c"
+    },
+    {
+      "id": "20230922_19_CN13_T1_192.168.0.11_1_14",
+      "group": "2f51036488c0f7ef14d19f3542a7688334305d28d55982acffdd0ababf04d554",
+      "recording": "20230922_19",
+      "sha256": "a5c1c6596bdfda907dbdc1b3ebe1ad596df245cca4fcb07f6bd140ed1ed68c6e"
+    },
+    {
+      "id": "20230922_19_CN13_T1_192.168.0.17_2_16",
+      "group": "2f51036488c0f7ef14d19f3542a7688334305d28d55982acffdd0ababf04d554",
+      "recording": "20230922_19",
+      "sha256": "aa4b04e8959823b88738a50d562abaddb326771d9c5723d757f8fa7b4b2cef79"
+    },
+    {
+      "id": "20230728_6_CN3_T1_Camera1_0_14",
+      "group": "31d0ac6025b45169da2a71f17547d477fc80b55a4f4f906e749666e15039eaa8",
+      "recording": "20230728_6",
+      "sha256": "161ce2d0df59afe4b2264681fb804c0854a97a13a2cabd90bec51ca639e07801"
+    },
+    {
+      "id": "20230728_6_CN3_T1_Camera1_0_11",
+      "group": "31d0ac6025b45169da2a71f17547d477fc80b55a4f4f906e749666e15039eaa8",
+      "recording": "20230728_6",
+      "sha256": "161ce2d0df59afe4b2264681fb804c0854a97a13a2cabd90bec51ca639e07801"
+    },
+    {
+      "id": "20230922_43_SN36_T1_192.168.0.28_3_0",
+      "group": "399f707d0b158d6f42f96cdd1c48b85cde87fa1ac43bab32dc9260d30eb125ca",
+      "recording": "20230922_43",
+      "sha256": "66c8c937a6580eaf7715b8b8fdfcd3e60c186355ac66971c85100dda823538cf"
+    },
+    {
+      "id": "20230922_43_SN36_T1_192.168.0.28_3_2",
+      "group": "399f707d0b158d6f42f96cdd1c48b85cde87fa1ac43bab32dc9260d30eb125ca",
+      "recording": "20230922_43",
+      "sha256": "66c8c937a6580eaf7715b8b8fdfcd3e60c186355ac66971c85100dda823538cf"
+    },
+    {
+      "id": "20230707_18_CY23_T1_Camera2_1_8",
+      "group": "42803681d649be5d5b86be2368c8aabf71ae69d7fd1faf0532c7ce925e210e9d",
+      "recording": "20230707_18",
+      "sha256": "8ca3bd0bf8a0c0d00944f01fc150f166bb6029f786f25a15af5458909bad55ff"
+    },
+    {
+      "id": "20230707_18_CY23_T1_Camera1_0_19",
+      "group": "42803681d649be5d5b86be2368c8aabf71ae69d7fd1faf0532c7ce925e210e9d",
+      "recording": "20230707_18",
+      "sha256": "7f8ef8dbe28e5f5a966f7bbc706aba7c59530bf023bddf9f9243b4a39720d6d5"
+    },
+    {
+      "id": "20230929_52_SN22_T1_192.168.0.11_1_0",
+      "group": "4e63457d4cf2008c69bc201146b9e672f99b2bdbc47d08b7d9ea760df0dac1b8",
+      "recording": "20230929_52",
+      "sha256": "ace4943e092055356804f1cf1353677121d1cf8d8f3859a17ccdb2e9b0651f6f"
+    },
+    {
+      "id": "20230929_52_SN22_T1_192.168.0.12_3_3",
+      "group": "4e63457d4cf2008c69bc201146b9e672f99b2bdbc47d08b7d9ea760df0dac1b8",
+      "recording": "20230929_52",
+      "sha256": "3ab97045422b3cc0febc765688d350f163106bac6f5fbd3968981e1a9cc93a04"
+    },
+    {
+      "id": "20230929_13_SN25_T1_192.168.0.12_2_5",
+      "group": "5e744e68e77b548cf1339048d66549e9b9cc2e9a57973941f09832cbb70f3702",
+      "recording": "20230929_13",
+      "sha256": "787cadd7bbde70ebad1e2b31ba53345b64b58bb3f0d5d07d9f7c263380e77281"
+    },
+    {
+      "id": "20230929_13_SN25_T1_192.168.0.28_3_7",
+      "group": "5e744e68e77b548cf1339048d66549e9b9cc2e9a57973941f09832cbb70f3702",
+      "recording": "20230929_13",
+      "sha256": "a2b7fe2827086817c7ea5f82e1af8baf1748c51f0ff9c953e3ec471ddeb915a7"
+    },
+    {
+      "id": "20230929_48_SN35_T1_192.168.0.12_4_9",
+      "group": "6737a28337457c81f34b4400674bd6c2e7498b00cc9c3300a59dada1e6873716",
+      "recording": "20230929_48",
+      "sha256": "bbd51d3888a330e638ca9a8536efae33537cc48c9a95d30fe511a08e1a1bbffb"
+    },
+    {
+      "id": "20230929_48_SN35_T1_192.168.0.14_1_16",
+      "group": "6737a28337457c81f34b4400674bd6c2e7498b00cc9c3300a59dada1e6873716",
+      "recording": "20230929_48",
+      "sha256": "0ec36dd879362b27c99d6da6a84487e5a336c6428763a78322bd492f296ae750"
+    },
+    {
+      "id": "20230728_27_CN34_T1_Camera4_2_6",
+      "group": "ac0518ab15c8c92ef1eaf7dece582f3f6748500de0332c10409ef047262c1570",
+      "recording": "20230728_27",
+      "sha256": "7277291bbb1bbe43935f99d7c1a692b4b7e962dd6a2bbd60bf9f21c927d0ac56"
+    },
+    {
+      "id": "20230728_27_CN34_T1_Camera1_3_6",
+      "group": "ac0518ab15c8c92ef1eaf7dece582f3f6748500de0332c10409ef047262c1570",
+      "recording": "20230728_27",
+      "sha256": "f45785a23654c2537fe485ac06e3a71be28a71d4fcff0da57ed778a254f2b251"
+    },
+    {
+      "id": "20230728_58_SY15_T1_Camera2_0_11",
+      "group": "ca76a47dbfce0a4294eefe628ed5025e49440ed1034d7b169d97307d6c520fa4",
+      "recording": "20230728_58",
+      "sha256": "1646f2c3569d95c19b43f33e7394de336aff32886cb147dd3bf29648e6a581ae"
+    },
+    {
+      "id": "20230728_58_SY15_T1_Camera3_1_15",
+      "group": "ca76a47dbfce0a4294eefe628ed5025e49440ed1034d7b169d97307d6c520fa4",
+      "recording": "20230728_58",
+      "sha256": "da1aca52cf867ed99c8a62f0005f0821f549182a7c5edd2a7765d863d6940653"
+    },
+    {
+      "id": "20230922_23_CN1_T1_192.168.0.17_2_16",
+      "group": "cf86015cfbacf8c24e68fc573a3fe252326e14c30574afc45a03d1102dd97a40",
+      "recording": "20230922_23",
+      "sha256": "c84ea2379f2e9b45fd47331c771e138cf82e8d46beb3069b4cd28eff19256f2b"
+    },
+    {
+      "id": "20230922_23_CN1_T1_192.168.0.17_2_8",
+      "group": "cf86015cfbacf8c24e68fc573a3fe252326e14c30574afc45a03d1102dd97a40",
+      "recording": "20230922_23",
+      "sha256": "c84ea2379f2e9b45fd47331c771e138cf82e8d46beb3069b4cd28eff19256f2b"
+    },
+    {
+      "id": "20230929_69_SN33_T1_192.168.0.12_4_12",
+      "group": "e22f919712bbd0753a9090085c19bd7fe92e3649db70edbc77ee8fc7e966c9bf",
+      "recording": "20230929_69",
+      "sha256": "78e301415f1b9afc0e5662a8dca9e44c1953233a76db6048a847c764962567a6"
+    },
+    {
+      "id": "20230929_69_SN33_T1_192.168.0.13_4_0",
+      "group": "e22f919712bbd0753a9090085c19bd7fe92e3649db70edbc77ee8fc7e966c9bf",
+      "recording": "20230929_69",
+      "sha256": "b225ff9a2593b0b4063e8653e877754398da91bb2a536fdce3eae383f4522c20"
+    },
+    {
+      "id": "20230714_44_CY8_T1_Camera2_5_14",
+      "group": "e6f36f57c750f8ba2c663399e291c9bddb28e0cff983cf28ad0215fe1329dbee",
+      "recording": "20230714_44",
+      "sha256": "e89a8f759ff8a8e5c0882763bd772891ff536cb0e3584ae5b0cdc1f4ed365324"
+    },
+    {
+      "id": "20230714_44_CY8_T1_Camera1_0_10",
+      "group": "e6f36f57c750f8ba2c663399e291c9bddb28e0cff983cf28ad0215fe1329dbee",
+      "recording": "20230714_44",
+      "sha256": "62f6fef7e4d8a2e647e776d8c7bbbffac84eb63cb4652e14b3c2a148af901377"
+    }
+  ],
+  "purpose": "Development only, two metadata-hash selected tasks per approved development recording group"
+}

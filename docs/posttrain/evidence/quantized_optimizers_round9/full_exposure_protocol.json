@@ -56,11 +56,12 @@
   "recovery": "seed17 both arms fresh-process from87 to174; compare every next input, observed updates88/89/174 and full final components including scheduler/RNG/cursor/validation",
   "diagnostics": "native batch4 substantive aggregate and32development choice rows; descriptive token attribution at87/174; no best-checkpoint selection",
   "promotion": {
-    "nll": "paired seed log-ratio two-sided95 Student t upper<=1.01 at174",
-    "accuracy": "paired seed degradation two-sided95 Student t upper<=.01 at174",
+    "nll": "Existing paired-seed arithmetic-ratio Student t95 and crossed seed/recording bootstrap10000draws seed2026: both upper<=1.01",
+    "accuracy": "Existing paired-seed t95 and crossed seed/recording bootstrap: both degradation upper<=.01",
     "substantive": "every8bit/fused native text-NLL ratio<=1.01",
-    "adaptation": "both arms mean task NLL lower and mean accuracy higher than frozen step0"
+    "adaptation": "Both mean task NLL improve over step0; both recording-bootstrap accuracy-adaptation lower bounds>0"
   },
   "conditional_correction": "At most one single-factor correction if mechanism supported;>=2% mean taskNLL improvement/no seedaccuracydrop/eachtext ratio<=1.01 versus corresponding same-horizon controls. Fused first.",
-  "final": "Only after development passes; separate protocol frozen before historically exposed final pool scoring; preserve original target and failed endpoints"
+  "final": "Only after development passes; separate protocol frozen before historically exposed final pool scoring; preserve original target and failed endpoints",
+  "prospective_clarification": "Before any full-exposure training/submission/outcomes: use existing outcome_statistics.paired_quality and the fixed16-family development manifest rather than inventing a log-ratio procedure."
 }

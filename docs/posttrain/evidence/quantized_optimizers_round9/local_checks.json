@@ -28,6 +28,21 @@
       "command": "epoch_tail corrected",
       "passed": 14,
       "seconds": 3.48
+    },
+    {
+      "command": "legacy cursor/offset + partial/interleave + training observer",
+      "passed": 67,
+      "seconds": 4.81
+    },
+    {
+      "command": "native full-exposure resolved configuration",
+      "passed": true
+    },
+    {
+      "command": "real transferred-payload collation",
+      "passed": true,
+      "seconds": 2.9036350469104946,
+      "details": "First transfer used unresolved fsw symlink target keys and failed before loading; corrected with remote canonical fs11 paths. Original CPU pinned job remains admitted."
     }
   ],
   "overlapping_counts": true,
