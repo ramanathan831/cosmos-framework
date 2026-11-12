@@ -1,0 +1,10 @@
+{
+  "observed_utc": "2026-11-12T22:09:18.640251+00:00",
+  "jobs": [
+    "38450035",
+    "38450382"
+  ],
+  "allocated_gpu_seconds_at_observation": 0,
+  "reason": "Pending reason changed from Priority to ReqNodeNotAvail for1051; read-only node inspection shows daemon restarted22:02:39UTC and nodeMIXED/responding, all8GPUs occupied by another job.0052 also responding after restart but occupied. No route/QoS/placement change, no experiment interruption, no new submission.",
+  "not_an_empirical_failure": true
+}
