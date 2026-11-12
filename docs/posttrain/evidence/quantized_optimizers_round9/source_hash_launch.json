@@ -1,0 +1,29 @@
+{
+  "name": "source-hash",
+  "source_commit": "0cc7ffc2f1bf593ca753b6621ecf718682292d15",
+  "source_archive_sha256": "9142b4e7dc7dada47bc039152bda248bbaee43cfab60a0da9beae081ad3a309c",
+  "environment": {
+    "SOURCE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850",
+    "ASSETS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z",
+    "CONTAINER_IMAGE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-automl-focused-20261012/image-conversion/cosmos-framework-focused.sqsh",
+    "SOURCE_ARCHIVE": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r9-20261112/source-hash.tgz",
+    "RESULTS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r9-20261112/source-hash",
+    "REFERENCE_CORPUS": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-outcomes-20261104T1850/prepare-evaluation-v1/prepared-corpus"
+  },
+  "argv": [
+    "sbatch",
+    "--parsable",
+    "--export=ALL",
+    "--time=20",
+    "--nodelist=cpu-00008",
+    "--partition=cpu_short",
+    "--output=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r9-20261112/source-hash-%j.log",
+    "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r9-20261112/source_hash.sbatch"
+  ],
+  "wall_seconds": 1200,
+  "grace_seconds": 120,
+  "root": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-r9-20261112",
+  "protocol_sha256": "a9522d8fcd3088fc6d0698476a0418b70c147a3c51527f5879f5dde7542f5213",
+  "job": "38451358",
+  "utc": "2026-11-12T21:09:27.363615+00:00"
+}
