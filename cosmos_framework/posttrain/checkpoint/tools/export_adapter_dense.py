@@ -13,6 +13,7 @@ import argparse
 import json
 import os
 from collections.abc import Sequence
+from contextlib import suppress
 
 
 def parser() -> argparse.ArgumentParser:
@@ -37,6 +38,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     from cosmos_framework.posttrain.utils.adapter_identity import adapter_processor_identity
     from cosmos_framework.posttrain.utils.determinism import enable_determinism
     from cosmos_framework.posttrain.utils.dist import destroy_process_group_if_initialized, init_local_process_group
+    from cosmos_framework.posttrain.utils.qlora_metrics import record_qlora_phase
     from cosmos_framework.utils import misc
     from cosmos_framework.utils.config import load_config
 
@@ -60,17 +62,26 @@ def main(argv: Sequence[str] | None = None) -> None:
         codec.bind_processor_identity(
             adapter_processor_identity(packer, source_path=source, source_identity=codec.identity["base"])
         )
-        result = export_dense_adapter(
-            model.net,
-            checkpoint=args.checkpoint,
-            source=source,
-            output=args.output,
-            output_dtype=args.output_dtype,
-            exporter_build={
-                "code_revision": os.environ.get("COSMOS_TRAINING_CODE_REVISION", ""),
-                "wheel_sha256": os.environ.get("COSMOS_TRAINING_WHEEL_SHA256", ""),
-            },
-        )
+        record_qlora_phase("dense_export_start", reset_peak=True)
+        try:
+            result = export_dense_adapter(
+                model.net,
+                checkpoint=args.checkpoint,
+                source=source,
+                output=args.output,
+                output_dtype=args.output_dtype,
+                exporter_build={
+                    "code_revision": os.environ.get("COSMOS_TRAINING_CODE_REVISION", ""),
+                    "wheel_sha256": os.environ.get("COSMOS_TRAINING_WHEEL_SHA256", ""),
+                },
+            )
+        except BaseException:
+            # A diagnostic write or CUDA synchronization failure must not hide
+            # the original export failure (including interruption).
+            with suppress(Exception):
+                record_qlora_phase("dense_export_failed")
+            raise
+        record_qlora_phase("dense_export_complete")
         print(
             json.dumps(
                 {

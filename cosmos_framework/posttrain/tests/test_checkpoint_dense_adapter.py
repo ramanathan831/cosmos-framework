@@ -7,6 +7,7 @@ from __future__ import annotations
 import copy
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 import torch
@@ -22,6 +23,87 @@ from cosmos_framework.utils.generator.lora import LoraInjectedLinear
 
 pytestmark = [pytest.mark.L0, pytest.mark.CPU]
 BUILD = {"code_revision": "a" * 40, "wheel_sha256": "b" * 64}
+
+
+@pytest.mark.parametrize("failure", [None, "serialization", "failure_diagnostic"])
+def test_cli_records_export_interval_and_preserves_primary_failure(tmp_path, monkeypatch, failure):
+    from safetensors import torch as safetensors_torch
+
+    from cosmos_framework.posttrain.checkpoint.tools import export_adapter_dense as cli
+    from cosmos_framework.posttrain.config import build as model_build
+    from cosmos_framework.posttrain.data.packer import sft as packer_build
+    from cosmos_framework.posttrain.entrypoints import sft
+    from cosmos_framework.posttrain.utils import adapter_identity, determinism, dist, qlora_metrics
+    from cosmos_framework.utils import config as config_utils
+
+    net, source, checkpoint = fixture(tmp_path)
+    output, journal = tmp_path / "dense", tmp_path / "memory.jsonl"
+    rl = SimpleNamespace(seed=19, max_length=32, processor_kwargs={}, mask_think_opener=False)
+    monkeypatch.setattr(config_utils, "load_config", lambda *_: object())
+    monkeypatch.setattr(sft, "validate_config", lambda _: rl)
+    monkeypatch.setattr(sft, "sft_policy_source", lambda _: (str(source), False))
+    monkeypatch.setattr(packer_build, "build_sft_packer", lambda *_, **__: object())
+    monkeypatch.setattr(model_build, "build_backbone", lambda _: SimpleNamespace(net=net))
+    monkeypatch.setattr(
+        adapter_identity,
+        "adapter_processor_identity",
+        lambda *_, **__: net._cosmos_adapter_checkpoint_codec.identity["processor_contract"],
+    )
+    monkeypatch.setattr(determinism, "enable_determinism", lambda **_: None)
+    monkeypatch.setattr(dist, "init_local_process_group", lambda: None)
+    events = []
+    monkeypatch.setattr(dist, "destroy_process_group_if_initialized", lambda: events.append("cleanup"))
+    for name, value in {
+        "WORLD_SIZE": "1",
+        "RANK": "0",
+        "COSMOS_TRAINING_CODE_REVISION": BUILD["code_revision"],
+        "COSMOS_TRAINING_WHEEL_SHA256": BUILD["wheel_sha256"],
+        "COSMOS_QLORA_METRICS_FILE": str(journal),
+    }.items():
+        monkeypatch.setenv(name, value)
+    original_record = qlora_metrics.record_qlora_phase
+
+    def record(phase, *, reset_peak=False):
+        events.append(phase)
+        committed = (output / dense.DENSE_EXPORT_MANIFEST).exists()
+        assert committed == (phase == "dense_export_complete")
+        if phase == "dense_export_failed" and failure == "failure_diagnostic":
+            raise OSError("diagnostic destination unavailable")
+        return original_record(phase, reset_peak=reset_peak)
+
+    monkeypatch.setattr(qlora_metrics, "record_qlora_phase", record)
+    primary = ValueError("injected shard serialization failure")
+
+    def failed_save(*_, **__):
+        raise primary
+
+    if failure:
+        monkeypatch.setattr(safetensors_torch, "save_file", failed_save)
+    argv = [
+        "--config",
+        "unused",
+        "--checkpoint",
+        str(checkpoint),
+        "--output",
+        str(output),
+        "--output-dtype",
+        "bfloat16",
+    ]
+    if failure:
+        with pytest.raises(ValueError) as error:
+            cli.main(argv)
+        assert error.value is primary
+        assert not (output / dense.DENSE_EXPORT_MANIFEST).exists()
+    else:
+        cli.main(argv)
+        assert dense.read_dense_export(output)["complete"] is True
+    end = "dense_export_failed" if failure else "dense_export_complete"
+    assert events == ["dense_export_start", end, "cleanup"]
+    rows = [json.loads(line) for line in journal.read_text().splitlines()]
+    assert [row["phase"] for row in rows] == (
+        ["dense_export_start"] if failure == "failure_diagnostic" else ["dense_export_start", end]
+    )
+    assert [row["reset_peak_after_record"] for row in rows] == [True] + [False] * (len(rows) - 1)
 
 
 class Tiny(nn.Module):
