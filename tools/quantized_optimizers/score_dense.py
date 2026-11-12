@@ -513,6 +513,7 @@ def main():
     parser.add_argument("--expected-substantive-nll", type=float)
     parser.add_argument("--seed", type=int, required=True)
     parser.add_argument("--verification-workers", type=int, choices=(1, 2, 3, 4), default=4)
+    parser.add_argument("--source-hash-workers", type=int, choices=(1, 2, 3, 4), default=1)
     parser.add_argument("--checkpoint-read-mode", choices=("serial", "overlap"), default="overlap")
     args = parser.parse_args()
     validate_checkpoint_digest(args.checkpoint_sha256)
@@ -568,8 +569,12 @@ def main():
             mask_think_opener=rl.mask_think_opener,
         )
         phase_started = time.monotonic()
-        dataset = JSONLSFTDataset(str(args.data))
-        substantive = JSONLSFTDataset(str(args.substantive_data)) if args.substantive_data else None
+        dataset = JSONLSFTDataset(str(args.data), media_hash_workers=args.source_hash_workers)
+        substantive = (
+            JSONLSFTDataset(str(args.substantive_data), media_hash_workers=args.source_hash_workers)
+            if args.substantive_data
+            else None
+        )
         phases["dataset_identity"] = time.monotonic() - phase_started
         phase_started = time.monotonic()
         corpus = attach_prepared_corpus(
@@ -674,6 +679,7 @@ def main():
             "elapsed_seconds": time.monotonic() - started,
             "phase_seconds": phases,
             "source_verification_workers": corpus.verification_workers,
+            "source_hash_workers": args.source_hash_workers,
             "checkpoint_read_mode": args.checkpoint_read_mode,
             "expected_checkpoint_sha256": args.checkpoint_sha256,
             "versions": {name: importlib.metadata.version(name) for name in ("torch", "transformers")},

@@ -49,7 +49,10 @@ def objective(packer, **kwargs):
     from cosmos_framework.posttrain.data.datasets.sft import JSONLSFTDataset
     from cosmos_framework.posttrain.data.packer.prepared_sft import PreparedSFTCorpus
 
-    captured["task_dataset"] = JSONLSFTDataset(os.environ["TASK_DEVELOPMENT_DATA"])
+    captured["task_dataset"] = JSONLSFTDataset(
+        os.environ["TASK_DEVELOPMENT_DATA"],
+        media_hash_workers=int(os.environ.get("TASK_SOURCE_HASH_WORKERS", "1")),
+    )
     # The native builder already bound and verified train/validation sources.
     # Bind only the added task source, retaining all verified media stamps.
     previous = packer.sft_process_sample.__self__

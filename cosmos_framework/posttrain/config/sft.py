@@ -59,6 +59,7 @@ class SFTDatasetConfig:
     interleave_window: int = 0
     # "partial" ends each training batch at the epoch boundary without padding.
     epoch_boundary: str = "wrap"
+    media_hash_workers: int = 1
     credentials: str = "credentials/<credential>.secret"
 
     def __post_init__(self) -> None:
@@ -70,6 +71,10 @@ class SFTDatasetConfig:
             raise TypeError("SFT data.shuffle must be bool")
         if self.epoch_boundary not in ("wrap", "partial"):
             raise ValueError("SFT data.epoch_boundary must be 'wrap' or 'partial'")
+        if type(self.media_hash_workers) is not int or not 1 <= self.media_hash_workers <= 4:
+            raise ValueError("SFT data.media_hash_workers must be an integer in [1, 4]")
+        if self.factory and self.media_hash_workers != 1:
+            raise ValueError("SFT media_hash_workers applies to JSONL sources, not dataset factories")
         if not isinstance(self.interleave_id_prefix, str):
             raise TypeError("SFT data.interleave_id_prefix must be a string")
         if type(self.interleave_window) is not int or self.interleave_window < 0:

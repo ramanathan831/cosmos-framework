@@ -55,5 +55,12 @@
   ],
   "overlapping_counts": true,
   "local_cuda_used": false,
-  "aggregate_caps": null
+  "aggregate_caps": null,
+  "parallel_media_hash": {
+    "tests": 47,
+    "passed": 47,
+    "seconds": 1.43,
+    "scope": "parallel identity, native dataset environment/object-store and scoring checkpoint reader; overlapping coverage",
+    "ruff": "passed"
+  }
 }
