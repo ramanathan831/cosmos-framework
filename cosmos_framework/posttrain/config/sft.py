@@ -57,6 +57,8 @@ class SFTDatasetConfig:
     # Prefix matches form one group, other IDs the second. Exposure is unchanged.
     interleave_id_prefix: str = ""
     interleave_window: int = 0
+    # "partial" ends each training batch at the epoch boundary without padding.
+    epoch_boundary: str = "wrap"
     credentials: str = "credentials/<credential>.secret"
 
     def __post_init__(self) -> None:
@@ -66,6 +68,8 @@ class SFTDatasetConfig:
             raise ValueError("SFT factory_kwargs requires factory")
         if not isinstance(self.shuffle, bool):
             raise TypeError("SFT data.shuffle must be bool")
+        if self.epoch_boundary not in ("wrap", "partial"):
+            raise ValueError("SFT data.epoch_boundary must be 'wrap' or 'partial'")
         if not isinstance(self.interleave_id_prefix, str):
             raise TypeError("SFT data.interleave_id_prefix must be a string")
         if type(self.interleave_window) is not int or self.interleave_window < 0:
@@ -194,6 +198,8 @@ class SFTConfig(HFRunConfig):
 
     def __post_init__(self) -> None:
         super().__post_init__()
+        if self.data.epoch_boundary == "partial" and self.grad_accum != 1:
+            raise ValueError("SFT partial epoch batches currently require grad_accum=1")
         for name in ("micro_batch_size", "max_length"):
             value = getattr(self, name)
             minimum = 2 if name == "max_length" else 1

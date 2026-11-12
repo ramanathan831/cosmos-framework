@@ -90,6 +90,16 @@ def build(*args, **kwargs):
 
     trainer.save = save
     timed(trainer.opt, "state_dict", "optimizer_snapshot")
+    if os.environ.get("TASK_OBSERVE_TRAINING_ORDER") == "1":
+        from tools.quantized_optimizers.training_order_observer import install as observe_order
+
+        observe_order(
+            trainer,
+            captured["packer"],
+            root,
+            reference=os.environ.get("TASK_ORDER_REFERENCE"),
+            write_full=os.environ.get("TASK_ORDER_WRITE_FULL") == "1",
+        )
     return trainer
 
 
@@ -147,7 +157,10 @@ def step(*args, **kwargs):
             "elapsed_seconds": time.monotonic() - started,
         },
     )
-    if os.environ.get("TASK_OBSERVE_LATE_SUBSTANTIVE") == "1" and 10 <= result["optim/optimizer_step"] <= 15:
+    substantive_steps = {int(value) for value in os.environ.get("TASK_SUBSTANTIVE_STEPS", "").split(",") if value}
+    if result["optim/optimizer_step"] in substantive_steps or (
+        os.environ.get("TASK_OBSERVE_LATE_SUBSTANTIVE") == "1" and 10 <= result["optim/optimizer_step"] <= 15
+    ):
         from cosmos_framework.posttrain.data.datasets.sft import JSONLSFTDataset
         from tools.quantized_optimizers.late_observer import observe
 
@@ -159,7 +172,10 @@ def step(*args, **kwargs):
         report = observe(trainer.model, captured["packer"], trainer.objective, captured["substantive_dataset"])
         record("late_substantive.jsonl", {"step": result["optim/optimizer_step"], **report})
     recovery_from = int(os.environ.get("TASK_RECOVERY_OBSERVER_FROM", "0"))
-    if recovery_from and result["optim/optimizer_step"] >= recovery_from:
+    recovery_steps = {int(value) for value in os.environ.get("TASK_RECOVERY_OBSERVER_STEPS", "").split(",") if value}
+    if result["optim/optimizer_step"] in recovery_steps or (
+        recovery_from and result["optim/optimizer_step"] >= recovery_from
+    ):
         import torch
 
         from cosmos_framework.posttrain.checkpoint.rng import collect_rng_state
