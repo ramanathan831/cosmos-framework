@@ -222,6 +222,10 @@ def main():
             )
         )
     quality = paired_quality(paired["fused"], paired["eightbit"], frozen)
+    # This study supplies matched-update rows, not equal-time eligible states.
+    # Reuse the frozen arithmetic, but do not expose its generic budget label
+    # as an equal-resource experiment that was never performed.
+    quality["guards"]["positive_matched_update_nll_gain"] = quality["guards"].pop("equal_budget_nll_gain")
     nll_ci = quality["nll_ratio"]["ci95"]
     acc_ci = quality["accuracy_drop"]["ci95"]
     adaptation = {

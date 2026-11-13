@@ -1,0 +1,10 @@
+{
+  "recorded_utc": "2026-11-13T00:07:17.993328+00:00",
+  "all_ten_submissions_terminal": true,
+  "owned_active_jobs": [],
+  "check": "squeue -h queried all10recordedjob IDs and returned no rows; terminal_accounting.txt records root and step outcomes.",
+  "dependent_work_complete": true,
+  "conditional_final": "Not admitted because the prospective full-exposure NLL guard fails; no original-protocol candidate was selected.",
+  "aggregate_caps": null,
+  "publication": "none"
+}

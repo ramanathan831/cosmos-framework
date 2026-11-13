@@ -1,0 +1,75 @@
+{
+  "starting_commit": "2c2206a3a8b1c01f984b6bd5b49032e4884d3de3",
+  "implementation_and_analysis_parent": "de132bacac36bd79366f07f672022704821eba79",
+  "runs": {
+    "permutation_retry_launch.json": {
+      "job": "38453792",
+      "source_commit": "29aaf9ddd24beab760831dd65189892d183f9115",
+      "source_archive_sha256": "cf6f8db47c912799bf771f0f50636728cf251a50134104e6560971e76e45fabd",
+      "spec_sha256": "45c354a10b640b58f34c7cee6e373d803716715dcc0fd11645280a4541a5f8e6",
+      "receipt_sha256": "a4f6406b8c468ca4d941d1f78cd8f1a9546eb1e1521f0169bfb7c580658e1586"
+    },
+    "full_seed17_retry2_launch.json": {
+      "job": "38453798",
+      "source_commit": "8858db8a8799888d8874922144ea51ecb409d82b",
+      "source_archive_sha256": "36e8a31ee699e303dfb393acbdea0794fa586cd3b86b2fd89f1d0d0c5a32d422",
+      "spec_sha256": "66de0b86c53dbc00325076a9f5cfaef2e694961064b8f8fc2bcfd17eebafdf09",
+      "receipt_sha256": "17de57c77ed804d2cb25c300289c65eb0f12e751afe7c65d2c8272bbda95b3fb"
+    },
+    "full_seed29_launch.json": {
+      "job": "38453861",
+      "source_commit": "8858db8a8799888d8874922144ea51ecb409d82b",
+      "source_archive_sha256": "36e8a31ee699e303dfb393acbdea0794fa586cd3b86b2fd89f1d0d0c5a32d422",
+      "spec_sha256": "ddeb408b071258f310082c836a41bee23fd46414f58b4c6e13bdac1dc442bbd7",
+      "receipt_sha256": "cc44e17e9c8c153cee0d04884013da1fe326476d5a0ee95714387a14b0f9231c"
+    },
+    "full_seed43_launch.json": {
+      "job": "38453881",
+      "source_commit": "8858db8a8799888d8874922144ea51ecb409d82b",
+      "source_archive_sha256": "36e8a31ee699e303dfb393acbdea0794fa586cd3b86b2fd89f1d0d0c5a32d422",
+      "spec_sha256": "d9c30f3f9f3877d49a603b887ff1ff77140e69e287bf2529378d6e1552772988",
+      "receipt_sha256": "895c80bc12ad248802702a4ae6105ebab2359a30a49ae90e4ae2ad910f64e135"
+    },
+    "source_hash_launch.json": {
+      "job": "38451358",
+      "source_commit": "0cc7ffc2f1bf593ca753b6621ecf718682292d15",
+      "source_archive_sha256": "9142b4e7dc7dada47bc039152bda248bbaee43cfab60a0da9beae081ad3a309c",
+      "receipt_sha256": "7ff56bbbb5b07e0a2442dd83702b9ee10abad9526003647d5e366ea73bd0d447"
+    },
+    "native_regressions_launch.json": {
+      "job": "38453341",
+      "source_commit": "0cc7ffc2f1bf593ca753b6621ecf718682292d15",
+      "source_archive_sha256": "9142b4e7dc7dada47bc039152bda248bbaee43cfab60a0da9beae081ad3a309c",
+      "receipt_sha256": "cb81559e2ff64de41ac70fd5be78b8c9974bdddeee6927111140fadc5d82fd38"
+    },
+    "preflight_launch.json": {
+      "job": "38449687",
+      "source_commit": "3f7d5aba92568d6ef9a76fb6e61057563700c9cc",
+      "source_archive_sha256": "87525fc1c26be3a9de88c963bec8a58047b92e17445b2157fcec44565bb601e5",
+      "receipt_sha256": "7487d698a127814f2e43d02e3aba9e1d8d2cec33ee667ff6d622536a790d9dd1"
+    }
+  },
+  "current_file_sha256": {
+    "cosmos_framework/posttrain/config/sft.py": "1cdb99adebddaeaaa0f9368b1b4c5ce2102c5507701ecc50ce6ea36d86db928c",
+    "cosmos_framework/posttrain/roles/env/cursor.py": "776ff8a60df50241f820fd9d90b314d7d5fa1c3fca7aa93c44e1554ae51febe0",
+    "cosmos_framework/posttrain/roles/env/sft.py": "d39f7b06d16710623d2ee5c7d9681ee5dc7bbe8c5e0cf3d0bf63e53e1ec86d41",
+    "cosmos_framework/posttrain/data/datasets/sft.py": "83dee3ac5352c74ab1f11fb3662d345c05b00cf003580067ee2cf2e227779c92",
+    "cosmos_framework/posttrain/configs/sft_optimizer_full_exposure.py": "c387cdbafdd8bfdd65181416c06b94eed2ab7f01d8d58fcbef128c55e9a82e26",
+    "tools/quantized_optimizers/task_development.py": "b16c23a57b964da8ae27b4bb55da475cd2f9f27327644b68ebae2725113cba29",
+    "tools/quantized_optimizers/training_order_observer.py": "5d8d6ea2acd776e5b6fb0fb1e3320b4a130b885db66464248015833f27cbdff3",
+    "tools/quantized_optimizers/score_dense.py": "800af1b27dcd70c63cc369984fa1d90cb821ff648bcfaa46ad0a50b9aaf83c71",
+    "tools/quantized_optimizers/deployment.sbatch": "7454235f87f610242250cb3226407d0fdba4adbc81849d9e8b18ae75c420eb36",
+    "cosmos_framework/utils/quantized_optimizer.py": "914a645b5226ec426d6317a3e5b1dd0149f91f66b430978beb3a321e69a885a3"
+  },
+  "unchanged_optimizer_sha256": "914a645b5226ec426d6317a3e5b1dd0149f91f66b430978beb3a321e69a885a3",
+  "unchanged_original_final_protocol_sha256": "aff3b3d9e32418a784f894de24e645bf72692fb18d2e5f9603c0a3d0d5faad65",
+  "versions": {
+    "torch": "2.11.0+cu128",
+    "transformers": "5.8.1",
+    "bitsandbytes": "0.49.2"
+  },
+  "model_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+  "prepared_manifest_sha256": "ea2e64893ab3d7da0f4c8be33001ae99c96dfd2c54fe293449c29255cd1f2d70",
+  "training_manifest_sha256": "49111e793c6396c360f4d804359ea42a8724ee1a1abc3f92a707e3d6032d4917",
+  "scope": "All GPU study arms use the same pinned source archive per study. Full exposure predates optional parallel hashing and uses serial hashing in both arms. Current native runtime files are unchanged since their indicated qualification; later commits add analysis/evidence/docs. Raw runtime receipts bind actual node, GPU, CPU affinity, archive and dependency versions. No QLoRA integration source or optimizer transaction changes."
+}

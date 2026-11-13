@@ -1,0 +1,35 @@
+JobID|JobName|State|ElapsedRaw|Start|End|NodeList|AllocTRES|TimelimitRaw
+38449687|optimizer-r9-input-preflight|COMPLETED|287|2026-11-12T20:42:14|2026-11-12T20:47:01|cpu-00008|cpu=8,mem=16G,node=1|15
+38449687.batch|batch|COMPLETED|287|2026-11-12T20:42:14|2026-11-12T20:47:01|cpu-00008|cpu=8,mem=16G,node=1|
+38449687.extern|extern|COMPLETED|287|2026-11-12T20:42:14|2026-11-12T20:47:01|cpu-00008|cpu=8,mem=16G,node=1|
+38449687.0|timeout|COMPLETED|291|2026-11-12T20:42:20|2026-11-12T20:47:11|cpu-00008|cpu=8,mem=16G,node=1|
+38450035|optimizer-r9-permutation|FAILED|195|2026-11-12T22:19:54|2026-11-12T22:23:09|batch-block4-0045|billing=1,cpu=8,gres/gpu=1,mem=128G,node=1|45
+38450035.batch|batch|FAILED|195|2026-11-12T22:19:54|2026-11-12T22:23:09|batch-block4-0045|cpu=8,gres/gpu=1,mem=128G,node=1|
+38450035.extern|extern|COMPLETED|202|2026-11-12T22:19:54|2026-11-12T22:23:16|batch-block4-0045|billing=1,cpu=8,gres/gpu=1,mem=128G,node=1|
+38450035.0|bash|FAILED|192|2026-11-12T22:20:01|2026-11-12T22:23:13|batch-block4-0045|cpu=8,gres/gpu=1,mem=128G,node=1|
+38450350|optimizer-r9-full-seed17|CANCELLED by 41852|0|None|2026-11-12T20:30:46|None assigned||60
+38450382|optimizer-r9-full-seed17|CANCELLED|0|None|2026-11-12T22:23:23|None assigned||60
+38451358|optimizer-r9-source-hash|COMPLETED|537|2026-11-12T21:09:32|2026-11-12T21:18:29|cpu-00008|cpu=8,mem=16G,node=1|20
+38451358.batch|batch|COMPLETED|537|2026-11-12T21:09:32|2026-11-12T21:18:29|cpu-00008|cpu=8,mem=16G,node=1|
+38451358.extern|extern|COMPLETED|537|2026-11-12T21:09:32|2026-11-12T21:18:29|cpu-00008|cpu=8,mem=16G,node=1|
+38451358.0|timeout|COMPLETED|532|2026-11-12T21:09:40|2026-11-12T21:18:32|cpu-00008|cpu=8,mem=16G,node=1|
+38453341|optimizer-r9-regressions|COMPLETED|305|2026-11-12T22:17:44|2026-11-12T22:22:49|cpu-00008|cpu=8,mem=16G,node=1|15
+38453341.batch|batch|COMPLETED|305|2026-11-12T22:17:44|2026-11-12T22:22:49|cpu-00008|cpu=8,mem=16G,node=1|
+38453341.extern|extern|COMPLETED|305|2026-11-12T22:17:44|2026-11-12T22:22:49|cpu-00008|cpu=8,mem=16G,node=1|
+38453341.0|timeout|COMPLETED|300|2026-11-12T22:17:52|2026-11-12T22:22:52|cpu-00008|cpu=8,mem=16G,node=1|
+38453792|optimizer-r9-permutation-retry|COMPLETED|743|2026-11-12T22:27:24|2026-11-12T22:39:47|batch-block4-1039|billing=1,cpu=8,gres/gpu=1,mem=128G,node=1|45
+38453792.batch|batch|COMPLETED|743|2026-11-12T22:27:24|2026-11-12T22:39:47|batch-block4-1039|cpu=8,gres/gpu=1,mem=128G,node=1|
+38453792.extern|extern|COMPLETED|743|2026-11-12T22:27:24|2026-11-12T22:39:47|batch-block4-1039|billing=1,cpu=8,gres/gpu=1,mem=128G,node=1|
+38453792.0|bash|COMPLETED|734|2026-11-12T22:27:36|2026-11-12T22:39:50|batch-block4-1039|cpu=8,gres/gpu=1,mem=128G,node=1|
+38453798|optimizer-r9-full-seed17-retry|COMPLETED|2342|2026-11-12T22:40:27|2026-11-12T23:19:29|batch-block4-0102|billing=1,cpu=8,gres/gpu=1,mem=128G,node=1|60
+38453798.batch|batch|COMPLETED|2342|2026-11-12T22:40:27|2026-11-12T23:19:29|batch-block4-0102|cpu=8,gres/gpu=1,mem=128G,node=1|
+38453798.extern|extern|COMPLETED|2342|2026-11-12T22:40:27|2026-11-12T23:19:29|batch-block4-0102|billing=1,cpu=8,gres/gpu=1,mem=128G,node=1|
+38453798.0|bash|COMPLETED|2333|2026-11-12T22:40:39|2026-11-12T23:19:32|batch-block4-0102|cpu=8,gres/gpu=1,mem=128G,node=1|
+38453861|optimizer-r9-full-seed29|COMPLETED|1179|2026-11-12T23:20:27|2026-11-12T23:40:06|batch-block4-0045|billing=1,cpu=8,gres/gpu=1,mem=128G,node=1|45
+38453861.batch|batch|COMPLETED|1179|2026-11-12T23:20:27|2026-11-12T23:40:06|batch-block4-0045|cpu=8,gres/gpu=1,mem=128G,node=1|
+38453861.extern|extern|COMPLETED|1179|2026-11-12T23:20:27|2026-11-12T23:40:06|batch-block4-0045|billing=1,cpu=8,gres/gpu=1,mem=128G,node=1|
+38453861.0|bash|COMPLETED|1174|2026-11-12T23:20:34|2026-11-12T23:40:08|batch-block4-0045|cpu=8,gres/gpu=1,mem=128G,node=1|
+38453881|optimizer-r9-full-seed43|COMPLETED|1281|2026-11-12T23:41:08|2026-11-13T00:02:29|batch-block4-2045|billing=1,cpu=8,gres/gpu=1,mem=128G,node=1|45
+38453881.batch|batch|COMPLETED|1281|2026-11-12T23:41:08|2026-11-13T00:02:29|batch-block4-2045|cpu=8,gres/gpu=1,mem=128G,node=1|
+38453881.extern|extern|COMPLETED|1281|2026-11-12T23:41:08|2026-11-13T00:02:29|batch-block4-2045|billing=1,cpu=8,gres/gpu=1,mem=128G,node=1|
+38453881.0|bash|COMPLETED|1278|2026-11-12T23:41:17|2026-11-13T00:02:35|batch-block4-2045|cpu=8,gres/gpu=1,mem=128G,node=1|

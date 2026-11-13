@@ -1204,7 +1204,7 @@ shows that even eliminating the entire historical verification phase gives only
 1.00966× cold speed with other historical costs fixed. No equivalent full cold
 campaign is repeated, and no historical product gate is reclassified as passed.
 
-## Complete-exposure continuation (round nine, in progress)
+## Completed full-exposure continuation (round nine)
 
 The authorized continuation retains the original short-horizon gates and adds a
 separate [two-pass development study](evidence/quantized_optimizers_round9/full_exposure_protocol.json).
@@ -1213,6 +1213,9 @@ The live training manifest contains 346 rows. Native opt-in
 tail per pass, for 174 updates and 692 exposures across two passes. It preserves
 all rows and equal-row loss accounting; it currently requires one rank and
 accumulation one. Exact resume binds this policy into the objective identity.
+Actual consumed sequences span 567–929 tokens, with 33,944 supervised tokens per
+two-pass run, including every choice and substantive target. Both tails use the
+actual two-row denominator; their effective batch is explicitly two, not four.
 The default remains epoch wrapping. Tail/normalization/cursor tests and 72 pinned
 native regressions pass (one unrelated skip). Both seed-17 arms pass real
 fresh-process recovery from update 87 through 174: all 87 next input batches and
@@ -1262,6 +1265,50 @@ change the retained cold planning bound or establish a new optimizer speed,
 quality, recovery or full-preparation result. Native commands, exact study specs
 and source receipts are in [round-nine commands](evidence/quantized_optimizers_round9/commands.md).
 
+The [completed two-pass study](evidence/quantized_optimizers_round9/full_exposure_summary.json)
+uses all three planned paired seeds and the fixed update-174 endpoint. Both arms
+reach **27/32 correct in every seed**, versus **15/32 frozen**. Mean task NLL is
+0.716613 fused and 0.697993 eight-bit, versus 1.893410 frozen. Both recording-family
+accuracy-adaptation lower bounds are +21.875 percentage points. These are
+development results from 32 questions / 16 families, not final held-out replication.
+
+| Seed | Fused task NLL | Eight-bit task NLL | Eight-bit/fused task ratio | Native substantive ratio |
+|---|---:|---:|---:|---:|
+| 17 | 0.691342 | 0.740743 | 1.071458 | 0.990847 |
+| 29 | 0.741834 | 0.605813 | 0.816642 | 0.977176 |
+| 43 | 0.716663 | 0.747422 | 1.042920 | 0.987827 |
+
+Accuracy and each substantive guard pass. **The NLL guard fails:** mean paired
+ratio 0.977007 has interval [0.630195, 1.323819], and the crossed seed/family
+interval is [0.764566, 1.155434]; both upper bounds exceed 1.01. No final comparison
+is admitted. The same five questions are incorrect in all six endpoints; their
+confidence varies with seed and optimizer. Traffic-volume text loss improves
+between updates 87/174 in seeds 17/43 and worsens slightly in seed 29. This does
+not establish a unique gradient-conflict, label-error or quantization mechanism.
+No additional smoothing, weighting or ordering recipe is selected from these
+curves. See [diagnosis](evidence/quantized_optimizers_round9/full_exposure_diagnosis.json)
+and [all development curves](evidence/quantized_optimizers_round9/full_exposure_curves.png).
+
+All six initialized state reports reconfirm **74.6061%** tensor-state savings.
+Mean sampled whole-device peaks are **78.61/72.15 GiB** (fused/eight-bit), matched
+GPU-process peaks **77.93/71.47 GiB**, and process-tree host PSS **5.85/10.69 GiB**.
+These are complete instrumented training attempts including development
+validation/checkpointing; seed 17 includes state digests. They exclude a separate
+final-scoring delivery and are not the historical short-recipe memory measurements.
+The runs are memory-feasible deployment comparisons with different recomputation,
+not optimizer isolation. Their diagnostic timings do not establish a new product
+time-to-target or equal-resource gain.
+
+The original 15-update quality guards, actual 60-second training-budget and
+390-second prepared-product endpoints, fixed target 1.7987394576095224, and
+prepared/cold speed margins remain unchanged and unmet where previously failed.
+There are no new final scores or cold preparations. The
+[requirement map](evidence/quantized_optimizers_round9/requirements.md) separates
+retained and new evidence. All ten submissions are terminal: seven completed,
+one failed diagnostic and two unallocated cancellations. Actual charges including
+termination are **5,761 GPU allocation-seconds and 1,145 CPU-wall seconds**;
+local checks are separate. No aggregate caps apply. Nothing was pushed or published.
+
 ## Reproduction and source identities
 
 [Qualification commands](../../tools/quantized_optimizers/README.md) cover data
@@ -1269,7 +1316,7 @@ regeneration, immutable source archives, Slurm submission, collection and analys
 [First-campaign status](evidence/quantized_optimizers/qualification_summary.json)
 and [completed follow-up status](evidence/quantized_optimizers_round2/qualification_summary.json)
 link each result, gate and remaining requirement. The
-[current proposed PR](evidence/quantized_optimizers_round8/proposed_pr.md)
+[current proposed PR](evidence/quantized_optimizers_round9/proposed_pr.md)
 describes the combined implementation and measured limitations; it has not been published.
 [Additional campaign commands](evidence/quantized_optimizers_round4/commands.md),
 [source identities](evidence/quantized_optimizers_round4/source_identity.json) and

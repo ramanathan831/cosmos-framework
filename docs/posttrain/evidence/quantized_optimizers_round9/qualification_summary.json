@@ -1,0 +1,178 @@
+{
+  "recorded_utc": "2026-11-13T00:07:17.993162+00:00",
+  "product_objective_achieved": false,
+  "branch": "feat/quantized-optimizers",
+  "support": "Pinned bitsandbytes0.49.2; one CUDA GPU; ordinary contiguous FP32 trainables; compute precision separate; consolidated same-identity recovery. Paged capacity scope unchanged. No added distribution/dtype/LoRA/QLoRA claims.",
+  "implemented": [
+    "Native opt-in partial epoch batches, exact exposure, explicit two-row tails and identity-bound resume; default wrapping unchanged.",
+    "Read-only same-update training observer; exact integer sampling fixes a diagnostic CUDA index error.",
+    "Native optional bounded parallel full media hashing, stable identities and mutation/error rejection; default serial unchanged."
+  ],
+  "permutation": {
+    "evidence": "permutation_summary.json",
+    "reference_exact": true,
+    "first_full_gradient_relative_l2": 0.00013824778155364857,
+    "maximum_sampled_update_difference": 8.381903171539307e-09,
+    "decision": "No ordering selected; numerical backward sensitivity without identified unique kernel or optimizer defect."
+  },
+  "full_exposure": {
+    "evidence": "full_exposure_summary.json",
+    "protocol": "full_exposure_protocol.json",
+    "updates": 174,
+    "passes": 2,
+    "rows_per_run": 692,
+    "supervised_tokens_per_run": 33944,
+    "seeds": [
+      17,
+      29,
+      43
+    ],
+    "frozen_accuracy": 0.46875,
+    "fused_accuracy": 0.84375,
+    "eightbit_accuracy": 0.84375,
+    "paired_nll_ratio": {
+      "mean": 0.977006669833758,
+      "ci95": [
+        0.6301945108424142,
+        1.3238188288251016
+      ],
+      "n": 3
+    },
+    "crossed_recording_nll": {
+      "ci95": [
+        0.7645656814597332,
+        1.1554344802213987
+      ]
+    },
+    "accuracy_drop": {
+      "mean": 0.0,
+      "ci95": [
+        0.0,
+        0.0
+      ],
+      "n": 3
+    },
+    "substantive_ratios": [
+      0.9908474344853966,
+      0.9771763229371971,
+      0.9878265702511794
+    ],
+    "gates": {
+      "nll_upper_le_1_01": false,
+      "accuracy_drop_upper_le_01": true,
+      "each_substantive_ratio_le_1_01": true,
+      "retained_state_saving_ge_60": true,
+      "adaptation": true
+    },
+    "promote": false,
+    "failure_kind": "NLL uncertainty guard fails; per-seed point ratios1.07146/0.81664/1.04292 show heterogeneous numerical effects. No operational failure in completed full study.",
+    "correction": "No evidence-backed single-factor correction selected.",
+    "final_comparison": "Not admitted"
+  },
+  "recovery": {
+    "retained": "Dense fused/nonpaged40-to44; optimizer/transaction code unchanged.",
+    "new": "Both arms87-to174:87exactnextinputs and semantic metrics; complete state hashes88/89/174; final model/optim/data/trainer and validation journal exact.",
+    "details": "epoch_recovery_metrics.json"
+  },
+  "state_memory": {
+    "fused_bytes": 24697144000,
+    "eightbit_bytes": 6271567872,
+    "reduction": 0.7460610072160571,
+    "passes_60_percent": true
+  },
+  "new_memory": {
+    "scope": "Sampled whole training-process attempts including setup, development validation, checkpoint writes and diagnostic observation; excludes separate final-scoring delivery. Seed17 adds recovery-state digests. Do not call these full cold or inference peaks.",
+    "arms": {
+      "fused": {
+        "device_used": {
+          "mean_gib": 78.61020914713542,
+          "per_seed_gib": [
+            78.21697998046875,
+            78.39862060546875,
+            79.21502685546875
+          ]
+        },
+        "matched_process_gpu_bytes": {
+          "mean_gib": 77.92643229166667,
+          "per_seed_gib": [
+            77.533203125,
+            77.71484375,
+            78.53125
+          ]
+        },
+        "process_tree_pss": {
+          "mean_gib": 5.845259030659993,
+          "per_seed_gib": [
+            5.426726341247559,
+            6.213247299194336,
+            5.895803451538086
+          ]
+        }
+      },
+      "eightbit": {
+        "device_used": {
+          "mean_gib": 72.15122477213542,
+          "per_seed_gib": [
+            72.38104248046875,
+            71.26971435546875,
+            72.80291748046875
+          ]
+        },
+        "matched_process_gpu_bytes": {
+          "mean_gib": 71.46744791666667,
+          "per_seed_gib": [
+            71.697265625,
+            70.5859375,
+            72.119140625
+          ]
+        },
+        "process_tree_pss": {
+          "mean_gib": 10.692883173624674,
+          "per_seed_gib": [
+            10.58337688446045,
+            10.76768684387207,
+            10.727585792541504
+          ]
+        }
+      }
+    }
+  },
+  "shared_runtime": {
+    "evidence": "source_hash_summary.json",
+    "identity_ratio": 4.5344909177448995,
+    "whole_process_ratio": 1.2480936733754249,
+    "whole_process_ci95": [
+      1.1091738923109413,
+      1.4520383421279193
+    ],
+    "scope": "Three counterbalanced CPU pairs,434training/development rows,one8CPU node; full hashes and target keys exact; shared storage cache uncontrolled. Not GPU/product/cold timing.",
+    "identity_ci95": [
+      3.5141966352104217,
+      7.0355644874714
+    ]
+  },
+  "original_protocol": {
+    "evidence": "../quantized_optimizers_round3/final_protocol.json",
+    "gates": {
+      "matched_task_nll": false,
+      "matched_task_accuracy": false,
+      "substantive_development_nll": true,
+      "positive_baseline_adaptation": true,
+      "positive_quantized_adaptation": true,
+      "equal_training_budget_quality_gain": false,
+      "equal_product_budget_quality_gain": false,
+      "prepared_end_to_end_time_to_quality": false,
+      "cold_end_to_end_time_to_quality": false,
+      "optimizer_state_saving": true,
+      "repeated_native_throughput": true
+    },
+    "status": "Retained unchanged; no new original short-horizon recipe or final comparison.",
+    "fixed_quality_target": 1.7987394576095224
+  },
+  "equal_resource": "No new equal-time/equal-product-budget checkpoints or final scores. Matched174-update outputs cannot substitute. Historical60second training and390second prepared-product NLL-gain failures remain.",
+  "speed": "Historical prepared1.05885[1.01560,1.10210] and composedcold1.008735[1.006317,1.010647] fail lower>1.05. Historical native-loop1.356x spends state memory on less recomputation; no faster8bit-call or inference claim. New instrumented full-study durations are not product timing evidence.",
+  "data_scope": "Authorized reused pool; repaired recording-family separation. This study is32development questions/16families; final128questions/32historically exposed families remain unscored this round. No independent final replication.",
+  "tests": "72pinned native regressions pass(1skip),34pinned hashing checks pass,9pinned observer checks include realCUDA; local checks and CPU input parity retained. Coverage overlaps.",
+  "cost": "final_accounting.json",
+  "publication": "Local commits and local draft only; no push/publication/merge, no PR334 action or original QLoRA checkout change."
+}
