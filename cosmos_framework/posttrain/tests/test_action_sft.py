@@ -1,0 +1,378 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+"""CPU lifecycle contracts for native action SFT; not family/task qualification."""
+
+from __future__ import annotations
+
+import copy
+import random
+from types import SimpleNamespace
+
+import numpy as np
+import pytest
+import torch
+from torch import nn
+
+from cosmos_framework.posttrain.algorithm.primitives.objective import OBJECTIVE_WEIGHT_SUM, Objective, Reduction
+from cosmos_framework.posttrain.checkpoint.rng import collect_rng_state, restore_rng_state
+from cosmos_framework.posttrain.entrypoints.action_sft import _Source, evaluate, find_target, preserved_evaluation
+from cosmos_framework.posttrain.roles.env.cursor import IndexedCursor
+from cosmos_framework.posttrain.roles.trainer.llm import LLMTrainer
+
+pytestmark = [pytest.mark.L0, pytest.mark.CPU]
+
+
+def assert_state_equal(left, right):
+    if isinstance(left, torch.Tensor):
+        torch.testing.assert_close(left, right, atol=0, rtol=0)
+    elif isinstance(left, np.ndarray):
+        np.testing.assert_array_equal(left, right)
+    elif isinstance(left, dict):
+        assert left.keys() == right.keys()
+        for key in left:
+            assert_state_equal(left[key], right[key])
+    elif isinstance(left, (list, tuple)):
+        assert type(left) is type(right) and len(left) == len(right)
+        for a, b in zip(left, right, strict=True):
+            assert_state_equal(a, b)
+    else:
+        assert left == right
+
+
+class Dataset:
+    def __init__(self, *, identity=None, count=5):
+        self.identity = identity if identity is not None else {"format": "fixture", "sha256": "a" * 64}
+        self.items = [SimpleNamespace(id=f"row-{index}", value=index + 1) for index in range(count)]
+
+    def __len__(self):
+        return len(self.items)
+
+    def __getitem__(self, index):
+        return self.items[index]
+
+
+def config(*, batch_size=2, limit=0):
+    return SimpleNamespace(
+        rl=SimpleNamespace(micro_batch_size=batch_size, evaluation_seed=971, evaluation_max_samples=limit)
+    )
+
+
+def policy():
+    with torch.random.fork_rng(devices=[]):
+        torch.manual_seed(311)
+        net = nn.Sequential(nn.Linear(2, 4), nn.Dropout(0.35), nn.Linear(4, 1))
+    net[0].eval()
+    return SimpleNamespace(net=net)
+
+
+@pytest.mark.parametrize("fail", [False, True])
+def test_evaluation_restores_mixed_modes_rng_and_autograd_even_on_failure(fail):
+    model = policy()
+    modes = [module.training for module in model.net.modules()]
+    original = collect_rng_state()
+    initial_parameters = copy.deepcopy(model.net.state_dict())
+    for parameter in model.net.parameters():
+        parameter.grad = torch.full_like(parameter, 0.125)
+    initial_gradients = [parameter.grad.clone() for parameter in model.net.parameters()]
+
+    def run():
+        with preserved_evaluation(model, 17):
+            assert not torch.is_grad_enabled()
+            assert not any(module.training for module in model.net.modules())
+            # Consume every supported stream and change one nested mode. The context
+            # must restore the actual entry modes, rather than calling net.train().
+            random.random()
+            np.random.randn(5)
+            model.net(torch.randn(3, 2))
+            model.net[1].train()
+            if fail:
+                raise RuntimeError("injected task evaluator failure")
+
+    if fail:
+        with pytest.raises(RuntimeError, match="injected task evaluator"):
+            run()
+    else:
+        run()
+    assert torch.is_grad_enabled()
+    assert [module.training for module in model.net.modules()] == modes
+    assert_state_equal(collect_rng_state(), original)
+    assert_state_equal(model.net.state_dict(), initial_parameters)
+    assert_state_equal([parameter.grad for parameter in model.net.parameters()], initial_gradients)
+
+
+@pytest.mark.parametrize("batch_size", [1, 2, 4])
+def test_evaluate_uses_native_denominator_not_equal_batch_or_example_weight(batch_size):
+    source = _Source(Dataset())
+    model = policy()
+
+    def objective(model, batch):
+        weights = [float(item.value) for item in batch]
+        numerator = sum(item.value**2 for item in batch)
+        denominator = sum(weights)
+        return torch.tensor(numerator / denominator, dtype=torch.float64), {OBJECTIVE_WEIGHT_SUM: denominator}
+
+    def callback(model, batch, config):
+        return {"task_error": {"sum": sum(2 * item.value for item in batch), "count": 2 * len(batch)}}
+
+    metrics, rows = evaluate(model, objective, source, config(batch_size=batch_size), callback)
+    assert metrics == pytest.approx({"loss": 55 / 15, "task_error": 3.0})
+    assert [item for row in rows for item in row["ids"]] == [f"row-{index}" for index in range(5)]
+
+
+def test_evaluate_limit_and_unweighted_objective_preserve_explicit_row_order():
+    source = _Source(Dataset())
+    metrics, rows = evaluate(
+        policy(),
+        lambda model, batch: (torch.tensor(sum(item.value for item in batch) / len(batch)), {}),
+        source,
+        config(batch_size=2, limit=3),
+    )
+    assert metrics["loss"] == 2.0
+    assert [row["ids"] for row in rows] == [["row-0", "row-1"], ["row-2"]]
+
+
+@pytest.mark.parametrize(
+    "extra,match",
+    [
+        ({"loss": {"sum": 0, "count": 1}}, "must not replace"),
+        ({"mse": {"mean": 1}}, "explicit sum and count"),
+        ({"mse": {"sum": 1, "count": 0}}, "nonfinite or empty"),
+        ({"mse": {"sum": float("nan"), "count": 1}}, "nonfinite or empty"),
+        ({"mse": {"sum": 1, "count": float("inf")}}, "nonfinite or empty"),
+    ],
+)
+def test_invalid_task_metrics_fail_and_restore_training_state(extra, match):
+    model = policy()
+    before_rng = collect_rng_state()
+    before_modes = [module.training for module in model.net.modules()]
+    with pytest.raises(ValueError, match=match):
+        evaluate(
+            model,
+            lambda model, batch: (torch.rand(()), {}),
+            _Source(Dataset()),
+            config(),
+            lambda *_: extra,
+        )
+    assert_state_equal(collect_rng_state(), before_rng)
+    assert [module.training for module in model.net.modules()] == before_modes
+
+
+def test_source_binds_identity_and_cursor_resumes_exactly_across_epoch_boundary():
+    dataset = Dataset()
+    source = _Source(dataset)
+    source_identity = copy.deepcopy(source.identity)
+    dataset.identity["sha256"] = "b" * 64
+    assert source.identity == source_identity
+    cursor = IndexedCursor(source, shuffle=True, seed=19, cursor_resume="strict")
+    cursor.advance(7)
+    state = cursor.state_dict()
+    expected = [cursor.next_index() for _ in range(9)]
+    restored = IndexedCursor(_Source(Dataset()), shuffle=True, seed=19, cursor_resume="strict")
+    restored.load_state_dict(state)
+    assert restored.consumed == 7
+    assert [restored.next_index() for _ in range(9)] == expected
+    changed = IndexedCursor(_Source(dataset), shuffle=True, seed=19, cursor_resume="strict")
+    with pytest.raises(ValueError, match="fingerprint"):
+        changed.load_state_dict(state)
+
+
+@pytest.mark.parametrize("identity,count", [({}, 5), ({"bad": float("nan")}, 5), ({"format": "fixture"}, 0)])
+def test_source_rejects_empty_or_nonfinite_identity_and_empty_data(identity, count):
+    with pytest.raises(ValueError):
+        _Source(Dataset(identity=identity, count=count))
+
+
+@pytest.mark.parametrize("fail", [False, True])
+def test_native_trainer_next_updates_are_identical_with_inserted_evaluation(fail):
+    """Use the actual trainer/AdamW/scheduler and stochastic objective, not mocked steps."""
+    data = _Source(Dataset(count=7))
+
+    def run(insert_evaluation):
+        random.seed(51)
+        np.random.seed(51)
+        torch.manual_seed(51)
+        model = policy()
+        optimizer = torch.optim.AdamW(model.net.parameters(), lr=0.01, weight_decay=0.02)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.95)
+
+        def loss_fn(model, batch):
+            x = torch.tensor([[item.value, -item.value] for item in batch], dtype=torch.float32)
+            prediction = model.net(x + torch.rand_like(x))
+            target = random.random() + float(np.random.uniform())
+            return (prediction - target).square().mean(), {}
+
+        objective = Objective(loss_fn, reduction=Reduction.MEAN, identity={"task": "cpu-lifecycle-fixture"})
+        trainer = LLMTrainer(
+            model, objective, optimizer, lr_scheduler=scheduler, require_gradients=True, nonfinite_update="fail_stop"
+        )
+        cursor = IndexedCursor(data, shuffle=True, seed=42, cursor_resume="strict")
+        updates = []
+        for step in range(4):
+            batch = [data[cursor.next_index()] for _ in range(2)]
+            updates.append(trainer.train(batch))
+            if insert_evaluation and step == 1:
+                before_cursor = cursor.state_dict()
+                before_trainer = copy.deepcopy(trainer._trainer_state())
+
+                def callback(*_):
+                    if fail:
+                        raise RuntimeError("evaluation failed after native loss")
+                    return {}
+
+                if fail:
+                    with pytest.raises(RuntimeError, match="evaluation failed"):
+                        evaluate(model, objective, data, config(), callback)
+                else:
+                    evaluate(model, objective, data, config(), callback)
+                assert cursor.state_dict() == before_cursor
+                assert_state_equal(trainer._trainer_state(), before_trainer)
+        assert trainer.iteration() == 4
+        return {
+            "parameters": copy.deepcopy(model.net.state_dict()),
+            "optimizer": copy.deepcopy(optimizer.state_dict()),
+            "scheduler": copy.deepcopy(scheduler.state_dict()),
+            "trainer": copy.deepcopy(trainer._trainer_state()),
+            "cursor": cursor.state_dict(),
+            "rng": collect_rng_state(),
+            "updates": updates,
+        }
+
+    original_rng = collect_rng_state()
+    try:
+        control = run(False)
+        evaluated = run(True)
+        assert_state_equal(evaluated, control)
+    finally:
+        restore_rng_state(original_rng)
+
+
+@pytest.mark.parametrize("direction,threshold", [("min", 0.3), ("max", 0.7)])
+def test_target_recovery_preserves_first_named_metric_crossing_including_step_zero(direction, threshold):
+    rl = SimpleNamespace(target_metric="task_metric", target_threshold=threshold, target_direction=direction)
+    passed = threshold - 0.01 if direction == "min" else threshold + 0.01
+    failed = threshold + 0.01 if direction == "min" else threshold - 0.01
+    history = [
+        {"step": 0, "metrics": {"task_metric": failed, "loss": 0}},
+        {"step": 10, "metrics": {"task_metric": threshold, "loss": 99}},
+        {"step": 20, "metrics": {"task_metric": passed, "loss": 0}},
+    ]
+    assert find_target(history, rl) is history[1]
+    history[0]["metrics"]["task_metric"] = passed
+    assert find_target(history, rl) is history[0]
+    assert find_target([], rl) is None
+    assert find_target(history[:1], SimpleNamespace(target_metric="")) is None
+
+
+@pytest.mark.parametrize("metrics", [{"loss": 0.1}, {"task_metric": float("nan")}])
+def test_target_never_substitutes_loss_or_accepts_nonfinite_metrics(metrics):
+    with pytest.raises(ValueError, match="missing or nonfinite"):
+        find_target(
+            [{"step": 0, "metrics": metrics}],
+            SimpleNamespace(target_metric="task_metric", target_threshold=0.2, target_direction="min"),
+        )
+
+
+@pytest.mark.parametrize("completed_updates", [0, 3])
+def test_native_adapter_checkpoint_restores_head_optimizer_rng_cursor_and_next_update(tmp_path, completed_updates):
+    """Exercise real DCP/codec/trainer at pristine and trained completed-update boundaries."""
+    from cosmos_framework.posttrain.checkpoint.adapter import read_adapter_metadata
+    from cosmos_framework.posttrain.checkpoint.manager import CheckpointManager
+    from cosmos_framework.posttrain.model.quantization.family import FamilyBackboneConfig, install_family_backbone
+    from cosmos_framework.posttrain.utils.rank_state import collect_rank_state, state_for_current_rank
+
+    class TaskNet(nn.Module):
+        def __init__(self):
+            super().__init__()
+            with torch.random.fork_rng(devices=[]):
+                torch.manual_seed(916)
+                self.backbone = nn.Linear(2, 4, bias=False, dtype=torch.bfloat16)
+                self.head = nn.Linear(4, 1, dtype=torch.float32)
+
+        def forward(self, inputs):
+            return self.head(self.backbone(inputs.to(torch.bfloat16)).float())
+
+    def build():
+        net = TaskNet()
+        family = install_family_backbone(
+            net,
+            config=FamilyBackboneConfig(mode="bf16_lora", rank=2, alpha=4, seed=39),
+            targets={"backbone": (4, 2)},
+            auxiliary_parameters=("head.weight", "head.bias"),
+            source_identity={"repository": "fixture/action-dcp", "revision": "a" * 40},
+            task_identity={"objective": "fixture-regression", "action_dim": 1},
+            device=torch.device("cpu"),
+        )
+        family.codec.bind_training_identity({"seed": 19, "effective_batch": 2})
+        model = SimpleNamespace(net=net)
+        optimizer = torch.optim.AdamW(family.codec.parameters.values(), lr=0.01)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.95)
+
+        def objective(model, batch):
+            inputs = torch.tensor([[row.value, -row.value] for row in batch], dtype=torch.float32)
+            target = torch.rand(len(batch), 1)
+            return (model.net(inputs) - target).square().mean(), {}
+
+        trainer = LLMTrainer(
+            model,
+            Objective(objective, reduction=Reduction.MEAN, identity={"objective": "fixture-action"}),
+            optimizer,
+            lr_scheduler=scheduler,
+            checkpoint_manager=CheckpointManager(checkpoint_format="dcp", keep_optim_last=0),
+            require_gradients=True,
+            nonfinite_update="fail_stop",
+        )
+        source = _Source(Dataset(count=7))
+        cursor = IndexedCursor(source, shuffle=True, seed=19, cursor_resume="strict")
+        return model, family, trainer, source, cursor
+
+    def update(trainer, source, cursor):
+        metrics = trainer.train([source[cursor.next_index()] for _ in range(2)])
+        assert metrics["optim/update_outcome"] == "applied"
+
+    saved_rng = collect_rng_state()
+    try:
+        torch.manual_seed(19)
+        model, family, trainer, source, cursor = build()
+        for _ in range(completed_updates):
+            update(trainer, source, cursor)
+        history = [{"step": completed_updates, "metrics": {"loss": 0.25}}]
+        data_state = collect_rank_state(
+            {"format": "action-sft-state-v1", "cursor": cursor.state_dict(), "evaluation": history}
+        )
+        path = str(tmp_path / "checkpoints" / f"iter_{completed_updates:06d}")
+        before_save = copy.deepcopy(trainer._trainer_state())
+        before_optimizer = copy.deepcopy(trainer.opt.state_dict())
+        trainer.save(path, data_state=data_state)
+        trainer.finalize_checkpoints()
+        metadata = read_adapter_metadata(path, require_resume=True, expected_identity=family.codec.identity)
+        assert set(metadata["parameters"]) == set(family.codec.parameters)
+        assert {"head.weight", "head.bias"} <= set(metadata["parameters"])
+        assert_state_equal(trainer._trainer_state(), before_save)
+        assert_state_equal(trainer.opt.state_dict(), before_optimizer)
+        update(trainer, source, cursor)
+        uninterrupted = {
+            "model": copy.deepcopy(model.net.state_dict()),
+            "optimizer": copy.deepcopy(trainer.opt.state_dict()),
+            "trainer": copy.deepcopy(trainer._trainer_state()),
+            "cursor": cursor.state_dict(),
+        }
+        restored, restored_family, resumed, resumed_source, resumed_cursor = build()
+        assert resumed.load(path) == completed_updates
+        recovered = state_for_current_rank(resumed.checkpoint_manager.load_component(path, "data"))
+        assert recovered["evaluation"] == history
+        resumed_cursor.load_state_dict(recovered["cursor"])
+        assert resumed_cursor.consumed == completed_updates * 2
+        update(resumed, resumed_source, resumed_cursor)
+        restored_family.validate_frozen_base()
+        restored_family.assert_optimizer(resumed.opt)
+        assert_state_equal(
+            {
+                "model": restored.net.state_dict(),
+                "optimizer": resumed.opt.state_dict(),
+                "trainer": resumed._trainer_state(),
+                "cursor": resumed_cursor.state_dict(),
+            },
+            uninterrupted,
+        )
+    finally:
+        restore_rng_state(saved_rng)
