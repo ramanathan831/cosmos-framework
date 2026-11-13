@@ -213,7 +213,10 @@ def install_family_backbone(
             kernel_preflight,
         )
 
-        kernel_preflight(device, adapter, quantization)
+        # Construction copies weights under no_grad, but the kernel canary
+        # intentionally exercises input backward and real adapter updates.
+        with torch.enable_grad():
+            kernel_preflight(device, adapter, quantization)
     for parameter in net.parameters():
         parameter.requires_grad_(False)
 
