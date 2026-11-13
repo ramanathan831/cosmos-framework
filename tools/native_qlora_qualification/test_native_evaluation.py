@@ -3,6 +3,7 @@
 """CPU runner contracts; real CUDA parity and continuous timing remain separate."""
 
 import copy
+import dataclasses
 import json
 import sys
 from pathlib import Path
@@ -148,8 +149,12 @@ def emit_native_result(output, target, *, pass_at=200, damage=None):
     (wts / "target-result.json").write_text(json.dumps(result))
 
 
-def invoke(tmp_path, monkeypatch, *, pass_at=200, damage=None):
+def invoke(tmp_path, monkeypatch, *, pass_at=200, damage=None, experiment_changes=None, evaluation_steps=None):
     args, target, experiment = setup_target(tmp_path)
+    experiment = dataclasses.replace(experiment, **(experiment_changes or {}))
+    if evaluation_steps is not None:
+        target["evaluation_steps"] = evaluation_steps
+        Path(args.validation_target).write_text(json.dumps(target))
     args.evaluation_mode = "native"
     clock, commands = [10.0], []
     monkeypatch.setattr(run.time, "monotonic", lambda: clock[0])
@@ -163,7 +168,7 @@ def invoke(tmp_path, monkeypatch, *, pass_at=200, damage=None):
         def run(self, name, command):
             commands.append((name, command))
             emit_native_result(tmp_path, target, pass_at=pass_at, damage=damage)
-            clock[0] = 80.0
+            clock[0] = max(80.0, 20.0 * len(target["evaluation_steps"]) + 10.0)
             if damage == "target_changed":
                 changed = copy.deepcopy(target)
                 changed["maximum_token_ce"] = 10
@@ -171,6 +176,72 @@ def invoke(tmp_path, monkeypatch, *, pass_at=200, damage=None):
 
     result = run.train_native_to_target(args, experiment, tmp_path, {}, Stages(), target, 0.0)
     return args, experiment, commands, result
+
+
+@pytest.mark.parametrize("arm", ["nf4", "bf16"])
+@pytest.mark.parametrize("pass_at", [100, None])
+def test_smoothing_native_ttq_preserves_fixed_horizon_grid_and_target(tmp_path, monkeypatch, arm, pass_at):
+    grid = [50, 100, 150, 200, 250, 300]
+    args, experiment, commands, (_, _, result) = invoke(
+        tmp_path,
+        monkeypatch,
+        pass_at=pass_at,
+        experiment_changes={"arm": arm, "wts_answer_smoothing": 0.02},
+        evaluation_steps=grid,
+    )
+    assert len(commands) == 1 and commands[0][0] == "training_wts"
+    command = commands[0][1]
+    assert command[command.index("--config") + 1] == experiment.recipe
+    overrides = command[command.index("--") + 1 :]
+    values = {key: json.loads(value) for item in overrides for key, value in [item.split("=", 1)] if key != "rl.resume"}
+    assert values["rl.wts_answer_smoothing"] == 0.02
+    assert values["rl.max_steps"] == values["rl.lr_schedule.cycle_steps"] == 300
+    assert values["rl.optimizer.warmup_steps"] == 30
+    assert values["rl.validation.wts.steps"] == grid
+    assert values["rl.validation.wts.stop_on_target"] is True
+    assert values["rl.validation.wts.min_correct"] == 6
+    assert values["rl.validation.wts.max_token_ce"] == 0.3
+    assert "rl.resume=off" in overrides
+    assert not any("pause_after_step" in key for key in values)
+    baseline = dataclasses.replace(experiment, wts_answer_smoothing=0)
+    target = json.loads(Path(args.validation_target).read_text())
+    assert run.native_evaluation_overrides(args, experiment, target) == run.native_evaluation_overrides(
+        args, baseline, target
+    )
+    assert result["last_validated_step"] == (pass_at or 300)
+    assert result["censored_at_training_horizon"] is (pass_at is None)
+
+
+@pytest.mark.parametrize("arm", ["nf4", "bf16"])
+def test_smoothing_experiment_preserves_native_hard_gold_evaluation(tmp_path, arm):
+    import torch
+
+    from cosmos_framework.posttrain.tests.test_sft_wts_smoothing import (
+        VariablePacker,
+        _policy,
+        _row,
+        _trajectory,
+        evaluate_row,
+        evaluate_sft_batch,
+        make_objective,
+    )
+
+    _, _, baseline = setup_target(tmp_path)
+    experiment = dataclasses.replace(baseline, arm=arm, wts_answer_smoothing=0.02)
+    encoded = next(
+        value.split("=", 1)[1] for value in experiment.overrides() if value.startswith("rl.wts_answer_smoothing=")
+    )
+    packer, policy = VariablePacker(), _policy()
+    hard = make_objective(packer)
+    candidate = make_objective(packer, wts_answer_smoothing=json.loads(encoded))
+    row = _row()
+    hard_metrics = evaluate_sft_batch(policy, hard, [_trajectory(row)])
+    candidate_metrics = evaluate_sft_batch(policy, candidate, [_trajectory(row)])
+    assert hard_metrics.keys() == candidate_metrics.keys() and "sft_objective" not in candidate_metrics
+    assert all(
+        torch.equal(torch.as_tensor(hard_metrics[key]), torch.as_tensor(candidate_metrics[key])) for key in hard_metrics
+    )
+    assert evaluate_row(policy, packer, candidate, row) == evaluate_row(policy, packer, hard, row)
 
 
 @pytest.mark.parametrize("pass_at", [100, 200, None])

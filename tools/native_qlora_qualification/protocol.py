@@ -41,6 +41,7 @@ class Experiment:
     initialization_artifact: str = ""
     initialization_artifact_sha256: str = ""
     dropout: float = 0.0
+    wts_answer_smoothing: float = 0.0
 
     def __post_init__(self) -> None:
         if not isinstance(self.name, str) or not re.fullmatch(r"[a-z0-9][a-z0-9_]{0,95}", self.name):
@@ -73,6 +74,12 @@ class Experiment:
                 raise ValueError(f"{field} must be finite and positive")
         if type(self.dropout) not in (int, float) or not math.isfinite(self.dropout) or not 0 <= self.dropout < 1:
             raise ValueError("dropout must be finite and in [0, 1)")
+        if (
+            type(self.wts_answer_smoothing) not in (int, float)
+            or not math.isfinite(self.wts_answer_smoothing)
+            or not 0 <= self.wts_answer_smoothing < 1
+        ):
+            raise ValueError("wts_answer_smoothing must be finite and in [0, 1)")
         if self.effective_batch % self.microbatch or self.warmup_steps >= self.steps:
             raise ValueError("microbatch must divide effective batch; warmup must precede completion")
         if self.video_min_pixels > self.video_max_pixels or self.frames % 2:
@@ -159,6 +166,8 @@ class Experiment:
         # override identities. Any stochastic adapter recipe is explicit.
         if self.dropout:
             values["model.model_config.adapter.dropout"] = self.dropout
+        if self.wts_answer_smoothing:
+            values["rl.wts_answer_smoothing"] = self.wts_answer_smoothing
         if self.initialization != "kaiming_A_zero_B":
             values.update(
                 {
@@ -173,6 +182,8 @@ class Experiment:
         result = dataclasses.asdict(self)
         if self.dropout == 0:
             del result["dropout"]
+        if self.wts_answer_smoothing == 0:
+            del result["wts_answer_smoothing"]
         if self.initialization == "kaiming_A_zero_B":
             for name in ("initialization", "initialization_artifact", "initialization_artifact_sha256"):
                 del result[name]

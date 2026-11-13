@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: OpenMDW-1.1
 import dataclasses
+import hashlib
+import json
 import sys
 from pathlib import Path
 
@@ -83,8 +85,6 @@ def test_residual_experiment_is_explicit_and_baseline_serialization_unchanged():
 
 
 def test_dropout_recipe_is_explicit_and_equal_between_precision_arms(tmp_path):
-    import json
-
     baseline = Experiment("nf4_control", "nf4")
     assert "dropout" not in baseline.as_dict()
     assert not any("dropout" in value for value in baseline.overrides())
@@ -96,3 +96,49 @@ def test_dropout_recipe_is_explicit_and_equal_between_precision_arms(tmp_path):
     control = dataclasses.replace(candidate, arm="bf16")
     assert control.overrides() == candidate.overrides()
     assert control.as_dict()["dropout"] == 0.05
+
+
+@pytest.mark.parametrize(
+    "arm, historical_sha256",
+    [
+        ("nf4", "0ee56403d283eb9f4937ef66f9d3cd58a89e5ff06b753b36ff27670b231a0618"),
+        ("bf16", "8cc5ec45849822735f2bda0b45c8b64e06178ac4faab0e147f38b77bd90fae79"),
+    ],
+)
+def test_zero_smoothing_preserves_historical_spec_and_override_bytes(arm, historical_sha256):
+    # Captured before adding the field: both serialized spec and ordered argv.
+    for experiment in (
+        Experiment("control", arm),
+        Experiment("control", arm, wts_answer_smoothing=0),
+        Experiment("control", arm, wts_answer_smoothing=-0.0),
+    ):
+        assert "wts_answer_smoothing" not in experiment.as_dict()
+        assert not any("wts_answer_smoothing" in value for value in experiment.overrides())
+        raw = json.dumps(
+            {"spec": experiment.as_dict(), "overrides": experiment.overrides()},
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode()
+        assert hashlib.sha256(raw).hexdigest() == historical_sha256
+
+
+@pytest.mark.parametrize("arm", ["nf4", "bf16"])
+@pytest.mark.parametrize("epsilon", [0.02, 0.999])
+def test_smoothing_roundtrip_changes_only_the_training_override(tmp_path, arm, epsilon):
+    baseline = Experiment("control", arm)
+    candidate = dataclasses.replace(baseline, wts_answer_smoothing=epsilon)
+    path = tmp_path / "recipe.json"
+    path.write_text(json.dumps(candidate.as_dict()))
+    assert Experiment.read(path) == candidate
+    assert candidate.as_dict() == {**baseline.as_dict(), "wts_answer_smoothing": epsilon}
+    assert candidate.overrides() == [*baseline.overrides(), f"rl.wts_answer_smoothing={epsilon}"]
+    other = dataclasses.replace(candidate, arm="bf16" if arm == "nf4" else "nf4")
+    assert other.overrides() == candidate.overrides()
+
+
+@pytest.mark.parametrize(
+    "epsilon", [True, False, -0.02, 1, 1.01, float("nan"), float("inf"), -float("inf"), "0.02", None]
+)
+def test_invalid_smoothing_refuses_before_launch(epsilon):
+    with pytest.raises(ValueError, match="wts_answer_smoothing"):
+        Experiment("control", "nf4", wts_answer_smoothing=epsilon)
