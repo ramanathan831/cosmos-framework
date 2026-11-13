@@ -259,9 +259,11 @@
       "native_training_horizon": 300,
       "planned_updates_per_case": 100,
       "quality_rule": "Advance only if NF gains at least one correct answer and reduces hard-gold token CE by at least 1% against its fresh epsilon-zero control, with equal BF opportunity and at least 6 GiB valid owned-GPU memory saving against the selected BF option.",
+      "result_section": "answer_smoothing_screen_09e99c3",
       "selection_or_promotion": false,
+      "selection_or_promotion_scope": "No default or release promotion; prospective followup choices are recorded in the completed screen section.",
       "source_plan_sha256": "8c9963ebfb02ba7e7ce436adb3d2328b0155fe25f94bf02619deac91106cd2e2",
-      "status": "admitted_outcomes_pending",
+      "status": "completed_positive_screen_followup_required",
       "submission_receipt_sha256": "479189270a56e77c19b307b01d69ceed7807ad2b8e0b25b6a5c5b49a27691ba7"
     },
     "limits": [
@@ -505,7 +507,677 @@
       "scope": "The earlier pre-kernel failure remains unchanged in its original section; this reference is not another charge."
     },
     "scope": "Current-build correctness for the opt-in training objective only. This four-update canary does not establish a learning benefit, performance advantage, release qualification, dense export or long-workload support.",
-    "status": "both_precision_correctness_accepted_learning_screen_admitted_outcomes_pending"
+    "status": "both_precision_correctness_accepted_positive_screen_followup_pending"
+  },
+  "answer_smoothing_screen_09e99c3": {
+    "accepted_readout_sha256": "9600a02c417dbee636152233c99b5238de8b4c675432a7c828b5ca5ec5f0d362",
+    "actual_commands_match_plan": 75,
+    "capture_bytes": 168704737,
+    "capture_members": 514,
+    "case_order": [
+      "nf4_epsilon0",
+      "bf16_epsilon002",
+      "bf16_epsilon0",
+      "nf4_epsilon002"
+    ],
+    "cases": {
+      "bf16_epsilon0": {
+        "actual_updates": 100,
+        "arm": "bf16",
+        "case_elapsed_seconds": 1841.6852252450772,
+        "complete_ttq": false,
+        "dropout": 0.0,
+        "endpoint": {
+          "answer_nll": 0.3270192570882301,
+          "restricted_accuracy": 0.898972602739726,
+          "restricted_choice_nll": 0.3267265705213155,
+          "restricted_correct": 525,
+          "rows": 584,
+          "strict_accuracy": 0.898972602739726,
+          "supervised_tokens": 1168,
+          "token_weighted_ce": 0.1635104809475918,
+          "valid_letter_rate": 1.0
+        },
+        "epsilon": 0.0,
+        "first_passing_step": null,
+        "horizon_censored": false,
+        "memory": {
+          "first_observation_delay_seconds": 0.44522876804694533,
+          "gpu_memory_evidence_valid": true,
+          "host_pss_complete": true,
+          "host_pss_sum_peak_bytes": 9706932224,
+          "host_rss_sum_peak_bytes": 10015899648,
+          "last_observation_to_case_end_seconds": 0.6628451910801232,
+          "observed_span_seconds": 1840.3219282627106,
+          "owned_device_process_peak_bytes": 24888999936,
+          "peaks_are_sampled_lower_bounds": true,
+          "samples": 1407,
+          "sampling_gap_seconds": {
+            "count": 1406,
+            "maximum": 1.728076696395874,
+            "mean": 1.3089060656207046,
+            "median": 1.3106478452682495,
+            "p95": 1.3571075797080994,
+            "sum": 1840.3219282627106
+          }
+        },
+        "nested_stage_elapsed_seconds": {
+          "acceptance": 10.329023083671927,
+          "case_begin": 0.2673469581641257,
+          "case_finish": 0.16734960582107306,
+          "checkpoint_inspect": 26.298629109282047,
+          "fresh_score": 312.5348718892783,
+          "portable_publication": 8.827595398761332,
+          "probe_dcp": 162.82295208610594,
+          "probe_portable": 116.6904143281281,
+          "reload_exact": 4.322527396958321,
+          "training_000100": 1197.2288894220255
+        },
+        "scheduled_observations": [
+          {
+            "correct": 524,
+            "rows": 584,
+            "step": 50,
+            "target_met": false,
+            "token_weighted_ce": 0.19715045753301103
+          },
+          {
+            "correct": 525,
+            "rows": 584,
+            "step": 100,
+            "target_met": false,
+            "token_weighted_ce": 0.1635104809475918
+          }
+        ],
+        "source_receipts": {
+          "case_complete_sha256": "d0d056d3e4dde741b7b8eec68338207a69a44630173956b3d1a18ce95d878881",
+          "checkpoint_000100_sha256": "c5acba9d31ff25e36eb90bfce56ac91ca5deccfd1d2ff216b67e9c098e0ecf12",
+          "fresh_scores_scoresl_sha256": "8ea1d4881da7c4f72249551693eedf13d7c206750ceb4a6e84976d7c73ee4fac",
+          "fresh_scores_selected_rowsl_sha256": "ce2ad315e2e0e9a4b408c4503f9c2a97105da0f111fa3d9bfdb84812230713b8",
+          "fresh_scores_summary_sha256": "194f24fd849f09d6a8e08f0ec0c9a5fa0625705ffa49a6b68847ddad5ca336e2",
+          "probes_dcp_probe_sha256": "64c8caed909c3c1749dc73da4e2e1ffbf9c46b17f671e3497a6ada26b456923f",
+          "probes_portable_probe_sha256": "ad1994c7426ae3632c23d1d62c9e764f0e81f83620bd122c504dc7e5d450f1de",
+          "screen_acceptance_sha256": "b90464fa8f10591996fecadf1c3b325a15482d36be4db0581f68cd00be5b0b5e",
+          "stages_reload_exact_output.log_sha256": "5cd5cc52f2281fbfbe909d457501cfcdc7fd3b0b6ffd383768460d92bf638b71"
+        }
+      },
+      "bf16_epsilon002": {
+        "actual_updates": 100,
+        "arm": "bf16",
+        "case_elapsed_seconds": 1901.0408186931163,
+        "complete_ttq": false,
+        "dropout": 0.0,
+        "endpoint": {
+          "answer_nll": 0.28854165338490106,
+          "restricted_accuracy": 0.8955479452054794,
+          "restricted_choice_nll": 0.2881742405564818,
+          "restricted_correct": 523,
+          "rows": 584,
+          "strict_accuracy": 0.8955479452054794,
+          "supervised_tokens": 1168,
+          "token_weighted_ce": 0.1442723594440868,
+          "valid_letter_rate": 1.0
+        },
+        "epsilon": 0.02,
+        "first_passing_step": null,
+        "horizon_censored": false,
+        "memory": {
+          "first_observation_delay_seconds": 0.9963316568173468,
+          "gpu_memory_evidence_valid": true,
+          "host_pss_complete": true,
+          "host_pss_sum_peak_bytes": 9743897600,
+          "host_rss_sum_peak_bytes": 9825275904,
+          "last_observation_to_case_end_seconds": 0.48917732620611787,
+          "observed_span_seconds": 1899.3085079193115,
+          "owned_device_process_peak_bytes": 24886902784,
+          "peaks_are_sampled_lower_bounds": true,
+          "samples": 1447,
+          "sampling_gap_seconds": {
+            "count": 1446,
+            "maximum": 2.1492035388946533,
+            "mean": 1.3134913609400494,
+            "median": 1.3045836687088013,
+            "p95": 1.391571581363678,
+            "sum": 1899.3085079193115
+          }
+        },
+        "nested_stage_elapsed_seconds": {
+          "acceptance": 16.191104389261454,
+          "case_begin": 0.31709621008485556,
+          "case_finish": 0.16788319079205394,
+          "checkpoint_inspect": 25.750019134022295,
+          "fresh_score": 319.7491427157074,
+          "portable_publication": 10.982961924746633,
+          "probe_dcp": 168.68950095772743,
+          "probe_portable": 120.4182469570078,
+          "reload_exact": 5.323780522681773,
+          "training_000100": 1231.0482520591468
+        },
+        "scheduled_observations": [
+          {
+            "correct": 525,
+            "rows": 584,
+            "step": 50,
+            "target_met": false,
+            "token_weighted_ce": 0.2208832508700179
+          },
+          {
+            "correct": 523,
+            "rows": 584,
+            "step": 100,
+            "target_met": false,
+            "token_weighted_ce": 0.1442723594440868
+          }
+        ],
+        "source_receipts": {
+          "case_complete_sha256": "0172562336297fd33056894ddf42438387921d0e9958ea3db36069d8c52e927d",
+          "checkpoint_000100_sha256": "2b2388e1a48657e060ef881c752907aa401f1b7abbe283e14be5756cd91dcc17",
+          "fresh_scores_scoresl_sha256": "7acd51e72905c3bcab7b9c18e604201befd60572445e8b528c4912f9f5b43026",
+          "fresh_scores_selected_rowsl_sha256": "ce2ad315e2e0e9a4b408c4503f9c2a97105da0f111fa3d9bfdb84812230713b8",
+          "fresh_scores_summary_sha256": "836a8dc9e8d608c6981852c57756cf09e7064820cde44ed716a1a00fad620e89",
+          "probes_dcp_probe_sha256": "2280b909a7421873c9c0bac46d7836bba8e268d45334927da54dd119abc7d4f6",
+          "probes_portable_probe_sha256": "24831572ead939350a5b72c3d199b352b18ecb48f0ef9be8c572d4b1fa88a76e",
+          "screen_acceptance_sha256": "24a13d20c2f10665390c1efed3942a21b62eb33a9c455127ce1d5f54eaabda7e",
+          "stages_reload_exact_output.log_sha256": "5cd5cc52f2281fbfbe909d457501cfcdc7fd3b0b6ffd383768460d92bf638b71"
+        }
+      },
+      "nf4_epsilon0": {
+        "actual_updates": 100,
+        "arm": "nf4",
+        "case_elapsed_seconds": 1949.1079050512053,
+        "complete_ttq": false,
+        "dropout": 0.0,
+        "endpoint": {
+          "answer_nll": 0.2954298633418671,
+          "restricted_accuracy": 0.9041095890410958,
+          "restricted_choice_nll": 0.2949990899595496,
+          "restricted_correct": 528,
+          "rows": 584,
+          "strict_accuracy": 0.9041095890410958,
+          "supervised_tokens": 1168,
+          "token_weighted_ce": 0.14771907522889993,
+          "valid_letter_rate": 1.0
+        },
+        "epsilon": 0.0,
+        "first_passing_step": null,
+        "horizon_censored": false,
+        "memory": {
+          "first_observation_delay_seconds": 0.3576524560339749,
+          "gpu_memory_evidence_valid": true,
+          "host_pss_complete": true,
+          "host_pss_sum_peak_bytes": 9767457792,
+          "host_rss_sum_peak_bytes": 10032807936,
+          "last_observation_to_case_end_seconds": 0.9443423971533775,
+          "observed_span_seconds": 1947.557415485382,
+          "owned_device_process_peak_bytes": 14266925056,
+          "peaks_are_sampled_lower_bounds": true,
+          "samples": 1499,
+          "sampling_gap_seconds": {
+            "count": 1498,
+            "maximum": 1.676842451095581,
+            "mean": 1.3001050837686128,
+            "median": 1.2999945878982544,
+            "p95": 1.3449436902999876,
+            "sum": 1947.557415485382
+          }
+        },
+        "nested_stage_elapsed_seconds": {
+          "acceptance": 13.132341513875872,
+          "case_begin": 0.26721352618187666,
+          "case_finish": 0.16703205928206444,
+          "checkpoint_inspect": 25.798346302937716,
+          "fresh_score": 332.8565408233553,
+          "portable_publication": 9.786322641186416,
+          "probe_dcp": 141.54680716618896,
+          "probe_portable": 91.59094773512334,
+          "reload_exact": 4.6721354820765555,
+          "training_000100": 1327.1385282450356
+        },
+        "scheduled_observations": [
+          {
+            "correct": 524,
+            "rows": 584,
+            "step": 50,
+            "target_met": false,
+            "token_weighted_ce": 0.22013588698570097
+          },
+          {
+            "correct": 528,
+            "rows": 584,
+            "step": 100,
+            "target_met": false,
+            "token_weighted_ce": 0.14771907522889993
+          }
+        ],
+        "source_receipts": {
+          "case_complete_sha256": "4043b89a78b7ddb5036a390ea3274f9917e452138488481baf6f95ebbc0ae6e8",
+          "checkpoint_000100_sha256": "2f27924bdec46403d5c459549f69e54c9a7be956e8ed7581028d389c66c575c9",
+          "fresh_scores_scoresl_sha256": "6e0f0714f1e3d8947d07a615183b1478a4abc2cacc2c4f99fcdb08710f0c4a76",
+          "fresh_scores_selected_rowsl_sha256": "ce2ad315e2e0e9a4b408c4503f9c2a97105da0f111fa3d9bfdb84812230713b8",
+          "fresh_scores_summary_sha256": "b4c5d6322774fe325a72b11fc9a47af3ced43d63dbe9075dcd14a555c03f316f",
+          "probes_dcp_probe_sha256": "87d417bd52389a925378e0914c83d3f9cece8f73fb7988c071d350e37c8acca6",
+          "probes_portable_probe_sha256": "32063881d6fb9f01d484e22b35e97627f0348715d3b87011b1c2cbbbae883a49",
+          "screen_acceptance_sha256": "b3c9187292d86ce00c2ab6f2ee7d43679e08d56e4a383621745f2132f521baf3",
+          "stages_reload_exact_output.log_sha256": "5cd5cc52f2281fbfbe909d457501cfcdc7fd3b0b6ffd383768460d92bf638b71"
+        }
+      },
+      "nf4_epsilon002": {
+        "actual_updates": 100,
+        "arm": "nf4",
+        "case_elapsed_seconds": 1915.0657062386163,
+        "complete_ttq": false,
+        "dropout": 0.0,
+        "endpoint": {
+          "answer_nll": 0.28840076760069966,
+          "restricted_accuracy": 0.9092465753424658,
+          "restricted_choice_nll": 0.28806985567693844,
+          "restricted_correct": 531,
+          "rows": 584,
+          "strict_accuracy": 0.9092465753424658,
+          "supervised_tokens": 1168,
+          "token_weighted_ce": 0.14420096089098441,
+          "valid_letter_rate": 1.0
+        },
+        "epsilon": 0.02,
+        "first_passing_step": null,
+        "horizon_censored": false,
+        "memory": {
+          "first_observation_delay_seconds": 0.27077342569828033,
+          "gpu_memory_evidence_valid": true,
+          "host_pss_complete": true,
+          "host_pss_sum_peak_bytes": 9720835072,
+          "host_rss_sum_peak_bytes": 9973497856,
+          "last_observation_to_case_end_seconds": 1.047283848747611,
+          "observed_span_seconds": 1913.516675233841,
+          "owned_device_process_peak_bytes": 14266925056,
+          "peaks_are_sampled_lower_bounds": true,
+          "samples": 1464,
+          "sampling_gap_seconds": {
+            "count": 1463,
+            "maximum": 1.7455768585205078,
+            "mean": 1.3079403111646213,
+            "median": 1.3122804164886475,
+            "p95": 1.3560550928115844,
+            "sum": 1913.516675233841
+          }
+        },
+        "nested_stage_elapsed_seconds": {
+          "acceptance": 9.63218848221004,
+          "case_begin": 0.2675553220324218,
+          "case_finish": 0.16707309009507298,
+          "checkpoint_inspect": 25.647260112222284,
+          "fresh_score": 321.58919006586075,
+          "portable_publication": 9.67800109507516,
+          "probe_dcp": 142.9451684327796,
+          "probe_portable": 100.64787207404152,
+          "reload_exact": 4.4720175210386515,
+          "training_000100": 1297.3717024927028
+        },
+        "scheduled_observations": [
+          {
+            "correct": 526,
+            "rows": 584,
+            "step": 50,
+            "target_met": false,
+            "token_weighted_ce": 0.18985216779212152
+          },
+          {
+            "correct": 531,
+            "rows": 584,
+            "step": 100,
+            "target_met": false,
+            "token_weighted_ce": 0.14420096089098441
+          }
+        ],
+        "source_receipts": {
+          "case_complete_sha256": "f9f6fcfa12d28294dc0a280ed705e45245b8296d25b066f45824df2c5a74e861",
+          "checkpoint_000100_sha256": "48da2779abfca57c076bfd452e656aff6c9e763fa9b7f5dd8b926f03c3b9d92d",
+          "fresh_scores_scoresl_sha256": "18e41d1015f21b8a88a3706c9d35c36039a9f1ec86ce37f2453ad3983b3f48c9",
+          "fresh_scores_selected_rowsl_sha256": "ce2ad315e2e0e9a4b408c4503f9c2a97105da0f111fa3d9bfdb84812230713b8",
+          "fresh_scores_summary_sha256": "78703de69f7a84a2c0b6d68469609253086ff5751069c3e9834c4abddb0ec30a",
+          "probes_dcp_probe_sha256": "f95cf754bb63b66ee81a7dd9c8e731a6519d4e69227c7a4bb8eee2ee7b00e048",
+          "probes_portable_probe_sha256": "12a32bd8772415f04288a8b9094739f6a78f7088add7b0002fdd1023562e9a5e",
+          "screen_acceptance_sha256": "9fd86ba111a905be443f59ee19364aa5827ee05c24c14f705ae8f42b5d9371a6",
+          "stages_reload_exact_output.log_sha256": "5cd5cc52f2281fbfbe909d457501cfcdc7fd3b0b6ffd383768460d92bf638b71"
+        }
+      }
+    },
+    "checks": {
+      "all_100_updates_and_13_numerical_fields_checked": true,
+      "all_eight_50_and_100_native_observations_replayed": true,
+      "all_four_completed_before_selection": true,
+      "all_four_initial_504_adapter_inventories_equal": true,
+      "allocated_proofs_reused_without_local_tensor_payload_read": true,
+      "both_epsilon_zero_100_update_trajectories_and_full_scores_exact_to_retained_dadfc_controls": true,
+      "declared_model_source_processor_and_training_identity_exact": true,
+      "four_native100_fresh584_score_and_selection_pairs_exact": true,
+      "historical_dropout_allocation_remains_failed": true,
+      "no_cross_build_resume_permission": true,
+      "own_dcp_portable_504_adapters_and_three_modal_zero_tolerance_reload": true
+    },
+    "cost": {
+      "allocated_cpu_count": 16,
+      "allocated_cpu_seconds": 123024,
+      "driver_elapsed_seconds": 7610.993060123175,
+      "gpu_allocation_seconds": 7689,
+      "nested_case_and_stage_clocks_not_added": true,
+      "prior_failed_attempts_and_qualifications_not_recharged": true,
+      "this_allocation_count": 1
+    },
+    "descriptive_diagnostics": {
+      "answer_fraction_of_total_nll": {
+        "bf16_epsilon0": 0.9999947868572595,
+        "bf16_epsilon002": 0.9999893759855167,
+        "nf4_epsilon0": 0.99997194974339,
+        "nf4_epsilon002": 0.9999959980111712
+      },
+      "confidence_scope": "Softmax over actual answer choices, not full-vocabulary or free-generation confidence. NF candidate wrong-answer confidence rises despite the aggregate point improvement.",
+      "largest_nf4_task_ce_improvements": [
+        {
+          "candidate_ce": 0.5939210789763213,
+          "candidate_correct": 12,
+          "ce_difference": -0.24113202554678237,
+          "control_ce": 0.8350531045231037,
+          "control_correct": 12,
+          "correct_gain": 0,
+          "label": "road_formation",
+          "overall_ce_delta_contribution": -0.006193459560276944,
+          "right_to_wrong": 0,
+          "rows": 15,
+          "wrong_to_right": 0
+        },
+        {
+          "candidate_ce": 0.3390325197467097,
+          "candidate_correct": 20,
+          "ce_difference": -0.09551548295550877,
+          "control_ce": 0.4345480027022185,
+          "control_correct": 8,
+          "correct_gain": 12,
+          "label": "traffic_volume",
+          "overall_ce_delta_contribution": -0.004415955547600576,
+          "right_to_wrong": 0,
+          "rows": 27,
+          "wrong_to_right": 12
+        },
+        {
+          "candidate_ce": 0.12654561391345373,
+          "candidate_correct": 32,
+          "ce_difference": -0.05968805173209771,
+          "control_ce": 0.18623366564555144,
+          "control_correct": 35,
+          "correct_gain": -3,
+          "label": "lower_clothing_color",
+          "overall_ce_delta_contribution": -0.0038838115853077272,
+          "right_to_wrong": 3,
+          "rows": 38,
+          "wrong_to_right": 0
+        }
+      ],
+      "largest_nf4_task_ce_regressions": [
+        {
+          "candidate_ce": 0.21951907241429366,
+          "candidate_correct": 28,
+          "ce_difference": 0.09692128934822154,
+          "control_ce": 0.12259778306607212,
+          "control_correct": 32,
+          "correct_gain": -4,
+          "label": "weather",
+          "overall_ce_delta_contribution": 0.005642677804519747,
+          "right_to_wrong": 4,
+          "rows": 34,
+          "wrong_to_right": 0
+        },
+        {
+          "candidate_ce": 0.14173576891711304,
+          "candidate_correct": 26,
+          "ce_difference": 0.10717216175619577,
+          "control_ce": 0.03456360716091726,
+          "control_correct": 28,
+          "correct_gain": -2,
+          "label": "road_surface_condition",
+          "overall_ce_delta_contribution": 0.005321905292687804,
+          "right_to_wrong": 2,
+          "rows": 29,
+          "wrong_to_right": 0
+        },
+        {
+          "candidate_ce": 0.03414529445581138,
+          "candidate_correct": 36,
+          "ce_difference": 0.030198675620149038,
+          "control_ce": 0.003946618835662345,
+          "control_correct": 38,
+          "correct_gain": -2,
+          "label": "pedestrian_height",
+          "overall_ce_delta_contribution": 0.0019649823177494237,
+          "right_to_wrong": 2,
+          "rows": 38,
+          "wrong_to_right": 0
+        }
+      ],
+      "not_selection_criteria": true,
+      "recording_change_counts": {
+        "bf16": {
+          "fewer_correct_groups": 3,
+          "higher_ce_groups": 9,
+          "lower_ce_groups": 3,
+          "more_correct_groups": 2
+        },
+        "nf4": {
+          "fewer_correct_groups": 4,
+          "higher_ce_groups": 4,
+          "lower_ce_groups": 8,
+          "more_correct_groups": 4
+        }
+      },
+      "recording_groups": 12,
+      "remaining_token_scope": "Remaining supervised-token NLL is derived as 2 * native_sft_ce - answer_nll for the two supervised tokens. No direct termination logits are retained; FP32 reduction residuals are not clipped.",
+      "same_arm_error_transitions": {
+        "bf16": {
+          "control_False_candidate_False": {
+            "overall_ce_delta_contribution": -0.03689695910027582,
+            "rows": 57
+          },
+          "control_False_candidate_True": {
+            "overall_ce_delta_contribution": -0.0004755659156466184,
+            "rows": 2
+          },
+          "control_True_candidate_False": {
+            "overall_ce_delta_contribution": 0.000977928201629691,
+            "rows": 4
+          },
+          "control_True_candidate_True": {
+            "overall_ce_delta_contribution": 0.017156475310787768,
+            "rows": 521
+          }
+        },
+        "nf4": {
+          "control_False_candidate_False": {
+            "overall_ce_delta_contribution": -6.424849980498013e-06,
+            "rows": 38
+          },
+          "control_False_candidate_True": {
+            "overall_ce_delta_contribution": -0.011400625824111782,
+            "rows": 18
+          },
+          "control_True_candidate_False": {
+            "overall_ce_delta_contribution": 0.013778122034711661,
+            "rows": 15
+          },
+          "control_True_candidate_True": {
+            "overall_ce_delta_contribution": -0.005889185698534887,
+            "rows": 513
+          }
+        }
+      },
+      "selected_pair_shared_wrong_ce_fraction": {
+        "bf16": 0.7706544127955465,
+        "nf4": 0.6593161107628521
+      },
+      "selected_pair_shared_wrong_rows": 35,
+      "slice_scope": "All 22 tasks and 12 exposed correlated recording groups are retained in the source-bound private readout. Displayed tasks are the largest signed CE contributions, not exclusions, reweighting or new tests.",
+      "tasks": 22,
+      "wrong_answer_restricted_confidence": {
+        "bf16_epsilon0": {
+          "at_least_0_9_count": 19,
+          "mean_restricted_predicted_confidence": 0.7526473246789434,
+          "wrong_rows": 59
+        },
+        "bf16_epsilon002": {
+          "at_least_0_9_count": 9,
+          "mean_restricted_predicted_confidence": 0.6838939624773736,
+          "wrong_rows": 61
+        },
+        "nf4_epsilon0": {
+          "at_least_0_9_count": 13,
+          "mean_restricted_predicted_confidence": 0.674261507520881,
+          "wrong_rows": 56
+        },
+        "nf4_epsilon002": {
+          "at_least_0_9_count": 18,
+          "mean_restricted_predicted_confidence": 0.7798808167744754,
+          "wrong_rows": 53
+        }
+      }
+    },
+    "followup": {
+      "admitted_allocations": 2,
+      "allocated_cpu_seconds_reserved": 464640,
+      "both_required_regardless_first_result": true,
+      "fixed_before_either_followup_outcome": true,
+      "gpu_allocation_seconds_reserved": 29040,
+      "issued_prospective_plan_sha256": "1c8e5a292e117251be55306588a6cd86e8935f5b4134e6e76c3065d63ffb68b4",
+      "no_accepted_followup_outcome": true,
+      "no_default_or_release_promotion": true,
+      "required_bf16": {
+        "dropout": 0.0,
+        "wts_answer_smoothing": 0.0
+      },
+      "required_both_seeds": [
+        17,
+        123
+      ],
+      "required_nf4": {
+        "dropout": 0.0,
+        "wts_answer_smoothing": 0.02
+      },
+      "reservations_excluded_from_completed_cost": true,
+      "separate_bf16_dropout_reference": {
+        "both_seeds": [
+          17,
+          123
+        ],
+        "dropout": 0.05,
+        "nf4_dropout_retried": false,
+        "per_seed_best_of_selection": false,
+        "reason": "Retained BF16 dropout 0.05 had 530 versus 525 correct and 0.1375932472665102 versus 0.1635104809475918 CE at 100 updates. The reference is fixed separately before followup outcomes; the frozen smoothing screen still selects BF16 epsilon zero/dropout zero.",
+        "replaces_required_bf16_control": false,
+        "wts_answer_smoothing": 0.0
+      },
+      "status": "two_allocations_admitted_results_pending"
+    },
+    "hardware": {
+      "allocated_cpu_count": 16,
+      "device": "NVIDIA A100-SXM4-80GB",
+      "gpu_count": 1,
+      "numa_nodes": 1,
+      "physical_cores": 8,
+      "same_allocation_for_all_four_cases": true
+    },
+    "limits": {
+      "all_eight_observations_miss_fixed_joint_ttq_target": true,
+      "earlier_dropout_rejection_and_operational_failures_unchanged": true,
+      "no_equal_consumed_compute_or_superiority_claim": true,
+      "no_new_confidence_interval_or_independent_confirmation": true,
+      "one_exposed_seed_and12_recording_groups": true,
+      "paused100_screen_not_completed_or_horizon_censored300_ttq": true,
+      "release_ce_2percent_accuracy_1point_guards_and_independent_data_requirement_unchanged": true
+    },
+    "memory_scope": {
+      "all_contained_host_pss_samples_complete": true,
+      "all_contained_owned_gpu_samples_valid": true,
+      "case_clocks_include_training_two_resident_scores_inspection_export_reload_fresh584_and_acceptance": true,
+      "case_end_is_frozen_finish_timestamp_before_finish_receipt_publication_and_final_driver_cleanup": true,
+      "maximum_parent_sample_gap_seconds": 2.1492035388946533,
+      "nested_phase_clocks_are_not_added_to_case_or_allocation_cost": true,
+      "one_final_nf4_candidate_boundary_crossing_sample_excluded": true,
+      "peaks_are_sampled_lower_bounds": true,
+      "selection_uses_samples_wholly_contained_in_each_predeclared_complete_case_interval": true,
+      "short_unsampled_intervals_and_unmapped_page_cache_not_claimed_complete": true,
+      "whole_parent_samples": 5821
+    },
+    "native_revision": "09e99c3d94e00ac1d9dd7a356d3996edb05d946b",
+    "native_wheel_sha256": "9ab5ffef8532f5dd758c80bf52003579b71a34fcdb399a1c6679975f0d193c8f",
+    "outer_outcomes_zero": 76,
+    "readout_source_sha256": "c5d5ac32ff20ea9bcd74171e8a910d3b61a4f9080bacb36abb15042c06da5045",
+    "recipe": {
+      "activation_checkpointing": "none",
+      "actual_updates": 100,
+      "alpha": 64,
+      "cache_bytes_training_and_evaluation_each": 3221225472,
+      "dropout": 0.0,
+      "grad_accum": 8,
+      "learning_rate": 0.0001,
+      "lr_cycle_steps": 300,
+      "microbatch": 1,
+      "native_horizon": 300,
+      "observed_steps": [
+        50,
+        100
+      ],
+      "ordinary_validation_rows": 64,
+      "pause_after_step": 100,
+      "preprocessing_workers": 1,
+      "rank": 32,
+      "rows": 584,
+      "scheduled_full_grid": [
+        50,
+        100,
+        150,
+        200,
+        250,
+        300
+      ],
+      "stop_on_target": false,
+      "warmup_steps": 30
+    },
+    "screen_workflow_revision": "09e99c3d94e00ac1d9dd7a356d3996edb05d946b",
+    "seed": 123,
+    "selection": {
+      "bf16_candidate_ce_ratio": 0.8823431905281279,
+      "bf16_candidate_correct_gain": -2,
+      "bf16_selected_case": "bf16_epsilon0",
+      "bf16_selected_epsilon": 0.0,
+      "complete_four_case_screen": true,
+      "followup_automatically_authorized": false,
+      "memory_gate_pass": true,
+      "nf4_ce_guard": true,
+      "nf4_ce_percent_change": -2.3816249407627166,
+      "nf4_correct_gain": 3,
+      "nf4_correct_guard": true,
+      "nf4_hard_gold_ce_ratio": 0.9761837505923728,
+      "nf4_quality_conditions_pass": true,
+      "owned_gpu_required_min_bytes": 6442450944,
+      "owned_gpu_saving_bytes": 10622074880,
+      "owned_gpu_saving_gib": 9.892578125,
+      "release_qualified": false,
+      "screen_pass": true
+    },
+    "source_capture_sha256": "e574b9eb2c169298d0b66a39ac17c44b76e8cc543eb6451bc0ed66cbccf3bf08",
+    "source_input_pins": 104,
+    "source_plan_sha256": "c0704a09194520ed3e3f5fc0892ff034709ff059d905ec3f620413b65d6bc0cf",
+    "status": "completed_positive_development_screen_followup_required",
+    "workflow_interface_extension": {
+      "cpu_test_errors": 0,
+      "cpu_test_failures": 0,
+      "cpu_test_skips": 0,
+      "cpu_test_xml_sha256": "9994e91fa82633046489f029b179fef183ec635e4ec039bf50329f20df02ae5f",
+      "cpu_tests_passed": 76,
+      "protocol_source_sha256": "c74427eee18a24db3235cc0167d81b8852f1218e15fb29a09a0b8cba78cdd9e8",
+      "revision": "add739834bc666dea6d7146e5c28ad66e38b492a",
+      "runner_source_sha256": "21392dad8296d9934c0afdff5804af313f8cf5dbbd22fd269f199b0363223d01",
+      "scope": "Optional Experiment.wts_answer_smoothing field forwards the already-qualified native override; zero defaults preserve historical serialized specs and commands. The native 09e99c3 wheel, training arithmetic, scorer and TTQ runner are unchanged; these CPU tests add no accelerator evidence.",
+      "workflow_receipt_sha256": "04082a5c1f60ebc5841324e102eb4171d80ba8ae5bad795d90da403d8fb30cc5"
+    }
   },
   "combined_long_video_rank32_09e99c3": {
     "arms": {
@@ -2227,6 +2899,7 @@
       "prior_recorded_gpu_allocation_seconds": 36884,
       "retained_raw_row_crosscheck_sha256": "9fd67ee523aa1cf5252bc07a10a0905c86fd85ce2a96bd4c4f294358642a665a",
       "scope": "All tracked native-evaluation continuation allocations closed through the BF qualification, including every failed start once. Active long support and the newly admitted learning screen have no terminal actual cost here; their reservations are separate and are not charges or storage-capacity guarantees. Nested clocks and reused proofs are not added. Acquisition, local preparation and cleanup CPU remain unmeasured, not zero.",
+      "snapshot_scope": "Historical 28-allocation snapshot before the long and smoothing-screen closures; its then-active reservations are not current results or additional charges.",
       "terminal_source_sha256": [
         "05fe4244a95150a315291f2ab5b65f34580fac33c24cd1d317cc5b7884135144",
         "06633f900fc1110c022e4c119761e3906e8a581522c0e9ba8ac2d923672a7659",
@@ -2256,6 +2929,66 @@
         "fb77007d60a7b7fd901340a9050482d75f5426db256fdeb414c9fe62aed99f57"
       ]
     },
+    "continuation_through_smoothing_screen": {
+      "acquisition_build_local_analysis_and_cleanup_cpu_remain_unmeasured": true,
+      "active_excluded_at_this_snapshot": [],
+      "all_failures_counted_once": true,
+      "allocated_cpu_seconds": 1220416,
+      "calendar_start_date_subtotals": {
+        "2026-11-11": {
+          "allocations": 18,
+          "gpu_allocation_seconds": 36884
+        },
+        "2026-11-12": {
+          "allocations": 8,
+          "gpu_allocation_seconds": 22994
+        },
+        "2026-11-13": {
+          "allocations": 4,
+          "gpu_allocation_seconds": 16398
+        }
+      },
+      "distinct_allocations": 30,
+      "gpu_allocation_seconds": 76276,
+      "nested_clocks_and_reused_proofs_not_charged_again": true,
+      "new_long_gpu_allocation_seconds": 4469,
+      "new_screen_gpu_allocation_seconds": 7689,
+      "prior28_gpu_allocation_seconds": 64118,
+      "reservations_not_counted_as_actuals": true,
+      "retained_raw_row_crosscheck_sha256": "2e1ba31acdf0b6e37ac63cbd4fd8559c909cb0122a00ccf684a1e9b4752bc58a",
+      "snapshot_scope": "Thirty disjoint terminal native-evaluation continuation allocations through completed long support and this smoothing screen; earlier 28- and 18-allocation snapshots remain historical. Not the total across all earlier QLoRA campaigns.",
+      "terminal_source_sha256": [
+        "05fe4244a95150a315291f2ab5b65f34580fac33c24cd1d317cc5b7884135144",
+        "06633f900fc1110c022e4c119761e3906e8a581522c0e9ba8ac2d923672a7659",
+        "06c02135099c1a00830ebf4842186432efb908a3fb0639ae6a63c0021255efd4",
+        "0e31b4567af4b4c029dd2aa4dd2816f0f239406833ce7c7e04aa951a9dc9ae13",
+        "0f6146efea2c26531b216e844c5c02dba052982c1bb81606a2bd12b7e6317f39",
+        "1970d5afcfe5377790953560aeee274627afd9c49488a4703301affc36acf52e",
+        "2cdc9d95081958869bce30e99313a565ef77e8c5fb75af1eeb643b2ea74e87ca",
+        "33afdd07b74f7f14ddca46ff55b5e6619b3dc99a21b4041c5295f5c75a4c9643",
+        "44e679d43cb752fbf0024a0e9a043a94bdbd246ba65ce4039642623ca561e69a",
+        "5533d4a1e808308d71e86774e82ab6f9a466d5b456d1e17da7ee9fd4fae2ac04",
+        "55c2ca67d9b2524f7b11e814003ae324ebb714337d30a4f39fad78d01403122a",
+        "56ac45ec93289204de40cd1d999b0518a64e39968949556872c56f87ecf7864c",
+        "5e02ee6a6a73f8a2a5b93387c77ffc95d36178ad1f58a6cbf62657ec594621a5",
+        "803aa583b80f6edecab78fd7cbda8e4241a854526f8c413f728935aeb71d0d4a",
+        "9a665a63e462486c39c25eb425e49ad4e98b7c9b2640fb72a04683576b627ef6",
+        "9edaefb2bfd955cdb16aa4ae254d3be642591cb7a2b77b066c7ca7fb52fdccac",
+        "b418d0a18d52b71df6fc68b67e68d8c52ac198098ad02d53afa4e3406caf36dd",
+        "b9e3ad64c50526283095eedf9239781ea7d90a64f184bf5bac0fbdd2eb30b4f3",
+        "bac36a1068397c951c3379792ac979dca4529f4a7ee9757cae0fbb937b20f93a",
+        "c5438391d75e4cb4c05c755a7459fc18359e8ee83a3ae1c6c00c89e2ecbde049",
+        "c7178de12c8a1bd67844fec1b374fff85962ec78e5aa3f9f4e826bb3e328bb20",
+        "d7a183c2850b9cb04319e882e63c4b6ad5012082b139817547f4c5951d9febc1",
+        "d81078015f5ce46157b84cde53bf989e21ec133d159c71f95d8a2d658d5ba061",
+        "dbe9c5de4e131d9e8ee842efcd559bb5fee3cb2973920dd8c071614e701f6db5",
+        "dc00d4a04c44f13548281279793b0a15a1d2b690fbcdc73a016a2361d4ce2282",
+        "de6f9e7d444474a9a8e402b12d87ea4069dbf9a6045a6f93f227ca858b754ce2",
+        "e574b9eb2c169298d0b66a39ac17c44b76e8cc543eb6451bc0ed66cbccf3bf08",
+        "fb77007d60a7b7fd901340a9050482d75f5426db256fdeb414c9fe62aed99f57"
+      ]
+    },
+    "current_snapshot": "continuation_through_smoothing_screen",
     "distinct_allocations": 18,
     "gpu_allocation_seconds": 36884,
     "previous_fourteen_terminal_gpu_seconds": 23013,
@@ -5563,7 +6296,8 @@
       "answer_smoothing_correctness_09e99c3_continuation",
       "mature_recovery_dadfc89_seed123",
       "dense_export_bf16_09e99c3",
-      "combined_long_video_rank32_09e99c3"
+      "combined_long_video_rank32_09e99c3",
+      "answer_smoothing_screen_09e99c3"
     ],
     "native_revision": "09e99c3d94e00ac1d9dd7a356d3996edb05d946b",
     "native_wheel_sha256": "9ab5ffef8532f5dd758c80bf52003579b71a34fcdb399a1c6679975f0d193c8f",
