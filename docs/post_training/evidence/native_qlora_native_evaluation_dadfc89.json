@@ -1,4 +1,285 @@
 {
+  "answer_smoothing_correctness_09e99c3_continuation": {
+    "bf16": {
+      "accepted": false,
+      "completed_cost_included": false,
+      "issued_plan_sha256": "70d2dcf689df328abe6e67350c6b53e7605603ae374f5dfcd637a5d0b73d55d5",
+      "kernel_gate": "Bound to the accepted NF completion and both exact XML files; no duplicate kernel execution.",
+      "status": "admitted_outcomes_pending"
+    },
+    "build_receipt_sha256": "e98be5414451ab4ed1fb5e68ec34df3f5c3013561218289c656ae8cb4d71f7b4",
+    "implementation": {
+      "answer_smoothing": "Uniform mixture over the actual two to four answer-choice letters at the first answer position only; full-vocabulary log-softmax denominator retained.",
+      "cuda_fixture_source_sha256": "6b84c4e6969f20afa525826d851453b17906bb488ed57d0e6c44de8d6469d4db",
+      "default_epsilon": 0.0,
+      "default_zero_arithmetic_and_identity_preserved": true,
+      "epsilon": 0.02,
+      "evaluation_loss": "ordinary hard-gold cross entropy",
+      "normalization": "unchanged supervised-token normalization and gradient accumulation",
+      "resume_contract": "The exact training objective remains part of checkpoint identity; both epsilon mismatch directions are refused before backbone construction.",
+      "resume_refusal_source_sha256": "80a0c089f527939c1d496ac9e1b20494b1196592d205bc453e6ecd565672b5dc",
+      "termination_loss": "ordinary hard-gold cross entropy"
+    },
+    "learning_screen": {
+      "all_four_cases_required": true,
+      "both_precision_correctness_closures_required": true,
+      "case_order": [
+        "nf4_epsilon0",
+        "bf16_epsilon002",
+        "bf16_epsilon0",
+        "nf4_epsilon002"
+      ],
+      "dropout": 0,
+      "native_training_horizon": 300,
+      "planned_updates_per_case": 100,
+      "quality_rule": "Advance only if NF gains at least one correct answer and reduces hard-gold token CE by at least 1% against its fresh epsilon-zero control, with equal BF opportunity and at least 6 GiB valid owned-GPU memory saving against the selected BF option.",
+      "selection_or_promotion": false,
+      "source_plan_sha256": "8c9963ebfb02ba7e7ce436adb3d2328b0155fe25f94bf02619deac91106cd2e2",
+      "status": "unadmitted"
+    },
+    "limits": [
+      "The four-update/four-row target is deliberately unattainable, so this result does not exercise a successful early quality-target stop.",
+      "Correctness-only allocation placement may span known NUMA nodes. Timing and learning retain their separate frozen placement rules.",
+      "BF correctness and the 100-update learning screen remain incomplete; no smoothing quality outcome is available.",
+      "The preserved dropout rejection, historical statistical guards, prior failed allocations and separate support requirements are unchanged."
+    ],
+    "native_revision": "09e99c3d94e00ac1d9dd7a356d3996edb05d946b",
+    "native_wheel_sha256": "9ab5ffef8532f5dd758c80bf52003579b71a34fcdb399a1c6679975f0d193c8f",
+    "nf4": {
+      "accepted": true,
+      "capture_sha256": "803aa583b80f6edecab78fd7cbda8e4241a854526f8c413f728935aeb71d0d4a",
+      "capture_source_sha256": "5f95d5beb4f2a5fc5e517865ca50d6f19af2f39bfa0a8256d022d91526814459",
+      "captured_bytes": 47876812,
+      "captured_files": 237,
+      "cost": {
+        "allocated_cpu_seconds": 31664,
+        "distinct_allocations": 1,
+        "gpu_allocation_seconds": 1979,
+        "scope": "This completed NF qualification once. Kernel, objective, lifecycle and reload stages are nested and are not additional allocation charges."
+      },
+      "epsilon_resume_refusals": [
+        {
+          "error": "adapter checkpoint is missing identity.training_contract.objective.wts_answer_smoothing",
+          "exact_identity_accepted": true,
+          "mismatch_refused": true,
+          "requested_epsilon": 0.02,
+          "source_epsilon": 0.0
+        },
+        {
+          "error": "adapter training_contract.objective.wts_answer_smoothing differs",
+          "exact_identity_accepted": true,
+          "mismatch_refused": true,
+          "requested_epsilon": 0.0,
+          "source_epsilon": 0.02
+        }
+      ],
+      "exit_code": "0:0",
+      "kernel_gate": {
+        "errors": 0,
+        "exact_build_receipt": true,
+        "failures": 0,
+        "higher_precision_cases_passed": 1,
+        "real_cuda_cases_passed": 14,
+        "reused_by_later_qualifiers_without_rerun": true,
+        "skips": 0
+      },
+      "lifecycle": {
+        "comparison_atol": 0,
+        "comparison_rtol": 0,
+        "dcp_portable_adapter_tensor_inventories_exact": 504,
+        "dcp_portable_reload_logits_and_loss_max_difference": 0.0,
+        "dcp_portable_reload_modalities": [
+          "text",
+          "image",
+          "video"
+        ],
+        "evaluation_insertion_state_exact_at_steps": [
+          2,
+          4
+        ],
+        "expected_injected_interruptions": {
+          "accumulation": {
+            "checkpoint_step": 2,
+            "exact_recovered_steps": [
+              3,
+              4
+            ],
+            "expected_outer_nonzero_exit_code": 1,
+            "healthy_completed_boundary": true,
+            "live_state": {
+              "accumulation_step": 1,
+              "adapter_tensors": 504,
+              "attempt_id": 3,
+              "exact_optimizer_membership_validated": true,
+              "frozen_base_validated": true,
+              "input_window_active": true,
+              "optimizer_step": 2,
+              "partial_checkpoint_rejected": true
+            },
+            "owned_cleanup_failed": false,
+            "rank_exit_code": 86,
+            "timed_out": false
+          },
+          "boundary": {
+            "checkpoint_step": 2,
+            "exact_recovered_steps": [
+              3,
+              4
+            ],
+            "expected_outer_nonzero_exit_code": 1,
+            "healthy_completed_boundary": true,
+            "live_state": {
+              "accumulation_step": 0,
+              "adapter_tensors": 504,
+              "attempt_id": 2,
+              "exact_optimizer_membership_validated": true,
+              "frozen_base_validated": true,
+              "input_window_active": false,
+              "optimizer_step": 2,
+              "partial_checkpoint_rejected": false
+            },
+            "owned_cleanup_failed": false,
+            "rank_exit_code": 86,
+            "timed_out": false
+          }
+        },
+        "fresh_zero_reference_updates": 4,
+        "model_optimizer_rng_data_values_exact": true,
+        "native_fresh_hard_gold_score_selection_identity_exact": true,
+        "ordinary_stage_exit_zero_count": 17,
+        "ordinary_validation_sequences_per_step": 4,
+        "ordinary_validation_steps": [
+          0,
+          2,
+          4
+        ],
+        "payload_proof_scope": "The allocated native comparisons establish payload equality; local closure review rehashes receipts and repeats numerical-update and score-row checks without reading tensor payloads. No serialized optimizer-byte equality or cross-objective resume is claimed.",
+        "stage_count": 19,
+        "storage_receipt_fields_excluded": [
+          "validation.publication.destination",
+          "validation.publication.id",
+          "validation.publication.manifest"
+        ],
+        "wts_evaluation_rows": 4,
+        "wts_evaluation_steps": [
+          2,
+          4
+        ],
+        "wts_target_deliberately_unattainable": {
+          "maximum_token_ce": 0,
+          "minimum_correct": 4
+        },
+        "wts_target_reached": false
+      },
+      "numerical_cuda_fixture": {
+        "actual_native_nf4_adapter_head": true,
+        "base_frozen": true,
+        "cases": [
+          {
+            "adamw_updates": 2,
+            "choices": 2,
+            "epsilon_zero_loss_and_gradients_exact": true,
+            "hard_gold_evaluation_exact": true,
+            "maximum_adapter_gradient_error": 0.0,
+            "maximum_adapter_update_error": 0.0,
+            "supervised_tokens_per_example": 2,
+            "vocabulary_size": 64
+          },
+          {
+            "adamw_updates": 2,
+            "choices": 3,
+            "epsilon_zero_loss_and_gradients_exact": true,
+            "hard_gold_evaluation_exact": true,
+            "maximum_adapter_gradient_error": 0.0,
+            "maximum_adapter_update_error": 0.0,
+            "supervised_tokens_per_example": 2,
+            "vocabulary_size": 64
+          },
+          {
+            "adamw_updates": 2,
+            "choices": 4,
+            "epsilon_zero_loss_and_gradients_exact": true,
+            "hard_gold_evaluation_exact": true,
+            "maximum_adapter_gradient_error": 0.0,
+            "maximum_adapter_update_error": 0.0,
+            "supervised_tokens_per_example": 2,
+            "vocabulary_size": 64
+          }
+        ],
+        "scope": "Small CUDA adapter-head fixture with a 64-token vocabulary; real 8B multimodal behavior is covered separately by the four-update lifecycle."
+      },
+      "outer_stages": {
+        "all_exit_zero": true,
+        "count": 9,
+        "sampler_exit_code": 0
+      },
+      "placement": {
+        "comparative_speed_claim": false,
+        "confined_to_inherited_affinity": true,
+        "distinct_physical_cores": 8,
+        "known_topology": true,
+        "multiple_numa_nodes_permitted": true,
+        "observed_selected_numa_node_count": 1,
+        "purpose": "correctness_only",
+        "scheduler_request_changed": false
+      },
+      "plan_sha256": "2491746ec47cf70f0b522372b8d0f288839d3d924875c4c40aa29fb75ae92503",
+      "raw_scheduler_sha256": "5d39e137a0025756140ba90fe9315a6ebea323ba1322cbdfd806e9ffb5d429eb",
+      "recipe": {
+        "activation_checkpointing": "none",
+        "alpha": 64,
+        "cache_bytes": 3221225472,
+        "cycle_steps": 4,
+        "development_rows": 4,
+        "development_steps": [
+          2,
+          4
+        ],
+        "dropout": 0,
+        "epsilon": 0.02,
+        "grad_accum": 8,
+        "microbatch": 1,
+        "rank": 32,
+        "seed": 42,
+        "stop_on_target": true,
+        "updates": 4,
+        "warmup_steps": 1,
+        "zero_reference_epsilon": 0.0
+      },
+      "source_input_pins": 73,
+      "source_receipts": {
+        "accumulation_interruption_sha256": "5dc1e553aeff748e018257896940f91d1906f64e4958242df8861bcff65ed0f3",
+        "affinity_sha256": "0bf5c99a662abb8422e2b5a2ec240b080f8473930715176f27bf221440599850",
+        "boundary_interruption_sha256": "208f701e6c30421d1df3f112bd6590fddcbca30ea1cb1346ed4df6af5b4f9151",
+        "cuda_objective_sha256": "8293d1d9bc0fd59aaaa44b39d8647252d679027e179d84509cd4a9c15698a870",
+        "dcp_probe_sha256": "6d930dd0ca11b0894f12514376ebf4848de6eaa4fcb125587b63baec1a18d5df",
+        "epsilon_resume_refusals_sha256": "99303ec0573a39936d9604db93a3f1c2a40e94717308bfd859e6a6e71b0997d6",
+        "higher_precision_xml_sha256": "9464e6046bb3e378dca2e7d63685f5d2ffd91f909328f96ca1e369087f981800",
+        "kernel_cuda_xml_sha256": "b5e8b70b38c03af4af57599c27209c948f9d7a3ff267d8357006cfd54a61f7db",
+        "kernel_gate_sha256": "d3167016d71769ad8a1d128fdf5bc5890cc187fa8f28a2ec77881ed8d85474f1",
+        "lifecycle_completion_sha256": "f489721465ae5f2c4a64b7c49fc252455eb4affb670bd3b102cd0d352daa5461",
+        "native_fresh_score_parity_sha256": "0069308d3f1358871db28890cbd923e975f234fabd6bd85e9d5cf1c40d760eb6",
+        "outer_completion_sha256": "1ea2fe737947c705611c344aaf76fde3434b576dfa0f2a2dec0537fb87400e50",
+        "portable_probe_sha256": "59348df8ff71d8ca79985e4d2253556d653f2f77c0b81cff41b1061e4fd7a3cd",
+        "qualification_acceptance_sha256": "e6d5bd47682bccdff83cc625c5d71ed0c15c04136a7033bc8d99d840ca21c1f9",
+        "runtime_sha256": "59a8480363bda83c5aa23556869b7eb1401fbd962c56c4ad3656e62a20e8a853",
+        "storage_probe_sha256": "2bab84dad8b768cd2bb70a0f0e07ecb989b6d907d7e84535e10f47b43c9f7012"
+      },
+      "state": "COMPLETED",
+      "terminal_snapshot_sha256": "8ecdd7337e42254e3a2aed432ef2ac2bd67c66cec49a9161527e724c7c2ae9dd"
+    },
+    "preserved_prior_nf4_placement_failure": {
+      "allocated_cpu_seconds": 1280,
+      "already_recorded": true,
+      "capture_sha256": "b418d0a18d52b71df6fc68b67e68d8c52ac198098ad02d53afa4e3406caf36dd",
+      "existing_evidence_pointer": "qualification_status_09e99c3.preserved_pre_kernel_refusal",
+      "gpu_allocation_seconds": 80,
+      "reclassified_as_pass": false,
+      "scope": "The earlier pre-kernel failure remains unchanged in its original section; this reference is not another charge."
+    },
+    "scope": "Current-build correctness for the opt-in training objective only. This four-update canary does not establish a learning benefit, performance advantage, release qualification, dense export or long-workload support.",
+    "status": "nf4_correctness_accepted_bf16_pending_learning_screen_unadmitted"
+  },
   "completed_campaign_cost": {
     "additional_post_cleanup_startup_failures_gpu_seconds": 174,
     "additional_quota_failed_nf4_seed123_gpu_seconds": 6114,
@@ -820,6 +1101,312 @@
     "promotion_accepted": false,
     "quality_decision_made": true,
     "status": "discarded_frozen_quality_guard_failed"
+  },
+  "mature_recovery_dadfc89_seed123": {
+    "capture_sha256": "dbe9c5de4e131d9e8ee842efcd559bb5fee3cb2973920dd8c071614e701f6db5",
+    "captured_bytes": 94171606,
+    "captured_files": 179,
+    "cost": {
+      "allocated_cpu_seconds": 52320,
+      "distinct_allocations": 1,
+      "gpu_allocation_seconds": 3270,
+      "scope": "This completed recovery allocation once. Per-arm and nested stage clocks are descriptive subsets, not extra charges. Source timing and prior failures remain separately retained; active allocations are excluded."
+    },
+    "final_step": 300,
+    "issued_plan_sha256": "0af586457e6687d9fbf0fc3eb29239954c6df57f841848534f05f082319c8b0f",
+    "limits": [
+      "Only the three existing storage-publication identity fields are excluded by the strict native control comparator; model, optimizer values, RNG, data and deterministic WTS journal remain exact.",
+      "Adapter tensors are compared to the original504 raw tensor digests. No original raw optimizer-shard or serialized checkpoint-byte equality is claimed.",
+      "Historical scheduled50\u2013250 availability remains unavailable; only resumed300 has a new timestamp. No TTQ is reconstructed or compared.",
+      "Raw allocator/process measurements are retained privately; this recovery result makes no comparative speed or training-memory claim.",
+      "Local acceptance rehashes metadata and repeats existing numerical-update/score checks. Tensor payload equality is supplied by the source-bound allocated native comparator, without local tensor reads."
+    ],
+    "native_revision": "dadfc89f64ba2a47f2ffd68c37f84a29d664544d",
+    "native_wheel_sha256": "dfaff88beb64b0caf07bf4f58cf32e68c6293b29ac2a339245998e51a72208a0",
+    "outer_stages": {
+      "all_exit_zero": true,
+      "count": 4,
+      "sampler_exit_code": 0
+    },
+    "placement": {
+      "comparative_speed_claim": false,
+      "confined_to_inherited_affinity": true,
+      "distinct_physical_cores": 8,
+      "known_topology": true,
+      "observed_numa_node_count": 2,
+      "purpose": "correctness_only"
+    },
+    "precision_arms": {
+      "bf16": {
+        "actual_clipping_decisions_exact": true,
+        "all_stage_exits_zero": true,
+        "clock_scope": "Nested stage and case clocks for correctness only; do not add to charged allocation time or compare as a speed study.",
+        "completed": true,
+        "deterministic_wts_journal_exact": true,
+        "elapsed_case_seconds": 1557.2132299709774,
+        "fresh_dcp_portable_reload": {
+          "atol": 0.0,
+          "differences": {
+            "image": {
+              "logits_max_abs": 0.0,
+              "loss_abs": 0.0
+            },
+            "text": {
+              "logits_max_abs": 0.0,
+              "loss_abs": 0.0
+            },
+            "video": {
+              "logits_max_abs": 0.0,
+              "loss_abs": 0.0
+            }
+          },
+          "passed": true,
+          "rtol": 0.0
+        },
+        "full_development_scoring": {
+          "correct": 532,
+          "native_supervised_tokens": 1168,
+          "original_resumed_ordered_scores_exact": true,
+          "own_native_and_fresh_per_example_selection_identity_exact": true,
+          "processed_inputs_sha256": "8f94393cd6a9490275d14614d32ae1e41ef906943cf7f0b59eed0c14a4717be7",
+          "quality_qualified": false,
+          "rows": 584,
+          "token_weighted_ce": 0.14168433993721893
+        },
+        "new_applied_updates": 50,
+        "numerical_metric_fields": [
+          "train/loss_avg",
+          "train/grad_norm",
+          "train/learning_rate",
+          "train/valid_token_count",
+          "train/valid_sequence_count",
+          "optim/optimizer_step",
+          "optim/attempt_id",
+          "optim/nonfinite_gradient",
+          "optim/nonfinite_loss",
+          "optim/nonfinite_skips_total",
+          "optim/nonfinite_skips_consecutive",
+          "optim/step_skipped",
+          "optim/finite_gradient_check_enabled"
+        ],
+        "numerical_update_metrics_exact": true,
+        "observational_clip_fraction_reporting_differences": 50,
+        "ordinary_final_validation": {
+          "sequences": 64,
+          "source_exact": true,
+          "supervised_ce": 0.02442953891477373,
+          "supervised_tokens": 128
+        },
+        "original504_adapter_tensor_digests_exact": true,
+        "original_source250_and300_descriptors_exact": true,
+        "payload_comparison": {
+          "atol": 0,
+          "controls_rng_and_data_exact": true,
+          "excluded_storage_identity_fields": [
+            "validation.publication.destination",
+            "validation.publication.id",
+            "validation.publication.manifest"
+          ],
+          "maximum_tensor_difference": {
+            "model": 0.0,
+            "optim": 0.0
+          },
+          "passed": true,
+          "rtol": 0
+        },
+        "phase_seconds": {
+          "compare": 37.02700049598934,
+          "fresh_full584": 363.06967106700176,
+          "portable_publication": 8.977232200006256,
+          "probe_dcp": 120.0915488289902,
+          "probe_portable": 121.59862242700183,
+          "reload_exact": 8.476944865979021,
+          "resume250_to300": 871.0974571780243,
+          "score_check": 8.777372810000088,
+          "source": 10.281342967005912
+        },
+        "source_and_resumed_integrity_before_after": true,
+        "source_capture_sha256": "5e02ee6a6a73f8a2a5b93387c77ffc95d36178ad1f58a6cbf62657ec594621a5",
+        "source_plan_sha256": "953e71d89129fbc7639197c42581ffc8a7b8748928324f25a3eab56f417658fc",
+        "source_receipts": {
+          "compare_sha256": "d70113f48b6f9d8cb4295a59bcbc05300642a0cabd128571910e3448eac7f1c6",
+          "completion_sha256": "744378db41b0ee6a784577a3d746fa3ec55814fe062bf7ae3add0383882a48b3",
+          "dcp_probe_sha256": "d4ff8d3715a24444e2ac1a2cdb7fae2dab39455dd0b0df021f2c79dd1277504d",
+          "fresh_score_summary_sha256": "0f3141a9a04dd5ab6a10465ff444e8d92d72d59426c08d92dd1df9ccdb804c94",
+          "metrics_sha256": "b2ff3f6b656ea30d8219e0258eb0d5a6e269d160f328b6151db7a31a9295b615",
+          "native_score_summary_sha256": "38c827608cc7a9abad240c0f738958d55a8cf921df79ae6326592a5af3dc59e1",
+          "native_target_sha256": "490cc6536dc11248a2780f465ace3d4f9d909a7e16cd351827e4698ca39511aa",
+          "portable_comparison_sha256": "b12b17b7151fee94cf4c4e3751875bd8fc5c6937dff44882df1b64f0d1fd45b9",
+          "portable_probe_sha256": "daadc15bce83344b177c1d512938cceedf035d4f71cbb80f0cd50018e8f0ca26",
+          "reload_log_sha256": "5cd5cc52f2281fbfbe909d457501cfcdc7fd3b0b6ffd383768460d92bf638b71",
+          "score_comparison_sha256": "9749dfa7fa623a26960c6179efe80f90524839cd6a490108592757bd82a0f14f",
+          "source_sha256": "0a2b4df070a37d46c9f21bb52fca375c1a0f4a2081a8498d6e4423bc6f901da1"
+        },
+        "stage_count": 9,
+        "target_history": {
+          "first_passing_step": null,
+          "historical_availability_on_this_attempt": false,
+          "historical_steps": [
+            50,
+            100,
+            150,
+            200,
+            250
+          ],
+          "historical_timestamps_reconstructed": false,
+          "horizon_censored": true,
+          "new_scored_step": 300,
+          "ttq_reconstructed": false
+        }
+      },
+      "nf4": {
+        "actual_clipping_decisions_exact": true,
+        "all_stage_exits_zero": true,
+        "clock_scope": "Nested stage and case clocks for correctness only; do not add to charged allocation time or compare as a speed study.",
+        "completed": true,
+        "deterministic_wts_journal_exact": true,
+        "elapsed_case_seconds": 1634.3666659320006,
+        "fresh_dcp_portable_reload": {
+          "atol": 0.0,
+          "differences": {
+            "image": {
+              "logits_max_abs": 0.0,
+              "loss_abs": 0.0
+            },
+            "text": {
+              "logits_max_abs": 0.0,
+              "loss_abs": 0.0
+            },
+            "video": {
+              "logits_max_abs": 0.0,
+              "loss_abs": 0.0
+            }
+          },
+          "passed": true,
+          "rtol": 0.0
+        },
+        "full_development_scoring": {
+          "correct": 540,
+          "native_supervised_tokens": 1168,
+          "original_resumed_ordered_scores_exact": true,
+          "own_native_and_fresh_per_example_selection_identity_exact": true,
+          "processed_inputs_sha256": "8f94393cd6a9490275d14614d32ae1e41ef906943cf7f0b59eed0c14a4717be7",
+          "quality_qualified": false,
+          "rows": 584,
+          "token_weighted_ce": 0.1367058283075282
+        },
+        "new_applied_updates": 50,
+        "numerical_metric_fields": [
+          "train/loss_avg",
+          "train/grad_norm",
+          "train/learning_rate",
+          "train/valid_token_count",
+          "train/valid_sequence_count",
+          "optim/optimizer_step",
+          "optim/attempt_id",
+          "optim/nonfinite_gradient",
+          "optim/nonfinite_loss",
+          "optim/nonfinite_skips_total",
+          "optim/nonfinite_skips_consecutive",
+          "optim/step_skipped",
+          "optim/finite_gradient_check_enabled"
+        ],
+        "numerical_update_metrics_exact": true,
+        "observational_clip_fraction_reporting_differences": 50,
+        "ordinary_final_validation": {
+          "sequences": 64,
+          "source_exact": true,
+          "supervised_ce": 0.024118153523886576,
+          "supervised_tokens": 128
+        },
+        "original504_adapter_tensor_digests_exact": true,
+        "original_source250_and300_descriptors_exact": true,
+        "payload_comparison": {
+          "atol": 0,
+          "controls_rng_and_data_exact": true,
+          "excluded_storage_identity_fields": [
+            "validation.publication.destination",
+            "validation.publication.id",
+            "validation.publication.manifest"
+          ],
+          "maximum_tensor_difference": {
+            "model": 0.0,
+            "optim": 0.0
+          },
+          "passed": true,
+          "rtol": 0
+        },
+        "phase_seconds": {
+          "compare": 37.1871908820176,
+          "fresh_full584": 388.0286137009971,
+          "portable_publication": 9.632629894011188,
+          "probe_dcp": 98.09580316799111,
+          "probe_portable": 95.3110642269894,
+          "reload_exact": 5.827192533004563,
+          "resume250_to300": 967.6881272770115,
+          "score_check": 12.334610504010925,
+          "source": 11.580908707983326
+        },
+        "source_and_resumed_integrity_before_after": true,
+        "source_capture_sha256": "1970d5afcfe5377790953560aeee274627afd9c49488a4703301affc36acf52e",
+        "source_plan_sha256": "f6deab424728a2c2efb96a25cf15acd7a60085d07d5a74683da16c6363fa11ba",
+        "source_receipts": {
+          "compare_sha256": "15cf03f27fad0c9d2bbf9e48e7d5478afc6b8c3c2db01e64b6c32510a4c4d37c",
+          "completion_sha256": "1f306e63ac478c3f6c1ded3d3d561dc4905b0401739e978e50b6e6ce8ebfb4ed",
+          "dcp_probe_sha256": "c53f678a3e39c4798ae271eda14821eea68af4e7e50ed71ee5c3fc2ff7053ca4",
+          "fresh_score_summary_sha256": "3a7d8f5dc2ac5a6a9b819f9b2a1c6d884338260603ce3437cc3e67dfa4a5b0ee",
+          "metrics_sha256": "c6f2e3c31ca79d07daf9ed9a733722c04902995f87e0e562e0f2f51c3d5e86c3",
+          "native_score_summary_sha256": "786bc6a757c0fc7aafd451ec9f095b4e07100c1b5a2f04d35b5b8249da2574dc",
+          "native_target_sha256": "cd01d0509b9ea432f448c791cf55fb5315f610af5acf959a3043bca8d1aa2d99",
+          "portable_comparison_sha256": "dd094cbab435ccc573a87be92a57957214dfaffb9d085cc340d53380a9ffac41",
+          "portable_probe_sha256": "0d6f155189943aa196ea36f718a9762e748d823a5b0358940ef2eabc4a0146ed",
+          "reload_log_sha256": "5cd5cc52f2281fbfbe909d457501cfcdc7fd3b0b6ffd383768460d92bf638b71",
+          "score_comparison_sha256": "bfae3aea4f0cace12579a447b35ca9b1679e920186cafc07068ead54ac7d4cdc",
+          "source_sha256": "6e7af863334e793ed94698da18b0f88a1a5ee9f60bfd2bb68afa530a2bd04269"
+        },
+        "stage_count": 9,
+        "target_history": {
+          "first_passing_step": null,
+          "historical_availability_on_this_attempt": false,
+          "historical_steps": [
+            50,
+            100,
+            150,
+            200,
+            250
+          ],
+          "historical_timestamps_reconstructed": false,
+          "horizon_censored": true,
+          "new_scored_step": 300,
+          "ttq_reconstructed": false
+        }
+      }
+    },
+    "qualification_helper_sha256": "1839d31214c73e3db6631d69572d36bee58446bd1fae97ecbe9d9faccb2a47c2",
+    "recipe": {
+      "activation_checkpointing": "none",
+      "alpha": 64,
+      "cache_bytes": 3221225472,
+      "cycle_steps": 300,
+      "dropout": 0,
+      "grad_accum": 8,
+      "horizon": 300,
+      "microbatch": 1,
+      "rank": 32,
+      "warmup_steps": 30,
+      "wts_answer_smoothing": 0
+    },
+    "scope": "Selected native dadfc89 seed123 same-policy mature recovery only. Both original native300 source cases came from the accepted timing pairs. This does not qualify the newer09e99c3 features, reconstruct historical TTQ, or establish new quality/generalization/performance claims.",
+    "seed": 123,
+    "source_input_pins": 162,
+    "source_receipts": {
+      "affinity_sha256": "31dfbd21ac7ed77732d66ba9992618b34a7288504248ab6cc1d23d6efbec82e1",
+      "outer_completion_sha256": "6f7c486ec5b0abc1ac5b0da8fde0d0744edf7863a1f2f2f883ba235f24eb742c",
+      "runtime_sha256": "4b535d92e8eadd3054b34f8aca73cb18ae8037799616a6515b66bb5afee3984e"
+    },
+    "source_timing_readout_sha256": "19a2d55beb6b4331d0c6e2bfeeac2cf6f364158c6728b0e406026a07977e57df",
+    "start_step": 250,
+    "status": "accepted_same_policy_seed123_mature_recovery"
   },
   "native_revision": "dadfc89f64ba2a47f2ffd68c37f84a29d664544d",
   "paired_runtime": {
