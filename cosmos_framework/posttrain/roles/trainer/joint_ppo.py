@@ -135,6 +135,8 @@ class JointPPOTrainer(PPOTrainableRole):
                 "rng": digest(collect_rng_state()),
                 "scheduler": digest(self.lr_scheduler.state_dict() if self.lr_scheduler is not None else {}),
             }
+            if getattr(self.opt, "cosmos_local_master_optimizer", False):
+                state["optimizer_masters"] = canonical_digest([digest(p.detach()) for p in self.opt.masters])
             current = self.model.ppo_frozen_state()
 
             def check_frozen_model() -> None:

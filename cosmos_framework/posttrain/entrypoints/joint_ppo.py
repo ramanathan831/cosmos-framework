@@ -56,6 +56,12 @@ def setup_policy(config: PosttrainJointPPOConfig, output: str, resume: str | Non
     random.seed(recipe.seed)
     np.random.seed(recipe.seed)
     torch.manual_seed(recipe.seed)
+    if recipe.optimizer.name in ("adamw_bnb_8bit", "paged_adamw_8bit"):
+        if recipe.optimizer.update_policy != "fp32_master":
+            raise ValueError("native Joint PPO quantized optimizers require optimizer.update_policy=fp32_master")
+        from cosmos_framework.utils.quantized_optimizer import require_backend
+
+        require_backend(paged=recipe.optimizer.name == "paged_adamw_8bit")
     model = instantiate(config.policy, output=output, parallel_dims=current_pdims())
     lifecycle = CheckpointLifecycle.from_config(config, recipe, run_out_dir=output, resume_checkpoint=resume)
     trainer = JointPPOTrainer(

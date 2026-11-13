@@ -3279,6 +3279,8 @@ class PPOBaseConfig(RunConfig):
 class JointPPOConfig(PPOBaseConfig):
     """Synchronous decision windows with one jointly optimized actor/value model."""
 
+    supports_quantized_optimizer: ClassVar[bool] = True
+
     num_envs: int = 8
     window_decisions: int = 16
     global_minibatch: int = 32
@@ -3353,6 +3355,10 @@ class JointPPOConfig(PPOBaseConfig):
 
         from cosmos_framework.posttrain.utils.identity import canonical_config_value
 
+        optimizer_identity = asdict(self.optimizer)
+        if self.optimizer.update_policy == "parameter":
+            # Keep existing exact-resume identities stable for unchanged defaults.
+            optimizer_identity.pop("update_policy")
         return {
             "algorithm": "joint-ppo-v3",
             # Version 3 already requires verification; only the explicit opt-out
@@ -3382,7 +3388,7 @@ class JointPPOConfig(PPOBaseConfig):
                 if self.loss_reduction == "fixed_episode_mean"
                 else "actor-local-correction1-std-plus-1e-5"
             ),
-            "optimizer": canonical_config_value(asdict(self.optimizer)),
+            "optimizer": canonical_config_value(optimizer_identity),
         }
 
 
