@@ -79,6 +79,8 @@ class PosttrainActionSFTConfig(PosttrainConfig):
     data_factory: str = ""
     objective_factory: str = ""
     evaluation_callback: str = ""
+    dense_policy_factory: str = ""
+    dense_sidecars_factory: str = ""
     defaults: list[Any] = attrs.field(factory=lambda: ["_self_"])
 
 

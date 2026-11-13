@@ -11,7 +11,7 @@ import time
 from pathlib import Path
 
 
-def run(config, *, checkpoint: str, output: str):
+def run(config, *, checkpoint: str, output: str, dense: bool = False):
     import torch
     import torch.distributed as dist
 
@@ -39,25 +39,34 @@ def run(config, *, checkpoint: str, output: str):
         dist.init_process_group("nccl")
     manager = CheckpointManager(checkpoint_format="dcp")
     # Validate the commit and tensor inventory before allocating the immutable base.
-    metadata = read_adapter_metadata(checkpoint, manager=manager)
+    metadata = None if dense else read_adapter_metadata(checkpoint, manager=manager)
     misc.set_random_seed(seed=rl.seed, by_rank=False)
     destination = Path(output)
     if destination.exists():
         raise FileExistsError(f"native evaluation preserves earlier results; choose a new output: {destination}")
     destination.mkdir(parents=True)
-    policy = _factory(config.policy_factory)(config, device=device, output=destination)
-    codec = policy.net._cosmos_adapter_checkpoint_codec
-    load_adapter_weights(checkpoint, codec, manager=manager)
+    if dense:
+        if not config.dense_policy_factory:
+            raise ValueError("this native action family has no dense policy loader")
+        policy = _factory(config.dense_policy_factory)(config, checkpoint, device=device, output=destination)
+        metadata = policy.dense_manifest["source_metadata"]
+        codec = None
+    else:
+        policy = _factory(config.policy_factory)(config, device=device, output=destination)
+        codec = policy.net._cosmos_adapter_checkpoint_codec
+        load_adapter_weights(checkpoint, codec, manager=manager)
     source = _Source(_factory(config.data_factory)(config, "validation", policy))
     objective = _factory(config.objective_factory)(policy, config)
     callback = _factory(config.evaluation_callback) if config.evaluation_callback else None
     try:
         loaded = time.monotonic()
         metrics, rows = evaluate(policy, objective, source, config, callback)
-        codec.validate_frozen_base()
+        if codec is not None:
+            codec.validate_frozen_base()
         result = {
             "format": "cosmos-native-action-evaluation-v1",
             "checkpoint": checkpoint,
+            "artifact_kind": "effective-base-dense" if dense else "same-base-adapter",
             "identity": metadata["identity"],
             "scorer": _factory_identity(config),
             "source": source.identity,
@@ -81,12 +90,13 @@ def main():
     parser.add_argument("--config", required=True)
     parser.add_argument("--checkpoint", required=True)
     parser.add_argument("--output", required=True)
+    parser.add_argument("--dense", action="store_true", help="Load a family-native effective-base dense export")
     args, rest = parser.parse_known_args()
     opts = rest[1:] if rest and rest[0] == "--" else rest
     if any("=" not in item for item in opts):
         parser.error("configuration overrides must be key=value")
     config = load_config(args.config, ["--", *opts])
-    print(json.dumps(run(config, checkpoint=args.checkpoint, output=args.output), sort_keys=True))
+    print(json.dumps(run(config, checkpoint=args.checkpoint, output=args.output, dense=args.dense), sort_keys=True))
 
 
 if __name__ == "__main__":
