@@ -1,13 +1,236 @@
 {
   "answer_smoothing_correctness_09e99c3_continuation": {
     "bf16": {
-      "accepted": false,
-      "completed_cost_included": false,
-      "issued_plan_sha256": "70d2dcf689df328abe6e67350c6b53e7605603ae374f5dfcd637a5d0b73d55d5",
-      "kernel_gate": "Bound to the accepted NF completion and both exact XML files; no duplicate kernel execution.",
-      "status": "admitted_outcomes_pending"
+      "accepted": true,
+      "capture_sha256": "44e679d43cb752fbf0024a0e9a043a94bdbd246ba65ce4039642623ca561e69a",
+      "capture_source_sha256": "c0c3686b34cfb28a165d3a17932c0b732ab555a43d8cf1c4292e9a8a15576291",
+      "captured_bytes": 54594248,
+      "captured_files": 215,
+      "cost": {
+        "allocated_cpu_seconds": 43616,
+        "distinct_allocations": 1,
+        "gpu_allocation_seconds": 2726,
+        "scope": "This completed BF qualification once. Objective, lifecycle and reload stages are nested; the shared NF kernel gate is not rerun or charged again."
+      },
+      "epsilon_resume_refusals": [
+        {
+          "error": "adapter checkpoint is missing identity.training_contract.objective.wts_answer_smoothing",
+          "exact_identity_accepted": true,
+          "mismatch_refused": true,
+          "requested_epsilon": 0.02,
+          "source_epsilon": 0.0
+        },
+        {
+          "error": "adapter training_contract.objective.wts_answer_smoothing differs",
+          "exact_identity_accepted": true,
+          "mismatch_refused": true,
+          "requested_epsilon": 0.0,
+          "source_epsilon": 0.02
+        }
+      ],
+      "exit_code": "0:0",
+      "kernel_gate": {
+        "errors": 0,
+        "exact_build_receipt": true,
+        "failures": 0,
+        "higher_precision_cases_passed": 1,
+        "new_kernel_execution": false,
+        "real_cuda_cases_passed": 14,
+        "reused_accepted_nf4_gate": true,
+        "skips": 0
+      },
+      "lifecycle": {
+        "comparison_atol": 0,
+        "comparison_rtol": 0,
+        "dcp_portable_adapter_tensor_inventories_exact": 504,
+        "dcp_portable_reload_logits_and_loss_max_difference": 0.0,
+        "dcp_portable_reload_modalities": [
+          "text",
+          "image",
+          "video"
+        ],
+        "evaluation_insertion_state_exact_at_steps": [
+          2,
+          4
+        ],
+        "expected_injected_interruptions": {
+          "accumulation": {
+            "checkpoint_step": 2,
+            "exact_recovered_steps": [
+              3,
+              4
+            ],
+            "expected_outer_nonzero_exit_code": 1,
+            "healthy_completed_boundary": true,
+            "live_state": {
+              "accumulation_step": 1,
+              "adapter_tensors": 504,
+              "attempt_id": 3,
+              "exact_optimizer_membership_validated": true,
+              "frozen_base_validated": true,
+              "input_window_active": true,
+              "optimizer_step": 2,
+              "partial_checkpoint_rejected": true
+            },
+            "owned_cleanup_failed": false,
+            "rank_exit_code": 86,
+            "timed_out": false
+          },
+          "boundary": {
+            "checkpoint_step": 2,
+            "exact_recovered_steps": [
+              3,
+              4
+            ],
+            "expected_outer_nonzero_exit_code": 1,
+            "healthy_completed_boundary": true,
+            "live_state": {
+              "accumulation_step": 0,
+              "adapter_tensors": 504,
+              "attempt_id": 2,
+              "exact_optimizer_membership_validated": true,
+              "frozen_base_validated": true,
+              "input_window_active": false,
+              "optimizer_step": 2,
+              "partial_checkpoint_rejected": false
+            },
+            "owned_cleanup_failed": false,
+            "rank_exit_code": 86,
+            "timed_out": false
+          }
+        },
+        "fresh_zero_reference_updates": 4,
+        "model_optimizer_rng_data_values_exact": true,
+        "native_fresh_hard_gold_score_selection_identity_exact": true,
+        "ordinary_stage_exit_zero_count": 17,
+        "ordinary_validation_sequences_per_step": 4,
+        "ordinary_validation_steps": [
+          0,
+          2,
+          4
+        ],
+        "payload_proof_scope": "The allocated native comparisons establish payload equality; local closure review rehashes receipts and repeats numerical-update and score-row checks without reading tensor payloads. No serialized optimizer-byte equality or cross-objective resume is claimed.",
+        "stage_count": 19,
+        "storage_receipt_fields_excluded": [
+          "validation.publication.destination",
+          "validation.publication.id",
+          "validation.publication.manifest"
+        ],
+        "wts_evaluation_rows": 4,
+        "wts_evaluation_steps": [
+          2,
+          4
+        ],
+        "wts_target_deliberately_unattainable": {
+          "maximum_token_ce": 0,
+          "minimum_correct": 4
+        },
+        "wts_target_reached": false
+      },
+      "numerical_cuda_fixture": {
+        "actual_native_dense_adapter_head": true,
+        "base_frozen": true,
+        "cases": [
+          {
+            "adamw_updates": 2,
+            "choices": 2,
+            "epsilon_zero_loss_and_gradients_exact": true,
+            "hard_gold_evaluation_exact": true,
+            "maximum_adapter_gradient_error": 0.0,
+            "maximum_adapter_update_error": 0.0,
+            "supervised_tokens_per_example": 2,
+            "vocabulary_size": 64
+          },
+          {
+            "adamw_updates": 2,
+            "choices": 3,
+            "epsilon_zero_loss_and_gradients_exact": true,
+            "hard_gold_evaluation_exact": true,
+            "maximum_adapter_gradient_error": 0.0,
+            "maximum_adapter_update_error": 0.0,
+            "supervised_tokens_per_example": 2,
+            "vocabulary_size": 64
+          },
+          {
+            "adamw_updates": 2,
+            "choices": 4,
+            "epsilon_zero_loss_and_gradients_exact": true,
+            "hard_gold_evaluation_exact": true,
+            "maximum_adapter_gradient_error": 0.0,
+            "maximum_adapter_update_error": 0.0,
+            "supervised_tokens_per_example": 2,
+            "vocabulary_size": 64
+          }
+        ],
+        "scope": "Small CUDA adapter-head fixture with a 64-token vocabulary; real 8B multimodal behavior is covered separately by the four-update lifecycle."
+      },
+      "outer_stages": {
+        "all_exit_zero": true,
+        "count": 9,
+        "sampler_exit_code": 0
+      },
+      "placement": {
+        "comparative_speed_claim": false,
+        "confined_to_inherited_affinity": true,
+        "distinct_physical_cores": 8,
+        "known_topology": true,
+        "multiple_numa_nodes_permitted": true,
+        "observed_selected_numa_node_count": 1,
+        "purpose": "correctness_only",
+        "scheduler_request_changed": false
+      },
+      "plan_sha256": "70d2dcf689df328abe6e67350c6b53e7605603ae374f5dfcd637a5d0b73d55d5",
+      "raw_scheduler_sha256": "d3b32d40998b07307e2ce43765eea6be9f7e9b22a5d949ffc1f5f80238ff4fb0",
+      "recipe": {
+        "activation_checkpointing": "none",
+        "alpha": 64,
+        "cache_bytes": 3221225472,
+        "cycle_steps": 4,
+        "development_rows": 4,
+        "development_steps": [
+          2,
+          4
+        ],
+        "dropout": 0,
+        "epsilon": 0.02,
+        "grad_accum": 8,
+        "microbatch": 1,
+        "rank": 32,
+        "seed": 42,
+        "stop_on_target": true,
+        "updates": 4,
+        "warmup_steps": 1,
+        "zero_reference_epsilon": 0.0
+      },
+      "source_input_pins": 76,
+      "source_receipts": {
+        "accumulation_interruption_sha256": "0c1260d437f62b251e399dd41c5ce007649d46e0f0c538696c0a891d040bc3b5",
+        "affinity_sha256": "bc229efb00f6047a4bdde9df6d2e75ad87ff474ecc68ce53a31a1f29da5995cc",
+        "boundary_interruption_sha256": "ab08a792b431b5a8068d253761de52742473323d89d96890184f749347917b76",
+        "cuda_objective_sha256": "a49761ed328accffbee34112844828ff48c0d85abe64685c32e68b451bc08d25",
+        "dcp_probe_sha256": "8f1c05d2d102964eb6bcb7644d505ce88877938d705d5449b52f8250283cd525",
+        "epsilon_resume_refusals_sha256": "9354e5822939215548926b9b7ce1f6717cc55e45a039eb848be2d2412c3e7a9b",
+        "higher_precision_xml_sha256": "9464e6046bb3e378dca2e7d63685f5d2ffd91f909328f96ca1e369087f981800",
+        "kernel_cuda_xml_sha256": "b5e8b70b38c03af4af57599c27209c948f9d7a3ff267d8357006cfd54a61f7db",
+        "kernel_gate_sha256": "d3167016d71769ad8a1d128fdf5bc5890cc187fa8f28a2ec77881ed8d85474f1",
+        "lifecycle_completion_sha256": "4559d454352c49311b299e5e5e004ff5038d9753cf7a0c147e89c7f2ff201149",
+        "native_fresh_score_parity_sha256": "9e37e3022f91aa42e6f13d30958c2c82c361c4f4dd98b013e2eda1b2ce2b1ae2",
+        "outer_completion_sha256": "dd68fe6f9483864bd2fc8bdf54036528790e4f87bad84d135ad5b51a781fa1ff",
+        "portable_probe_sha256": "53b2e1ea7a340d2ddbab5323bd983f66872d435944c7887f83f2491a2c824520",
+        "qualification_acceptance_sha256": "0e84555556dd485ed9ca642afffbd00ecb34fcbb4e20c075412b46b8372ed640",
+        "runtime_sha256": "8c6417d6338ae92eff7824d3b8c46b7eefdefa2f07cac4c73dc5189e0bffb2a7",
+        "storage_probe_sha256": "d64566289dbd94ac628bba080669681566012cbdd85aeb14a441eef283707640"
+      },
+      "state": "COMPLETED",
+      "terminal_snapshot_sha256": "bdf6fc52d769688e6fbf224b52de05cf0bc53a786f43662b9347ecf348bf9c89"
     },
     "build_receipt_sha256": "e98be5414451ab4ed1fb5e68ec34df3f5c3013561218289c656ae8cb4d71f7b4",
+    "completed_qualification_cost": {
+      "allocated_cpu_seconds": 75280,
+      "distinct_allocations": 2,
+      "gpu_allocation_seconds": 4705,
+      "scope": "The two accepted current-build correctness allocations once; includes the shared kernel run once. The separate prior 80-second refusal remains charged in the campaign total."
+    },
     "implementation": {
       "answer_smoothing": "Uniform mixture over the actual two to four answer-choice letters at the first answer position only; full-vocabulary log-softmax denominator retained.",
       "cuda_fixture_source_sha256": "6b84c4e6969f20afa525826d851453b17906bb488ed57d0e6c44de8d6469d4db",
@@ -23,6 +246,7 @@
     "learning_screen": {
       "all_four_cases_required": true,
       "both_precision_correctness_closures_required": true,
+      "bound_input_preflight_sha256": "305638b8f12685bde52a147bf4a113f1fddff802a63b62f96257c35b065bdb11",
       "case_order": [
         "nf4_epsilon0",
         "bf16_epsilon002",
@@ -30,17 +254,20 @@
         "nf4_epsilon002"
       ],
       "dropout": 0,
+      "issued_plan_sha256": "c0704a09194520ed3e3f5fc0892ff034709ff059d905ec3f620413b65d6bc0cf",
+      "known_input_pins": 104,
       "native_training_horizon": 300,
       "planned_updates_per_case": 100,
       "quality_rule": "Advance only if NF gains at least one correct answer and reduces hard-gold token CE by at least 1% against its fresh epsilon-zero control, with equal BF opportunity and at least 6 GiB valid owned-GPU memory saving against the selected BF option.",
       "selection_or_promotion": false,
       "source_plan_sha256": "8c9963ebfb02ba7e7ce436adb3d2328b0155fe25f94bf02619deac91106cd2e2",
-      "status": "unadmitted"
+      "status": "admitted_outcomes_pending",
+      "submission_receipt_sha256": "479189270a56e77c19b307b01d69ceed7807ad2b8e0b25b6a5c5b49a27691ba7"
     },
     "limits": [
       "The four-update/four-row target is deliberately unattainable, so this result does not exercise a successful early quality-target stop.",
       "Correctness-only allocation placement may span known NUMA nodes. Timing and learning retain their separate frozen placement rules.",
-      "BF correctness and the 100-update learning screen remain incomplete; no smoothing quality outcome is available.",
+      "Both precision correctness checks are accepted. The 100-update learning screen is admitted with outcomes pending; no smoothing quality benefit or selection is established.",
       "The preserved dropout rejection, historical statistical guards, prior failed allocations and separate support requirements are unchanged."
     ],
     "native_revision": "09e99c3d94e00ac1d9dd7a356d3996edb05d946b",
@@ -278,13 +505,71 @@
       "scope": "The earlier pre-kernel failure remains unchanged in its original section; this reference is not another charge."
     },
     "scope": "Current-build correctness for the opt-in training objective only. This four-update canary does not establish a learning benefit, performance advantage, release qualification, dense export or long-workload support.",
-    "status": "nf4_correctness_accepted_bf16_pending_learning_screen_unadmitted"
+    "status": "both_precision_correctness_accepted_learning_screen_admitted_outcomes_pending"
   },
   "completed_campaign_cost": {
     "additional_post_cleanup_startup_failures_gpu_seconds": 174,
     "additional_quota_failed_nf4_seed123_gpu_seconds": 6114,
     "additional_quota_failed_screen_gpu_seconds": 7583,
     "allocated_cpu_seconds": 590144,
+    "continuation_through_bf_qualification": {
+      "active_unsettled_excluded": [
+        {
+          "actual_terminal_cost": null,
+          "issued_plan_sha256": "106bf72cd8ef8d71d9d67fafbaa3997dd152d1da9c4962df2f0fc94ce669ecc5",
+          "prospective_allocated_cpu_seconds": 174720,
+          "prospective_gpu_allocation_seconds": 10920,
+          "role": "long_workload_support",
+          "submission_receipt_sha256": "051b600663367c3e3d9588c7579ff0513f893b6ce75c2bc81e0a8d2ca7154252"
+        },
+        {
+          "actual_terminal_cost": null,
+          "issued_plan_sha256": "c0704a09194520ed3e3f5fc0892ff034709ff059d905ec3f620413b65d6bc0cf",
+          "prospective_allocated_cpu_seconds": 232320,
+          "prospective_gpu_allocation_seconds": 14520,
+          "role": "answer_smoothing_learning_screen",
+          "submission_receipt_sha256": "479189270a56e77c19b307b01d69ceed7807ad2b8e0b25b6a5c5b49a27691ba7"
+        }
+      ],
+      "additional_gpu_allocation_seconds": 27234,
+      "additional_terminal_allocations": 10,
+      "allocated_cpu_seconds": 1025888,
+      "distinct_allocations": 28,
+      "gpu_allocation_seconds": 64118,
+      "partial_calendar_date_subtotals_note": "The retained crosscheck also reports partial calendar-date subtotals: 18 allocations and 36,884 GPU seconds starting November 11, and eight allocations and 22,994 GPU seconds starting November 12. These exclude the November 13 BF and dense pair (two allocations, 4,240 GPU seconds). The full 28 unique terminal rows and total are authoritative; the partial-date subtotal is not the campaign total.",
+      "prior_recorded_allocations": 18,
+      "prior_recorded_gpu_allocation_seconds": 36884,
+      "retained_raw_row_crosscheck_sha256": "9fd67ee523aa1cf5252bc07a10a0905c86fd85ce2a96bd4c4f294358642a665a",
+      "scope": "All tracked native-evaluation continuation allocations closed through the BF qualification, including every failed start once. Active long support and the newly admitted learning screen have no terminal actual cost here; their reservations are separate and are not charges or storage-capacity guarantees. Nested clocks and reused proofs are not added. Acquisition, local preparation and cleanup CPU remain unmeasured, not zero.",
+      "terminal_source_sha256": [
+        "05fe4244a95150a315291f2ab5b65f34580fac33c24cd1d317cc5b7884135144",
+        "06633f900fc1110c022e4c119761e3906e8a581522c0e9ba8ac2d923672a7659",
+        "06c02135099c1a00830ebf4842186432efb908a3fb0639ae6a63c0021255efd4",
+        "0f6146efea2c26531b216e844c5c02dba052982c1bb81606a2bd12b7e6317f39",
+        "1970d5afcfe5377790953560aeee274627afd9c49488a4703301affc36acf52e",
+        "2cdc9d95081958869bce30e99313a565ef77e8c5fb75af1eeb643b2ea74e87ca",
+        "33afdd07b74f7f14ddca46ff55b5e6619b3dc99a21b4041c5295f5c75a4c9643",
+        "44e679d43cb752fbf0024a0e9a043a94bdbd246ba65ce4039642623ca561e69a",
+        "5533d4a1e808308d71e86774e82ab6f9a466d5b456d1e17da7ee9fd4fae2ac04",
+        "55c2ca67d9b2524f7b11e814003ae324ebb714337d30a4f39fad78d01403122a",
+        "56ac45ec93289204de40cd1d999b0518a64e39968949556872c56f87ecf7864c",
+        "5e02ee6a6a73f8a2a5b93387c77ffc95d36178ad1f58a6cbf62657ec594621a5",
+        "803aa583b80f6edecab78fd7cbda8e4241a854526f8c413f728935aeb71d0d4a",
+        "9a665a63e462486c39c25eb425e49ad4e98b7c9b2640fb72a04683576b627ef6",
+        "9edaefb2bfd955cdb16aa4ae254d3be642591cb7a2b77b066c7ca7fb52fdccac",
+        "b418d0a18d52b71df6fc68b67e68d8c52ac198098ad02d53afa4e3406caf36dd",
+        "b9e3ad64c50526283095eedf9239781ea7d90a64f184bf5bac0fbdd2eb30b4f3",
+        "bac36a1068397c951c3379792ac979dca4529f4a7ee9757cae0fbb937b20f93a",
+        "c5438391d75e4cb4c05c755a7459fc18359e8ee83a3ae1c6c00c89e2ecbde049",
+        "c7178de12c8a1bd67844fec1b374fff85962ec78e5aa3f9f4e826bb3e328bb20",
+        "d7a183c2850b9cb04319e882e63c4b6ad5012082b139817547f4c5951d9febc1",
+        "d81078015f5ce46157b84cde53bf989e21ec133d159c71f95d8a2d658d5ba061",
+        "dbe9c5de4e131d9e8ee842efcd559bb5fee3cb2973920dd8c071614e701f6db5",
+        "dc00d4a04c44f13548281279793b0a15a1d2b690fbcdc73a016a2361d4ce2282",
+        "de6f9e7d444474a9a8e402b12d87ea4069dbf9a6045a6f93f227ca858b754ce2",
+        "fb77007d60a7b7fd901340a9050482d75f5426db256fdeb414c9fe62aed99f57"
+      ]
+    },
     "distinct_allocations": 18,
     "gpu_allocation_seconds": 36884,
     "previous_fourteen_terminal_gpu_seconds": 23013,
@@ -295,6 +580,522 @@
     "distinct_allocations": 8,
     "gpu_allocation_seconds": 10330,
     "scope": "Sum of the disjoint prior_build_correctness and final_build_diagnostics allocation totals, including all four failed attempts. The learning-screen failure is separate and included once in completed_campaign_cost; ongoing timing and unmeasured acquisition/local preparation are excluded. Nested stages and reused evidence are not charged again."
+  },
+  "dense_export_bf16_09e99c3": {
+    "artifact": {
+      "accumulation_dtype": "float32",
+      "adapted_matrices": 252,
+      "adapter_tensors": 504,
+      "base_config_sha256": "5cd452860dc1e9c29dd71cc3cef7f39b338b7a40793f7a260655c2d3568f3661",
+      "effective_base_dequantization_device": "cuda",
+      "files_including_manifest": 761,
+      "format": "huggingface_safetensors",
+      "manifest_bytes": 850052,
+      "manifest_sha256": "3d302fa9ee5c32fab19d229371c3b0f616b0c5b9d15e34b007336398c394911d",
+      "merge_device": "cpu",
+      "merge_row_block_size": 256,
+      "no_requantization": true,
+      "one_effective_matrix_at_a_time": true,
+      "output_dtype": "bfloat16",
+      "processor_files_equal_immutable_base": true,
+      "quantization_config_absent": true,
+      "resumable_training_checkpoint": false,
+      "source_metadata_sha256": "7e3266ace60e8f7163d6d1dcc9646ce5eb247e1c36a1885990f8eca3d72e47a8",
+      "tensor_bytes": 17534247392,
+      "tensor_count": 750,
+      "tie_word_embeddings": false,
+      "total_artifact_bytes": 17546768689,
+      "weight_file_bytes": 17534362160,
+      "weight_shards": 750
+    },
+    "capture_sha256": "bac36a1068397c951c3379792ac979dca4529f4a7ee9757cae0fbb937b20f93a",
+    "captured_bytes": 40524128,
+    "captured_files": 92,
+    "clocks": {
+      "driver_elapsed_seconds": 1424.374820876983,
+      "scope": "Descriptive clocks for this correctness allocation only. Driver elapsed starts after allocation preflight and initial source/build/affinity checks; it includes the planned stages, final source verification and sampler shutdown. The separately recorded allocation-preflight stage is outside that driver interval. Allocator/scorer/preprocessing intervals nest within their stages; none are extra allocation costs or a comparative speed result.",
+      "stage_elapsed_seconds": {
+        "acceptance": 19.24250212800689,
+        "accepted_kernel_gate": 2.221467854018556,
+        "allocation_preflight": 37.78512761101592,
+        "dense_score": 317.17016415900434,
+        "durable_storage_guard": 1.3723130889993627,
+        "export_dense": 282.69174976300565,
+        "fresh_dense_reload": 181.331704095006,
+        "fresh_source_score": 318.49551051700837,
+        "independent_dense_reference": 289.7805587699986,
+        "source_and_placement_guard": 9.381185668025864
+      }
+    },
+    "cost": {
+      "allocated_cpu_seconds": 24224,
+      "distinct_allocations": 1,
+      "gpu_allocation_seconds": 1514,
+      "scope": "This completed dense qualification allocation once; all source runs, earlier failures and other ongoing allocations are separate. Nested clocks are not added."
+    },
+    "cross_format_logit_differences": {
+      "image": {
+        "max_abs": 0.375,
+        "mean_abs": 0.04448624700307846,
+        "p50_abs": 0.03125,
+        "p99_abs": 0.15625,
+        "tolerance_gate_applied": false
+      },
+      "scope": "Observed unmerged NF4 plus separate LoRA branch versus merged BF16 dense outputs on identical processed inputs. Differences include the output representation and changed branch arithmetic; no pointwise logit tolerance gate or isolated weight-cast-error claim is made.",
+      "text": {
+        "max_abs": 0.5,
+        "mean_abs": 0.06140102073550224,
+        "p50_abs": 0.0625,
+        "p99_abs": 0.171875,
+        "tolerance_gate_applied": false
+      },
+      "video": {
+        "max_abs": 0.1875,
+        "mean_abs": 0.030531981959939003,
+        "p50_abs": 0.03125,
+        "p99_abs": 0.1015625,
+        "tolerance_gate_applied": false
+      }
+    },
+    "effective_weight_verification": {
+      "all_parameters_exact": true,
+      "formula": "BF16(FP32(actual BF16 NF4 dequant) + scale * FP32(B@A))",
+      "independent_full_matrix_cpu_gemm": true,
+      "scope": "All 750 exported tensors and independently loaded parameters matched the source-bound reference exactly after the BF16 output cast. Adapted weights use the actual attached NF4 dequantization on CUDA and FP32 CPU scaled B@A; the reference uses full-matrix GEMM while production uses 256-row blocks. Unadapted parameters are copied and cast. This does not assert CPU NF4 quantization equivalence or a separately measured pre-cast rounding residual.",
+      "tensor_count": 750
+    },
+    "execution": {
+      "all_stage_exits_zero": true,
+      "comparative_speed_claim": false,
+      "distinct_physical_cores": 8,
+      "known_topology_and_inherited_affinity_confined": true,
+      "observed_numa_node_count": 1,
+      "outer_stage_count": 10,
+      "placement_policy": "correctness_only_known_eight_physical_cores; multiple NUMA nodes permitted",
+      "sampler_exit_code": 0
+    },
+    "fresh_dense_reload": {
+      "atol": 0,
+      "attention_implementation": "sdpa",
+      "complete_parameter_inventory_and_digests_checked": true,
+      "dtype": "bfloat16",
+      "manifest_and_expected_source_identity_checked": true,
+      "original_base_not_required_for_fresh_dense_load": true,
+      "probes": {
+        "image": {
+          "exact_fresh_dense_logits_and_loss": true,
+          "loss": 2.211834192276001,
+          "processed_tensor_shapes": {
+            "image_grid_thw": [
+              1,
+              3
+            ],
+            "input_ids": [
+              1,
+              275
+            ],
+            "pixel_values": [
+              1008,
+              1536
+            ]
+          },
+          "sequence_length": 275,
+          "supervised_tokens": 5,
+          "zero_media_max_logit_change": 10.04296875
+        },
+        "text": {
+          "exact_fresh_dense_logits_and_loss": true,
+          "loss": 0.0005878927186131477,
+          "processed_tensor_shapes": {
+            "input_ids": [
+              1,
+              25
+            ]
+          },
+          "sequence_length": 25,
+          "supervised_tokens": 2
+        },
+        "video": {
+          "exact_fresh_dense_logits_and_loss": true,
+          "loss": 0.016513893380761147,
+          "processed_tensor_shapes": {
+            "input_ids": [
+              1,
+              340
+            ],
+            "pixel_values_videos": [
+              960,
+              1536
+            ],
+            "video_grid_thw": [
+              1,
+              3
+            ]
+          },
+          "sequence_length": 340,
+          "supervised_tokens": 2,
+          "zero_media_max_logit_change": 1.109375
+        }
+      },
+      "processor_identity_exact": true,
+      "rtol": 0,
+      "same_device_and_runtime_precision": true,
+      "standard_huggingface_loader": true
+    },
+    "full_development_scoring": {
+      "adapter_and_processor_identity_exact": true,
+      "dense": {
+        "correct": 538,
+        "metrics": {
+          "answer_nll": 0.2736541930943319,
+          "native_supervised_tokens": 1168,
+          "restricted_choice_accuracy": 0.9212328767123288,
+          "restricted_choice_nll": 0.27252685533810966,
+          "restricted_choice_tied_rows": 7,
+          "rows": 584,
+          "strict_first_token_accuracy": 0.9212328767123288,
+          "strict_first_token_tied_rows": 7,
+          "token_weighted_ce": 0.13684116299236226,
+          "unique_exact_video_content_clusters": 42,
+          "valid_letter_rate": 1.0
+        },
+        "preprocessing_cache": {
+          "elapsed_scope": "elapsed_seconds includes selection/media hashing, model/reload, all scoring, integrity checks and cache close; excludes final report serialization and process-group teardown",
+          "memory_scope": "bounded retained CPU cache entries, not total host memory",
+          "policy": {
+            "cache_bytes": 3221225472,
+            "max_pending": 1,
+            "prefetch": false,
+            "workers": 1
+          },
+          "stats": {
+            "samples": {
+              "bytes": 799974207,
+              "hits": 0,
+              "limit": 805306368,
+              "misses": 584
+            },
+            "timing": {
+              "processing_calls": 584,
+              "processing_seconds": 76.32498383583152,
+              "wait_calls": 0,
+              "wait_seconds": 0.0
+            },
+            "videos": {
+              "bytes": 247778934,
+              "hits": 542,
+              "limit": 2415919104,
+              "misses": 42
+            }
+          }
+        },
+        "rows": 584,
+        "scores_sha256": "ba2a8f76e1d5c6b89342aa02151cd953b55071a9e23f71b8d44478576ffbfad0",
+        "selected_rows_sha256": "ce2ad315e2e0e9a4b408c4503f9c2a97105da0f111fa3d9bfdb84812230713b8",
+        "summary_sha256": "ae8651fb0de27ee57b33494dea7dba6547170aa23f0e78341ed368f4845284a3"
+      },
+      "point_gate": {
+        "max_accuracy_loss_percentage_points": 1.0,
+        "max_ce_ratio": 1.02,
+        "observed_accuracy_loss_percentage_points": 0.3424657534246589,
+        "observed_ce_ratio": 1.000989970116926,
+        "passed": true,
+        "scope": "Artifact point check on already-exposed development rows; not recipe noninferiority, release quality, or independent confirmation."
+      },
+      "source": {
+        "correct": 540,
+        "metrics": {
+          "answer_nll": 0.2733833887805677,
+          "native_supervised_tokens": 1168,
+          "restricted_choice_accuracy": 0.9246575342465754,
+          "restricted_choice_nll": 0.2721781861292173,
+          "restricted_choice_tied_rows": 5,
+          "rows": 584,
+          "strict_first_token_accuracy": 0.9246575342465754,
+          "strict_first_token_tied_rows": 5,
+          "token_weighted_ce": 0.1367058283075282,
+          "unique_exact_video_content_clusters": 42,
+          "valid_letter_rate": 1.0
+        },
+        "preprocessing_cache": {
+          "elapsed_scope": "elapsed_seconds includes selection/media hashing, model/reload, all scoring, integrity checks and cache close; excludes final report serialization and process-group teardown",
+          "memory_scope": "bounded retained CPU cache entries, not total host memory",
+          "policy": {
+            "cache_bytes": 3221225472,
+            "max_pending": 1,
+            "prefetch": false,
+            "workers": 1
+          },
+          "stats": {
+            "samples": {
+              "bytes": 799974207,
+              "hits": 0,
+              "limit": 805306368,
+              "misses": 584
+            },
+            "timing": {
+              "processing_calls": 584,
+              "processing_seconds": 77.56424753993633,
+              "wait_calls": 0,
+              "wait_seconds": 0.0
+            },
+            "videos": {
+              "bytes": 247778934,
+              "hits": 542,
+              "limit": 2415919104,
+              "misses": 42
+            }
+          }
+        },
+        "rows": 584,
+        "scores_sha256": "4bb16a85fb3c9f08fe94097a00fa4c5cd135bf4f7e6418be1e4c815bac38c7b3",
+        "selected_rows_sha256": "ce2ad315e2e0e9a4b408c4503f9c2a97105da0f111fa3d9bfdb84812230713b8",
+        "summary_sha256": "0d6564667c171b28a0cd799ba1cb8c21ecb6826db8582ef47b461c38767da354"
+      },
+      "source_and_dense_ordered_selection_and_processed_inputs_exact": true,
+      "source_native_to_fresh_rows": 584,
+      "source_native_to_fresh_score_exact": true,
+      "statistical_noninferiority_or_release_qualification": false
+    },
+    "issued_plan_sha256": "49eca5737e5c85a3d6d4472148719cdcebf9f31a45825c3986e08e459e967117",
+    "limits": [
+      "This qualifies the retained rank32 seed123 NF4 adapter as one BF16 dense artifact on the recorded model, processor, accelerator and development inputs. It does not qualify all ranks, targets, models, methods or tied configurations.",
+      "FP32 dense output remains outside this accelerator result. Strict production resume remains unchanged and rejects incompatible build or model identity; the dense artifact is not a resumable training checkpoint.",
+      "The original source allocation remains FAILED as a matched timing experiment; using its individually complete native300 artifact does not repair that historical result.",
+      "The 584 development rows are already exposed. Passing the fixed cross-format point gate does not establish release noninferiority, unseen-data quality or independent confirmation.",
+      "Local acceptance rehashes metadata and replays existing ordered score and memory reductions. Matrix and controlled-logit tensor equality come from the source-bound allocated comparator; tensor payloads were not downloaded or reloaded locally."
+    ],
+    "memory": {
+      "allocator": {
+        "dense_score_loading": {
+          "peak_allocated_bytes": 20023638528,
+          "peak_reserved_bytes": 20333985792,
+          "seconds": 22.729051627014996,
+          "source_sha256": "0a5b79bd6d4b934c202ec35cf9956e7a15653296ad1966edf2f1bddbf852d313"
+        },
+        "dense_scoring": {
+          "peak_allocated_bytes": 17683858432,
+          "peak_reserved_bytes": 20342374400,
+          "seconds": 196.8705130169983,
+          "source_sha256": "0a5b79bd6d4b934c202ec35cf9956e7a15653296ad1966edf2f1bddbf852d313"
+        },
+        "export_merge_and_committed_readback": {
+          "peak_allocated_bytes": 7767333888,
+          "peak_reserved_bytes": 7790919680,
+          "scope": "Allocator peaks since dense_export_start reset through committed export readback; includes adapter reload, dequantization, CPU merge, serialization and publication. Source-model loading precedes this interval; parent device/process sampling is separate.",
+          "seconds": 166.1154800170043,
+          "source_sha256": "a6266f3adb23359561e39127488334301467f9d3c50928c70c60b77aadd13d3a"
+        },
+        "export_source_model_loading": {
+          "peak_allocated_bytes": 7765099520,
+          "peak_reserved_bytes": 7790919680,
+          "seconds": 23.3356556899962,
+          "source_sha256": "a6266f3adb23359561e39127488334301467f9d3c50928c70c60b77aadd13d3a"
+        },
+        "fresh_dense_reload_and_probes": {
+          "peak_allocated_bytes": 20023638528,
+          "peak_reserved_bytes": 20340277248,
+          "peak_scope": "fresh HF load and controlled probes",
+          "training_memory_claimed": false
+        },
+        "fresh_source_score_loading": {
+          "peak_allocated_bytes": 7765099520,
+          "peak_reserved_bytes": 7790919680,
+          "seconds": 19.434521438990487,
+          "source_sha256": "6b3f7d9899c67baa47c0dfe2507319c952539deb7b6da775c9a5e5eb78d0c219"
+        },
+        "fresh_source_scoring": {
+          "peak_allocated_bytes": 7812234240,
+          "peak_reserved_bytes": 8109686784,
+          "seconds": 227.94735440498334,
+          "source_sha256": "6b3f7d9899c67baa47c0dfe2507319c952539deb7b6da775c9a5e5eb78d0c219"
+        },
+        "independent_reference": {
+          "peak_allocated_bytes": 27688212480,
+          "peak_reserved_bytes": 28034727936,
+          "peak_scope": "qualification reference construction including native+dense residency",
+          "training_memory_claimed": false
+        }
+      },
+      "incomplete_host_pss_samples": 0,
+      "limits": [
+        "All parent samples have complete observed host collection, but peaks remain sampled lower bounds; the maximum observed sampling gap is 4.753500461578369 seconds.",
+        "Allocation preflight is not sampled: its one labeled row is a stale marker after preflight completion. Two short metadata stages have only one sample each; zero sampled GPU use does not establish an entire phase peak.",
+        "Export allocator peaks follow the explicit start reset through committed readback; source-model loading precedes this interval. CPU merge has host memory costs as separately sampled.",
+        "The independent-reference peak includes native and dense models resident together for qualification only; it is not export or training memory.",
+        "Fresh reload allocator peaks cover loading and controlled probes together. Process lifetime host high-water marks are not reset allocator intervals.",
+        "No new training-memory, throughput, latency or inference-performance claim is made."
+      ],
+      "parent_sample_summary": {
+        "device_peak_bytes": 29362421760,
+        "errors": [],
+        "gpu_memory_evidence_valid": true,
+        "host_pss_complete": true,
+        "host_pss_sum_peak_bytes": 17653779456,
+        "host_rss_sum_peak_bytes": 20153085952,
+        "nvml_capacity_bytes": 85899345920,
+        "observed_span_seconds": 1422.552181005478,
+        "owned_device_process_peak_bytes": 28628221952,
+        "peaks_are_sampled_lower_bounds": true,
+        "samples": 1076,
+        "sampling_gap_seconds": {
+          "count": 1075,
+          "maximum": 4.753500461578369,
+          "mean": 1.3233043544237004,
+          "median": 1.3047120571136475,
+          "p95": 1.4019643783569335,
+          "sum": 1422.552181005478
+        }
+      },
+      "parent_trace_sha256": "87626560eaffad7a3161538a7f484fa763186959671838c11fec7c50e6884533",
+      "stages": {
+        "acceptance": {
+          "gpu_memory_evidence_valid": true,
+          "host_pss_complete": true,
+          "host_pss_sum_peak_bytes": 630221824,
+          "host_rss_sum_peak_bytes": 636329984,
+          "maximum_sampling_gap_seconds": 1.3373582363128662,
+          "observed_span_seconds": 18.946078538894653,
+          "owned_device_process_peak_bytes": 0,
+          "peaks_are_sampled_lower_bounds": true,
+          "samples": 16
+        },
+        "accepted_kernel_gate": {
+          "gpu_memory_evidence_valid": true,
+          "host_pss_complete": true,
+          "host_pss_sum_peak_bytes": 68808704,
+          "host_rss_sum_peak_bytes": 77766656,
+          "maximum_sampling_gap_seconds": null,
+          "observed_span_seconds": 0,
+          "owned_device_process_peak_bytes": 0,
+          "peaks_are_sampled_lower_bounds": true,
+          "samples": 1
+        },
+        "allocation_preflight": {
+          "coverage": "Post-preflight marker observation only; the sampler starts after allocation preflight, so its execution is not sampled.",
+          "gpu_memory_evidence_valid": true,
+          "host_pss_complete": true,
+          "host_pss_sum_peak_bytes": 36691968,
+          "host_rss_sum_peak_bytes": 39485440,
+          "maximum_sampling_gap_seconds": null,
+          "observed_span_seconds": 0,
+          "owned_device_process_peak_bytes": 0,
+          "peaks_are_sampled_lower_bounds": true,
+          "samples": 1
+        },
+        "dense_score": {
+          "gpu_memory_evidence_valid": true,
+          "host_pss_complete": true,
+          "host_pss_sum_peak_bytes": 16115579904,
+          "host_rss_sum_peak_bytes": 16253648896,
+          "maximum_sampling_gap_seconds": 4.753500461578369,
+          "observed_span_seconds": 315.36808586120605,
+          "owned_device_process_peak_bytes": 20902313984,
+          "peaks_are_sampled_lower_bounds": true,
+          "samples": 236
+        },
+        "durable_storage_guard": {
+          "gpu_memory_evidence_valid": true,
+          "host_pss_complete": true,
+          "host_pss_sum_peak_bytes": 52600832,
+          "host_rss_sum_peak_bytes": 65613824,
+          "maximum_sampling_gap_seconds": null,
+          "observed_span_seconds": 0,
+          "owned_device_process_peak_bytes": 0,
+          "peaks_are_sampled_lower_bounds": true,
+          "samples": 1
+        },
+        "export_dense": {
+          "gpu_memory_evidence_valid": true,
+          "host_pss_complete": true,
+          "host_pss_sum_peak_bytes": 6996106240,
+          "host_rss_sum_peak_bytes": 7187329024,
+          "maximum_sampling_gap_seconds": 1.6417536735534668,
+          "observed_span_seconds": 282.12392807006836,
+          "owned_device_process_peak_bytes": 8382316544,
+          "peaks_are_sampled_lower_bounds": true,
+          "samples": 215
+        },
+        "fresh_dense_reload": {
+          "gpu_memory_evidence_valid": true,
+          "host_pss_complete": true,
+          "host_pss_sum_peak_bytes": 15018852352,
+          "host_rss_sum_peak_bytes": 15131197440,
+          "maximum_sampling_gap_seconds": 1.4621953964233398,
+          "observed_span_seconds": 179.8464424610138,
+          "owned_device_process_peak_bytes": 20900216832,
+          "peaks_are_sampled_lower_bounds": true,
+          "samples": 138
+        },
+        "fresh_source_score": {
+          "gpu_memory_evidence_valid": true,
+          "host_pss_complete": true,
+          "host_pss_sum_peak_bytes": 6385040384,
+          "host_rss_sum_peak_bytes": 6508716032,
+          "maximum_sampling_gap_seconds": 1.472545862197876,
+          "observed_span_seconds": 317.33419275283813,
+          "owned_device_process_peak_bytes": 9181331456,
+          "peaks_are_sampled_lower_bounds": true,
+          "samples": 242
+        },
+        "independent_dense_reference": {
+          "gpu_memory_evidence_valid": true,
+          "host_pss_complete": true,
+          "host_pss_sum_peak_bytes": 17653779456,
+          "host_rss_sum_peak_bytes": 20153085952,
+          "maximum_sampling_gap_seconds": 1.5287666320800781,
+          "observed_span_seconds": 288.6259591579437,
+          "owned_device_process_peak_bytes": 28628221952,
+          "peaks_are_sampled_lower_bounds": true,
+          "samples": 219
+        },
+        "source_and_placement_guard": {
+          "gpu_memory_evidence_valid": true,
+          "host_pss_complete": true,
+          "host_pss_sum_peak_bytes": 574152704,
+          "host_rss_sum_peak_bytes": 583405568,
+          "maximum_sampling_gap_seconds": 1.4602775573730469,
+          "observed_span_seconds": 7.89750599861145,
+          "owned_device_process_peak_bytes": 0,
+          "peaks_are_sampled_lower_bounds": true,
+          "samples": 7
+        }
+      }
+    },
+    "native_revision": "09e99c3d94e00ac1d9dd7a356d3996edb05d946b",
+    "native_wheel_sha256": "9ab5ffef8532f5dd758c80bf52003579b71a34fcdb399a1c6679975f0d193c8f",
+    "qualification_helper_sha256": "a8095a0598dd7d6dec3006cd9731e47f6e87872d579d097e2141a15cd2313e2c",
+    "source": {
+      "activation_checkpointing": "none",
+      "alpha": 64,
+      "capture_sha256": "c7178de12c8a1bd67844fec1b374fff85962ec78e5aa3f9f4e826bb3e328bb20",
+      "dcp_and_portable_identity_exact": true,
+      "dropout": 0,
+      "individually_completed_native_artifact": true,
+      "native_revision": "dadfc89f64ba2a47f2ffd68c37f84a29d664544d",
+      "original_matched_timing_accepted": false,
+      "original_outer_timing_state": "FAILED",
+      "plan_sha256": "12a10356ed6204884701d73434c26c74877e1ddfa03aea24b4f4b6920d99d7e8",
+      "precision": "nf4",
+      "rank": 32,
+      "seed": 123,
+      "source_504_adapter_tensor_digests_exact": true,
+      "source_integrity_before_after": true,
+      "step": 300
+    },
+    "source_input_pins": 164,
+    "source_receipts": {
+      "affinity_sha256": "b76cedc6766008f2a85a2757c39dc573db75794fb66bce981560c57ae173cd88",
+      "comparison_sha256": "1e3bae8f258d28d61fed9552bc4ac411f909c098b257c9bb9f275a17ecc0ebaa",
+      "dense_config_sha256": "37a2848060915900761c8908d6a654500f530191847f793979fcf530cdc4ddb0",
+      "dense_weight_index_sha256": "e0b2b85adb1a0cfa046dc7fbf4d4a7dfe96163c983afa70dd32928f30e20aae1",
+      "fresh_reload_probe_sha256": "c136623219cabdcc6c3072793778d4350c27edb07c3b52858e44942b34a0a178",
+      "outer_completion_sha256": "e028cedce5c34d89f40a992a3378c1b5083efabeb25335da7155ca15d51eaab7",
+      "reference_probe_sha256": "03e86f2d50c997e86cac2a7f0ca081a8825e603bb7ca37d4c4351b7f80ac0efa",
+      "runtime_sha256": "b2b5e7840300f33c0f68dc05a47cc0c01eafc4d6922af3a5a1f5900155057909",
+      "source_before_sha256": "945f44fb22e6b468e7ce53cf5de603d94fedd913a1859f9ffc6e554b28c57aba"
+    },
+    "status": "accepted_nf4_adapter_to_bf16_dense_artifact_correctness_and_development_point_gate"
   },
   "final_build_diagnostics": {
     "acknowledged_cross_build_metadata_fields": [
@@ -3072,6 +3873,11 @@
   "protocol": "cosmos.native-qlora-native-evaluation.v1",
   "qualification_status_09e99c3": {
     "accelerator_qualification_accepted": false,
+    "current_result_sections": [
+      "answer_smoothing_correctness_09e99c3_continuation",
+      "mature_recovery_dadfc89_seed123",
+      "dense_export_bf16_09e99c3"
+    ],
     "native_revision": "09e99c3d94e00ac1d9dd7a356d3996edb05d946b",
     "native_wheel_sha256": "9ab5ffef8532f5dd758c80bf52003579b71a34fcdb399a1c6679975f0d193c8f",
     "ongoing_followups": {
@@ -3126,6 +3932,7 @@
       "scheduler_request_changed": false,
       "timing_and_learning_single_numa_guard_changed": false
     },
+    "snapshot_scope": "Historical admission snapshot retained from repository revision fadaf2b. Its pending flags describe that snapshot, not the current completed correctness, mature-recovery or dense-export results. The original pre-kernel failure and prospective guard decisions remain unchanged; long-workload qualification is still pending.",
     "status": "correctness_followup_admitted_outcomes_pending"
   },
   "release_qualified": false,
