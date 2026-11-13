@@ -251,3 +251,17 @@ def test_selected_native_task_config_does_not_silently_ignore_overrides(field, v
     setattr(config, field, value)
     with pytest.raises(ValueError):
         validate_task_config(config)
+
+
+def test_weight_reader_matches_source_and_hf_single_file_precedence(tmp_path):
+    import json
+
+    from safetensors.torch import save_file
+
+    from cosmos_framework.posttrain.model.gr00t.adaptation import checkpoint_weight_map
+
+    save_file({"actual": torch.ones(2)}, str(tmp_path / "model.safetensors"))
+    (tmp_path / "model.safetensors.index.json").write_text(json.dumps({"weight_map": {"unbound": "wrong.safetensors"}}))
+    assert checkpoint_weight_map(tmp_path) == {"actual": "model.safetensors"}
+    (tmp_path / "model.safetensors").unlink()
+    assert checkpoint_weight_map(tmp_path) == {"unbound": "wrong.safetensors"}

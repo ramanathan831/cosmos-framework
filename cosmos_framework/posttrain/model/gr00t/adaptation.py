@@ -183,13 +183,26 @@ def _construct_meta(payload, backbone_path):
         return Net(Gr00tN1d7Config(**payload))
 
 
+def checkpoint_weight_map(checkpoint):
+    """Match HF/source-provenance precedence when both storage layouts are present."""
+    from safetensors import safe_open
+
+    checkpoint = Path(checkpoint)
+    single = checkpoint / "model.safetensors"
+    if single.is_file():
+        with safe_open(str(single), framework="pt") as handle:
+            return dict.fromkeys(handle.keys(), "model.safetensors")
+    return json.loads((checkpoint / "model.safetensors.index.json").read_text())["weight_map"]
+
+
 def build_adapted_gr00t(config: Any, *, device: Any, save_cfg_dir: Any) -> tuple[Any, Any, Any]:
     """Stream each full-GR00T source tensor into final storage; no dense CPU/GPU base copy."""
     import torch
     from safetensors import safe_open
 
     from cosmos_framework.posttrain.model.gr00t.policy import load_processor
-    from cosmos_framework.posttrain.model.gr00t.source import Gr00tPPOSource, _resolve
+    from cosmos_framework.posttrain.model.gr00t.qlora_source import pinned_source_identity
+    from cosmos_framework.posttrain.model.gr00t.source import _metadata, _resolve
     from cosmos_framework.posttrain.model.quantization.family import install_family_backbone
     from cosmos_framework.posttrain.utils.object_store import file_sha256
 
@@ -201,16 +214,7 @@ def build_adapted_gr00t(config: Any, *, device: Any, save_cfg_dir: Any) -> tuple
     backbone = Path(adaptation.backbone_path).expanduser().resolve()
     if not (backbone / "config.json").is_file():
         raise ValueError("GR00T adaptation needs its exact staged Cosmos-Reason2-2B config/tokenizer/processor")
-    source = Gr00tPPOSource(
-        checkpoint,
-        backbone,
-        "",
-        backbone,
-        "",
-        file_sha256(str(checkpoint / "config.json")),
-        file_sha256(str(checkpoint / "processor_config.json")),
-    )
-    source_identity = source.identity()
+    source_identity = pinned_source_identity(checkpoint, backbone)
     payload = json.loads((checkpoint / "config.json").read_text())
     model = _construct_meta(payload, str(backbone))
     targets = resolve_language_targets(model)
@@ -219,12 +223,7 @@ def build_adapted_gr00t(config: Any, *, device: Any, save_cfg_dir: Any) -> tuple
         for name, parameter in model.named_parameters()
         if name.startswith("action_head.") and parameter.requires_grad and adaptation.train_action_head
     )
-    index = checkpoint / "model.safetensors.index.json"
-    if index.is_file():
-        weight_map = json.loads(index.read_text())["weight_map"]
-    else:
-        with safe_open(str(checkpoint / "model.safetensors"), framework="pt") as handle:
-            weight_map = dict.fromkeys(handle.keys(), "model.safetensors")
+    weight_map = checkpoint_weight_map(checkpoint)
     expected = model.state_dict()
     if set(expected) != set(weight_map):
         raise ValueError(
@@ -258,7 +257,7 @@ def build_adapted_gr00t(config: Any, *, device: Any, save_cfg_dir: Any) -> tuple
         "config": task_config,
         "implementation": {
             name: file_sha256(str(Path(__file__).parent / name))
-            for name in ("adaptation.py", "action_sft.py", "policy.py", "packer.py")
+            for name in ("adaptation.py", "action_sft.py", "policy.py", "packer.py", "qlora_source.py")
         },
         "native_model_config": payload,
         "precision": {
@@ -270,6 +269,7 @@ def build_adapted_gr00t(config: Any, *, device: Any, save_cfg_dir: Any) -> tuple
             "matmul_allow_tf32": torch.backends.cuda.matmul.allow_tf32,
             "cudnn_allow_tf32": torch.backends.cudnn.allow_tf32,
         },
+        "backbone_metadata": _metadata(backbone),
         "processor_config": json.loads((checkpoint / "processor_config.json").read_text()),
         "statistics": json.loads((checkpoint / "statistics.json").read_text()),
     }
@@ -295,7 +295,7 @@ def build_adapted_gr00t(config: Any, *, device: Any, save_cfg_dir: Any) -> tuple
     model.backbone.tune_visual = False
     model.config.tune_llm = model.backbone.tune_llm
     processor = load_processor(str(checkpoint), model_name=str(backbone))
-    if source.identity() != source_identity:
+    if pinned_source_identity(checkpoint, backbone) != source_identity:
         raise ValueError("GR00T source changed during streamed construction")
     Path(save_cfg_dir).mkdir(parents=True, exist_ok=True)
     return model, processor, state

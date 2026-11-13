@@ -18,6 +18,8 @@ def make_config():
     config.policy_factory = "cosmos_framework.posttrain.model.gr00t.action_sft.build_policy"
     config.data_factory = "cosmos_framework.posttrain.model.gr00t.action_sft.build_dataset"
     config.objective_factory = "cosmos_framework.posttrain.model.gr00t.action_sft.build_objective"
+    config.dense_policy_factory = "cosmos_framework.posttrain.model.gr00t.dense.build_policy"
+    config.dense_sidecars_factory = "cosmos_framework.posttrain.model.gr00t.dense.sidecars"
     config.evaluation_callback = "cosmos_framework.posttrain.model.gr00t.action_sft.evaluate_actions"
     config.model = Gr00tN1d7ModelConfig(
         checkpoint_path="/path/to/GR00T-N1.7-LIBERO-2ea293a/libero_spatial",

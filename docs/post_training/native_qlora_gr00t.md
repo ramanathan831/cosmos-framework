@@ -103,6 +103,37 @@ The same command accepts the portable path printed in `completion.json`. It veri
 parameter inventory and complete numerical identity before loading trained components. It reports
 masked normalized-action MSE, per-component decoded environment-action MAE and native teacher-forced
 flow loss separately. Prediction never receives demonstration actions as RTC conditioning. Generic
-HF language-model loading, dense merged GR00T export and serving acceleration are not established
-by this portable loader. Dense export must preserve the native action policy and merge onto the
-effective dequantized base, not the original pre-quantization weights, before those claims can be made.
+HF language-model loading and serving acceleration are not established by this portable loader.
+
+The native dense export path separately reconstructs `dequantize(Q(W)) + (alpha/rank) B A` with
+FP32 CPU accumulation and declared BF16 or FP32 merged-language storage. Non-target tensors retain
+their native dtype, including FP32 trained action components. Standard indexed shards have a
+configurable payload limit (512 MiB by default; a larger individual tensor gets its own shard).
+The commit-last manifest includes per-tensor/file digests and copied native processor, embodiment,
+statistics and backbone-tokenizer metadata. Fresh dense reconstruction needs no original base weights.
+
+```bash
+# Set these to the exact installed build identities, not guessed values.
+export COSMOS_TRAINING_CODE_REVISION=<40-character-code-revision>
+export COSMOS_TRAINING_WHEEL_SHA256=<64-character-wheel-sha256>
+torchrun --standalone --nproc-per-node=1 \
+  -m cosmos_framework.posttrain.checkpoint.tools.export_family_dense \
+  --config cosmos_framework/posttrain/configs/gr00t_n1d7_libero_qlora.py \
+  --checkpoint /run/checkpoints/iter_000100 --output /durable/gr00t-dense \
+  --merged-backbone-dtype bfloat16 --max-shard-size-bytes 536870912 \
+  --override model.checkpoint_path=/staged/GR00T-N1.7-LIBERO/libero_spatial \
+  --override model.backbone_adaptation.backbone_path=/staged/Cosmos-Reason2-2B-metadata
+
+torchrun --standalone --nproc-per-node=1 \
+  -m cosmos_framework.posttrain.entrypoints.action_eval \
+  --config cosmos_framework/posttrain/configs/gr00t_n1d7_libero_qlora.py --dense \
+  --checkpoint /durable/gr00t-dense --output /durable/dense-evaluation -- \
+  data.validation_path=/prepared/gr00t/validation.jsonl
+```
+
+This effective-base dense artifact is a different numerical execution from separate BF16-autocast
+LoRA arithmetic. A further BF16 merge cast also changes the numerical model. Dense tensor checks,
+fresh native task-output tolerances and task-quality evaluation are separate qualification gates;
+implementation or file conversion alone does not establish their pass. Merging onto the untouched
+original BF16 base, requantization, generic serving and deployment-latency improvements remain outside
+this export contract. Dense artifacts cannot resume training.
