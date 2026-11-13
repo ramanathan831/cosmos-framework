@@ -1,0 +1,177 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+"""Actual tiny public Alpamayo/Qwen prefix + action expert flow graph."""
+
+from __future__ import annotations
+
+import copy
+import json
+
+import pytest
+import torch
+
+pytest.importorskip("alpamayo_r1")
+import transformers
+
+if transformers.__version__ != "4.57.6":
+    pytest.skip("pinned Alpamayo runtime", allow_module_level=True)
+from cosmos_framework.posttrain.model.alpamayo.policy import AlpamayoSFTPolicy
+from cosmos_framework.posttrain.model.quantization.family import FamilyBackboneConfig, install_family_backbone
+
+
+def source(tmp_path):
+    from alpamayo_r1.config import AlpamayoR1Config
+    from safetensors.torch import save_file
+    from tokenizers import Tokenizer, models
+    from transformers import (
+        Qwen2TokenizerFast,
+        Qwen2VLImageProcessorFast,
+        Qwen3VLConfig,
+        Qwen3VLProcessor,
+        Qwen3VLVideoProcessor,
+    )
+
+    from cosmos_framework.posttrain.model.alpamayo.policy import AlpamayoSFTNet
+    from cosmos_framework.posttrain.tests.test_model_qwen3_vl_gpu import _dense_config
+
+    processor = tmp_path / "processor"
+    processor.mkdir()
+    vocab = {f"token{i}": i for i in range(128)}
+    for name, index in [
+        ("<unk>", 0),
+        ("<|vision_start|>", 118),
+        ("<|vision_end|>", 119),
+        ("<|image_pad|>", 120),
+        ("<|video_pad|>", 121),
+    ]:
+        del vocab[f"token{index}"]
+        vocab[name] = index
+    tokenizer = Qwen2TokenizerFast(
+        tokenizer_object=Tokenizer(models.WordLevel(vocab, unk_token="<unk>")), unk_token="<unk>", pad_token="<unk>"
+    )
+    tokenizer.chat_template = "{% for message in messages %}{{ message['content'] }}{% endfor %}"
+    media = dict(min_pixels=16, max_pixels=64, patch_size=2, temporal_patch_size=2, merge_size=2)
+    Qwen3VLProcessor(
+        tokenizer=tokenizer,
+        image_processor=Qwen2VLImageProcessorFast(**media),
+        video_processor=Qwen3VLVideoProcessor(**media),
+    ).save_pretrained(processor)
+    qwen = Qwen3VLConfig(**_dense_config().to_dict())
+    # The public 8B processor declares a nested BF16 text dtype. Transformers
+    # honors it even inside an outer from_pretrained(dtype=float32) call.
+    qwen.text_config.dtype = torch.bfloat16
+    qwen.text_config.rope_scaling = {"rope_type": "default", "mrope_section": [1, 1, 2]}
+    qwen.save_pretrained(processor)
+    cfg = AlpamayoR1Config(
+        vlm_name_or_path=str(processor),
+        traj_vocab_size=64,
+        add_special_tokens=True,
+        attn_implementation="sdpa",
+        model_dtype="float32",
+        min_pixels=16,
+        max_pixels=64,
+        action_space_cfg={"_target_": "alpamayo_r1.action_space.UnicycleAccelCurvatureActionSpace", "n_waypoints": 4},
+        diffusion_cfg={"_target_": "alpamayo_r1.diffusion.flow_matching.FlowMatching"},
+        action_in_proj_cfg={
+            "_target_": "alpamayo_r1.models.action_in_proj.PerWaypointActionInProjV2",
+            "hidden_size": 32,
+            "num_enc_layers": 2,
+            "num_fourier_feats": 4,
+        },
+        action_out_proj_cfg={"_target_": "torch.nn.Linear"},
+        expert_cfg={"hidden_size": 32, "intermediate_size": 64, "dtype": "float32"},
+    )
+    torch.manual_seed(13)
+    model = AlpamayoSFTNet(cfg)
+    base = tmp_path / "base"
+    base.mkdir()
+    (base / "config.json").write_text(json.dumps(cfg.to_dict()))
+    save_file({n: v.contiguous() for n, v in model.state_dict().items()}, str(base / "model.safetensors"))
+    return model.bfloat16()
+
+
+def batch():
+    from cosmos_framework.posttrain.tests.test_model_qwen3_vl_gpu import _batch
+
+    torch.manual_seed(27)
+    actions = torch.randn(1, 4, 2)
+    return dict(
+        tokenized=_batch(),
+        history={},
+        actions=actions,
+        action_mask=torch.ones_like(actions),
+        time=torch.tensor([0.3]),
+        noise=torch.randn_like(actions),
+    )
+
+
+@pytest.mark.parametrize("checkpointing", [False, True])
+@pytest.mark.parametrize("mode", ["bf16_lora", "nf4_lora"])
+def test_actual_flow_reaches_adapters_and_auxiliary_heads(tmp_path, checkpointing, mode):
+    import os
+
+    import torch.distributed as dist
+
+    device = torch.device("cpu")
+    if mode == "nf4_lora":
+        if not torch.cuda.is_available() or "LOCAL_RANK" not in os.environ:
+            pytest.skip("NF4 requires real CUDA kernels under one-rank torchrun")
+        device = torch.device("cuda", int(os.environ["LOCAL_RANK"]))
+        torch.cuda.set_device(device)
+        if not dist.is_initialized():
+            dist.init_process_group("nccl")
+    net = source(tmp_path)
+    reference = copy.deepcopy(net)
+    targets = {
+        name: tuple(module.weight.shape)
+        for name, module in net.named_modules()
+        if type(module) is torch.nn.Linear
+        and name.startswith("vlm.model.language_model.layers.")
+        and (".layers.0." in name or name.endswith(("k_proj", "v_proj")))
+    }
+    auxiliary = tuple(
+        name
+        for name, _ in net.named_parameters()
+        if name.startswith(("expert.", "action_in_proj.", "action_out_proj."))
+    )
+    settings = FamilyBackboneConfig(mode=mode, rank=2, alpha=4, seed=9)
+
+    def install(model):
+        return install_family_backbone(
+            model,
+            config=settings,
+            targets=targets,
+            auxiliary_parameters=auxiliary,
+            source_identity={"fixture": "actual-public-Alpamayo"},
+            task_identity={"loss": "native-flow"},
+            device=device,
+        )
+
+    state = install(net)
+    net._full_activation_checkpointing = checkpointing
+    policy = AlpamayoSFTPolicy(net)
+    data = batch()
+    optimizer = torch.optim.AdamW([p for p in net.parameters() if p.requires_grad], lr=1e-3)
+    state.assert_optimizer(optimizer)
+    before = {name: p.detach().clone() for name, p in state.codec.parameters.items()}
+    for step in range(3):
+        optimizer.zero_grad(set_to_none=True)
+        out = policy.flow_matching_loss(data)
+        assert torch.isfinite(out.loss)
+        out.loss.backward()
+        for name, p in state.codec.parameters.items():
+            assert p.grad is not None and torch.isfinite(p.grad).all(), name
+            if "lora_A" not in name or step > 0:
+                assert p.grad.abs().sum() > 0, name
+        optimizer.step()
+    assert all(not torch.equal(before[name], p) for name, p in state.codec.parameters.items())
+    state.validate_frozen_base()
+    restored = install(reference)
+    restored.codec.validate_metadata(state.codec.metadata(), purpose="reload")
+    restored.codec.view.load_state_dict(state.codec.view.state_dict())
+    torch.testing.assert_close(
+        AlpamayoSFTPolicy(reference).flow_matching_loss(data).prediction,
+        policy.flow_matching_loss(data).prediction,
+        rtol=0,
+        atol=0,
+    )
