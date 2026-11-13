@@ -300,7 +300,9 @@ class BaseTrainer(ABC):
         checkpoint_store: Mapping[str, Any] | CheckpointStore | None = None,
         checkpoint_manager: CheckpointManager | None = None,
     ) -> None:
-        if getattr(optimizer, "cosmos_quantized_optimizer", False):
+        if getattr(optimizer, "cosmos_quantized_optimizer", False) and not getattr(
+            optimizer, "cosmos_local_master_optimizer", False
+        ):
             if (checkpoint_manager.checkpoint_format if checkpoint_manager else checkpoint_format) != "consolidated":
                 raise ValueError("quantized optimizer requires the consolidated checkpoint transaction path")
         self.opt = optimizer

@@ -588,6 +588,10 @@ def build_optimizer(
             },
         ]
     name = getattr(opt_cfg, "name", "adamw")
+    if opt_cfg.update_policy == "fp32_master":
+        from cosmos_framework.utils.optimizer_master import MasterWeightOptimizer
+
+        return MasterWeightOptimizer(net, params, opt_cfg)
     if name in ("adamw_bnb_8bit", "paged_adamw_8bit"):
         from cosmos_framework.utils.quantized_optimizer import build_quantized_optimizer
 

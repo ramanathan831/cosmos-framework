@@ -295,8 +295,15 @@ class OptimizerConfig:
     # Append backend fields to preserve the existing dataclass positional API.
     bnb_min_8bit_size: int = 4096
     bnb_fp32_state_names: list[str] = field(default_factory=list)
+    # Explicit update policy: preserve BF16 model storage with optimizer-owned FP32
+    # local masters. Also usable with AdamW as the matched high-precision control.
+    update_policy: str = "parameter"
 
     def __post_init__(self) -> None:
+        if self.update_policy not in ("parameter", "fp32_master"):
+            raise ValueError("optimizer.update_policy must be parameter or fp32_master")
+        if self.update_policy == "fp32_master" and self.name not in ("adamw", "adamw_bnb_8bit", "paged_adamw_8bit"):
+            raise ValueError("fp32_master supports AdamW and bitsandbytes AdamW only")
         if type(self.bnb_min_8bit_size) is not int or self.bnb_min_8bit_size < 1:
             raise ValueError("bnb_min_8bit_size must be a positive integer")
         if any(not isinstance(n, str) or not n for n in self.bnb_fp32_state_names):

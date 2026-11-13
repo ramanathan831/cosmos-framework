@@ -111,7 +111,7 @@ def _snapshot(value):
     return deepcopy(value)
 
 
-def build_quantized_optimizer(net, params, config):
+def build_quantized_optimizer(net, params, config, *, _local_owner=None):
     """Build from the final trainable objects and existing stable LR/decay partition."""
     groups = params if params and isinstance(params[0], dict) else [{"params": params}]
     names = {id(p): n for n, p in net.named_parameters() if p.requires_grad}
@@ -123,13 +123,18 @@ def build_quantized_optimizer(net, params, config):
             raise ValueError(
                 "quantized optimizer requires ordinary trainable Parameters, not DTensor/quantized weights"
             )
-        if p.device.type != "cuda" or p.dtype != torch.float32 or not p.is_contiguous() or not p.numel():
+        if (
+            p.device.type != "cuda"
+            or p.dtype != torch.float32
+            or not p.is_contiguous()
+            or (not p.numel() and _local_owner is None)
+        ):
             raise ValueError(
                 "quantized optimizer requires nonempty contiguous CUDA FP32 trainables; no implicit masters"
             )
     if len({p.device for p in selected}) != 1:
         raise ValueError("quantized optimizer requires one CUDA device")
-    if torch.distributed.is_initialized() and torch.distributed.get_world_size() != 1:
+    if _local_owner is None and torch.distributed.is_initialized() and torch.distributed.get_world_size() != 1:
         raise ValueError("quantized optimizer distributed strategies are not supported")
     exceptions = set(config.bnb_fp32_state_names)
     missing = exceptions - {names[id(p)] for p in selected}
@@ -191,6 +196,8 @@ def build_quantized_optimizer(net, params, config):
                 ],
             }
             self._reported_states = -1
+            if _local_owner is not None:
+                self.identity["topology"] = deepcopy(_local_owner)
 
         @torch.no_grad()
         def step(self, closure=None):

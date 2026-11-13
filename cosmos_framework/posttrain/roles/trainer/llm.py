@@ -982,8 +982,12 @@ class LLMTrainer(BaseTrainer):
         Returns:
             MiB of total trainer state parked on the host by this hand-off.
         """
-        if getattr(self.opt, "cosmos_quantized_optimizer", False):
-            raise ValueError("quantized optimizer state offload is unsupported; paging is a separate capacity mode")
+        if getattr(self.opt, "cosmos_quantized_optimizer", False) or getattr(
+            self.opt, "cosmos_local_master_optimizer", False
+        ):
+            raise ValueError(
+                "quantized/local-master optimizer offload is unsupported; paging is a separate capacity mode"
+            )
         if self._offload.offloaded:
             return 0.0
         profile = ProfileRecord("trainer_offload")
@@ -1278,6 +1282,7 @@ class LLMTrainer(BaseTrainer):
         training_state_selected = component_plan.includes("training_state")
         needs_net = model_selected or optimizer_selected
         net = run_rank_converged(self._net, "LLM checkpoint network extraction") if needs_net else None
+        local_master = bool(getattr(self.opt, "cosmos_local_master_optimizer", False))
 
         if self.checkpoint_format == "dcp":
             from torch.distributed.checkpoint.state_dict import get_model_state_dict, get_optimizer_state_dict
@@ -1290,19 +1295,28 @@ class LLMTrainer(BaseTrainer):
                 if model_selected
                 else None
             )
-            with self._preserved_pristine_optimizer() as guard:
+            if local_master:
+                from cosmos_framework.posttrain.checkpoint.master_optimizer import optimizer_payload
+
                 optim_state = (
-                    run_rank_converged(  # [*sharded optimizer-state] values
-                        lambda: get_optimizer_state_dict(net, self.opt),
-                        "LLM DCP optimizer state extraction",
-                    )
+                    run_rank_converged(lambda: optimizer_payload(self.opt), "master optimizer snapshot")
                     if optimizer_selected
                     else None
                 )
-            # Write what a never-stepped optimizer actually holds. The extraction had to run to
-            # shape `param_groups` the way DCP expects, but the state it produced is an artifact
-            # of the probe step, not state this run ever computed.
-            optim_state = guard.sanitized(optim_state)
+            else:
+                with self._preserved_pristine_optimizer() as guard:
+                    optim_state = (
+                        run_rank_converged(  # [*sharded optimizer-state] values
+                            lambda: get_optimizer_state_dict(net, self.opt),
+                            "LLM DCP optimizer state extraction",
+                        )
+                        if optimizer_selected
+                        else None
+                    )
+                # Write what a never-stepped optimizer actually holds. The extraction had to run to
+                # shape `param_groups` the way DCP expects, but the state it produced is an artifact
+                # of the probe step, not state this run ever computed.
+                optim_state = guard.sanitized(optim_state)
             tail_components = {"trainer": self._trainer_state(), "data": data_state} if training_state_selected else {}
             live_tail_state = (
                 run_rank_converged(
@@ -1327,7 +1341,7 @@ class LLMTrainer(BaseTrainer):
         else:
             sharded = net is not None and is_dtensor_sharded(net)
             sharded_opt_sd: dict[str, Any] | None = None
-            if sharded:
+            if sharded or local_master:
                 from torch.distributed.checkpoint.state_dict import (
                     StateDictOptions,
                     get_model_state_dict,
@@ -1350,16 +1364,25 @@ class LLMTrainer(BaseTrainer):
                 # Same materializing extraction as the DCP branch, so the same rollback applies. The
                 # unsharded branch below reads `self.opt.state_dict()`, which does not initialize and
                 # already reports an empty state for a never-stepped optimizer.
-                with self._preserved_pristine_optimizer() as guard:
+                if local_master:
+                    from cosmos_framework.posttrain.checkpoint.master_optimizer import optimizer_payload
+
                     sharded_opt_sd = (
-                        run_rank_converged(  # [*sharded optimizer-state] values
-                            lambda: get_optimizer_state_dict(net, self.opt),
-                            "LLM consolidated checkpoint sharded optimizer state extraction",
-                        )
+                        run_rank_converged(lambda: optimizer_payload(self.opt), "master optimizer snapshot")
                         if optimizer_selected
                         else None
                     )
-                sharded_opt_sd = guard.sanitized(sharded_opt_sd)
+                else:
+                    with self._preserved_pristine_optimizer() as guard:
+                        sharded_opt_sd = (
+                            run_rank_converged(  # [*sharded optimizer-state] values
+                                lambda: get_optimizer_state_dict(net, self.opt),
+                                "LLM consolidated checkpoint sharded optimizer state extraction",
+                            )
+                            if optimizer_selected
+                            else None
+                        )
+                    sharded_opt_sd = guard.sanitized(sharded_opt_sd)
                 opt_sd = None
             else:
                 net_sd = net.state_dict() if model_selected and net is not None else None  # [*parameter] values
@@ -1429,6 +1452,11 @@ class LLMTrainer(BaseTrainer):
     def load(self, path: str) -> int:
         """Restore model, optimizer, and exact trainer state."""
         import os
+
+        if getattr(self.opt, "cosmos_local_master_optimizer", False):
+            from cosmos_framework.posttrain.checkpoint.master_optimizer import restore
+
+            return restore(self, path)
 
         if self.checkpoint_manager.has_dcp_component(path, "model"):
             resumed = self._load_dcp(path)
