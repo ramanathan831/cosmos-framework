@@ -216,6 +216,30 @@ class Gr00tN1d7TrainPolicy:
         self.config = config
         self._ppo_enabled = ppo
         self.precision = precision or (BF16_PRECISION if ppo else OFFICIAL_PRECISION)
+        if config.backbone_adaptation is not None:
+            if ppo:
+                raise ValueError(
+                    "GR00T backbone adaptation requires native action SFT; cached-feature PPO bypasses adapters"
+                )
+            import torch.distributed as dist
+
+            if (dist.is_initialized() and dist.get_world_size() != 1) or (
+                parallel_dims is not None and parallel_dims.world_size != 1
+            ):
+                raise ValueError("GR00T backbone adaptation currently requires one native torchrun process")
+            if precision is not None and precision != OFFICIAL_PRECISION:
+                raise ValueError("GR00T adapted flow-BC retains FP32 action parameters with BF16 autocast")
+            from cosmos_framework.posttrain.model.gr00t.adaptation import build_adapted_gr00t
+
+            torch.backends.cuda.matmul.allow_tf32 = True
+            torch.backends.cudnn.allow_tf32 = True
+            self.gr00t, self.processor, self.family_state = build_adapted_gr00t(
+                config, device=device, save_cfg_dir=save_cfg_dir
+            )
+            self.net = self.gr00t
+            self.backbone = self.gr00t.backbone
+            self.compute_ctx = compute_context("autocast", torch.bfloat16, torch.device(device).type)
+            return
         if ppo and self.precision != BF16_PRECISION:
             raise ValueError("GR00T PPO requires BF16_PRECISION; other PPO precision settings are unsupported")
         if ppo and os.environ.get("GR00T_DIT_SDPA_MODE") != "math":

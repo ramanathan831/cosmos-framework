@@ -20,6 +20,8 @@ from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+from cosmos_framework.posttrain.config.gr00t_bc import Gr00tBackboneAdaptation
+
 # Model backend identifiers used by the top-level selector and its thin dispatch.
 I4 = "i4"
 HF = "hf"
@@ -523,6 +525,8 @@ class Gr00tN1d7ModelConfig:
 
     # None preserves the loader's buffer precision and historical policy identity.
     backbone_buffer_dtype: str | None = None
+    # Opt-in native flow-BC adaptation. None preserves the historical head-only/PPO identity.
+    backbone_adaptation: Gr00tBackboneAdaptation | None = None
 
     # Observation adaptation: GR00T MODALITY KEY -> env observation key. The left side is fixed by the
     # checkpoint's `processor_config.json` and is verified against the loaded checkpoint at startup;
@@ -534,6 +538,10 @@ class Gr00tN1d7ModelConfig:
     language_key: str = "annotation.language.language_instruction"
 
     def __post_init__(self) -> None:
+        if self.backbone_adaptation is not None:
+            if not isinstance(self.backbone_adaptation, Gr00tBackboneAdaptation):
+                raise TypeError("gr00t.backbone_adaptation must be Gr00tBackboneAdaptation or None")
+            self.backbone_adaptation.__post_init__()
         if self.backbone_buffer_dtype not in (None, "bfloat16"):
             raise ValueError("gr00t.backbone_buffer_dtype must be None or bfloat16")
         for name in ("model_action_horizon", "training_prefix", "execution_horizon", "denoising_steps"):
@@ -594,6 +602,8 @@ class Gr00tN1d7ModelConfig:
         result = {k: (list(v) if isinstance(v, tuple) else v) for k, v in asdict(self).items()}
         if self.backbone_buffer_dtype is None:
             result.pop("backbone_buffer_dtype")
+        if self.backbone_adaptation is None:
+            result.pop("backbone_adaptation")
         return result
 
     def identity_hash(self) -> str:
