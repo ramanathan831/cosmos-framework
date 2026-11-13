@@ -257,6 +257,133 @@ def test_streaming_export_real_checkpoint_weights_sidecars_and_no_model_mutation
         export(net, source, checkpoint, tmp_path / "dense", output_dtype=dtype)
 
 
+@pytest.mark.parametrize(
+    "limit,groups",
+    [
+        (70, [["embedding.weight", "linear.bias", "linear.weight"]]),
+        (44, [["embedding.weight"], ["linear.bias", "linear.weight"]]),
+        (24, [["embedding.weight"], ["linear.bias"], ["linear.weight"]]),
+    ],
+)
+def test_size_bounded_shards_preserve_weights_and_use_standard_index(tmp_path, limit, groups):
+    net, source, checkpoint = fixture(tmp_path)
+    root = tmp_path / "dense"
+    report = export(net, source, checkpoint, root, max_shard_size_bytes=limit)
+    assert report["protocol"] == "cosmos.native-adapter-dense-export.v2"
+    assert report["sharding"]["max_shard_size_bytes"] == limit
+    index = json.loads((root / "model.safetensors.index.json").read_text())
+    assert index["metadata"]["total_size"] == 70
+    for i, names in enumerate(groups, start=1):
+        filename = f"model-{i:05d}-of-{len(groups):05d}.safetensors"
+        loaded = load_file(root / filename)
+        assert set(loaded) == set(names)
+        assert all(index["weight_map"][name] == filename for name in names)
+        size = sum(t.numel() * t.element_size() for t in loaded.values())
+        assert size <= limit or len(loaded) == 1
+        for name, value in loaded.items():
+            assert dense.tensor_digest(value) == {k: v for k, v in report["tensors"][name].items() if k != "file"}
+    assert len(list(root.glob("*.safetensors"))) == len(groups)
+    # Packaging changes file boundaries, never merge arithmetic or tensor bytes.
+    reference = export(net, source, checkpoint, tmp_path / "reference", max_shard_size_bytes=1)
+    assert {name: {k: v for k, v in record.items() if k != "file"} for name, record in report["tensors"].items()} == {
+        name: {k: v for k, v in record.items() if k != "file"} for name, record in reference["tensors"].items()
+    }
+    assert dense.read_dense_export(root) == report
+
+
+def test_shard_plan_is_order_independent_and_accounts_for_output_dtype():
+    shapes = {"c": (2,), "a": (3,), "b": (2,)}
+    expected = {
+        "a": "model-00001-of-00002.safetensors",
+        "b": "model-00001-of-00002.safetensors",
+        "c": "model-00002-of-00002.safetensors",
+    }
+    assert dense._shard_plan(shapes, dtype="bfloat16", max_bytes=10) == expected
+    assert dense._shard_plan(dict(reversed(list(shapes.items()))), dtype="bfloat16", max_bytes=10) == expected
+    assert len(set(dense._shard_plan(shapes, dtype="float32", max_bytes=10).values())) == 3
+
+
+@pytest.mark.parametrize("limit", [0, -1, True, 1.5, "512MiB", None])
+def test_invalid_shard_size_refuses_before_output(tmp_path, limit):
+    net, source, checkpoint = fixture(tmp_path)
+    with pytest.raises(ValueError, match="positive integer"):
+        export(net, source, checkpoint, tmp_path / "dense", max_shard_size_bytes=limit)
+    assert not (tmp_path / "dense").exists()
+
+
+def test_interrupted_packed_export_never_publishes_commit(tmp_path, monkeypatch):
+    from safetensors import torch as safetensors_torch
+
+    net, source, checkpoint = fixture(tmp_path)
+    root = tmp_path / "dense"
+    original = safetensors_torch.save_file
+    calls = []
+
+    def interrupted(tensors, filename, **kwargs):
+        calls.append(set(tensors))
+        if len(calls) == 2:
+            raise OSError("interrupted second packed shard")
+        original(tensors, filename, **kwargs)
+
+    monkeypatch.setattr(safetensors_torch, "save_file", interrupted)
+    with pytest.raises(OSError, match="second packed shard"):
+        export(net, source, checkpoint, root, max_shard_size_bytes=44)
+    assert calls == [{"embedding.weight"}, {"linear.bias", "linear.weight"}]
+    assert (root / "model-00001-of-00002.safetensors").is_file()
+    assert not (root / dense.DENSE_EXPORT_MANIFEST).exists()
+    with pytest.raises(ValueError, match="incomplete"):
+        dense.read_dense_export(root)
+    with pytest.raises(FileExistsError):
+        export(net, source, checkpoint, root, max_shard_size_bytes=44)
+
+
+@pytest.mark.parametrize("fault", ["shard_policy", "shard_size", "total_size", "extra_tensor"])
+def test_reader_checks_packing_and_membership_even_with_updated_file_hashes(tmp_path, fault):
+    net, source, checkpoint = fixture(tmp_path)
+    root = tmp_path / "dense"
+    report = export(net, source, checkpoint, root, max_shard_size_bytes=44)
+    if fault == "shard_policy":
+        del report["sharding"]
+    elif fault == "shard_size":
+        report["sharding"]["max_shard_size_bytes"] = 70
+    elif fault == "total_size":
+        index_path = root / "model.safetensors.index.json"
+        index = json.loads(index_path.read_text())
+        index["metadata"]["total_size"] += 2
+        index_path.write_text(json.dumps(index))
+        report["files"][index_path.name] = dense._file_record(index_path)
+    else:
+        shard_path = root / report["tensors"]["embedding.weight"]["file"]
+        values = load_file(shard_path)
+        values["unindexed"] = torch.ones(1, dtype=torch.bfloat16)
+        save_file(values, shard_path)
+        report["files"][shard_path.name] = dense._file_record(shard_path)
+    (root / dense.DENSE_EXPORT_MANIFEST).write_text(json.dumps(report))
+    with pytest.raises(ValueError, match="shard policy|shard plan|total_size|membership"):
+        dense.read_dense_export(root)
+
+
+def test_v1_one_tensor_artifacts_remain_readable(tmp_path):
+    net, source, checkpoint = fixture(tmp_path)
+    root = tmp_path / "dense"
+    report = export(net, source, checkpoint, root, max_shard_size_bytes=1)
+    report["protocol"] = "cosmos.native-adapter-dense-export.v1"
+    del report["sharding"]
+    for number, record in enumerate(report["tensors"].values(), start=1):
+        old = record["file"]
+        new = f"model-{number:05d}.safetensors"
+        (root / old).rename(root / new)
+        record["file"] = new
+        report["files"][new] = report["files"].pop(old)
+    index_path = root / "model.safetensors.index.json"
+    index = json.loads(index_path.read_text())
+    index["weight_map"] = {name: record["file"] for name, record in report["tensors"].items()}
+    index_path.write_text(json.dumps(index))
+    report["files"][index_path.name] = dense._file_record(index_path)
+    (root / dense.DENSE_EXPORT_MANIFEST).write_text(json.dumps(report))
+    assert dense.read_dense_export(root) == report
+
+
 @pytest.mark.parametrize("mutation", ["file", "extra", "missing_commit", "tensor_digest", "index"])
 def test_dense_reader_refuses_tamper_and_incomplete_artifact(tmp_path, mutation):
     net, source, checkpoint = fixture(tmp_path)

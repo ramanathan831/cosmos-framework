@@ -22,12 +22,20 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--checkpoint", required=True)
     result.add_argument("--output", required=True, help="New local directory; existing outputs are refused")
     result.add_argument("--output-dtype", choices=("bfloat16", "float32"), required=True)
+    result.add_argument(
+        "--max-shard-size-bytes",
+        type=int,
+        default=512 * 1024**2,
+        help="Maximum tensor payload per HF shard (default: 512 MiB); an oversized tensor is stored alone",
+    )
     result.add_argument("--override", action="append", default=[])
     return result
 
 
 def main(argv: Sequence[str] | None = None) -> None:
     args = parser().parse_args(argv)
+    if args.max_shard_size_bytes <= 0:
+        raise ValueError("--max-shard-size-bytes must be positive")
     if os.environ.get("WORLD_SIZE") != "1" or os.environ.get("RANK") != "0":
         raise ValueError("dense native export requires torchrun with one process")
     from cosmos_framework.posttrain.checkpoint.adapter import read_adapter_metadata
@@ -70,6 +78,7 @@ def main(argv: Sequence[str] | None = None) -> None:
                 source=source,
                 output=args.output,
                 output_dtype=args.output_dtype,
+                max_shard_size_bytes=args.max_shard_size_bytes,
                 exporter_build={
                     "code_revision": os.environ.get("COSMOS_TRAINING_CODE_REVISION", ""),
                     "wheel_sha256": os.environ.get("COSMOS_TRAINING_WHEEL_SHA256", ""),

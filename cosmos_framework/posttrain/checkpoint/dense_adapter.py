@@ -4,9 +4,9 @@
 
 This is an offline numerical conversion, never an in-place merge or a training
 checkpoint. NF4 is dequantized by the attached bitsandbytes backend on its owned
-CUDA device; one matrix is copied to CPU, merged in FP32, and serialized before
-the next matrix is visited. Floating-point evaluation after merging need not be
-bitwise equal to the separate base/adapter operations.
+CUDA device; one matrix is copied to CPU and merged in FP32 at a time. Completed
+output tensors are grouped into size-bounded CPU shards. Floating-point evaluation
+after merging need not be bitwise equal to the separate base/adapter operations.
 """
 
 from __future__ import annotations
@@ -31,7 +31,9 @@ from cosmos_framework.posttrain.utils.adapter_source import verify_adapter_snaps
 from cosmos_framework.utils.generator.lora import LoraInjectedLinear, NativeLoRAMixin
 
 DENSE_EXPORT_MANIFEST = "cosmos_dense_export.json"
-DENSE_EXPORT_PROTOCOL = "cosmos.native-adapter-dense-export.v1"
+DENSE_EXPORT_PROTOCOL = "cosmos.native-adapter-dense-export.v2"
+_LEGACY_DENSE_EXPORT_PROTOCOL = "cosmos.native-adapter-dense-export.v1"
+DEFAULT_MAX_SHARD_SIZE_BYTES = 512 * 1024**2
 _DTYPES = {"bfloat16": torch.bfloat16, "float32": torch.float32}
 
 
@@ -61,6 +63,83 @@ def _directory_signatures(root: Path) -> dict[str, tuple[int, ...]]:
         for p in root.iterdir()
         for s in (p.stat(),)
     }
+
+
+def _shard_plan(shapes: Mapping[str, list[int] | tuple[int, ...]], *, dtype: str, max_bytes: int) -> dict[str, str]:
+    """Greedy, name-ordered HF packing, without materializing output tensors.
+
+    The bound counts tensor payload bytes, excluding safetensors headers. A tensor
+    larger than the bound occupies a shard alone; tensors are never split. This
+    matches standard HF loading, including its support for indexed single shards.
+    """
+    if type(max_bytes) is not int or max_bytes <= 0:
+        raise ValueError("max_shard_size_bytes must be a positive integer")
+    element_size = torch.empty((), dtype=_DTYPES[dtype]).element_size()
+    groups: list[list[str]] = []
+    names: list[str] = []
+    size = 0
+    for name, shape in sorted(shapes.items()):
+        if any(type(dimension) is not int or dimension < 0 for dimension in shape):
+            raise ValueError(f"invalid dense export shape: {name}")
+        nbytes = math.prod(shape) * element_size
+        if names and size + nbytes > max_bytes:
+            groups.append(names)
+            names, size = [], 0
+        names.append(name)
+        size += nbytes
+        if size >= max_bytes:
+            groups.append(names)
+            names, size = [], 0
+    if names:
+        groups.append(names)
+    return {
+        name: f"model-{number:05d}-of-{len(groups):05d}.safetensors"
+        for number, group in enumerate(groups, start=1)
+        for name in group
+    }
+
+
+def _write_dense_shards(
+    root: Path, values: Iterator[tuple[str, torch.Tensor]], weight_map: dict[str, str]
+) -> tuple[dict[str, Any], int]:
+    """Hold one planned CPU shard plus the current produced tensor, never the model.
+
+    The generator's current matrix and row-merge temporaries are additional to
+    retained shard tensors. A single oversized matrix is serialized alone.
+    """
+    from safetensors.torch import save_file
+
+    pending: dict[str, torch.Tensor] = {}
+    current: str | None = None
+    tensors: dict[str, Any] = {}
+    total = 0
+
+    def flush() -> None:
+        if current is None:
+            return
+        path = root / current
+        save_file(pending, str(path), metadata={"format": "pt"})
+        with path.open("rb") as stream:
+            os.fsync(stream.fileno())
+        release_page_cache(str(path))
+        pending.clear()
+
+    expected = iter(weight_map)
+    for name, value in values:
+        if name != next(expected, None):
+            raise ValueError("dense export tensor order/membership differs from its shard plan")
+        filename = weight_map[name]
+        if filename != current:
+            flush()
+            current = filename
+        pending[name] = value.contiguous()
+        tensors[name] = {**tensor_digest(value), "file": filename}
+        total += value.numel() * value.element_size()
+        del value
+    if next(expected, None) is not None or not tensors:
+        raise ValueError("dense export is missing planned tensors")
+    flush()
+    return tensors, total
 
 
 def _canonical_parameters(net: nn.Module) -> dict[str, nn.Parameter]:
@@ -191,7 +270,10 @@ def read_dense_export(
     if expected_manifest_sha256 is not None and sha256(marker_bytes).hexdigest() != expected_manifest_sha256:
         raise ValueError("dense export manifest differs from the requested SHA256")
     manifest = json.loads(marker_bytes)
-    if manifest.get("protocol") != DENSE_EXPORT_PROTOCOL or manifest.get("complete") is not True:
+    if (
+        manifest.get("protocol") not in (DENSE_EXPORT_PROTOCOL, _LEGACY_DENSE_EXPORT_PROTOCOL)
+        or manifest.get("complete") is not True
+    ):
         raise ValueError("unsupported or incomplete dense export manifest")
     if (
         manifest.get("format") != "huggingface_safetensors"
@@ -227,20 +309,41 @@ def read_dense_export(
         raise ValueError("dense export index differs from its committed tensor inventory")
     if set(index["weight_map"].values()) != {name for name in files if name.endswith(".safetensors")}:
         raise ValueError("dense export contains missing or unindexed shards")
+    shapes = {name: record["shape"] for name, record in tensors.items()}
+    if manifest["protocol"] == DENSE_EXPORT_PROTOCOL:
+        sharding = manifest.get("sharding", {})
+        if sharding.get("policy") != "sorted_greedy_payload_bytes_v1" or sharding.get("oversized_tensor") != "alone":
+            raise ValueError("dense export requires its declared bounded shard policy")
+        planned = _shard_plan(shapes, dtype=manifest["output_dtype"], max_bytes=sharding.get("max_shard_size_bytes"))
+        if planned != index["weight_map"]:
+            raise ValueError("dense export index differs from its deterministic shard plan")
+    elif len(set(index["weight_map"].values())) != len(tensors):
+        raise ValueError("legacy dense export requires one tensor per shard")
+    total = (
+        sum(math.prod(shape) for shape in shapes.values())
+        * torch.empty((), dtype=_DTYPES[manifest["output_dtype"]]).element_size()
+    )
+    if index.get("metadata", {}).get("total_size") != total:
+        raise ValueError("dense export index total_size differs from its tensor inventory")
+    shards: dict[str, set[str]] = {}
     for name, record in tensors.items():
         if record["dtype"] != manifest["output_dtype"]:
             raise ValueError("dense export tensor dtype differs from its declared output")
-        with safe_open(root / record["file"], framework="pt", device="cpu") as reader:
-            if list(reader.keys()) != [name]:
-                raise ValueError("dense export requires exactly the declared tensor per shard")
-            value = reader.get_slice(name)
-            if (
-                value.get_shape() != record["shape"]
-                or value.get_dtype() != {"bfloat16": "BF16", "float32": "F32"}[record["dtype"]]
-            ):
-                raise ValueError(f"dense export tensor header differs: {name}")
-            if tensor_digest(reader.get_tensor(name)) != {k: v for k, v in record.items() if k != "file"}:
-                raise ValueError(f"dense export tensor bytes differ: {name}")
+        shards.setdefault(record["file"], set()).add(name)
+    for filename, names in shards.items():
+        with safe_open(root / filename, framework="pt", device="cpu") as reader:
+            if set(reader.keys()) != names:
+                raise ValueError("dense export shard membership differs from its tensor inventory")
+            for name in sorted(names):
+                record = tensors[name]
+                value = reader.get_slice(name)
+                if (
+                    value.get_shape() != record["shape"]
+                    or value.get_dtype() != {"bfloat16": "BF16", "float32": "F32"}[record["dtype"]]
+                ):
+                    raise ValueError(f"dense export tensor header differs: {name}")
+                if tensor_digest(reader.get_tensor(name)) != {k: v for k, v in record.items() if k != "file"}:
+                    raise ValueError(f"dense export tensor bytes differ: {name}")
     if _directory_signatures(root) != signatures or marker.read_bytes() != marker_bytes:
         raise RuntimeError("dense export changed during verification")
     return manifest
@@ -255,6 +358,7 @@ def export_dense_adapter(
     output: str,
     output_dtype: str,
     exporter_build: dict[str, str],
+    max_shard_size_bytes: int = DEFAULT_MAX_SHARD_SIZE_BYTES,
 ) -> dict[str, Any]:
     """Reload a committed adapter on a fresh native model and publish a new HF directory.
 
@@ -262,12 +366,12 @@ def export_dense_adapter(
     commit-last manifest; a failed export remains visibly incomplete and must use
     a new output path. No fallback overwrites or blesses an interrupted artifact.
     """
-    from safetensors.torch import save_file
-
     from cosmos_framework.posttrain.checkpoint.manager import CheckpointManager
 
     if output_dtype not in _DTYPES:
         raise ValueError("output_dtype must be bfloat16 or float32")
+    if type(max_shard_size_bytes) is not int or max_shard_size_bytes <= 0:
+        raise ValueError("max_shard_size_bytes must be a positive integer")
     if set(exporter_build) != {"code_revision", "wheel_sha256"} or any(
         re.fullmatch(r"[0-9a-f]{%d}" % size, exporter_build[key]) is None
         for key, size in (("code_revision", 40), ("wheel_sha256", 64))
@@ -294,20 +398,14 @@ def export_dense_adapter(
     codec = net._cosmos_adapter_checkpoint_codec
     load_adapter_weights(checkpoint, codec, manager=CheckpointManager(checkpoint_format="dcp"))
     adapter_digests = {name: tensor_digest(p) for name, p in codec.parameters.items()}
+    weight_map = _shard_plan(
+        {name: shape for name, (_, shape, _) in _safetensor_inventory(base).items()},
+        dtype=output_dtype,
+        max_bytes=max_shard_size_bytes,
+    )
     root.mkdir(parents=False, exist_ok=False)
     fsync_directory(str(root.parent))
-    tensors, total = {}, 0
-    for number, (name, value) in enumerate(_dense_tensors(net, identity, base, _DTYPES[output_dtype]), start=1):
-        filename = f"model-{number:05d}.safetensors"
-        save_file({name: value.contiguous()}, str(root / filename), metadata={"format": "pt"})
-        with (root / filename).open("rb") as stream:
-            os.fsync(stream.fileno())
-        release_page_cache(str(root / filename))
-        tensors[name] = {**tensor_digest(value), "file": filename}
-        total += value.numel() * value.element_size()
-        del value
-    if not tensors:
-        raise ValueError("dense export has no tensors")
+    tensors, total = _write_dense_shards(root, _dense_tensors(net, identity, base, _DTYPES[output_dtype]), weight_map)
     for name in source_identity["files"]:
         if name.endswith(".safetensors") or name == "model.safetensors.index.json":
             continue
@@ -347,6 +445,11 @@ def export_dense_adapter(
         "output_dtype": output_dtype,
         "accumulation_dtype": "float32",
         "merge_device": "cpu",
+        "sharding": {
+            "policy": "sorted_greedy_payload_bytes_v1",
+            "max_shard_size_bytes": max_shard_size_bytes,
+            "oversized_tensor": "alone",
+        },
         "effective_weight": "dequantize_attached_bnb_nf4_on_cuda_plus_scaled_BA"
         if identity.get("quantization")
         else "dense_base_plus_scaled_BA",
