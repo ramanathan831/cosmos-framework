@@ -199,6 +199,39 @@ class NativeLoraLinear4bit(NativeLoRAMixin, bnb.nn.Linear4bit):
         return base + self.adapter_delta(x, output_dtype=base.dtype)
 
 
+class NativeFrozenLinear4bit(bnb.nn.Linear4bit):
+    """The same frozen NF4 representation without unused adapter parameters.
+
+    Used by the explicit feature-extractor control in native action policies.
+    Input backward remains enabled so an earlier trainable operation is never
+    implicitly detached merely because this particular matrix is frozen.
+    """
+
+    load_dense_weight_once = NativeLoraLinear4bit.load_dense_weight_once
+    validate_quantization_state = NativeLoraLinear4bit.validate_quantization_state
+    effective_weight_for_initialization = NativeLoraLinear4bit.effective_weight_for_initialization
+
+    def __init__(self, base: nn.Linear) -> None:
+        if not base.weight.is_meta or base.bias is not None:
+            raise ValueError("native frozen NF4 requires an unmaterialized, bias-free linear")
+        super().__init__(
+            base.in_features,
+            base.out_features,
+            bias=False,
+            device="meta",
+            compute_dtype=torch.bfloat16,
+            compress_statistics=True,
+            quant_type="nf4",
+            quant_storage=torch.uint8,
+        )
+        self.logical_shape = (base.out_features, base.in_features)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        if x.dtype != torch.bfloat16 or x.device != self.weight.device:
+            raise ValueError("native frozen NF4 expects BF16 activations on its owned CUDA device")
+        return super().forward(x)
+
+
 def kernel_preflight(
     device: torch.device,
     adapter: Any,
