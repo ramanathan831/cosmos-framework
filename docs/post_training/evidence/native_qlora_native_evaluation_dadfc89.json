@@ -507,6 +507,1692 @@
     "scope": "Current-build correctness for the opt-in training objective only. This four-update canary does not establish a learning benefit, performance advantage, release qualification, dense export or long-workload support.",
     "status": "both_precision_correctness_accepted_learning_screen_admitted_outcomes_pending"
   },
+  "combined_long_video_rank32_09e99c3": {
+    "arms": {
+      "bf16": {
+        "actual_update_seconds_sum": 350.5379805812845,
+        "artifacts": {
+          "dcp": {
+            "allocated_file_bytes": 1051860992,
+            "files": 7,
+            "logical_bytes": 1051836855
+          },
+          "portable": {
+            "allocated_file_bytes": 349626368,
+            "files": 3,
+            "logical_bytes": 349613625
+          }
+        },
+        "cursor_verified_unpadded_tokens": 651785,
+        "fresh_video_probe": {
+          "pixel_tensor_shape": [
+            8064,
+            1536
+          ],
+          "sequence_length": 4095,
+          "supervised_tokens": 1335
+        },
+        "historical_24gib_runtime_budget": {
+          "budget_bytes": 25769803776,
+          "eligible_for_higher_microbatch": false,
+          "evidence_complete": true,
+          "observed_peak_within_budget": false,
+          "observed_process_peak_lower_bound_bytes": 28053602304,
+          "reasons": [
+            "observed_training_process_peak_exceeds_budget"
+          ],
+          "sampled_peaks_are_lower_bounds": true,
+          "scope": "Observed owned-device-process peak during native training, including load, validation and checkpoint writes; not physical device capacity.",
+          "unseen_short_peaks_remain_possible": true
+        },
+        "recovery_completion_sha256": "d7377d549d0ddcad2f0ec9e7155ae8fa21a0415e4494008778fbfd20bc59689a",
+        "recovery_memory": {
+          "allocator_evidence_complete": true,
+          "allocator_peak_allocated_bytes": 23257688576,
+          "allocator_peak_reserved_bytes": 33262927872,
+          "empty_sample_intervals": 23,
+          "interval_count": 65,
+          "phase_semantics": "Peaks end at the current boundary after the preceding reset. checkpoint_begin records the preceding validation/boundary window; only checkpoint_complete after checkpoint_begin is checkpoint writing. Loading excludes earlier source verification and process startup.",
+          "phases": {
+            "checkpoint_write": {
+              "allocator_peak_allocated_bytes": 19064395264,
+              "allocator_peak_reserved_bytes": 32017219584,
+              "interval_seconds": {
+                "count": 12,
+                "maximum": 20.616281704977155,
+                "mean": 19.83254998823395,
+                "median": 19.747245578968432,
+                "p95": 20.579073288099607,
+                "sum": 237.9905998588074
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 33088864256
+            },
+            "first_update": {
+              "allocator_peak_allocated_bytes": 22465239040,
+              "allocator_peak_reserved_bytes": 26967277568,
+              "interval_seconds": {
+                "count": 3,
+                "maximum": 25.769643984967843,
+                "mean": 25.647629692646053,
+                "median": 25.703951386967674,
+                "p95": 25.763074725167826,
+                "sum": 76.94288907793816
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 27967619072
+            },
+            "initial_validation": {
+              "allocator_peak_allocated_bytes": 20884229632,
+              "allocator_peak_reserved_bytes": 22707961856,
+              "interval_seconds": {
+                "count": 5,
+                "maximum": 30.98224872397259,
+                "mean": 18.29988237298094,
+                "median": 30.10972979303915,
+                "p95": 30.856147146178408,
+                "sum": 91.49941186490469
+              },
+              "sampled_errors": [
+                "no_samples"
+              ],
+              "sampled_gpu_evidence_complete": false,
+              "sampled_owned_device_process_peak_bytes": 23746052096
+            },
+            "loading": {
+              "allocator_peak_allocated_bytes": 17931589632,
+              "allocator_peak_reserved_bytes": 17966301184,
+              "interval_seconds": {
+                "count": 7,
+                "maximum": 25.77162724698428,
+                "mean": 24.565057577432267,
+                "median": 24.23961207200773,
+                "p95": 25.749339435785078,
+                "sum": 171.95540304202586
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 18956156928
+            },
+            "post_checkpoint_boundary": {
+              "allocator_peak_allocated_bytes": 21981164032,
+              "allocator_peak_reserved_bytes": 33262927872,
+              "interval_seconds": {
+                "count": 12,
+                "maximum": 13.730292034917511,
+                "mean": 3.340711513408072,
+                "median": 1.518950974510517,
+                "p95": 13.569986335554859,
+                "sum": 40.08853816089686
+              },
+              "sampled_errors": [
+                "no_samples"
+              ],
+              "sampled_gpu_evidence_complete": false,
+              "sampled_owned_device_process_peak_bytes": 34334572544
+            },
+            "trainer_setup": {
+              "allocator_peak_allocated_bytes": 19698956288,
+              "allocator_peak_reserved_bytes": 19723714560,
+              "interval_seconds": {
+                "count": 5,
+                "maximum": 20.053024240070954,
+                "mean": 7.86878242183011,
+                "median": 0.04355053300969303,
+                "p95": 19.874968531471676,
+                "sum": 39.34391210915055
+              },
+              "sampled_errors": [
+                "no_samples"
+              ],
+              "sampled_gpu_evidence_complete": false,
+              "sampled_owned_device_process_peak_bytes": 20713570304
+            },
+            "unclassified": {
+              "allocator_peak_allocated_bytes": 23176730624,
+              "allocator_peak_reserved_bytes": 28288483328,
+              "interval_seconds": {
+                "count": 2,
+                "maximum": 45.73886327003129,
+                "mean": 45.48763048701221,
+                "median": 45.48763048701221,
+                "p95": 45.71373999172938,
+                "sum": 90.97526097402442
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 29360128000
+            },
+            "updates": {
+              "allocator_peak_allocated_bytes": 23257688576,
+              "allocator_peak_reserved_bytes": 32017219584,
+              "interval_seconds": {
+                "count": 7,
+                "maximum": 27.06204609607812,
+                "mean": 24.07937985202963,
+                "median": 25.091779460082762,
+                "p95": 26.538871068961452,
+                "sum": 168.5556589642074
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 33088864256
+            },
+            "validation_or_boundary_overhead": {
+              "allocator_peak_allocated_bytes": 19063646720,
+              "allocator_peak_reserved_bytes": 32017219584,
+              "interval_seconds": {
+                "count": 12,
+                "maximum": 0.0427094780607149,
+                "mean": 0.03779843435040675,
+                "median": 0.039026151527650654,
+                "p95": 0.04173413495300338,
+                "sum": 0.453581212204881
+              },
+              "sampled_errors": [
+                "no_samples"
+              ],
+              "sampled_gpu_evidence_complete": false,
+              "sampled_owned_device_process_peak_bytes": null
+            }
+          },
+          "sampled": {
+            "device_peak_bytes": 35070869504,
+            "errors": [],
+            "gpu_memory_evidence_valid": true,
+            "host_pss_complete": true,
+            "host_pss_sum_peak_bytes": 7344160768,
+            "host_rss_sum_peak_bytes": 7954395136,
+            "nvml_capacity_bytes": 85899345920,
+            "observed_span_seconds": 1493.8244225978851,
+            "owned_device_process_peak_bytes": 34334572544,
+            "peaks_are_sampled_lower_bounds": true,
+            "samples": 1154,
+            "sampling_gap_seconds": {
+              "count": 1153,
+              "maximum": 1.659398078918457,
+              "mean": 1.2955979380727538,
+              "median": 1.2932043075561523,
+              "p95": 1.354484224319458,
+              "sum": 1493.8244225978851
+            }
+          }
+        },
+        "recovery_outcomes": [
+          {
+            "elapsed_seconds": 287.37031373090576,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "reference",
+            "owned_process_cleanup": {
+              "observed_processes": 5,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 210.76566919998731,
+            "exit_code": 1,
+            "injected_interruption_expected": true,
+            "name": "boundary",
+            "owned_process_cleanup": {
+              "observed_processes": 5,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 2
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 9.477914151037112,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "boundary_source_compare",
+            "owned_process_cleanup": {
+              "observed_processes": 1,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 217.39071767998394,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "boundary_resumed",
+            "owned_process_cleanup": {
+              "observed_processes": 5,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 9.428215450025164,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "boundary_compare_3",
+            "owned_process_cleanup": {
+              "observed_processes": 1,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 9.477875977056101,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "boundary_compare_4",
+            "owned_process_cleanup": {
+              "observed_processes": 1,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 239.11613062699325,
+            "exit_code": 1,
+            "injected_interruption_expected": true,
+            "name": "accumulation",
+            "owned_process_cleanup": {
+              "observed_processes": 5,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 2
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 11.20341317600105,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "accumulation_source_compare",
+            "owned_process_cleanup": {
+              "observed_processes": 1,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 216.07458396302536,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "accumulation_resumed",
+            "owned_process_cleanup": {
+              "observed_processes": 5,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 9.62930456805043,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "accumulation_compare_3",
+            "owned_process_cleanup": {
+              "observed_processes": 1,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 10.430620345985517,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "accumulation_compare_4",
+            "owned_process_cleanup": {
+              "observed_processes": 1,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 7.975623454083689,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "publish_portable",
+            "owned_process_cleanup": {
+              "observed_processes": 1,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 110.29034350893926,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "probe_dcp",
+            "owned_process_cleanup": {
+              "observed_processes": 3,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 112.26301551796496,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "probe_portable",
+            "owned_process_cleanup": {
+              "observed_processes": 2,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 3.5702464879723266,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "compare_reload",
+            "owned_process_cleanup": {
+              "observed_processes": 1,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          }
+        ],
+        "recovery_state_comparisons": {
+          "both_interruption_modes": true,
+          "frozen_base_and_optimizer_membership_verified": true,
+          "last_committed_update": 2,
+          "model_optimizer_atol": 0,
+          "model_optimizer_rtol": 0,
+          "native_update_numeric_fields_compared": 13,
+          "next_updates": [
+            3,
+            4
+          ],
+          "rng_data_control_exact": true,
+          "trainable_adapter_tensors": 504
+        },
+        "runtime_and_recovery_own_reload_exact": true,
+        "runtime_complete_elapsed_seconds": 840.0175914049614,
+        "runtime_completion_sha256": "866877039cebdabdae60f2adc74cbad5d5381ecfcbf7768e226ca24a05fdc3bc",
+        "runtime_lifecycle_memory": {
+          "allocator_evidence_complete": true,
+          "allocator_peak_allocated_bytes": 23255623680,
+          "allocator_peak_reserved_bytes": 26981957632,
+          "empty_sample_intervals": 20,
+          "interval_count": 49,
+          "phase_semantics": "Peaks end at the current boundary after the preceding reset. checkpoint_begin records the preceding validation/boundary window; only checkpoint_complete after checkpoint_begin is checkpoint writing. Loading excludes earlier source verification and process startup.",
+          "phases": {
+            "checkpoint_write": {
+              "allocator_peak_allocated_bytes": 19062821376,
+              "allocator_peak_reserved_bytes": 26981957632,
+              "interval_seconds": {
+                "count": 2,
+                "maximum": 26.017374900984578,
+                "mean": 23.560827856475953,
+                "median": 23.560827856475953,
+                "p95": 25.771720196533714,
+                "sum": 47.121655712951906
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 28053602304
+            },
+            "first_update": {
+              "allocator_peak_allocated_bytes": 22465239040,
+              "allocator_peak_reserved_bytes": 26967277568,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 25.803766796016134,
+                "mean": 25.803766796016134,
+                "median": 25.803766796016134,
+                "p95": 25.803766796016134,
+                "sum": 25.803766796016134
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 27690795008
+            },
+            "initial_validation": {
+              "allocator_peak_allocated_bytes": 20884229632,
+              "allocator_peak_reserved_bytes": 22707961856,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 47.4775802079821,
+                "mean": 47.4775802079821,
+                "median": 47.4775802079821,
+                "p95": 47.4775802079821,
+                "sum": 47.4775802079821
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 23746052096
+            },
+            "loading": {
+              "allocator_peak_allocated_bytes": 17931589632,
+              "allocator_peak_reserved_bytes": 17966301184,
+              "interval_seconds": {
+                "count": 3,
+                "maximum": 30.116016314015724,
+                "mean": 28.150111745344475,
+                "median": 27.799656876013614,
+                "p95": 29.884380370215514,
+                "sum": 84.45033523603342
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 18956156928
+            },
+            "post_checkpoint_boundary": {
+              "allocator_peak_allocated_bytes": 21979974144,
+              "allocator_peak_reserved_bytes": 26981957632,
+              "interval_seconds": {
+                "count": 2,
+                "maximum": 6.22329215798527,
+                "mean": 6.222688971029129,
+                "median": 6.222688971029129,
+                "p95": 6.223231839289656,
+                "sum": 12.445377942058258
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 28053602304
+            },
+            "trainer_setup": {
+              "allocator_peak_allocated_bytes": 17931589632,
+              "allocator_peak_reserved_bytes": 17966301184,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 0.041674165055155754,
+                "mean": 0.041674165055155754,
+                "median": 0.041674165055155754,
+                "p95": 0.041674165055155754,
+                "sum": 0.041674165055155754
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 18956156928
+            },
+            "updates": {
+              "allocator_peak_allocated_bytes": 23255623680,
+              "allocator_peak_reserved_bytes": 26981957632,
+              "interval_seconds": {
+                "count": 19,
+                "maximum": 27.477153655025177,
+                "mean": 17.089513985899668,
+                "median": 15.596427617943846,
+                "p95": 25.7871229297365,
+                "sum": 324.7007657320937
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 28053602304
+            },
+            "validation_or_boundary_overhead": {
+              "allocator_peak_allocated_bytes": 19063421440,
+              "allocator_peak_reserved_bytes": 26981957632,
+              "interval_seconds": {
+                "count": 20,
+                "maximum": 0.04031218099407852,
+                "mean": 0.03122859154245816,
+                "median": 0.03413634549360722,
+                "p95": 0.038406361307716,
+                "sum": 0.6245718308491632
+              },
+              "sampled_errors": [
+                "no_samples"
+              ],
+              "sampled_gpu_evidence_complete": false,
+              "sampled_owned_device_process_peak_bytes": null
+            }
+          },
+          "sampled": {
+            "device_peak_bytes": 28787802112,
+            "errors": [],
+            "gpu_memory_evidence_valid": true,
+            "host_pss_complete": true,
+            "host_pss_sum_peak_bytes": 7064837120,
+            "host_rss_sum_peak_bytes": 7346810880,
+            "nvml_capacity_bytes": 85899345920,
+            "observed_span_seconds": 803.6689989566803,
+            "owned_device_process_peak_bytes": 28053602304,
+            "peaks_are_sampled_lower_bounds": true,
+            "samples": 623,
+            "sampling_gap_seconds": {
+              "count": 622,
+              "maximum": 1.6149444580078125,
+              "mean": 1.2920723455895182,
+              "median": 1.2885661125183105,
+              "p95": 1.3413756132125854,
+              "sum": 803.6689989566803
+            }
+          }
+        },
+        "runtime_outcomes": [
+          {
+            "elapsed_seconds": 24.995085192029364,
+            "exit_code": 0,
+            "name": "workload_verification"
+          },
+          {
+            "elapsed_seconds": 7.424335677991621,
+            "exit_code": 0,
+            "name": "preflight"
+          },
+          {
+            "elapsed_seconds": 532.0719950689236,
+            "exit_code": 0,
+            "name": "training"
+          },
+          {
+            "elapsed_seconds": 7.726103366003372,
+            "exit_code": 0,
+            "name": "portable_publication"
+          },
+          {
+            "elapsed_seconds": 128.2139331579674,
+            "exit_code": 0,
+            "name": "probe_dcp"
+          },
+          {
+            "elapsed_seconds": 125.91350699600298,
+            "exit_code": 0,
+            "name": "probe_portable"
+          },
+          {
+            "elapsed_seconds": 4.1704834420233965,
+            "exit_code": 0,
+            "name": "reload_exact"
+          }
+        ],
+        "runtime_spec_sha256": "2b4a9291acc5410f11effe7e2ce368a010d957aa11f66cde10445ccc425ccf3e",
+        "runtime_updates": 20,
+        "supervised_training_tokens": 202925,
+        "training_examples": 160,
+        "training_memory": {
+          "allocator_evidence_complete": true,
+          "allocator_peak_allocated_bytes": 23255623680,
+          "allocator_peak_reserved_bytes": 26981957632,
+          "empty_sample_intervals": 20,
+          "interval_count": 47,
+          "phase_semantics": "Peaks end at the current boundary after the preceding reset. checkpoint_begin records the preceding validation/boundary window; only checkpoint_complete after checkpoint_begin is checkpoint writing. Loading excludes earlier source verification and process startup.",
+          "phases": {
+            "checkpoint_write": {
+              "allocator_peak_allocated_bytes": 19062821376,
+              "allocator_peak_reserved_bytes": 26981957632,
+              "interval_seconds": {
+                "count": 2,
+                "maximum": 26.017374900984578,
+                "mean": 23.560827856475953,
+                "median": 23.560827856475953,
+                "p95": 25.771720196533714,
+                "sum": 47.121655712951906
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 28053602304
+            },
+            "first_update": {
+              "allocator_peak_allocated_bytes": 22465239040,
+              "allocator_peak_reserved_bytes": 26967277568,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 25.803766796016134,
+                "mean": 25.803766796016134,
+                "median": 25.803766796016134,
+                "p95": 25.803766796016134,
+                "sum": 25.803766796016134
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 27690795008
+            },
+            "initial_validation": {
+              "allocator_peak_allocated_bytes": 20884229632,
+              "allocator_peak_reserved_bytes": 22707961856,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 47.4775802079821,
+                "mean": 47.4775802079821,
+                "median": 47.4775802079821,
+                "p95": 47.4775802079821,
+                "sum": 47.4775802079821
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 23746052096
+            },
+            "loading": {
+              "allocator_peak_allocated_bytes": 17931589632,
+              "allocator_peak_reserved_bytes": 17966301184,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 26.534662046004087,
+                "mean": 26.534662046004087,
+                "median": 26.534662046004087,
+                "p95": 26.534662046004087,
+                "sum": 26.534662046004087
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 18956156928
+            },
+            "post_checkpoint_boundary": {
+              "allocator_peak_allocated_bytes": 21979974144,
+              "allocator_peak_reserved_bytes": 26981957632,
+              "interval_seconds": {
+                "count": 2,
+                "maximum": 6.22329215798527,
+                "mean": 6.222688971029129,
+                "median": 6.222688971029129,
+                "p95": 6.223231839289656,
+                "sum": 12.445377942058258
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 28053602304
+            },
+            "trainer_setup": {
+              "allocator_peak_allocated_bytes": 17931589632,
+              "allocator_peak_reserved_bytes": 17966301184,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 0.041674165055155754,
+                "mean": 0.041674165055155754,
+                "median": 0.041674165055155754,
+                "p95": 0.041674165055155754,
+                "sum": 0.041674165055155754
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 18956156928
+            },
+            "updates": {
+              "allocator_peak_allocated_bytes": 23255623680,
+              "allocator_peak_reserved_bytes": 26981957632,
+              "interval_seconds": {
+                "count": 19,
+                "maximum": 27.477153655025177,
+                "mean": 17.089513985899668,
+                "median": 15.596427617943846,
+                "p95": 25.7871229297365,
+                "sum": 324.7007657320937
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 28053602304
+            },
+            "validation_or_boundary_overhead": {
+              "allocator_peak_allocated_bytes": 19063421440,
+              "allocator_peak_reserved_bytes": 26981957632,
+              "interval_seconds": {
+                "count": 20,
+                "maximum": 0.04031218099407852,
+                "mean": 0.03122859154245816,
+                "median": 0.03413634549360722,
+                "p95": 0.038406361307716,
+                "sum": 0.6245718308491632
+              },
+              "sampled_errors": [
+                "no_samples"
+              ],
+              "sampled_gpu_evidence_complete": false,
+              "sampled_owned_device_process_peak_bytes": null
+            }
+          },
+          "sampled": {
+            "device_peak_bytes": 28787802112,
+            "errors": [],
+            "gpu_memory_evidence_valid": true,
+            "host_pss_complete": true,
+            "host_pss_sum_peak_bytes": 7064837120,
+            "host_rss_sum_peak_bytes": 7346810880,
+            "nvml_capacity_bytes": 85899345920,
+            "observed_span_seconds": 536.6225821971893,
+            "owned_device_process_peak_bytes": 28053602304,
+            "peaks_are_sampled_lower_bounds": true,
+            "samples": 415,
+            "sampling_gap_seconds": {
+              "count": 414,
+              "maximum": 1.6149444580078125,
+              "mean": 1.2961898120705055,
+              "median": 1.2921584844589233,
+              "p95": 1.3420918941497801,
+              "sum": 536.6225821971893
+            }
+          }
+        },
+        "validation_examples_per_pass": 8,
+        "validation_steps": [
+          0,
+          10,
+          20
+        ],
+        "validation_supervised_tokens_per_pass": 10292,
+        "workload_verification_sha256": "0070400fae4c5af75bb8715a2eac5e55b1c7f860d1c0faf9b16deac7b74ad71d"
+      },
+      "nf4": {
+        "actual_update_seconds_sum": 363.4431015178561,
+        "artifacts": {
+          "dcp": {
+            "allocated_file_bytes": 1052037120,
+            "files": 7,
+            "logical_bytes": 1052009587
+          },
+          "portable": {
+            "allocated_file_bytes": 349798400,
+            "files": 3,
+            "logical_bytes": 349786425
+          }
+        },
+        "cursor_verified_unpadded_tokens": 651785,
+        "fresh_video_probe": {
+          "pixel_tensor_shape": [
+            8064,
+            1536
+          ],
+          "sequence_length": 4095,
+          "supervised_tokens": 1335
+        },
+        "historical_24gib_runtime_budget": {
+          "budget_bytes": 25769803776,
+          "eligible_for_higher_microbatch": true,
+          "evidence_complete": true,
+          "observed_peak_within_budget": true,
+          "observed_process_peak_lower_bound_bytes": 17660116992,
+          "reasons": [],
+          "sampled_peaks_are_lower_bounds": true,
+          "scope": "Observed owned-device-process peak during native training, including load, validation and checkpoint writes; not physical device capacity.",
+          "unseen_short_peaks_remain_possible": true
+        },
+        "recovery_completion_sha256": "17a6f92235310dc3bff14bbd68b0a3e83791cdf6a68625648a66bed359fefea0",
+        "recovery_memory": {
+          "allocator_evidence_complete": true,
+          "allocator_peak_allocated_bytes": 12922117632,
+          "allocator_peak_reserved_bytes": 22877831168,
+          "empty_sample_intervals": 23,
+          "interval_count": 65,
+          "phase_semantics": "Peaks end at the current boundary after the preceding reset. checkpoint_begin records the preceding validation/boundary window; only checkpoint_complete after checkpoint_begin is checkpoint writing. Loading excludes earlier source verification and process startup.",
+          "phases": {
+            "checkpoint_write": {
+              "allocator_peak_allocated_bytes": 8729954816,
+              "allocator_peak_reserved_bytes": 21632122880,
+              "interval_seconds": {
+                "count": 12,
+                "maximum": 11.568695077090524,
+                "mean": 10.026717386654733,
+                "median": 9.968194808985572,
+                "p95": 10.956652145547558,
+                "sum": 120.3206086398568
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 22703767552
+            },
+            "first_update": {
+              "allocator_peak_allocated_bytes": 12129956864,
+              "allocator_peak_reserved_bytes": 16571695104,
+              "interval_seconds": {
+                "count": 3,
+                "maximum": 25.46487641101703,
+                "mean": 25.38809401130614,
+                "median": 25.439665208919905,
+                "p95": 25.462355290807317,
+                "sum": 76.16428203391843
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 17473470464
+            },
+            "initial_validation": {
+              "allocator_peak_allocated_bytes": 10581824000,
+              "allocator_peak_reserved_bytes": 12314476544,
+              "interval_seconds": {
+                "count": 5,
+                "maximum": 33.71642439602874,
+                "mean": 19.01209281757474,
+                "median": 30.019999108975753,
+                "p95": 33.22574903422501,
+                "sum": 95.0604640878737
+              },
+              "sampled_errors": [
+                "no_samples"
+              ],
+              "sampled_gpu_evidence_complete": false,
+              "sampled_owned_device_process_peak_bytes": 13386121216
+            },
+            "loading": {
+              "allocator_peak_allocated_bytes": 7765099520,
+              "allocator_peak_reserved_bytes": 7790919680,
+              "interval_seconds": {
+                "count": 7,
+                "maximum": 18.8155392089393,
+                "mean": 18.121956528413907,
+                "median": 18.35794848005753,
+                "p95": 18.80411121954676,
+                "sum": 126.85369569889735
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 8858370048
+            },
+            "post_checkpoint_boundary": {
+              "allocator_peak_allocated_bytes": 11645937152,
+              "allocator_peak_reserved_bytes": 22877831168,
+              "interval_seconds": {
+                "count": 12,
+                "maximum": 13.881005392060615,
+                "mean": 3.3554322561928225,
+                "median": 1.5643745560082607,
+                "p95": 13.823191197682172,
+                "sum": 40.26518707431387
+              },
+              "sampled_errors": [
+                "no_samples"
+              ],
+              "sampled_gpu_evidence_complete": false,
+              "sampled_owned_device_process_peak_bytes": 23949475840
+            },
+            "trainer_setup": {
+              "allocator_peak_allocated_bytes": 9429318656,
+              "allocator_peak_reserved_bytes": 9460252672,
+              "interval_seconds": {
+                "count": 5,
+                "maximum": 9.572541270055808,
+                "mean": 3.7585629118373616,
+                "median": 0.05837580608204007,
+                "p95": 9.470156070846134,
+                "sum": 18.79281455918681
+              },
+              "sampled_errors": [
+                "no_samples"
+              ],
+              "sampled_gpu_evidence_complete": false,
+              "sampled_owned_device_process_peak_bytes": 10527703040
+            },
+            "unclassified": {
+              "allocator_peak_allocated_bytes": 12837250048,
+              "allocator_peak_reserved_bytes": 17903386624,
+              "interval_seconds": {
+                "count": 2,
+                "maximum": 46.84106972499285,
+                "mean": 45.23133127752226,
+                "median": 45.23133127752226,
+                "p95": 46.68009588024579,
+                "sum": 90.46266255504452
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 18975031296
+            },
+            "updates": {
+              "allocator_peak_allocated_bytes": 12922117632,
+              "allocator_peak_reserved_bytes": 21632122880,
+              "interval_seconds": {
+                "count": 7,
+                "maximum": 27.066281539038755,
+                "mean": 24.15911722342883,
+                "median": 25.23782661394216,
+                "p95": 26.530796413938514,
+                "sum": 169.1138205640018
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 22703767552
+            },
+            "validation_or_boundary_overhead": {
+              "allocator_peak_allocated_bytes": 8729206272,
+              "allocator_peak_reserved_bytes": 21632122880,
+              "interval_seconds": {
+                "count": 12,
+                "maximum": 0.04468840395566076,
+                "mean": 0.03858597066331034,
+                "median": 0.03874329605605453,
+                "p95": 0.04348127384437248,
+                "sum": 0.46303164795972407
+              },
+              "sampled_errors": [
+                "no_samples"
+              ],
+              "sampled_gpu_evidence_complete": false,
+              "sampled_owned_device_process_peak_bytes": null
+            }
+          },
+          "sampled": {
+            "device_peak_bytes": 24683675648,
+            "errors": [],
+            "gpu_memory_evidence_valid": true,
+            "host_pss_complete": true,
+            "host_pss_sum_peak_bytes": 7674515456,
+            "host_rss_sum_peak_bytes": 8019509248,
+            "nvml_capacity_bytes": 85899345920,
+            "observed_span_seconds": 1259.24680519104,
+            "owned_device_process_peak_bytes": 23949475840,
+            "peaks_are_sampled_lower_bounds": true,
+            "samples": 969,
+            "sampling_gap_seconds": {
+              "count": 968,
+              "maximum": 1.943042278289795,
+              "mean": 1.3008747987510745,
+              "median": 1.2962660789489746,
+              "p95": 1.3614282727241516,
+              "sum": 1259.24680519104
+            }
+          }
+        },
+        "recovery_outcomes": [
+          {
+            "elapsed_seconds": 247.8097753090551,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "reference",
+            "owned_process_cleanup": {
+              "observed_processes": 5,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 173.6323682119837,
+            "exit_code": 1,
+            "injected_interruption_expected": true,
+            "name": "boundary",
+            "owned_process_cleanup": {
+              "observed_processes": 5,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 2
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 9.778933710069396,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "boundary_source_compare",
+            "owned_process_cleanup": {
+              "observed_processes": 1,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 181.90346957207657,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "boundary_resumed",
+            "owned_process_cleanup": {
+              "observed_processes": 5,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 11.83397468610201,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "boundary_compare_3",
+            "owned_process_cleanup": {
+              "observed_processes": 1,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 10.829186804941855,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "boundary_compare_4",
+            "owned_process_cleanup": {
+              "observed_processes": 1,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 198.94116665096954,
+            "exit_code": 1,
+            "injected_interruption_expected": true,
+            "name": "accumulation",
+            "owned_process_cleanup": {
+              "observed_processes": 5,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 2
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 11.996817202074453,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "accumulation_source_compare",
+            "owned_process_cleanup": {
+              "observed_processes": 1,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 175.36963802494574,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "accumulation_resumed",
+            "owned_process_cleanup": {
+              "observed_processes": 5,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 11.237212493899278,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "accumulation_compare_3",
+            "owned_process_cleanup": {
+              "observed_processes": 1,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 12.533746736939065,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "accumulation_compare_4",
+            "owned_process_cleanup": {
+              "observed_processes": 1,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 7.325381656060927,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "publish_portable",
+            "owned_process_cleanup": {
+              "observed_processes": 1,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 87.19767196592875,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "probe_dcp",
+            "owned_process_cleanup": {
+              "observed_processes": 3,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 84.8797238409752,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "probe_portable",
+            "owned_process_cleanup": {
+              "observed_processes": 2,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 3.721047618892044,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "compare_reload",
+            "owned_process_cleanup": {
+              "observed_processes": 1,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          }
+        ],
+        "recovery_state_comparisons": {
+          "both_interruption_modes": true,
+          "frozen_base_and_optimizer_membership_verified": true,
+          "last_committed_update": 2,
+          "model_optimizer_atol": 0,
+          "model_optimizer_rtol": 0,
+          "native_update_numeric_fields_compared": 13,
+          "next_updates": [
+            3,
+            4
+          ],
+          "rng_data_control_exact": true,
+          "trainable_adapter_tensors": 504
+        },
+        "runtime_and_recovery_own_reload_exact": true,
+        "runtime_complete_elapsed_seconds": 792.117597720935,
+        "runtime_completion_sha256": "5f493a2733ed353ae7515bc78a72ee211e6c58afa15dfc07578ae3378147b7ac",
+        "runtime_lifecycle_memory": {
+          "allocator_evidence_complete": true,
+          "allocator_peak_allocated_bytes": 12919436800,
+          "allocator_peak_reserved_bytes": 16588472320,
+          "empty_sample_intervals": 21,
+          "interval_count": 49,
+          "phase_semantics": "Peaks end at the current boundary after the preceding reset. checkpoint_begin records the preceding validation/boundary window; only checkpoint_complete after checkpoint_begin is checkpoint writing. Loading excludes earlier source verification and process startup.",
+          "phases": {
+            "checkpoint_write": {
+              "allocator_peak_allocated_bytes": 8727867904,
+              "allocator_peak_reserved_bytes": 16588472320,
+              "interval_seconds": {
+                "count": 2,
+                "maximum": 12.850519179948606,
+                "mean": 12.542856420448516,
+                "median": 12.542856420448516,
+                "p95": 12.819752903998596,
+                "sum": 25.08571284089703
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 17660116992
+            },
+            "first_update": {
+              "allocator_peak_allocated_bytes": 12129956864,
+              "allocator_peak_reserved_bytes": 16571695104,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 26.99228197603952,
+                "mean": 26.99228197603952,
+                "median": 26.99228197603952,
+                "p95": 26.99228197603952,
+                "sum": 26.99228197603952
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 17295212544
+            },
+            "initial_validation": {
+              "allocator_peak_allocated_bytes": 10581824000,
+              "allocator_peak_reserved_bytes": 12314476544,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 49.22536741697695,
+                "mean": 49.22536741697695,
+                "median": 49.22536741697695,
+                "p95": 49.22536741697695,
+                "sum": 49.22536741697695
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 13386121216
+            },
+            "loading": {
+              "allocator_peak_allocated_bytes": 7765099520,
+              "allocator_peak_reserved_bytes": 7790919680,
+              "interval_seconds": {
+                "count": 3,
+                "maximum": 24.399515261990018,
+                "mean": 21.683841027979117,
+                "median": 20.62044985895045,
+                "p95": 24.02160872168606,
+                "sum": 65.05152308393735
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 8858370048
+            },
+            "post_checkpoint_boundary": {
+              "allocator_peak_allocated_bytes": 11644369408,
+              "allocator_peak_reserved_bytes": 16588472320,
+              "interval_seconds": {
+                "count": 2,
+                "maximum": 6.6343391929985955,
+                "mean": 6.56734058650909,
+                "median": 6.56734058650909,
+                "p95": 6.627639332349645,
+                "sum": 13.13468117301818
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 17660116992
+            },
+            "trainer_setup": {
+              "allocator_peak_allocated_bytes": 7663524864,
+              "allocator_peak_reserved_bytes": 7790919680,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 0.04281075403559953,
+                "mean": 0.04281075403559953,
+                "median": 0.04281075403559953,
+                "p95": 0.04281075403559953,
+                "sum": 0.04281075403559953
+              },
+              "sampled_errors": [
+                "no_samples"
+              ],
+              "sampled_gpu_evidence_complete": false,
+              "sampled_owned_device_process_peak_bytes": null
+            },
+            "updates": {
+              "allocator_peak_allocated_bytes": 12919436800,
+              "allocator_peak_reserved_bytes": 16588472320,
+              "interval_seconds": {
+                "count": 19,
+                "maximum": 29.08013665303588,
+                "mean": 17.707987210946158,
+                "median": 16.08021252800245,
+                "p95": 26.78806311181979,
+                "sum": 336.451757007977
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 17660116992
+            },
+            "validation_or_boundary_overhead": {
+              "allocator_peak_allocated_bytes": 8728555008,
+              "allocator_peak_reserved_bytes": 16588472320,
+              "interval_seconds": {
+                "count": 20,
+                "maximum": 0.03631424007471651,
+                "mean": 0.019096731604076923,
+                "median": 0.02290015498874709,
+                "p95": 0.03224118436919526,
+                "sum": 0.38193463208153844
+              },
+              "sampled_errors": [
+                "no_samples"
+              ],
+              "sampled_gpu_evidence_complete": false,
+              "sampled_owned_device_process_peak_bytes": null
+            }
+          },
+          "sampled": {
+            "device_peak_bytes": 18394316800,
+            "errors": [],
+            "gpu_memory_evidence_valid": true,
+            "host_pss_complete": true,
+            "host_pss_sum_peak_bytes": 7140867072,
+            "host_rss_sum_peak_bytes": 7533424640,
+            "nvml_capacity_bytes": 85899345920,
+            "observed_span_seconds": 733.911375284195,
+            "owned_device_process_peak_bytes": 17660116992,
+            "peaks_are_sampled_lower_bounds": true,
+            "samples": 574,
+            "sampling_gap_seconds": {
+              "count": 573,
+              "maximum": 1.5173075199127197,
+              "mean": 1.2808226444750348,
+              "median": 1.2738368511199951,
+              "p95": 1.3324175357818604,
+              "sum": 733.911375284195
+            }
+          }
+        },
+        "runtime_outcomes": [
+          {
+            "elapsed_seconds": 47.2895900469739,
+            "exit_code": 0,
+            "name": "workload_verification"
+          },
+          {
+            "elapsed_seconds": 7.628977069049142,
+            "exit_code": 0,
+            "name": "preflight"
+          },
+          {
+            "elapsed_seconds": 527.6221435640473,
+            "exit_code": 0,
+            "name": "training"
+          },
+          {
+            "elapsed_seconds": 7.737836283980869,
+            "exit_code": 0,
+            "name": "portable_publication"
+          },
+          {
+            "elapsed_seconds": 95.71232398599386,
+            "exit_code": 0,
+            "name": "probe_dcp"
+          },
+          {
+            "elapsed_seconds": 93.2056421599118,
+            "exit_code": 0,
+            "name": "probe_portable"
+          },
+          {
+            "elapsed_seconds": 4.621326804975979,
+            "exit_code": 0,
+            "name": "reload_exact"
+          }
+        ],
+        "runtime_spec_sha256": "edceb1b02f32627d5a44977cf0093bc9134d75948c8990197d6000d23ed94530",
+        "runtime_updates": 20,
+        "supervised_training_tokens": 202925,
+        "training_examples": 160,
+        "training_memory": {
+          "allocator_evidence_complete": true,
+          "allocator_peak_allocated_bytes": 12919436800,
+          "allocator_peak_reserved_bytes": 16588472320,
+          "empty_sample_intervals": 21,
+          "interval_count": 47,
+          "phase_semantics": "Peaks end at the current boundary after the preceding reset. checkpoint_begin records the preceding validation/boundary window; only checkpoint_complete after checkpoint_begin is checkpoint writing. Loading excludes earlier source verification and process startup.",
+          "phases": {
+            "checkpoint_write": {
+              "allocator_peak_allocated_bytes": 8727867904,
+              "allocator_peak_reserved_bytes": 16588472320,
+              "interval_seconds": {
+                "count": 2,
+                "maximum": 12.850519179948606,
+                "mean": 12.542856420448516,
+                "median": 12.542856420448516,
+                "p95": 12.819752903998596,
+                "sum": 25.08571284089703
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 17660116992
+            },
+            "first_update": {
+              "allocator_peak_allocated_bytes": 12129956864,
+              "allocator_peak_reserved_bytes": 16571695104,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 26.99228197603952,
+                "mean": 26.99228197603952,
+                "median": 26.99228197603952,
+                "p95": 26.99228197603952,
+                "sum": 26.99228197603952
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 17295212544
+            },
+            "initial_validation": {
+              "allocator_peak_allocated_bytes": 10581824000,
+              "allocator_peak_reserved_bytes": 12314476544,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 49.22536741697695,
+                "mean": 49.22536741697695,
+                "median": 49.22536741697695,
+                "p95": 49.22536741697695,
+                "sum": 49.22536741697695
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 13386121216
+            },
+            "loading": {
+              "allocator_peak_allocated_bytes": 7765099520,
+              "allocator_peak_reserved_bytes": 7790919680,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 24.399515261990018,
+                "mean": 24.399515261990018,
+                "median": 24.399515261990018,
+                "p95": 24.399515261990018,
+                "sum": 24.399515261990018
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 8858370048
+            },
+            "post_checkpoint_boundary": {
+              "allocator_peak_allocated_bytes": 11644369408,
+              "allocator_peak_reserved_bytes": 16588472320,
+              "interval_seconds": {
+                "count": 2,
+                "maximum": 6.6343391929985955,
+                "mean": 6.56734058650909,
+                "median": 6.56734058650909,
+                "p95": 6.627639332349645,
+                "sum": 13.13468117301818
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 17660116992
+            },
+            "trainer_setup": {
+              "allocator_peak_allocated_bytes": 7663524864,
+              "allocator_peak_reserved_bytes": 7790919680,
+              "interval_seconds": {
+                "count": 1,
+                "maximum": 0.04281075403559953,
+                "mean": 0.04281075403559953,
+                "median": 0.04281075403559953,
+                "p95": 0.04281075403559953,
+                "sum": 0.04281075403559953
+              },
+              "sampled_errors": [
+                "no_samples"
+              ],
+              "sampled_gpu_evidence_complete": false,
+              "sampled_owned_device_process_peak_bytes": null
+            },
+            "updates": {
+              "allocator_peak_allocated_bytes": 12919436800,
+              "allocator_peak_reserved_bytes": 16588472320,
+              "interval_seconds": {
+                "count": 19,
+                "maximum": 29.08013665303588,
+                "mean": 17.707987210946158,
+                "median": 16.08021252800245,
+                "p95": 26.78806311181979,
+                "sum": 336.451757007977
+              },
+              "sampled_errors": [],
+              "sampled_gpu_evidence_complete": true,
+              "sampled_owned_device_process_peak_bytes": 17660116992
+            },
+            "validation_or_boundary_overhead": {
+              "allocator_peak_allocated_bytes": 8728555008,
+              "allocator_peak_reserved_bytes": 16588472320,
+              "interval_seconds": {
+                "count": 20,
+                "maximum": 0.03631424007471651,
+                "mean": 0.019096731604076923,
+                "median": 0.02290015498874709,
+                "p95": 0.03224118436919526,
+                "sum": 0.38193463208153844
+              },
+              "sampled_errors": [
+                "no_samples"
+              ],
+              "sampled_gpu_evidence_complete": false,
+              "sampled_owned_device_process_peak_bytes": null
+            }
+          },
+          "sampled": {
+            "device_peak_bytes": 18394316800,
+            "errors": [],
+            "gpu_memory_evidence_valid": true,
+            "host_pss_complete": true,
+            "host_pss_sum_peak_bytes": 7140867072,
+            "host_rss_sum_peak_bytes": 7533424640,
+            "nvml_capacity_bytes": 85899345920,
+            "observed_span_seconds": 532.8777513504028,
+            "owned_device_process_peak_bytes": 17660116992,
+            "peaks_are_sampled_lower_bounds": true,
+            "samples": 416,
+            "sampling_gap_seconds": {
+              "count": 415,
+              "maximum": 1.49971604347229,
+              "mean": 1.28404277433832,
+              "median": 1.2760310173034668,
+              "p95": 1.3513274669647215,
+              "sum": 532.8777513504028
+            }
+          }
+        },
+        "validation_examples_per_pass": 8,
+        "validation_steps": [
+          0,
+          10,
+          20
+        ],
+        "validation_supervised_tokens_per_pass": 10292,
+        "workload_verification_sha256": "0070400fae4c5af75bb8715a2eac5e55b1c7f860d1c0faf9b16deac7b74ad71d"
+      }
+    },
+    "capture_sha256": "0e31b4567af4b4c029dd2aa4dd2816f0f239406833ce7c7e04aa951a9dc9ae13",
+    "captured_bytes": 131204714,
+    "captured_files": 326,
+    "cost": {
+      "allocated_cpu_seconds": 71504,
+      "distinct_allocations": 1,
+      "gpu_allocation_seconds": 4469,
+      "scope": "Closed whole allocation once; nested phase clocks and reused build gates are not extra charges."
+    },
+    "issued_plan_sha256": "106bf72cd8ef8d71d9d67fafbaa3997dd152d1da9c4962df2f0fc94ce669ecc5",
+    "limitations": [
+      "Synthetic ledger stress fixture is not natural long-context task-quality evidence.",
+      "Prepared per-row geometry is distinct from native token-count/cursor verification and the fresh GPU probe; no new raw per-example training tensor trace is inferred.",
+      "Single seed and fixed sequential order; no comparative speed, time-to-quality or inference claim.",
+      "Sampled peaks are lower bounds. Short intervals without samples, unsampled preflight and process-end coverage remain explicit; allocator probe journals cover loading, not every probe operation.",
+      "Recovery high-water memory exceeds the runtime20 observation. The historical 24 GiB admission flag is not tested physical-device support.",
+      "Four-update recovery does not prove long-context interruption at update20 or300.",
+      "This run publishes portable adapters; dense merged export of these particular long-trained artifacts was not tested.",
+      "No multi-GPU, longer-than4096, larger-media, offload or other-model qualification."
+    ],
+    "native_revision": "09e99c3d94e00ac1d9dd7a356d3996edb05d946b",
+    "native_wheel_sha256": "9ab5ffef8532f5dd758c80bf52003579b71a34fcdb399a1c6679975f0d193c8f",
+    "parent_memory_sha256": "7d14329f1f9cecb096e6e687ca9f550c254aecfcefe2bc0fbc8b138e2c332705",
+    "policy": {
+      "accumulation": 8,
+      "activation_checkpointing": "full",
+      "adapter_dtype": "float32",
+      "alpha": 64,
+      "cache_bytes": 3221225472,
+      "cpu_allocated": 16,
+      "hardware": "one A100 80GB",
+      "microbatch": 1,
+      "numa_nodes": 1,
+      "offload": false,
+      "optimizer": "fused_AdamW_FP32_state",
+      "physical_cores_selected": 8,
+      "precision_order": [
+        "nf4_runtime20",
+        "nf4_recovery4",
+        "bf16_runtime20",
+        "bf16_recovery4"
+      ],
+      "rank": 32
+    },
+    "runtime_identity": {
+      "device_bytes": 85174583296,
+      "name": "NVIDIA A100-SXM4-80GB",
+      "physical_cpu_cores": 8,
+      "python": "3.12.12 (main, Feb 12 2026, 00:42:14) [Clang 21.1.4 ]",
+      "runtime_precision": {
+        "allow_bf16_reduced_precision_reduction": true,
+        "cuda_matmul_allow_tf32": false,
+        "cudnn_allow_tf32": true,
+        "environment": {
+          "NVIDIA_TF32_OVERRIDE": null,
+          "TORCH_ALLOW_TF32_CUBLAS_OVERRIDE": null
+        },
+        "float32_matmul_precision": "highest",
+        "fp32_precision": {
+          "cuda_matmul": "none",
+          "cudnn": "none",
+          "cudnn_conv": "tf32",
+          "cudnn_rnn": "tf32",
+          "global": "none"
+        }
+      },
+      "thread_environment": {
+        "MKL_NUM_THREADS": null,
+        "OMP_NUM_THREADS": "8",
+        "OPENBLAS_NUM_THREADS": null,
+        "TOKENIZERS_PARALLELISM": "false"
+      },
+      "torch_cuda": "12.8",
+      "torch_git_version": "70d99e998b4955e0049d13a98d77ae1b14db1f45",
+      "versions": {
+        "accelerate": "1.13.0",
+        "bitsandbytes": "0.49.2",
+        "safetensors": "0.8.0",
+        "torch": "2.11.0+cu128",
+        "torchcodec": "0.11.0+cpu",
+        "torchvision": "0.26.0+cu128",
+        "transformers": "5.8.1"
+      }
+    },
+    "runtime_identity_sha256": "f996eecd5287ae4ae86644a2bbee8588022f4ba7e7cdff42454c47df2e600164",
+    "sampled_parent": {
+      "device_peak_bytes": 35070869504,
+      "errors": [],
+      "gpu_memory_evidence_valid": true,
+      "host_pss_complete": true,
+      "host_pss_sum_peak_bytes": 7674515456,
+      "host_rss_sum_peak_bytes": 8019509248,
+      "nvml_capacity_bytes": 85899345920,
+      "observed_span_seconds": 4389.600178718567,
+      "owned_device_process_peak_bytes": 34334572544,
+      "peaks_are_sampled_lower_bounds": true,
+      "samples": 3392,
+      "sampling_gap_seconds": {
+        "count": 3391,
+        "maximum": 1.943042278289795,
+        "mean": 1.2944854552399194,
+        "median": 1.2878386974334717,
+        "p95": 1.3531293869018555,
+        "sum": 4389.600178718567
+      }
+    },
+    "source_input_pins": 80,
+    "status": "completed_scoped_runtime_and_recovery_accepted",
+    "workload": {
+      "kind": "synthetic textual ledger alongside real video, without length padding",
+      "merged_visual_tokens": 2016,
+      "name": "long4k_video16_large",
+      "pixel_tensor_shape": [
+        8064,
+        1536
+      ],
+      "prepared_training_rows": 32,
+      "prepared_training_sequence_range": [
+        4059,
+        4090
+      ],
+      "prepared_training_supervised_range": [
+        1236,
+        1335
+      ],
+      "prepared_validation_rows": 8,
+      "prepared_validation_sequence_range": [
+        4059,
+        4096
+      ],
+      "prepared_validation_supervised_range": [
+        1275,
+        1335
+      ],
+      "processed_height_width": [
+        384,
+        672
+      ],
+      "processed_temporal_slots": 16,
+      "profile_manifest_sha256": "8cec1a9346ad22cae87e66f850c4ea64fa422ac2f9130e537da25959c33510d4",
+      "source_frame_uniqueness_measured": false,
+      "video_grid_thw": [
+        8,
+        24,
+        42
+      ],
+      "workload_manifest_sha256": "4bb9c09af99d1e1438d03d330f7ada6285d920a7a3f25971d80f132d5f7350d9"
+    }
+  },
   "completed_campaign_cost": {
     "additional_post_cleanup_startup_failures_gpu_seconds": 174,
     "additional_quota_failed_nf4_seed123_gpu_seconds": 6114,
@@ -3876,7 +5562,8 @@
     "current_result_sections": [
       "answer_smoothing_correctness_09e99c3_continuation",
       "mature_recovery_dadfc89_seed123",
-      "dense_export_bf16_09e99c3"
+      "dense_export_bf16_09e99c3",
+      "combined_long_video_rank32_09e99c3"
     ],
     "native_revision": "09e99c3d94e00ac1d9dd7a356d3996edb05d946b",
     "native_wheel_sha256": "9ab5ffef8532f5dd758c80bf52003579b71a34fcdb399a1c6679975f0d193c8f",
@@ -3932,7 +5619,7 @@
       "scheduler_request_changed": false,
       "timing_and_learning_single_numa_guard_changed": false
     },
-    "snapshot_scope": "Historical admission snapshot retained from repository revision fadaf2b. Its pending flags describe that snapshot, not the current completed correctness, mature-recovery or dense-export results. The original pre-kernel failure and prospective guard decisions remain unchanged; long-workload qualification is still pending.",
+    "snapshot_scope": "Historical admission snapshot retained from repository revision fadaf2b. Its pending flags describe that snapshot, not the current completed correctness, mature-recovery or dense-export results. The original pre-kernel failure and prospective guard decisions remain unchanged; the later combined long/video result is also linked in current_result_sections.",
     "status": "correctness_followup_admitted_outcomes_pending"
   },
   "release_qualified": false,

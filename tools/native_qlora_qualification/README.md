@@ -168,6 +168,8 @@ The promoted periodic replay, maintenance and shutdown functions preserve the qu
 
 `workloads.py` prepares actual processor-measured video workloads, including 3,840–4,096-token examples with at least 1,024 supervised tokens and a larger 16-frame input. The long task is an explicitly synthetic textual ledger alongside real media. These fixtures establish numerical, recovery and resource behavior; they do not establish WTS task quality. No token padding or truncation is used to manufacture sequence lengths.
 
+The [published rank-32 NF4/BF16 combined-input recipes](../../docs/post_training/native_qlora.md#combined-longer-context-and-larger-video-recipe) now have completed `09e99c3` 20-update and separate four-update recovery evidence. They use full checkpointing and the sealed `long4k_video16_large` profile; the runtime command does not itself execute the separate recovery suite.
+
 Use `workloads.py census` to measure every unchanged row in the selected ordinary training source. It uses the native cursor and processor, checks ordered membership against the grouped training manifest, and records actual token counts, video grids, tensor shapes and hashes. The selected census policy is microbatch one, accumulation eight, one preprocessing worker and a 3 GiB cache. Run it in the sealed environment with the same `SFT_MODEL_PATH` and `SFT_DATA_ROOT` as training:
 
 ```bash

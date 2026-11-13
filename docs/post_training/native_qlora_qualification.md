@@ -641,6 +641,23 @@ Both precision arms on sealed `09e99c3` passed actual CUDA checks of answer-choi
 
 These two successful allocations cost **4,705 GPU-seconds / 75,280 allocated CPU-seconds**; the earlier placement refusal remains a separate failed allocation. The [evidence](evidence/native_qlora_native_evaluation_dadfc89.json) distinguishes small-fixture arithmetic from full-model recovery and retains all source/build identities. This qualifies the measured correctness path, not learning benefit. The separately frozen four-case seed-123 screen is admitted with 100 updates per case on a 300-update schedule; it has no accepted outcome yet. Default smoothing remains zero, and the rejected dropout candidate and historical quality bounds are unchanged.
 
+### Completed combined long-context and larger-video check
+
+On sealed native `09e99c3`, both rank-32/alpha-64 arms completed the `long4k_video16_large` fixture with full activation checkpointing, microbatch one, accumulation eight and a 3 GiB training cache. Both 20-update runs processed **160 examples, 651,785 unpadded tokens and 202,925 supervised tokens**, matching the sealed cursor and processor-measured workload. Each validation at updates 0, 10 and 20 processed eight examples and 10,292 supervised tokens. These are runtime stress results on synthetic textual ledgers paired with real video, not natural-long-task quality evidence.
+
+The prepared training rows contain 4,059–4,090 tokens and 1,236–1,335 supervised tokens; validation spans 4,059–4,096 / 1,275–1,335. Their video grid is `[8,24,42]`, with 16 processed temporal slots at 384×672 and 2,016 merged visual tokens. The fresh GPU video probe measured **4,095 tokens / 1,335 supervised tokens** and pixel tensor shape `[8064,1536]`. Prepared per-row geometry, native aggregate/cursor verification and the fresh probe remain distinct evidence; source-frame uniqueness is unknown.
+
+Each arm also passed both four-update interruption paths, six exact checkpoint comparisons, next-update comparisons, frozen-base/optimizer membership checks and fresh text/image/video DCP/portable reloads. All 504 adapter inventories and controlled reload outputs matched. Checkpoints at runtime updates 10 and 20 were committed; the separate recovery suite resumes its own committed update two, not update 20 or 300.
+
+| Scope                                   | NF4 GPU process peak (GiB) | BF16 GPU process peak (GiB) | NF4 / BF16 host PSS (GiB) |
+| --------------------------------------- | -------------------------: | --------------------------: | ------------------------: |
+| 20-update runtime and portable reload   |                     16.447 |                      26.127 |             6.650 / 6.580 |
+| Four-update interruption/recovery suite |                     22.305 |                      31.977 |             7.147 / 6.840 |
+
+Runtime allocator peaks were **12.032 / 21.658 GiB allocated** and **15.449 / 25.129 GiB reserved** for NF4/BF16. Recovery peaked at **12.035 / 21.660 GiB allocated** and **21.307 / 30.979 GiB reserved**. The [evidence](evidence/native_qlora_native_evaluation_dadfc89.json) retains separate loading, first-update, later-update, validation, checkpoint-write and reload scopes. All sampled streams have complete process identities/PSS, but short intervals remain unsampled: 21/20 native-runtime intervals and 23 recovery intervals per arm. The largest parent sample gap is 1.943 seconds; peaks are lower bounds and preflight/end coverage is not invented.
+
+The fixed-order, single-seed allocation cost **4,469 GPU-seconds / 71,504 allocated CPU-seconds** once. This closes scoped rank-32 combined-input training/recovery on one A100 80GB. It does not qualify physical 24 GiB hardware, no-checkpointing execution for these shapes, natural long-context quality, dense export of these particular trained artifacts or inference latency. The historical 24 GiB runtime admission flag remains NF4 true / BF16 false; it is not physical-device qualification. The [exact recipes and native runner command](native_qlora.md#combined-longer-context-and-larger-video-recipe) reproduce the 20-update scope; recovery remains a separate lifecycle check.
+
 ## Capability and precision boundary
 
 The candidate is dense `Qwen/Qwen3-VL-8B-Instruct`, revision `0c351dd01ed87e9c1b53cbc748cba10e6187ff3b`, using the native posttrain SFT entrypoint on one Linux x86-64 A100 80GB with one torchrun process. An installed quantizer, inference quantization, or an accepted configuration alone does not establish this training capability.
@@ -660,6 +677,8 @@ The candidate is dense `Qwen/Qwen3-VL-8B-Instruct`, revision `0c351dd01ed87e9c1b
 Configuration is typed in [model.py:158](../../cosmos_framework/posttrain/config/model.py#L158) and [model.py:237](../../cosmos_framework/posttrain/config/model.py#L237). Hardware, dtype, target, strategy and backend mismatches fail in [loader.py:480](../../cosmos_framework/posttrain/model/quantization/loader.py#L480). Packed storage, base compute, adapter arithmetic and optimizer-state precision are separate contracts; UINT8 NF4 storage is not a dense BF16 base. Alternative floating storage for sharding is not qualified here. MoE, generator/action models, DoRA/PiSSA, additional quantizers, offload and other accelerators remain unsupported or independently unqualified.
 
 ## Requirements and acceptance evidence
+
+Current additions are [resident mature recovery](#completed-resident-mature-recovery) on `dadfc89`, and [effective-base BF16 export](#completed-effective-base-bf16-export), [objective/recovery correctness](#completed-answer-smoothing-correctness) and [combined long/video qualification](#completed-combined-long-context-and-larger-video-check) on `09e99c3`. The build-specific historical rows below retain their original decisions.
 
 Rows 1–9 map the original requirements; C1–C5 map the completed `55e7f14` continuation. “Implemented” describes code, while completed evidence applies only to its recorded build, hardware and workload. Subsequent native and tooling revisions have separate identities and outstanding checks in the improvement sections. **Release qualification remains false.** Allocations in the completed historical reports are terminal; the data and quality requirements remain open. The [statistical audit and confirmation tooling](#statistical-audit-and-executable-confirmation-design) extend C1 and C5 without changing the original conclusions.
 
