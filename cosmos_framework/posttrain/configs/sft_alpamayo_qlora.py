@@ -11,6 +11,8 @@ def make_config():
     config = action_config()
     config.job.name = "alpamayo_r1_nf4_flow"
     config.policy_factory = "cosmos_framework.posttrain.model.alpamayo.policy.build_policy"
+    config.dense_policy_factory = "cosmos_framework.posttrain.model.alpamayo.dense.build_dense_policy"
+    config.dense_sidecars_factory = "cosmos_framework.posttrain.model.alpamayo.dense.dense_sidecars"
     config.data_factory = "cosmos_framework.posttrain.model.alpamayo.training.build_data"
     config.objective_factory = "cosmos_framework.posttrain.model.alpamayo.training.build_objective"
     config.evaluation_callback = "cosmos_framework.posttrain.model.alpamayo.training.evaluate_trajectories"

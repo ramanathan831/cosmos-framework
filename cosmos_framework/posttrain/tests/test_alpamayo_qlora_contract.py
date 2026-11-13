@@ -97,3 +97,22 @@ def test_native_configuration_rejects_wrong_family_and_no_trainables():
         AlpamayoSFTModelConfig(
             "base", "processor", backbone_adaptation=FamilyBackboneConfig(mode="nf4_frozen"), train_action_head=False
         )
+
+
+def test_dense_source_attestation_rejects_wrong_checkpoint_identity():
+    from cosmos_framework.posttrain.model.alpamayo.dense import _recorded_base
+    from cosmos_framework.posttrain.model.alpamayo.source import BASE_CONFIG_SHA256, BASE_REVISION, BASE_WEIGHTS
+    from cosmos_framework.posttrain.utils.identity import canonical_json_sha256
+
+    files = {"config.json": BASE_CONFIG_SHA256, **BASE_WEIGHTS}
+    base = {
+        "repository": "nvidia/Alpamayo-R1-10B",
+        "revision": BASE_REVISION,
+        "files": files,
+        "sha256": canonical_json_sha256(files, context="Alpamayo snapshot"),
+    }
+    identity = {"base": {"base": base}}
+    assert _recorded_base(identity) == base
+    base["revision"] = "main"
+    with pytest.raises(ValueError, match="supported immutable base"):
+        _recorded_base(identity)

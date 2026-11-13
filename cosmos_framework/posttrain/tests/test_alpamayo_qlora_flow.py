@@ -148,6 +148,12 @@ def test_actual_flow_reaches_adapters_and_auxiliary_heads(tmp_path, checkpointin
         )
 
     state = install(net)
+    from cosmos_framework.posttrain.model.alpamayo.runtime import bind_rotary_aliases
+
+    bind_rotary_aliases(net)
+    for name in ("vlm.model.language_model.rotary_emb", "expert.rotary_emb"):
+        rotary = net.get_submodule(name)
+        assert rotary.original_inv_freq is rotary.inv_freq
     net._full_activation_checkpointing = checkpointing
     policy = AlpamayoSFTPolicy(net)
     data = batch()
@@ -175,3 +181,68 @@ def test_actual_flow_reaches_adapters_and_auxiliary_heads(tmp_path, checkpointin
         rtol=0,
         atol=0,
     )
+
+
+def test_native_dense_meta_reconstruction_after_real_task_updates(tmp_path):
+    from accelerate import init_empty_weights
+
+    from cosmos_framework.posttrain.checkpoint.adapter import save_adapter_artifact
+    from cosmos_framework.posttrain.checkpoint.family_dense import export_family_dense, load_family_dense
+    from cosmos_framework.posttrain.checkpoint.manager import CheckpointManager
+    from cosmos_framework.posttrain.model.alpamayo.policy import AlpamayoSFTNet
+
+    net = source(tmp_path)
+    targets = {
+        name: tuple(module.weight.shape)
+        for name, module in net.named_modules()
+        if type(module) is torch.nn.Linear
+        and name.startswith("vlm.model.language_model.layers.")
+        and (".layers.0." in name or name.endswith(("k_proj", "v_proj")))
+    }
+    auxiliary = tuple(
+        name
+        for name, _ in net.named_parameters()
+        if name.startswith(("expert.", "action_in_proj.", "action_out_proj."))
+    )
+    state = install_family_backbone(
+        net,
+        config=FamilyBackboneConfig(mode="bf16_lora", rank=2, alpha=4, seed=9),
+        targets=targets,
+        auxiliary_parameters=auxiliary,
+        source_identity={"fixture": "actual-public-Alpamayo"},
+        task_identity={"loss": "native-flow"},
+        device=torch.device("cpu"),
+    )
+    policy, data = AlpamayoSFTPolicy(net), batch()
+    optimizer = torch.optim.AdamW(state.codec.parameters.values(), lr=1e-3)
+    for _ in range(3):
+        optimizer.zero_grad(set_to_none=True)
+        policy.flow_matching_loss(data).loss.backward()
+        optimizer.step()
+    reference = policy.flow_matching_loss(data).prediction.detach()
+    checkpoint = save_adapter_artifact(
+        str(tmp_path / "portable" / "iter_000003"),
+        state.codec.view.state_dict(),
+        state.codec.metadata(),
+        manager=CheckpointManager(checkpoint_format="consolidated"),
+    )
+    destination = tmp_path / "dense"
+    export_family_dense(
+        net,
+        checkpoint=checkpoint,
+        output=str(destination),
+        merged_backbone_dtype="bfloat16",
+        exporter_build={"code_revision": "a" * 40, "wheel_sha256": "b" * 64},
+        max_shard_size_bytes=65536,
+    )
+    with init_empty_weights(include_buffers=False):
+        reconstructed = AlpamayoSFTNet(net.config)
+    assert all(parameter.is_meta for parameter in reconstructed.parameters())
+    load_family_dense(reconstructed, destination, device="cpu", expected_identity=state.codec.identity)
+    assert not any(parameter.is_meta or parameter.requires_grad for parameter in reconstructed.parameters())
+    for name in auxiliary:
+        torch.testing.assert_close(reconstructed.get_parameter(name), net.get_parameter(name), atol=0, rtol=0)
+    prediction = AlpamayoSFTPolicy(reconstructed).flow_matching_loss(data).prediction.detach()
+    # BF16 weight merge changes arithmetic: this is a bounded tiny-output check,
+    # not exact adapter parity and not a real driving task-quality qualification.
+    torch.testing.assert_close(prediction, reference, atol=2e-3, rtol=2e-2)

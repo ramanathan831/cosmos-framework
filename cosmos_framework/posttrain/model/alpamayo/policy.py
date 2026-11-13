@@ -166,7 +166,7 @@ def external_identity():
         "files": files,
         "native_files": {
             name: file_sha256(str(Path(__file__).with_name(name)))
-            for name in ("policy.py", "sft.py", "source.py", "training.py")
+            for name in ("policy.py", "sft.py", "source.py", "training.py", "runtime.py")
         },
     }
 
@@ -216,6 +216,7 @@ def load_base(model_id, config, *, dtype=torch.bfloat16):
 
 def build_policy(config, *, device, output=None):
     """Native action-SFT factory: CPU base -> NF4/BF16 -> adapters -> optimizer."""
+    from cosmos_framework.posttrain.model.alpamayo.runtime import bind_rotary_aliases
     from cosmos_framework.posttrain.model.alpamayo.sft import AlpamayoSFTPacker
     from cosmos_framework.posttrain.model.alpamayo.source import auxiliary_parameters, backbone_targets
     from cosmos_framework.posttrain.model.quantization.family import install_family_backbone
@@ -245,6 +246,7 @@ def build_policy(config, *, device, output=None):
         },
         device=torch.device(device),
     )
+    bind_rotary_aliases(net)
     if cfg.activation_checkpointing == "vision":
         from functools import partial
 
