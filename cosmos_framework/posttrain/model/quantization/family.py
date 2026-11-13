@@ -35,6 +35,16 @@ from cosmos_framework.posttrain.model.quantization.loader import (
 from cosmos_framework.utils.generator.lora import LoraInjectedLinear
 
 
+def _family_tensor_record(tensor: torch.Tensor) -> dict:
+    """Preserve native layouts while hashing canonical values and binding strides.
+
+    Only noncontiguous tensors need a temporary contiguous copy. This supports
+    the native GR00T vision Conv3d channels-last layout without changing it.
+    Packed NF4 weights use their dedicated quantization-state representation.
+    """
+    return {**tensor_digest(tensor.contiguous()), "stride": list(tensor.stride())}
+
+
 @dataclass(frozen=True)
 class FamilyBackboneConfig:
     """Storage/compute policy independent of a particular task architecture."""
@@ -299,12 +309,12 @@ def install_family_backbone(
     current = parameter_slots(net)
     packed = {name: module for name, module in installed.items() if quantized}
     frozen = {
-        name: tensor_digest(slot.tensor)
+        name: _family_tensor_record(slot.tensor)
         for name, slot in current.items()
         if name not in trainable and name not in {f"{key}.weight" for key in packed}
     }
     packed_records = {name: quantized_state_record(module) for name, module in packed.items()}
-    buffers = {name: tensor_digest(slot.tensor) for name, slot in buffer_slots.items()}
+    buffers = {name: _family_tensor_record(slot.tensor) for name, slot in buffer_slots.items()}
     identity = {
         "format": "cosmos.family-backbone.v1",
         "implementation": _implementation_identity(),
@@ -334,13 +344,13 @@ def install_family_backbone(
 
     def validate_frozen() -> None:
         for name, expected in frozen.items():
-            if tensor_digest(current[name].tensor) != expected:
+            if _family_tensor_record(current[name].tensor) != expected:
                 raise RuntimeError(f"frozen family tensor changed: {name}")
         for name, expected in packed_records.items():
             if quantized_state_record(packed[name]) != expected:
                 raise RuntimeError(f"frozen family NF4 weight or metadata changed: {name}")
         for name, expected in buffers.items():
-            if tensor_digest(buffer_slots[name].tensor) != expected:
+            if _family_tensor_record(buffer_slots[name].tensor) != expected:
                 raise RuntimeError(f"frozen family buffer changed: {name}")
 
     net._cosmos_adapter_parameters = dict(sorted(trainable.items()))

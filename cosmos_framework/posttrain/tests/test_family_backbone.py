@@ -369,3 +369,20 @@ def test_explicit_single_device_boundary(monkeypatch):
     monkeypatch.setattr(torch.distributed, "get_world_size", lambda: 2)
     with pytest.raises(ValueError, match="FSDP/DTensor"):
         install(TaskPolicy())
+
+
+def test_native_channels_last_vision_layout_is_preserved_and_bound():
+    net = TaskPolicy()
+    net.video = nn.Conv3d(3, 4, (2, 2, 2), bias=False, dtype=torch.bfloat16)
+    net.video.to(memory_format=torch.channels_last_3d)
+    before = net.video.weight.detach().clone()
+    stride = net.video.weight.stride()
+    assert not net.video.weight.is_contiguous()
+    state = install(net)
+    assert net.video.weight.stride() == stride
+    torch.testing.assert_close(net.video.weight, before, atol=0, rtol=0)
+    state.validate_frozen_base()
+    # Equal values with a different execution layout still violate identity.
+    net.video.weight.data = net.video.weight.data.contiguous()
+    with pytest.raises(RuntimeError, match="frozen family tensor changed: video.weight"):
+        state.validate_frozen_base()
