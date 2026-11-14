@@ -89,3 +89,34 @@ def test_collector_restore_binds_generation_before_cursor_mutation(tmp_path, mon
     with pytest.raises(RuntimeError, match="changed while it was being loaded"):
         collector.restore_checkpoint(manager, str(tmp_path))
     assert (collector.state_dict(), collector.loaded_checkpoint_provenance()) == before
+
+
+def test_pending_publication_mount_preflight_is_fail_closed_and_skips_same_run(tmp_path, monkeypatch):
+    import errno
+
+    from cosmos_framework.posttrain.checkpoint import external_copy
+    from cosmos_framework.posttrain.entrypoints.joint_ppo import preflight_pending_publication
+
+    output = tmp_path / "original"
+    checkpoint = output / "checkpoints" / "iter_000004"
+    checkpoint.mkdir(parents=True)
+    torch.save(
+        {"optimizer_step": 4, "validation": {"progress": {"pending_step": 4}, "publication": None}},
+        checkpoint / "trainer.pt",
+    )
+    before = (checkpoint / "trainer.pt").read_bytes()
+    calls = []
+
+    def unsupported(source, target):
+        calls.append((source, target))
+        raise OSError(errno.ENOTSUP, "injected unsupported mount")
+
+    monkeypatch.setattr(external_copy, "_rename_directory_noreplace", unsupported)
+    manager = CheckpointManager()
+    preflight_pending_publication(manager, str(checkpoint), str(output))
+    assert calls == []
+    with pytest.raises(OSError, match="use the original run output directory") as failure:
+        preflight_pending_publication(manager, str(checkpoint), str(tmp_path / "new"))
+    assert failure.value.errno == errno.ENOTSUP and len(calls) == 1
+    assert list((tmp_path / "new/checkpoints").iterdir()) == []
+    assert (checkpoint / "trainer.pt").read_bytes() == before

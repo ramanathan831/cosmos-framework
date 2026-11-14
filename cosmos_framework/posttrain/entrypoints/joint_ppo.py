@@ -181,6 +181,23 @@ def validate_resume_boundary(manager, path, recipe, environment, width):
             raise ValueError("joint PPO collector cursor differs from the committed policy version")
 
 
+def preflight_pending_publication(manager, path, output):
+    """Refuse an unavailable pending-validation move before model workers exist."""
+    control = manager.load_component(path, "trainer")
+    validation = control.get("validation") or {}
+    pending = (validation.get("progress") or {}).get("pending_step") is not None
+    if not pending and validation.get("publication") is None:
+        return
+    target = manager.iteration_location(str(Path(output) / "checkpoints" / f"iter_{control['optimizer_step']:06d}"))
+    if manager.store.is_object_store:
+        if path != target:
+            raise ValueError("cross-prefix object-store pending-validation resume is unsupported")
+    elif os.path.realpath(path) != os.path.realpath(target):
+        from cosmos_framework.posttrain.checkpoint.external_copy import require_atomic_directory_promotion
+
+        require_atomic_directory_promotion(os.path.dirname(target))
+
+
 def manifest(evaluation_enabled: bool = True):
     from cosmos_framework.posttrain.control.recipe import joint_ppo_manifest
 
@@ -317,9 +334,15 @@ def run(config: Any, opts: list[str] | None = None, *, evaluate_only: bool = Fal
         raise ValueError("checkpoint evaluation requires an explicit resumable checkpoint and enabled validation")
     lifecycle = CheckpointLifecycle.from_config(config, recipe, run_out_dir=str(output), resume_checkpoint=resume)
     if resume:
+
+        def preflight_resume():
+            validate_resume_boundary(lifecycle.manager, resume, recipe, instantiate(config.environment), width)
+            if not evaluate_only:
+                preflight_pending_publication(lifecycle.manager, resume, output)
+
         lifecycle.manager.load_with_stable_provenance(
             resume,
-            lambda: validate_resume_boundary(lifecycle.manager, resume, recipe, instantiate(config.environment), width),
+            preflight_resume,
         )
     with ExitStack() as cleanup:
         cleanup.callback(ray.shutdown)
