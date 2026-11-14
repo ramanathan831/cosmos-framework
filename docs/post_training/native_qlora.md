@@ -399,6 +399,7 @@ torchrun --standalone --nproc-per-node=1 \
     --config cosmos_framework/posttrain/configs/sft_qwen3_vl_8b_qlora.py \
     --checkpoint /absolute/committed/adapter \
     --output /absolute/new/dense-model --output-dtype bfloat16 \
+    --max-shard-size-bytes 536870912 \
     --override model.model_id=/absolute/pinned/base \
     --override model.model_config.adapter.rank=32 \
     --override model.model_config.adapter.alpha=64 \
@@ -408,6 +409,15 @@ torchrun --standalone --nproc-per-node=1 \
 ```
 
 Supply the original processor and execution overrides as well as the installed `COSMOS_TRAINING_CODE_REVISION` and `COSMOS_TRAINING_WHEEL_SHA256`. The source identity must match; the example is not an automatic reconstruction of arbitrary artifacts. Output creation is exclusive. The exporter writes ordinary HF safetensors, config and verified processor files, then publishes `cosmos_dense_export.json` last with source identities, arithmetic, file/tensor hashes and exporter revision. Interrupted exports remain incomplete. `read_dense_export(..., expected_manifest_sha256=...)` verifies the committed artifact before an ordinary HF load. Dense exports are evaluation artifacts, not exact training resumes.
+
+From `e05a061`, exports deterministically pack name-ordered tensors into standard
+indexed shards, with a configurable 512 MiB tensor-payload limit by default.
+A larger single tensor occupies its own shard; headers, the current merge matrix
+and row-block temporaries are additional memory. The reader retains compatibility
+with the earlier one-tensor-per-shard format. Packing and interruption/readback
+checks include fresh tiny multimodal HF loads. The full-model measurements below
+used the earlier format: they do not establish the new packing path's peak host
+memory or export time. The effective-base merge arithmetic is unchanged.
 
 With `COSMOS_QLORA_METRICS_FILE` enabled, `09e99c3` records an export-start/reset event and a completion event after committed readback, covering adapter loading, dequantization, merging and publication separately from base loading. Failed exports attempt a diagnostic event without masking the original exception. These allocator records complement the external process sampler; they do not measure allocations outside the PyTorch allocator or whole-host memory.
 
