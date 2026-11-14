@@ -12037,6 +12037,226 @@
         }
       ],
       "wheel_sha256": "9113351965b501d293f9a71f476926fc212c51732144a63f90aca144120f0697"
+    },
+    "38523526": {
+      "family": "alpamayo",
+      "slurm_state": "COMPLETED",
+      "exit_code": "0:0",
+      "allocation_gpu_seconds": 1284,
+      "scope": "Paired diagnostic native24-update profile; updates21-24 and final two-row resident evaluation. No uninstrumented speed, quality, or inference-latency claim.",
+      "implementation_revision": "4cba88f4d84ce69037c194e58670e8491388a36d",
+      "wheel_sha256": "9113351965b501d293f9a71f476926fc212c51732144a63f90aca144120f0697",
+      "passed": true,
+      "runtime": {
+        "code": "4cba88f4d84ce69037c194e58670e8491388a36d",
+        "cpu_affinity": [
+          2,
+          3,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135
+        ],
+        "cuda_visible_devices": "0",
+        "gpu": {
+          "bytes": 85174583296,
+          "name": "NVIDIA A100-SXM4-80GB",
+          "nvml_uuid_roundtrip": true,
+          "torch_uuid": "55074340-aa47-f13b-adb0-72ef85560bc8",
+          "uuid": "GPU-55074340-aa47-f13b-adb0-72ef85560bc8"
+        },
+        "slurm_job": "38523526",
+        "versions": {
+          "bitsandbytes": "0.49.2",
+          "diffusers": "0.35.1",
+          "safetensors": "0.8.0",
+          "torch": "2.10.0+cu128",
+          "transformers": "4.57.6"
+        }
+      },
+      "receipt": {
+        "path": "alpamayo-38523526-profile-readout.json",
+        "sha256": "e9e8a1a40f22de26ad90b221cdc2545f4fb9b4dd732538789ced745d43b289cb"
+      },
+      "raw_trace_peer_review": {
+        "path": "alpamayo-38523526-evaluation-peer-review.json",
+        "sha256": "d485ad05b4ed6f3c41ac481555a2f3a51da3f5257c45b87727b44446fcf98d63"
+      },
+      "raw_receipt_archive": {
+        "path": "alpamayo-38523526-profile-receipts-v1.tar.gz",
+        "sha256": "6822efdf4b105619911bc615f0c29b667de8ec4897bc13be1f359980338faa51",
+        "verified_files": 84
+      },
+      "acceptance_sha256": "0a9ab1d972607cf92bdae8af693944c801654b347d3eddbb851f24abe7b550a0",
+      "paired_complete_sha256": "c9eb18076e21df502d0906d1c0b9b272e49e6f37f8e19c2cdb0d486a2a2c7095",
+      "allocator": "PYTORCH_ALLOC_CONF=expandable_segments:True in both arms",
+      "optimizer_scope": {
+        "lr": 0.0001,
+        "schedule": "constant",
+        "warmup_steps": 0,
+        "grad_clip_norm": 0.0,
+        "difference_from_selected512": "Selected512 uses its declared cosine schedule and clip1.0; evaluator preparation mechanism/geometry match, optimizer/update profile is not selected512 timing evidence."
+      },
+      "processed_shapes": {
+        "input_ids": [
+          1,
+          3008
+        ],
+        "image_grid_thw": [
+          16,
+          3
+        ],
+        "pixel_values": [
+          11520,
+          1536
+        ],
+        "ego_history_xyz": [
+          1,
+          1,
+          16,
+          3
+        ],
+        "ego_history_rot": [
+          1,
+          1,
+          16,
+          3,
+          3
+        ],
+        "actions_and_mask": [
+          1,
+          64,
+          2
+        ]
+      },
+      "shape_scope": "All24 training preparations and both loss/prediction preparations for the two final evaluation rows in each arm; no full256-row census.",
+      "supervised_action_elements": 128,
+      "prepared_cpu_tensor_bytes_one_batch": 70829184,
+      "modes": {
+        "nf4_lora": {
+          "evaluation": {
+            "native_evaluation_seconds": 9.758822248,
+            "prediction_preparation_seconds": 2.549374444,
+            "raw_trace_sha256": "5099f772b867decee430d8d2a3f7cc5e0a26228a5a6ee1afa8f9dbc7db0611d6",
+            "same_thread_sequential_loss_and_callback": true,
+            "upper_bound_fraction_before_reuse_cost": 0.2612379218734593,
+            "recorded_gpu_overlap_seconds_per_row": [
+              4.43115234375e-06,
+              0.0
+            ],
+            "cuda_runtime_calls_inside_second_preparation": 0
+          },
+          "same_thread_image_opens_per_second_preparation": 16,
+          "same_thread_image_converts_per_second_preparation": 16,
+          "processor_calls_per_second_preparation": 1,
+          "memory": {
+            "allocator_peak_allocated_bytes": 69432915968,
+            "allocator_peak_reserved_bytes": 70835503104,
+            "sampled": {
+              "device_peak_bytes": 72863645696,
+              "errors": [
+                "incomplete_host_pss"
+              ],
+              "gpu_memory_evidence_valid": true,
+              "host_pss_complete": false,
+              "host_pss_sum_peak_bytes": 59225073664,
+              "host_rss_sum_peak_bytes": 59465310208,
+              "owned_device_process_peak_bytes": 72064434176,
+              "peaks_are_sampled_lower_bounds": true,
+              "samples": 451
+            },
+            "major_phases_with_complete_host_and_gpu_samples": [
+              "action_evaluation",
+              "action_training_block",
+              "checkpoint_write",
+              "loading",
+              "portable_export"
+            ]
+          },
+          "source_sha256": {
+            "profile/nf4_lora/evaluation-profile/instrumentation.json": "70cedb23ab152adce54d449a5c18b5679242da7bfe0da74c8962aeeec9df4cc7",
+            "profile/nf4_lora/evaluation-profile/rank_0/window_0.json.gz": "5099f772b867decee430d8d2a3f7cc5e0a26228a5a6ee1afa8f9dbc7db0611d6",
+            "profile/nf4_lora/evaluation-profile/rank_0/window_0.summary.json": "b488489ff5401cef337da4a54c97c31abf6635ce7ee82945e6df91282f17ac19",
+            "profile/nf4_lora/profile/instrumentation.json": "3d77f9feac73aaab995b831a8e43716804ae5ca31fb0bdb4945ba205269dfbcc",
+            "profile/nf4_lora/profile/rank_0/window_0.json.gz": "05679c75a3e05d6d1ae8ea8a24267d5315c1a5d04155f0f9cf4b126d37f9abd0",
+            "profile/nf4_lora/profile/rank_0/window_0.summary.json": "a249ef2c928ec2dd9a7980b1134326936cf83a230abf9d93f199e26e66c416aa",
+            "profile/nf4_lora/protocol.json": "992ca1cf038f46a872e77465bf1200c134b83f4b2cde8d9e0822cebb3ca26122",
+            "profile/stages/nf4_lora/memory.jsonl": "9e6cfbd500190c9c9a7a5cf3f34350576c107cead2ed816a3959604bbcf7c43e"
+          }
+        },
+        "bf16_lora": {
+          "evaluation": {
+            "native_evaluation_seconds": 8.825540623,
+            "prediction_preparation_seconds": 2.2453669300000003,
+            "raw_trace_sha256": "d87229ec42ef33e33fe325677e9713ffc340307507d9186a211f3450a0986ede",
+            "same_thread_sequential_loss_and_callback": true,
+            "upper_bound_fraction_before_reuse_cost": 0.25441692763255896,
+            "recorded_gpu_overlap_seconds_per_row": [
+              0.0,
+              0.0
+            ],
+            "cuda_runtime_calls_inside_second_preparation": 0
+          },
+          "same_thread_image_opens_per_second_preparation": 16,
+          "same_thread_image_converts_per_second_preparation": 16,
+          "processor_calls_per_second_preparation": 1,
+          "memory": {
+            "allocator_peak_allocated_bytes": 79466941440,
+            "allocator_peak_reserved_bytes": 80645980160,
+            "sampled": {
+              "device_peak_bytes": 82672025600,
+              "errors": [
+                "incomplete_host_pss"
+              ],
+              "gpu_memory_evidence_valid": true,
+              "host_pss_complete": false,
+              "host_pss_sum_peak_bytes": 58263928832,
+              "host_rss_sum_peak_bytes": 58615889920,
+              "owned_device_process_peak_bytes": 81872814080,
+              "peaks_are_sampled_lower_bounds": true,
+              "samples": 421
+            },
+            "major_phases_with_complete_host_and_gpu_samples": [
+              "action_evaluation",
+              "action_training_block",
+              "checkpoint_write",
+              "loading",
+              "portable_export"
+            ]
+          },
+          "source_sha256": {
+            "profile/bf16_lora/evaluation-profile/instrumentation.json": "f357c38c47cbbd634ae57765258c075d6cd1de1c4c1f0ea97c5c7c91711b6a69",
+            "profile/bf16_lora/evaluation-profile/rank_0/window_0.json.gz": "d87229ec42ef33e33fe325677e9713ffc340307507d9186a211f3450a0986ede",
+            "profile/bf16_lora/evaluation-profile/rank_0/window_0.summary.json": "1f13adb146c4797f85ad0dc631d6f0987ea33715942ed83468564953fc971812",
+            "profile/bf16_lora/profile/instrumentation.json": "3d77f9feac73aaab995b831a8e43716804ae5ca31fb0bdb4945ba205269dfbcc",
+            "profile/bf16_lora/profile/rank_0/window_0.json.gz": "cbbd4a4bc891fe98bd30732a29526e809256a84f1451270798b062214942700d",
+            "profile/bf16_lora/profile/rank_0/window_0.summary.json": "c04cf10c10390102d01383f54aa19b03d80e55932bf9401d81b12bafc005bfca",
+            "profile/bf16_lora/protocol.json": "e0fa75971da127823fd7cfa76c4363cf3c256a2f82a806eca2543a3ea48f8d5a",
+            "profile/stages/bf16_lora/memory.jsonl": "928c52b110a9bed12e598fe647fbc7fc5872e31c96dd104dd5d808e2336c34b5"
+          }
+        }
+      },
+      "decision": {
+        "intervention": "One-batch CPU preparation reuse between loss and prediction, identically available to both precision arms",
+        "status": "Evidence-backed implementation candidate; not yet a measured gain",
+        "bound": "Removed second-packer region is only an instrumented evaluation upper bound before lookup/validation/clone costs. Do not sum contained image/processor ranges or extrapolate to full512 workflow."
+      },
+      "limitations": [
+        "Profiler and trace serialization materially inflate stage clocks; no throughput or workflow comparison is inferred.",
+        "Whole-stage host-PSS completeness is false in both arms; preserve observed lower bounds and per-phase availability.",
+        "Short setup/verification intervals sometimes have no external samples; native allocator records remain separate.",
+        "No natural long-context quality, independent task preservation, or deployment latency is established."
+      ]
     }
   },
   "read_only_head_memory_diagnostic": {

@@ -427,3 +427,25 @@ portable inspection exceeded the login host-memory limit; it is retained as a
 failed auxiliary check, not relabeled as a training or artifact failure. The
 completed native jobs verified their published artifacts; small metadata checks
 do not establish fresh full-policy task parity.
+
+The paired diagnostic profile (`38523526`, native `4cba88f`, 1,284 GPU-seconds)
+completed 24 updates per arm and traced the last four updates plus the final
+two-row resident evaluation. Each row was prepared twice: once for flow loss,
+then again for trajectory prediction. Raw events place the second preparation
+serially on the evaluator thread after the loss, with negligible recorded GPU
+overlap. NF4/BF16 duplicate preparation consumed **2.549/2.245 seconds** of the
+instrumented **9.759/8.826-second** evaluations: **26.12%/25.44%**. Image decoding
+and processor ranges are inside those totals and must not be added again.
+These fractions bound the removable evaluator work before reuse costs; they are
+not achieved speedups or a projection for the complete 512-update workflow.
+
+All 24 training preparations and the four final evaluator preparations per arm
+had 3,008 tokens, 16 image slots and 128 supervised action elements. One prepared
+CPU tensor batch occupied **70,829,184 bytes (67.55 MiB)**, supporting investigation
+of bounded reuse within one evaluation row. The profile used constant LR and
+no gradient clipping; its update timings do not represent the selected 512-update
+cosine/clip-1.0 recipe. Profiler serialization also inflated stage clocks.
+The [profile receipts and independent raw-event review](evidence/native_qlora_family_engineering_4cba88f.json)
+retain allocator measurements, sampled memory bounds and incomplete whole-run
+host-PSS flags. Preparation reuse still needs implementation, exact-state checks
+and a matched uninstrumented workflow comparison in both precision arms.
