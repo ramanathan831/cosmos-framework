@@ -39,5 +39,20 @@
       "38518229"
     ],
     "source_expected_state": "The original failed run evaluation/step_000040.json and saved data/trainer components are preserved outside the mutating source journal before continuation. Exact learner/cursor attestation precedes its next rollout."
-  }
+  },
+  "effective_runs": [
+    {
+      "job": "38520018",
+      "optimizer": "adamw impl=fused",
+      "source_reference": "gr00t-exposure-fused-seed17-v2 pending40",
+      "result": "native_v3_recovery_summary.json",
+      "status": "completed40-to80"
+    },
+    {
+      "job": "38520216",
+      "optimizer": "adamw_bnb_8bit",
+      "source_reference": "gr00t-exposure-eightbit-seed17-v3 published40",
+      "status": "admitted; pending dependency"
+    }
+  ]
 }

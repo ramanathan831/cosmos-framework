@@ -1381,7 +1381,8 @@ update40 but failed publication after scoring93/100, versus99/100 initially.
 The captured inventory differs only in one rank's older mtime/ctime for the same
 model shard. Linux provenance now requests server-synchronized `statx` attributes
 without weakening rank agreement. Affected local, project-filesystem and two-GPU
-recovery tests pass; native pending-publication continuation is being checked.
+recovery tests pass. Native pending40→80 continuation also passes, including
+exact pre-update learner/cursor restoration and a newly published checkpoint80.
 The failed midpoint remains negative evidence. See the
 [native nonpaged evidence](evidence/quantized_optimizers_round10/native_eightbit_development_summary.json).
 
@@ -1400,7 +1401,8 @@ expansion. Oldv1/v2 reads remain supported. Three counterbalanced CPU trials on
 an actual >4GiB native rank state reproduce all values exactly; roundtrip time is
 3.98× faster [3.50,4.45], with mean process peak PSS25.44→17.96GiB. This is a
 prepared-state CPU screen, not native end-to-end speed. The affected distributed
-gate passes; native continuation is tracked separately. See the
+gate and fused native40→80 continuation pass; nonpaged/paged v3 continuation
+is tracked separately. See the
 [checkpoint screen](evidence/quantized_optimizers_round10/checkpoint_payload_summary.json).
 
 AlpaGym now constructs the shared optimizer after `AlpamayoTrainModel.setup`,

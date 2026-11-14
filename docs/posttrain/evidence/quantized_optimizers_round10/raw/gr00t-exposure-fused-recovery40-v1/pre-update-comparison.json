@@ -9,5 +9,5 @@
     "publication_version": 40
   },
   "scope": "Before next native rollout; simulator physical reset, no claim of identical future trajectories",
-  "continuation_terminal": false
+  "continuation_terminal": true
 }

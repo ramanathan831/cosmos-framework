@@ -1,0 +1,52 @@
+{
+  "fused": {
+    "job": "38520018",
+    "source": "94ecd8ba4e4b238feaaaceb8d5282ef0bcc40ded",
+    "optimizer": "adamw impl=fused update_policy=fp32_master",
+    "from_update": 40,
+    "to_update": 80,
+    "completed": true,
+    "allocation_seconds_including_step_teardown": 2055,
+    "gpu_allocation_seconds": 8220,
+    "exact_before_next_update": {
+      "all_four_learner_state_records": true,
+      "saved_collector_state": true,
+      "optimizer_step": 40,
+      "publication_version": 40,
+      "collector_cursors": [
+        40,
+        40,
+        40,
+        40
+      ]
+    },
+    "all_40_subsequent_native_updates": {
+      "sequential_counters": true,
+      "behavior_logprob_verified": true,
+      "policy_publication_version_matches": true,
+      "finite_metrics_and_update_norms": true,
+      "frozen_backbone_preserved": true,
+      "live_and_master_updates_observed_on_all_ranks": true
+    },
+    "final_state_steps": [
+      80,
+      80,
+      80,
+      80
+    ],
+    "validation_success": {
+      "original_failed_reference40": 0.93,
+      "repeated_pending40": 0.93,
+      "resumed80": 0.97
+    },
+    "new_checkpoint80_saved_and_validation_published": true,
+    "reproducibility": "Exact restored learner/controller/data boundary; native physical environments reset. Future rollouts and final parameters are not claimed equal to uninterrupted training.",
+    "timing_scope": "Recovery diagnostic, excluded from uninterrupted development comparison",
+    "raw": "raw/gr00t-exposure-fused-recovery40-v1",
+    "attempt": {
+      "returncode": 0,
+      "native_seconds": 1857.4702370689483
+    }
+  },
+  "nonpaged": "admitted38520216 pending"
+}
