@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "scope": "Portable analysis CLI on actual retained SQLite; read-only trace, fresh exclusive output",
+  "all_stored_aggregates_exact": true,
+  "excluded_from_comparison": [
+    "analysis_seconds"
+  ],
+  "seconds": 4.169965440407395,
+  "original_evidence_unchanged": true,
+  "source_sha256": "af497d3516da892b9b910760e67ac1f6165b9d394ff8649a0516ce0664f119bf"
+}

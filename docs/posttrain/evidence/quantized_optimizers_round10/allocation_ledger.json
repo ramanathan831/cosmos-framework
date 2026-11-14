@@ -1,6 +1,6 @@
 {
-  "sealed": false,
-  "updated_at_utc": "2026-11-14T15:06:56.318404+00:00",
+  "sealed": true,
+  "updated_at_utc": "2026-11-14T15:13:19.591929+00:00",
   "method": "Earliest allocation/step start through latest end including termination grace; pending unallocated cancellations cost zero. GPU-seconds = allocation wall x allocated GPUs; CPU-only wall excludes GPU jobs. Running entries are provisional observations, not final charges. No aggregate caps.",
   "allocations": [
     {

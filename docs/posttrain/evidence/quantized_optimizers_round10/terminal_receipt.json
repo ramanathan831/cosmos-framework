@@ -1,0 +1,20 @@
+{
+  "sealed": true,
+  "as_of_utc": "2026-11-14T15:13:19.591929+00:00",
+  "evidence_parent_commit": "8c7e2d48aa32ff826c09b7b259551988abd95301",
+  "all107_owned_submissions_terminal": true,
+  "queue_check": {
+    "checked_at_utc": "2026-11-14T15:11:39.812005+00:00",
+    "query": "squeue --me -h -o %i|%T|%N; filtered to107owned submission IDs",
+    "owned_active": []
+  },
+  "allocation_ledger_sha256": "8cde97f10ed88eb89586ba0b5b227ce8de97a348c8300d1ed3bb73d7eb98b290",
+  "owned_receipts": 55,
+  "missing_receipts_from_ledger": [],
+  "raw_manifest_recheck": {
+    "collection_manifests": 21,
+    "files_checked": 793
+  },
+  "complete_product_objective": false,
+  "publication": "Local commits and PR draft only; no push/publish/merge/reopenPR334. Protected QLoRA checkout untouched."
+}

@@ -356,7 +356,8 @@ Reproduce the stored trace aggregation without training or changing the trace:
 
 ```bash
 python docs/posttrain/evidence/quantized_optimizers_round10/paging_trace_analysis.py \
-  "$R/cosmos-optimizer-native-20261113/gr00t-pressure-paged55-profile-v1"
+  "$R/cosmos-optimizer-native-20261113/gr00t-pressure-paged55-profile-v1" \
+  --output /tmp/managed-memory-reanalysis.json
 ```
 
 The two full trace files remain at that directory with SHA256 identities in

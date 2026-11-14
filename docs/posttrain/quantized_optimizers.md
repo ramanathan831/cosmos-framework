@@ -1474,3 +1474,14 @@ Primary references: [pinned AdamW source](https://github.com/bitsandbytes-founda
 [Cosmos configuration](https://nvidia.github.io/cosmos-framework/posttrain/reference/config/).
 The [Transformers 5.8.1 alias](https://github.com/huggingface/transformers/blob/v5.8.1/src/transformers/training_args.py)
 `adamw_8bit` names bitsandbytes, not an Apex eight-bit implementation.
+
+The round-ten campaign is sealed: **107 submissions are terminal** (82 allocated,
+25 unallocated cancellations), including all failures. Charges are **162,554 GPU
+allocation-seconds (45.154 GPU-hours)** and **6,564 CPU-only allocation-wall
+seconds (1.823 hours)**; local checks and interactive inspection are separate.
+Nsight's exit-zero failed native diagnostic is explicitly distinguished from
+success. No aggregate compute cap or budget-blocked status applies. See the
+[qualification summary](evidence/quantized_optimizers_round10/qualification_summary.json),
+[terminal receipt](evidence/quantized_optimizers_round10/terminal_receipt.json), and
+[local PR draft](evidence/quantized_optimizers_round10/proposed_pr.md). The complete
+product objective remains open. Nothing was pushed, published or merged.

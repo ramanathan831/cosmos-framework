@@ -1,14 +1,14 @@
 {
   "starting_commit": "2516e9f1e9aecb0b68d6a21e27dd835f456109ab",
   "current_implementation_parent": "ff2572f266d9463c6cb820f883e514387aecd869",
-  "sealed": false,
-  "updated_at_utc": "2026-11-14T13:53:09.063205+00:00",
+  "sealed": true,
+  "updated_at_utc": "2026-11-14T15:13:19.591929+00:00",
   "tested_native_source": {
     "revision": "ff2572f266d9463c6cb820f883e514387aecd869",
     "archive_sha256": "748841d879ba76692462738e5c24130d218a9d4d1d5d0004c6a68162c87dded9",
     "archive_bytes": 7723961,
     "archive": "optimizer-native-runtime-v42.tar.gz",
-    "scope": "source-v42:72 pinned tests,12 shared two-rank reference/resume/failure receipts, and corrected native paged55 pressure16to32 recovery pass. Corrected nonpaged55 pressure continuation fails update20 after3new finite updates. Native migration trace is admitted separately; mature80 numerical/recovery remains at recorded sources."
+    "scope": "Latest native runtime source-v42 passes affected72 pinned checks,12 two-rank receipts and corrected native paged55 pressure16to32 continuation. Nonpaged55 continuation fails update20; instrumented paged diagnostic stops after3updates with incomplete trace. Mature80-update GR00T, SFT and other retained evidence remain bound to their own exact sources; product quality/speed are not qualified."
   },
   "all_runtime_archives": "native_sources.json",
   "important_components": {
@@ -28,7 +28,8 @@
     "joint_checkpoint_memory_cleanup": "36610372f48f1a692f363996458bcefc637eb12c",
     "descriptor_publication_verification": "677e7e039012b40033e4ea137587619808d12a01",
     "early_rank_failure_reporting": "d3f7bf16eb5f07564e4965af4bd131b6d67c0c0d",
-    "backend_class_ownership": "ff2572f266d9463c6cb820f883e514387aecd869"
+    "backend_class_ownership": "ff2572f266d9463c6cb820f883e514387aecd869",
+    "profile_completion_receipt": "8c7e2d48"
   },
   "current_file_sha256": {
     "cosmos_framework/posttrain/checkpoint/external_copy.py": "dc5a1f3dd873da5ed3a84cd160a61c2792695be85c5bb2db24bd3417df6312cb",
@@ -80,20 +81,23 @@
     "vllm_omni_revision": "2d0b1d8a29ff686698dbf0a123ca15be20fb0a8f"
   },
   "model_revision": "2ea293aa20ba7cf5bbf3ba17a5fbcb1a01cbfe21",
-  "scope": "Source-v41 is pending pinned CPU and native publication qualification. Source-v40 checkpoint-memory cleanup passed DCP write and evaluation under55GiB but failed the subsequent publication mutation guard. Earlier source-v39 native recovery remains retained; no final quality study admitted.",
+  "scope": "Latest native runtime source-v42 passes affected72 pinned checks,12 two-rank receipts and corrected native paged55 pressure16to32 continuation. Nonpaged55 continuation fails update20; instrumented paged diagnostic stops after3updates with incomplete trace. Mature80-update GR00T, SFT and other retained evidence remain bound to their own exact sources; product quality/speed are not qualified.",
   "unchanged_wts_final_protocol_sha256": "aff3b3d9e32418a784f894de24e645bf72692fb18d2e5f9603c0a3d0d5faad65",
-  "candidate_native_source": {
+  "reporting_only_after_native_archive": {
+    "source": "d3f7bf16",
+    "change": "Log first failed mesh cell before remaining cells settle, preserving drain and aggregate error semantics",
+    "tests": "17 local checks; one fail-before regression",
+    "native_archive": "Source-v41 accelerator executions exclude this reporting-only correction",
+    "scope": "Historical relation to source-v41 only. Early-rank-failure reporting is included in tested source-v42; native arithmetic unchanged."
+  },
+  "evidence_parent_commit": "8c7e2d48aa32ff826c09b7b259551988abd95301",
+  "earlier_publication_source": {
     "revision": "677e7e039012b40033e4ea137587619808d12a01",
     "archive_sha256": "3240fb4a24ea21594dea9f53b5a6c552348a2bc7b7615162a99e2a7f94cb575e",
     "archive_bytes": 7722751,
     "archive": "optimizer-native-runtime-v41.tar.gz",
     "scope": "source-v41: pinned165 regressions, four-reader actual checkpoint verification, native pending16 publication and completed paged55 reference32. Mature80-update numerical/recovery evidence remains separately identified at source-v39."
   },
-  "candidate_validation": "165 pinned tests and four-reader actual-checkpoint verification passed; native pending16-to32 pressure recovery38534388 admitted.",
-  "reporting_only_after_native_archive": {
-    "source": "d3f7bf16",
-    "change": "Log first failed mesh cell before remaining cells settle, preserving drain and aggregate error semantics",
-    "tests": "17 local checks; one fail-before regression",
-    "native_archive": "Source-v41 accelerator executions exclude this reporting-only correction"
-  }
+  "earlier_publication_validation": "Source-v41:165 pinned checks and four-reader actual-checkpoint verification pass; completed paged55 reference32 passes. Pending nonpaged16 publication repaired, later resumed backward failed capacity.",
+  "post_native_archive_tooling": "8c7e2d48 changes the optional Nsight helper completion receipt and its7CPU tests; no native optimizer/model/checkpoint change after source-v42."
 }

@@ -23,3 +23,9 @@ Observed nonpaged/fused device peaks are 26.19/28.89 GiB and full-launcher host 
 Reproduction commands, the support matrix, exact source/dependency identities and raw results are in `docs/posttrain/evidence/quantized_optimizers_round10/`. The latest ownership correction is `ff2572f266d9463c6cb820f883e514387aecd869`; each retained result identifies its actual tested source. All72 affected pinned checks and12 two-rank receipts pass; corrected paged native pressure continuation also passes. All admitted results are terminal, including the failed instrumented trace. Support does not extend to arbitrary topology changes, other FSDP layouts, FP16 trainables, deterministic simulator restoration, inference latency or LoRA/QLoRA performance.
 
 This is a local draft. Nothing is pushed or published; PR #334 remains closed and the original QLoRA checkout is untouched.
+
+All107 submissions are terminal;82 allocated and25 canceled before allocation.
+Total recorded round-ten charges, including failed attempts and teardown, are
+162,554 GPU allocation-seconds and6,564 CPU-only allocation-wall seconds. Local
+checks are separate. The sealed qualification/accounting files distinguish
+scheduler completion from actual native/scientific success.
