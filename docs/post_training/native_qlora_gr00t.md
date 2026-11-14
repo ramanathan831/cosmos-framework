@@ -220,8 +220,15 @@ Arm order rotates across seeds. The outcome-blind cohort contains all ten spatia
 eight training episodes per task with sixteen time-spaced windows (1,280 rows), and four validation
 episodes per task with four windows (160 rows). Its manifest SHA256 is
 `c726e37725c2d4be88efb17e8f96b956d018a07db9f72bde1f6825084392dd00`.
-All 2,880 source images are RGB 256 × 256 with verified PNG payloads/content hashes; processed
-model shapes must still be measured. Episode, row and media-content splits are disjoint.
+All 2,880 source images are RGB 256 × 256 with verified PNG payloads/content hashes.
+A processor-only census of one real row per instruction covered all ten fixed instructions
+in both splits: 151–156 tokens, `pixel_values=[512,1536]`, two image grids `[1,16,16]`,
+state `[1,1,132]`, and action/mask `[1,40,132]` with exactly 70 supervised elements.
+This used the pinned deterministic native processor without model weights or CUDA.
+The remaining rows share these instructions and admitted image geometry; this establishes
+processor shape coverage, not additional GPU training or quality coverage. Actual GPU evidence
+remains the traced updates described below and completed portions of the 300-update study.
+Episode, row and media-content splits are disjoint.
 These previously exposed episodes provide development evidence, not independent confirmation.
 
 Before either LoRA candidate runs, use native `action_eval --base` with `mode=bf16_frozen` and

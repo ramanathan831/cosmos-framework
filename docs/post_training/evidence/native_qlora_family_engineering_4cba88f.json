@@ -1479,5 +1479,161 @@
       "scored_rows": 160,
       "evaluation_seed": 123
     }
+  },
+  "gr00t_processor_shape_census": {
+    "scope": "Processor-only coverage of all fixed instructions/geometry in the matched deterministic development cohort; no additional GPU training or quality qualification.",
+    "processor_source_revision": "3c96ce8503eef263b7feb3fd2a23cad28efa6ab7",
+    "native_packer_sha256": "539e9b3ebb5c2133eed9819f4716958c6369c74fb97ba9c7135fdabc9e9b1353",
+    "native_packer_matches_training_4cba88f": true,
+    "cohort_manifest_sha256": "c726e37725c2d4be88efb17e8f96b956d018a07db9f72bde1f6825084392dd00",
+    "cohort": {
+      "train": {
+        "rows": 1280,
+        "instructions": 10,
+        "jsonl_sha256": "a6756c8d9a903af010ff3716a6066d78fef2a99f17d89cb4452fc9791ae0a1a6"
+      },
+      "validation": {
+        "rows": 160,
+        "instructions": 10,
+        "jsonl_sha256": "0e74e90b82dfe4512c77734783bf0056bde222b49c10677f2ab32c3bb27317ac"
+      }
+    },
+    "media_files": 2880,
+    "all_source_media_shapes": [
+      [
+        256,
+        256,
+        3
+      ]
+    ],
+    "selection": "First retained validation row for each sorted unique instruction, without task scoring. All 1,440 rows checked against the same ten instructions and admitted media geometry; selected 20 PNG bytes freshly matched retained content hashes.",
+    "representatives": [
+      {
+        "id": "libero-1589-0",
+        "instruction": "pick up the black bowl between the plate and the ramekin and place it on the plate",
+        "tokens": 156,
+        "source_row_sha256": "d46000e4df114e5f6adf14dfbed73c6163ea40e7ec70b719dc3bd196ff52ed66",
+        "processed_input_identity_sha256": "4f8b0d641990cc1354157fbbeb850780e4162abb6f12ea16904bcbb6195f6fbf"
+      },
+      {
+        "id": "libero-1383-0",
+        "instruction": "pick up the black bowl from table center and place it on the plate",
+        "tokens": 151,
+        "source_row_sha256": "59b3906bd81be62f8758846163f6bd308a4740b6efe3171741cb6d5db19e45e9",
+        "processed_input_identity_sha256": "adf777e624476be5a3d9e922f1b09a695282b0507774bfce377ef99c960014ce"
+      },
+      {
+        "id": "libero-1582-0",
+        "instruction": "pick up the black bowl in the top drawer of the wooden cabinet and place it on the plate",
+        "tokens": 156,
+        "source_row_sha256": "a38a4d34135417910c8422d6be0595477fbc360a13dfc7ea747553ed084116b0",
+        "processed_input_identity_sha256": "3d9aed325597fbdac9980899f76d36052ac8fd91c467f5414dd087ddbb88fc58"
+      },
+      {
+        "id": "libero-1604-0",
+        "instruction": "pick up the black bowl next to the cookie box and place it on the plate",
+        "tokens": 153,
+        "source_row_sha256": "1a630301db809e4cc7e68f8eaf8adbec36a5e174d03a9bcadb307eb01314648b",
+        "processed_input_identity_sha256": "ed6e37dab3ba348db2df4618e26ee9073eded73333b211b0e489a4e69b8df75a"
+      },
+      {
+        "id": "libero-1671-0",
+        "instruction": "pick up the black bowl next to the plate and place it on the plate",
+        "tokens": 152,
+        "source_row_sha256": "cfe8b8c71e314339eea09d5a1731c4a3c96a4c4ea68761e0ad52711e9949dd90",
+        "processed_input_identity_sha256": "4e3ba0eb527fe7c5855348d3de338407ce7a85633dd8dae235ccaad21b01b1db"
+      },
+      {
+        "id": "libero-1406-0",
+        "instruction": "pick up the black bowl next to the ramekin and place it on the plate",
+        "tokens": 154,
+        "source_row_sha256": "8c1c6b4fe9839a88a41f8bd29324d6df5396c06bf704945488e1ca5ef5d5761f",
+        "processed_input_identity_sha256": "1b17d6e7f242023e87cd39206b2b1eed7a96896f613b41f8c01be39c8d409368"
+      },
+      {
+        "id": "libero-1378-0",
+        "instruction": "pick up the black bowl on the cookie box and place it on the plate",
+        "tokens": 152,
+        "source_row_sha256": "b8b649816550c4bbd6036319e7a390143f7f02667d367570c774826ef544be50",
+        "processed_input_identity_sha256": "e4a9fe79bbcc17b3748c98d6f536b9a5c120a471e12366658c099a125907d055"
+      },
+      {
+        "id": "libero-1264-0",
+        "instruction": "pick up the black bowl on the ramekin and place it on the plate",
+        "tokens": 153,
+        "source_row_sha256": "1352bf687d66d6712ff120f253b3020b745de4395b7e5be75a724de093ca66f5",
+        "processed_input_identity_sha256": "e5743e5eae2ba1abdc70d4a66e2f2dc6ed1b141bae44060ee8f3c17d929a2696"
+      },
+      {
+        "id": "libero-1267-0",
+        "instruction": "pick up the black bowl on the stove and place it on the plate",
+        "tokens": 151,
+        "source_row_sha256": "89a98d8b591bf985d247b880b7f34ff099c1e3bebb027621cac9b4427bf0d61f",
+        "processed_input_identity_sha256": "a99de7d52e40b5ca3750d893c897865abf5e46039c25d3b3a4589ec32387ed1b"
+      },
+      {
+        "id": "libero-1412-0",
+        "instruction": "pick up the black bowl on the wooden cabinet and place it on the plate",
+        "tokens": 152,
+        "source_row_sha256": "c026d6bfed3f7c32546b9a2f089740a54d6b8ae8dcdab3b912e045933e3b7d86",
+        "processed_input_identity_sha256": "e281610a9bd2a67d97081e3749c42878943be7d060ab45fb725ed7ab22dda20a"
+      }
+    ],
+    "processed_shapes": {
+      "input_ids": [
+        1,
+        "151..156"
+      ],
+      "pixel_values": [
+        512,
+        1536
+      ],
+      "image_grid_thw": [
+        [
+          1,
+          16,
+          16
+        ],
+        [
+          1,
+          16,
+          16
+        ]
+      ],
+      "state": [
+        1,
+        1,
+        132
+      ],
+      "action_and_mask": [
+        1,
+        40,
+        132
+      ]
+    },
+    "supervised_action_elements": 70,
+    "input_semantic_check": "Native content fingerprint exactly matches original real rows after content-preserving local media remapping. State/action values and image bytes were not substituted.",
+    "processor_geometry_basis": "All 1,440 admitted rows have two 256×256 RGB images, 8D state, and 10×7 actions. The pinned eval processor forms VLM text from its template and instruction; fixed image geometry determines image grid, independent of pixel values. State/action values remain separate tensor inputs.",
+    "cuda_initialized": false,
+    "model_weights_loaded": false,
+    "processor_elapsed_seconds": 9.134169723838568,
+    "peak_host_rss_bytes": 1202855936,
+    "versions": {
+      "albumentations": "1.4.18",
+      "numpy": "1.26.4",
+      "torch": "2.10.0+cu128",
+      "torchvision": "0.25.0+cu128",
+      "transformers": "4.57.6"
+    },
+    "retained_local_artifacts": {
+      "gr00t-processor-census-v1.py": "d53ad8877ba0fb54f965833a1eb9a9835cbe8e314932ed7e7482b011152843ca",
+      "gr00t-processor-census-v1.json": "30b3a1380188c2a60f663d9bc5dc17b1c3a58351acc530b472b5e084f5f22ab6",
+      "gr00t-processor-census-semantic-check.json": "d2f97f03df3a58c882d1562812fac748e36ffc611c32627b9289334a54c96840"
+    },
+    "limitations": [
+      "Only ten representative rows were processor-executed; the full cohort shape inference uses its exact instruction inventory, pinned template/eval processing and verified geometry.",
+      "Does not qualify official training augmentation, longer contexts, another embodiment, task preservation or inference acceleration.",
+      "Actual accelerator coverage remains the retained native engineering/profile runs and completed development work; processor census is not a GPU training test."
+    ]
   }
 }
