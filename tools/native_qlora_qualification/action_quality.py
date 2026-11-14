@@ -145,6 +145,77 @@ def compare_recipes(candidate, reference, *, draws=10000, seed=6809):
     }
 
 
+def _rollout_case(row):
+    suite, task, initial = (row[name] for name in ("suite", "task_id", "init_state_id"))
+    if (
+        not isinstance(suite, str)
+        or not suite
+        or type(task) is not int
+        or type(initial) is not int
+        or task < 0
+        or initial < 0
+    ):
+        raise ValueError("invalid native rollout case identity")
+    return suite, task, initial
+
+
+def rollout_task_rates(episodes, cases):
+    """Reduce a complete fixed case inventory; never count control frames as trials.
+
+    Artifact, simulator and execution-profile admission belongs to the caller.
+    This reducer checks pairing and boolean outcomes without inferring them from
+    rewards or accepting missing episodes as failures/successes.
+    """
+    expected = {_rollout_case(case) for case in cases}
+    if not expected or len(expected) != len(cases):
+        raise ValueError("rollout cases must be nonempty and unique")
+    seen, tasks = set(), defaultdict(list)
+    for row in episodes:
+        key = _rollout_case(row)
+        if key not in expected or key in seen or type(row.get("success")) is not bool:
+            raise ValueError("rollout outcomes must be boolean, unique and prospectively admitted")
+        seen.add(key)
+        tasks[key[:2]].append(int(row["success"]))
+    if seen != expected:
+        raise ValueError("rollout evaluation omitted admitted cases")
+    return {task: sum(values) / len(values) for task, values in sorted(tasks.items())}
+
+
+def compare_rollout_checkpoints(candidate, reference, cases, *, draws=10000, seed=6809):
+    """Paired whole-task uncertainty for one fixed checkpoint/source comparison.
+
+    Use the same task draw in both arms. Fixed initial states are averaged within
+    tasks, not independently resampled as additional tasks. This function cannot
+    estimate training-seed variation or establish a recipe-level release claim.
+    """
+    left = rollout_task_rates(candidate, cases)
+    right = rollout_task_rates(reference, cases)
+    tasks = sorted(right)
+    if len(tasks) < 2 or type(draws) is not int or draws < 1:
+        raise ValueError("rollout uncertainty requires multiple task clusters and positive draws")
+    differences = [100 * (right[task] - left[task]) for task in tasks]
+    rng = random.Random(seed)
+    samples = [sum(rng.choices(differences, k=len(tasks))) / len(tasks) for _ in range(draws)]
+    return {
+        "candidate_equal_task_success": sum(left.values()) / len(tasks),
+        "reference_equal_task_success": sum(right.values()) / len(tasks),
+        "success_loss_percentage_points": sum(differences) / len(tasks),
+        "success_loss_upper_one_sided95_percentage_points": quantile(samples, 0.95),
+        "tasks": len(tasks),
+        "cases": len(cases),
+        "draws": draws,
+        "resampling_seed": seed,
+        "per_task": [
+            {"suite": task[0], "task_id": task[1], "candidate_success": left[task], "reference_success": right[task]}
+            for task in tasks
+        ],
+        "method": "paired whole-task bootstrap; fixed initial states averaged within task; equal task weights",
+        "scope": "One fixed checkpoint/source pair on exposed development cases; training-seed variation and independent confirmation are not established.",
+        "recipe_preservation_established": False,
+        "useful_adaptation_established": False,
+    }
+
+
 def load_groups(validation, manifest):
     raw = Path(validation).read_bytes()
     if hashlib.sha256(raw).hexdigest() != VALIDATION_SHA:

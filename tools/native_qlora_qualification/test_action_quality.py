@@ -129,6 +129,77 @@ def test_all_declared_seeds_required_before_recipe_claim(tmp_path, monkeypatch):
         quality.analyze([], validation=tmp_path / "unused", manifest=tmp_path / "unused")
 
 
+def rollout_case(task, initial=0, **extra):
+    return {"suite": "libero_spatial", "task_id": task, "init_state_id": initial, **extra}
+
+
+def test_rollout_equal_tasks_not_control_frames_or_number_of_initial_states():
+    cases = [rollout_case(0), *[rollout_case(1, index) for index in range(9)]]
+    candidate = [{**case, "success": case["task_id"] == 0, "steps": 256} for case in cases]
+    reference = [{**case, "success": True, "steps": 8} for case in cases]
+    result = quality.compare_rollout_checkpoints(candidate, reference, cases, draws=100)
+    assert result["candidate_equal_task_success"] == 0.5  # Case-natural rate would be0.1.
+    assert result["reference_equal_task_success"] == 1
+    assert result["success_loss_percentage_points"] == 50
+    assert not result["recipe_preservation_established"]
+    assert not result["useful_adaptation_established"]
+
+
+def test_rollout_identical_arms_cancel_task_variability_and_all_fail_is_not_usefulness():
+    cases = [rollout_case(0), rollout_case(1)]
+    for outcomes in ((True, False), (False, False)):
+        episodes = [{**case, "success": outcome} for case, outcome in zip(cases, outcomes, strict=True)]
+        result = quality.compare_rollout_checkpoints(episodes, copy.deepcopy(episodes), cases, draws=100)
+        assert result["success_loss_upper_one_sided95_percentage_points"] == 0
+        assert not result["recipe_preservation_established"]
+        assert not result["useful_adaptation_established"]
+
+
+def test_rollout_manual_paired_whole_task_draw(monkeypatch):
+    class FixedDraw:
+        def __init__(self, seed):
+            assert seed == 6809
+
+        def choices(self, values, *, k):
+            assert values == [100, -100] and k == 2
+            return [values[1], values[1]]
+
+    monkeypatch.setattr(quality.random, "Random", FixedDraw)
+    cases = [rollout_case(0), rollout_case(1)]
+    before = [rollout_case(0, success=True), rollout_case(1, success=False)]
+    after = [rollout_case(0, success=False), rollout_case(1, success=True)]
+    result = quality.compare_rollout_checkpoints(after, before, cases, draws=1)
+    assert result["success_loss_percentage_points"] == 0
+    assert result["success_loss_upper_one_sided95_percentage_points"] == -100
+
+
+@pytest.mark.parametrize("change", ["duplicate", "missing", "unknown", "nonboolean", "case-duplicate", "boolean-id"])
+def test_rollout_requires_complete_prospective_case_pairing(change):
+    cases = [rollout_case(0), rollout_case(1)]
+    rows = [rollout_case(0, success=True), rollout_case(1, success=False)]
+    if change == "duplicate":
+        rows[1] = rows[0]
+    elif change == "missing":
+        rows.pop()
+    elif change == "unknown":
+        rows[1]["task_id"] = 2
+    elif change == "nonboolean":
+        rows[0]["success"] = 1
+    elif change == "case-duplicate":
+        cases[1] = cases[0]
+    else:
+        rows[0]["task_id"] = False
+    with pytest.raises(ValueError):
+        quality.compare_rollout_checkpoints(rows, rows, cases, draws=10)
+
+
+def test_rollout_does_not_manufacture_task_uncertainty_from_many_states():
+    cases = [rollout_case(0, index) for index in range(100)]
+    rows = [{**case, "success": True} for case in cases]
+    with pytest.raises(ValueError, match="multiple task"):
+        quality.compare_rollout_checkpoints(rows, rows, cases)
+
+
 def test_read_json_hash_binds_exact_bytes(tmp_path):
     path = tmp_path / "evidence.json"
     path.write_text(json.dumps({"value": 1}))
