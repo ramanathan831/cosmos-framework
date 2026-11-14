@@ -16,10 +16,12 @@ def probe():
         "gr00t.model.gr00t_n1d7.gr00t_n1d7",
         "vllm",
         "vllm_omni",
+        "vllm_omni.diffusion.distributed.sp_plan",
         "bitsandbytes",
         "cosmos_framework.posttrain.model.gr00t.serving.omni_pipeline",
         "cosmos_framework.posttrain.entrypoints.joint_ppo",
     ):
+        print(json.dumps({"importing": name}), flush=True)
         try:
             module = importlib.import_module(name)
             results[name] = {"ok": True, "file": module.__file__}

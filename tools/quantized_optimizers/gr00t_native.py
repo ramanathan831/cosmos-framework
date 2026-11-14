@@ -98,7 +98,7 @@ def main():
     if args.evaluate_only and not args.resume:
         parser.error("--evaluate-only requires --resume")
     root, output = Path(os.environ["RESOURCE_ROOT"]), Path(os.environ["RESULTS"])
-    expected = {"numpy": "1.26.4", "transformers": "4.57.6", "diffusers": "0.35.1", "bitsandbytes": "0.49.2"}
+    expected = {"numpy": "1.26.4", "transformers": "4.57.6", "diffusers": "0.39.0", "bitsandbytes": "0.49.2"}
     actual = {name: importlib.metadata.version(name) for name in expected}
     (output / "dependency-check.json").write_text(json.dumps({"expected": expected, "actual": actual}, indent=2))
     if actual != expected:
