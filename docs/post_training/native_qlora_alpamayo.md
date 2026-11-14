@@ -79,6 +79,76 @@ torchrun --standalone --nproc-per-node=1 \
   data.train_path=/data/train.jsonl data.validation_path=/data/validation.jsonl
 ```
 
+### Exact selected 512-update development command
+
+The starter command above uses recipe defaults; it is not the selected 512-update
+study. The following reproduces the recorded seed-17 settings on the pinned
+`4cba88f` training build and immutable cohort (manifest digest
+`2272c9fae7cd50eb13adaa8fd3bdaaa8467b91621c4983441b201b1faa97c810`).
+Use that original build for its checkpoint recovery; current source-bound resume
+correctly refuses legacy checkpoints. The matched BF16 control changes only
+`model.backbone_adaptation.mode=bf16_lora` and its output name.
+
+```bash
+export IMAGINAIRE_OUTPUT_ROOT=/durable/path/alpamayo-development
+export PYTHONHASHSEED=17 CUBLAS_WORKSPACE_CONFIG=:4096:8
+export PYTORCH_ALLOC_CONF=expandable_segments:True
+torchrun --standalone --nproc-per-node=1 \
+  -m cosmos_framework.posttrain.entrypoints.action_sft \
+  --config cosmos_framework/posttrain/configs/sft_alpamayo_qlora.py -- \
+  model.checkpoint_path=/staged/Alpamayo-R1-10B-dd4a24c \
+  model.processor_path=/staged/Qwen3-VL-8B-processor-0c351dd \
+  data.train_path=/data/alpamayo-development-v1/alpamayo-train.jsonl \
+  data.validation_path=/data/alpamayo-development-v1/alpamayo-validation.jsonl \
+  model.backbone_adaptation.mode=nf4_lora \
+  model.backbone_adaptation.seed=17 \
+  model.backbone_adaptation.rank=32 \
+  model.backbone_adaptation.alpha=64.0 \
+  model.backbone_adaptation.dropout=0.0 \
+  model.train_action_head=true \
+  model.activation_checkpointing=full \
+  model.inference_steps=10 \
+  rl.seed=17 \
+  rl.max_steps=512 \
+  rl.micro_batch_size=1 \
+  rl.grad_accum=1 \
+  rl.evaluation_every=128 \
+  rl.evaluation_seed=123 \
+  rl.evaluation_max_samples=0 \
+  rl.save_every=128 \
+  rl.keep_model_last=0 \
+  rl.keep_optim_last=0 \
+  rl.save_async=false \
+  rl.optimizer.name=adamw \
+  rl.optimizer.impl=fused \
+  rl.optimizer.lr=1e-4 \
+  rl.optimizer.warmup_steps=100 \
+  rl.optimizer.grad_clip_norm=1.0 \
+  rl.optimizer.weight_decay=0.0 \
+  rl.optimizer.betas=[0.9,0.999] \
+  rl.optimizer.eps=1e-8 \
+  rl.lr_schedule.kind=cosine \
+  rl.lr_schedule.f_start=0.01 \
+  rl.lr_schedule.f_min=0.01 \
+  rl.lr_schedule.cycle_steps=512 \
+  rl.target_metric=open_loop_ade_6p4s_meters \
+  rl.target_threshold=1.8582104004141 \
+  rl.target_direction=min \
+  rl.stop_on_target=false \
+  rl.pause_after_step=0 \
+  rl.resume=off \
+  rl.run_ts=development \
+  job.project=qualification \
+  job.group=alpamayo-development-v1 \
+  job.name=nf4_lora-seed17
+```
+
+The fixed target was derived from the frozen BF16 calibration before adaptation.
+Evaluation uses every admitted development row; target nonattainment is retained
+through update 512. Set `rl.resume` to an explicit original committed boundary
+and a new output name for recovery while retaining every other training setting.
+Do not shorten the 512-step cosine schedule to the remaining number of updates.
+
 Use the existing native output/resume settings; resumable DCP includes the full
 trainable expert/projections/adapters, AdamW state, scheduler/update clock, RNG,
 data cursor and evaluation history. Portable export contains every trained
@@ -293,7 +363,7 @@ published every scheduled checkpoint plus the complete portable policy. On all
 the same quantized frozen source's **1.97252/6.10283 m**. The fixed ADE target was
 **unreached**. ADE worsened on 144/256 clips and 21/32 coarse blocks; no rows were
 removed. These are adverse development observations, not a quantization-specific
-diagnosis or a comparison with the still-pending matched BF16 training arm.
+diagnosis. The subsequently completed matched BF16 arm is reported below.
 
 The complete measured workflow took **114.57 minutes**, including **26.91 minutes
 training, 80.09 minutes scheduled evaluation, 2.27 minutes checkpoint publication**
@@ -309,3 +379,47 @@ The 903-parameter-tensor inventory and optimizer/update/data/evaluation controls
 passed verification at updates 128/256/384/512. This completed uninterrupted run
 does not replace selected-checkpoint fresh reconstruction or the prepared
 384-to-512 recovery check. Earlier ten-update recovery evidence retains its scope.
+
+The matched BF16 LoRA seed-17 arm (`38518404`) also completed all 512 updates,
+five full-development evaluations, four committed checkpoints and portable export.
+Final NF4/BF16 6.4-second ADE was **2.10761/2.08567 m** and FDE was
+**6.38240/6.35045 m**. Both missed the fixed **1.8582104004141 m** ADE target;
+ADE was **6.85%/6.63% worse** than each arm's frozen source. Both arms initially
+deteriorated and then partly recovered: ADE at updates 128/256/384 was
+**2.69740/2.24563/2.12797 m** for NF4 and **2.57306/2.18913/2.11739 m** for BF16.
+At update 512, per-clip ADE changes from each frozen source correlated 0.923, and
+125 of 256 clips worsened in both arms. This points to a shared learning-recipe
+problem; it does not identify its cause or establish a quantization defect.
+
+NF4/BF16 mean updates 31–512 took **3.15289/3.05444 seconds**; complete workflows
+were **114.57/112.64 minutes**. NF4 was 3.22% slower per update and 1.72% slower
+for these workflows. The runs used different A100-80GB nodes, the same declared
+16-CPU allocation and measured 16-CPU affinity, and one seed. They do not establish
+a causal speed difference or a recipe-level confidence interval. Neither reached
+the fixed target, so no time-to-quality improvement was demonstrated. The frozen
+matched-compute rule selects NF4 update 384 and BF16 update 512 at 6,702.81 seconds;
+its sparse checkpoint cadence leaves a 1,292-second NF4 publication lag. This
+endpoint selection is retained without substituting a more favorable checkpoint.
+
+The BF16 workflow included **26.08 minutes training, 78.43 minutes evaluation,
+2.72 minutes checkpoint publication**, 243.86 seconds startup and 21.98 seconds
+portable export. Its allocation consumed **6,816 GPU-seconds**. NF4/BF16 sampled
+owned GPU-process peaks were **67.104/76.240 GiB**, saving **9.137 GiB**; allocated
+peaks were **64.664/74.009 GiB** and reserved peaks **65.971/75.107 GiB**. Process-tree
+RSS peaked at **44.000/43.783 GiB** during portable export. Major loading, training,
+evaluation, checkpoint and export intervals have complete host samples; brief
+startup/exit gaps keep the whole-run PSS completeness flag false. Sampling reports
+lower bounds and does not replace allocator measurements.
+
+Both runs preserved the same 903-tensor trainable inventory and verified their
+native optimizer, update, RNG, cursor and evaluation controls at all four committed
+boundaries. Their trainer/RNG control hashes match at each boundary. The fixed
+training media layout remains four cameras with four frames each and 64 future
+poses; the separate first/last development probes recorded 3,008 processed tokens
+and 16 image-grid entries. These records are not an all-row token census.
+Fresh reconstruction of the selected 512-update policies and 384-to-512 recovery
+remain pending their dedicated 128-GiB-host allocations. An additional login-only
+portable inspection exceeded the login host-memory limit; it is retained as a
+failed auxiliary check, not relabeled as a training or artifact failure. The
+completed native jobs verified their published artifacts; small metadata checks
+do not establish fresh full-policy task parity.
