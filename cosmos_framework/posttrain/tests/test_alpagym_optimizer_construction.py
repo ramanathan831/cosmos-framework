@@ -55,6 +55,9 @@ def test_alpagym_actual_entry_constructs_after_setup(name, override, monkeypatch
     if override:
         selected = selected or alpagym_optimizer_config(train)
         selected.lr, selected.warmup_steps, selected.grad_clip_norm = 6e-5, 2, 0.5
+        if name != "adamw":
+            selected.bnb_min_8bit_size = 8192
+            selected.bnb_fp32_state_names = ["weight"]
     trainer = _build_trainer(config, 3, optimizer=selected)
     params = [p for g in trainer.opt.param_groups for p in g["params"]]
     assert {id(p) for p in params} == {id(p) for p in trainer.model.net.parameters() if p.requires_grad}
@@ -73,3 +76,61 @@ def test_alpagym_actual_entry_constructs_after_setup(name, override, monkeypatch
     else:
         assert isinstance(trainer.opt, MasterWeightOptimizer)
         assert backend_capture[0][2].name == name
+        assert backend_capture[0][2].bnb_min_8bit_size == (8192 if override else 4096)
+        assert backend_capture[0][2].bnb_fp32_state_names == (["weight"] if override else [])
+
+
+@pytest.mark.parametrize("name", ["adamw", "adamw_bnb_8bit", "paged_adamw_8bit"])
+def test_alpagym_cli_resolves_shared_state_options_without_allocating_model(name, monkeypatch):
+    from cosmos_framework.posttrain.entrypoints import alpagym_clrl as entry
+
+    train = SimpleNamespace(
+        optm_lr=2e-5,
+        optm_warmup_steps=5,
+        optm_decay_type="none",
+        optm_decay_ratio=0.0,
+        train_batch_per_replica=4,
+    )
+    config = SimpleNamespace(expected_valid_steps=8, cosmos=SimpleNamespace(train=train))
+    monkeypatch.setitem(sys.modules, "alpagym_host.config", SimpleNamespace(load_run_config=lambda _: config))
+    monkeypatch.setattr(entry.logging, "basicConfig", lambda **_: None)
+    captured = []
+    monkeypatch.setattr(entry, "run", captured.append)
+    argv = ["alpagym", "--resolved-config", "unused.yaml", "--gpus", "4", "--steps", "2", "--group-size", "2"]
+    if name != "adamw":
+        argv += [
+            "--optimizer",
+            name,
+            "--optimizer-update-policy",
+            "fp32_master",
+            "--optimizer-bnb-min-8bit-size",
+            "8192",
+            "--optimizer-bnb-fp32-state-name",
+            "weight",
+            "--optimizer-bnb-fp32-state-name",
+            "bias",
+        ]
+    monkeypatch.setattr(sys, "argv", argv)
+    entry.main()
+    selected = captured[0].optimizer
+    assert selected.name == name
+    assert selected.bnb_min_8bit_size == (4096 if name == "adamw" else 8192)
+    assert selected.bnb_fp32_state_names == ([] if name == "adamw" else ["weight", "bias"])
+    assert (selected.lr, selected.eps, selected.betas, selected.weight_decay) == (2e-5, 1e-6, [0.9, 0.999], 0.01)
+    assert captured[0].prompts_per_step == 2 and captured[0].ticks_per_episode == 8
+
+
+@pytest.mark.parametrize(
+    "options",
+    [
+        {"bnb_min_8bit_size": 0},
+        {"bnb_fp32_state_names": ["weight", "weight"]},
+        {"name": "adamw", "bnb_min_8bit_size": 8192},
+    ],
+)
+def test_alpagym_state_options_use_shared_validation(options):
+    from cosmos_framework.posttrain.entrypoints.alpagym_clrl import alpagym_optimizer_config
+
+    train = SimpleNamespace(optm_lr=2e-5, optm_warmup_steps=5)
+    with pytest.raises(ValueError):
+        alpagym_optimizer_config(train, **{"name": "adamw_bnb_8bit", **options})

@@ -393,7 +393,14 @@ def make_setup(
     return _setup
 
 
-def alpagym_optimizer_config(train_config: Any, *, name="adamw", update_policy="parameter"):
+def alpagym_optimizer_config(
+    train_config: Any,
+    *,
+    name="adamw",
+    update_policy="parameter",
+    bnb_min_8bit_size=4096,
+    bnb_fp32_state_names=(),
+):
     """AlpaGym defaults: epsilon 1e-6 (not torch/SFT 1e-8), beta2 .999 and decay .01."""
     from cosmos_framework.posttrain.config.rl import OptimizerConfig
 
@@ -406,6 +413,8 @@ def alpagym_optimizer_config(train_config: Any, *, name="adamw", update_policy="
         weight_decay=0.01,
         warmup_steps=int(train_config.optm_warmup_steps),
         grad_clip_norm=1.0,
+        bnb_min_8bit_size=bnb_min_8bit_size,
+        bnb_fp32_state_names=list(bnb_fp32_state_names),
     )
 
 
@@ -826,6 +835,13 @@ def main() -> None:
     parser.add_argument("--group-size", type=int, required=True)
     parser.add_argument("--optimizer", choices=("adamw", "adamw_bnb_8bit", "paged_adamw_8bit"), default="adamw")
     parser.add_argument("--optimizer-update-policy", choices=("parameter", "fp32_master"), default="parameter")
+    parser.add_argument("--optimizer-bnb-min-8bit-size", type=int, default=4096)
+    parser.add_argument(
+        "--optimizer-bnb-fp32-state-name",
+        action="append",
+        default=[],
+        help="Exact logical trainable parameter name retaining FP32 moments; repeat for multiple names.",
+    )
     parser.add_argument(
         "--placement",
         choices=("colocated", "disaggregated"),
@@ -898,7 +914,11 @@ def main() -> None:
             ticks_per_episode=ticks_per_episode,
             placement=normalize_gpu_placement(args.placement, field_name="--placement"),
             optimizer=alpagym_optimizer_config(
-                run_config.cosmos.train, name=args.optimizer, update_policy=args.optimizer_update_policy
+                run_config.cosmos.train,
+                name=args.optimizer,
+                update_policy=args.optimizer_update_policy,
+                bnb_min_8bit_size=args.optimizer_bnb_min_8bit_size,
+                bnb_fp32_state_names=args.optimizer_bnb_fp32_state_name,
             ),
         )
     )
