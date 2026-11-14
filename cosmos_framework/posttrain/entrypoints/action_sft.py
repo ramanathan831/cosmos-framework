@@ -166,6 +166,25 @@ def _json(path: Path, value: Any):
     atomic_write_bytes(str(path), (json.dumps(value, sort_keys=True, indent=2, allow_nan=False) + "\n").encode())
 
 
+def prepare_sources(config):
+    """Validate owned input files and split separation before allocating a model.
+
+    Native task data factories are model-independent and receive None during
+    admission; processors/packers remain attached to the constructed policy.
+    """
+    data_factory = _factory(config.data_factory)
+    train = _Source(data_factory(config, "train", None))
+    validation = _Source(data_factory(config, "validation", None))
+    for attribute in ("groups", "ids", "media_hashes"):
+        left, right = getattr(train.dataset, attribute, None), getattr(validation.dataset, attribute, None)
+        if left is not None and right is not None:
+            if attribute == "media_hashes":
+                left, right = left.values(), right.values()
+            if set(left) & set(right):
+                raise ValueError(f"action SFT train/validation overlap in {attribute}")
+    return train, validation
+
+
 def run(config, *, config_path: str, opts: list[str]):
     import torch
     import torch.distributed as dist
@@ -198,6 +217,9 @@ def run(config, *, config_path: str, opts: list[str]):
     lifecycle = CheckpointLifecycle.from_config(
         config, rl, run_out_dir=str(output), resume_checkpoint=attempt.resume_checkpoint
     )
+    record_qlora_phase("data_preparation_begin", reset_peak=True)
+    train, validation = prepare_sources(config)
+    record_qlora_phase("data_preparation_complete", reset_peak=True)
     misc.set_random_seed(seed=rl.seed, by_rank=False)
     record_qlora_phase("model_loading_begin", reset_peak=True)
     policy = _factory(config.policy_factory)(config, device=device, output=str(output))
@@ -205,16 +227,6 @@ def run(config, *, config_path: str, opts: list[str]):
     if codec is None:
         raise RuntimeError("action SFT family did not install the native checkpoint codec")
     record_qlora_phase("model_loading_complete", reset_peak=True)
-    data_factory = _factory(config.data_factory)
-    train = _Source(data_factory(config, "train", policy))
-    validation = _Source(data_factory(config, "validation", policy))
-    for attribute in ("groups", "ids", "media_hashes"):
-        left, right = getattr(train.dataset, attribute, None), getattr(validation.dataset, attribute, None)
-        if left is not None and right is not None:
-            if attribute == "media_hashes":
-                left, right = left.values(), right.values()
-            if set(left) & set(right):
-                raise ValueError(f"action SFT train/validation overlap in {attribute}")
     cursor = IndexedCursor(train, shuffle=True, seed=rl.seed, cursor_resume="strict", label="action SFT")
     objective = _factory(config.objective_factory)(policy, config)
     objective.identity = {
@@ -407,9 +419,26 @@ def main():
     from cosmos_framework.utils.config import load_config
 
     config_path, opts, flags = cli_flags(
-        "Native supervised action adaptation", "cosmos_framework/posttrain/configs/gr00t_n1d7_libero_qlora.py"
+        "Native supervised action adaptation",
+        "cosmos_framework/posttrain/configs/gr00t_n1d7_libero_qlora.py",
+        extra_flags={"--validate-data": "Check native input files and split separation without constructing a model."},
     )
     config = load_config(config_path, ["--", *opts])
+    if flags["validate_data"]:
+        validate_config(config)
+        train, validation = prepare_sources(config)
+        print(
+            json.dumps(
+                {
+                    "train_rows": len(train),
+                    "validation_rows": len(validation),
+                    "train": train.identity,
+                    "validation": validation.identity,
+                },
+                sort_keys=True,
+            )
+        )
+        return
     if flags["validate_manifest"]:
         validate_config(config)
         print("Native action SFT configuration accepted; model/data/kernel checks run at construction.")

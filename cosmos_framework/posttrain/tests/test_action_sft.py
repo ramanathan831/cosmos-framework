@@ -376,3 +376,42 @@ def test_native_adapter_checkpoint_restores_head_optimizer_rng_cursor_and_next_u
         )
     finally:
         restore_rng_state(saved_rng)
+
+
+def test_input_admission_does_not_require_model_and_rejects_overlapping_groups(monkeypatch):
+    from cosmos_framework.posttrain.entrypoints import action_sft
+
+    train = Dataset(count=3)
+    validation = Dataset(count=2)
+    train.groups = {"train-recording"}
+    validation.groups = {"validation-recording"}
+    calls = []
+
+    def data_factory(config, split, policy):
+        assert policy is None
+        calls.append(split)
+        return train if split == "train" else validation
+
+    def factory(path):
+        assert path == "fixture.data", "model factory must not be called during input admission"
+        return data_factory
+
+    monkeypatch.setattr(action_sft, "_factory", factory)
+    config = SimpleNamespace(data_factory="fixture.data", policy_factory="forbidden.model")
+    left, right = action_sft.prepare_sources(config)
+    assert len(left) == 3 and len(right) == 2 and calls == ["train", "validation"]
+    validation.groups = train.groups
+    with pytest.raises(ValueError, match="overlap in groups"):
+        action_sft.prepare_sources(config)
+
+
+def test_missing_native_inputs_fail_during_cpu_admission(monkeypatch):
+    from cosmos_framework.posttrain.entrypoints import action_sft
+
+    def missing(config, split, policy):
+        assert policy is None
+        raise FileNotFoundError("missing mounted media")
+
+    monkeypatch.setattr(action_sft, "_factory", lambda path: missing)
+    with pytest.raises(FileNotFoundError, match="missing mounted media"):
+        action_sft.prepare_sources(SimpleNamespace(data_factory="fixture.data"))
