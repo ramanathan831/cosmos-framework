@@ -191,5 +191,17 @@
     ],
     "migration_scope": "Managed allocation confirmed; no measured eviction/page-fault claim until conditional separate diagnostic.",
     "dependent_recovery_job": "38535485"
+  },
+  "ownership_correction_plan": {
+    "recorded_at_utc": "2026-11-14T13:44:52.131515+00:00",
+    "factor": "Remove class-owned per-instance tensors; keep same model, precision, pressure55GiB, source checkpoints,32 horizon,seed17.",
+    "gates": [
+      "Affected pinned CPU/CUDA regressions and two-rank reference/resume/failure gate, requiring immediate retirement release without gc",
+      "After gate: fresh paged16-to32 from published original16, then nonpaged16-to32 from published original16; serialized4GPU allocations90min each",
+      "Only if paged pressure continuation passes: existing conditional one8-update migration trace. Otherwise retain failure; no pressure sweep."
+    ],
+    "prediction": "Retired masters released before resumed backward; lower allocated restore bytes without changed logical state.",
+    "falsification": "Immediate weakrefs remain live, restored state differs, or pressure continuation still OOM. Diagnose rather than lower pressure or claim capacity pass.",
+    "counterfactuals": "Original reference32 math unchanged; retain as applicable. No new task quality or timing claim."
   }
 }

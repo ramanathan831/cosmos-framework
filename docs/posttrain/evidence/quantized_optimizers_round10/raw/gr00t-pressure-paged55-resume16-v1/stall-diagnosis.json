@@ -1,0 +1,13 @@
+{
+  "observed_at_utc": "2026-11-14T13:37:38.727866+00:00",
+  "classification": "rank0 OutOfMemoryError during first resumed backward; three peers remain in backward",
+  "evidence": [
+    "driver-failures.json",
+    "python-stack-2433920.txt",
+    "python-stack-2433921.txt",
+    "python-stack-2433924.txt",
+    "python-stack-2433927.txt"
+  ],
+  "action": "Terminate stalled attempt, retain exact restored boundary and failed capacity result. Migration profiling is not admitted. Diagnose excess live device allocations after restore before a corrected continuation.",
+  "new_measured_hypothesis": "Original paged checkpoint16 evaluation reports6,146,597,888 allocated CUDA bytes on rank0; fresh read-only reload reports7,709,446,144 despite identical learner tensor states and zero gradients,1,562,848,256 extra allocated bytes. This is allocated, not merely reserved cache. Cause not yet established."
+}

@@ -1,0 +1,8 @@
+2026-11-14 05:29:51.036 | DEBUG    | cosmos_framework.utils.config:_load_py_config:624 - get_config_module: took 0.20ms
+2026-11-14 05:29:51.254 | DEBUG    | cosmos_framework.utils.config:_load_py_config:642 - importlib.import_module: took 217.26ms
+2026-11-14 05:29:51.407 | DEBUG    | cosmos_framework.utils.config:_load_py_config:647 - override: took 152.75ms
+2026-11-14 05:29:51.407 | DEBUG    | cosmos_framework.utils.config:load_config:608 - total time to load config: 371.49ms
+Config is saved using omegaconf at /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-pressure-paged55-resume16-v1/runs/cosmos3_action/joint_ppo/gr00t-master-paged_adamw_8bit/integration/config_resolved.yaml.
+2026-11-14 05:30:06,576	INFO worker.py:2024 -- Started a local Ray instance.
+[posttrain|I|r0] 2026-11-14 05:31:15 setup progress group=joint_ppo_experience done=0/4 elapsed_s=60 waiting=r0k0@batch-block4-2071 r1k0@batch-block4-2071 r2k0@batch-block4-2071 r3k0@batch-block4-2071
+[posttrain|I|r0] 2026-11-14 05:32:59 Joint PPO collect version=16 optimizer_step=16

@@ -294,6 +294,24 @@
       "gpu_allocation_seconds": 7404,
       "scope": "One fixed-pressure native integration/capacity run. Not final task quality, an optimizer speed result, or proof of migration. Native simulator reset makes resumed future trajectories non-exact.",
       "raw": "raw/gr00t-pressure-paged55-v1"
+    },
+    "paged55_resume16_v1": {
+      "job": "38535734",
+      "source": "677e7e039012b40033e4ea137587619808d12a01",
+      "status": "FAILED: rank0 first resumed backward OOM; peers blocked; terminated",
+      "exact_restored_all_four_learner_records": true,
+      "exact_saved_collector_data": true,
+      "saved_cursors": [
+        16,
+        16,
+        16,
+        16
+      ],
+      "completed_new_updates": 0,
+      "checkpoint32_created": false,
+      "allocation_seconds_including_teardown": 600,
+      "gpu_allocation_seconds": 2400,
+      "raw": "raw/gr00t-pressure-paged55-resume16-v1"
     }
   },
   "checkpoint_memory_intervention": {
@@ -359,5 +377,12 @@
     "gpu_allocation_seconds": 2300,
     "scope": "Fresh-process read-only native evaluation under55GiB; exact learner restoration and managed owner reconstruction. No train update or checkpoint rewrite. One99/100 score is not statistical quality preservation.",
     "raw": "raw/gr00t-pressure-paged55-reload-v1"
+  },
+  "backend_ownership_intervention": {
+    "observed": "Fresh readonly paged restore allocated 7,709,446,144 CUDA bytes on rank0 versus 6,146,597,888 at reference checkpoint16: 1,562,848,256 extra live allocated bytes, with equal logical state and zero gradients.",
+    "verified_defect": "Per-instance dynamically defined optimizer class captured selected/groups/names/config/exceptions in methods; retaining the class retained retired master Parameter objects. The focused weakref regression fails before and passes after.",
+    "fix": "Cached backend type with module-level mixin; all per-instance references live only on optimizer instance. No arithmetic/state-format/identity change.",
+    "local_checks": "57 passed /15 CUDA skips; backend_class_ownership_before.txt and after.txt retain failing-then-passing test.",
+    "causal_limit": "Native allocation reduction and pressure continuation remain to be tested; do not assume this defect explains every pressure failure."
   }
 }

@@ -252,5 +252,12 @@
     "archive_bytes": 7722751,
     "archive": "optimizer-native-runtime-v41.tar.gz",
     "scope": "tracked cosmos_framework/, tools/, pyproject.toml, .pytest.toml"
+  },
+  {
+    "revision": "ff2572f266d9463c6cb820f883e514387aecd869",
+    "archive_sha256": "748841d879ba76692462738e5c24130d218a9d4d1d5d0004c6a68162c87dded9",
+    "archive_bytes": 7723961,
+    "archive": "optimizer-native-runtime-v42.tar.gz",
+    "scope": "tracked cosmos_framework/, tools/, pyproject.toml, .pytest.toml; optimizer class lifetime correction plus immediate retired-master GPU gate"
   }
 ]
