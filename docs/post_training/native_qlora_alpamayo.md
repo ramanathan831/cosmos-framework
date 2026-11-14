@@ -102,6 +102,16 @@ replace resumable checkpoints. BF16 casting changes the model's numerical
 arithmetic; implementation and tiny-graph checks do not establish full-model task
 parity or deployment latency.
 
+The distinct `--unmerged` export option on `8c64b5a` retains BF16 effective base
+weights and exact FP32 LoRA factors/expert tensors with separate native adapter
+arithmetic. Use it instead of `--merged-backbone-dtype`, and load through
+`action_eval --unmerged` instead of `--dense`. It is a standalone dense-base
+inference artifact, not four-bit inference or a resumable training checkpoint.
+Its commit manifest, strict native loader and original training identity remain
+separate from merged export. Tiny native Alpamayo CPU flow tests preserve exact
+outputs after unmerged reload; full-model CUDA qualification remains pending.
+The failed BF16 merged-conversion result below remains unchanged.
+
 For the first full-model conversion check, the prospectively fixed budgets are:
 controlled normalized flow velocity RMSE ≤0.01 and maximum absolute error ≤0.05;
 flow-loss difference ≤max(1e-5, 1% of reference); paired-noise ten-step trajectory

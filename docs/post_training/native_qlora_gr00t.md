@@ -180,6 +180,32 @@ implementation or file conversion alone does not establish their pass. Merging o
 original BF16 base, requantization, generic serving and deployment-latency improvements remain outside
 this export contract. Dense artifacts cannot resume training.
 
+An explicit **dequantized, unmerged** artifact is implemented on `8c64b5a`.
+It stores the actual BF16 effective base, the separate FP32 LoRA factors, all
+trained action components and native sidecars. Native loading rebuilds the same
+separate adapter GEMMs and cast order without reading the original base or running
+a quantizer. It uses a distinct commit manifest; `--dense` continues to mean the
+existing merged representation. This is dense-base deployment, not four-bit
+inference, and it does not turn the failed merged-output gates below into passes.
+
+Use the export command above with `--unmerged` in place of
+`--merged-backbone-dtype bfloat16`, then use `action_eval --unmerged` or
+`gr00t_rollout --unmerged` instead of `--dense`. Preserve the original mode,
+rank/alpha/dropout/adapter seed and task configuration. The two representation
+flags are mutually exclusive. Source training metadata is preserved; the exporter
+build is recorded separately. CPU checks cover exact factors/heads, aliases,
+interrupted publication, corrupt artifacts and fresh loading without the source
+weights or quantizer. Full-model CUDA and task qualification of this new format
+remain pending; there is no inference-speed claim.
+
+Build `64ea823` additionally emits opt-in allocator records from native
+`action_eval` when `COSMOS_QLORA_METRICS_FILE` is set. Loading includes portable
+inventory verification; scoring, frozen-state verification and result publication
+have separate reset-delimited intervals. The existing external sampler is still
+needed for device allocations outside PyTorch and process-tree host memory.
+The historical JSON workflow clock ends before result publication; the new phase
+records expose that publication cost without rewriting old measurements.
+
 An observation-only native rollout adapter and `entrypoints.gr00t_rollout` also connect a loaded
 portable or dense policy to the existing isolated LIBERO simulator gateway. The separate
 `gr00t_qlora_spatial_8_v1` profile executes eight supervised actions, allows 256 control steps and
