@@ -1,0 +1,53 @@
+2026-11-14 06:17:40.378 | DEBUG    | cosmos_framework.utils.config:_load_py_config:624 - get_config_module: took 0.19ms
+2026-11-14 06:17:40.596 | DEBUG    | cosmos_framework.utils.config:_load_py_config:642 - importlib.import_module: took 216.48ms
+2026-11-14 06:17:40.772 | DEBUG    | cosmos_framework.utils.config:_load_py_config:647 - override: took 175.37ms
+2026-11-14 06:17:40.772 | DEBUG    | cosmos_framework.utils.config:load_config:608 - total time to load config: 394.00ms
+Config is saved using omegaconf at /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-pressure-eightbit55-resume16-v2/runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/config_resolved.yaml.
+2026-11-14 06:18:03,908	INFO worker.py:2024 -- Started a local Ray instance.
+[posttrain|I|r0] 2026-11-14 06:19:15 setup progress group=joint_ppo_experience done=0/4 elapsed_s=60 waiting=r0k0@batch-block7-01296 r1k0@batch-block7-01296 r2k0@batch-block7-01296 r3k0@batch-block7-01296
+[posttrain|I|r0] 2026-11-14 06:20:15 setup progress group=joint_ppo_experience done=3/4 elapsed_s=120 waiting=r0k0@batch-block7-01296
+[posttrain|I|r0] 2026-11-14 06:21:17 setup progress group=joint_ppo_policy done=0/4 elapsed_s=60 waiting=r0k0@batch-block7-01296 r0k1@batch-block7-01296 r0k2@batch-block7-01296 r0k3@batch-block7-01296
+[posttrain|I|r0] 2026-11-14 06:21:40 Joint PPO collect version=16 optimizer_step=16
+[posttrain|I|r0] 2026-11-14 06:22:27 step   17/32  train/joint_loss +0.0757  train/episode_success_rate +1.0000
+[posttrain|I|r0] 2026-11-14 06:22:27 Joint PPO collect version=17 optimizer_step=17
+[posttrain|I|r0] 2026-11-14 06:22:57 step   18/32  train/joint_loss +0.0720  train/episode_success_rate +1.0000
+[posttrain|I|r0] 2026-11-14 06:22:57 Joint PPO collect version=18 optimizer_step=18
+[posttrain|I|r0] 2026-11-14 06:23:27 step   19/32  train/joint_loss +0.0381  train/episode_success_rate +0.8333
+[posttrain|I|r0] 2026-11-14 06:23:27 Joint PPO collect version=19 optimizer_step=19
+[posttrain|E|r0] 2026-11-14 06:23:46 mesh cell (0, 0) failed while draining remaining cells: RayTaskError(OutOfMemoryError): [36mray::_HostImpl.invoke()[39m (pid=3690489, ip=10.49.162.47, actor_id=79c0c13815966597e8888bb201000000, repr=<cosmos_framework.posttrain.workers.ray._HostImpl object at 0x15550c8e8a40>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.NJHbWJ/cosmos_framework/posttrain/workers/ray.py", line 1417, in invoke
+    return self._invoke_impl(name, method, args, kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.NJHbWJ/cosmos_framework/posttrain/workers/ray.py", line 1504, in _invoke_impl
+    out = getattr(body, method)(*args, **kw)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.NJHbWJ/cosmos_framework/posttrain/roles/trainer/joint_ppo.py", line 428, in train_batch
+    result = run_ppo_batch_update(
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.NJHbWJ/cosmos_framework/posttrain/roles/trainer/ppo_runtime.py", line 397, in run_ppo_batch_update
+    result = update([list(microbatch) for microbatch in entry.microbatches])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.NJHbWJ/cosmos_framework/posttrain/roles/trainer/joint_ppo.py", line 413, in update
+    metrics = run_cached_ppo_minibatch(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.NJHbWJ/cosmos_framework/posttrain/roles/trainer/ppo_runtime.py", line 255, in run_cached_ppo_minibatch
+    return run_ppo_optimizer_window(trainer, resolved, role=role, weighted=weighted, weight_key=weight_key)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.NJHbWJ/cosmos_framework/posttrain/roles/trainer/ppo_runtime.py", line 178, in run_ppo_optimizer_window
+    applied = trainer.train(list(microbatch))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.NJHbWJ/cosmos_framework/posttrain/roles/trainer/llm.py", line 693, in train
+    reduce_backward(loss, self.objective.reduction, self.grad_accum, denom)
+  File "/tmp/optimizer-gr00t.NJHbWJ/cosmos_framework/posttrain/algorithm/primitives/objective.py", line 293, in backward
+    (loss * denom).backward()
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/torch/_tensor.py", line 631, in backward
+    torch.autograd.backward(
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/torch/autograd/__init__.py", line 381, in backward
+    _engine_run_backward(
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/torch/autograd/graph.py", line 869, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 32.00 MiB. GPU 0 has a total capacity of 79.33 GiB of which 8.88 MiB is free. Process 3689168 has 55.48 GiB memory in use. Including non-PyTorch memory, this process has 15.06 GiB memory in use. Process 3690490 has 1.15 GiB memory in use. Process 3691604 has 7.08 GiB memory in use. Of the allocated memory 11.99 GiB is allocated by PyTorch, and 767.91 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)

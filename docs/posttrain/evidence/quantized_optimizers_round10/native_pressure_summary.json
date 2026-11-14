@@ -421,6 +421,48 @@
         6822035456,
         6822035456
       ]
+    },
+    "nonpaged55_resume16_v2": {
+      "job": "38536844",
+      "source": "ff2572f266d9463c6cb820f883e514387aecd869",
+      "status": "FAILED: rank0 backward CUDA OOM at update20; explicitly terminated stranded peers",
+      "exact_restored_all_four_learner_records": true,
+      "exact_saved_collector_data": true,
+      "completed_new_updates": [
+        17,
+        18,
+        19
+      ],
+      "all_completed_update_metrics_finite": true,
+      "next_durable_checkpoint_created": false,
+      "requested_failed_allocation_mib": 32,
+      "reported_device_free_mib": 8.88,
+      "reported_learner_torch_allocated_gib": 11.99,
+      "reported_reserved_unallocated_mib": 767.91,
+      "failure_record": "raw/gr00t-pressure-eightbit55-resume16-v2/stall-diagnosis.json",
+      "memory_peaks": {
+        "memory-gpu0": {
+          "sampled_device_bytes_including_reservation": 85890039808,
+          "sampled_process_gpu_bytes_including_reservation": 84580237312
+        },
+        "memory-gpu1": {
+          "sampled_device_bytes_including_reservation": 85766307840,
+          "sampled_process_gpu_bytes_including_reservation": 84456505344
+        },
+        "memory-gpu2": {
+          "sampled_device_bytes_including_reservation": 85810282496,
+          "sampled_process_gpu_bytes_including_reservation": 84500545536
+        },
+        "memory-gpu3": {
+          "sampled_device_bytes_including_reservation": 85816573952,
+          "sampled_process_gpu_bytes_including_reservation": 84506836992
+        }
+      },
+      "full_launcher_peak_pss_bytes": 48436461568,
+      "allocation_seconds_including_teardown": 842,
+      "gpu_allocation_seconds": 3368,
+      "raw": "raw/gr00t-pressure-eightbit55-resume16-v2",
+      "scope": "Fixed-recipe pressure failure. The ownership correction passes first3resumed updates but does not establish complete nonpaged pressure recovery. No allocator-policy or reduced-pressure retry. Earlier resident40to80 recovery is separate applicable evidence."
     }
   },
   "checkpoint_memory_intervention": {
@@ -492,8 +534,9 @@
     "verified_defect": "Per-instance dynamically defined optimizer class captured selected/groups/names/config/exceptions in methods; retaining the class retained retired master Parameter objects. The focused weakref regression fails before and passes after.",
     "fix": "Cached backend type with module-level mixin; all per-instance references live only on optimizer instance. No arithmetic/state-format/identity change.",
     "local_checks": "57 passed /15 CUDA skips; backend_class_ownership_before.txt and after.txt retain failing-then-passing test.",
-    "causal_limit": "Class-owned master retention is proven by regression and immediate-release CUDA checks. Native paged pressure recovery now passes on matched-class A100 hardware; different node and observation boundary prevent attributing every byte/time difference solely to the fix. Nonpaged corrected continuation remains pending.",
+    "causal_limit": "Class-owned retention is proven and corrected; native paged pressure recovery now completes. Nonpaged pressure still OOMs after3new updates, so the fix does not guarantee every pressure configuration. Different nodes and observation boundaries prevent a sole-cause byte/time claim.",
     "real_cuda_gate": "72 pinned checks and12 two-rank reference/resume/failure receipts pass, with immediate retired-master/page release without GC.",
-    "native_paged_result": "Corrected pressure16-to32 completes, exact restored learner/data and all16new finite updates, full checkpoint publication and100case evaluation pass. Post-save rank0 allocated6,135,718,912bytes, compared with earlier readonly7,709,446,144; different observation boundary/node, no sole-cause or performance inference."
+    "native_paged_result": "Corrected pressure16-to32 completes, exact restored learner/data and all16new finite updates, full checkpoint publication and100case evaluation pass. Post-save rank0 allocated6,135,718,912bytes, compared with earlier readonly7,709,446,144; different observation boundary/node, no sole-cause or performance inference.",
+    "native_nonpaged_result": "Exact initial restore and updates17\u201319 pass; rank0 update20 backward then OOMs allocating32MiB with8.88MiBfree. Fixed55GiB nonpaged pressure continuation remains failed."
   }
 }

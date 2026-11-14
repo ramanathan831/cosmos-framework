@@ -183,6 +183,19 @@
       "admitted_at_utc": "2026-11-14T14:14:07.763441+00:00",
       "predecessor": "38536371 completed corrected paged pressure16-to32, native evaluation and publication; shared72tests/12rank receipts already passed",
       "policy": "Same55GiB pressure,seed17,32horizon; published original nonpaged16. Exact learner/data before16new updates and checkpoint32 publication required. Simulation resets; no new quality or timing control."
+    },
+    {
+      "job": "38537185",
+      "arm": "paged_adamw_8bit fixed55GiB managed-memory trace",
+      "results": "gr00t-pressure-paged55-profile-v1",
+      "source": "ff2572f266d9463c6cb820f883e514387aecd869",
+      "admitted_at_utc": "2026-11-14T14:29:21.788082+00:00",
+      "predecessor": "Paged pressure32 reference and corrected16to32 recovery completed; nonpaged pressure failure terminal. Only one owned GPU allocation active.",
+      "updates": 8,
+      "save_and_evaluate_every": 4,
+      "capture_delay_seconds": 600,
+      "capture_duration_seconds": 600,
+      "policy": "Instrumented diagnostic; no timing or quality promotion. Record CUDA UM events and profiler coverage. Complete native checkpoints/evaluations; retain profiler failures. No pressure sweep."
     }
   ],
   "descriptor_cpu_admission": {
@@ -231,7 +244,7 @@
       "grace_seconds": 60
     },
     "conditional_profile": {
-      "status": "prepared, not admitted until corrected pressure continuation completes",
+      "status": "admitted as38537185 after corrected paged pressure completion and terminal nonpaged attempt",
       "native_source": "ff2572f266d9463c6cb820f883e514387aecd869",
       "updates": 8,
       "save_and_evaluate_every": 4,

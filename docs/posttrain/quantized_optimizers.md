@@ -1366,8 +1366,8 @@ captured retired master parameters. Backend types now contain shared methods onl
 all model-specific references belong to optimizer instances. A failing-then-passing
 weakref regression and real CUDA restore checks require retired masters and managed
 buffers to disappear immediately, without garbage collection. Arithmetic and
-checkpoint identities are unchanged. The native pressure continuations separately
-check whether this resolves their first-resumed-backward OOMs; see
+checkpoint identities are unchanged. Corrected paged pressure continuation16→32 now passes all16new updates,
+evaluation and publication. The nonpaged correction is being checked separately; see
 [pressure results](evidence/quantized_optimizers_round10/native_pressure_summary.json).
 
 Actual GR00T moments plus metadata occupy **3,304,438,792 bytes**, versus
@@ -1409,7 +1409,8 @@ initial source loading and is neither full-delivery nor inference latency. See
 Paged GR00T has completed resident 32-update training and checkpoint publication,
 and a fixed-pressure 32-update run with a separately reported 55-GiB co-resident
 CUDA reservation per GPU. The latter scores 99/99/96 at updates 0/16/32, restores
-managed moments in a fresh process, and retains all failures. Capacity evidence
+managed moments in a fresh process, and completes corrected16→32 continuation
+with exact restored learner/data state. All failures are retained. Capacity evidence
 does not establish sustained paging speed, unique capacity over nonpaged eight-bit,
 or a task-quality gain. Pressure continuation and migration diagnostics are
 reported separately, without replacing historical WTS endpoints.
