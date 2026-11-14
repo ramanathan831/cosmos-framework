@@ -150,8 +150,8 @@ def test_fp32_storage_is_already_the_master_and_rejects_rebinding():
     assert opt.state_report()["master_bytes"] == 0
 
 
-@pytest.mark.parametrize("legacy", [False, True])
-def test_dcp_rank_payload_chunk_boundaries_and_legacy_read(tmp_path, monkeypatch, legacy):
+@pytest.mark.parametrize("format", ["cosmos_rank_master_v1", "cosmos_rank_master_v2", "cosmos_rank_master_v3"])
+def test_dcp_rank_payload_chunk_boundaries_and_legacy_read(tmp_path, monkeypatch, format):
     import io
 
     import torch.distributed.checkpoint as dcp
@@ -164,25 +164,47 @@ def test_dcp_rank_payload_chunk_boundaries_and_legacy_read(tmp_path, monkeypatch
     opt.step()
     monkeypatch.setattr(checkpoint, "_CHUNK_BYTES", 1024)
     payload = checkpoint.optimizer_payload(opt)
-    if legacy:
+    if format == "cosmos_rank_master_v1":
         stream = io.BytesIO()
         torch.save(opt.state_dict(), stream)
         payload["format"] = "cosmos_rank_master_v1"
         payload["ranks"]["0"] = stream.getvalue()
-    else:
+    elif format == "cosmos_rank_master_v2":
+        payload["format"] = format
+        payload["ranks"]["0"] = checkpoint._serialize_rank_state(opt.state_dict())
         _, _, chunks = payload["ranks"]["0"]
         assert len(chunks) > 1 and max(map(len, chunks)) <= 1024
+    else:
+        assert payload["format"] == format
+        assert payload["ranks"]["0"][2].dtype == torch.uint8
     dcp.save(payload, checkpoint_id=tmp_path)
     # A bytes placeholder must restore the tuple as one opaque DCP leaf.
     target = {"format": "", "world_size": 0, "ranks": {"0": b""}}
     dcp.load(target, checkpoint_id=tmp_path)
     saved = checkpoint._deserialize_rank_state(target["ranks"]["0"], target["format"])
     assert_equal(saved, opt.state_dict())
-    if not legacy:
+    if format == "cosmos_rank_master_v2":
         size, digest, chunks = target["ranks"]["0"]
         for broken in (chunks[:-1], (*chunks[:-1], b"changed"), tuple(reversed(chunks))):
             with pytest.raises(ValueError, match="checksum/length"):
                 checkpoint._deserialize_rank_state((size, digest, broken), target["format"])
+
+    elif format == "cosmos_rank_master_v3":
+        size, digest, tensor = target["ranks"]["0"]
+        assert set(dcp.FileSystemReader(tmp_path).read_metadata().state_dict_metadata) == {
+            "format",
+            "world_size",
+            "ranks.0",
+        }  # DCP never interprets internal scales or masters as model shards.
+        changed = tensor.clone()
+        changed[0] ^= 1
+        for broken in (tensor[:-1], tensor.float(), tensor.reshape(1, -1), changed):
+            with pytest.raises(ValueError, match="schema/length|checksum/length"):
+                checkpoint._deserialize_rank_state((size, digest, broken), format)
+        # The retained serialized byte tensor owns a stable independent snapshot.
+        net.weight.grad = torch.full_like(net.weight, -0.3)
+        opt.step()
+        assert_equal(checkpoint._deserialize_rank_state(target["ranks"]["0"], format), saved)
 
 
 @pytest.mark.parametrize("format", ["dcp", "consolidated"])
@@ -228,7 +250,10 @@ def test_native_trainer_save_restore_master_transaction(tmp_path, format, monkey
     before_net = deepcopy(restored.model.net.state_dict())
     before_control = restored._trainer_state()
     # A rank-local metadata rejection must precede every model/control mutation.
-    from cosmos_framework.posttrain.checkpoint.master_optimizer import _deserialize_rank_state, _serialize_rank_state
+    from cosmos_framework.posttrain.checkpoint.master_optimizer import (
+        _deserialize_rank_state,
+        _serialize_tensor_rank_state,
+    )
 
     reader = restored.checkpoint_manager.load_dcp_component
 
@@ -237,7 +262,7 @@ def test_native_trainer_save_restore_master_transaction(tmp_path, format, monkey
         if name == "optim":
             saved = _deserialize_rank_state(state["ranks"]["0"], state["format"])
             del saved["masters"]
-            state["ranks"]["0"] = _serialize_rank_state(saved)
+            state["ranks"]["0"] = _serialize_tensor_rank_state(saved)
         return found
 
     with monkeypatch.context() as context:
@@ -314,3 +339,21 @@ def test_fused_control_memory_counts_initialized_step_tensors():
     expected = sum(value.numel() * value.element_size() for value in counters)
     assert expected > 0
     assert optimizer.state_report()["metadata_bytes"] == expected
+
+
+def test_tensor_payload_avoids_opaque_protocol_two_byte_expansion(tmp_path):
+    import torch.distributed.checkpoint as dcp
+
+    from cosmos_framework.posttrain.checkpoint import master_optimizer as checkpoint
+
+    state = {"bytes": torch.arange(256, dtype=torch.uint8).repeat(4096)}
+    sizes = {}
+    for version, encode in ((2, checkpoint._serialize_rank_state), (3, checkpoint._serialize_tensor_rank_state)):
+        path = tmp_path / str(version)
+        payload = {"rank": encode(state)}
+        dcp.save(payload, checkpoint_id=path)
+        restored = {"rank": b""}
+        dcp.load(restored, checkpoint_id=path)
+        assert_equal(checkpoint._deserialize_rank_state(restored["rank"], f"cosmos_rank_master_v{version}"), state)
+        sizes[version] = sum(file.stat().st_size for file in path.iterdir())
+    assert sizes[3] < sizes[2] * 0.75

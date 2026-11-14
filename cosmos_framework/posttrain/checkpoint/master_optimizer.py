@@ -56,16 +56,46 @@ def _deserialize_rank_state(payload, format):
         if sum(map(len, chunks)) != size or digest.hexdigest() != expected:
             raise ValueError("master optimizer payload checksum/length mismatch")
         content = b"".join(chunks)
+    elif format == "cosmos_rank_master_v3":
+        if not isinstance(payload, tuple) or len(payload) != 3:
+            raise ValueError("invalid tensor master optimizer payload")
+        size, expected, tensor = payload
+        if (
+            type(size) is not int
+            or size <= 0
+            or not isinstance(tensor, torch.Tensor)
+            or tensor.device.type != "cpu"
+            or tensor.dtype != torch.uint8
+            or tensor.ndim != 1
+            or not tensor.is_contiguous()
+            or tensor.numel() != size
+        ):
+            raise ValueError("invalid master optimizer byte tensor schema/length")
+        content = memoryview(tensor.numpy())
+        if hashlib.sha256(content).hexdigest() != expected:
+            raise ValueError("master optimizer payload checksum/length mismatch")
     else:
         raise ValueError("master optimizer checkpoint format mismatch")
     return torch.load(io.BytesIO(content), map_location="cpu", weights_only=False)
 
 
+def _serialize_tensor_rank_state(state):
+    # A tuple remains one opaque DCP leaf. Its uint8 tensor uses torch.save's
+    # raw storage records, avoiding protocol-2 UTF-8 expansion of Python bytes.
+    # frombuffer retains the private exported view/BytesIO owner. Nothing in this
+    # serialized snapshot aliases live parameters, moments or managed buffers.
+    buffer = io.BytesIO()
+    torch.save(state, buffer)
+    view = buffer.getbuffer()
+    tensor = torch.frombuffer(view, dtype=torch.uint8)
+    return len(view), hashlib.sha256(view).hexdigest(), tensor
+
+
 def optimizer_payload(optimizer):
     return {
-        "format": "cosmos_rank_master_v2",
+        "format": "cosmos_rank_master_v3",
         "world_size": optimizer.identity["world_size"],
-        "ranks": {str(optimizer.identity["rank"]): _serialize_rank_state(optimizer.state_dict())},
+        "ranks": {str(optimizer.identity["rank"]): _serialize_tensor_rank_state(optimizer.state_dict())},
     }
 
 
