@@ -91,11 +91,14 @@ def main():
     parser.add_argument("--optimizer", choices=("adamw", "adamw_bnb_8bit", "paged_adamw_8bit"), default="adamw")
     parser.add_argument("--resume", default="")
     parser.add_argument("--updates", type=int, default=8)
+    parser.add_argument("--seed", type=int, default=17)
+    parser.add_argument("--checkpoint-every", type=int, default=4)
+    parser.add_argument("--validation-every", type=int, default=4)
     parser.add_argument("--source-only", action="store_true")
     parser.add_argument("--evaluate-only", action="store_true")
     args = parser.parse_args()
-    if args.updates < 1:
-        parser.error("updates must be positive")
+    if min(args.updates, args.checkpoint_every, args.validation_every) < 1:
+        parser.error("updates and checkpoint/validation intervals must be positive")
     if args.evaluate_only and not args.resume:
         parser.error("--evaluate-only requires --resume")
     root, output = Path(os.environ["RESOURCE_ROOT"]), Path(os.environ["RESULTS"])
@@ -196,11 +199,11 @@ def main():
     overrides = [
         f"model.checkpoint_path={assets / 'model'}",
         f"rl.max_steps={args.updates}",
-        "rl.save_every=4",
+        f"rl.save_every={args.checkpoint_every}",
         "rl.keep_optim_last=0",
         "rl.keep_model_last=0",
-        "rl.validation.every_steps=4",
-        "rl.seed=17",
+        f"rl.validation.every_steps={args.validation_every}",
+        f"rl.seed={args.seed}",
         "rl.run_ts=integration",
         f"rl.optimizer.name={args.optimizer}",
         f"rl.optimizer.impl={'fused' if args.optimizer == 'adamw' else ''}",
