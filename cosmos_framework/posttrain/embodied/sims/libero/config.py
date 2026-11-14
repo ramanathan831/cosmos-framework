@@ -32,6 +32,7 @@ class LiberoConfig:
     eval_manifest: str = ""
     eval_profile: str = "legacy_100"
     sim_python: str = ""
+    sim_pythonpath: str | None = None
     execution_profile: str = DEFAULT_EXECUTION_PROFILE
 
     def __post_init__(self) -> None:

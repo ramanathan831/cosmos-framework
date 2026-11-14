@@ -8,6 +8,7 @@ control. The legacy public recipe retains its original optimizer/storage policy.
 Task quality and time-to-quality require the separate model-specific protocol.
 """
 
+import os
 from dataclasses import replace
 
 from cosmos_framework.posttrain.configs.gr00t_n1d7_libero_public_4gpu import make_config as make_base_config
@@ -20,5 +21,6 @@ def make_config():
     # FP32-state control. Its hashing/copy cost belongs to the product clock.
     config.policy.verify_frozen_state = True
     config.model.backbone_from_checkpoint = True
+    config.environment.config.sim_pythonpath = os.environ.get("POSTTRAIN_SIM_PYTHONPATH")
     config.job.name = "gr00t_n1d7_libero_quantized_optimizer"
     return config

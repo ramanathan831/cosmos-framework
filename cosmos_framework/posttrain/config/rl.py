@@ -209,8 +209,11 @@ class OptimizerConfig:
     - "fusedadam" — apex-fused AdamW with fp32 master weights + fp32 moments
       (`utils/fused_adam.py`). Requires apex + GPU (training containers ship it).
     - "adamw_bnb_8bit" / "paged_adamw_8bit" — bitsandbytes 0.49.2 blockwise
-      eight-bit moments, with managed memory only for the paged name. Native SFT,
-      one CUDA device, ordinary FP32 trainables, consolidated checkpoints. Small
+      eight-bit moments, with managed memory only for the paged name. The default
+      parameter-update policy uses ordinary FP32 trainables on one CUDA device
+      with consolidated checkpoints. The explicit `fp32_master` policy bridges
+      BF16 storage and one-dimensional native FSDP2 shards to local FP32 updates
+      with same-topology recovery; model/workflow qualification remains separate. Small
       tensors and exact-name `bnb_fp32_state_names` exceptions retain FP32 moments.
       Neither backend supplies master weights for BF16-stored trainables.
     - "muon" — the shared `MuonWithAuxAdamW`: Muon for hidden `nn.Linear` weights and explicitly

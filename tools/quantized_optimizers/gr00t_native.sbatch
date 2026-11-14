@@ -41,6 +41,7 @@ export PATH="${MODEL_PYTHON%/*}:$PATH" PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERE
 # role-specific pinned overlay explicit so the inherited base cannot precede it.
 model_site=$("$MODEL_PYTHON" -c "import site; print(site.getsitepackages()[0])")
 export PYTHONPATH="$source_dir:$model_site"
+export POSTTRAIN_SIM_PYTHONPATH="$source_dir"
 export HF_HOME="$RESULTS/hf" HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 WANDB_MODE=disabled
 export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NO_ALBUMENTATIONS_UPDATE=1 TOKENIZERS_PARALLELISM=false
 export MUJOCO_GL=egl PYOPENGL_PLATFORM=egl GR00T_DIT_SDPA_MODE=math CUBLAS_WORKSPACE_CONFIG=:4096:8

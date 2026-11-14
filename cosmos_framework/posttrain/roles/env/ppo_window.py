@@ -30,6 +30,7 @@ def build_window_gateway(
         sink="null",
         embodiment=spec.embodiment,
         sim_python=spec.python,
+        **({"sim_pythonpath": spec.pythonpath} if spec.pythonpath is not None else {}),
         sim_gpu=os.environ["CUDA_VISIBLE_DEVICES"],
         sim_options=spec.options,
         sim_ipc_dir=os.environ["B1K_SIM_IPC_DIR"],

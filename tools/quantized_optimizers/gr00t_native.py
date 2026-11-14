@@ -154,6 +154,7 @@ def main():
             "--output",
             str(output / "sim-preflight.json"),
         ],
+        env={**os.environ, "PYTHONPATH": os.environ["POSTTRAIN_SIM_PYTHONPATH"]},
         check=True,
     )
     command = [
