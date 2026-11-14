@@ -1,0 +1,50 @@
+{
+  "locked_at_utc": "2026-11-14T05:35:09.006280+00:00",
+  "source": "655567de (source-v35; exact archive identity in native_sources.json)",
+  "purpose": "Bounded native four-GPU GR00T capacity and managed-allocation lifecycle screen, not paged speed or final task-quality qualification",
+  "single_factor": "55GiB of ordinary CUDA storage in one explicit supervised co-resident process per GPU; zero reservation in the all-resident control. No hidden allocator cap or optimizer fallback.",
+  "pressure_choice_evidence": {
+    "resident_paged_peak_device_gib": 26.8792724609375,
+    "device_capacity_gib": 80,
+    "learner_peak_allocated_bytes_max": 12153427968,
+    "learner_peak_reserved_bytes_max": 14703132672,
+    "paged_moment_bytes_per_rank": 811696128,
+    "interpretation": "55GiB plus the observed resident peak exceeds80GiB before the reservation context. This requires cache reclamation and/or migration. Cached memory makes eviction uncertain; only measured transfer/fault evidence can establish managed migration. No promise that paging creates additional capacity over nonpaged8bit."
+  },
+  "arms_in_order": [
+    "paged_adamw_8bit reservation0",
+    "adamw fused reservation55",
+    "adamw_bnb_8bit reservation55",
+    "paged_adamw_8bit reservation55"
+  ],
+  "controls": {
+    "updates": 32,
+    "seed": 17,
+    "checkpoint_every": 16,
+    "validation_every": 16,
+    "native_decisions_per_update": 64,
+    "evaluation_cases_per_boundary": 100,
+    "recipe": "unchanged native FP32-master recipe, actor5e-6/value1e-4, BF16 model/compute/reduction, microbatch2/global64, same approved model/manifests",
+    "hardware": "4 A100-SXM4-80GB,32CPU,256GiB; existing routing, serial owned GPU allocations",
+    "checkpoint_format": "v3 after passed CPU large-state and two-GPU recovery tests"
+  },
+  "dependent_recovery": "After a successful paged pressure reference, evaluate its checkpoint16 in a new process under the same reservation, then continue16\u219232. If pressure fails, retain that failure and use the successful resident checkpoint16 for the independent v3 paged native recovery check; do not call that pressure recovery.",
+  "migration_diagnostic": "Only after successful pressure training/recovery: one separate eight-update paged pressure run under Nsight Systems2025.1.1, CUDA UM CPU/GPU fault tracing enabled. Capture a bounded600-second interval starting600seconds after launcher start, kill=none. Profile overhead excludes this run from performance claims. Retain counter unavailability/errors; no new pressure level is automatically admitted.",
+  "acceptance": [
+    "All intended actor/value updates finite; frozen source and native behavior log-probability checks pass",
+    "All managed moment owners remain managed across fresh restore; exact restored learner state and control match before new updates",
+    "No score/success receipt on failure or changed source generation",
+    "Physical simulator reset on completed-window resume remains explicit",
+    "Report observed window times and all native delivery costs, host PSS and device/process usage including the synthetic reservation separately",
+    "No statistical quality or paging speed win from one seed or window-level pseudoreplication"
+  ],
+  "stop_conditions": "No automatic reservation-size search. An arm failure does not cancel independent arms. Recovery only admitted from a complete published checkpoint. No repeated full run to obtain a favorable pressure outcome.",
+  "wall_requests": {
+    "training_minutes": 90,
+    "reload_minutes": 90,
+    "resume_minutes": 90,
+    "profile_minutes": 90,
+    "termination_grace_minutes": 10
+  },
+  "cost_forecast": "Approximately25-40minutes per32-window native run and10-25minutes per dependent evaluation/resume, plus one bounded profile. Actual allocation charges and failures retained; no aggregate cap."
+}
