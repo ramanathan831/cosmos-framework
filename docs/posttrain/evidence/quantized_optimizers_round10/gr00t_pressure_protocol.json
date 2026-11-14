@@ -69,5 +69,27 @@
       ],
       "quality_policy": "Fused0/40/80 success97/91/95 retained; adaptation fails. No final superiority study, no extra fused80 timing rerun, no mixed-source successful end-to-end comparison."
     }
+  ],
+  "resident_completion": {
+    "job": "38526671",
+    "source": "ef9f69589595724c8d166bf699557a2223bb832c",
+    "updates": 32,
+    "checkpoint_publications": [
+      16,
+      32
+    ],
+    "native_seconds": 1713.1417502462864,
+    "summary": "native_paged_development_summary.json:v3_resident32"
+  },
+  "pressure_admissions": [
+    {
+      "job": "38528405",
+      "arm": "adamw fused reservation55",
+      "results": "gr00t-pressure-fused55-v1",
+      "dependency": "38526679",
+      "source": "ef9f69589595724c8d166bf699557a2223bb832c",
+      "admitted_at_utc": "2026-11-14T09:19:18.258671+00:00",
+      "policy": "Only first pressure arm admitted. Classify its terminal result before admitting independent nonpaged/paged controls; expected capacity OOM does not cancel those controls."
+    }
   ]
 }

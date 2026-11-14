@@ -80,6 +80,9 @@
     "source": "ef9f69589595724c8d166bf699557a2223bb832c",
     "run": "existing32-update resident-paged protocol moves before the new80-update nonpaged run",
     "reason": "Pending80 recovery hashes an old completed payload. Newly written rank-owned shards must exercise full-content publication before a longer allocation. Reuses an already required run instead of adding a canary.",
-    "unchanged": "All32-update paging recipe/counts/checkpoint16/32/evaluation/pressure criteria; all80-update numerical controls. No additional full fused80 run or final superiority study."
+    "unchanged": "All32-update paging recipe/counts/checkpoint16/32/evaluation/pressure criteria; all80-update numerical controls. No additional full fused80 run or final superiority study.",
+    "job": "38526671",
+    "status": "COMPLETED: both newly written16/32 checkpoints publish after full-content validation",
+    "summary": "native_paged_development_summary.json:v3_resident32"
   }
 }
