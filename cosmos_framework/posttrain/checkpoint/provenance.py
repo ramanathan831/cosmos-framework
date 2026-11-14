@@ -33,10 +33,20 @@ def checkpoint_inventory_signature(
     overrides: dict[str, str] | None = None,
     *,
     inventory: list[dict[str, Any]] | None = None,
+    full_content: bool = False,
 ) -> str:
-    """Hash checkpoint structure plus small-file contents without reading giant tensors."""
+    """Identify a checkpoint, optionally reading every payload for publication.
+
+    The historical metadata identity remains the load/external-copy contract.
+    Publication compares full content across ranks: even FORCE_SYNC attributes
+    differed between readers of a finished native Lustre checkpoint. Content mode
+    still checks each reader's metadata before/after every read and rejects any
+    observed mutation; it does not retry or ignore a changed payload.
+    """
     normalized_overrides = {relative.replace(os.sep, "/"): path for relative, path in (overrides or {}).items()}
     digest = sha256()
+    if full_content:
+        digest.update(b"cosmos-checkpoint-content-v2\0")
     for directory, dirnames, filenames in os.walk(checkpoint_dir):
         dirnames.sort()
         filenames.sort()
@@ -61,7 +71,9 @@ def checkpoint_inventory_signature(
             path = normalized_overrides.get(relative.replace(os.sep, "/"), os.path.join(directory, filename))
             attributes = synchronized_stat(path)
             kind = "symlink" if stat.S_ISLNK(attributes.st_mode) else "file"
-            if kind == "file" and attributes.st_size <= 4 * 1024 * 1024:
+            if full_content and not stat.S_ISREG(attributes.st_mode):
+                raise RuntimeError(f"checkpoint publication requires regular files: {path!r}")
+            if kind == "file" and (full_content or attributes.st_size <= 4 * 1024 * 1024):
                 # Small files are content-bound below. Ignoring inode/timestamps makes an atomically
                 # renamed temp describe the same logical successor after promotion.
                 record = f"{kind}\0{relative}\0{attributes.st_size}\0"
@@ -76,20 +88,33 @@ def checkpoint_inventory_signature(
                 target = os.readlink(path)
                 digest.update(target.encode("utf-8", errors="surrogateescape"))
                 detail["symlink"] = target
-            elif attributes.st_size <= 4 * 1024 * 1024:
+            elif full_content or attributes.st_size <= 4 * 1024 * 1024:
                 content = sha256()
+                size = 0
                 with open(path, "rb") as handle:
                     while chunk := handle.read(1024 * 1024):
-                        digest.update(chunk)
+                        if not full_content:
+                            digest.update(chunk)
                         content.update(chunk)
+                        size += len(chunk)
                 detail["sha256"] = content.hexdigest()
+                if full_content:
+                    digest.update(content.digest())
+                    after = synchronized_stat(path)
+                    fields = ("st_mode", "st_dev", "st_ino", "st_size", "st_mtime_ns", "st_ctime_ns")
+                    if size != attributes.st_size or any(
+                        getattr(attributes, field) != getattr(after, field) for field in fields
+                    ):
+                        raise RuntimeError(f"checkpoint file changed while hashing: {path!r}")
             if inventory is not None:
                 inventory.append(detail)
     return digest.hexdigest()
 
 
-def checkpoint_provenance(source_dir: str, *, inventory: list[dict[str, Any]] | None = None) -> CheckpointProvenance:
-    """Build a stable, cheap identity for one immutable training checkpoint."""
+def checkpoint_provenance(
+    source_dir: str, *, inventory: list[dict[str, Any]] | None = None, full_content: bool = False
+) -> CheckpointProvenance:
+    """Build an identity for one immutable training checkpoint."""
     source = os.path.realpath(os.path.expanduser(source_dir))
     if not os.path.isdir(source):
         raise FileNotFoundError(f"external pending checkpoint source is not a directory: {source!r}")
@@ -98,8 +123,8 @@ def checkpoint_provenance(source_dir: str, *, inventory: list[dict[str, Any]] | 
             f"external pending checkpoint source is incomplete: {source!r} "
             "(model, optimizer, and trainer components are required)"
         )
-    signature = checkpoint_inventory_signature(source, inventory=inventory)
-    return {"version": 1, "source": source, "signature": signature}
+    signature = checkpoint_inventory_signature(source, inventory=inventory, full_content=full_content)
+    return {"version": 2 if full_content else 1, "source": source, "signature": signature}
 
 
 def load_with_stable_provenance(

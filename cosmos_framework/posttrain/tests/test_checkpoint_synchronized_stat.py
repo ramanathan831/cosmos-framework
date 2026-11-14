@@ -86,3 +86,75 @@ def test_statx_failure_does_not_fall_back_to_cached_metadata(tmp_path, monkeypat
     monkeypatch.setattr(module, "_statx", lambda: statx)
     with pytest.raises(OSError if failure == "error" else RuntimeError):
         synchronized_stat(payload)
+
+
+def test_publication_identity_hashes_large_contents_despite_stale_server_attributes(tmp_path, monkeypatch):
+    import importlib
+
+    from cosmos_framework.posttrain.checkpoint import CheckpointManager
+
+    module = importlib.import_module("cosmos_framework.posttrain.checkpoint.provenance")
+    (tmp_path / "model.pt").write_bytes(b"a" * (5 * 1024 * 1024))
+    (tmp_path / "optim.pt").write_bytes(b"optimizer")
+    (tmp_path / "trainer.pt").write_bytes(b"trainer")
+    manager = CheckpointManager()
+    expected = manager.publication_identity(str(tmp_path))
+    real = module.synchronized_stat
+
+    def stale(path):
+        attributes = real(path)
+        if os.fspath(path) == str(tmp_path / "model.pt"):
+            attributes.st_mtime_ns -= 1_000_000_000
+            attributes.st_ctime_ns -= 1_000_000_000
+        return attributes
+
+    # Captured native failure persisted even with FORCE_SYNC. Both ranks see
+    # the same bytes; publication must compare those bytes, not cached times.
+    monkeypatch.setattr(module, "synchronized_stat", stale)
+    assert manager.publication_identity(str(tmp_path)) == expected
+    frozen_attributes = stale(tmp_path / "model.pt")
+    monkeypatch.setattr(
+        module,
+        "synchronized_stat",
+        lambda path: frozen_attributes if os.fspath(path) == str(tmp_path / "model.pt") else real(path),
+    )
+    with (tmp_path / "model.pt").open("r+b") as handle:
+        handle.write(b"b")
+    assert manager.publication_identity(str(tmp_path)) != expected
+
+
+def test_publication_hash_rejects_mutation_during_file_read(tmp_path, monkeypatch):
+    import builtins
+
+    from cosmos_framework.posttrain.checkpoint import CheckpointManager
+
+    payload = tmp_path / "model.pt"
+    payload.write_bytes(b"a" * (5 * 1024 * 1024))
+    (tmp_path / "optim.pt").write_bytes(b"optimizer")
+    (tmp_path / "trainer.pt").write_bytes(b"trainer")
+    original_open = builtins.open
+
+    class MutatingReader:
+        def __init__(self, handle):
+            self.handle = handle
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return self.handle.__exit__(*args)
+
+        def read(self, size):
+            value = self.handle.read(size)
+            if not value:
+                with original_open(payload, "ab") as writer:
+                    writer.write(b"changed")
+            return value
+
+    def hooked_open(path, *args, **kwargs):
+        handle = original_open(path, *args, **kwargs)
+        return MutatingReader(handle) if os.fspath(path) == str(payload) and args == ("rb",) else handle
+
+    monkeypatch.setattr(builtins, "open", hooked_open)
+    with pytest.raises(RuntimeError, match="changed while hashing"):
+        CheckpointManager().publication_identity(str(tmp_path))

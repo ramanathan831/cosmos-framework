@@ -54,6 +54,8 @@ def _publish(rank, directory, divergent_recipe, stale_client_stat):
         else:
             with pytest.MonkeyPatch.context() as patch:
                 if stale_client_stat and rank == 1:
+                    import importlib
+
                     from cosmos_framework.posttrain.checkpoint.synchronized_stat import synchronized_stat
 
                     target = str(Path(path) / "model" / "__0_0.distcp")
@@ -72,8 +74,20 @@ def _publish(rank, directory, divergent_recipe, stale_client_stat):
                             )
                         return result
 
-                    patch.setattr(os, "stat", stale)
-                    assert os.stat(target).st_mtime_ns + 2_000_000_000 == synchronized_stat(target).st_mtime_ns
+                    if stale_client_stat == "server":
+                        provenance = importlib.import_module("cosmos_framework.posttrain.checkpoint.provenance")
+
+                        def stale_server(file):
+                            result = synchronized_stat(file)
+                            if os.fspath(file) == target:
+                                result.st_mtime_ns -= 1_000_000_000
+                                result.st_ctime_ns -= 1_000_000_000
+                            return result
+
+                        patch.setattr(provenance, "synchronized_stat", stale_server)
+                    else:
+                        patch.setattr(os, "stat", stale)
+                        assert os.stat(target).st_mtime_ns + 2_000_000_000 == synchronized_stat(target).st_mtime_ns
                 journal.publish(
                     path, manager=manager, publication_identity={}, trainer_state=control, on_checkpoint=lambda: None
                 )
@@ -85,7 +99,9 @@ def _publish(rank, directory, divergent_recipe, stale_client_stat):
 
 @pytest.mark.L0
 @pytest.mark.CPU
-@pytest.mark.parametrize("divergent_recipe,stale_client_stat", [(False, False), (True, False), (False, True)])
+@pytest.mark.parametrize(
+    "divergent_recipe,stale_client_stat", [(False, False), (True, False), (False, True), (False, "server")]
+)
 def test_large_dcp_validation_publication_across_processes(tmp_path, divergent_recipe, stale_client_stat):
     torch.multiprocessing.spawn(
         _publish, args=(str(tmp_path), divergent_recipe, stale_client_stat), nprocs=2, join=True

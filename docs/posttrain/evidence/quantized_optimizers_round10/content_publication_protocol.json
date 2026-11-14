@@ -1,0 +1,42 @@
+{
+  "locked_at_utc": "2026-11-14T08:24:30.625227+00:00",
+  "failure_job": "38520212",
+  "failure_source": "94ecd8ba4e4b238feaaaceb8d5282ef0bcc40ded",
+  "failure": "AT_STATX_FORCE_SYNC did not ensure rank-identical timestamps at final80 publication",
+  "inventory_differences": [
+    {
+      "rank": 3,
+      "reference": {
+        "record": "file|model/__3_0.distcp|4153936882|216174100803032831|813279392|1794644162000000000|1794644162000000000|"
+      },
+      "observed": {
+        "record": "file|model/__3_0.distcp|4153936882|216174100803032831|813279392|1794644161000000000|1794644161000000000|"
+      }
+    }
+  ],
+  "retained_quality": {
+    "initial": 0.97,
+    "update40": 0.91,
+    "update80": 0.95,
+    "status": "completed native evaluations; final publication failed. Original adaptation screen failed; no final superiority study."
+  },
+  "change": "Local validation publication hashes every regular payload on every rank; path/size/SHA256 bind a domain-separated v2 content identity. Before/after local mode/device/inode/size/mtime/ctime checks reject observed mutation. No retries, rank0 trust, missing files or hash omissions. Historical load/external-copy provenance remains v1 for compatibility.",
+  "validation_plan": [
+    "Failing-before/passing-after stale-statx and same-size-content regressions, mutation-during-read rejection",
+    "Affected local checkpoint/archive/store/master regressions and real Gloo publication including injected stale statx",
+    "Pinned native lifecycle including final-step pending validation with zero additional optimizer updates; four CPU readers hash the actual failed checkpoint and must agree",
+    "Native pending80 recovery in original output root after preserving evidence; every saved learner/data field matches before repeated validation, no update required",
+    "Finish nonpaged80 reference/fresh80 evaluations/40-to-80 continuation and existing resident/pressure/paged recovery scope after correction gate"
+  ],
+  "new_fused80_policy": "Do not repeat another full80 control solely for timing after its adaptation screen failed. Retain v37 numerical/quality records and failed delivery cost; corrected publication recovery is separate. New eight-bit v38 integration uses identical numerical controls but revised publication source. No paired uninterrupted end-to-end timing or superiority claim from these mixed-source deliveries.",
+  "performance": "Full payload reads add checkpoint publication I/O. Measure costs; do not call content hashing free or a speed improvement.",
+  "canceled_unallocated": [
+    "38520213",
+    "38520214",
+    "38520215",
+    "38520216",
+    "38520219"
+  ],
+  "no_model_or_optimizer_math_change": true,
+  "aggregate_caps": null
+}

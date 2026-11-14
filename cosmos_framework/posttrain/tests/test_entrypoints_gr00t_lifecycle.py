@@ -431,7 +431,10 @@ def test_checkpoint_evaluation_rejects_missing_resume_before_model_allocation(lo
     assert allocated == []
 
 
-def test_pending_validation_resumes_to_new_directory_with_collector_provenance(local_run, monkeypatch):
+@pytest.mark.parametrize("final_same_output", [False, True])
+def test_pending_validation_resumes_to_new_directory_with_collector_provenance(
+    local_run, monkeypatch, final_same_output
+):
     from cosmos_framework.posttrain.control.validation.rollout import WindowEvaluator
 
     config, attempt, _, allocated = local_run
@@ -442,8 +445,10 @@ def test_pending_validation_resumes_to_new_directory_with_collector_provenance(l
     source = attempt["output"]
     evaluate = WindowEvaluator.__call__
 
+    interrupted_step = config.rl.max_steps if final_same_output else 2
+
     def interrupt(self, step, reasons):
-        if step == 2:
+        if step == interrupted_step:
             raise RuntimeError("interrupted before pending evaluation")
         return evaluate(self, step, reasons)
 
@@ -451,13 +456,23 @@ def test_pending_validation_resumes_to_new_directory_with_collector_provenance(l
         context.setattr(WindowEvaluator, "__call__", interrupt)
         with pytest.raises(RuntimeError, match="interrupted before pending evaluation"):
             gr00t_ppo.run(config)
-    checkpoint = source / "checkpoints" / "iter_000002"
+    checkpoint = source / "checkpoints" / f"iter_{interrupted_step:06d}"
     manager = allocated[-1][0].checkpoint_manager
     source_identity = manager.checkpoint_provenance(str(checkpoint))
-    attempt["resume"], attempt["output"] = str(checkpoint), source.parent / "resumed-validation"
+    attempt["resume"], attempt["output"] = (
+        str(checkpoint),
+        source if final_same_output else source.parent / "resumed-validation",
+    )
+    state_before = allocated[-1][0].evaluation_state()
+    cursor_before = allocated[-1][1].state_dict()
     result = gr00t_ppo.run(config)
     assert result["optimizer_step"] == 4
-    assert manager.checkpoint_provenance(str(checkpoint)) == source_identity
+    if final_same_output:
+        assert result["windows"] == 0
+        assert allocated[-1][0].evaluation_state() == state_before
+        assert allocated[-1][1].state_dict() == cursor_before
+    else:
+        assert manager.checkpoint_provenance(str(checkpoint)) == source_identity
     assert allocated[-1][1].loaded_checkpoint_provenance() == source_identity
     assert allocated[-1][0].loaded_checkpoint_provenance() == source_identity
     assert (attempt["output"] / "evaluation" / "step_000002.json").is_file()

@@ -693,7 +693,10 @@ class CheckpointManager:
         from cosmos_framework.posttrain.checkpoint.provenance import checkpoint_provenance
 
         inventory: list[dict[str, Any]] = []
-        provenance = checkpoint_provenance(iter_dir, inventory=inventory)
+        # Every rank verifies every payload. Client/server timestamp disagreement
+        # must not replace content identity at a completed publication boundary.
+        # Keep legacy load/external-copy provenance unchanged for existing artifacts.
+        provenance = checkpoint_provenance(iter_dir, inventory=inventory, full_content=True)
         if self.upload:
             from cosmos_framework.posttrain.utils.object_store import upload_destination_identity
 
