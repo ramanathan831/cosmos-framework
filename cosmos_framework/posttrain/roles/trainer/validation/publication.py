@@ -81,8 +81,10 @@ class PublicationJournal:
         *,
         manager: "CheckpointManager",
         publication_identity: Mapping[str, Any],
+        storage_identity: Mapping[str, Any] | None = None,
     ) -> dict[str, Any]:
-        storage_identity = manager.publication_identity(path)
+        if storage_identity is None:
+            storage_identity = manager.publication_identity(path)
         destination = storage_identity.get("destination")
         checkpoint_generation = storage_identity.get("checkpoint_generation")
         if not isinstance(destination, dict) or any(
@@ -133,12 +135,26 @@ class PublicationJournal:
         if publication_step is None:
             raise RuntimeError("cannot persist validation completion when no publication is pending")
 
+        # Converge the inputs separately so a disagreement identifies the store
+        # generation or validation recipe, rather than only an opaque final hash.
+        storage_identity = run_rank_converged(
+            lambda: manager.publication_identity(path), "validation publication storage identity"
+        )
+        storage_identity = rank_identical(storage_identity, "validation publication storage identity")
+        validation_digest = run_rank_converged(
+            lambda: hashlib.sha256(
+                json.dumps(self.state.identity, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
+            ).hexdigest(),
+            "validation publication recipe identity",
+        )
+        rank_identical(validation_digest, "validation publication recipe identity")
         expected_record = run_rank_converged(
             lambda: self._build_record(
                 path,
                 publication_step,
                 manager=manager,
                 publication_identity=publication_identity,
+                storage_identity=storage_identity,
             ),
             "validation publication record preparation",
         )
