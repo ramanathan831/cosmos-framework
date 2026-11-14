@@ -120,12 +120,15 @@ def test_native_joint_evaluation_reports_actual_initialized_storage():
     for parameter in learner.opt.live:
         parameter.grad = torch.ones_like(parameter)
     learner.opt.step()
-    learner.opt.zero_grad()
     state = learner.evaluation_state()
     assert state["optimizer_storage"]["moment_bytes"] == 8 * sum(p.numel() for p in learner.opt.live)
     assert state["optimizer_storage"]["master_bytes"] == 0  # FP32 fixture aliases live parameters.
     assert state == learner.evaluation_state()
     assert state["parameters"] != before["parameters"]
+    assert learner.optimizer_memory()["fp32_gradient_alias_bytes"] > 0
+    learner.opt.zero_grad()
+    assert learner.optimizer_memory()["fp32_gradient_alias_bytes"] == 0
+    assert learner.evaluation_state() == state  # Scratch gradients are not durable recovery state.
 
 
 def test_fp32_storage_is_already_the_master_and_rejects_rebinding():

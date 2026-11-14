@@ -113,6 +113,12 @@ class JointPPOTrainer(PPOTrainableRole):
     def ppo_identity(self) -> dict:
         return self.model.ppo_identity()
 
+    def optimizer_memory(self) -> dict | None:
+        """Current allocations, including transient gradients excluded from resume state."""
+        if getattr(self.opt, "cosmos_local_master_optimizer", False):
+            return self.opt.state_report()
+        return None
+
     def evaluation_state(self) -> dict:
         """Small attestations of learner state around external rollout evaluation."""
         from torch.distributed.tensor import DTensor
@@ -139,7 +145,11 @@ class JointPPOTrainer(PPOTrainableRole):
                 state["optimizer_masters"] = canonical_digest([digest(p.detach()) for p in self.opt.masters])
                 # Persist allocated state/precision accounting with the native
                 # evaluation receipt; actor log forwarding can omit INFO records.
-                state["optimizer_storage"] = self.opt.state_report()
+                state["optimizer_storage"] = {
+                    key: value
+                    for key, value in self.opt.state_report().items()
+                    if key not in ("gradient_staging_bytes", "fp32_gradient_alias_bytes")
+                }
             current = self.model.ppo_frozen_state()
 
             def check_frozen_model() -> None:

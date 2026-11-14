@@ -706,6 +706,7 @@ class WindowEvaluator:
             "manifest": fingerprint,
             "training_state_unchanged": True,
             "learner_state": before,
+            "optimizer_memory": resolve_all(self.policy.optimizer_memory()),
             "metrics": metrics,
             "episodes": [dict(row.details) for row in episodes],
             "reasons": sorted(reason.value for reason in reasons),
