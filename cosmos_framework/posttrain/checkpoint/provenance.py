@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import os
+import stat
 from collections.abc import Callable
 from hashlib import sha256
 from typing import Any
@@ -15,6 +16,7 @@ from cosmos_framework.posttrain.checkpoint.io import (
     fsync_directory,
     is_complete_iter_dir,
 )
+from cosmos_framework.posttrain.checkpoint.synchronized_stat import synchronized_stat
 
 EXTERNAL_COPY_PROVENANCE_FILE = ".external_copy_provenance.json"
 CheckpointProvenance = dict[str, int | str]
@@ -57,16 +59,16 @@ def checkpoint_inventory_signature(
             ):
                 continue
             path = normalized_overrides.get(relative.replace(os.sep, "/"), os.path.join(directory, filename))
-            stat = os.stat(path, follow_symlinks=False)
-            kind = "symlink" if os.path.islink(path) else "file"
-            if kind == "file" and stat.st_size <= 4 * 1024 * 1024:
+            attributes = synchronized_stat(path)
+            kind = "symlink" if stat.S_ISLNK(attributes.st_mode) else "file"
+            if kind == "file" and attributes.st_size <= 4 * 1024 * 1024:
                 # Small files are content-bound below. Ignoring inode/timestamps makes an atomically
                 # renamed temp describe the same logical successor after promotion.
-                record = f"{kind}\0{relative}\0{stat.st_size}\0"
+                record = f"{kind}\0{relative}\0{attributes.st_size}\0"
             else:
                 record = (
-                    f"{kind}\0{relative}\0{stat.st_dev}\0{stat.st_ino}\0{stat.st_size}\0"
-                    f"{stat.st_mtime_ns}\0{stat.st_ctime_ns}\0"
+                    f"{kind}\0{relative}\0{attributes.st_dev}\0{attributes.st_ino}\0{attributes.st_size}\0"
+                    f"{attributes.st_mtime_ns}\0{attributes.st_ctime_ns}\0"
                 )
             digest.update(record.encode("utf-8", errors="surrogateescape"))
             detail = {"record": record.replace("\0", "|")}
@@ -74,7 +76,7 @@ def checkpoint_inventory_signature(
                 target = os.readlink(path)
                 digest.update(target.encode("utf-8", errors="surrogateescape"))
                 detail["symlink"] = target
-            elif stat.st_size <= 4 * 1024 * 1024:
+            elif attributes.st_size <= 4 * 1024 * 1024:
                 content = sha256()
                 with open(path, "rb") as handle:
                     while chunk := handle.read(1024 * 1024):

@@ -8,7 +8,10 @@ import pytest
 import torch
 
 
-def _publish(rank, directory, divergent_recipe):
+def _publish(rank, directory, divergent_recipe, stale_client_stat):
+    import os
+    from types import SimpleNamespace
+
     import torch.distributed as dist
 
     from cosmos_framework.posttrain.checkpoint import CheckpointManager
@@ -49,9 +52,31 @@ def _publish(rank, directory, divergent_recipe):
                 )
             assert manager.checkpoint_provenance(path) == before
         else:
-            journal.publish(
-                path, manager=manager, publication_identity={}, trainer_state=control, on_checkpoint=lambda: None
-            )
+            with pytest.MonkeyPatch.context() as patch:
+                if stale_client_stat and rank == 1:
+                    from cosmos_framework.posttrain.checkpoint.synchronized_stat import synchronized_stat
+
+                    target = str(Path(path) / "model" / "__0_0.distcp")
+                    original = os.stat
+
+                    def stale(file, *args, **kwargs):
+                        result = original(file, *args, **kwargs)
+                        if os.fspath(file) == target:
+                            return SimpleNamespace(
+                                st_size=result.st_size,
+                                st_mode=result.st_mode,
+                                st_dev=result.st_dev,
+                                st_ino=result.st_ino,
+                                st_mtime_ns=result.st_mtime_ns - 2_000_000_000,
+                                st_ctime_ns=result.st_ctime_ns - 2_000_000_000,
+                            )
+                        return result
+
+                    patch.setattr(os, "stat", stale)
+                    assert os.stat(target).st_mtime_ns + 2_000_000_000 == synchronized_stat(target).st_mtime_ns
+                journal.publish(
+                    path, manager=manager, publication_identity={}, trainer_state=control, on_checkpoint=lambda: None
+                )
             assert manager.load_component(path, "trainer") == control()
             assert journal.pending_step is None and state.progress.pending_step is None
     finally:
@@ -60,9 +85,11 @@ def _publish(rank, directory, divergent_recipe):
 
 @pytest.mark.L0
 @pytest.mark.CPU
-@pytest.mark.parametrize("divergent_recipe", [False, True])
-def test_large_dcp_validation_publication_across_processes(tmp_path, divergent_recipe):
-    torch.multiprocessing.spawn(_publish, args=(str(tmp_path), divergent_recipe), nprocs=2, join=True)
+@pytest.mark.parametrize("divergent_recipe,stale_client_stat", [(False, False), (True, False), (False, True)])
+def test_large_dcp_validation_publication_across_processes(tmp_path, divergent_recipe, stale_client_stat):
+    torch.multiprocessing.spawn(
+        _publish, args=(str(tmp_path), divergent_recipe, stale_client_stat), nprocs=2, join=True
+    )
 
 
 @pytest.mark.L0
