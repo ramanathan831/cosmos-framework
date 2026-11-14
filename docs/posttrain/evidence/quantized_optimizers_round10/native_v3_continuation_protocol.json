@@ -1,0 +1,33 @@
+{
+  "locked_at_utc": "2026-11-14T05:58:30.407841+00:00",
+  "source": "dcf5775241fcf5491a4dfd5a6d023c7d2a2bab83",
+  "purpose": "Affected native four-GPU checkpoint-v3 continuation, separate from product timing and development endpoint selection",
+  "prerequisites": [
+    "v3 two-GPU gate38516568",
+    "24 pinned native lifecycle checks38518080",
+    "complete source-v35 fused/nonpaged80-update reference and read-only evaluations"
+  ],
+  "runs": [
+    {
+      "optimizer": "adamw impl=fused",
+      "source_reference": "gr00t-exposure-fused-seed17-v2",
+      "from_update": 40,
+      "to_update": 80
+    },
+    {
+      "optimizer": "adamw_bnb_8bit",
+      "source_reference": "gr00t-exposure-eightbit-seed17-v2",
+      "from_update": 40,
+      "to_update": 80
+    }
+  ],
+  "controls": "Same model, manifests, FP32-master policy, 80-update recipe horizon, seeds, settings, four-GPU topology. Source-v36 adds a read-only pre-update learner/cursor receipt; no numerical or checkpoint format change from v35. New output roots. Native validation at80.",
+  "checks": [
+    "Compare actual pre-first-update parameters, masters, moments/maps/scales, RNG, scheduler, counters, storage and frozen hashes with reference40 on all ranks",
+    "Check collector cursor/policy version40 and source generation; complete updates41-80 with finite actor/value updates and behavior checks",
+    "Publish final native checkpoint and evaluate100cases; report outcome without claiming exact environment or final parameter equality"
+  ],
+  "reproducibility": "Learner restoration exact; environment reset explicitly starts new physical trajectories. Deterministic continuation was independently tested on two-rank infrastructure, not inferred from reward similarity.",
+  "resources": "Existing routing; fourA100/32CPU/256GiB,90min requests including10min grace; serialized after already admitted jobs. Actual terminal costs charged; no aggregate cap.",
+  "failure_policy": "On source, finite-update, restore or publication failure, retain results and diagnose before rerunning. No score selection."
+}
