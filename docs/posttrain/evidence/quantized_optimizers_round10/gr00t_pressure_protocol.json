@@ -1,6 +1,6 @@
 {
   "locked_at_utc": "2026-11-14T05:35:09.006280+00:00",
-  "source": "36610372f48f1a692f363996458bcefc637eb12c",
+  "source": "677e7e039012b40033e4ea137587619808d12a01",
   "purpose": "Bounded native four-GPU GR00T capacity and managed-allocation lifecycle screen, not paged speed or final task-quality qualification",
   "single_factor": "55GiB of ordinary CUDA storage in one explicit supervised co-resident process per GPU; zero reservation in the all-resident control. No hidden allocator cap or optimizer fallback.",
   "pressure_choice_evidence": {
@@ -77,6 +77,15 @@
       "failed_job": "38532517",
       "additional_diagnostics": "NCCL INFO files retained; no timing claim from this diagnostic run.",
       "fused_control": "Fused55 fails at second backward before the changed checkpoint path; preserve its failure without a redundant rerun."
+    },
+    {
+      "at_utc": "2026-11-14T12:18:32.913162+00:00",
+      "previous_source": "36610372f48f1a692f363996458bcefc637eb12c",
+      "source": "677e7e039012b40033e4ea137587619808d12a01",
+      "reason": "Source-v40 successfully wrote checkpoint16 and evaluated under55GiB after clearing dead gradients, then publication rejected a file metadata change while hashing. Bind full reads to open descriptors and verify complete content twice; preserve all identity checks and fail-closed behavior.",
+      "failed_job": "38533459",
+      "validation": "140 local affected tests pass. The25 local lifecycle cases require Ray absent from the local environment; the complete set runs in pinned CPU job38534235. Then four-reader native-checkpoint verification precedes pending16-to-32 recovery.",
+      "scope": "Do not call interrupted16+16 recovery an uninterrupted32-update timing run. No further full nonpaged reference is admitted solely for timing. Paged reference32 and its recovery remain independent required work."
     }
   ],
   "resident_completion": {
@@ -118,6 +127,25 @@
       "predecessor": "38532517 terminal FAILED at checkpoint16; all other GPU jobs terminal",
       "validation": "Pinned33-test preflight; same32-update native reference; NCCL diagnostic logs; checkpoint16/32 and post-save zero transient-gradient accounting.",
       "policy": "No pressure-size or numerical change. Qualify the completed-boundary cleanup before admitting paged reference/recovery."
+    },
+    {
+      "job": "38534388",
+      "arm": "adamw_bnb_8bit reservation55 pending16-to32 recovery",
+      "results": "gr00t-pressure-eightbit55-recovery16-v1",
+      "source": "677e7e039012b40033e4ea137587619808d12a01",
+      "admitted_at_utc": "2026-11-14T12:24:18.154524+00:00",
+      "predecessor": "CPU38534235 completed:165 pinned tests and four equal full-checkpoint readers",
+      "source_checkpoint": "gr00t-pressure-eightbit55-v2 checkpoint16",
+      "preserved_original_receipts": "gr00t-pressure-eightbit55-v2-before-recovery/manifest.json",
+      "policy": "Same native output root required for pending-validation recovery on the tested Lustre mount; fresh result/memory/log directory. Match all learner/data state before updates, retain original16 windows byte-for-byte, continue through32 at55GiB. Not an uninterrupted32-update reference."
     }
-  ]
+  ],
+  "descriptor_cpu_admission": {
+    "job": "38534235",
+    "results": "action-tests-v16",
+    "gpus": 0,
+    "routing": "cpu_short",
+    "wall_minutes": 15,
+    "termination_grace_seconds": 60
+  }
 }

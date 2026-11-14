@@ -133,6 +133,24 @@
       "Preserve original control/evaluation/window receipts, then native same-output-root pending16-to-32 continuation at55GiB with exact pre-update learner/data checks",
       "Only after classification, finish independent paged reference/reload/resume and conditional migration diagnostic"
     ],
-    "cost_scope": "Two complete reads add publication I/O. This is a correctness change, not a runtime gain."
+    "cost_scope": "Two complete reads add publication I/O. This is a correctness change, not a runtime gain.",
+    "pinned_result": {
+      "job": "38534235",
+      "source": "677e7e039012b40033e4ea137587619808d12a01",
+      "tests_passed": 165,
+      "full_checkpoint_readers": 4,
+      "full_content_reads_per_reader": 2,
+      "all_reader_identities_equal": true,
+      "checkpoint_generation": "36ac2f65471010e18a0e2d4602b4db94db51a5913aee5396bb1241f651802ac7",
+      "seconds": [
+        26.294698212761432,
+        26.308449537027627,
+        26.299199962057173,
+        26.30474821990356
+      ],
+      "cpu_allocation_seconds_including_teardown": 272,
+      "raw": "raw/action-tests-v16",
+      "scope": "One real-checkpoint verification screen, shared filesystem cache; no speed claim."
+    }
   }
 }

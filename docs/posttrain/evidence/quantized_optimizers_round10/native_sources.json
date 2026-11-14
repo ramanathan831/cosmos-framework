@@ -245,5 +245,12 @@
     "archive_bytes": 7721393,
     "archive": "optimizer-native-runtime-v40.tar.gz",
     "scope": "tracked cosmos_framework/, tools/, pyproject.toml, .pytest.toml"
+  },
+  {
+    "revision": "677e7e039012b40033e4ea137587619808d12a01",
+    "archive_sha256": "3240fb4a24ea21594dea9f53b5a6c552348a2bc7b7615162a99e2a7f94cb575e",
+    "archive_bytes": 7722751,
+    "archive": "optimizer-native-runtime-v41.tar.gz",
+    "scope": "tracked cosmos_framework/, tools/, pyproject.toml, .pytest.toml"
   }
 ]

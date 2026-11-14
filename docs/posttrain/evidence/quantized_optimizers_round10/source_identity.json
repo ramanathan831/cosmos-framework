@@ -1,6 +1,6 @@
 {
   "starting_commit": "2516e9f1e9aecb0b68d6a21e27dd835f456109ab",
-  "current_implementation_parent": "36610372f48f1a692f363996458bcefc637eb12c",
+  "current_implementation_parent": "677e7e039012b40033e4ea137587619808d12a01",
   "sealed": false,
   "updated_at_utc": "2026-11-14T11:44:36.194579+00:00",
   "tested_native_source": {
@@ -25,14 +25,15 @@
     "alpagym_resolved_configuration": "859d07ae11346ce74a1838b1d7a2ef9680e7c5e2",
     "full_content_publication": "079bd0521359a8164875f2077c9e70d02ff7f022",
     "publication_symlink_guard": "ef9f69589595724c8d166bf699557a2223bb832c",
-    "joint_checkpoint_memory_cleanup": "36610372f48f1a692f363996458bcefc637eb12c"
+    "joint_checkpoint_memory_cleanup": "36610372f48f1a692f363996458bcefc637eb12c",
+    "descriptor_publication_verification": "677e7e039012b40033e4ea137587619808d12a01"
   },
   "current_file_sha256": {
     "cosmos_framework/posttrain/checkpoint/external_copy.py": "dc5a1f3dd873da5ed3a84cd160a61c2792695be85c5bb2db24bd3417df6312cb",
     "cosmos_framework/posttrain/checkpoint/manager.py": "75579633c2ea6282a23c50f005be4c9691e141b9fa2c3257718d18b2e60984d6",
     "cosmos_framework/posttrain/checkpoint/master_optimizer.py": "240a0b1f46312f5146bb8978c9b1a3ba24b48a109cfbadd593526df81ee50e07",
-    "cosmos_framework/posttrain/checkpoint/provenance.py": "eb6e8ef5b31119d6284044427a98d0bafdfe3fba52f719dd75efcec38fc0f587",
-    "cosmos_framework/posttrain/checkpoint/synchronized_stat.py": "3e282b93c099d2daa8d22d226eb56a02dd4f99263495c2eb614cadbaf896389c",
+    "cosmos_framework/posttrain/checkpoint/provenance.py": "d62fd23af629171ed62562b5be8e5f6183c98ff69629ac66cbe3be0ed663e677",
+    "cosmos_framework/posttrain/checkpoint/synchronized_stat.py": "cce5c1fa52062613bf55097ddb1007966c36d7520fe641a363a752a52160bd06",
     "cosmos_framework/posttrain/config/build.py": "fd56e7d1ad7d28f89afbfc565b4847e7ad96de445e96993a14db536513c33522",
     "cosmos_framework/posttrain/config/model.py": "cbbec9a7471ed4aa28ea604c9200cdf16d3647dd28d78f26b0533261989662a1",
     "cosmos_framework/posttrain/config/rl.py": "08b13be5d4558c9cdf2c11d99f8d45d6353cafb0f75cad9861c5933785f0392e",
@@ -75,13 +76,14 @@
     "vllm_omni_revision": "2d0b1d8a29ff686698dbf0a123ca15be20fb0a8f"
   },
   "model_revision": "2ea293aa20ba7cf5bbf3ba17a5fbcb1a01cbfe21",
-  "scope": "Latest source-v40 is admitted for corrected native pressure validation; completed80-update and40-to-80 evidence uses source-v39. Only Joint PPO checkpoint buffer cleanup changed. SFT and optimizer math/state ownership are unchanged. Alpa native runtime remains unavailable.",
+  "scope": "Source-v41 is pending pinned CPU and native publication qualification. Source-v40 checkpoint-memory cleanup passed DCP write and evaluation under55GiB but failed the subsequent publication mutation guard. Earlier source-v39 native recovery remains retained; no final quality study admitted.",
   "unchanged_wts_final_protocol_sha256": "aff3b3d9e32418a784f894de24e645bf72692fb18d2e5f9603c0a3d0d5faad65",
   "candidate_native_source": {
-    "revision": "36610372f48f1a692f363996458bcefc637eb12c",
-    "archive_sha256": "abf982cae526d77b3d19f7655d0bd0fd01d982bfdba45a0597bec27c583bb9cd",
-    "archive_bytes": 7721393,
-    "archive": "optimizer-native-runtime-v40.tar.gz",
+    "revision": "677e7e039012b40033e4ea137587619808d12a01",
+    "archive_sha256": "3240fb4a24ea21594dea9f53b5a6c552348a2bc7b7615162a99e2a7f94cb575e",
+    "archive_bytes": 7722751,
+    "archive": "optimizer-native-runtime-v41.tar.gz",
     "scope": "tracked cosmos_framework/, tools/, pyproject.toml, .pytest.toml"
-  }
+  },
+  "candidate_validation": "165 pinned tests and four-reader actual-checkpoint verification passed; native pending16-to32 pressure recovery38534388 admitted."
 }
