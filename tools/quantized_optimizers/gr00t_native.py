@@ -4,6 +4,7 @@ This first eight-window run is an integration gate, not task-quality selection.
 Native evaluation, source validation, rollout and checkpoint paths stay enabled.
 """
 
+import argparse
 import importlib.metadata
 import json
 import os
@@ -16,6 +17,13 @@ from pathlib import Path
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--optimizer", choices=("adamw", "adamw_bnb_8bit", "paged_adamw_8bit"), default="adamw")
+    parser.add_argument("--resume", default="")
+    parser.add_argument("--updates", type=int, default=8)
+    args = parser.parse_args()
+    if args.updates < 1:
+        parser.error("updates must be positive")
     root, output = Path(os.environ["RESOURCE_ROOT"]), Path(os.environ["RESULTS"])
     expected = {"numpy": "1.26.4", "transformers": "4.57.6", "diffusers": "0.35.1", "bitsandbytes": "0.49.2"}
     actual = {name: importlib.metadata.version(name) for name in expected}
@@ -81,17 +89,19 @@ def main():
     ]
     overrides = [
         f"model.checkpoint_path={assets / 'model'}",
-        "rl.max_steps=8",
+        f"rl.max_steps={args.updates}",
         "rl.save_every=4",
         "rl.keep_optim_last=0",
         "rl.keep_model_last=0",
         "rl.validation.every_steps=4",
         "rl.seed=17",
         "rl.run_ts=integration",
-        "rl.optimizer.name=adamw",
-        "rl.optimizer.impl=fused",
-        "job.name=gr00t-master-fused",
+        f"rl.optimizer.name={args.optimizer}",
+        f"rl.optimizer.impl={'fused' if args.optimizer == 'adamw' else ''}",
+        f"job.name=gr00t-master-{args.optimizer}",
     ]
+    if args.resume:
+        overrides.append(f"rl.resume={args.resume}")
     (output / "command.json").write_text(json.dumps(command + ["--", *overrides], indent=2))
     subprocess.run(command + ["--validate-manifest", "--", *overrides], check=True)
     import pynvml

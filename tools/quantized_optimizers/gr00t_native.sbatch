@@ -17,6 +17,7 @@ date -u +%FT%TZ > "$RESULTS/allocation-start.txt"
 scontrol show job "$SLURM_JOB_ID" > "$RESULTS/job.txt"
 trap 'status=$?; echo "$status" > "$RESULTS/exit-code.txt"; date -u +%FT%TZ > "$RESULTS/allocation-end.txt"' EXIT
 export SLURM_LOG_DIR="$RESULTS"
+export OPTIMIZER_NAME="${OPTIMIZER_NAME:-adamw}" RESUME_CHECKPOINT="${RESUME_CHECKPOINT:-}" UPDATES="${UPDATES:-8}"
 trap 'touch "$SLURM_LOG_DIR/SIGUSR1_RECEIVED"' USR1
 closure="$RESOURCE_ROOT/cosmos-adapter-all-family-2node-20261111/runtime-pi05-sim-closure-v1-attempt01/payload/rootfs"
 family=/localhome/local-rarunachalam/cosmos-adapter-all-family-2node-20261111
@@ -28,7 +29,7 @@ for lib in libEGL.so.1 libGLdispatch.so.0 libOpenGL.so.0; do
 done
 export NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics,display
 srun --kill-on-bad-exit=1 --container-image="$CONTAINER_IMAGE" --container-mounts="$mounts" \
- --container-env=SOURCE_ARCHIVE,RESULTS,RESOURCE_ROOT,MODEL_PYTHON,NVIDIA_DRIVER_CAPABILITIES,SLURM_LOG_DIR \
+ --container-env=SOURCE_ARCHIVE,RESULTS,RESOURCE_ROOT,MODEL_PYTHON,NVIDIA_DRIVER_CAPABILITIES,SLURM_LOG_DIR,OPTIMIZER_NAME,RESUME_CHECKPOINT,UPDATES \
  --container-workdir=/tmp --container-writable bash -c '
 set -euo pipefail
 source_dir=$(mktemp -d /tmp/optimizer-gr00t.XXXXXX)
@@ -45,7 +46,7 @@ export IMAGINAIRE_OUTPUT_ROOT="$RESULTS/runs" __EGL_VENDOR_LIBRARY_FILENAMES="$R
 mkdir -p "$RAY_TMPDIR" "$B1K_SIM_IPC_DIR" "$B1K_SHM_DIR"
 cd "$source_dir"
 nvidia-smi --query-gpu=name,memory.total,uuid --format=csv > "$RESULTS/devices.csv"
-python -m tools.quantized_optimizers.gr00t_native
+python -m tools.quantized_optimizers.gr00t_native --optimizer "$OPTIMIZER_NAME" --resume "$RESUME_CHECKPOINT" --updates "$UPDATES"
 ' &
 step_pid=$!
 set +e
