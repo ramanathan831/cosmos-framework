@@ -185,6 +185,38 @@ def prepare_sources(config):
     return train, validation
 
 
+def training_identity(config, rl, objective, validation):
+    """Bind resolved native configuration, including OmegaConf container leaves."""
+    import torch
+
+    from cosmos_framework.posttrain.utils.identity import canonical_config_value
+
+    return canonical_config_value(
+        {
+            "format": "cosmos-native-action-sft-v1",
+            "factories": _factory_identity(config),
+            "objective": objective.identity,
+            "validation": validation.identity,
+            "seed": rl.seed,
+            "max_steps": rl.max_steps,
+            "runtime": {
+                "deterministic_algorithms": torch.are_deterministic_algorithms_enabled(),
+                "deterministic_warn_only": torch.is_deterministic_algorithms_warn_only_enabled(),
+                "matmul_allow_tf32": torch.backends.cuda.matmul.allow_tf32,
+                "cudnn_allow_tf32": torch.backends.cudnn.allow_tf32,
+                "cublas_workspace_config": os.environ.get("CUBLAS_WORKSPACE_CONFIG"),
+                "optimizer_state_dtype": "float32",
+            },
+            "optimizer": asdict(rl.optimizer),
+            "lr_schedule": asdict(rl.lr_schedule),
+            "evaluation_every": rl.evaluation_every,
+            "evaluation_seed": rl.evaluation_seed,
+            "evaluation_max_samples": rl.evaluation_max_samples,
+            "target": [rl.target_metric, rl.target_threshold, rl.target_direction, rl.stop_on_target],
+        }
+    )
+
+
 def run(config, *, config_path: str, opts: list[str]):
     import torch
     import torch.distributed as dist
@@ -235,28 +267,7 @@ def run(config, *, config_path: str, opts: list[str]):
         "micro_batch_size": rl.micro_batch_size,
     }
     callback = _factory(config.evaluation_callback) if config.evaluation_callback else None
-    training_contract = {
-        "format": "cosmos-native-action-sft-v1",
-        "factories": _factory_identity(config),
-        "objective": objective.identity,
-        "validation": validation.identity,
-        "seed": rl.seed,
-        "max_steps": rl.max_steps,
-        "runtime": {
-            "deterministic_algorithms": torch.are_deterministic_algorithms_enabled(),
-            "deterministic_warn_only": torch.is_deterministic_algorithms_warn_only_enabled(),
-            "matmul_allow_tf32": torch.backends.cuda.matmul.allow_tf32,
-            "cudnn_allow_tf32": torch.backends.cudnn.allow_tf32,
-            "cublas_workspace_config": os.environ.get("CUBLAS_WORKSPACE_CONFIG"),
-            "optimizer_state_dtype": "float32",
-        },
-        "optimizer": asdict(rl.optimizer),
-        "lr_schedule": asdict(rl.lr_schedule),
-        "evaluation_every": rl.evaluation_every,
-        "evaluation_seed": rl.evaluation_seed,
-        "evaluation_max_samples": rl.evaluation_max_samples,
-        "target": [rl.target_metric, rl.target_threshold, rl.target_direction, rl.stop_on_target],
-    }
+    training_contract = training_identity(config, rl, objective, validation)
     codec.bind_training_identity(training_contract)
     optimizer = build_optimizer(policy.net, rl.optimizer)
     codec.assert_live(optimizer=optimizer)

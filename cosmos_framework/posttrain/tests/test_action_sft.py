@@ -22,6 +22,36 @@ from cosmos_framework.posttrain.roles.trainer.llm import LLMTrainer
 pytestmark = [pytest.mark.L0, pytest.mark.CPU]
 
 
+@pytest.mark.parametrize("recipe", ["sft_alpamayo_qlora", "gr00t_n1d7_libero_qlora"])
+def test_actual_native_recipe_training_identity_is_finite_json_and_binds_optimizer(recipe, monkeypatch):
+    """CLI construction retains ListConfig leaves inside instantiated dataclasses."""
+    import json
+
+    from cosmos_framework.posttrain.entrypoints.action_sft import training_identity, validate_config
+    from cosmos_framework.utils.config import load_config
+
+    native = load_config(f"cosmos_framework/posttrain/configs/{recipe}.py", ["--", "rl.optimizer.lr=0.0002"])
+    rl = validate_config(native)
+    # Factory source hashing is separately exercised in the pinned family runtime;
+    # serialization of the shared config must also be testable without that optional runtime.
+    monkeypatch.setattr(
+        "cosmos_framework.posttrain.entrypoints.action_sft._factory_identity",
+        lambda config: {"policy_factory": config.policy_factory},
+    )
+    objective = SimpleNamespace(identity={"format": "native-task-fixture"})
+    validation = SimpleNamespace(identity={"sha256": "a" * 64})
+    identity = training_identity(native, rl, objective, validation)
+    encoded = json.dumps(identity, sort_keys=True, allow_nan=False)
+    assert json.loads(encoded) == identity
+    assert identity["optimizer"]["betas"] == [0.9, 0.999]
+    assert identity["optimizer"]["lr"] == 0.0002
+    assert identity["optimizer"]["train_keys"] == []
+    assert identity["objective"] == objective.identity
+    assert identity["validation"] == validation.identity
+    rl.optimizer.lr = 0.0001
+    assert training_identity(native, rl, objective, validation) != identity
+
+
 def assert_state_equal(left, right):
     if isinstance(left, torch.Tensor):
         torch.testing.assert_close(left, right, atol=0, rtol=0)
