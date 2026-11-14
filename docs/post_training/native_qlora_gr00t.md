@@ -613,3 +613,13 @@ tensors and unchanged native model/scorer/codec hashes; this gate does not claim
 a new fresh-process reload. It consumed 1,403 GPU-seconds, with incomplete host-PSS
 sampling retained. Alpamayo full-model parity and sustained unprofiled workflow
 benefit remain promotion gates; selected family training still uses `4cba88f`.
+
+
+The first sustained timing attempt (`38527266`) failed before model loading, using
+66 GPU-seconds. Python's native-source working directory shadowed the separately
+hashed measurement package; the observer identity guard correctly refused it.
+The versioned dispatch correction sets Python safe-path mode and explicit observer
+sibling imports for both native builds and the final comparison. All scientific,
+training and observer code, target and acceptance gates remain unchanged. Sixty-one
+CPU checks reproduced the failure and verified corrected parent, child and monitor
+imports. Replacement `38528318` is pending qualification; admission is not a speed result.

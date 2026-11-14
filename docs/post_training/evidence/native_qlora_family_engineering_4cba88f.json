@@ -13332,6 +13332,35 @@
         "Task-quality improvement and fixed-target attainment",
         "Independent recording-family confirmation"
       ]
+    },
+    "38527266": {
+      "family": "gr00t",
+      "slurm_state": "FAILED",
+      "exit_code": "1:0",
+      "allocation_gpu_seconds": 66,
+      "scope": "First finite timing attempt stopped in observer source-path preflight before GPU probe/model/data/training. Zero native updates and no performance or quality outcome.",
+      "receipt": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/finite-dispatch-failure-38527266.json",
+        "sha256": "d6882b80fedc74623ebf62e1ab9549fa337469e23651199140f86d76cfb0970b"
+      },
+      "cause": "Python stdin/module launch from native-source cwd selected the old regular tools.native_qlora_qualification package before the intended PYTHONPATH observer overlay. The retained source-path guard correctly refused monitor_host.",
+      "correction": {
+        "format": "dispatch-only-v3",
+        "payload_manifest_sha256": "91ea7fabf1f8fb06e2f35ac6f81c526d3d2fd27306ced898ba16b83b21b0bf5b",
+        "payload_archive_sha256": "7b9dd0e475bdac69a9c06daa624483eb64c2e3cfa84b1d7845a946d392ae09df",
+        "scientific_protocol_sha256": "70d0722b69758491afb66139d4dfa5ed10c8e95de9d0aed09af096da2d1e2e46",
+        "behavior": "PYTHONSAFEPATH=1 plus explicit native source, observer namespace and direct-monitor sibling imports in every launch and final CPU comparison. No guard bypass.",
+        "unchanged": "Native4c/3c builds, all10 observer modules, scientific workers/analysis, data, optimizer, target, order and performance/memory/quality gates.",
+        "cpu_validation": {
+          "passed": 61,
+          "seconds": 86.39,
+          "scope": "Both native-source cwd failure reproductions, safe parent/child/CLI/config imports, absolute monitor sibling imports through a CPU NVML sentinel, and unchanged contract checks. No GPU behavior inferred.",
+          "receipt_sha256": "d84c4319e99568926b279015eb982566d06d5c2648f09842376ee8433c5122aa",
+          "receipt_kind": "Retained summary of actual peer tool stdout; full pytest log was not redirected."
+        },
+        "replacement_job": 38528318,
+        "replacement_results": "Pending; no pass or speed claim from admission."
+      }
     }
   },
   "read_only_head_memory_diagnostic": {
