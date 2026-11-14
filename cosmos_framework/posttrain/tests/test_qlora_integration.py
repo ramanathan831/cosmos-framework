@@ -21,6 +21,7 @@ from cosmos_framework.posttrain.tests.qlora_integration import (
     _restore_probe_execution,
     inspect_checkpoint,
     interrupt_native,
+    validate_checkpoint_controls,
 )
 from cosmos_framework.posttrain.utils.qlora_metrics import record_qlora_phase
 
@@ -46,15 +47,30 @@ def test_checkpoint_inspection_reads_real_dcp_controls_without_constructing_base
         inspect_checkpoint(str(path), expected_step=1)
 
 
-def _native_action_checkpoint(tmp_path):
+def _native_action_checkpoint(tmp_path, *, warmup_steps=0, schedule_kind="constant"):
+    from dataclasses import asdict
+
     from cosmos_framework.posttrain.algorithm.primitives.objective import Objective, Reduction
+    from cosmos_framework.posttrain.config.build import build_sft_lr_scheduler
+    from cosmos_framework.posttrain.config.rl import OptimizerConfig
+    from cosmos_framework.posttrain.config.sft import SFTLRScheduleConfig
     from cosmos_framework.posttrain.roles.trainer.llm import LLMTrainer
     from cosmos_framework.posttrain.tests.test_family_backbone import TaskPolicy, batch, install
     from cosmos_framework.posttrain.utils.rank_state import collect_rank_state
 
     net = TaskPolicy()
     family = install(net)
-    family.codec.bind_training_identity({"format": "cosmos-native-action-sft-v1", "seed": 17})
+    opt_config = OptimizerConfig(warmup_steps=warmup_steps)
+    schedule = SFTLRScheduleConfig(kind=schedule_kind)
+    family.codec.bind_training_identity(
+        {
+            "format": "cosmos-native-action-sft-v1",
+            "seed": 17,
+            "max_steps": 10,
+            "optimizer": asdict(opt_config),
+            "lr_schedule": asdict(schedule),
+        }
+    )
     optimizer = torch.optim.AdamW(family.codec.parameters.values(), lr=0.01)
 
     def objective(policy, unused):
@@ -65,7 +81,7 @@ def _native_action_checkpoint(tmp_path):
         SimpleNamespace(net=net),
         Objective(objective, reduction=Reduction.MEAN),
         optimizer,
-        lr_scheduler=torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.9),
+        lr_scheduler=build_sft_lr_scheduler(optimizer, opt_config, schedule, 10),
         checkpoint_format="dcp",
     )
     trainer.train([None])
@@ -83,13 +99,36 @@ def _native_action_checkpoint(tmp_path):
     return path
 
 
-def test_native_action_inspection_reads_real_family_dcp_and_its_own_evaluation_state(tmp_path):
-    path = _native_action_checkpoint(tmp_path)
-    assert "validation" not in torch.load(path / "trainer.pt", weights_only=False)
+@pytest.mark.parametrize("kind,warmup", [("constant", 0), ("constant", 2), ("cosine", 0)])
+def test_native_action_inspection_reads_real_family_dcp_and_its_own_evaluation_state(tmp_path, kind, warmup):
+    path = _native_action_checkpoint(tmp_path, schedule_kind=kind, warmup_steps=warmup)
+    trainer = torch.load(path / "trainer.pt", weights_only=False)
+    assert "validation" not in trainer
+    assert ("lr_scheduler" in trainer) == (kind != "constant" or warmup > 0)
     result = inspect_checkpoint(str(path), expected_step=1)
     assert result["healthy_completed_boundary"]
     assert result["model_identity"]["format"] == "cosmos.family-backbone.v1"
     assert "head.weight" in result["parameters"]
+
+
+@pytest.mark.parametrize("failure", ["missing", "class", "clock", "unexpected", "contract"])
+def test_native_action_control_validation_binds_scheduler_presence_to_recorded_factory(tmp_path, failure):
+    path = _native_action_checkpoint(tmp_path, warmup_steps=0 if failure == "unexpected" else 2)
+    metadata = torch.load(path / "model_metadata.pt", weights_only=True)
+    state = torch.load(path / "trainer.pt", weights_only=False)
+    data = torch.load(path / "data.pt", weights_only=False)
+    if failure == "missing":
+        del state["lr_scheduler"]
+    elif failure == "class":
+        state["adapter_training"]["scheduler_class"] = None
+    elif failure == "clock":
+        state["lr_scheduler_clock"] = "optimizer_step"
+    elif failure == "unexpected":
+        state["lr_scheduler"] = {"last_epoch": 1}
+    else:
+        del metadata["identity"]["training_contract"]["optimizer"]["warmup_steps"]
+    with pytest.raises(ValueError, match="scheduler"):
+        validate_checkpoint_controls(metadata, state, data, expected_step=1)
 
 
 @pytest.mark.parametrize("failure", ["missing", "future", "duplicate", "nonfinite", "cursor"])

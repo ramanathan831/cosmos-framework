@@ -88,6 +88,115 @@ def _rank_process_snapshot() -> dict[str, Any]:
     return {"rank": rank, "descendants": descendants}
 
 
+def validate_checkpoint_controls(
+    metadata: dict, state: dict, data: Any, *, expected_step: int | None = None
+) -> dict[str, Any]:
+    """Validate trusted small controls only; this does not establish DCP publication/tensor integrity.
+
+    Kept separate so retained native controls can be checked without fabricating
+    a checkpoint directory or transferring the full trained tensor payload.
+    """
+    if not isinstance(state, dict) or data is None:
+        raise ValueError("checkpoint requires trainer and data state")
+    step = state.get("optimizer_step")
+    if type(step) is not int or step < 1 or (expected_step is not None and step != expected_step):
+        raise ValueError("checkpoint optimizer step differs from the requested boundary")
+    if any(
+        state.get(key) != value
+        for key, value in {
+            "iter": step,
+            "attempt_id": step,
+            "accum": 0,
+            "n_mini": 1,
+            "nonfinite_skips_total": 0,
+            "nonfinite_skips_consecutive": 0,
+        }.items()
+    ):
+        raise ValueError("checkpoint is not a healthy completed optimizer boundary")
+    if state.get("zero_grad_skips_total", 0) != 0:
+        raise ValueError("checkpoint contains skipped zero-gradient updates")
+    # Native action SFT commits its family-owned evaluation history in the
+    # rank-bound data component. It does not configure the separate Qwen
+    # resident-validation controller. Dispatch only on the explicit family
+    # and training formats; all existing Qwen checks remain mandatory.
+    native_action = metadata["identity"].get("format") == "cosmos.family-backbone.v1"
+    if native_action:
+        from cosmos_framework.posttrain.utils.rank_state import state_for_current_rank
+
+        if metadata["identity"].get("training_contract", {}).get("format") != "cosmos-native-action-sft-v1":
+            raise ValueError("family checkpoint requires its native action training contract")
+        action_data = state_for_current_rank(data)
+        if (
+            not isinstance(action_data, dict)
+            or action_data.get("format") != "action-sft-state-v1"
+            or not isinstance(action_data.get("cursor"), dict)
+        ):
+            raise ValueError("family checkpoint requires the native action cursor and evaluation state")
+        history = action_data.get("evaluation")
+        if not isinstance(history, list) or not history:
+            raise ValueError("family checkpoint requires completed native action evaluation history")
+        steps = []
+        for record in history:
+            if (
+                not isinstance(record, dict)
+                or set(record) != {"step", "metrics"}
+                or type(record["step"]) is not int
+                or not 0 <= record["step"] <= step
+                or not isinstance(record["metrics"], dict)
+                or not record["metrics"]
+                or any(
+                    type(value) not in (int, float) or not math.isfinite(value) for value in record["metrics"].values()
+                )
+            ):
+                raise ValueError("family checkpoint has invalid native action evaluation history")
+            steps.append(record["step"])
+        if steps != sorted(set(steps)):
+            raise ValueError("family checkpoint native action evaluation steps must increase")
+        if state.get("validation") is not None:
+            raise ValueError("native action checkpoint unexpectedly carries the separate Qwen validation controller")
+    else:
+        validation = state.get("validation")
+        if (
+            not isinstance(validation, dict)
+            or validation["progress"]["pending_step"] is not None
+            or validation.get("publication") is not None
+        ):
+            raise ValueError("checkpoint requires completed validation and publication")
+    if not all(key in state for key in ("rng", "objective_identity", "adapter_training")):
+        raise ValueError("checkpoint is missing required exact-resume controls")
+    if native_action:
+        contract = metadata["identity"]["training_contract"]
+        schedule = contract.get("lr_schedule")
+        optimizer = contract.get("optimizer")
+        policy = state["adapter_training"]
+        if (
+            not isinstance(schedule, dict)
+            or schedule.get("kind") not in {"constant", "cosine"}
+            or not isinstance(optimizer, dict)
+            or type(optimizer.get("warmup_steps")) is not int
+            or optimizer["warmup_steps"] < 0
+            or not isinstance(policy, dict)
+            or "scheduler_class" not in policy
+        ):
+            raise ValueError(
+                "native action checkpoint requires its explicit scheduler configuration and engine identity"
+            )
+        scheduled = schedule["kind"] != "constant" or optimizer["warmup_steps"] > 0
+        if not scheduled:
+            if policy["scheduler_class"] is not None or "lr_scheduler" in state or "lr_scheduler_clock" in state:
+                raise ValueError("native action constant/no-warmup contract requires no scheduler or scheduler state")
+        elif (
+            policy["scheduler_class"] != "torch.optim.lr_scheduler.LambdaLR"
+            or not isinstance(state.get("lr_scheduler"), dict)
+            or not state["lr_scheduler"]
+            or state.get("lr_scheduler_clock") != "batch"
+        ):
+            raise ValueError("native action checkpoint is missing compatible required scheduler state")
+    elif "lr_scheduler" not in state:
+        raise ValueError("checkpoint is missing required exact-resume controls")
+    return {"optimizer_step": step, "native_action": native_action}
+
+
 def inspect_checkpoint(path: str, *, expected_step: int | None = None) -> dict[str, Any]:
     """Inspect an explicit, own-run adapter checkpoint without constructing its base.
 
@@ -107,77 +216,7 @@ def inspect_checkpoint(path: str, *, expected_step: int | None = None) -> dict[s
         metadata = read_adapter_metadata(explicit, require_resume=True, manager=manager)
         state = manager.load_component(explicit, "trainer")
         data = manager.load_component(explicit, "data")
-        if not isinstance(state, dict) or data is None:
-            raise ValueError("checkpoint requires trainer and data state")
-        step = state.get("optimizer_step")
-        if type(step) is not int or step < 1 or (expected_step is not None and step != expected_step):
-            raise ValueError("checkpoint optimizer step differs from the requested boundary")
-        if any(
-            state.get(key) != value
-            for key, value in {
-                "iter": step,
-                "attempt_id": step,
-                "accum": 0,
-                "n_mini": 1,
-                "nonfinite_skips_total": 0,
-                "nonfinite_skips_consecutive": 0,
-            }.items()
-        ):
-            raise ValueError("checkpoint is not a healthy completed optimizer boundary")
-        if state.get("zero_grad_skips_total", 0) != 0:
-            raise ValueError("checkpoint contains skipped zero-gradient updates")
-        # Native action SFT commits its family-owned evaluation history in the
-        # rank-bound data component. It does not configure the separate Qwen
-        # resident-validation controller. Dispatch only on the explicit family
-        # and training formats; all existing Qwen checks remain mandatory.
-        native_action = metadata["identity"].get("format") == "cosmos.family-backbone.v1"
-        if native_action:
-            from cosmos_framework.posttrain.utils.rank_state import state_for_current_rank
-
-            if metadata["identity"].get("training_contract", {}).get("format") != "cosmos-native-action-sft-v1":
-                raise ValueError("family checkpoint requires its native action training contract")
-            action_data = state_for_current_rank(data)
-            if (
-                not isinstance(action_data, dict)
-                or action_data.get("format") != "action-sft-state-v1"
-                or not isinstance(action_data.get("cursor"), dict)
-            ):
-                raise ValueError("family checkpoint requires the native action cursor and evaluation state")
-            history = action_data.get("evaluation")
-            if not isinstance(history, list) or not history:
-                raise ValueError("family checkpoint requires completed native action evaluation history")
-            steps = []
-            for record in history:
-                if (
-                    not isinstance(record, dict)
-                    or set(record) != {"step", "metrics"}
-                    or type(record["step"]) is not int
-                    or not 0 <= record["step"] <= step
-                    or not isinstance(record["metrics"], dict)
-                    or not record["metrics"]
-                    or any(
-                        type(value) not in (int, float) or not math.isfinite(value)
-                        for value in record["metrics"].values()
-                    )
-                ):
-                    raise ValueError("family checkpoint has invalid native action evaluation history")
-                steps.append(record["step"])
-            if steps != sorted(set(steps)):
-                raise ValueError("family checkpoint native action evaluation steps must increase")
-            if state.get("validation") is not None:
-                raise ValueError(
-                    "native action checkpoint unexpectedly carries the separate Qwen validation controller"
-                )
-        else:
-            validation = state.get("validation")
-            if (
-                not isinstance(validation, dict)
-                or validation["progress"]["pending_step"] is not None
-                or validation.get("publication") is not None
-            ):
-                raise ValueError("checkpoint requires completed validation and publication")
-        if not all(key in state for key in ("rng", "lr_scheduler", "objective_identity", "adapter_training")):
-            raise ValueError("checkpoint is missing required exact-resume controls")
+        step = validate_checkpoint_controls(metadata, state, data, expected_step=expected_step)["optimizer_step"]
         return {
             "path": explicit,
             "optimizer_step": step,
