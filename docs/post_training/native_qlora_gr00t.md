@@ -290,6 +290,59 @@ contains clocks, phase distinctions, task diagnostics, identities and failed tar
 Episode, row and media-content splits are disjoint.
 These previously exposed episodes provide development evidence, not independent confirmation.
 
+The bounded **LR `1e-5` screen completed** in job `38515136` on the same sealed
+native `4cba88f` implementation. Reducing LR was the only learning change for all
+three arms. The launcher also explicitly requested and verified 16 logical CPUs;
+therefore timing differences from the earlier two-CPU run are not attributed to LR.
+All 900 updates applied, with zero nonfinite/skipped updates, exact fresh portable
+primary scores, and 112/110/106 clipped updates for NF4/BF16-LoRA/BF16-head.
+Each arm first reached the unchanged target at update 200 after verified publication.
+
+| Mode | Update 300 action MSE | Time to target, including launch preflight | Native workflow | Workflow with three fresh scores | Sampled GPU-process peak |
+|---|---:|---:|---:|---:|---:|
+| NF4 LoRA + head | 0.04154305 | 519.39 s | 620.85 s | 1191.01 s | 30.412 GiB |
+| BF16 LoRA + head | 0.04244151 | 499.52 s | 588.84 s | 1147.34 s | 31.516 GiB |
+| BF16 head-only | 0.03983719 | 432.40 s | 488.65 s | 1005.88 s | 31.154 GiB |
+
+Updates 101–300 averaged 0.4913/0.4527/0.3162 s in the table's order. Native
+workflow includes preparation, all scheduled validation/checkpointing and portable
+export; the next column adds the fixed fresh-process scores at noise seeds
+123/456/789 and wrapper costs. Only seed 123 supplies the primary quality metric.
+The complete allocation consumed 3,358 GPU-seconds, including shared setup/teardown.
+Source calibration and the earlier failed learning trial remain additional costs.
+
+NF4's MSE point estimate is 2.12% below matched BF16 LoRA at the same 300 updates,
+but its preflight-inclusive time to target is 3.98% longer. The head-only control
+is stronger on both metrics. These single-seed, fixed-order development results
+pass the prospective screen for considering further qualification; they establish
+neither recipe noninferiority nor superiority at equal training compute. The sampled
+1.104 GiB saving is only about 3.5% of the matched BF16 peak. The 805,306,368 eligible
+language weights permit at most 1.125 GiB of raw BF16-to-four-bit weight saving before
+metadata; full FP32 head training dominates the footprint. Substantial total-memory
+savings remain an unmet GR00T requirement for this policy.
+
+All three arms retain incomplete host-PSS samples during native process teardown
+(2/851, 1/818 and 1/712 respectively); measured peaks remain lower bounds.
+NF4's decoded gripper MAE improves, while its decoded x/y/z MAEs increase relative
+to its source. This decomposition of decoded MAE does not decompose normalized MSE
+or establish rollout behavior. The frozen 100-case simulator check is the next
+task-behavior gate before more learning seeds. The previous LR `1e-4` failures,
+unchanged quality margins and independent-confirmation requirement remain intact.
+
+To reproduce this screen through the native training command above, use the
+admitted `gr00t-development-v1` JSONL files and these overrides in **each** arm:
+
+```text
+rl.optimizer.lr=1e-5 rl.optimizer.weight_decay=1e-5 rl.optimizer.grad_clip_norm=1.0
+rl.max_steps=300 rl.evaluation_every=100 rl.save_every=100 rl.seed=17
+rl.target_metric=normalized_action_mse rl.target_threshold=0.049561327725898344
+rl.target_direction=min rl.stop_on_target=false
+```
+
+The numeric target is bound to that cohort and its recorded frozen-source scoring;
+it is not a universal target for other data. Select `nf4_lora`, `bf16_lora` or
+`bf16_frozen` explicitly. No optimizer-precision change is included.
+
 Before either LoRA candidate runs, use native `action_eval --base` with `mode=bf16_frozen` and
 `rl.evaluation_seed=123` on the locked validation cohort. Freeze the offline action-quality target
 as `0.90 * M0`, where `M0` is that original source model's `normalized_action_mse`; record the

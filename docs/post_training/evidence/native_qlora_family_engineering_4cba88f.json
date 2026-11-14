@@ -3024,6 +3024,2608 @@
         },
         "scope": "Sampled whole diagnostic allocation peak across both arms; lower bound, not a per-arm or serving/training benchmark."
       }
+    },
+    "38515136": {
+      "state": "COMPLETED",
+      "allocated_gpu_seconds": 3358,
+      "implementation_revision": "4cba88f4d84ce69037c194e58670e8491388a36d",
+      "scope": "One seed17 development LR1e-5 screen. No recipe CI, untouched confirmation, closed-loop quality or inference speed claim. Original LR1e-4 result remains negative.",
+      "receipt": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-lr1e5-38515136-summary.json",
+        "sha256": "b0ee5e289a401f03ba3ec4d2e5d25d8eb4e094d550c90543bf88b62dabccc885"
+      },
+      "full_receipt": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-lr1e5-38515136-receipts.json",
+        "sha256": "6063b3e9264e5880b6713d47c3321d0fa6610739b7256dfc19730597db998e1a"
+      },
+      "screen_decision": {
+        "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/screen-decision.json",
+        "sha256": "514b001323cfefa28b6f238bda27ffb9a959f8ff65cdfbfe5d77ea451c042084",
+        "value": {
+          "claim_limit": "Development point screen only; no recipe noninferiority, closed-loop, independent-data, superiority or release qualification claim.",
+          "decision": "eligible for a separately bounded paired-seed study",
+          "endpoints": {
+            "bf16_frozen": 0.03983719464291685,
+            "bf16_lora": 0.04244151129986026,
+            "nf4_lora": 0.04154304856035326
+          },
+          "format": "native-gr00t-lr-screen-decision-v1",
+          "learning_rate": 1e-05,
+          "native_correctness_reload_and_measurement_gates": true,
+          "nf4_bf16_ratio": 0.9788305667731969,
+          "paired_precision_point_gate": true,
+          "promote_to_consideration_of_paired_seeds": true,
+          "protocol_sha256": "73f8317442a222a6cb78b543b77a11fa160daf02726a2399f0d4c0bcefe492c9",
+          "retained_results": {
+            "bf16_frozen": {
+              "path": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_frozen/development/development-result.json",
+              "sha256": "2cdf4683a1fa3462731ea2587bab4329a6760881f324273be79c38755173d328"
+            },
+            "bf16_lora": {
+              "path": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_lora/development/development-result.json",
+              "sha256": "cd5342eec039e15d951f5ad6e39afbb94419dfb37a76b210ec3cfb34050a17a6"
+            },
+            "nf4_lora": {
+              "path": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/nf4_lora/development/development-result.json",
+              "sha256": "94f9abc4b92b79dab9ddbc0c0f434fe0e09a96514300787f148ea27a7d031779"
+            }
+          },
+          "seed": 17,
+          "target_sha256": "eff946f62dbdc9c57f61ac96f03f13640baaf5bee4695d9fd1381830b95e4534",
+          "useful_adaptation_point_gate": true
+        }
+      },
+      "cohort_sha256": "c726e37725c2d4be88efb17e8f96b956d018a07db9f72bde1f6825084392dd00",
+      "supervision": {
+        "dimensions": 7,
+        "elements_per_row": 70,
+        "executed_horizon": 8,
+        "native_decoded_horizon": 16,
+        "valid_supervised_actions": 10
+      },
+      "pair_result_sha256": "322248659af79b9aff2b54df18cae3c885c9c6fbb696769d8d5025405c7f1e5a",
+      "order": [
+        "nf4_lora",
+        "bf16_lora",
+        "bf16_frozen"
+      ],
+      "pair_timing_scope": "Each native workflow includes its cold srun/container startup from a host monotonic clock. Allocation duration also includes teardown and between-case receipt work. OS/filesystem caches are not flushed or claimed cold.",
+      "arms": {
+        "bf16_frozen": {
+          "result_sha256": "2cdf4683a1fa3462731ea2587bab4329a6760881f324273be79c38755173d328",
+          "completion_sha256": "5785a5610846e1221320bca8cc0389c7572bc0ab7da7d452db84be62b8abe786",
+          "metrics_sha256": "be4de22babacf68e4bf969d602be2f74b0cb58df785f4f11777ff979deb78055",
+          "runtime": {
+            "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_frozen/runtime.json",
+            "sha256": "5272d13c21801b7fd732e709b7d1f273157b9d77aa456eb01734fa6ae6995484",
+            "value": {
+              "code": "4cba88f4d84ce69037c194e58670e8491388a36d",
+              "cpu_affinity": [
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                12,
+                13,
+                130,
+                131,
+                134,
+                135,
+                138,
+                139,
+                142,
+                143
+              ],
+              "cpu_numa_nodes": {
+                "12": [
+                  "node0"
+                ],
+                "13": [
+                  "node0"
+                ],
+                "130": [
+                  "node0"
+                ],
+                "131": [
+                  "node0"
+                ],
+                "134": [
+                  "node0"
+                ],
+                "135": [
+                  "node0"
+                ],
+                "138": [
+                  "node0"
+                ],
+                "139": [
+                  "node0"
+                ],
+                "142": [
+                  "node0"
+                ],
+                "143": [
+                  "node0"
+                ],
+                "4": [
+                  "node0"
+                ],
+                "5": [
+                  "node0"
+                ],
+                "6": [
+                  "node0"
+                ],
+                "7": [
+                  "node0"
+                ],
+                "8": [
+                  "node0"
+                ],
+                "9": [
+                  "node0"
+                ]
+              },
+              "cuda_visible_devices": "0",
+              "gpu": {
+                "bytes": 85174583296,
+                "name": "NVIDIA A100-SXM4-80GB",
+                "nvml_uuid_roundtrip": true,
+                "torch_uuid": "89ef729e-b8f7-2136-7148-db0371beac08",
+                "uuid": "GPU-89ef729e-b8f7-2136-7148-db0371beac08"
+              },
+              "process_memory_policy": [
+                "Cpus_allowed_list:\t4-9,12-13,130-131,134-135,138-139,142-143",
+                "Mems_allowed_list:\t0-7"
+              ],
+              "slurm_job": "38515136",
+              "versions": {
+                "bitsandbytes": "0.49.2",
+                "diffusers": "0.35.1",
+                "safetensors": "0.8.0",
+                "torch": "2.10.0+cu128",
+                "transformers": "4.57.6"
+              }
+            }
+          },
+          "updates": {
+            "applied": 300,
+            "clipped": 106.0,
+            "count": 300,
+            "lr_values": [
+              1e-05
+            ],
+            "nonfinite_gradient": 0.0,
+            "nonfinite_loss": 0.0,
+            "skipped": 0.0
+          },
+          "update_diagnostics": [
+            {
+              "first": 1,
+              "last": 100,
+              "mean_clip_coefficient": 0.7812152330911237,
+              "mean_gradient_norm": 1.9908775514364243,
+              "mean_train_loss": 0.04581586856395006,
+              "median_gradient_norm": 0.48771657049655914
+            },
+            {
+              "first": 101,
+              "last": 200,
+              "mean_clip_coefficient": 0.8509833429835078,
+              "mean_gradient_norm": 1.230689108595252,
+              "mean_train_loss": 0.02796664653462358,
+              "median_gradient_norm": 0.4790661036968231
+            },
+            {
+              "first": 201,
+              "last": 300,
+              "mean_clip_coefficient": 0.7413433772492907,
+              "mean_gradient_norm": 2.1211416445672513,
+              "mean_train_loss": 0.0626615201192908,
+              "median_gradient_norm": 0.7685004472732544
+            }
+          ],
+          "fixed_work": {
+            "history": [
+              {
+                "metrics": {
+                  "action_mae_environment_units": 0.04916228426215635,
+                  "action_mae_gripper_environment_units": 0.1372063398733735,
+                  "action_mae_pitch_environment_units": 0.016093830139640716,
+                  "action_mae_roll_environment_units": 0.008225875696466987,
+                  "action_mae_x_environment_units": 0.053972841933195764,
+                  "action_mae_y_environment_units": 0.0449414604387712,
+                  "action_mae_yaw_environment_units": 0.009601551121868425,
+                  "action_mae_z_environment_units": 0.07409409063177787,
+                  "loss": 0.128999243787257,
+                  "normalized_action_mse": 0.05506814191766483
+                },
+                "step": 0
+              },
+              {
+                "metrics": {
+                  "action_mae_environment_units": 0.0503194533263452,
+                  "action_mae_gripper_environment_units": 0.12402359951287507,
+                  "action_mae_pitch_environment_units": 0.018327845770625076,
+                  "action_mae_roll_environment_units": 0.008846645084340824,
+                  "action_mae_x_environment_units": 0.05765861004316977,
+                  "action_mae_y_environment_units": 0.05263754204316722,
+                  "action_mae_yaw_environment_units": 0.010844740555155418,
+                  "action_mae_z_environment_units": 0.07989719027508305,
+                  "loss": 0.12056560850724055,
+                  "normalized_action_mse": 0.05346858950597899
+                },
+                "step": 100
+              },
+              {
+                "metrics": {
+                  "action_mae_environment_units": 0.047030845367793374,
+                  "action_mae_gripper_environment_units": 0.10817161545157433,
+                  "action_mae_pitch_environment_units": 0.01716599363673925,
+                  "action_mae_roll_environment_units": 0.008820321405358666,
+                  "action_mae_x_environment_units": 0.05781893815322624,
+                  "action_mae_y_environment_units": 0.04811249035439702,
+                  "action_mae_yaw_environment_units": 0.009937841309286467,
+                  "action_mae_z_environment_units": 0.07918871726397146,
+                  "loss": 0.11199500861766865,
+                  "normalized_action_mse": 0.046439082241018434
+                },
+                "step": 200
+              },
+              {
+                "metrics": {
+                  "action_mae_environment_units": 0.04501847510985544,
+                  "action_mae_gripper_environment_units": 0.08454849023371935,
+                  "action_mae_pitch_environment_units": 0.016740461909634855,
+                  "action_mae_roll_environment_units": 0.008816168662205484,
+                  "action_mae_x_environment_units": 0.05889318286292453,
+                  "action_mae_y_environment_units": 0.05204765263775577,
+                  "action_mae_yaw_environment_units": 0.010952587316685332,
+                  "action_mae_z_environment_units": 0.08313078214606279,
+                  "loss": 0.09418525057189982,
+                  "normalized_action_mse": 0.03983719464291685
+                },
+                "step": 300
+              }
+            ],
+            "native_clocks": {
+              "checkpoint_seconds": 70.73802536411677,
+              "evaluation_seconds": 261.7928586921189,
+              "portable_export_seconds": 16.531729846959934,
+              "startup_seconds": 41.01244510291144,
+              "training_seconds": 95.27992880344391
+            },
+            "native_workflow_seconds": 488.64776909991633,
+            "outer_workflow_seconds": 1005.8752268530661,
+            "steady_examples_per_second": 3.162782761593084,
+            "steady_update_seconds_101_300": {
+              "count": 200,
+              "maximum": 0.32332580792717636,
+              "mean": 0.31617726394091733,
+              "median": 0.3153188524884172,
+              "p95": 0.320909084379673,
+              "sum": 63.235452788183466
+            },
+            "updates": 300
+          },
+          "target": {
+            "attained": true,
+            "baseline": 0.05506814191766483,
+            "metric": "normalized_action_mse",
+            "native_seconds": 351.6153031429276,
+            "preflight_inclusive_seconds": 432.39812528691255,
+            "step": 200,
+            "threshold": 0.049561327725898344
+          },
+          "target_sha256": "eff946f62dbdc9c57f61ac96f03f13640baaf5bee4695d9fd1381830b95e4534",
+          "sampled_memory": {
+            "device_peak_bytes": 34225717248,
+            "errors": [
+              "incomplete_host_pss"
+            ],
+            "gpu_memory_evidence_valid": true,
+            "host_pss_complete": false,
+            "host_pss_sum_peak_bytes": 30840974336,
+            "host_rss_sum_peak_bytes": 31109095424,
+            "nvml_capacity_bytes": 85899345920,
+            "observed_span_seconds": 942.3546044826508,
+            "owned_device_process_peak_bytes": 33451671552,
+            "peaks_are_sampled_lower_bounds": true,
+            "samples": 712,
+            "sampling_gap_seconds": {
+              "count": 711,
+              "maximum": 2.9179084300994873,
+              "mean": 1.3253932552498604,
+              "median": 1.2796225547790527,
+              "p95": 1.4622535705566406,
+              "sum": 942.3546044826508
+            }
+          },
+          "outer_timing": {
+            "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_frozen/development/outer-timing.json",
+            "sha256": "a827655f65e5698e9c3cc3d0dc42175784721370947ab3da150a352e4defec3d",
+            "value": {
+              "before_training_worker_seconds": 62.2723685700912,
+              "elapsed_seconds": 1005.8752268530661,
+              "monitor_exit": 0,
+              "monitor_was_alive_at_end": true,
+              "stages": [
+                {
+                  "elapsed_seconds": 0.2663314249366522,
+                  "exit_code": 0,
+                  "injected_interruption_expected": false,
+                  "name": "storage-preflight",
+                  "owned_process_cleanup": {
+                    "observed_processes": 1,
+                    "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+                    "signaled_processes": 0
+                  },
+                  "timed_out": false
+                },
+                {
+                  "elapsed_seconds": 514.0329782291083,
+                  "exit_code": 0,
+                  "injected_interruption_expected": false,
+                  "name": "native-training",
+                  "owned_process_cleanup": {
+                    "observed_processes": 4,
+                    "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+                    "signaled_processes": 0
+                  },
+                  "timed_out": false
+                },
+                {
+                  "elapsed_seconds": 145.29005727893673,
+                  "exit_code": 0,
+                  "injected_interruption_expected": false,
+                  "name": "portable-evaluation-123",
+                  "owned_process_cleanup": {
+                    "observed_processes": 3,
+                    "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+                    "signaled_processes": 0
+                  },
+                  "timed_out": false
+                },
+                {
+                  "elapsed_seconds": 142.78348234598525,
+                  "exit_code": 0,
+                  "injected_interruption_expected": false,
+                  "name": "portable-evaluation-456",
+                  "owned_process_cleanup": {
+                    "observed_processes": 3,
+                    "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+                    "signaled_processes": 0
+                  },
+                  "timed_out": false
+                },
+                {
+                  "elapsed_seconds": 141.1276717010187,
+                  "exit_code": 0,
+                  "injected_interruption_expected": false,
+                  "name": "portable-evaluation-789",
+                  "owned_process_cleanup": {
+                    "observed_processes": 3,
+                    "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+                    "signaled_processes": 0
+                  },
+                  "timed_out": false
+                }
+              ],
+              "workflow_started_monotonic_seconds": 697036.234328992
+            }
+          },
+          "endpoint": {
+            "checkpoint": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_frozen/development/native/qualification/gr00t-development-v1/bf16_frozen-seed17/fixed300/checkpoints/iter_000300",
+            "fresh_portable_exact_primary_parity": true,
+            "noise_diagnostics": [
+              "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_frozen/development/reload-evaluation-123/evaluation.json",
+              "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_frozen/development/reload-evaluation-456/evaluation.json",
+              "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_frozen/development/reload-evaluation-789/evaluation.json"
+            ],
+            "portable": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_frozen/development/native/qualification/gr00t-development-v1/bf16_frozen-seed17/fixed300/checkpoint_artifacts/iter_000300",
+            "resident_score": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_frozen/development/native/qualification/gr00t-development-v1/bf16_frozen-seed17/fixed300/evaluation-000300.json"
+          },
+          "calibration_cost": {
+            "calibration_inclusive_target_seconds": 562.1220969029237,
+            "result_sha256": "1f80906883884d66e924d019927f5fee1c662fd505bdfc5087063f565567bc9e",
+            "seconds": 129.7239716160111,
+            "shared_once_not_nine_independent_calibrations": true,
+            "target_reference": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38509654/calibration/evaluation/native/evaluation.json",
+            "workflow_sha256": "13b73ff6998e2264e9a438f850f4a8b59bc89da1e886e721b6c2055e2c34aeb7"
+          },
+          "shape_probe_seconds": 4.654147629975341,
+          "processed_input_probes": {
+            "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_frozen/development/processed-input-probes.json",
+            "sha256": "583f691876452a62249e8bb8cb621fd7cdc09facd306e27529fb0039e70cd129",
+            "value": {
+              "capture_helper_sha256": "5bf07e5dc0a73fb927d076f78229ac65acc0c877c32572094c10f679962b15fd",
+              "probes": [
+                {
+                  "id": "libero-1589-0",
+                  "index": 0,
+                  "outputs": {
+                    "flow_loss": 0.004430445376783609,
+                    "format": "gr00t-native-output-probe-v1",
+                    "ids": [
+                      "libero-1589-0"
+                    ],
+                    "inputs": {
+                      "action": {
+                        "dtype": "torch.float32",
+                        "sha256": "0497abad928e5fecb24542536147d83caea5bf67b9fe288ed785efa62a67012d",
+                        "shape": [
+                          1,
+                          40,
+                          132
+                        ]
+                      },
+                      "action_mask": {
+                        "dtype": "torch.float32",
+                        "sha256": "6cff955e3aa4f694a6edf1e9e3617447e31098093c598fa296a5af40341e28a1",
+                        "shape": [
+                          1,
+                          40,
+                          132
+                        ]
+                      },
+                      "attention_mask": {
+                        "dtype": "torch.int64",
+                        "sha256": "785d4f933cab5c8f4a0d32983c5cd6dda481faf6b28c03f42f2969e0ad021fc9",
+                        "shape": [
+                          1,
+                          156
+                        ]
+                      },
+                      "embodiment_id": {
+                        "dtype": "torch.int64",
+                        "sha256": "d86e8112f3c4c4442126f8e9f44f16867da487f29052bf91b810457db34209a4",
+                        "shape": [
+                          1
+                        ]
+                      },
+                      "image_grid_thw": {
+                        "dtype": "torch.int64",
+                        "sha256": "2b01a37992ae566addcc9b7c20e932af440bc218c99ce0f5301e351cb18dcf04",
+                        "shape": [
+                          2,
+                          3
+                        ]
+                      },
+                      "input_ids": {
+                        "dtype": "torch.int64",
+                        "sha256": "a01049e2311546b8ae0685e3da0b9b55d4abe0d1ddc5e173dd76576b85c232e8",
+                        "shape": [
+                          1,
+                          156
+                        ]
+                      },
+                      "pixel_values": {
+                        "dtype": "torch.float32",
+                        "sha256": "4f836d588b4c369ff569259101e7ec2100895fd38a6d0d1bd4db7a620ab9ff5e",
+                        "shape": [
+                          512,
+                          1536
+                        ]
+                      },
+                      "state": {
+                        "dtype": "torch.float32",
+                        "sha256": "8aae0785258b7dbe21598acdeaa3997d9d146b9bdbdd778ebb22d878be488f4a",
+                        "shape": [
+                          1,
+                          1,
+                          132
+                        ]
+                      }
+                    },
+                    "masked_elements": 70.0,
+                    "seed": 123
+                  }
+                },
+                {
+                  "id": "libero-1653-131",
+                  "index": 159,
+                  "outputs": {
+                    "flow_loss": 0.44470199942588806,
+                    "format": "gr00t-native-output-probe-v1",
+                    "ids": [
+                      "libero-1653-131"
+                    ],
+                    "inputs": {
+                      "action": {
+                        "dtype": "torch.float32",
+                        "sha256": "dbbfb27b08978872d0e4781fd720e55f9bd43d5d8fb2eeab61daf6550b12a397",
+                        "shape": [
+                          1,
+                          40,
+                          132
+                        ]
+                      },
+                      "action_mask": {
+                        "dtype": "torch.float32",
+                        "sha256": "6cff955e3aa4f694a6edf1e9e3617447e31098093c598fa296a5af40341e28a1",
+                        "shape": [
+                          1,
+                          40,
+                          132
+                        ]
+                      },
+                      "attention_mask": {
+                        "dtype": "torch.int64",
+                        "sha256": "01055f8b5b22915a39c6e4b339497c3456aaa683da8d3a51eb580aac01058341",
+                        "shape": [
+                          1,
+                          152
+                        ]
+                      },
+                      "embodiment_id": {
+                        "dtype": "torch.int64",
+                        "sha256": "d86e8112f3c4c4442126f8e9f44f16867da487f29052bf91b810457db34209a4",
+                        "shape": [
+                          1
+                        ]
+                      },
+                      "image_grid_thw": {
+                        "dtype": "torch.int64",
+                        "sha256": "2b01a37992ae566addcc9b7c20e932af440bc218c99ce0f5301e351cb18dcf04",
+                        "shape": [
+                          2,
+                          3
+                        ]
+                      },
+                      "input_ids": {
+                        "dtype": "torch.int64",
+                        "sha256": "dad121ea1ccbe1a440b3449e9ceae269191aec0524d878f623232deee7624bb1",
+                        "shape": [
+                          1,
+                          152
+                        ]
+                      },
+                      "pixel_values": {
+                        "dtype": "torch.float32",
+                        "sha256": "7ad117fb2c1d49c7c91816478c955d5f3d7d19a1d8167501d707a5bf161ec995",
+                        "shape": [
+                          512,
+                          1536
+                        ]
+                      },
+                      "state": {
+                        "dtype": "torch.float32",
+                        "sha256": "87d4ba94c1ed03a5781ac299b0077556e132b90ef609b627ad410cf477d8fcb7",
+                        "shape": [
+                          1,
+                          1,
+                          132
+                        ]
+                      }
+                    },
+                    "masked_elements": 70.0,
+                    "seed": 123
+                  }
+                }
+              ],
+              "scope": "first/last real development rows; cost included before training; not a shape census",
+              "seconds": 4.654147629975341
+            }
+          },
+          "evaluation_receipts": {
+            "0": {
+              "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_frozen/development/native/qualification/gr00t-development-v1/bf16_frozen-seed17/fixed300/evaluation-000000.json",
+              "sha256": "1b7ef4bdca0528ad329d43c58613493a71415a2ded48a69096f14bf289515538",
+              "rows": 160,
+              "episodes": 40,
+              "weighting": "Equal windows within episode, equal four episodes within task, equal ten tasks; all windows70 valid elements.",
+              "task_metrics": {
+                "pick up the black bowl between the plate and the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.07769370738283865,
+                  "loss": 0.11058184333523968,
+                  "action_mae_environment_units": 0.06169515007387022
+                },
+                "pick up the black bowl from table center and place it on the plate": {
+                  "normalized_action_mse": 0.04817531587489481,
+                  "loss": 0.1150061989974347,
+                  "action_mae_environment_units": 0.038783981988755926
+                },
+                "pick up the black bowl in the top drawer of the wooden cabinet and place it on the plate": {
+                  "normalized_action_mse": 0.03747099178144708,
+                  "loss": 0.0809675870477804,
+                  "action_mae_environment_units": 0.03836275119307036
+                },
+                "pick up the black bowl next to the cookie box and place it on the plate": {
+                  "normalized_action_mse": 0.03476177223159799,
+                  "loss": 0.13820511042285943,
+                  "action_mae_environment_units": 0.03794980429712912
+                },
+                "pick up the black bowl next to the plate and place it on the plate": {
+                  "normalized_action_mse": 0.07027069886348077,
+                  "loss": 0.14137101914093364,
+                  "action_mae_environment_units": 0.06225851328955078
+                },
+                "pick up the black bowl next to the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.03780437367303031,
+                  "loss": 0.06463865615660325,
+                  "action_mae_environment_units": 0.04050114213937858
+                },
+                "pick up the black bowl on the cookie box and place it on the plate": {
+                  "normalized_action_mse": 0.06401537990397109,
+                  "loss": 0.11240365733101498,
+                  "action_mae_environment_units": 0.054022736587136036
+                },
+                "pick up the black bowl on the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.07530787658345486,
+                  "loss": 0.25668846158805536,
+                  "action_mae_environment_units": 0.06522627984977465
+                },
+                "pick up the black bowl on the stove and place it on the plate": {
+                  "normalized_action_mse": 0.05291915904464466,
+                  "loss": 0.11268707671843003,
+                  "action_mae_environment_units": 0.04405069180261057
+                },
+                "pick up the black bowl on the wooden cabinet and place it on the plate": {
+                  "normalized_action_mse": 0.05226214383728803,
+                  "loss": 0.15744282713421853,
+                  "action_mae_environment_units": 0.0487717914002873
+                }
+              }
+            },
+            "100": {
+              "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_frozen/development/native/qualification/gr00t-development-v1/bf16_frozen-seed17/fixed300/evaluation-000100.json",
+              "sha256": "c169ab1d4d5abd3794202504f1e5b4d51c31f5614fe15f0eef9a6f05b62489be",
+              "rows": 160,
+              "episodes": 40,
+              "weighting": "Equal windows within episode, equal four episodes within task, equal ten tasks; all windows70 valid elements.",
+              "task_metrics": {
+                "pick up the black bowl between the plate and the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.07734457385460182,
+                  "loss": 0.11545481720531825,
+                  "action_mae_environment_units": 0.06126953876566897
+                },
+                "pick up the black bowl from table center and place it on the plate": {
+                  "normalized_action_mse": 0.04662509689140799,
+                  "loss": 0.08590348297002492,
+                  "action_mae_environment_units": 0.04043434195119435
+                },
+                "pick up the black bowl in the top drawer of the wooden cabinet and place it on the plate": {
+                  "normalized_action_mse": 0.02419098125205242,
+                  "loss": 0.0680931898423296,
+                  "action_mae_environment_units": 0.032392279655813636
+                },
+                "pick up the black bowl next to the cookie box and place it on the plate": {
+                  "normalized_action_mse": 0.02861122690207724,
+                  "loss": 0.1338580183000886,
+                  "action_mae_environment_units": 0.034902412324305084
+                },
+                "pick up the black bowl next to the plate and place it on the plate": {
+                  "normalized_action_mse": 0.07398549614341132,
+                  "loss": 0.1502861413609935,
+                  "action_mae_environment_units": 0.06611960951426535
+                },
+                "pick up the black bowl next to the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.04426323421232935,
+                  "loss": 0.07138064126047539,
+                  "action_mae_environment_units": 0.04897030371456277
+                },
+                "pick up the black bowl on the cookie box and place it on the plate": {
+                  "normalized_action_mse": 0.050846876393604495,
+                  "loss": 0.08764899703965057,
+                  "action_mae_environment_units": 0.049407746394559623
+                },
+                "pick up the black bowl on the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.0829671594048185,
+                  "loss": 0.25785124268440995,
+                  "action_mae_environment_units": 0.07344478944736076
+                },
+                "pick up the black bowl on the stove and place it on the plate": {
+                  "normalized_action_mse": 0.06054983195582671,
+                  "loss": 0.10164495283243014,
+                  "action_mae_environment_units": 0.049965124689334235
+                },
+                "pick up the black bowl on the wooden cabinet and place it on the plate": {
+                  "normalized_action_mse": 0.04530141804966011,
+                  "loss": 0.1335346015766845,
+                  "action_mae_environment_units": 0.046288386806387215
+                }
+              }
+            },
+            "200": {
+              "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_frozen/development/native/qualification/gr00t-development-v1/bf16_frozen-seed17/fixed300/evaluation-000200.json",
+              "sha256": "b64f5a06558c0b6a4f0ae79e4af28a39e72d5323fadc6d030dc8c3edb95de713",
+              "rows": 160,
+              "episodes": 40,
+              "weighting": "Equal windows within episode, equal four episodes within task, equal ten tasks; all windows70 valid elements.",
+              "task_metrics": {
+                "pick up the black bowl between the plate and the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.048094228275918534,
+                  "loss": 0.10042762633383973,
+                  "action_mae_environment_units": 0.04895422668085401
+                },
+                "pick up the black bowl from table center and place it on the plate": {
+                  "normalized_action_mse": 0.025293350465861814,
+                  "loss": 0.06842990220320644,
+                  "action_mae_environment_units": 0.02990337804247856
+                },
+                "pick up the black bowl in the top drawer of the wooden cabinet and place it on the plate": {
+                  "normalized_action_mse": 0.04308340649918786,
+                  "loss": 0.057481584590277635,
+                  "action_mae_environment_units": 0.04325156355965093
+                },
+                "pick up the black bowl next to the cookie box and place it on the plate": {
+                  "normalized_action_mse": 0.03545341134470488,
+                  "loss": 0.16046348490635864,
+                  "action_mae_environment_units": 0.0399172175861824
+                },
+                "pick up the black bowl next to the plate and place it on the plate": {
+                  "normalized_action_mse": 0.062132915565078814,
+                  "loss": 0.1403442383161746,
+                  "action_mae_environment_units": 0.060273313121272654
+                },
+                "pick up the black bowl next to the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.03266021732041346,
+                  "loss": 0.05866612787212944,
+                  "action_mae_environment_units": 0.03970421917544936
+                },
+                "pick up the black bowl on the cookie box and place it on the plate": {
+                  "normalized_action_mse": 0.04902050553687982,
+                  "loss": 0.0956934910354903,
+                  "action_mae_environment_units": 0.049454464990396255
+                },
+                "pick up the black bowl on the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.06984806279651821,
+                  "loss": 0.24203851758647943,
+                  "action_mae_environment_units": 0.064245894458766
+                },
+                "pick up the black bowl on the stove and place it on the plate": {
+                  "normalized_action_mse": 0.05806617438127952,
+                  "loss": 0.09294177034462336,
+                  "action_mae_environment_units": 0.049151454402665086
+                },
+                "pick up the black bowl on the wooden cabinet and place it on the plate": {
+                  "normalized_action_mse": 0.040738550224341454,
+                  "loss": 0.10346334298810689,
+                  "action_mae_environment_units": 0.04545272166021829
+                }
+              }
+            },
+            "300": {
+              "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_frozen/development/native/qualification/gr00t-development-v1/bf16_frozen-seed17/fixed300/evaluation-000300.json",
+              "sha256": "157155a0bb6684c093203dbcd006bdf646173a75107c69699b099037a7a8efc3",
+              "rows": 160,
+              "episodes": 40,
+              "weighting": "Equal windows within episode, equal four episodes within task, equal ten tasks; all windows70 valid elements.",
+              "task_metrics": {
+                "pick up the black bowl between the plate and the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.05535387509236378,
+                  "loss": 0.09774557327909861,
+                  "action_mae_environment_units": 0.058374500198458856
+                },
+                "pick up the black bowl from table center and place it on the plate": {
+                  "normalized_action_mse": 0.043556264944241516,
+                  "loss": 0.0646057670674054,
+                  "action_mae_environment_units": 0.040370762056216376
+                },
+                "pick up the black bowl in the top drawer of the wooden cabinet and place it on the plate": {
+                  "normalized_action_mse": 0.018976251953946692,
+                  "loss": 0.039044430617650505,
+                  "action_mae_environment_units": 0.030678597064046857
+                },
+                "pick up the black bowl next to the cookie box and place it on the plate": {
+                  "normalized_action_mse": 0.022320057904081685,
+                  "loss": 0.12422665346821304,
+                  "action_mae_environment_units": 0.03342341346785254
+                },
+                "pick up the black bowl next to the plate and place it on the plate": {
+                  "normalized_action_mse": 0.04216772132287068,
+                  "loss": 0.10493103430781048,
+                  "action_mae_environment_units": 0.04897875777543711
+                },
+                "pick up the black bowl next to the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.020863460599710896,
+                  "loss": 0.04832221209653653,
+                  "action_mae_environment_units": 0.03526191196131817
+                },
+                "pick up the black bowl on the cookie box and place it on the plate": {
+                  "normalized_action_mse": 0.0464717000456793,
+                  "loss": 0.08537097444059327,
+                  "action_mae_environment_units": 0.05178235949817253
+                },
+                "pick up the black bowl on the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.07446949408788767,
+                  "loss": 0.23077999489032663,
+                  "action_mae_environment_units": 0.06791933180309079
+                },
+                "pick up the black bowl on the stove and place it on the plate": {
+                  "normalized_action_mse": 0.03596399475687317,
+                  "loss": 0.062989045996801,
+                  "action_mae_environment_units": 0.04079404697850328
+                },
+                "pick up the black bowl on the wooden cabinet and place it on the plate": {
+                  "normalized_action_mse": 0.03822912572151316,
+                  "loss": 0.08383681955456268,
+                  "action_mae_environment_units": 0.04260107029545791
+                }
+              }
+            }
+          },
+          "incomplete_host_samples": [
+            {
+              "errors": [
+                "live_or_unknown_memory_unreadable"
+              ],
+              "failures": [
+                {
+                  "pid": "1972401",
+                  "poll_after": {
+                    "begin_monotonic_seconds": 697610.387900517,
+                    "begin_unix_seconds": 1794634225.13179,
+                    "end_monotonic_seconds": 697610.738267686,
+                    "end_unix_seconds": 1794634225.4821565,
+                    "events": [],
+                    "timeout_milliseconds": 350
+                  },
+                  "rollup": {
+                    "begin_monotonic_seconds": 697610.387740993,
+                    "begin_unix_seconds": 1794634225.1316304,
+                    "end_monotonic_seconds": 697610.387774074,
+                    "end_unix_seconds": 1794634225.1316633,
+                    "error": {
+                      "errno": 3,
+                      "type": "ProcessLookupError"
+                    }
+                  },
+                  "stat_before": {
+                    "begin_monotonic_seconds": 697610.387654371,
+                    "begin_unix_seconds": 1794634225.1315439,
+                    "end_monotonic_seconds": 697610.387693232,
+                    "end_unix_seconds": 1794634225.1315825,
+                    "value": {
+                      "pid": 1972401,
+                      "ppid": 1972391,
+                      "start_ticks": 69710193,
+                      "state": "R",
+                      "uid": 65534
+                    }
+                  },
+                  "status": {
+                    "begin_monotonic_seconds": 697610.387697452,
+                    "begin_unix_seconds": 1794634225.1315868,
+                    "end_monotonic_seconds": 697610.387739763,
+                    "end_unix_seconds": 1794634225.131629,
+                    "value": {}
+                  }
+                }
+              ],
+              "sample_index": 375,
+              "stage": "native-training"
+            }
+          ],
+          "reload_score_receipts": {
+            "123": {
+              "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_frozen/development/reload-evaluation-123/evaluation.json",
+              "sha256": "2e3cbc46731416b06768b6806b960bff63932b8e4bb0936ec28240ebc48511e7"
+            },
+            "456": {
+              "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_frozen/development/reload-evaluation-456/evaluation.json",
+              "sha256": "f1db1290a29b48ac1ce06189933d072d15ef3ed3b0653e30048d6a68316e557c"
+            },
+            "789": {
+              "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_frozen/development/reload-evaluation-789/evaluation.json",
+              "sha256": "24bc4297546d75b00b61a1316f213141a38bb4feee417ad375cea71e0b7bd605"
+            }
+          }
+        },
+        "bf16_lora": {
+          "result_sha256": "cd5342eec039e15d951f5ad6e39afbb94419dfb37a76b210ec3cfb34050a17a6",
+          "completion_sha256": "de3213a669c2b5105235f35da46137dc97106dfbd411a73f1d1662509184231f",
+          "metrics_sha256": "07e1c7c42a01470192ade52257a9004f4c2fe96c02dc551ab1ad7809fa3c76f7",
+          "runtime": {
+            "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_lora/runtime.json",
+            "sha256": "5272d13c21801b7fd732e709b7d1f273157b9d77aa456eb01734fa6ae6995484",
+            "value": {
+              "code": "4cba88f4d84ce69037c194e58670e8491388a36d",
+              "cpu_affinity": [
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                12,
+                13,
+                130,
+                131,
+                134,
+                135,
+                138,
+                139,
+                142,
+                143
+              ],
+              "cpu_numa_nodes": {
+                "12": [
+                  "node0"
+                ],
+                "13": [
+                  "node0"
+                ],
+                "130": [
+                  "node0"
+                ],
+                "131": [
+                  "node0"
+                ],
+                "134": [
+                  "node0"
+                ],
+                "135": [
+                  "node0"
+                ],
+                "138": [
+                  "node0"
+                ],
+                "139": [
+                  "node0"
+                ],
+                "142": [
+                  "node0"
+                ],
+                "143": [
+                  "node0"
+                ],
+                "4": [
+                  "node0"
+                ],
+                "5": [
+                  "node0"
+                ],
+                "6": [
+                  "node0"
+                ],
+                "7": [
+                  "node0"
+                ],
+                "8": [
+                  "node0"
+                ],
+                "9": [
+                  "node0"
+                ]
+              },
+              "cuda_visible_devices": "0",
+              "gpu": {
+                "bytes": 85174583296,
+                "name": "NVIDIA A100-SXM4-80GB",
+                "nvml_uuid_roundtrip": true,
+                "torch_uuid": "89ef729e-b8f7-2136-7148-db0371beac08",
+                "uuid": "GPU-89ef729e-b8f7-2136-7148-db0371beac08"
+              },
+              "process_memory_policy": [
+                "Cpus_allowed_list:\t4-9,12-13,130-131,134-135,138-139,142-143",
+                "Mems_allowed_list:\t0-7"
+              ],
+              "slurm_job": "38515136",
+              "versions": {
+                "bitsandbytes": "0.49.2",
+                "diffusers": "0.35.1",
+                "safetensors": "0.8.0",
+                "torch": "2.10.0+cu128",
+                "transformers": "4.57.6"
+              }
+            }
+          },
+          "updates": {
+            "applied": 300,
+            "clipped": 110.0,
+            "count": 300,
+            "lr_values": [
+              1e-05
+            ],
+            "nonfinite_gradient": 0.0,
+            "nonfinite_loss": 0.0,
+            "skipped": 0.0
+          },
+          "update_diagnostics": [
+            {
+              "first": 1,
+              "last": 100,
+              "mean_clip_coefficient": 0.7799274546695334,
+              "mean_gradient_norm": 1.971145782470703,
+              "mean_train_loss": 0.04581179479020648,
+              "median_gradient_norm": 0.5158955454826355
+            },
+            {
+              "first": 101,
+              "last": 200,
+              "mean_clip_coefficient": 0.8461822552858785,
+              "mean_gradient_norm": 1.2370514051616193,
+              "mean_train_loss": 0.028077909871935845,
+              "median_gradient_norm": 0.47490549087524414
+            },
+            {
+              "first": 201,
+              "last": 300,
+              "mean_clip_coefficient": 0.7104135263710634,
+              "mean_gradient_norm": 2.543592451065779,
+              "mean_train_loss": 0.06345051695010624,
+              "median_gradient_norm": 0.7934731841087341
+            }
+          ],
+          "fixed_work": {
+            "history": [
+              {
+                "metrics": {
+                  "action_mae_environment_units": 0.04916228426215635,
+                  "action_mae_gripper_environment_units": 0.1372063398733735,
+                  "action_mae_pitch_environment_units": 0.016093830139640716,
+                  "action_mae_roll_environment_units": 0.008225875696466987,
+                  "action_mae_x_environment_units": 0.053972841933195764,
+                  "action_mae_y_environment_units": 0.0449414604387712,
+                  "action_mae_yaw_environment_units": 0.009601551121868425,
+                  "action_mae_z_environment_units": 0.07409409063177787,
+                  "loss": 0.128999243787257,
+                  "normalized_action_mse": 0.05506814191766483
+                },
+                "step": 0
+              },
+              {
+                "metrics": {
+                  "action_mae_environment_units": 0.05137143206815197,
+                  "action_mae_gripper_environment_units": 0.13004795107990502,
+                  "action_mae_pitch_environment_units": 0.01827225318900526,
+                  "action_mae_roll_environment_units": 0.008893773324187317,
+                  "action_mae_x_environment_units": 0.05786879881427304,
+                  "action_mae_y_environment_units": 0.05187295487223758,
+                  "action_mae_yaw_environment_units": 0.010689300165196057,
+                  "action_mae_z_environment_units": 0.08195499303225957,
+                  "loss": 0.12131499156857899,
+                  "normalized_action_mse": 0.05546099959140909
+                },
+                "step": 100
+              },
+              {
+                "metrics": {
+                  "action_mae_environment_units": 0.04663848148303661,
+                  "action_mae_gripper_environment_units": 0.1024786601215601,
+                  "action_mae_pitch_environment_units": 0.016971740714602813,
+                  "action_mae_roll_environment_units": 0.008921623027977981,
+                  "action_mae_x_environment_units": 0.05914822609036982,
+                  "action_mae_y_environment_units": 0.049100237615119065,
+                  "action_mae_yaw_environment_units": 0.010006967378345546,
+                  "action_mae_z_environment_units": 0.07984191543328104,
+                  "loss": 0.11087707963306456,
+                  "normalized_action_mse": 0.04435785325077762
+                },
+                "step": 200
+              },
+              {
+                "metrics": {
+                  "action_mae_environment_units": 0.04653531201569703,
+                  "action_mae_gripper_environment_units": 0.09405023641884327,
+                  "action_mae_pitch_environment_units": 0.017091973185386047,
+                  "action_mae_roll_environment_units": 0.008915360425432475,
+                  "action_mae_x_environment_units": 0.058923869498432306,
+                  "action_mae_y_environment_units": 0.052175882877363654,
+                  "action_mae_yaw_environment_units": 0.01096968389634238,
+                  "action_mae_z_environment_units": 0.08362017780807897,
+                  "loss": 0.09592167070950382,
+                  "normalized_action_mse": 0.04244151129986026
+                },
+                "step": 300
+              }
+            ],
+            "native_clocks": {
+              "checkpoint_seconds": 73.2289199171355,
+              "evaluation_seconds": 305.08074099884834,
+              "portable_export_seconds": 27.943508470081724,
+              "startup_seconds": 42.37011098000221,
+              "training_seconds": 136.73427447723225
+            },
+            "native_workflow_seconds": 588.839371256996,
+            "outer_workflow_seconds": 1147.3420094619505,
+            "steady_examples_per_second": 2.2088747345260487,
+            "steady_update_seconds_101_300": {
+              "count": 200,
+              "maximum": 0.7054122369736433,
+              "mean": 0.4527191987709375,
+              "median": 0.44885622296715155,
+              "p95": 0.45942476695636286,
+              "sum": 90.5438397541875
+            },
+            "updates": 300
+          },
+          "target": {
+            "attained": true,
+            "baseline": 0.05506814191766483,
+            "metric": "normalized_action_mse",
+            "native_seconds": 415.356801936985,
+            "preflight_inclusive_seconds": 499.5245801520068,
+            "step": 200,
+            "threshold": 0.049561327725898344
+          },
+          "target_sha256": "eff946f62dbdc9c57f61ac96f03f13640baaf5bee4695d9fd1381830b95e4534",
+          "sampled_memory": {
+            "device_peak_bytes": 34615787520,
+            "errors": [
+              "incomplete_host_pss"
+            ],
+            "gpu_memory_evidence_valid": true,
+            "host_pss_complete": false,
+            "host_pss_sum_peak_bytes": 31080540160,
+            "host_rss_sum_peak_bytes": 31362678784,
+            "nvml_capacity_bytes": 85899345920,
+            "observed_span_seconds": 1080.0426380634308,
+            "owned_device_process_peak_bytes": 33839644672,
+            "peaks_are_sampled_lower_bounds": true,
+            "samples": 818,
+            "sampling_gap_seconds": {
+              "count": 817,
+              "maximum": 1.7003517150878906,
+              "mean": 1.321961613296733,
+              "median": 1.2827544212341309,
+              "p95": 1.432762575149536,
+              "sum": 1080.0426380634308
+            }
+          },
+          "outer_timing": {
+            "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_lora/development/outer-timing.json",
+            "sha256": "5dafe78bee7dc553666b1d90aa9ee0054c19451777d903846b95b7a5f84539b9",
+            "value": {
+              "before_training_worker_seconds": 65.99746974394657,
+              "elapsed_seconds": 1147.3420094619505,
+              "monitor_exit": 0,
+              "monitor_was_alive_at_end": true,
+              "stages": [
+                {
+                  "elapsed_seconds": 0.26641233696136624,
+                  "exit_code": 0,
+                  "injected_interruption_expected": false,
+                  "name": "storage-preflight",
+                  "owned_process_cleanup": {
+                    "observed_processes": 1,
+                    "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+                    "signaled_processes": 0
+                  },
+                  "timed_out": false
+                },
+                {
+                  "elapsed_seconds": 614.4680837809574,
+                  "exit_code": 0,
+                  "injected_interruption_expected": false,
+                  "name": "native-training",
+                  "owned_process_cleanup": {
+                    "observed_processes": 4,
+                    "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+                    "signaled_processes": 0
+                  },
+                  "timed_out": false
+                },
+                {
+                  "elapsed_seconds": 156.30746864993125,
+                  "exit_code": 0,
+                  "injected_interruption_expected": false,
+                  "name": "portable-evaluation-123",
+                  "owned_process_cleanup": {
+                    "observed_processes": 3,
+                    "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+                    "signaled_processes": 0
+                  },
+                  "timed_out": false
+                },
+                {
+                  "elapsed_seconds": 153.54927460907493,
+                  "exit_code": 0,
+                  "injected_interruption_expected": false,
+                  "name": "portable-evaluation-456",
+                  "owned_process_cleanup": {
+                    "observed_processes": 3,
+                    "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+                    "signaled_processes": 0
+                  },
+                  "timed_out": false
+                },
+                {
+                  "elapsed_seconds": 155.3063347840216,
+                  "exit_code": 0,
+                  "injected_interruption_expected": false,
+                  "name": "portable-evaluation-789",
+                  "owned_process_cleanup": {
+                    "observed_processes": 3,
+                    "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+                    "signaled_processes": 0
+                  },
+                  "timed_out": false
+                }
+              ],
+              "workflow_started_monotonic_seconds": 695887.702208037
+            }
+          },
+          "endpoint": {
+            "checkpoint": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_lora/development/native/qualification/gr00t-development-v1/bf16_lora-seed17/fixed300/checkpoints/iter_000300",
+            "fresh_portable_exact_primary_parity": true,
+            "noise_diagnostics": [
+              "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_lora/development/reload-evaluation-123/evaluation.json",
+              "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_lora/development/reload-evaluation-456/evaluation.json",
+              "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_lora/development/reload-evaluation-789/evaluation.json"
+            ],
+            "portable": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_lora/development/native/qualification/gr00t-development-v1/bf16_lora-seed17/fixed300/checkpoint_artifacts/iter_000300",
+            "resident_score": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_lora/development/native/qualification/gr00t-development-v1/bf16_lora-seed17/fixed300/evaluation-000300.json"
+          },
+          "calibration_cost": {
+            "calibration_inclusive_target_seconds": 629.2485517680179,
+            "result_sha256": "1f80906883884d66e924d019927f5fee1c662fd505bdfc5087063f565567bc9e",
+            "seconds": 129.7239716160111,
+            "shared_once_not_nine_independent_calibrations": true,
+            "target_reference": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38509654/calibration/evaluation/native/evaluation.json",
+            "workflow_sha256": "13b73ff6998e2264e9a438f850f4a8b59bc89da1e886e721b6c2055e2c34aeb7"
+          },
+          "shape_probe_seconds": 4.841982066980563,
+          "processed_input_probes": {
+            "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_lora/development/processed-input-probes.json",
+            "sha256": "4d11ebbe6e4a6101c579647b2f1af1cdc1bb3f8d81bc09f15208c852de33dcaf",
+            "value": {
+              "capture_helper_sha256": "5bf07e5dc0a73fb927d076f78229ac65acc0c877c32572094c10f679962b15fd",
+              "probes": [
+                {
+                  "id": "libero-1589-0",
+                  "index": 0,
+                  "outputs": {
+                    "flow_loss": 0.004430445376783609,
+                    "format": "gr00t-native-output-probe-v1",
+                    "ids": [
+                      "libero-1589-0"
+                    ],
+                    "inputs": {
+                      "action": {
+                        "dtype": "torch.float32",
+                        "sha256": "0497abad928e5fecb24542536147d83caea5bf67b9fe288ed785efa62a67012d",
+                        "shape": [
+                          1,
+                          40,
+                          132
+                        ]
+                      },
+                      "action_mask": {
+                        "dtype": "torch.float32",
+                        "sha256": "6cff955e3aa4f694a6edf1e9e3617447e31098093c598fa296a5af40341e28a1",
+                        "shape": [
+                          1,
+                          40,
+                          132
+                        ]
+                      },
+                      "attention_mask": {
+                        "dtype": "torch.int64",
+                        "sha256": "785d4f933cab5c8f4a0d32983c5cd6dda481faf6b28c03f42f2969e0ad021fc9",
+                        "shape": [
+                          1,
+                          156
+                        ]
+                      },
+                      "embodiment_id": {
+                        "dtype": "torch.int64",
+                        "sha256": "d86e8112f3c4c4442126f8e9f44f16867da487f29052bf91b810457db34209a4",
+                        "shape": [
+                          1
+                        ]
+                      },
+                      "image_grid_thw": {
+                        "dtype": "torch.int64",
+                        "sha256": "2b01a37992ae566addcc9b7c20e932af440bc218c99ce0f5301e351cb18dcf04",
+                        "shape": [
+                          2,
+                          3
+                        ]
+                      },
+                      "input_ids": {
+                        "dtype": "torch.int64",
+                        "sha256": "a01049e2311546b8ae0685e3da0b9b55d4abe0d1ddc5e173dd76576b85c232e8",
+                        "shape": [
+                          1,
+                          156
+                        ]
+                      },
+                      "pixel_values": {
+                        "dtype": "torch.float32",
+                        "sha256": "4f836d588b4c369ff569259101e7ec2100895fd38a6d0d1bd4db7a620ab9ff5e",
+                        "shape": [
+                          512,
+                          1536
+                        ]
+                      },
+                      "state": {
+                        "dtype": "torch.float32",
+                        "sha256": "8aae0785258b7dbe21598acdeaa3997d9d146b9bdbdd778ebb22d878be488f4a",
+                        "shape": [
+                          1,
+                          1,
+                          132
+                        ]
+                      }
+                    },
+                    "masked_elements": 70.0,
+                    "seed": 123
+                  }
+                },
+                {
+                  "id": "libero-1653-131",
+                  "index": 159,
+                  "outputs": {
+                    "flow_loss": 0.44470199942588806,
+                    "format": "gr00t-native-output-probe-v1",
+                    "ids": [
+                      "libero-1653-131"
+                    ],
+                    "inputs": {
+                      "action": {
+                        "dtype": "torch.float32",
+                        "sha256": "dbbfb27b08978872d0e4781fd720e55f9bd43d5d8fb2eeab61daf6550b12a397",
+                        "shape": [
+                          1,
+                          40,
+                          132
+                        ]
+                      },
+                      "action_mask": {
+                        "dtype": "torch.float32",
+                        "sha256": "6cff955e3aa4f694a6edf1e9e3617447e31098093c598fa296a5af40341e28a1",
+                        "shape": [
+                          1,
+                          40,
+                          132
+                        ]
+                      },
+                      "attention_mask": {
+                        "dtype": "torch.int64",
+                        "sha256": "01055f8b5b22915a39c6e4b339497c3456aaa683da8d3a51eb580aac01058341",
+                        "shape": [
+                          1,
+                          152
+                        ]
+                      },
+                      "embodiment_id": {
+                        "dtype": "torch.int64",
+                        "sha256": "d86e8112f3c4c4442126f8e9f44f16867da487f29052bf91b810457db34209a4",
+                        "shape": [
+                          1
+                        ]
+                      },
+                      "image_grid_thw": {
+                        "dtype": "torch.int64",
+                        "sha256": "2b01a37992ae566addcc9b7c20e932af440bc218c99ce0f5301e351cb18dcf04",
+                        "shape": [
+                          2,
+                          3
+                        ]
+                      },
+                      "input_ids": {
+                        "dtype": "torch.int64",
+                        "sha256": "dad121ea1ccbe1a440b3449e9ceae269191aec0524d878f623232deee7624bb1",
+                        "shape": [
+                          1,
+                          152
+                        ]
+                      },
+                      "pixel_values": {
+                        "dtype": "torch.float32",
+                        "sha256": "7ad117fb2c1d49c7c91816478c955d5f3d7d19a1d8167501d707a5bf161ec995",
+                        "shape": [
+                          512,
+                          1536
+                        ]
+                      },
+                      "state": {
+                        "dtype": "torch.float32",
+                        "sha256": "87d4ba94c1ed03a5781ac299b0077556e132b90ef609b627ad410cf477d8fcb7",
+                        "shape": [
+                          1,
+                          1,
+                          132
+                        ]
+                      }
+                    },
+                    "masked_elements": 70.0,
+                    "seed": 123
+                  }
+                }
+              ],
+              "scope": "first/last real development rows; cost included before training; not a shape census",
+              "seconds": 4.841982066980563
+            }
+          },
+          "evaluation_receipts": {
+            "0": {
+              "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_lora/development/native/qualification/gr00t-development-v1/bf16_lora-seed17/fixed300/evaluation-000000.json",
+              "sha256": "1b7ef4bdca0528ad329d43c58613493a71415a2ded48a69096f14bf289515538",
+              "rows": 160,
+              "episodes": 40,
+              "weighting": "Equal windows within episode, equal four episodes within task, equal ten tasks; all windows70 valid elements.",
+              "task_metrics": {
+                "pick up the black bowl between the plate and the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.07769370738283865,
+                  "loss": 0.11058184333523968,
+                  "action_mae_environment_units": 0.06169515007387022
+                },
+                "pick up the black bowl from table center and place it on the plate": {
+                  "normalized_action_mse": 0.04817531587489481,
+                  "loss": 0.1150061989974347,
+                  "action_mae_environment_units": 0.038783981988755926
+                },
+                "pick up the black bowl in the top drawer of the wooden cabinet and place it on the plate": {
+                  "normalized_action_mse": 0.03747099178144708,
+                  "loss": 0.0809675870477804,
+                  "action_mae_environment_units": 0.03836275119307036
+                },
+                "pick up the black bowl next to the cookie box and place it on the plate": {
+                  "normalized_action_mse": 0.03476177223159799,
+                  "loss": 0.13820511042285943,
+                  "action_mae_environment_units": 0.03794980429712912
+                },
+                "pick up the black bowl next to the plate and place it on the plate": {
+                  "normalized_action_mse": 0.07027069886348077,
+                  "loss": 0.14137101914093364,
+                  "action_mae_environment_units": 0.06225851328955078
+                },
+                "pick up the black bowl next to the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.03780437367303031,
+                  "loss": 0.06463865615660325,
+                  "action_mae_environment_units": 0.04050114213937858
+                },
+                "pick up the black bowl on the cookie box and place it on the plate": {
+                  "normalized_action_mse": 0.06401537990397109,
+                  "loss": 0.11240365733101498,
+                  "action_mae_environment_units": 0.054022736587136036
+                },
+                "pick up the black bowl on the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.07530787658345486,
+                  "loss": 0.25668846158805536,
+                  "action_mae_environment_units": 0.06522627984977465
+                },
+                "pick up the black bowl on the stove and place it on the plate": {
+                  "normalized_action_mse": 0.05291915904464466,
+                  "loss": 0.11268707671843003,
+                  "action_mae_environment_units": 0.04405069180261057
+                },
+                "pick up the black bowl on the wooden cabinet and place it on the plate": {
+                  "normalized_action_mse": 0.05226214383728803,
+                  "loss": 0.15744282713421853,
+                  "action_mae_environment_units": 0.0487717914002873
+                }
+              }
+            },
+            "100": {
+              "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_lora/development/native/qualification/gr00t-development-v1/bf16_lora-seed17/fixed300/evaluation-000100.json",
+              "sha256": "32e81163249236b2a8de412f5cd03f7827e5dd33cb3c28cd1f34b69f396bc3a1",
+              "rows": 160,
+              "episodes": 40,
+              "weighting": "Equal windows within episode, equal four episodes within task, equal ten tasks; all windows70 valid elements.",
+              "task_metrics": {
+                "pick up the black bowl between the plate and the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.07754407177812286,
+                  "loss": 0.12252160194475437,
+                  "action_mae_environment_units": 0.0615507990381924
+                },
+                "pick up the black bowl from table center and place it on the plate": {
+                  "normalized_action_mse": 0.04656114488274657,
+                  "loss": 0.08754884739755653,
+                  "action_mae_environment_units": 0.040369512756420145
+                },
+                "pick up the black bowl in the top drawer of the wooden cabinet and place it on the plate": {
+                  "normalized_action_mse": 0.02672639319207519,
+                  "loss": 0.06947942776969285,
+                  "action_mae_environment_units": 0.034528531898031664
+                },
+                "pick up the black bowl next to the cookie box and place it on the plate": {
+                  "normalized_action_mse": 0.03448397030588239,
+                  "loss": 0.1302499832090689,
+                  "action_mae_environment_units": 0.03803840035623116
+                },
+                "pick up the black bowl next to the plate and place it on the plate": {
+                  "normalized_action_mse": 0.0811799107185964,
+                  "loss": 0.15015389944892377,
+                  "action_mae_environment_units": 0.07040670571692377
+                },
+                "pick up the black bowl next to the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.043914137750730976,
+                  "loss": 0.0721839549660217,
+                  "action_mae_environment_units": 0.04853812281326237
+                },
+                "pick up the black bowl on the cookie box and place it on the plate": {
+                  "normalized_action_mse": 0.049434363705638265,
+                  "loss": 0.08613240647537168,
+                  "action_mae_environment_units": 0.04864710257389022
+                },
+                "pick up the black bowl on the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.08765026287042668,
+                  "loss": 0.2576237569373916,
+                  "action_mae_environment_units": 0.0756404475433131
+                },
+                "pick up the black bowl on the stove and place it on the plate": {
+                  "normalized_action_mse": 0.061156084183936144,
+                  "loss": 0.10426314283540705,
+                  "action_mae_environment_units": 0.04933125947386981
+                },
+                "pick up the black bowl on the wooden cabinet and place it on the plate": {
+                  "normalized_action_mse": 0.04595965652593545,
+                  "loss": 0.13299289470160147,
+                  "action_mae_environment_units": 0.04666343851138513
+                }
+              }
+            },
+            "200": {
+              "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_lora/development/native/qualification/gr00t-development-v1/bf16_lora-seed17/fixed300/evaluation-000200.json",
+              "sha256": "c5b4e2e90333a0d7d4cb9673600e20f553c7091f2d632648311be79fb0094b91",
+              "rows": 160,
+              "episodes": 40,
+              "weighting": "Equal windows within episode, equal four episodes within task, equal ten tasks; all windows70 valid elements.",
+              "task_metrics": {
+                "pick up the black bowl between the plate and the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.04797384778170713,
+                  "loss": 0.0985708021762548,
+                  "action_mae_environment_units": 0.05009373357129178
+                },
+                "pick up the black bowl from table center and place it on the plate": {
+                  "normalized_action_mse": 0.026712056305924697,
+                  "loss": 0.0710538644270855,
+                  "action_mae_environment_units": 0.031207330177548828
+                },
+                "pick up the black bowl in the top drawer of the wooden cabinet and place it on the plate": {
+                  "normalized_action_mse": 0.027416872033583266,
+                  "loss": 0.05549335631803842,
+                  "action_mae_environment_units": 0.03616059847457581
+                },
+                "pick up the black bowl next to the cookie box and place it on the plate": {
+                  "normalized_action_mse": 0.0357035357372037,
+                  "loss": 0.16027301090070978,
+                  "action_mae_environment_units": 0.041103014483377255
+                },
+                "pick up the black bowl next to the plate and place it on the plate": {
+                  "normalized_action_mse": 0.06237054347127144,
+                  "loss": 0.14298132477415493,
+                  "action_mae_environment_units": 0.06003475231031467
+                },
+                "pick up the black bowl next to the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.030575618773166623,
+                  "loss": 0.060312635207083076,
+                  "action_mae_environment_units": 0.03916675291269778
+                },
+                "pick up the black bowl on the cookie box and place it on the plate": {
+                  "normalized_action_mse": 0.04258795989610787,
+                  "loss": 0.0960622222191887,
+                  "action_mae_environment_units": 0.0478141323657846
+                },
+                "pick up the black bowl on the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.0687901101075113,
+                  "loss": 0.23664753539924277,
+                  "action_mae_environment_units": 0.06371752187000732
+                },
+                "pick up the black bowl on the stove and place it on the plate": {
+                  "normalized_action_mse": 0.060551784144315335,
+                  "loss": 0.08289036933274474,
+                  "action_mae_environment_units": 0.050974411804490805
+                },
+                "pick up the black bowl on the wooden cabinet and place it on the plate": {
+                  "normalized_action_mse": 0.0408962042569848,
+                  "loss": 0.10448567557614297,
+                  "action_mae_environment_units": 0.046112566860277385
+                }
+              }
+            },
+            "300": {
+              "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_lora/development/native/qualification/gr00t-development-v1/bf16_lora-seed17/fixed300/evaluation-000300.json",
+              "sha256": "5659a42dddfa9e9eefa8b6a1963b38dfe736ec656be531174fdb6071381ccc4e",
+              "rows": 160,
+              "episodes": 40,
+              "weighting": "Equal windows within episode, equal four episodes within task, equal ten tasks; all windows70 valid elements.",
+              "task_metrics": {
+                "pick up the black bowl between the plate and the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.07855597205593118,
+                  "loss": 0.10478642547968775,
+                  "action_mae_environment_units": 0.06924711821850024
+                },
+                "pick up the black bowl from table center and place it on the plate": {
+                  "normalized_action_mse": 0.04329795859687563,
+                  "loss": 0.0587066433072323,
+                  "action_mae_environment_units": 0.040466977793754376
+                },
+                "pick up the black bowl in the top drawer of the wooden cabinet and place it on the plate": {
+                  "normalized_action_mse": 0.022142438351043632,
+                  "loss": 0.041072939726291224,
+                  "action_mae_environment_units": 0.03312893010561634
+                },
+                "pick up the black bowl next to the cookie box and place it on the plate": {
+                  "normalized_action_mse": 0.02507677388909672,
+                  "loss": 0.12903642957098782,
+                  "action_mae_environment_units": 0.035950944636044604
+                },
+                "pick up the black bowl next to the plate and place it on the plate": {
+                  "normalized_action_mse": 0.04141680931872023,
+                  "loss": 0.10178126866230741,
+                  "action_mae_environment_units": 0.04836129030799255
+                },
+                "pick up the black bowl next to the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.01497995343857578,
+                  "loss": 0.049332458424032666,
+                  "action_mae_environment_units": 0.03081403400018493
+                },
+                "pick up the black bowl on the cookie box and place it on the plate": {
+                  "normalized_action_mse": 0.042481238308495706,
+                  "loss": 0.08857596886809915,
+                  "action_mae_environment_units": 0.050867695069888565
+                },
+                "pick up the black bowl on the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.07878438069684697,
+                  "loss": 0.2380714183964301,
+                  "action_mae_environment_units": 0.07079236324008376
+                },
+                "pick up the black bowl on the stove and place it on the plate": {
+                  "normalized_action_mse": 0.036475570855795274,
+                  "loss": 0.05918949680926744,
+                  "action_mae_environment_units": 0.04011713877417518
+                },
+                "pick up the black bowl on the wooden cabinet and place it on the plate": {
+                  "normalized_action_mse": 0.04120401748722153,
+                  "loss": 0.0886636578507023,
+                  "action_mae_environment_units": 0.04560662801072968
+                }
+              }
+            }
+          },
+          "incomplete_host_samples": [
+            {
+              "errors": [
+                "live_or_unknown_memory_unreadable"
+              ],
+              "failures": [
+                {
+                  "pid": "1952300",
+                  "poll_after": {
+                    "begin_monotonic_seconds": 696566.263468636,
+                    "begin_unix_seconds": 1794633181.0073578,
+                    "end_monotonic_seconds": 696566.613835895,
+                    "end_unix_seconds": 1794633181.3577247,
+                    "events": [],
+                    "timeout_milliseconds": 350
+                  },
+                  "rollup": {
+                    "begin_monotonic_seconds": 696566.263304942,
+                    "begin_unix_seconds": 1794633181.0071943,
+                    "end_monotonic_seconds": 696566.263338953,
+                    "end_unix_seconds": 1794633181.0072281,
+                    "error": {
+                      "errno": 3,
+                      "type": "ProcessLookupError"
+                    }
+                  },
+                  "stat_before": {
+                    "begin_monotonic_seconds": 696566.26321891,
+                    "begin_unix_seconds": 1794633181.0071082,
+                    "end_monotonic_seconds": 696566.263258511,
+                    "end_unix_seconds": 1794633181.0071478,
+                    "value": {
+                      "pid": 1952300,
+                      "ppid": 1952250,
+                      "start_ticks": 69595701,
+                      "state": "R",
+                      "uid": 65534
+                    }
+                  },
+                  "status": {
+                    "begin_monotonic_seconds": 696566.263262731,
+                    "begin_unix_seconds": 1794633181.007152,
+                    "end_monotonic_seconds": 696566.263303642,
+                    "end_unix_seconds": 1794633181.0071929,
+                    "value": {}
+                  }
+                }
+              ],
+              "sample_index": 451,
+              "stage": "native-training"
+            }
+          ],
+          "reload_score_receipts": {
+            "123": {
+              "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_lora/development/reload-evaluation-123/evaluation.json",
+              "sha256": "f893dc4f56dcd67b34d98f14c9fce53367f0faada603f231a32f480858a0d1c9"
+            },
+            "456": {
+              "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_lora/development/reload-evaluation-456/evaluation.json",
+              "sha256": "db2d941ea3451be4d4a54bbcd9f03b388cd48a849a5754c15e1f4b3cec2c5b1b"
+            },
+            "789": {
+              "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_lora/development/reload-evaluation-789/evaluation.json",
+              "sha256": "530a522eb8bd06d53b778465a0a9431d1c5c49bfdace94c4b1c19abc87a691f8"
+            }
+          }
+        },
+        "nf4_lora": {
+          "result_sha256": "94f9abc4b92b79dab9ddbc0c0f434fe0e09a96514300787f148ea27a7d031779",
+          "completion_sha256": "d7cf6c50422c2aebff618e85f5d8d64541bb6e96a0961988477ae9c51b1d309c",
+          "metrics_sha256": "613c67dbde9aad720122146e16f8ef575a32da53a510150e2c57592c6c746f9b",
+          "runtime": {
+            "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/nf4_lora/runtime.json",
+            "sha256": "5272d13c21801b7fd732e709b7d1f273157b9d77aa456eb01734fa6ae6995484",
+            "value": {
+              "code": "4cba88f4d84ce69037c194e58670e8491388a36d",
+              "cpu_affinity": [
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                12,
+                13,
+                130,
+                131,
+                134,
+                135,
+                138,
+                139,
+                142,
+                143
+              ],
+              "cpu_numa_nodes": {
+                "12": [
+                  "node0"
+                ],
+                "13": [
+                  "node0"
+                ],
+                "130": [
+                  "node0"
+                ],
+                "131": [
+                  "node0"
+                ],
+                "134": [
+                  "node0"
+                ],
+                "135": [
+                  "node0"
+                ],
+                "138": [
+                  "node0"
+                ],
+                "139": [
+                  "node0"
+                ],
+                "142": [
+                  "node0"
+                ],
+                "143": [
+                  "node0"
+                ],
+                "4": [
+                  "node0"
+                ],
+                "5": [
+                  "node0"
+                ],
+                "6": [
+                  "node0"
+                ],
+                "7": [
+                  "node0"
+                ],
+                "8": [
+                  "node0"
+                ],
+                "9": [
+                  "node0"
+                ]
+              },
+              "cuda_visible_devices": "0",
+              "gpu": {
+                "bytes": 85174583296,
+                "name": "NVIDIA A100-SXM4-80GB",
+                "nvml_uuid_roundtrip": true,
+                "torch_uuid": "89ef729e-b8f7-2136-7148-db0371beac08",
+                "uuid": "GPU-89ef729e-b8f7-2136-7148-db0371beac08"
+              },
+              "process_memory_policy": [
+                "Cpus_allowed_list:\t4-9,12-13,130-131,134-135,138-139,142-143",
+                "Mems_allowed_list:\t0-7"
+              ],
+              "slurm_job": "38515136",
+              "versions": {
+                "bitsandbytes": "0.49.2",
+                "diffusers": "0.35.1",
+                "safetensors": "0.8.0",
+                "torch": "2.10.0+cu128",
+                "transformers": "4.57.6"
+              }
+            }
+          },
+          "updates": {
+            "applied": 300,
+            "clipped": 112.0,
+            "count": 300,
+            "lr_values": [
+              1e-05
+            ],
+            "nonfinite_gradient": 0.0,
+            "nonfinite_loss": 0.0,
+            "skipped": 0.0
+          },
+          "update_diagnostics": [
+            {
+              "first": 1,
+              "last": 100,
+              "mean_clip_coefficient": 0.7714304234563124,
+              "mean_gradient_norm": 1.930594206005335,
+              "mean_train_loss": 0.04728769144392572,
+              "median_gradient_norm": 0.5799181759357452
+            },
+            {
+              "first": 101,
+              "last": 200,
+              "mean_clip_coefficient": 0.8394456997062899,
+              "mean_gradient_norm": 1.3846237917244435,
+              "mean_train_loss": 0.02776993507402949,
+              "median_gradient_norm": 0.562056303024292
+            },
+            {
+              "first": 201,
+              "last": 300,
+              "mean_clip_coefficient": 0.7214864949382557,
+              "mean_gradient_norm": 2.3048784041404726,
+              "mean_train_loss": 0.0588928963302169,
+              "median_gradient_norm": 0.870706170797348
+            }
+          ],
+          "fixed_work": {
+            "history": [
+              {
+                "metrics": {
+                  "action_mae_environment_units": 0.04993531420917876,
+                  "action_mae_gripper_environment_units": 0.1357787735760212,
+                  "action_mae_pitch_environment_units": 0.01679471389145995,
+                  "action_mae_roll_environment_units": 0.008380835461261412,
+                  "action_mae_x_environment_units": 0.056422665883997095,
+                  "action_mae_y_environment_units": 0.04715542558013691,
+                  "action_mae_yaw_environment_units": 0.009905640157403974,
+                  "action_mae_z_environment_units": 0.07510914491397083,
+                  "loss": 0.1313539528971887,
+                  "normalized_action_mse": 0.055654463751457765
+                },
+                "step": 0
+              },
+              {
+                "metrics": {
+                  "action_mae_environment_units": 0.04838504830236318,
+                  "action_mae_gripper_environment_units": 0.11357174288481474,
+                  "action_mae_pitch_environment_units": 0.01806804159101475,
+                  "action_mae_roll_environment_units": 0.009062410396143993,
+                  "action_mae_x_environment_units": 0.05846037963106657,
+                  "action_mae_y_environment_units": 0.05178603673656596,
+                  "action_mae_yaw_environment_units": 0.011089611226393865,
+                  "action_mae_z_environment_units": 0.07665711565054256,
+                  "loss": 0.11722300561523298,
+                  "normalized_action_mse": 0.050867698624996203
+                },
+                "step": 100
+              },
+              {
+                "metrics": {
+                  "action_mae_environment_units": 0.045291675304619666,
+                  "action_mae_gripper_environment_units": 0.09406431980431079,
+                  "action_mae_pitch_environment_units": 0.01730836013968725,
+                  "action_mae_roll_environment_units": 0.008952295170712908,
+                  "action_mae_x_environment_units": 0.059338889628854516,
+                  "action_mae_y_environment_units": 0.04943658298211604,
+                  "action_mae_yaw_environment_units": 0.010713143740155768,
+                  "action_mae_z_environment_units": 0.07722813566650023,
+                  "loss": 0.11121392435743474,
+                  "normalized_action_mse": 0.043024753683712336
+                },
+                "step": 200
+              },
+              {
+                "metrics": {
+                  "action_mae_environment_units": 0.046999382085976454,
+                  "action_mae_gripper_environment_units": 0.09172343101352454,
+                  "action_mae_pitch_environment_units": 0.01706947965699447,
+                  "action_mae_roll_environment_units": 0.00960366939938303,
+                  "action_mae_x_environment_units": 0.0658144533484739,
+                  "action_mae_y_environment_units": 0.05274828548143175,
+                  "action_mae_yaw_environment_units": 0.01101367469552166,
+                  "action_mae_z_environment_units": 0.08102268100650598,
+                  "loss": 0.09369460996167618,
+                  "normalized_action_mse": 0.04154304856035326
+                },
+                "step": 300
+              }
+            ],
+            "native_clocks": {
+              "checkpoint_seconds": 69.97224790789187,
+              "evaluation_seconds": 333.0592598018702,
+              "portable_export_seconds": 24.416639234987088,
+              "startup_seconds": 42.71979974000715,
+              "training_seconds": 147.8815975788748
+            },
+            "native_workflow_seconds": 620.8450764920563,
+            "outer_workflow_seconds": 1191.0141245740233,
+            "steady_examples_per_second": 2.035299324903222,
+            "steady_update_seconds_101_300": {
+              "count": 200,
+              "maximum": 0.5224577379412949,
+              "mean": 0.49132822271611076,
+              "median": 0.4901762574445456,
+              "p95": 0.4964806896517985,
+              "sum": 98.26564454322215
+            },
+            "updates": 300
+          },
+          "target": {
+            "attained": true,
+            "baseline": 0.05506814191766483,
+            "metric": "normalized_action_mse",
+            "native_seconds": 440.0167997080134,
+            "preflight_inclusive_seconds": 519.3942390820011,
+            "step": 200,
+            "threshold": 0.049561327725898344
+          },
+          "target_sha256": "eff946f62dbdc9c57f61ac96f03f13640baaf5bee4695d9fd1381830b95e4534",
+          "sampled_memory": {
+            "device_peak_bytes": 33430896640,
+            "errors": [
+              "incomplete_host_pss"
+            ],
+            "gpu_memory_evidence_valid": true,
+            "host_pss_complete": false,
+            "host_pss_sum_peak_bytes": 31110356992,
+            "host_rss_sum_peak_bytes": 31430311936,
+            "nvml_capacity_bytes": 85899345920,
+            "observed_span_seconds": 1129.689651966095,
+            "owned_device_process_peak_bytes": 32654753792,
+            "peaks_are_sampled_lower_bounds": true,
+            "samples": 851,
+            "sampling_gap_seconds": {
+              "count": 850,
+              "maximum": 1.7235069274902344,
+              "mean": 1.3290466493718764,
+              "median": 1.2801096439361572,
+              "p95": 1.4579396605491637,
+              "sum": 1129.689651966095
+            }
+          },
+          "outer_timing": {
+            "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/nf4_lora/development/outer-timing.json",
+            "sha256": "3854927a9c69559fceb146294651c908131ab7656d9ba41775467f82636bd205",
+            "value": {
+              "before_training_worker_seconds": 60.118655176018365,
+              "elapsed_seconds": 1191.0141245740233,
+              "monitor_exit": 0,
+              "monitor_was_alive_at_end": true,
+              "stages": [
+                {
+                  "elapsed_seconds": 0.31661463307682425,
+                  "exit_code": 0,
+                  "injected_interruption_expected": false,
+                  "name": "storage-preflight",
+                  "owned_process_cleanup": {
+                    "observed_processes": 1,
+                    "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+                    "signaled_processes": 0
+                  },
+                  "timed_out": false
+                },
+                {
+                  "elapsed_seconds": 646.8296512929955,
+                  "exit_code": 0,
+                  "injected_interruption_expected": false,
+                  "name": "native-training",
+                  "owned_process_cleanup": {
+                    "observed_processes": 4,
+                    "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+                    "signaled_processes": 0
+                  },
+                  "timed_out": false
+                },
+                {
+                  "elapsed_seconds": 162.05828487197869,
+                  "exit_code": 0,
+                  "injected_interruption_expected": false,
+                  "name": "portable-evaluation-123",
+                  "owned_process_cleanup": {
+                    "observed_processes": 3,
+                    "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+                    "signaled_processes": 0
+                  },
+                  "timed_out": false
+                },
+                {
+                  "elapsed_seconds": 160.252432556008,
+                  "exit_code": 0,
+                  "injected_interruption_expected": false,
+                  "name": "portable-evaluation-456",
+                  "owned_process_cleanup": {
+                    "observed_processes": 3,
+                    "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+                    "signaled_processes": 0
+                  },
+                  "timed_out": false
+                },
+                {
+                  "elapsed_seconds": 161.00878431007732,
+                  "exit_code": 0,
+                  "injected_interruption_expected": false,
+                  "name": "portable-evaluation-789",
+                  "owned_process_cleanup": {
+                    "observed_processes": 3,
+                    "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+                    "signaled_processes": 0
+                  },
+                  "timed_out": false
+                }
+              ],
+              "workflow_started_monotonic_seconds": 694695.518304592
+            }
+          },
+          "endpoint": {
+            "checkpoint": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/nf4_lora/development/native/qualification/gr00t-development-v1/nf4_lora-seed17/fixed300/checkpoints/iter_000300",
+            "fresh_portable_exact_primary_parity": true,
+            "noise_diagnostics": [
+              "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/nf4_lora/development/reload-evaluation-123/evaluation.json",
+              "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/nf4_lora/development/reload-evaluation-456/evaluation.json",
+              "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/nf4_lora/development/reload-evaluation-789/evaluation.json"
+            ],
+            "portable": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/nf4_lora/development/native/qualification/gr00t-development-v1/nf4_lora-seed17/fixed300/checkpoint_artifacts/iter_000300",
+            "resident_score": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/nf4_lora/development/native/qualification/gr00t-development-v1/nf4_lora-seed17/fixed300/evaluation-000300.json"
+          },
+          "calibration_cost": {
+            "calibration_inclusive_target_seconds": 649.1182106980123,
+            "result_sha256": "1f80906883884d66e924d019927f5fee1c662fd505bdfc5087063f565567bc9e",
+            "seconds": 129.7239716160111,
+            "shared_once_not_nine_independent_calibrations": true,
+            "target_reference": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38509654/calibration/evaluation/native/evaluation.json",
+            "workflow_sha256": "13b73ff6998e2264e9a438f850f4a8b59bc89da1e886e721b6c2055e2c34aeb7"
+          },
+          "shape_probe_seconds": 3.80951685202308,
+          "processed_input_probes": {
+            "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/nf4_lora/development/processed-input-probes.json",
+            "sha256": "2a36861931e99f884ffbf207841a1f36c6f33962e682714c8492b41290ff952a",
+            "value": {
+              "capture_helper_sha256": "5bf07e5dc0a73fb927d076f78229ac65acc0c877c32572094c10f679962b15fd",
+              "probes": [
+                {
+                  "id": "libero-1589-0",
+                  "index": 0,
+                  "outputs": {
+                    "flow_loss": 0.0031756949611008167,
+                    "format": "gr00t-native-output-probe-v1",
+                    "ids": [
+                      "libero-1589-0"
+                    ],
+                    "inputs": {
+                      "action": {
+                        "dtype": "torch.float32",
+                        "sha256": "0497abad928e5fecb24542536147d83caea5bf67b9fe288ed785efa62a67012d",
+                        "shape": [
+                          1,
+                          40,
+                          132
+                        ]
+                      },
+                      "action_mask": {
+                        "dtype": "torch.float32",
+                        "sha256": "6cff955e3aa4f694a6edf1e9e3617447e31098093c598fa296a5af40341e28a1",
+                        "shape": [
+                          1,
+                          40,
+                          132
+                        ]
+                      },
+                      "attention_mask": {
+                        "dtype": "torch.int64",
+                        "sha256": "785d4f933cab5c8f4a0d32983c5cd6dda481faf6b28c03f42f2969e0ad021fc9",
+                        "shape": [
+                          1,
+                          156
+                        ]
+                      },
+                      "embodiment_id": {
+                        "dtype": "torch.int64",
+                        "sha256": "d86e8112f3c4c4442126f8e9f44f16867da487f29052bf91b810457db34209a4",
+                        "shape": [
+                          1
+                        ]
+                      },
+                      "image_grid_thw": {
+                        "dtype": "torch.int64",
+                        "sha256": "2b01a37992ae566addcc9b7c20e932af440bc218c99ce0f5301e351cb18dcf04",
+                        "shape": [
+                          2,
+                          3
+                        ]
+                      },
+                      "input_ids": {
+                        "dtype": "torch.int64",
+                        "sha256": "a01049e2311546b8ae0685e3da0b9b55d4abe0d1ddc5e173dd76576b85c232e8",
+                        "shape": [
+                          1,
+                          156
+                        ]
+                      },
+                      "pixel_values": {
+                        "dtype": "torch.float32",
+                        "sha256": "4f836d588b4c369ff569259101e7ec2100895fd38a6d0d1bd4db7a620ab9ff5e",
+                        "shape": [
+                          512,
+                          1536
+                        ]
+                      },
+                      "state": {
+                        "dtype": "torch.float32",
+                        "sha256": "8aae0785258b7dbe21598acdeaa3997d9d146b9bdbdd778ebb22d878be488f4a",
+                        "shape": [
+                          1,
+                          1,
+                          132
+                        ]
+                      }
+                    },
+                    "masked_elements": 70.0,
+                    "seed": 123
+                  }
+                },
+                {
+                  "id": "libero-1653-131",
+                  "index": 159,
+                  "outputs": {
+                    "flow_loss": 0.4394039511680603,
+                    "format": "gr00t-native-output-probe-v1",
+                    "ids": [
+                      "libero-1653-131"
+                    ],
+                    "inputs": {
+                      "action": {
+                        "dtype": "torch.float32",
+                        "sha256": "dbbfb27b08978872d0e4781fd720e55f9bd43d5d8fb2eeab61daf6550b12a397",
+                        "shape": [
+                          1,
+                          40,
+                          132
+                        ]
+                      },
+                      "action_mask": {
+                        "dtype": "torch.float32",
+                        "sha256": "6cff955e3aa4f694a6edf1e9e3617447e31098093c598fa296a5af40341e28a1",
+                        "shape": [
+                          1,
+                          40,
+                          132
+                        ]
+                      },
+                      "attention_mask": {
+                        "dtype": "torch.int64",
+                        "sha256": "01055f8b5b22915a39c6e4b339497c3456aaa683da8d3a51eb580aac01058341",
+                        "shape": [
+                          1,
+                          152
+                        ]
+                      },
+                      "embodiment_id": {
+                        "dtype": "torch.int64",
+                        "sha256": "d86e8112f3c4c4442126f8e9f44f16867da487f29052bf91b810457db34209a4",
+                        "shape": [
+                          1
+                        ]
+                      },
+                      "image_grid_thw": {
+                        "dtype": "torch.int64",
+                        "sha256": "2b01a37992ae566addcc9b7c20e932af440bc218c99ce0f5301e351cb18dcf04",
+                        "shape": [
+                          2,
+                          3
+                        ]
+                      },
+                      "input_ids": {
+                        "dtype": "torch.int64",
+                        "sha256": "dad121ea1ccbe1a440b3449e9ceae269191aec0524d878f623232deee7624bb1",
+                        "shape": [
+                          1,
+                          152
+                        ]
+                      },
+                      "pixel_values": {
+                        "dtype": "torch.float32",
+                        "sha256": "7ad117fb2c1d49c7c91816478c955d5f3d7d19a1d8167501d707a5bf161ec995",
+                        "shape": [
+                          512,
+                          1536
+                        ]
+                      },
+                      "state": {
+                        "dtype": "torch.float32",
+                        "sha256": "87d4ba94c1ed03a5781ac299b0077556e132b90ef609b627ad410cf477d8fcb7",
+                        "shape": [
+                          1,
+                          1,
+                          132
+                        ]
+                      }
+                    },
+                    "masked_elements": 70.0,
+                    "seed": 123
+                  }
+                }
+              ],
+              "scope": "first/last real development rows; cost included before training; not a shape census",
+              "seconds": 3.80951685202308
+            }
+          },
+          "evaluation_receipts": {
+            "0": {
+              "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/nf4_lora/development/native/qualification/gr00t-development-v1/nf4_lora-seed17/fixed300/evaluation-000000.json",
+              "sha256": "23b66865e15c418ad08d784a11891b88d4a83b7960aa6bc47e520da026fb83b0",
+              "rows": 160,
+              "episodes": 40,
+              "weighting": "Equal windows within episode, equal four episodes within task, equal ten tasks; all windows70 valid elements.",
+              "task_metrics": {
+                "pick up the black bowl between the plate and the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.07899056150844055,
+                  "loss": 0.12039338915928965,
+                  "action_mae_environment_units": 0.06333838944224768
+                },
+                "pick up the black bowl from table center and place it on the plate": {
+                  "normalized_action_mse": 0.04103656704371263,
+                  "loss": 0.11063272081810283,
+                  "action_mae_environment_units": 0.036116578137402905
+                },
+                "pick up the black bowl in the top drawer of the wooden cabinet and place it on the plate": {
+                  "normalized_action_mse": 0.04666339543016095,
+                  "loss": 0.07297508179908618,
+                  "action_mae_environment_units": 0.044521298398701344
+                },
+                "pick up the black bowl next to the cookie box and place it on the plate": {
+                  "normalized_action_mse": 0.03662404182500073,
+                  "loss": 0.1424195041472558,
+                  "action_mae_environment_units": 0.038358806974926205
+                },
+                "pick up the black bowl next to the plate and place it on the plate": {
+                  "normalized_action_mse": 0.07697145126793267,
+                  "loss": 0.14818715445289854,
+                  "action_mae_environment_units": 0.06770706284547601
+                },
+                "pick up the black bowl next to the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.0400598461348896,
+                  "loss": 0.06806453119497746,
+                  "action_mae_environment_units": 0.04177863279240275
+                },
+                "pick up the black bowl on the cookie box and place it on the plate": {
+                  "normalized_action_mse": 0.05403181552953486,
+                  "loss": 0.10970609736978076,
+                  "action_mae_environment_units": 0.049456221654725255
+                },
+                "pick up the black bowl on the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.07487065764809293,
+                  "loss": 0.2624803267826792,
+                  "action_mae_environment_units": 0.06583828252449035
+                },
+                "pick up the black bowl on the stove and place it on the plate": {
+                  "normalized_action_mse": 0.0640102705119976,
+                  "loss": 0.12526201660512015,
+                  "action_mae_environment_units": 0.04980822171814223
+                },
+                "pick up the black bowl on the wooden cabinet and place it on the plate": {
+                  "normalized_action_mse": 0.04328603061481512,
+                  "loss": 0.15341870664269663,
+                  "action_mae_environment_units": 0.04242964760327293
+                }
+              }
+            },
+            "100": {
+              "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/nf4_lora/development/native/qualification/gr00t-development-v1/nf4_lora-seed17/fixed300/evaluation-000100.json",
+              "sha256": "63bceb33cbc2d4c00689ee5412fc0cb20b6a4992a6a9098b5bcca457d9cdd536",
+              "rows": 160,
+              "episodes": 40,
+              "weighting": "Equal windows within episode, equal four episodes within task, equal ten tasks; all windows70 valid elements.",
+              "task_metrics": {
+                "pick up the black bowl between the plate and the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.07822491425488676,
+                  "loss": 0.10702273171773413,
+                  "action_mae_environment_units": 0.06281294829512576
+                },
+                "pick up the black bowl from table center and place it on the plate": {
+                  "normalized_action_mse": 0.0468717991374433,
+                  "loss": 0.08032633451512083,
+                  "action_mae_environment_units": 0.04141473943494975
+                },
+                "pick up the black bowl in the top drawer of the wooden cabinet and place it on the plate": {
+                  "normalized_action_mse": 0.024695824156515302,
+                  "loss": 0.06938945763249649,
+                  "action_mae_environment_units": 0.03226398975793256
+                },
+                "pick up the black bowl next to the cookie box and place it on the plate": {
+                  "normalized_action_mse": 0.03578177204222552,
+                  "loss": 0.13936916401144117,
+                  "action_mae_environment_units": 0.03849952460571206
+                },
+                "pick up the black bowl next to the plate and place it on the plate": {
+                  "normalized_action_mse": 0.054867039996731495,
+                  "loss": 0.1426842349319486,
+                  "action_mae_environment_units": 0.05496385444210436
+                },
+                "pick up the black bowl next to the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.04067411232473595,
+                  "loss": 0.0655548007634934,
+                  "action_mae_environment_units": 0.045892284914339
+                },
+                "pick up the black bowl on the cookie box and place it on the plate": {
+                  "normalized_action_mse": 0.05065030788204499,
+                  "loss": 0.08900979483587435,
+                  "action_mae_environment_units": 0.04911945061677809
+                },
+                "pick up the black bowl on the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.07239008646325341,
+                  "loss": 0.2479583654057933,
+                  "action_mae_environment_units": 0.06545109267922504
+                },
+                "pick up the black bowl on the stove and place it on the plate": {
+                  "normalized_action_mse": 0.06270573702308216,
+                  "loss": 0.11020442381413886,
+                  "action_mae_environment_units": 0.049603688337268595
+                },
+                "pick up the black bowl on the wooden cabinet and place it on the plate": {
+                  "normalized_action_mse": 0.04181539296904313,
+                  "loss": 0.12071074852428865,
+                  "action_mae_environment_units": 0.043828909940196815
+                }
+              }
+            },
+            "200": {
+              "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/nf4_lora/development/native/qualification/gr00t-development-v1/nf4_lora-seed17/fixed300/evaluation-000200.json",
+              "sha256": "d4b076a99fdf5ce69021d36dcc5cb12529d18b5533b741c38719353f42012591",
+              "rows": 160,
+              "episodes": 40,
+              "weighting": "Equal windows within episode, equal four episodes within task, equal ten tasks; all windows70 valid elements.",
+              "task_metrics": {
+                "pick up the black bowl between the plate and the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.04969624013174326,
+                  "loss": 0.09268623487878358,
+                  "action_mae_environment_units": 0.0501177073855509
+                },
+                "pick up the black bowl from table center and place it on the plate": {
+                  "normalized_action_mse": 0.025429102671997886,
+                  "loss": 0.0685546282766154,
+                  "action_mae_environment_units": 0.029631664356199672
+                },
+                "pick up the black bowl in the top drawer of the wooden cabinet and place it on the plate": {
+                  "normalized_action_mse": 0.023727657419762443,
+                  "loss": 0.04831812182237627,
+                  "action_mae_environment_units": 0.032860570166142855
+                },
+                "pick up the black bowl next to the cookie box and place it on the plate": {
+                  "normalized_action_mse": 0.036691005674323866,
+                  "loss": 0.15786025367560796,
+                  "action_mae_environment_units": 0.040712719509859975
+                },
+                "pick up the black bowl next to the plate and place it on the plate": {
+                  "normalized_action_mse": 0.04776231572031975,
+                  "loss": 0.1502054489828879,
+                  "action_mae_environment_units": 0.05235508327556769
+                },
+                "pick up the black bowl next to the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.031611297592254624,
+                  "loss": 0.06300167654262623,
+                  "action_mae_environment_units": 0.03913345078941682
+                },
+                "pick up the black bowl on the cookie box and place it on the plate": {
+                  "normalized_action_mse": 0.04413388993458024,
+                  "loss": 0.09981619773316197,
+                  "action_mae_environment_units": 0.04917343362720112
+                },
+                "pick up the black bowl on the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.07107386716774532,
+                  "loss": 0.2453569541030447,
+                  "action_mae_environment_units": 0.06396691690465048
+                },
+                "pick up the black bowl on the stove and place it on the plate": {
+                  "normalized_action_mse": 0.05842124048753509,
+                  "loss": 0.08390700170275522,
+                  "action_mae_environment_units": 0.04883001493889257
+                },
+                "pick up the black bowl on the wooden cabinet and place it on the plate": {
+                  "normalized_action_mse": 0.04170092003686088,
+                  "loss": 0.1024327258564881,
+                  "action_mae_environment_units": 0.046135192092714376
+                }
+              }
+            },
+            "300": {
+              "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/nf4_lora/development/native/qualification/gr00t-development-v1/nf4_lora-seed17/fixed300/evaluation-000300.json",
+              "sha256": "15b909900fb52e67265fea388bea64208a46ccdb508e981c63bec41e7dcb5a65",
+              "rows": 160,
+              "episodes": 40,
+              "weighting": "Equal windows within episode, equal four episodes within task, equal ten tasks; all windows70 valid elements.",
+              "task_metrics": {
+                "pick up the black bowl between the plate and the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.07809498095219689,
+                  "loss": 0.10521062221960165,
+                  "action_mae_environment_units": 0.0693356856948381
+                },
+                "pick up the black bowl from table center and place it on the plate": {
+                  "normalized_action_mse": 0.046240653553312375,
+                  "loss": 0.06357702934474219,
+                  "action_mae_environment_units": 0.04358728625288912
+                },
+                "pick up the black bowl in the top drawer of the wooden cabinet and place it on the plate": {
+                  "normalized_action_mse": 0.01879142462275922,
+                  "loss": 0.04551600560807856,
+                  "action_mae_environment_units": 0.031548706190447064
+                },
+                "pick up the black bowl next to the cookie box and place it on the plate": {
+                  "normalized_action_mse": 0.022359081151496086,
+                  "loss": 0.11429764321655966,
+                  "action_mae_environment_units": 0.035532456876180896
+                },
+                "pick up the black bowl next to the plate and place it on the plate": {
+                  "normalized_action_mse": 0.03943525593993919,
+                  "loss": 0.10299141556606628,
+                  "action_mae_environment_units": 0.04861085009729872
+                },
+                "pick up the black bowl next to the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.021137907289500747,
+                  "loss": 0.05423812984372489,
+                  "action_mae_environment_units": 0.03506148526375335
+                },
+                "pick up the black bowl on the cookie box and place it on the plate": {
+                  "normalized_action_mse": 0.04337405811196991,
+                  "loss": 0.0825688645709306,
+                  "action_mae_environment_units": 0.05422233736269723
+                },
+                "pick up the black bowl on the ramekin and place it on the plate": {
+                  "normalized_action_mse": 0.07963114627636969,
+                  "loss": 0.23899794938915875,
+                  "action_mae_environment_units": 0.07191172000375806
+                },
+                "pick up the black bowl on the stove and place it on the plate": {
+                  "normalized_action_mse": 0.034310764004476364,
+                  "loss": 0.05530031608941499,
+                  "action_mae_environment_units": 0.03891350289632152
+                },
+                "pick up the black bowl on the wooden cabinet and place it on the plate": {
+                  "normalized_action_mse": 0.03205521370151213,
+                  "loss": 0.07424812376848422,
+                  "action_mae_environment_units": 0.0412697902215807
+                }
+              }
+            }
+          },
+          "incomplete_host_samples": [
+            {
+              "errors": [
+                "live_or_unknown_memory_unreadable"
+              ],
+              "failures": [
+                {
+                  "pid": "1936000",
+                  "poll_after": {
+                    "begin_monotonic_seconds": 695400.133548039,
+                    "begin_unix_seconds": 1794632014.8774374,
+                    "end_monotonic_seconds": 695400.483916048,
+                    "end_unix_seconds": 1794632015.2278047,
+                    "events": [],
+                    "timeout_milliseconds": 350
+                  },
+                  "rollup": {
+                    "begin_monotonic_seconds": 695400.133386215,
+                    "begin_unix_seconds": 1794632014.8772757,
+                    "end_monotonic_seconds": 695400.133419976,
+                    "end_unix_seconds": 1794632014.877309,
+                    "error": {
+                      "errno": 3,
+                      "type": "ProcessLookupError"
+                    }
+                  },
+                  "stat_before": {
+                    "begin_monotonic_seconds": 695400.133298143,
+                    "begin_unix_seconds": 1794632014.8771875,
+                    "end_monotonic_seconds": 695400.133338173,
+                    "end_unix_seconds": 1794632014.8772275,
+                    "value": {
+                      "pid": 1936000,
+                      "ppid": 1935780,
+                      "start_ticks": 69475952,
+                      "state": "R",
+                      "uid": 65534
+                    }
+                  },
+                  "status": {
+                    "begin_monotonic_seconds": 695400.133342614,
+                    "begin_unix_seconds": 1794632014.8772318,
+                    "end_monotonic_seconds": 695400.133384985,
+                    "end_unix_seconds": 1794632014.8772743,
+                    "value": {}
+                  }
+                }
+              ],
+              "sample_index": 472,
+              "stage": "native-training"
+            },
+            {
+              "errors": [
+                "live_or_unknown_memory_unreadable"
+              ],
+              "failures": [
+                {
+                  "pid": "1936000",
+                  "poll_after": {
+                    "begin_monotonic_seconds": 695401.749007315,
+                    "begin_unix_seconds": 1794632016.4928966,
+                    "end_monotonic_seconds": 695402.099380124,
+                    "end_unix_seconds": 1794632016.8432689,
+                    "events": [],
+                    "timeout_milliseconds": 350
+                  },
+                  "rollup": {
+                    "begin_monotonic_seconds": 695401.748842461,
+                    "begin_unix_seconds": 1794632016.4927318,
+                    "end_monotonic_seconds": 695401.748877122,
+                    "end_unix_seconds": 1794632016.4927664,
+                    "error": {
+                      "errno": 3,
+                      "type": "ProcessLookupError"
+                    }
+                  },
+                  "stat_before": {
+                    "begin_monotonic_seconds": 695401.748747878,
+                    "begin_unix_seconds": 1794632016.4926372,
+                    "end_monotonic_seconds": 695401.748791579,
+                    "end_unix_seconds": 1794632016.492681,
+                    "value": {
+                      "pid": 1936000,
+                      "ppid": 1935780,
+                      "start_ticks": 69475952,
+                      "state": "R",
+                      "uid": 65534
+                    }
+                  },
+                  "status": {
+                    "begin_monotonic_seconds": 695401.748796019,
+                    "begin_unix_seconds": 1794632016.4926853,
+                    "end_monotonic_seconds": 695401.748841211,
+                    "end_unix_seconds": 1794632016.4927306,
+                    "value": {}
+                  }
+                }
+              ],
+              "sample_index": 473,
+              "stage": "native-training"
+            }
+          ],
+          "reload_score_receipts": {
+            "123": {
+              "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/nf4_lora/development/reload-evaluation-123/evaluation.json",
+              "sha256": "da3c9b2899b6782adc5123e7a7924656049b04951487db4c652161b2c14fa14e"
+            },
+            "456": {
+              "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/nf4_lora/development/reload-evaluation-456/evaluation.json",
+              "sha256": "902c23d486988348e7c52e3fa3e666559ace5187b2a3981bd38f01dfc5ba9aff"
+            },
+            "789": {
+              "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/nf4_lora/development/reload-evaluation-789/evaluation.json",
+              "sha256": "885418b6cf9a55d765ceb6cf88abb803c6862a7a5bdcba26224f37a1697a13f0"
+            }
+          }
+        }
+      },
+      "limitations": [
+        "One exposed training seed with fixed arm order; no recipe-level confidence interval or independent confirmation.",
+        "The stronger BF16 head-only control remains separately reported; matched BF16 LoRA stays the primary precision comparator.",
+        "NF4 is slower to the fixed target and saves only1.1035GiB of sampled process memory versus matched BF16 LoRA.",
+        "Host PSS samples are incomplete at process teardown; sampled peaks remain lower bounds.",
+        "Original LR1e-4 failures and their conclusions remain unchanged. Corrected step CPU affinity makes cross-study timing comparisons confounded.",
+        "Lower offline MSE does not establish useful rollout behavior; closed-loop checks remain separate."
+      ],
+      "point_comparison": {
+        "nf4_over_bf16_lora_mse_minus_one": -0.02116943322680309,
+        "nf4_over_bf16_head_mse_minus_one": 0.04282063364970701,
+        "nf4_over_bf16_lora_preflight_inclusive_target_time_minus_one": 0.03977713954325912,
+        "nf4_sampled_process_saving_bytes": 1184890880,
+        "comparison_scope": "Fixed300 updates and observed target200 clocks; not equal-compute task superiority or a recipe CI."
+      }
     }
   },
   "read_only_head_memory_diagnostic": {
