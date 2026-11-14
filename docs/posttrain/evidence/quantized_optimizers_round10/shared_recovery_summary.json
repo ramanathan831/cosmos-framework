@@ -135,5 +135,23 @@
       "paged_adamw_8bit/resume-rank1.json"
     ],
     "scope": "Same two-rank accelerator reference/resume and rank-consistent failure protocol after synchronized provenance metadata change. Native pending-publication continuation remains separate."
+  },
+  "backend_ownership_gate": {
+    "job": "38536222",
+    "source": "ff2572f266d9463c6cb820f883e514387aecd869",
+    "pinned_tests_passed": 72,
+    "rank_receipts": 12,
+    "real_cuda_updates": true,
+    "fresh_process_continuation": [
+      5,
+      6,
+      7,
+      8
+    ],
+    "retired_masters_and_managed_pages_released_without_gc": true,
+    "retained_class_test": true,
+    "failed_restore_rollback_and_retained_error_release": true,
+    "raw": "raw/gr00t-master-ownership-v1",
+    "scope": "Two-rank FSDP2 with mixed BF16/FP32 storage, all3 optimizers. Focused coverage overlaps prior gates; no summed independent-test claim."
   }
 }

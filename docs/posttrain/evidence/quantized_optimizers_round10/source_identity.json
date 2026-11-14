@@ -1,14 +1,14 @@
 {
   "starting_commit": "2516e9f1e9aecb0b68d6a21e27dd835f456109ab",
-  "current_implementation_parent": "d3f7bf16eb5f07564e4965af4bd131b6d67c0c0d",
+  "current_implementation_parent": "ff2572f266d9463c6cb820f883e514387aecd869",
   "sealed": false,
-  "updated_at_utc": "2026-11-14T11:44:36.194579+00:00",
+  "updated_at_utc": "2026-11-14T13:53:09.063205+00:00",
   "tested_native_source": {
-    "revision": "677e7e039012b40033e4ea137587619808d12a01",
-    "archive_sha256": "3240fb4a24ea21594dea9f53b5a6c552348a2bc7b7615162a99e2a7f94cb575e",
-    "archive_bytes": 7722751,
-    "archive": "optimizer-native-runtime-v41.tar.gz",
-    "scope": "source-v41: pinned165 regressions, four-reader actual checkpoint verification, native pending16 publication and completed paged55 reference32. Mature80-update numerical/recovery evidence remains separately identified at source-v39."
+    "revision": "ff2572f266d9463c6cb820f883e514387aecd869",
+    "archive_sha256": "748841d879ba76692462738e5c24130d218a9d4d1d5d0004c6a68162c87dded9",
+    "archive_bytes": 7723961,
+    "archive": "optimizer-native-runtime-v42.tar.gz",
+    "scope": "source-v42:72 pinned tests and12 shared two-rank reference/resume/failure receipts pass. Corrected native pressure continuation admitted separately; mature80 numerical/recovery remains at its recorded source."
   },
   "all_runtime_archives": "native_sources.json",
   "important_components": {
@@ -27,7 +27,8 @@
     "publication_symlink_guard": "ef9f69589595724c8d166bf699557a2223bb832c",
     "joint_checkpoint_memory_cleanup": "36610372f48f1a692f363996458bcefc637eb12c",
     "descriptor_publication_verification": "677e7e039012b40033e4ea137587619808d12a01",
-    "early_rank_failure_reporting": "d3f7bf16eb5f07564e4965af4bd131b6d67c0c0d"
+    "early_rank_failure_reporting": "d3f7bf16eb5f07564e4965af4bd131b6d67c0c0d",
+    "backend_class_ownership": "ff2572f266d9463c6cb820f883e514387aecd869"
   },
   "current_file_sha256": {
     "cosmos_framework/posttrain/checkpoint/external_copy.py": "dc5a1f3dd873da5ed3a84cd160a61c2792695be85c5bb2db24bd3417df6312cb",
@@ -55,13 +56,13 @@
     "cosmos_framework/posttrain/roles/trainer/llm.py": "961f4ae0100ea617dd9276cc08dc91322e31d4d60607d3f20df5b68ac5193f91",
     "cosmos_framework/posttrain/roles/trainer/validation/publication.py": "c086360a6b193c59b32ff67c780fbe5ec0fa54b8d995c113b302a347c6f9afad",
     "cosmos_framework/utils/optimizer_master.py": "8b8aae7d3e130fdd2717e2a8b49bd790f078f6d2bd58c3fa2caf068b757b5d9b",
-    "cosmos_framework/utils/quantized_optimizer.py": "91505535d41e572d19e092b80622e182e43085d058e7445a13f2cc3d2b61bcda",
+    "cosmos_framework/utils/quantized_optimizer.py": "ce5d22f2e74622683e58e85a7fa62a8fa752d317d91a71c77f487fd3c8e2df4f",
     "tools/quantized_optimizers/action_runtime.py": "3bf4e20bd082b18b151f6a352fbe8062cdfce2363e64ebe7f1902d5e9542a396",
     "tools/quantized_optimizers/action_runtime.sbatch": "819880cc0603b3885419f9b4b552e2db74f773ef5eaab89d22e637a8760babb8",
     "tools/quantized_optimizers/device_reservation.py": "88cccaa89ab36c2df994723bdd8cc080c03a4ea84753a2ba2e88d25696681a0b",
     "tools/quantized_optimizers/gr00t_native.py": "91e2cf9b30f06349a444cd83f7d0ab89acdac9a28abcf6f9ea8681aafcf65c2f",
     "tools/quantized_optimizers/gr00t_native.sbatch": "e35a9c4366ef683f44ba829153ddcdbdacea35fb07c52584a3fe65c947c4acee",
-    "tools/quantized_optimizers/master_distributed.py": "dbbb03b75cbc900b1a1899df8f62c880470b25db4f30467a35c17d7ed3146d42",
+    "tools/quantized_optimizers/master_distributed.py": "d13ecd570b6dca6a7deb688e3a7ed11c3faf19e49357f8075acde3fb2342fb82",
     "tools/quantized_optimizers/master_distributed.sbatch": "ce6a8ce7cfa7886bcec6bb9a22d8832ce484098f089c9f7b0aa13fa16662abc6",
     "tools/quantized_optimizers/run_deployment.py": "ec668ef8ed50e546457787a6750c59c81d40b835e84d5040bfd4d75bb8201166",
     "tools/quantized_optimizers/sim_runtime.sbatch": "7a3f5a4927f50319c1aa894f4a723125066f21d62e896f68f658e859d64f410e",

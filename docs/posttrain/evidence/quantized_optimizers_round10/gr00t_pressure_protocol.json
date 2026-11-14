@@ -165,6 +165,15 @@
       "admitted_at_utc": "2026-11-14T13:27:42.215416+00:00",
       "predecessor": "38535485 terminal COMPLETED: all four learner records exact, managed allocations reconstructed, zero updates/checkpoints",
       "policy": "Exact original learner and collector boundary before first new update.16new finite updates and new checkpoint32 publication required; physical simulator resets, so subsequent trajectory/parameter equality is not claimed. No changed reservation or recipe."
+    },
+    {
+      "job": "38536371",
+      "arm": "paged_adamw_8bit reservation55 corrected fresh16-to32 continuation",
+      "results": "gr00t-pressure-paged55-resume16-v2",
+      "source": "ff2572f266d9463c6cb820f883e514387aecd869",
+      "admitted_at_utc": "2026-11-14T13:53:09.059467+00:00",
+      "predecessor": "38536222 completed72 pinned tests and all12 two-rank reference/resume/failure receipts including immediate retirement release",
+      "policy": "Same55GiB pressure,seed17,32horizon; published original16. Exact learner/data before16new updates and checkpoint32 publication required. Simulation resets; no new quality or timing control."
     }
   ],
   "descriptor_cpu_admission": {

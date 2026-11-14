@@ -1,0 +1,121 @@
+{
+  "source": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-master-ownership-v1",
+  "allocation_end": "2026-11-14T13:51:28Z",
+  "extra_native_root": null,
+  "reviewed_file_ceiling_bytes": 134217728,
+  "scope": "complete recognized textual evidence; model and optimizer binary payloads remain at source",
+  "files": {
+    "adamw/latest_checkpoint.txt": {
+      "bytes": 12,
+      "sha256": "05c8edea07af767aba2ab6cb86d76952c44a6cd9947a98796e412250c7861177"
+    },
+    "adamw/reference-rank0.json": {
+      "bytes": 2978,
+      "sha256": "6e47375e0a8a5c6ee7b5d7dd31503586ad7fbe52534017f9401660ea171492ee"
+    },
+    "adamw/reference-rank1.json": {
+      "bytes": 2978,
+      "sha256": "d8ea2236efb2d6852cba7ac7b329a499eea52821bb5e435aa58adb2207ee82e9"
+    },
+    "adamw/resume-rank0.json": {
+      "bytes": 2947,
+      "sha256": "07e63914d5d1aceb58b4e485325bcd6f62cc7dc0ff16422227a5a73831530f9d"
+    },
+    "adamw/resume-rank1.json": {
+      "bytes": 2947,
+      "sha256": "c057bfcd0bcefcfc680e3a79e2daafe73d71bcd43b2b0ba5a38c8d83519b04c2"
+    },
+    "adamw-reference.log": {
+      "bytes": 3320,
+      "sha256": "624b1d0fb4093fb7f3313586187551d16a81b2007a39c19c362bc54ac1ad8149"
+    },
+    "adamw-resume.log": {
+      "bytes": 3003,
+      "sha256": "acb25e8fed7993b9f0bb4c55b9627faa0afe5074a8bffab794721d8cd74558f2"
+    },
+    "adamw_bnb_8bit/latest_checkpoint.txt": {
+      "bytes": 12,
+      "sha256": "05c8edea07af767aba2ab6cb86d76952c44a6cd9947a98796e412250c7861177"
+    },
+    "adamw_bnb_8bit/reference-rank0.json": {
+      "bytes": 6707,
+      "sha256": "6e11534de34f16ed41f5ceac3e256620dfc6e7ae3e76d95d2c73977d58c12bf1"
+    },
+    "adamw_bnb_8bit/reference-rank1.json": {
+      "bytes": 6707,
+      "sha256": "4d9deb339503162f42e9cd04f5e9836f68c2b6d5b9c67b043d46069dd6f867cb"
+    },
+    "adamw_bnb_8bit/resume-rank0.json": {
+      "bytes": 6676,
+      "sha256": "96044138b96e0265ffc6851842fcec120cd240ad21ac70e39e8508eb297eb30d"
+    },
+    "adamw_bnb_8bit/resume-rank1.json": {
+      "bytes": 6676,
+      "sha256": "ddf553b2f821dc58472a5b48f28abec3d3cb402a5f19b523920e2b2417af2035"
+    },
+    "adamw_bnb_8bit-reference.log": {
+      "bytes": 10297,
+      "sha256": "4ec4288ac7ffe29be0f275dcb9646d53a5ae1388ef5a1b6001c62c64d05a22ed"
+    },
+    "adamw_bnb_8bit-resume.log": {
+      "bytes": 9971,
+      "sha256": "8bcd550c15e9bbce514f68462117493ee1f1af3e8f78a8a1471bc2b1f061f96c"
+    },
+    "affected-tests.log": {
+      "bytes": 2584,
+      "sha256": "7f5cbc2fd5686968597742f5a8a9d24c17fbe05fc7b766d348039dbad94fd5a0"
+    },
+    "allocation-end.txt": {
+      "bytes": 21,
+      "sha256": "f7dc1adc529ad0cb998f4dcc1af4ab2b60e0453bff6388389bd1e5cacfdd11a6"
+    },
+    "allocation-start.txt": {
+      "bytes": 21,
+      "sha256": "f8ae0c0e549ba577f4285d2390a5f37247557e3109c892f2b14261d0ce728c85"
+    },
+    "devices.csv": {
+      "bytes": 181,
+      "sha256": "29d7793b420fee6b61f6da1c2d0c4ebe11dc2f488afd0be02675feb1f40a9271"
+    },
+    "exit-code.txt": {
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "job.txt": {
+      "bytes": 1887,
+      "sha256": "8555459bf70a99e5cc4df32bac896b0048b407f076993632e3b19e25420ae24d"
+    },
+    "paged_adamw_8bit/latest_checkpoint.txt": {
+      "bytes": 12,
+      "sha256": "05c8edea07af767aba2ab6cb86d76952c44a6cd9947a98796e412250c7861177"
+    },
+    "paged_adamw_8bit/reference-rank0.json": {
+      "bytes": 6720,
+      "sha256": "ac6d1a63771c6201a47587bf74ff7e02c8b70a1eda82dc5d2dd7f6354d09b00c"
+    },
+    "paged_adamw_8bit/reference-rank1.json": {
+      "bytes": 6720,
+      "sha256": "b439631ae36464f2eb3fb1f61bad977918e651db0c3d4c9d3f54a59f9205f4dd"
+    },
+    "paged_adamw_8bit/resume-rank0.json": {
+      "bytes": 6689,
+      "sha256": "feb41da49c33fdf3a9c3ec1e6a8f0b2017f026ec7c4eec369a5c62bd578a755c"
+    },
+    "paged_adamw_8bit/resume-rank1.json": {
+      "bytes": 6689,
+      "sha256": "50f83d5fadaa5ce2c802bece5aa67f2f8fcb8838aed845a1a8da9f4416d38783"
+    },
+    "paged_adamw_8bit-reference.log": {
+      "bytes": 10339,
+      "sha256": "3968663b365ae591f399f22dae07cb33cb82ab9c8bcb2c8a613a94b71c6f285e"
+    },
+    "paged_adamw_8bit-resume.log": {
+      "bytes": 10011,
+      "sha256": "04a72c4f0702d4a713a924385cf4af7c665c3f729c9525fc6109ad2be6315724"
+    },
+    "slurm-38536222.out": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+}
