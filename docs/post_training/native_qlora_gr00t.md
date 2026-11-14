@@ -191,7 +191,11 @@ torchrun --standalone --nproc-per-node=1 \
 ```
 
 For dense policy inference, add `--dense` and point `--checkpoint` to the effective-base dense
-artifact. The training runtime does not itself contain the pinned simulator stack. Until an actual
+artifact. The separate official-head control uses this same rollout entrypoint with its
+`gr00t_n1d7_libero_official_head.py` config and `data.backbone_path` override; it accepts committed
+native or portable head artifacts, but rejects `--dense`. Each loader checks the pinned source
+and complete native parameter/processor identity before applying trained tensors.
+The training runtime does not itself contain the pinned simulator stack. Until an actual
 simulator campaign passes, this connection and its CPU convention tests do not establish rollout
 success, simulator compatibility or deployment latency. The artifact-output probe in
 `model/gr00t/qualification.py` separately captures actual normalized and decoded actions, native

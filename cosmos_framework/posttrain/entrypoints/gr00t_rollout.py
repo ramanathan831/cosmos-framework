@@ -12,6 +12,48 @@ from dataclasses import asdict
 from pathlib import Path
 
 
+def load_rollout_policy(config, checkpoint, *, device, output, dense=False):
+    """Load a native matched or official-head artifact through its declared factory.
+
+    Read and verify the committed artifact before allocating the immutable base.
+    The constructed codec then checks every numerical identity and trained tensor;
+    selecting the official head control must never dispatch the LoRA constructor.
+    """
+    from cosmos_framework.posttrain.checkpoint.adapter import load_adapter_weights, read_adapter_metadata
+    from cosmos_framework.posttrain.checkpoint.manager import CheckpointManager
+    from cosmos_framework.posttrain.entrypoints.action_sft import _factory
+    from cosmos_framework.posttrain.model.checkpoint import AdapterCheckpointCodec
+    from cosmos_framework.posttrain.model.gr00t.qlora_source import recorded_source
+
+    matched = "cosmos_framework.posttrain.model.gr00t.action_sft.build_policy"
+    official = "cosmos_framework.posttrain.model.gr00t.official_head.build_policy"
+    if config.policy_factory not in {matched, official}:
+        raise ValueError("GR00T rollout requires its explicit native matched or official-head policy factory")
+    if dense:
+        if config.policy_factory != matched or config.dense_policy_factory != (
+            "cosmos_framework.posttrain.model.gr00t.dense.build_policy"
+        ):
+            raise ValueError("GR00T dense rollout is unavailable for the official-head control")
+        return _factory(config.dense_policy_factory)(config, checkpoint, device=device, output=output)
+    expected = {
+        "format": "cosmos.family-backbone.v1" if config.policy_factory == matched else "cosmos.gr00t-official-head.v1",
+        "base": recorded_source(),
+    }
+    if config.policy_factory == matched:
+        expected["task_contract"] = {"family": "gr00t_n1d7"}
+    manager = CheckpointManager(checkpoint_format="dcp")
+    metadata = read_adapter_metadata(checkpoint, manager=manager, expected_identity=expected)
+    policy = _factory(config.policy_factory)(config, device=device, output=output)
+    codec = getattr(policy.net, "_cosmos_adapter_checkpoint_codec", None)
+    if not isinstance(codec, AdapterCheckpointCodec):
+        raise ValueError("GR00T rollout policy must expose the native complete trained-parameter checkpoint codec")
+    codec.assert_live(policy.net)
+    codec.validate_metadata(metadata, purpose="reload")
+    load_adapter_weights(checkpoint, codec, manager=manager)
+    policy.net.eval()
+    return policy
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", required=True)
@@ -41,8 +83,7 @@ def main():
         LiberoCase,
         execution_protocol,
     )
-    from cosmos_framework.posttrain.entrypoints.action_sft import _factory, _json, validate_config
-    from cosmos_framework.posttrain.model.gr00t.action_sft import load_artifact
+    from cosmos_framework.posttrain.entrypoints.action_sft import _json, validate_config
     from cosmos_framework.posttrain.model.gr00t.rollout import NativeArtifactRollout
     from cosmos_framework.posttrain.roles.env.sim_gateway import SimGatewayBody
     from cosmos_framework.posttrain.utils.determinism import enable_determinism
@@ -64,11 +105,7 @@ def main():
     gateway = None
     try:
         output.mkdir(parents=True)
-        policy = (
-            _factory(config.dense_policy_factory)(config, args.checkpoint, device=device, output=output)
-            if args.dense
-            else load_artifact(config, args.checkpoint, device=device, output=output)
-        )
+        policy = load_rollout_policy(config, args.checkpoint, device=device, output=output, dense=args.dense)
         policy_loading_seconds = time.monotonic() - started
         rollout = NativeArtifactRollout(policy, latency_capacity=32 * len(cases))
         protocol = execution_protocol("libero_spatial", GR00T_QLORA_SPATIAL_EXECUTION_PROFILE)
