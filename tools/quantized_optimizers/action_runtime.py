@@ -4,14 +4,13 @@ import argparse
 import importlib
 import importlib.metadata
 import json
+import os
+import sys
 import traceback
 from pathlib import Path
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--output", type=Path, required=True)
-    args = parser.parse_args()
+def probe():
     results = {}
     for name in (
         "gr00t.model.gr00t_n1d7.gr00t_n1d7",
@@ -27,15 +26,41 @@ def main():
         except Exception:
             results[name] = {"ok": False, "traceback": traceback.format_exc()}
         print(json.dumps({name: results[name]["ok"]}), flush=True)
-        args.output.write_text(json.dumps({"imports": results, "complete": False}, indent=2))
     versions = {
         name: importlib.metadata.version(name)
         for name in {d.metadata["Name"] for d in importlib.metadata.distributions()}
     }
-    args.output.write_text(json.dumps({"imports": results, "versions": versions}, indent=2))
+    return {"imports": results, "versions": versions, "python": sys.executable}
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--ray-worker", action="store_true", help="Also check the native actor's actual import path")
+    args = parser.parse_args()
+    result = probe()
+    if args.ray_worker:
+        import ray
+
+        from cosmos_framework.posttrain.workers.grid import _actor_pythonpath
+        from cosmos_framework.posttrain.workers.ray import _Host
+
+        paths = _actor_pythonpath(None)
+        ray.init(num_cpus=2, include_dashboard=False, log_to_driver=False)
+        try:
+            host = _Host.options(runtime_env={"env_vars": {"PYTHONPATH": os.pathsep.join(paths)}}).remote(paths)
+            result["native_actor"] = ray.get(host.run.remote(lambda _: probe()))
+        finally:
+            ray.shutdown()
+    args.output.write_text(json.dumps(result, indent=2))
+    results = result["imports"]
     print(json.dumps({k: v["ok"] for k, v in results.items()}))
     if not all(v["ok"] for v in results.values()):
         raise SystemExit(1)
+    if args.ray_worker:
+        worker = result["native_actor"]
+        if worker["imports"] != result["imports"] or worker["versions"] != result["versions"]:
+            raise RuntimeError("native actor dependency/module identity differs from the driver")
 
 
 if __name__ == "__main__":

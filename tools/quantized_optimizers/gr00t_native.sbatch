@@ -35,7 +35,12 @@ srun --kill-on-bad-exit=1 --container-image="$CONTAINER_IMAGE" --container-mount
 set -euo pipefail
 source_dir=$(mktemp -d /tmp/optimizer-gr00t.XXXXXX)
 tar -xzf "$SOURCE_ARCHIVE" -C "$source_dir"
-export PATH="${MODEL_PYTHON%/*}:$PATH" PYTHONPATH="$source_dir" PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+export PATH="${MODEL_PYTHON%/*}:$PATH" PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+# The overlay inherits a read-only base site via .pth. Native Ray intentionally
+# omits interpreter-owned sites when forwarding implicit driver paths; make this
+# role-specific pinned overlay explicit so the inherited base cannot precede it.
+model_site=$("$MODEL_PYTHON" -c "import site; print(site.getsitepackages()[0])")
+export PYTHONPATH="$source_dir:$model_site"
 export HF_HOME="$RESULTS/hf" HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 WANDB_MODE=disabled
 export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NO_ALBUMENTATIONS_UPDATE=1 TOKENIZERS_PARALLELISM=false
 export MUJOCO_GL=egl PYOPENGL_PLATFORM=egl GR00T_DIT_SDPA_MODE=math CUBLAS_WORKSPACE_CONFIG=:4096:8
