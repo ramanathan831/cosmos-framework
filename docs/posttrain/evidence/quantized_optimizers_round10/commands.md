@@ -197,3 +197,13 @@ The launcher holds the explicit reservation on every GPU throughout native
 training. A completed pressure checkpoint16 is the source for read-only reload
 and16-to-32 continuation, with the same reservation. If pressure fails, resident
 checkpoint16 can establish resident recovery only; preserve the pressure failure.
+
+The single-seed native quality/state/total-memory figure is reproduced from the
+collected summary without new jobs:
+
+```bash
+python docs/posttrain/evidence/quantized_optimizers_round10/native_development_plot.py
+```
+
+It has no confidence intervals: one training seed cannot establish the requested
+recipe-level quality or speed bounds. The failed fused publication remains labeled.
