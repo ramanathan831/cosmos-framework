@@ -145,11 +145,14 @@ def main():
     parser.add_argument("--seed", type=int, default=17)
     parser.add_argument("--checkpoint-every", type=int, default=4)
     parser.add_argument("--validation-every", type=int, default=4)
+    parser.add_argument("--co-resident-gib", type=int, default=0, help="Synthetic paging stress only; GiB per GPU")
     parser.add_argument("--source-only", action="store_true")
     parser.add_argument("--evaluate-only", action="store_true")
     args = parser.parse_args()
     if min(args.updates, args.checkpoint_every, args.validation_every) < 1:
         parser.error("updates and checkpoint/validation intervals must be positive")
+    if args.co_resident_gib < 0:
+        parser.error("co-resident GiB must be nonnegative")
     if args.evaluate_only and not args.resume:
         parser.error("--evaluate-only requires --resume")
     root, output = Path(os.environ["RESOURCE_ROOT"]), Path(os.environ["RESULTS"])
@@ -274,11 +277,31 @@ def run(args, root, output):
         overrides.append(f"rl.resume={args.resume}")
     (output / "command.json").write_text(json.dumps(command + ["--", *overrides], indent=2))
     checked_phase(command + ["--validate-manifest", "--", *overrides], output, "manifest_validation")
-    before = time.monotonic()
-    with (output / "native.log").open("x") as log:
-        process = subprocess.Popen(command + ["--", *overrides], stdout=log, stderr=subprocess.STDOUT)
-        code = process.wait()
-    (output / "attempt.json").write_text(json.dumps({"returncode": code, "native_seconds": time.monotonic() - before}))
+    from tools.quantized_optimizers.device_reservation import ResidentDeviceMemory
+
+    with ResidentDeviceMemory(args.co_resident_gib, output) as reservation:
+        before = time.monotonic()
+        with (output / "native.log").open("x") as log:
+            process = subprocess.Popen(command + ["--", *overrides], stdout=log, stderr=subprocess.STDOUT)
+            try:
+                while True:
+                    reservation.check()
+                    try:
+                        code = process.wait(timeout=1)
+                        break
+                    except subprocess.TimeoutExpired:
+                        pass
+                reservation.check()
+            except BaseException:
+                process.terminate()
+                try:
+                    process.wait(timeout=30)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait()
+                raise
+        native_seconds = time.monotonic() - before
+    (output / "attempt.json").write_text(json.dumps({"returncode": code, "native_seconds": native_seconds}))
     if code:
         raise SystemExit(code)
 
