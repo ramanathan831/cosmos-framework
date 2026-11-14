@@ -292,3 +292,21 @@ and tied-weight aliases were preserved, and fresh native evaluation completed, b
 task-metric differences do not override failed probe gates. Both approximately 10.17 GB dense
 artifacts and negative decisions are retained. Shared merge arithmetic is being diagnosed;
 native portable reload and dense conversion are separate capabilities.
+
+Paired profile job `38509185` completed 24 native updates per arm on the same A100
+and CPU allocation, tracing updates 21–24 after warmup. Actual inputs contained
+151–156 tokens, two images packed as `[512,1536]`, and 70 supervised action elements
+in `[1,40,132]` tensors. Gradient-finiteness validation consumed approximately
+104.7/106.4 ms of traced NF4/BF16 update wall time; clipping was another distinct
+region. The unused vocabulary projection took only about 0.59 ms of GPU time per
+update. CPU and GPU regions overlap, and trace overhead prevents treating these
+numbers as production throughput. The next single intervention is a read-only
+batched gradient check, shared by both precision arms, subject to correctness and
+unprofiled timing gates.
+
+That profile measured sampled owned-process GPU peaks of 30.404/31.490 GiB and
+native training allocator peaks of 27.221/28.334 GiB. These new samples are valid;
+they do not recreate the missing earlier samples. The 1.62-billion-parameter FP32
+action head and its gradients/moments dominate memory. The approximately 1.1 GiB
+saving remains modest, so substantial GR00T memory savings and task-quality/time-to-target
+benefits remain open requirements.

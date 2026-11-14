@@ -795,6 +795,324 @@
         }
       },
       "decision": "Keep native quantized portable path; dense BF16 conversion is not qualified. Both arms failed unchanged numerical gates. Diagnose shared merge arithmetic before attributing the failure to quantization."
+    },
+    "38509185": {
+      "family": "gr00t",
+      "slurm_state": "COMPLETED",
+      "allocation_gpu_seconds": 483,
+      "scope": "Paired24-update native profile; first20warmup then four traced updates, one seed, NF4 thenBF16 on sameGPU/CPU placement. Instrumentation and trace-flush overhead exclude speed claims.",
+      "readout_sha256": "cfb3c096025b47ca3eaf516c9c7f791929886ceb6eb3305099d43be2d07eb125",
+      "critical_path_sha256": "0264f5a352cd5e1b2f83d11af9217ae5e3e1d64987c673a85db93ff88cf341dc",
+      "arms": {
+        "bf16_lora": {
+          "trace_sha256": "f55c14c9d1bceee0c99d96018104e168a3db08d0560ded31ffffba5ec5b64c7e",
+          "mean_traced_update_ms": 803.74880525,
+          "cpu_regions_mean_ms": {
+            "clipping_and_norm_status": 20.788140014648437,
+            "gradient_finite_check": 106.4399111328125,
+            "optimizer": 4.075609497070312
+          },
+          "gpu_regions_total_ms_over4updates": {
+            "clipping_and_norm_status": 57.70056787109375,
+            "gradient_finite_check": 154.22771826171876,
+            "optimizer": 120.367587890625
+          },
+          "backward_gpu_total_ms_over4updates": {
+            "action_head": 121.1883525390625,
+            "adapter": 19.56495166015625,
+            "language_base": 43.2667001953125,
+            "other": 0.0082548828125,
+            "unresolved": 0.09286376953125
+          },
+          "sequence_lengths": [
+            156,
+            152,
+            153,
+            151
+          ],
+          "pixel_values_shape": [
+            512,
+            1536
+          ],
+          "action_shape": [
+            1,
+            40,
+            132
+          ],
+          "supervised_action_elements": [
+            70,
+            70,
+            70,
+            70
+          ],
+          "native_workflow_seconds_with_profile_overhead": 186.7650496509741,
+          "phase_seconds_with_profile_overhead": {
+            "checkpoint_seconds": 27.943581218016334,
+            "evaluation_seconds": 20.9505605379818,
+            "portable_export_seconds": 16.836131041985936,
+            "startup_seconds": 40.00982070498867,
+            "training_seconds": 78.07002908404684
+          },
+          "environment": {
+            "allocator_config": {
+              "PYTORCH_ALLOC_CONF": null,
+              "PYTORCH_CUDA_ALLOC_CONF": null
+            },
+            "cpu_affinity": [
+              2,
+              3,
+              6,
+              7,
+              8,
+              9,
+              16,
+              17,
+              128,
+              129,
+              136,
+              137,
+              140,
+              141,
+              142,
+              143
+            ],
+            "cpu_numa_nodes": {
+              "128": [
+                "node0"
+              ],
+              "129": [
+                "node0"
+              ],
+              "136": [
+                "node0"
+              ],
+              "137": [
+                "node0"
+              ],
+              "140": [
+                "node0"
+              ],
+              "141": [
+                "node0"
+              ],
+              "142": [
+                "node0"
+              ],
+              "143": [
+                "node0"
+              ],
+              "16": [
+                "node1"
+              ],
+              "17": [
+                "node1"
+              ],
+              "2": [
+                "node0"
+              ],
+              "3": [
+                "node0"
+              ],
+              "6": [
+                "node0"
+              ],
+              "7": [
+                "node0"
+              ],
+              "8": [
+                "node0"
+              ],
+              "9": [
+                "node0"
+              ]
+            },
+            "cuda": "12.8",
+            "hostname": "batch-block7-03638",
+            "pid": 402752,
+            "process_status": [
+              "VmHWM:\t33689852 kB",
+              "VmRSS:\t29002888 kB",
+              "Cpus_allowed_list:\t2-3,6-9,16-17,128-129,136-137,140-143",
+              "Mems_allowed_list:\t0-7"
+            ],
+            "scheduler": {
+              "SLURM_CPUS_PER_TASK": "16",
+              "SLURM_JOB_ACCOUNT": "edgeai_tao-ptm_image-foundation-model-clip",
+              "SLURM_JOB_ID": "38509185",
+              "SLURM_JOB_NODELIST": "batch-block7-03638",
+              "SLURM_JOB_PARTITION": "polar3,polar,polar4,grizzly",
+              "SLURM_JOB_QOS": "normal"
+            },
+            "torch_num_interop_threads": 128,
+            "torch_num_threads": 1,
+            "versions": {
+              "bitsandbytes": "0.49.2",
+              "diffusers": "0.35.1",
+              "numpy": "1.26.4",
+              "torch": "2.10.0+cu128",
+              "transformers": "4.57.6"
+            }
+          },
+          "peak_cuda_allocated_bytes": 32038649344,
+          "peak_cuda_reserved_bytes": 32726056960,
+          "native_process_host_hwm_bytes": 34498408448
+        },
+        "nf4_lora": {
+          "trace_sha256": "a34bf24db78cd899a625718ac5602f0f6b5c36829d6f8d198a1a6688d52a61d7",
+          "mean_traced_update_ms": 852.4358455,
+          "cpu_regions_mean_ms": {
+            "clipping_and_norm_status": 20.61949548339844,
+            "gradient_finite_check": 104.69944567871093,
+            "optimizer": 3.980281982421875
+          },
+          "gpu_regions_total_ms_over4updates": {
+            "clipping_and_norm_status": 57.7678642578125,
+            "gradient_finite_check": 154.64757763671875,
+            "optimizer": 120.27232666015625
+          },
+          "backward_gpu_total_ms_over4updates": {
+            "action_head": 121.2832421875,
+            "adapter": 19.68228076171875,
+            "language_base": 58.5071015625,
+            "other": 0.0083203125,
+            "unresolved": 0.09101025390625
+          },
+          "sequence_lengths": [
+            156,
+            152,
+            153,
+            151
+          ],
+          "pixel_values_shape": [
+            512,
+            1536
+          ],
+          "action_shape": [
+            1,
+            40,
+            132
+          ],
+          "supervised_action_elements": [
+            70,
+            70,
+            70,
+            70
+          ],
+          "native_workflow_seconds_with_profile_overhead": 190.3840261270525,
+          "phase_seconds_with_profile_overhead": {
+            "checkpoint_seconds": 26.28813442698447,
+            "evaluation_seconds": 23.13579078897601,
+            "portable_export_seconds": 15.80185533495387,
+            "startup_seconds": 42.03054756199708,
+            "training_seconds": 81.03000053507276
+          },
+          "environment": {
+            "allocator_config": {
+              "PYTORCH_ALLOC_CONF": null,
+              "PYTORCH_CUDA_ALLOC_CONF": null
+            },
+            "cpu_affinity": [
+              2,
+              3,
+              6,
+              7,
+              8,
+              9,
+              16,
+              17,
+              128,
+              129,
+              136,
+              137,
+              140,
+              141,
+              142,
+              143
+            ],
+            "cpu_numa_nodes": {
+              "128": [
+                "node0"
+              ],
+              "129": [
+                "node0"
+              ],
+              "136": [
+                "node0"
+              ],
+              "137": [
+                "node0"
+              ],
+              "140": [
+                "node0"
+              ],
+              "141": [
+                "node0"
+              ],
+              "142": [
+                "node0"
+              ],
+              "143": [
+                "node0"
+              ],
+              "16": [
+                "node1"
+              ],
+              "17": [
+                "node1"
+              ],
+              "2": [
+                "node0"
+              ],
+              "3": [
+                "node0"
+              ],
+              "6": [
+                "node0"
+              ],
+              "7": [
+                "node0"
+              ],
+              "8": [
+                "node0"
+              ],
+              "9": [
+                "node0"
+              ]
+            },
+            "cuda": "12.8",
+            "hostname": "batch-block7-03638",
+            "pid": 395619,
+            "process_status": [
+              "VmHWM:\t33906252 kB",
+              "VmRSS:\t29219368 kB",
+              "Cpus_allowed_list:\t2-3,6-9,16-17,128-129,136-137,140-143",
+              "Mems_allowed_list:\t0-7"
+            ],
+            "scheduler": {
+              "SLURM_CPUS_PER_TASK": "16",
+              "SLURM_JOB_ACCOUNT": "edgeai_tao-ptm_image-foundation-model-clip",
+              "SLURM_JOB_ID": "38509185",
+              "SLURM_JOB_NODELIST": "batch-block7-03638",
+              "SLURM_JOB_PARTITION": "polar3,polar,polar4,grizzly",
+              "SLURM_JOB_QOS": "normal"
+            },
+            "torch_num_interop_threads": 128,
+            "torch_num_threads": 1,
+            "versions": {
+              "bitsandbytes": "0.49.2",
+              "diffusers": "0.35.1",
+              "numpy": "1.26.4",
+              "torch": "2.10.0+cu128",
+              "transformers": "4.57.6"
+            }
+          },
+          "peak_cuda_allocated_bytes": 30844224000,
+          "peak_cuda_reserved_bytes": 31557943296,
+          "native_process_host_hwm_bytes": 34720002048
+        }
+      },
+      "decision": "Implement and test one shared read-only batched gradient-finiteness check. Unused vocabulary projection is too small to prioritize. CPU and GPU durations overlap and must not be added.",
+      "memory_limitation": "Profile hooks/trace buffers affect host and device peaks; this is actual measured diagnostic memory, not unprofiled sustained-training qualification."
     }
   }
 }
