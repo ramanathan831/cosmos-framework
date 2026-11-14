@@ -1,7 +1,7 @@
 {
   "kind": "Prospective native GR00T development exposure study, not final release evaluation",
   "locked_at_utc": "2026-11-14T05:06:02.442039+00:00",
-  "source": "a94470c35baadd87580dd4ae3dccefb3fa815b67",
+  "source": "655567de02008a5e64364cc56266847600e510fe",
   "hypothesis": "Eight completed windows may be too short to reveal useful adaptation; compare both unchanged optimizer recipes through the public native recipe first 80-update validation interval. No numerical intervention is selected by the short-run success counts.",
   "arms": [
     "adamw impl=fused update_policy=fp32_master",
@@ -74,5 +74,24 @@
     "No change to paging pressure scope",
     "Fresh-process environment reset is explicit; deterministic learner restore only, not exact simulator continuation"
   ],
-  "cost_estimate": "Per arm: roughly30s/window x80 + 3 native100-case validations + 2 full saves + preparation/loading; reserve120min including10min termination grace. Fresh evaluation each90min ceiling based on measured ~11min allocations. Charge actual terminal allocation intervals and all4 GPUs."
+  "cost_estimate": "Per arm: roughly30s/window x80 + 3 native100-case validations + 2 full saves + preparation/loading; reserve120min including10min termination grace. Fresh evaluation each90min ceiling based on measured ~11min allocations. Charge actual terminal allocation intervals and all4 GPUs.",
+  "source_amendments": [
+    {
+      "at_utc": "2026-11-14T05:23:08.997369+00:00",
+      "previous_source": "a94470c35baadd87580dd4ae3dccefb3fa815b67",
+      "source": "655567de02008a5e64364cc56266847600e510fe",
+      "reason": "Before any80-update allocation: same numerical recipe gets corrected scalar-counter accounting and the same opaque byte-tensor checkpoint format in both arms. Native admission is conditional on CPU large-rank parity and two-GPU recovery/failure gates. The original four unallocated submissions were canceled; no training outcomes informed this change.",
+      "unchanged": "All numerical settings, model, data, seed, endpoints, quality screens, evaluation cadence and interpretation",
+      "canceled_unallocated_jobs": [
+        "38516138",
+        "38516139",
+        "38516141",
+        "38516142"
+      ],
+      "prerequisite_jobs": [
+        "38516539",
+        "38516568"
+      ]
+    }
+  ]
 }
