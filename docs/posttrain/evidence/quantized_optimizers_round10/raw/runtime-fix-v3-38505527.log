@@ -1,0 +1,19 @@
+Using Python 3.12.12 environment at: /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/action-runtime-v1/model
+Resolved 2 packages in 364ms
+Prepared 2 packages in 602ms
+Installed 2 packages in 1.94s
+ + peft==0.17.1
+ + shtab==1.7.2
+WARNING 11-13 16:05:55 [config.py:71] Support for Transformers v4 is deprecated. The Transformers v4 codepath will become unmaintained in vLLM v0.22.0 and will be removed in vLLM v0.24.0. Please upgrade to Transformers v5: pip install --upgrade transformers
+INFO 11-13 16:05:59 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-13 16:05:59 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+W1113 16:05:59.760000 155812 /lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/torch/utils/cpp_extension.py:140] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+WARNING 11-13 16:06:05 [interface.py:255] Failed to import from vllm._C: ImportError('libcuda.so.1: cannot open shared object file: No such file or directory')
+WARNING 11-13 16:06:06 [interface.py:255] Failed to import from vllm._C: ImportError('libcuda.so.1: cannot open shared object file: No such file or directory')
+WARNING 11-13 16:06:06 [interface.py:255] Failed to import from vllm._C: ImportError('libcuda.so.1: cannot open shared object file: No such file or directory')
+WARNING 11-13 16:06:06 [interface.py:255] Failed to import from vllm._C: ImportError('libcuda.so.1: cannot open shared object file: No such file or directory')
+INFO 11-13 16:06:06 [patch.py:252] NVFP4 W4A4 weight_scale NaN-clamp: installed.
+INFO 11-13 16:06:11 [registry.py:619] Registered diffusion model Gr00tN1d7Pipeline -> cosmos_framework.posttrain.model.gr00t.serving.omni_pipeline.Gr00tN1d7RLPipeline
+{"gr00t.model.gr00t_n1d7.gr00t_n1d7": false, "vllm": true, "vllm_omni": true, "bitsandbytes": true, "cosmos_framework.posttrain.model.gr00t.serving.omni_pipeline": true, "cosmos_framework.posttrain.entrypoints.joint_ppo": true}
+srun: error: cpu-00062: task 0: Exited with exit code 1
+srun: Terminating StepId=38505527.0

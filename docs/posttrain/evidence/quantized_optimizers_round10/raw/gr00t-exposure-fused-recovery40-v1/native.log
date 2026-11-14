@@ -1,0 +1,93 @@
+2026-11-13 22:54:25.446 | DEBUG    | cosmos_framework.utils.config:_load_py_config:624 - get_config_module: took 0.20ms
+2026-11-13 22:54:25.539 | DEBUG    | cosmos_framework.utils.config:_load_py_config:642 - importlib.import_module: took 89.63ms
+2026-11-13 22:54:25.706 | DEBUG    | cosmos_framework.utils.config:_load_py_config:647 - override: took 167.07ms
+2026-11-13 22:54:25.706 | DEBUG    | cosmos_framework.utils.config:load_config:608 - total time to load config: 259.81ms
+Config is saved using omegaconf at /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-exposure-fused-seed17-v2/runs/cosmos3_action/joint_ppo/gr00t-master-adamw/integration/config_resolved.yaml.
+2026-11-13 22:54:46,665	INFO worker.py:2024 -- Started a local Ray instance.
+[posttrain|I|r0] 2026-11-13 22:55:58 setup progress group=joint_ppo_experience done=0/4 elapsed_s=60 waiting=r0k0@batch-block7-02881 r1k0@batch-block7-02881 r2k0@batch-block7-02881 r3k0@batch-block7-02881
+[posttrain|I|r0] 2026-11-13 22:57:51 setup progress group=joint_ppo_policy done=0/4 elapsed_s=60 waiting=r0k0@batch-block7-02881 r0k1@batch-block7-02881 r0k2@batch-block7-02881 r0k3@batch-block7-02881
+[posttrain|I|r0] 2026-11-13 23:01:46 persisted validation completion in /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-exposure-fused-seed17-v2/runs/cosmos3_action/joint_ppo/gr00t-master-adamw/integration/checkpoints/iter_000040
+[posttrain|I|r0] 2026-11-13 23:01:46 step   40/80  train/joint_loss +0.0717  train/episode_success_rate +1.0000  val/success_rate +0.9300
+[posttrain|I|r0] 2026-11-13 23:01:46 Joint PPO collect version=40 optimizer_step=40
+[posttrain|I|r0] 2026-11-13 23:02:26 step   41/80  train/joint_loss +0.0518  train/episode_success_rate +1.0000
+[posttrain|I|r0] 2026-11-13 23:02:26 Joint PPO collect version=41 optimizer_step=41
+[posttrain|I|r0] 2026-11-13 23:02:56 step   42/80  train/joint_loss +0.0837  train/episode_success_rate +0.8571
+[posttrain|I|r0] 2026-11-13 23:02:56 Joint PPO collect version=42 optimizer_step=42
+[posttrain|I|r0] 2026-11-13 23:03:24 step   43/80  train/joint_loss +0.0973  train/episode_success_rate +0.8750
+[posttrain|I|r0] 2026-11-13 23:03:24 Joint PPO collect version=43 optimizer_step=43
+[posttrain|I|r0] 2026-11-13 23:03:53 step   44/80  train/joint_loss +0.1027  train/episode_success_rate +1.0000
+[posttrain|I|r0] 2026-11-13 23:03:53 Joint PPO collect version=44 optimizer_step=44
+[posttrain|I|r0] 2026-11-13 23:04:23 step   45/80  train/joint_loss +0.0387  train/episode_success_rate +0.7500
+[posttrain|I|r0] 2026-11-13 23:04:23 Joint PPO collect version=45 optimizer_step=45
+[posttrain|I|r0] 2026-11-13 23:04:51 step   46/80  train/joint_loss +0.0843  train/episode_success_rate +0.8333
+[posttrain|I|r0] 2026-11-13 23:04:51 Joint PPO collect version=46 optimizer_step=46
+[posttrain|I|r0] 2026-11-13 23:05:20 step   47/80  train/joint_loss +0.0773  train/episode_success_rate +1.0000
+[posttrain|I|r0] 2026-11-13 23:05:20 Joint PPO collect version=47 optimizer_step=47
+[posttrain|I|r0] 2026-11-13 23:05:50 step   48/80  train/joint_loss +0.0387  train/episode_success_rate +0.8889
+[posttrain|I|r0] 2026-11-13 23:05:50 Joint PPO collect version=48 optimizer_step=48
+[posttrain|I|r0] 2026-11-13 23:06:18 step   49/80  train/joint_loss +0.0637  train/episode_success_rate +1.0000
+[posttrain|I|r0] 2026-11-13 23:06:18 Joint PPO collect version=49 optimizer_step=49
+[posttrain|I|r0] 2026-11-13 23:06:47 step   50/80  train/joint_loss +0.0604  train/episode_success_rate +1.0000
+[posttrain|I|r0] 2026-11-13 23:06:47 Joint PPO collect version=50 optimizer_step=50
+[posttrain|I|r0] 2026-11-13 23:07:15 step   51/80  train/joint_loss +0.0800  train/episode_success_rate +0.8750
+[posttrain|I|r0] 2026-11-13 23:07:15 Joint PPO collect version=51 optimizer_step=51
+[posttrain|I|r0] 2026-11-13 23:07:44 step   52/80  train/joint_loss +0.0442  train/episode_success_rate +0.8333
+[posttrain|I|r0] 2026-11-13 23:07:44 Joint PPO collect version=52 optimizer_step=52
+[posttrain|I|r0] 2026-11-13 23:08:14 step   53/80  train/joint_loss +0.0686  train/episode_success_rate +0.8750
+[posttrain|I|r0] 2026-11-13 23:08:14 Joint PPO collect version=53 optimizer_step=53
+[posttrain|I|r0] 2026-11-13 23:08:42 step   54/80  train/joint_loss +0.0590  train/episode_success_rate +1.0000
+[posttrain|I|r0] 2026-11-13 23:08:42 Joint PPO collect version=54 optimizer_step=54
+[posttrain|I|r0] 2026-11-13 23:09:13 step   55/80  train/joint_loss +0.0844  train/episode_success_rate +0.8889
+[posttrain|I|r0] 2026-11-13 23:09:13 Joint PPO collect version=55 optimizer_step=55
+[posttrain|I|r0] 2026-11-13 23:09:43 step   56/80  train/joint_loss +0.0408  train/episode_success_rate +0.8571
+[posttrain|I|r0] 2026-11-13 23:09:43 Joint PPO collect version=56 optimizer_step=56
+[posttrain|I|r0] 2026-11-13 23:10:13 step   57/80  train/joint_loss +0.1154  train/episode_success_rate +0.7500
+[posttrain|I|r0] 2026-11-13 23:10:13 Joint PPO collect version=57 optimizer_step=57
+[posttrain|I|r0] 2026-11-13 23:10:41 step   58/80  train/joint_loss +0.0575  train/episode_success_rate +0.8333
+[posttrain|I|r0] 2026-11-13 23:10:41 Joint PPO collect version=58 optimizer_step=58
+[posttrain|I|r0] 2026-11-13 23:11:10 step   59/80  train/joint_loss +0.0223  train/episode_success_rate +0.7143
+[posttrain|I|r0] 2026-11-13 23:11:10 Joint PPO collect version=59 optimizer_step=59
+[posttrain|I|r0] 2026-11-13 23:11:38 step   60/80  train/joint_loss +0.1066  train/episode_success_rate +0.8571
+[posttrain|I|r0] 2026-11-13 23:11:38 Joint PPO collect version=60 optimizer_step=60
+[posttrain|I|r0] 2026-11-13 23:12:07 step   61/80  train/joint_loss +0.0501  train/episode_success_rate +0.5000
+[posttrain|I|r0] 2026-11-13 23:12:07 Joint PPO collect version=61 optimizer_step=61
+[posttrain|I|r0] 2026-11-13 23:12:36 step   62/80  train/joint_loss +0.0677  train/episode_success_rate +0.8750
+[posttrain|I|r0] 2026-11-13 23:12:36 Joint PPO collect version=62 optimizer_step=62
+[posttrain|I|r0] 2026-11-13 23:13:05 step   63/80  train/joint_loss +0.0456  train/episode_success_rate +0.8571
+[posttrain|I|r0] 2026-11-13 23:13:05 Joint PPO collect version=63 optimizer_step=63
+[posttrain|I|r0] 2026-11-13 23:13:34 step   64/80  train/joint_loss +0.0497  train/episode_success_rate +1.0000
+[posttrain|I|r0] 2026-11-13 23:13:34 Joint PPO collect version=64 optimizer_step=64
+[posttrain|I|r0] 2026-11-13 23:14:02 step   65/80  train/joint_loss +0.0428  train/episode_success_rate +0.8000
+[posttrain|I|r0] 2026-11-13 23:14:02 Joint PPO collect version=65 optimizer_step=65
+[posttrain|I|r0] 2026-11-13 23:14:31 step   66/80  train/joint_loss +0.0840  train/episode_success_rate +0.6250
+[posttrain|I|r0] 2026-11-13 23:14:31 Joint PPO collect version=66 optimizer_step=66
+[posttrain|I|r0] 2026-11-13 23:15:01 step   67/80  train/joint_loss +0.0859  train/episode_success_rate +0.9000
+[posttrain|I|r0] 2026-11-13 23:15:01 Joint PPO collect version=67 optimizer_step=67
+[posttrain|I|r0] 2026-11-13 23:15:29 step   68/80  train/joint_loss +0.0917  train/episode_success_rate +1.0000
+[posttrain|I|r0] 2026-11-13 23:15:29 Joint PPO collect version=68 optimizer_step=68
+[posttrain|I|r0] 2026-11-13 23:15:58 step   69/80  train/joint_loss +0.0676  train/episode_success_rate +0.8750
+[posttrain|I|r0] 2026-11-13 23:15:58 Joint PPO collect version=69 optimizer_step=69
+[posttrain|I|r0] 2026-11-13 23:16:27 step   70/80  train/joint_loss +0.0761  train/episode_success_rate +0.8571
+[posttrain|I|r0] 2026-11-13 23:16:27 Joint PPO collect version=70 optimizer_step=70
+[posttrain|I|r0] 2026-11-13 23:16:56 step   71/80  train/joint_loss +0.0529  train/episode_success_rate +1.0000
+[posttrain|I|r0] 2026-11-13 23:16:56 Joint PPO collect version=71 optimizer_step=71
+[posttrain|I|r0] 2026-11-13 23:17:26 step   72/80  train/joint_loss +0.0520  train/episode_success_rate +0.9000
+[posttrain|I|r0] 2026-11-13 23:17:26 Joint PPO collect version=72 optimizer_step=72
+[posttrain|I|r0] 2026-11-13 23:17:55 step   73/80  train/joint_loss +0.0536  train/episode_success_rate +1.0000
+[posttrain|I|r0] 2026-11-13 23:17:55 Joint PPO collect version=73 optimizer_step=73
+[posttrain|I|r0] 2026-11-13 23:18:25 step   74/80  train/joint_loss +0.0659  train/episode_success_rate +0.7143
+[posttrain|I|r0] 2026-11-13 23:18:25 Joint PPO collect version=74 optimizer_step=74
+[posttrain|I|r0] 2026-11-13 23:18:52 step   75/80  train/joint_loss +0.0817  train/episode_success_rate +1.0000
+[posttrain|I|r0] 2026-11-13 23:18:52 Joint PPO collect version=75 optimizer_step=75
+[posttrain|I|r0] 2026-11-13 23:19:23 step   76/80  train/joint_loss +0.0386  train/episode_success_rate +1.0000
+[posttrain|I|r0] 2026-11-13 23:19:23 Joint PPO collect version=76 optimizer_step=76
+[posttrain|I|r0] 2026-11-13 23:19:51 step   77/80  train/joint_loss +0.0246  train/episode_success_rate +0.7500
+[posttrain|I|r0] 2026-11-13 23:19:51 Joint PPO collect version=77 optimizer_step=77
+[posttrain|I|r0] 2026-11-13 23:20:20 step   78/80  train/joint_loss +0.0224  train/episode_success_rate +1.0000
+[posttrain|I|r0] 2026-11-13 23:20:20 Joint PPO collect version=78 optimizer_step=78
+[posttrain|I|r0] 2026-11-13 23:20:48 step   79/80  train/joint_loss +0.0394  train/episode_success_rate +0.7143
+[posttrain|I|r0] 2026-11-13 23:20:48 Joint PPO collect version=79 optimizer_step=79
+[posttrain|I|r0] 2026-11-13 23:21:17 saving full checkpoint /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-exposure-fused-seed17-v2/runs/cosmos3_action/joint_ppo/gr00t-master-adamw/integration/checkpoints/iter_000080 components=['model', 'optimizer', 'training_state']
+[posttrain|I|r0] 2026-11-13 23:21:35 saved checkpoint /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-exposure-fused-seed17-v2/runs/cosmos3_action/joint_ppo/gr00t-master-adamw/integration/checkpoints/iter_000080 components=['model', 'optimizer', 'training_state'] resumable=True publish=False
+[posttrain|I|r0] 2026-11-13 23:24:47 persisted validation completion in /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-exposure-fused-seed17-v2/runs/cosmos3_action/joint_ppo/gr00t-master-adamw/integration/checkpoints/iter_000080
+[posttrain|I|r0] 2026-11-13 23:24:47 step   80/80  train/joint_loss +0.0177  train/episode_success_rate +0.8889  val/success_rate +0.9700

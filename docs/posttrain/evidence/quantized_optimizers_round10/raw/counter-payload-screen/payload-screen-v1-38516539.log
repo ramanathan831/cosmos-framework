@@ -1,0 +1,24 @@
+.................................                                        [100%]
+=============================== warnings summary ===============================
+cosmos_framework/posttrain/tests/test_optimizer_master.py: 6 warnings
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py: 10 warnings
+  /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/torch/distributed/checkpoint/utils.py:483: UserWarning: torch.distributed is disabled, unavailable or uninitialized, assuming the intent is to save in a single process.
+    return func(*args, **kwargs)
+
+cosmos_framework/posttrain/tests/test_optimizer_master.py: 6 warnings
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py: 4 warnings
+  /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/torch/distributed/checkpoint/utils.py:483: UserWarning: torch.distributed is disabled, unavailable or uninitialized, assuming the intent is to load in a single process.
+    return func(*args, **kwargs)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+33 passed, 26 warnings in 111.37s (0:01:51)
+/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/torch/distributed/checkpoint/utils.py:483: UserWarning: torch.distributed is disabled, unavailable or uninitialized, assuming the intent is to load in a single process.
+  return func(*args, **kwargs)
+/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/torch/distributed/checkpoint/utils.py:483: UserWarning: torch.distributed is disabled, unavailable or uninitialized, assuming the intent is to save in a single process.
+  return func(*args, **kwargs)
+{"trial": 0, "format": 2, "serialize_seconds": 4.9992158049717546, "write_seconds": 30.54787914408371, "read_seconds": 22.388825330883265, "decode_seconds": 4.149032874032855, "exact_comparison_seconds": 0.7818459100089967, "operation_seconds": 62.08495315397158, "complete_seconds": 62.94593182601966, "directory_bytes": 6899916788, "peak_pss_bytes": 27193892864, "peak_rss_bytes": 27193896960, "same_exact_state": true}
+{"trial": 1, "format": 3, "serialize_seconds": 4.380601826123893, "write_seconds": 4.467081651091576, "read_seconds": 1.7206265809945762, "decode_seconds": 4.011406820965931, "exact_comparison_seconds": 0.8258300069719553, "operation_seconds": 14.579716879175976, "complete_seconds": 15.533590932143852, "directory_bytes": 4875257420, "peak_pss_bytes": 18837209088, "peak_rss_bytes": 18837213184, "same_exact_state": true}
+{"trial": 2, "format": 3, "serialize_seconds": 4.504576164064929, "write_seconds": 4.698885577963665, "read_seconds": 1.6399581439327449, "decode_seconds": 3.625768559984863, "exact_comparison_seconds": 0.7778334491886199, "operation_seconds": 14.469188445946202, "complete_seconds": 15.396533450111747, "directory_bytes": 4875257420, "peak_pss_bytes": 19506974720, "peak_rss_bytes": 19506978816, "same_exact_state": true}
+{"trial": 3, "format": 2, "serialize_seconds": 4.935278512071818, "write_seconds": 31.914197788806632, "read_seconds": 21.865354834124446, "decode_seconds": 3.8347723258193582, "exact_comparison_seconds": 0.7789865359663963, "operation_seconds": 62.549603460822254, "complete_seconds": 63.41758502786979, "directory_bytes": 6899916788, "peak_pss_bytes": 28035940352, "peak_rss_bytes": 28035944448, "same_exact_state": true}
+{"trial": 4, "format": 2, "serialize_seconds": 4.984447445021942, "write_seconds": 25.79464471898973, "read_seconds": 21.9410230841022, "decode_seconds": 3.8507489669136703, "exact_comparison_seconds": 0.7790923260618001, "operation_seconds": 56.57086421502754, "complete_seconds": 57.44169112597592, "directory_bytes": 6899916788, "peak_pss_bytes": 26723151872, "peak_rss_bytes": 26723155968, "same_exact_state": true}
+{"trial": 5, "format": 3, "serialize_seconds": 4.448486190056428, "write_seconds": 4.296618524007499, "read_seconds": 1.9852266861125827, "decode_seconds": 3.6577325859107077, "exact_comparison_seconds": 0.7776151469442993, "operation_seconds": 14.388063986087218, "complete_seconds": 15.28723184298724, "directory_bytes": 4875257420, "peak_pss_bytes": 19505823744, "peak_rss_bytes": 19505827840, "same_exact_state": true}

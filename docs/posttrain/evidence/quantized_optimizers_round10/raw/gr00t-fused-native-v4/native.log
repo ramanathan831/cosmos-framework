@@ -1,0 +1,177 @@
+2026-11-13 17:18:43.520 | DEBUG    | cosmos_framework.utils.config:_load_py_config:624 - get_config_module: took 0.20ms
+2026-11-13 17:18:43.611 | DEBUG    | cosmos_framework.utils.config:_load_py_config:642 - importlib.import_module: took 89.15ms
+2026-11-13 17:18:43.780 | DEBUG    | cosmos_framework.utils.config:_load_py_config:647 - override: took 169.32ms
+2026-11-13 17:18:43.781 | DEBUG    | cosmos_framework.utils.config:load_config:608 - total time to load config: 260.71ms
+Config is saved using omegaconf at /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-fused-native-v4/runs/cosmos3_action/joint_ppo/gr00t-master-adamw/integration/config_resolved.yaml.
+2026-11-13 17:19:06,005	INFO worker.py:2024 -- Started a local Ray instance.
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/tmp/optimizer-gr00t.VbQyHu/cosmos_framework/posttrain/entrypoints/joint_ppo.py", line 494, in <module>
+    main()
+  File "/tmp/optimizer-gr00t.VbQyHu/cosmos_framework/posttrain/entrypoints/joint_ppo.py", line 490, in main
+    run(config, opts, evaluate_only=flags["evaluate_only"])
+  File "/tmp/optimizer-gr00t.VbQyHu/cosmos_framework/posttrain/entrypoints/joint_ppo.py", line 296, in run
+    units = assemble(config, recipe, output, resume, width)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.VbQyHu/cosmos_framework/posttrain/entrypoints/joint_ppo.py", line 223, in assemble
+    bind_device_groups(
+  File "/tmp/optimizer-gr00t.VbQyHu/cosmos_framework/posttrain/control/placement/colocate.py", line 1519, in bind_device_groups
+    _guard_bind(
+  File "/tmp/optimizer-gr00t.VbQyHu/cosmos_framework/posttrain/control/placement/colocate.py", line 1467, in _guard_bind
+    return action()
+           ^^^^^^^^
+  File "/tmp/optimizer-gr00t.VbQyHu/cosmos_framework/posttrain/control/placement/colocate.py", line 1520, in <lambda>
+    lambda actor_group=actor_group, grid=spawned_group.grid: setup_grid(
+                                                             ^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.VbQyHu/cosmos_framework/posttrain/workers/grid.py", line 446, in setup_grid
+    built_names = _await_setup(ray, refs, cells, label, hosts)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.VbQyHu/cosmos_framework/posttrain/workers/grid.py", line 396, in _await_setup
+    results[cell_of[ref]] = ray_module.get(ref)
+                            ^^^^^^^^^^^^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 22, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 110, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/ray/_private/worker.py", line 2968, in get
+    values, debugger_breakpoint = worker.get_objects(
+                                  ^^^^^^^^^^^^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/ray/_private/worker.py", line 1050, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(RuntimeError): [36mray::_HostImpl.run_setup()[39m (pid=3638582, ip=10.49.160.149, actor_id=9367d5b68920ac9f42ad25c001000000, repr=<cosmos_framework.posttrain.workers.ray._HostImpl object at 0x1524de6f8320>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/python/cpython-3.12.12-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/diffusers/loaders/peft.py", line 26, in <module>
+    from ..hooks.group_offloading import _maybe_remove_and_reapply_group_offloading
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/diffusers/hooks/__init__.py", line 25, in <module>
+    from .layerwise_casting import apply_layerwise_casting, apply_layerwise_casting_hook
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/diffusers/hooks/layerwise_casting.py", line 36, in <module>
+    from peft.helpers import disable_input_dtype_casting
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/action-runtime-v1/model/lib/python3.12/site-packages/peft/__init__.py", line 17, in <module>
+    from .auto import (
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/action-runtime-v1/model/lib/python3.12/site-packages/peft/auto.py", line 32, in <module>
+    from .peft_model import (
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/action-runtime-v1/model/lib/python3.12/site-packages/peft/peft_model.py", line 37, in <module>
+    from transformers import Cache, DynamicCache, EncoderDecoderCache, HybridCache, PreTrainedModel
+ImportError: cannot import name 'HybridCache' from 'transformers' (/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/transformers/__init__.py)
+
+The above exception was the direct cause of the following exception:
+
+[36mray::_HostImpl.run_setup()[39m (pid=3638582, ip=10.49.160.149, actor_id=9367d5b68920ac9f42ad25c001000000, repr=<cosmos_framework.posttrain.workers.ray._HostImpl object at 0x1524de6f8320>)
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/diffusers/utils/import_utils.py", line 1052, in _get_module
+    return importlib.import_module("." + module_name, self.__name__)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/python/cpython-3.12.12-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1310, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/diffusers/models/autoencoders/__init__.py", line 1, in <module>
+    from .autoencoder_asym_kl import AsymmetricAutoencoderKL
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/diffusers/models/autoencoders/autoencoder_asym_kl.py", line 21, in <module>
+    from .vae import AutoencoderMixin, DecoderOutput, DiagonalGaussianDistribution, Encoder, MaskConditionDecoder
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/diffusers/models/autoencoders/vae.py", line 24, in <module>
+    from ..unets.unet_2d_blocks import (
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/diffusers/models/unets/__init__.py", line 6, in <module>
+    from .unet_2d import UNet2DModel
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/diffusers/models/unets/unet_2d.py", line 23, in <module>
+    from .unet_2d_blocks import UNetMidBlock2D, get_down_block, get_up_block
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/diffusers/models/unets/unet_2d_blocks.py", line 36, in <module>
+    from ..transformers.dual_transformer_2d import DualTransformer2DModel
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/diffusers/models/transformers/__init__.py", line 6, in <module>
+    from .auraflow_transformer_2d import AuraFlowTransformer2DModel
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/diffusers/models/transformers/auraflow_transformer_2d.py", line 23, in <module>
+    from ...loaders import FromOriginalModelMixin, PeftAdapterMixin
+  File "<frozen importlib._bootstrap>", line 1412, in _handle_fromlist
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/diffusers/utils/import_utils.py", line 1042, in __getattr__
+    module = self._get_module(self._class_to_module[name])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/diffusers/utils/import_utils.py", line 1054, in _get_module
+    raise RuntimeError(
+RuntimeError: Failed to import diffusers.loaders.peft because of the following error (look up to see its traceback):
+cannot import name 'HybridCache' from 'transformers' (/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/transformers/__init__.py)
+
+The above exception was the direct cause of the following exception:
+
+[36mray::_HostImpl.run_setup()[39m (pid=3638582, ip=10.49.160.149, actor_id=9367d5b68920ac9f42ad25c001000000, repr=<cosmos_framework.posttrain.workers.ray._HostImpl object at 0x1524de6f8320>)
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/diffusers/utils/import_utils.py", line 1052, in _get_module
+    return importlib.import_module("." + module_name, self.__name__)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/python/cpython-3.12.12-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/diffusers/pipelines/pipeline_utils.py", line 48, in <module>
+    from ..models import AutoencoderKL
+  File "<frozen importlib._bootstrap>", line 1412, in _handle_fromlist
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/diffusers/utils/import_utils.py", line 1042, in __getattr__
+    module = self._get_module(self._class_to_module[name])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/diffusers/utils/import_utils.py", line 1054, in _get_module
+    raise RuntimeError(
+RuntimeError: Failed to import diffusers.models.autoencoders.autoencoder_kl because of the following error (look up to see its traceback):
+Failed to import diffusers.loaders.peft because of the following error (look up to see its traceback):
+cannot import name 'HybridCache' from 'transformers' (/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/transformers/__init__.py)
+
+The above exception was the direct cause of the following exception:
+
+[36mray::_HostImpl.run_setup()[39m (pid=3638582, ip=10.49.160.149, actor_id=9367d5b68920ac9f42ad25c001000000, repr=<cosmos_framework.posttrain.workers.ray._HostImpl object at 0x1524de6f8320>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.VbQyHu/cosmos_framework/posttrain/workers/ray.py", line 649, in run_setup
+    self._bodies = setup_fn()
+                   ^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.VbQyHu/cosmos_framework/posttrain/entrypoints/joint_ppo.py", line 106, in setup_experience
+    rollout = instantiate(config.rollout, output=output, replica=replica)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.VbQyHu/cosmos_framework/utils/lazy_config/instantiate.py", line 103, in instantiate
+    return cls(*args, **instantiate_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.VbQyHu/cosmos_framework/posttrain/model/gr00t/build.py", line 91, in build_joint_rollout
+    rollout = Gr00tPolicyBody(
+              ^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.VbQyHu/cosmos_framework/posttrain/model/gr00t/serving/body.py", line 44, in __init__
+    from cosmos_framework.posttrain.model.gr00t.serving.omni_pipeline import register_gr00t_rl_pipeline
+  File "/tmp/optimizer-gr00t.VbQyHu/cosmos_framework/posttrain/model/gr00t/serving/omni_pipeline.py", line 31, in <module>
+    from vllm_omni.diffusion.data import DiffusionOutput, OmniDiffusionConfig
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/action-runtime-v1/model/lib/python3.12/site-packages/vllm_omni/diffusion/data.py", line 497, in <module>
+    class OmniDiffusionConfig:
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/action-runtime-v1/model/lib/python3.12/site-packages/vllm_omni/diffusion/data.py", line 616, in OmniDiffusionConfig
+    diffusers_pipeline_cls: type[diffusers.DiffusionPipeline] | None = None  # pyright: ignore[reportPrivateImportUsage]
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/diffusers/utils/import_utils.py", line 1043, in __getattr__
+    value = getattr(module, name)
+            ^^^^^^^^^^^^^^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/diffusers/utils/import_utils.py", line 1042, in __getattr__
+    module = self._get_module(self._class_to_module[name])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/diffusers/utils/import_utils.py", line 1054, in _get_module
+    raise RuntimeError(
+RuntimeError: Failed to import diffusers.pipelines.pipeline_utils because of the following error (look up to see its traceback):
+Failed to import diffusers.models.autoencoders.autoencoder_kl because of the following error (look up to see its traceback):
+Failed to import diffusers.loaders.peft because of the following error (look up to see its traceback):
+cannot import name 'HybridCache' from 'transformers' (/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/transformers/__init__.py)

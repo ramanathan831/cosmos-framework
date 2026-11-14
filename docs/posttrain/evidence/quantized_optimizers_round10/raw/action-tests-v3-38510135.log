@@ -1,0 +1,104 @@
+F.........................................                               [100%]
+=================================== FAILURES ===================================
+_____ test_window_counter_is_per_process_and_preserves_durable_window_rows _____
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:201: in test_window_counter_is_per_process_and_preserves_durable_window_rows
+    second = gr00t_ppo.run(config)
+             ^^^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/entrypoints/joint_ppo.py:319: in run
+    lifecycle.manager.load_with_stable_provenance(
+cosmos_framework/posttrain/checkpoint/manager.py:657: in load_with_stable_provenance
+    return _load_with_stable_provenance(
+cosmos_framework/posttrain/checkpoint/provenance.py:105: in load_with_stable_provenance
+    value = load()
+            ^^^^^^
+cosmos_framework/posttrain/entrypoints/joint_ppo.py:321: in <lambda>
+    lambda: validate_resume_boundary(lifecycle.manager, resume, recipe, instantiate(config.environment), width),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/entrypoints/joint_ppo.py:174: in validate_resume_boundary
+    raise ValueError("joint PPO checkpoint collector topology differs")
+E   ValueError: joint PPO checkpoint collector topology differs
+----------------------------- Captured stderr call -----------------------------
+[posttrain|I|r0] 2026-11-13 18:34:49 Joint PPO collect version=0 optimizer_step=0
+[posttrain|I|r0] 2026-11-13 18:34:50 Joint PPO applied optimizer_step=2
+[posttrain|I|r0] 2026-11-13 18:34:50 step     2
+[posttrain|I|r0] 2026-11-13 18:34:50 Joint PPO collect version=1 optimizer_step=2
+[posttrain|I|r0] 2026-11-13 18:34:50 Joint PPO applied optimizer_step=4
+[posttrain|I|r0] 2026-11-13 18:34:50 saving full checkpoint /tmp/pytest-of-rarunachalam/pytest-0/test_window_counter_is_per_pro0/first/checkpoints/iter_000004 components=['model', 'optimizer', 'training_state']
+[posttrain|I|r0] 2026-11-13 18:34:50 host memory [checkpoint save /tmp/pytest-of-rarunachalam/pytest-0/test_window_counter_is_per_pro0/first/checkpoints/iter_000004] rss=0.8GiB cgroup(v1)=30.7GiB/unlimited node_available=157.2/176.9GiB
+[posttrain|I|r0] 2026-11-13 18:34:52 saved checkpoint /tmp/pytest-of-rarunachalam/pytest-0/test_window_counter_is_per_pro0/first/checkpoints/iter_000004 components=['model', 'optimizer', 'training_state'] resumable=True publish=True
+[posttrain|I|r0] 2026-11-13 18:34:52 step     4
+[posttrain|I|r0] 2026-11-13 18:34:52 host memory [checkpoint finalize] rss=0.8GiB cgroup(v1)=30.7GiB/unlimited node_available=157.2/176.9GiB
+------------------------------ Captured log call -------------------------------
+WARNING  cosmos_framework.utils.lazy_config.lazy:lazy.py:383 Config is saved using omegaconf at /tmp/pytest-of-rarunachalam/pytest-0/test_window_counter_is_per_pro0/first/config_resolved.yaml.
+INFO     posttrain:log.py:57 Joint PPO collect version=0 optimizer_step=0
+INFO     posttrain:log.py:57 Joint PPO applied optimizer_step=2
+INFO     posttrain:report.py:385 step     2
+INFO     posttrain:log.py:57 Joint PPO collect version=1 optimizer_step=2
+INFO     posttrain:log.py:57 Joint PPO applied optimizer_step=4
+INFO     posttrain:log.py:57 saving full checkpoint /tmp/pytest-of-rarunachalam/pytest-0/test_window_counter_is_per_pro0/first/checkpoints/iter_000004 components=['model', 'optimizer', 'training_state']
+INFO     posttrain:host_memory.py:154 host memory [checkpoint save /tmp/pytest-of-rarunachalam/pytest-0/test_window_counter_is_per_pro0/first/checkpoints/iter_000004] rss=0.8GiB cgroup(v1)=30.7GiB/unlimited node_available=157.2/176.9GiB
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:86 {'checkpoint_id': '/tmp/pytest-of-rarunachalam/pytest-0/test_window_counter_is_per_pro0/first/checkpoints/iter_000004/model', 'uuid': '101402333767371969873813717977375034986', 'func_name': 'save', 'event': 'start', 'time': 1794623690924045826, 'log_exceptions': True}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:86 {'checkpoint_id': None, 'uuid': '64070666958007014392632081683971046481', 'func_name': '_stateful_to_state_dict', 'event': 'start', 'time': 1794623691231108316, 'log_exceptions': True}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:86 {'checkpoint_id': None, 'uuid': '116884056608339773171397717264450711111', 'func_name': '_stateful_to_state_dict.action_head.actor.weight', 'event': 'start', 'time': 1794623691231235310, 'log_exceptions': True}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:104 {'checkpoint_id': None, 'uuid': '116884056608339773171397717264450711111', 'func_name': '_stateful_to_state_dict.action_head.actor.weight', 'event': 'end', 'time': 1794623691231313070, 'log_exceptions': True, 'times_spent': 77540}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:86 {'checkpoint_id': None, 'uuid': '156867347404470248003657936020947995279', 'func_name': '_stateful_to_state_dict.action_head.actor.bias', 'event': 'start', 'time': 1794623691231380875, 'log_exceptions': True}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:104 {'checkpoint_id': None, 'uuid': '156867347404470248003657936020947995279', 'func_name': '_stateful_to_state_dict.action_head.actor.bias', 'event': 'end', 'time': 1794623691231412093, 'log_exceptions': True, 'times_spent': 31098}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:86 {'checkpoint_id': None, 'uuid': '146156659006812636861678158664814916658', 'func_name': '_stateful_to_state_dict.action_head.value_head.weight', 'event': 'start', 'time': 1794623691231444593, 'log_exceptions': True}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:104 {'checkpoint_id': None, 'uuid': '146156659006812636861678158664814916658', 'func_name': '_stateful_to_state_dict.action_head.value_head.weight', 'event': 'end', 'time': 1794623691231469010, 'log_exceptions': True, 'times_spent': 24317}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:86 {'checkpoint_id': None, 'uuid': '262851489616213510866946498653334140509', 'func_name': '_stateful_to_state_dict.action_head.value_head.bias', 'event': 'start', 'time': 1794623691231496833, 'log_exceptions': True}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:104 {'checkpoint_id': None, 'uuid': '262851489616213510866946498653334140509', 'func_name': '_stateful_to_state_dict.action_head.value_head.bias', 'event': 'end', 'time': 1794623691231518837, 'log_exceptions': True, 'times_spent': 21924}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:104 {'checkpoint_id': None, 'uuid': '64070666958007014392632081683971046481', 'func_name': '_stateful_to_state_dict', 'event': 'end', 'time': 1794623691231535813, 'log_exceptions': True, 'times_spent': 427427}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:86 {'checkpoint_id': '/tmp/pytest-of-rarunachalam/pytest-0/test_window_counter_is_per_pro0/first/checkpoints/iter_000004/model', 'uuid': '89019370615192905652627349884877154428', 'func_name': 'local_step', 'event': 'start', 'time': 1794623691231611710, 'log_exceptions': False}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:104 {'checkpoint_id': '/tmp/pytest-of-rarunachalam/pytest-0/test_window_counter_is_per_pro0/first/checkpoints/iter_000004/model', 'uuid': '89019370615192905652627349884877154428', 'func_name': 'local_step', 'event': 'end', 'time': 1794623691234048299, 'log_exceptions': False, 'times_spent': 2436409}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:86 {'checkpoint_id': '/tmp/pytest-of-rarunachalam/pytest-0/test_window_counter_is_per_pro0/first/checkpoints/iter_000004/model', 'uuid': '136256711099314964174087043346179220402', 'func_name': 'global_step', 'event': 'start', 'time': 1794623691234149495, 'log_exceptions': False}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:104 {'checkpoint_id': '/tmp/pytest-of-rarunachalam/pytest-0/test_window_counter_is_per_pro0/first/checkpoints/iter_000004/model', 'uuid': '136256711099314964174087043346179220402', 'func_name': 'global_step', 'event': 'end', 'time': 1794623691234303922, 'log_exceptions': False, 'times_spent': 154336}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:86 {'checkpoint_id': '/tmp/pytest-of-rarunachalam/pytest-0/test_window_counter_is_per_pro0/first/checkpoints/iter_000004/model', 'uuid': '218694726945527162666702384452542046108', 'func_name': 'write_data', 'event': 'start', 'time': 1794623691234360550, 'log_exceptions': False}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:104 {'checkpoint_id': '/tmp/pytest-of-rarunachalam/pytest-0/test_window_counter_is_per_pro0/first/checkpoints/iter_000004/model', 'uuid': '218694726945527162666702384452542046108', 'func_name': 'write_data', 'event': 'end', 'time': 1794623691655755286, 'log_exceptions': False, 'times_spent': 421394305}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:86 {'checkpoint_id': '/tmp/pytest-of-rarunachalam/pytest-0/test_window_counter_is_per_pro0/first/checkpoints/iter_000004/model', 'uuid': '233312137830736794011740184377386334335', 'func_name': 'finish_checkpoint', 'event': 'start', 'time': 1794623691655940942, 'log_exceptions': False}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:104 {'checkpoint_id': '/tmp/pytest-of-rarunachalam/pytest-0/test_window_counter_is_per_pro0/first/checkpoints/iter_000004/model', 'uuid': '233312137830736794011740184377386334335', 'func_name': 'finish_checkpoint', 'event': 'end', 'time': 1794623691662848198, 'log_exceptions': False, 'times_spent': 6907106}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:104 {'checkpoint_id': '/tmp/pytest-of-rarunachalam/pytest-0/test_window_counter_is_per_pro0/first/checkpoints/iter_000004/model', 'uuid': '101402333767371969873813717977375034986', 'func_name': 'save', 'event': 'end', 'time': 1794623691662916092, 'log_exceptions': True, 'times_spent': 738870166}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:86 {'checkpoint_id': '/tmp/pytest-of-rarunachalam/pytest-0/test_window_counter_is_per_pro0/first/checkpoints/iter_000004/optim', 'uuid': '27632718791180550738331360944363153692', 'func_name': 'save', 'event': 'start', 'time': 1794623691662986220, 'log_exceptions': True}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:86 {'checkpoint_id': None, 'uuid': '271544645606979718060901002275937457384', 'func_name': '_stateful_to_state_dict', 'event': 'start', 'time': 1794623691663122560, 'log_exceptions': True}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:86 {'checkpoint_id': None, 'uuid': '321912164496178946788565485994210391793', 'func_name': '_stateful_to_state_dict.state', 'event': 'start', 'time': 1794623691663180439, 'log_exceptions': True}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:104 {'checkpoint_id': None, 'uuid': '321912164496178946788565485994210391793', 'func_name': '_stateful_to_state_dict.state', 'event': 'end', 'time': 1794623691663239059, 'log_exceptions': True, 'times_spent': 58540}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:86 {'checkpoint_id': None, 'uuid': '114156226934155595629754803413826636887', 'func_name': '_stateful_to_state_dict.param_groups', 'event': 'start', 'time': 1794623691663278009, 'log_exceptions': True}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:104 {'checkpoint_id': None, 'uuid': '114156226934155595629754803413826636887', 'func_name': '_stateful_to_state_dict.param_groups', 'event': 'end', 'time': 1794623691663309838, 'log_exceptions': True, 'times_spent': 31739}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:104 {'checkpoint_id': None, 'uuid': '271544645606979718060901002275937457384', 'func_name': '_stateful_to_state_dict', 'event': 'end', 'time': 1794623691663347977, 'log_exceptions': True, 'times_spent': 225327}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:86 {'checkpoint_id': '/tmp/pytest-of-rarunachalam/pytest-0/test_window_counter_is_per_pro0/first/checkpoints/iter_000004/optim', 'uuid': '312495728740874401532322256577916753923', 'func_name': 'local_step', 'event': 'start', 'time': 1794623691663411465, 'log_exceptions': False}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:104 {'checkpoint_id': '/tmp/pytest-of-rarunachalam/pytest-0/test_window_counter_is_per_pro0/first/checkpoints/iter_000004/optim', 'uuid': '312495728740874401532322256577916753923', 'func_name': 'local_step', 'event': 'end', 'time': 1794623691663855818, 'log_exceptions': False, 'times_spent': 444253}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:86 {'checkpoint_id': '/tmp/pytest-of-rarunachalam/pytest-0/test_window_counter_is_per_pro0/first/checkpoints/iter_000004/optim', 'uuid': '168960971903316513390238217305096888060', 'func_name': 'global_step', 'event': 'start', 'time': 1794623691663915360, 'log_exceptions': False}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:104 {'checkpoint_id': '/tmp/pytest-of-rarunachalam/pytest-0/test_window_counter_is_per_pro0/first/checkpoints/iter_000004/optim', 'uuid': '168960971903316513390238217305096888060', 'func_name': 'global_step', 'event': 'end', 'time': 1794623691664126775, 'log_exceptions': False, 'times_spent': 211305}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:86 {'checkpoint_id': '/tmp/pytest-of-rarunachalam/pytest-0/test_window_counter_is_per_pro0/first/checkpoints/iter_000004/optim', 'uuid': '40078982801246391204083384387316485010', 'func_name': 'write_data', 'event': 'start', 'time': 1794623691664182431, 'log_exceptions': False}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:104 {'checkpoint_id': '/tmp/pytest-of-rarunachalam/pytest-0/test_window_counter_is_per_pro0/first/checkpoints/iter_000004/optim', 'uuid': '40078982801246391204083384387316485010', 'func_name': 'write_data', 'event': 'end', 'time': 1794623692104933788, 'log_exceptions': False, 'times_spent': 440750896}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:86 {'checkpoint_id': '/tmp/pytest-of-rarunachalam/pytest-0/test_window_counter_is_per_pro0/first/checkpoints/iter_000004/optim', 'uuid': '266922091700982686314425725517503693068', 'func_name': 'finish_checkpoint', 'event': 'start', 'time': 1794623692105116478, 'log_exceptions': False}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:104 {'checkpoint_id': '/tmp/pytest-of-rarunachalam/pytest-0/test_window_counter_is_per_pro0/first/checkpoints/iter_000004/optim', 'uuid': '266922091700982686314425725517503693068', 'func_name': 'finish_checkpoint', 'event': 'end', 'time': 1794623692581271573, 'log_exceptions': False, 'times_spent': 476154854}
+DEBUG    c10d-NullHandler-dcp_logger:logger.py:104 {'checkpoint_id': '/tmp/pytest-of-rarunachalam/pytest-0/test_window_counter_is_per_pro0/first/checkpoints/iter_000004/optim', 'uuid': '27632718791180550738331360944363153692', 'func_name': 'save', 'event': 'end', 'time': 1794623692581445510, 'log_exceptions': True, 'times_spent': 918459220}
+INFO     posttrain:log.py:57 saved checkpoint /tmp/pytest-of-rarunachalam/pytest-0/test_window_counter_is_per_pro0/first/checkpoints/iter_000004 components=['model', 'optimizer', 'training_state'] resumable=True publish=True
+INFO     posttrain:report.py:385 step     4
+INFO     posttrain:host_memory.py:154 host memory [checkpoint finalize] rss=0.8GiB cgroup(v1)=30.7GiB/unlimited node_available=157.2/176.9GiB
+WARNING  cosmos_framework.utils.lazy_config.lazy:lazy.py:383 Config is saved using omegaconf at /tmp/pytest-of-rarunachalam/pytest-0/test_window_counter_is_per_pro0/restored/config_resolved.yaml.
+=============================== warnings summary ===============================
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py: 8 warnings
+cosmos_framework/posttrain/tests/test_algorithm_joint_ppo_boundaries.py: 2 warnings
+cosmos_framework/posttrain/tests/test_optimizer_master.py: 4 warnings
+cosmos_framework/posttrain/tests/test_control_libero_validation.py: 1 warning
+  /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/torch/distributed/checkpoint/utils.py:483: UserWarning: torch.distributed is disabled, unavailable or uninitialized, assuming the intent is to save in a single process.
+    return func(*args, **kwargs)
+
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_checkpoint_evaluation_restores_exact_state_without_training_or_resaving
+cosmos_framework/posttrain/tests/test_algorithm_joint_ppo_boundaries.py::test_reference_shuffle_is_fixed_across_publications_and_checkpoint_resume[parameter]
+cosmos_framework/posttrain/tests/test_algorithm_joint_ppo_boundaries.py::test_reference_shuffle_is_fixed_across_publications_and_checkpoint_resume[fp32_master]
+cosmos_framework/posttrain/tests/test_optimizer_master.py::test_dcp_rank_payload_chunk_boundaries_and_legacy_read[False]
+cosmos_framework/posttrain/tests/test_optimizer_master.py::test_dcp_rank_payload_chunk_boundaries_and_legacy_read[True]
+cosmos_framework/posttrain/tests/test_optimizer_master.py::test_native_trainer_save_restore_master_transaction[dcp]
+cosmos_framework/posttrain/tests/test_optimizer_master.py::test_native_trainer_save_restore_master_transaction[consolidated]
+cosmos_framework/posttrain/tests/test_control_libero_validation.py::test_failed_continuous_validation_restores_journal_without_repeating_updates
+  /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/torch/distributed/checkpoint/utils.py:483: UserWarning: torch.distributed is disabled, unavailable or uninitialized, assuming the intent is to load in a single process.
+    return func(*args, **kwargs)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_window_counter_is_per_process_and_preserves_durable_window_rows
+1 failed, 41 passed, 23 warnings in 114.63s (0:01:54)
+srun: error: cpu-00115: task 0: Exited with exit code 1
+srun: Terminating StepId=38510135.0

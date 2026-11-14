@@ -1,0 +1,35 @@
+2026-11-13 19:09:16.801 | DEBUG    | cosmos_framework.utils.config:_load_py_config:624 - get_config_module: took 0.20ms
+2026-11-13 19:09:16.893 | DEBUG    | cosmos_framework.utils.config:_load_py_config:642 - importlib.import_module: took 89.51ms
+2026-11-13 19:09:17.062 | DEBUG    | cosmos_framework.utils.config:_load_py_config:647 - override: took 168.58ms
+2026-11-13 19:09:17.062 | DEBUG    | cosmos_framework.utils.config:load_config:608 - total time to load config: 260.38ms
+Config is saved using omegaconf at /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-fused-resume-v2/runs/cosmos3_action/joint_ppo/gr00t-master-adamw/integration/config_resolved.yaml.
+2026-11-13 19:09:38,078	INFO worker.py:2024 -- Started a local Ray instance.
+[posttrain|I|r0] 2026-11-13 19:10:49 setup progress group=joint_ppo_experience done=0/4 elapsed_s=60 waiting=r0k0@batch-block7-01950 r1k0@batch-block7-01950 r2k0@batch-block7-01950 r3k0@batch-block7-01950
+[posttrain|I|r0] 2026-11-13 19:12:43 setup progress group=joint_ppo_policy done=0/4 elapsed_s=60 waiting=r0k0@batch-block7-01950 r0k1@batch-block7-01950 r0k2@batch-block7-01950 r0k3@batch-block7-01950
+[posttrain|I|r0] 2026-11-13 19:13:30 saving full checkpoint /lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-fused-resume-v2/runs/cosmos3_action/joint_ppo/gr00t-master-adamw/integration/checkpoints/.iter_000004.external-copy-1763a3e58ce64c148a032cb802b149c8.staging components=['model', 'optimizer', 'training_state']
+[posttrain|I|r0] 2026-11-13 19:14:21 saved checkpoint /lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-fused-resume-v2/runs/cosmos3_action/joint_ppo/gr00t-master-adamw/integration/checkpoints/.iter_000004.external-copy-1763a3e58ce64c148a032cb802b149c8.staging components=['model', 'optimizer', 'training_state'] resumable=True publish=False
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/tmp/optimizer-gr00t.HZLiee/cosmos_framework/posttrain/entrypoints/joint_ppo.py", line 529, in <module>
+    main()
+  File "/tmp/optimizer-gr00t.HZLiee/cosmos_framework/posttrain/entrypoints/joint_ppo.py", line 525, in main
+    run(config, opts, evaluate_only=flags["evaluate_only"])
+  File "/tmp/optimizer-gr00t.HZLiee/cosmos_framework/posttrain/entrypoints/joint_ppo.py", line 405, in run
+    stopped = validation.resume_or_initial(step, resumed_from_checkpoint=bool(resume)).preempted
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.HZLiee/cosmos_framework/posttrain/control/validation/boundary.py", line 143, in resume_or_initial
+    checkpoints.copy_external_pending(pending_step)
+  File "/tmp/optimizer-gr00t.HZLiee/cosmos_framework/posttrain/control/checkpointing.py", line 646, in copy_external_pending
+    promote_external_checkpoint_copy(plan)
+  File "/tmp/optimizer-gr00t.HZLiee/cosmos_framework/posttrain/checkpoint/external_copy.py", line 156, in promote_external_checkpoint_copy
+    raise_if_any_rank_failed(promotion_error, "external pending-checkpoint atomic promotion")
+  File "/tmp/optimizer-gr00t.HZLiee/cosmos_framework/posttrain/utils/dist.py", line 179, in raise_if_any_rank_failed
+    raise local_error
+  File "/tmp/optimizer-gr00t.HZLiee/cosmos_framework/posttrain/checkpoint/external_copy.py", line 153, in promote_external_checkpoint_copy
+    _promote_external_checkpoint_copy_rank0(plan)
+  File "/tmp/optimizer-gr00t.HZLiee/cosmos_framework/posttrain/checkpoint/external_copy.py", line 129, in _promote_external_checkpoint_copy_rank0
+    _rename_directory_noreplace(staging, target)
+  File "/tmp/optimizer-gr00t.HZLiee/cosmos_framework/posttrain/checkpoint/io.py", line 295, in rename_directory_noreplace
+    raise OSError(
+OSError: [Errno 95] atomic no-replace directory rename is unsupported by this kernel or filesystem: '/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-fused-resume-v2/runs/cosmos3_action/joint_ppo/gr00t-master-adamw/integration/checkpoints/iter_000004'

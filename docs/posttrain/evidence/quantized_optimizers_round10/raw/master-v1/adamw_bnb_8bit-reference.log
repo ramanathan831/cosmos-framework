@@ -1,0 +1,65 @@
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "<frozen runpy>", line 198, in _run_module_as_main
+[rank0]:   File "<frozen runpy>", line 88, in _run_code
+[rank0]:   File "/tmp/optimizer-master.wtw3Wy/tools/quantized_optimizers/master_distributed.py", line 156, in <module>
+[rank0]:     main()
+[rank0]:   File "/tmp/optimizer-master.wtw3Wy/tools/quantized_optimizers/master_distributed.py", line 84, in main
+[rank0]:     trainer = LLMTrainer(
+[rank0]:               ^^^^^^^^^^^
+[rank0]:   File "/tmp/optimizer-master.wtw3Wy/cosmos_framework/posttrain/roles/trainer/llm.py", line 293, in __init__
+[rank0]:     super().__init__(
+[rank0]:   File "/tmp/optimizer-master.wtw3Wy/cosmos_framework/posttrain/roles/trainer/base.py", line 305, in __init__
+[rank0]:     raise ValueError("quantized optimizer requires the consolidated checkpoint transaction path")
+[rank0]: ValueError: quantized optimizer requires the consolidated checkpoint transaction path
+[rank1]: Traceback (most recent call last):
+[rank1]:   File "<frozen runpy>", line 198, in _run_module_as_main
+[rank1]:   File "<frozen runpy>", line 88, in _run_code
+[rank1]:   File "/tmp/optimizer-master.wtw3Wy/tools/quantized_optimizers/master_distributed.py", line 156, in <module>
+[rank1]:     main()
+[rank1]:   File "/tmp/optimizer-master.wtw3Wy/tools/quantized_optimizers/master_distributed.py", line 84, in main
+[rank1]:     trainer = LLMTrainer(
+[rank1]:               ^^^^^^^^^^^
+[rank1]:   File "/tmp/optimizer-master.wtw3Wy/cosmos_framework/posttrain/roles/trainer/llm.py", line 293, in __init__
+[rank1]:     super().__init__(
+[rank1]:   File "/tmp/optimizer-master.wtw3Wy/cosmos_framework/posttrain/roles/trainer/base.py", line 305, in __init__
+[rank1]:     raise ValueError("quantized optimizer requires the consolidated checkpoint transaction path")
+[rank1]: ValueError: quantized optimizer requires the consolidated checkpoint transaction path
+E1113 15:38:40.068000 4090983 /lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: 1) local_rank: 0 (pid: 4091005) of binary: /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/bin/python
+Traceback (most recent call last):
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/bin/torchrun", line 12, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 362, in wrapper
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/torch/distributed/run.py", line 990, in main
+    run(args)
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/torch/distributed/run.py", line 981, in run
+    elastic_launch(
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 170, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 317, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+tools.quantized_optimizers.master_distributed FAILED
+------------------------------------------------------------
+Failures:
+[1]:
+  time      : 2026-11-13_15:38:40
+  host      : batch-block4-0045.cm.cluster
+  rank      : 1 (local_rank: 1)
+  exitcode  : 1 (pid: 4091006)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2026-11-13_15:38:40
+  host      : batch-block4-0045.cm.cluster
+  rank      : 0 (local_rank: 0)
+  exitcode  : 1 (pid: 4091005)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================

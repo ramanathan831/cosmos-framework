@@ -1,0 +1,64 @@
+flash_attn is not installed. Falling back to sdpa attention. Install flash-attn for better performance: pip install flash-attn
+`torch_dtype` is deprecated! Use `dtype` instead!
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-source-v1/source/tools/quantized_optimizers/gr00t_native.py", line 185, in <module>
+    main()
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-source-v1/source/tools/quantized_optimizers/gr00t_native.py", line 84, in main
+    source_probe(assets, output)
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-source-v1/source/tools/quantized_optimizers/gr00t_native.py", line 43, in source_probe
+    (model, processor), identity = load_ppo_source(make_model_config(str(assets / "model")), load)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-source-v1/source/cosmos_framework/posttrain/model/gr00t/source.py", line 179, in load_ppo_source
+    loaded, identity = load_with_stable_provenance(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-source-v1/source/cosmos_framework/posttrain/checkpoint/provenance.py", line 105, in load_with_stable_provenance
+    value = load()
+            ^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-source-v1/source/cosmos_framework/posttrain/model/gr00t/source.py", line 181, in <lambda>
+    lambda: run_rank_converged(lambda: load(source), "GR00T PPO source loading"),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-source-v1/source/cosmos_framework/posttrain/utils/dist.py", line 206, in run_rank_converged
+    (raise_errors or raise_if_any_rank_failed)(error, context)
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-source-v1/source/cosmos_framework/posttrain/utils/dist.py", line 179, in raise_if_any_rank_failed
+    raise local_error
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-source-v1/source/cosmos_framework/posttrain/utils/dist.py", line 203, in run_rank_converged
+    result = action()
+             ^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-source-v1/source/cosmos_framework/posttrain/model/gr00t/source.py", line 181, in <lambda>
+    lambda: run_rank_converged(lambda: load(source), "GR00T PPO source loading"),
+                                       ^^^^^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-source-v1/source/tools/quantized_optimizers/gr00t_native.py", line 31, in load
+    model = build_official_gr00t_model(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-source-v1/source/cosmos_framework/posttrain/model/gr00t/policy.py", line 123, in build_official_gr00t_model
+    model = _load_local_ppo_model(pipeline) if ppo else pipeline._create_model()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-source-v1/source/cosmos_framework/posttrain/model/gr00t/policy.py", line 142, in _load_local_ppo_model
+    model, loading_info = AutoModel.from_pretrained(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/action-runtime-v1/model/lib/python3.12/site-packages/transformers/models/auto/auto_factory.py", line 604, in from_pretrained
+    return model_class.from_pretrained(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/action-runtime-v1/model/lib/python3.12/site-packages/transformers/modeling_utils.py", line 277, in _wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/action-runtime-v1/model/lib/python3.12/site-packages/transformers/modeling_utils.py", line 4971, in from_pretrained
+    model = cls(config, *model_args, **model_kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/action-runtime-v1/model/lib/python3.12/site-packages/gr00t/model/gr00t_n1d7/gr00t_n1d7.py", line 530, in __init__
+    self.backbone = backbone_cls(
+                    ^^^^^^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/action-runtime-v1/model/lib/python3.12/site-packages/gr00t/model/modules/qwen3_backbone.py", line 183, in __init__
+    self.model = Qwen3VLForConditionalGeneration.from_pretrained(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/action-runtime-v1/model/lib/python3.12/site-packages/transformers/modeling_utils.py", line 277, in _wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/action-runtime-v1/model/lib/python3.12/site-packages/transformers/modeling_utils.py", line 4924, in from_pretrained
+    if is_from_file and not is_sharded and checkpoint_files[0].endswith(".safetensors"):
+                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'endswith'
+srun: error: cpu-00013: task 0: Exited with exit code 1
+srun: Terminating StepId=38506530.0

@@ -1,0 +1,29 @@
+Using Python 3.12.12 environment at: /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/action-runtime-v1/model
+Resolved 7 packages in 709ms
+Downloading diffusers (3.9MiB)
+ Downloaded diffusers
+Prepared 7 packages in 2.84s
+Uninstalled 1 package in 3.06s
+Installed 7 packages in 12.38s
+ - diffusers==0.38.0
+ + diffusers==0.35.1
+ + dm-tree==0.1.10
+ + gymnasium==1.2.2
+ + jsonlines==4.0.0
+ + lmdb==1.7.5
+ + msgpack-numpy==0.4.8
+ + tyro==0.9.17
+WARNING 11-13 15:58:12 [config.py:71] Support for Transformers v4 is deprecated. The Transformers v4 codepath will become unmaintained in vLLM v0.22.0 and will be removed in vLLM v0.24.0. Please upgrade to Transformers v5: pip install --upgrade transformers
+INFO 11-13 15:58:17 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-13 15:58:17 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+W1113 15:58:18.659000 2934137 /lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/torch/utils/cpp_extension.py:140] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+WARNING 11-13 15:58:31 [interface.py:255] Failed to import from vllm._C: ImportError('libcuda.so.1: cannot open shared object file: No such file or directory')
+WARNING 11-13 15:58:32 [interface.py:255] Failed to import from vllm._C: ImportError('libcuda.so.1: cannot open shared object file: No such file or directory')
+WARNING 11-13 15:58:32 [interface.py:255] Failed to import from vllm._C: ImportError('libcuda.so.1: cannot open shared object file: No such file or directory')
+WARNING 11-13 15:58:32 [interface.py:255] Failed to import from vllm._C: ImportError('libcuda.so.1: cannot open shared object file: No such file or directory')
+INFO 11-13 15:58:32 [patch.py:252] NVFP4 W4A4 weight_scale NaN-clamp: installed.
+Failed to load CPU gemm_4bit_forward from kernels-community: No module named 'kernels'. Please make sure you already `pip install kernels` and the kernels >= 0.11.1
+INFO 11-13 15:59:16 [registry.py:619] Registered diffusion model Gr00tN1d7Pipeline -> cosmos_framework.posttrain.model.gr00t.serving.omni_pipeline.Gr00tN1d7RLPipeline
+{"gr00t.model.gr00t_n1d7.gr00t_n1d7": false, "vllm": true, "vllm_omni": true, "bitsandbytes": true, "cosmos_framework.posttrain.model.gr00t.serving.omni_pipeline": true, "cosmos_framework.posttrain.entrypoints.joint_ppo": true}
+srun: error: cpu-00084: task 0: Exited with exit code 1
+srun: Terminating StepId=38504330.0

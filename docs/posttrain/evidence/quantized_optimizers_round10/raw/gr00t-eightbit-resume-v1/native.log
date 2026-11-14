@@ -1,0 +1,19 @@
+2026-11-13 20:34:40.634 | DEBUG    | cosmos_framework.utils.config:_load_py_config:624 - get_config_module: took 0.20ms
+2026-11-13 20:34:40.725 | DEBUG    | cosmos_framework.utils.config:_load_py_config:642 - importlib.import_module: took 90.36ms
+2026-11-13 20:34:40.880 | DEBUG    | cosmos_framework.utils.config:_load_py_config:647 - override: took 154.45ms
+2026-11-13 20:34:40.880 | DEBUG    | cosmos_framework.utils.config:load_config:608 - total time to load config: 246.10ms
+Config is saved using omegaconf at /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-eightbit-resume-v1/runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/config_resolved.yaml.
+2026-11-13 20:34:56,529	INFO worker.py:2024 -- Started a local Ray instance.
+[posttrain|I|r0] 2026-11-13 20:36:06 setup progress group=joint_ppo_experience done=0/4 elapsed_s=60 waiting=r0k0@batch-block4-0045 r1k0@batch-block4-0045 r2k0@batch-block4-0045 r3k0@batch-block4-0045
+[posttrain|I|r0] 2026-11-13 20:37:41 setup progress group=joint_ppo_policy done=0/4 elapsed_s=60 waiting=r0k0@batch-block4-0045 r0k1@batch-block4-0045 r0k2@batch-block4-0045 r0k3@batch-block4-0045
+[posttrain|I|r0] 2026-11-13 20:38:04 Joint PPO collect version=4 optimizer_step=4
+[posttrain|I|r0] 2026-11-13 20:38:47 step    5/8  train/joint_loss +0.0866  train/episode_success_rate +1.0000
+[posttrain|I|r0] 2026-11-13 20:38:47 Joint PPO collect version=5 optimizer_step=5
+[posttrain|I|r0] 2026-11-13 20:39:14 step    6/8  train/joint_loss +0.4377  train/episode_success_rate +1.0000
+[posttrain|I|r0] 2026-11-13 20:39:14 Joint PPO collect version=6 optimizer_step=6
+[posttrain|I|r0] 2026-11-13 20:39:42 step    7/8  train/joint_loss +0.1505  train/episode_success_rate +1.0000
+[posttrain|I|r0] 2026-11-13 20:39:42 Joint PPO collect version=7 optimizer_step=7
+[posttrain|I|r0] 2026-11-13 20:40:10 saving full checkpoint /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-eightbit-resume-v1/runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/checkpoints/iter_000008 components=['model', 'optimizer', 'training_state']
+[posttrain|I|r0] 2026-11-13 20:40:34 saved checkpoint /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-eightbit-resume-v1/runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/checkpoints/iter_000008 components=['model', 'optimizer', 'training_state'] resumable=True publish=False
+[posttrain|I|r0] 2026-11-13 20:43:31 persisted validation completion in /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-eightbit-resume-v1/runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/checkpoints/iter_000008
+[posttrain|I|r0] 2026-11-13 20:43:31 step    8/8  train/joint_loss +0.0725  train/episode_success_rate +0.8750  val/success_rate +0.9900

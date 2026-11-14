@@ -1,0 +1,25 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/tmp/optimizer-gr00t.mjeHtY/cosmos_framework/posttrain/embodied/sims/libero/preflight.py", line 72, in <module>
+    main()
+  File "/tmp/optimizer-gr00t.mjeHtY/cosmos_framework/posttrain/embodied/sims/libero/preflight.py", line 43, in main
+    sim = LiberoSimulator(
+          ^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.mjeHtY/cosmos_framework/posttrain/embodied/sims/libero/runtime.py", line 78, in __init__
+    self.probe()
+  File "/tmp/optimizer-gr00t.mjeHtY/cosmos_framework/posttrain/embodied/sims/libero/runtime.py", line 110, in probe
+    raise RuntimeError(f"LIBERO runtime dependencies differ: {mismatches}")
+RuntimeError: LIBERO runtime dependencies differ: {'huggingface_hub': {'expected': '1.31.0', 'actual': '0.36.2'}}
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/tmp/optimizer-gr00t.mjeHtY/tools/quantized_optimizers/gr00t_native.py", line 217, in <module>
+    main()
+  File "/tmp/optimizer-gr00t.mjeHtY/tools/quantized_optimizers/gr00t_native.py", line 145, in main
+    subprocess.run(
+  File "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/python/cpython-3.12.12-linux-x86_64-gnu/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/sim-runtime-v1/environment/bin/python', '-m', 'cosmos_framework.posttrain.embodied.sims.libero.preflight', '--train-manifest', '/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-fused-native-v6/manifests/libero_spatial-train.json', '--eval-manifest', '/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-fused-native-v6/manifests/libero_spatial-eval.json', '--output', '/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-fused-native-v6/sim-preflight.json']' returned non-zero exit status 1.
+srun: error: batch-block7-01880: task 0: Exited with exit code 1
+srun: Terminating StepId=38507929.0

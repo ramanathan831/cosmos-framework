@@ -1,0 +1,258 @@
+FFFFF..FFFFFFFFFFFF                                                      [100%]
+=================================== FAILURES ===================================
+_____ test_window_counter_is_per_process_and_preserves_durable_window_rows _____
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:177: in test_window_counter_is_per_process_and_preserves_durable_window_rows
+    first = gr00t_ppo.run(config)
+            ^^^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/entrypoints/joint_ppo.py:308: in run
+    validate_config(config, width)
+cosmos_framework/posttrain/entrypoints/joint_ppo.py:195: in validate_config
+    validate_joint_ppo_config(config, ranks)
+cosmos_framework/posttrain/config/config_joint_ppo.py:66: in validate_joint_ppo_config
+    instantiate(config.recipe_check, ranks=ranks)
+cosmos_framework/utils/lazy_config/instantiate.py:103: in instantiate
+    return cls(*args, **instantiate_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/model/gr00t/build.py:58: in validate_joint_recipe
+    raise ValueError("GR00T joint PPO currently requires at least two learner ranks")
+E   ValueError: GR00T joint PPO currently requires at least two learner ranks
+________ test_training_cleanup_covers_early_and_late_failures[counter] _________
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:250: in test_training_cleanup_covers_early_and_late_failures
+    assert events[-len(expected) :] == expected
+E   AssertionError: assert [] == ['checkpoint'...llout', 'ray']
+E     
+E     Right contains 5 more items, first extra item: 'checkpoint'
+E     Use -v to get more diff
+__________ test_training_cleanup_covers_early_and_late_failures[loop] __________
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:250: in test_training_cleanup_covers_early_and_late_failures
+    assert events[-len(expected) :] == expected
+E   AssertionError: assert [] == ['checkpoint'...llout', 'ray']
+E     
+E     Right contains 6 more items, first extra item: 'checkpoint'
+E     Use -v to get more diff
+____ test_training_cleanup_covers_early_and_late_failures[collector_close] _____
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:250: in test_training_cleanup_covers_early_and_late_failures
+    assert events[-len(expected) :] == expected
+E   AssertionError: assert [] == ['checkpoint'...llout', 'ray']
+E     
+E     Right contains 6 more items, first extra item: 'checkpoint'
+E     Use -v to get more diff
+____ test_assessment_cleanup_and_complete_reentry_leave_training_untouched _____
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:262: in test_assessment_cleanup_and_complete_reentry_leave_training_untouched
+    result = run_assessment(config, manifest=str(manifest), output_dir=str(directory / "assessment"))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/tests/libero_assessment_cli.py:281: in run_assessment
+    validate_joint_ppo_config(config, nodes * gpus)
+cosmos_framework/posttrain/config/config_joint_ppo.py:66: in validate_joint_ppo_config
+    instantiate(config.recipe_check, ranks=ranks)
+cosmos_framework/utils/lazy_config/instantiate.py:103: in instantiate
+    return cls(*args, **instantiate_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/model/gr00t/build.py:58: in validate_joint_recipe
+    raise ValueError("GR00T joint PPO currently requires at least two learner ranks")
+E   ValueError: GR00T joint PPO currently requires at least two learner ranks
+__ test_checkpoint_evaluation_rejects_missing_resume_before_model_allocation ___
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:324: in test_checkpoint_evaluation_rejects_missing_resume_before_model_allocation
+    with pytest.raises(ValueError, match="explicit resumable checkpoint"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: Regex pattern did not match.
+E     Expected regex: 'explicit resumable checkpoint'
+E     Actual message: 'GR00T joint PPO currently requires at least two learner ranks'
+____________ test_online_reporting_failure_does_not_block_training _____________
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:354: in test_online_reporting_failure_does_not_block_training
+    result = gr00t_ppo.run(config)
+             ^^^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/entrypoints/joint_ppo.py:308: in run
+    validate_config(config, width)
+cosmos_framework/posttrain/entrypoints/joint_ppo.py:195: in validate_config
+    validate_joint_ppo_config(config, ranks)
+cosmos_framework/posttrain/config/config_joint_ppo.py:66: in validate_joint_ppo_config
+    instantiate(config.recipe_check, ranks=ranks)
+cosmos_framework/utils/lazy_config/instantiate.py:103: in instantiate
+    return cls(*args, **instantiate_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/model/gr00t/build.py:58: in validate_joint_recipe
+    raise ValueError("GR00T joint PPO currently requires at least two learner ranks")
+E   ValueError: GR00T joint PPO currently requires at least two learner ranks
+__ test_telemetry_startup_failure_closes_client_before_model_setup[__init__] ___
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:420: in test_telemetry_startup_failure_closes_client_before_model_setup
+    gr00t_ppo.run(config)
+cosmos_framework/posttrain/entrypoints/joint_ppo.py:308: in run
+    validate_config(config, width)
+cosmos_framework/posttrain/entrypoints/joint_ppo.py:195: in validate_config
+    validate_joint_ppo_config(config, ranks)
+cosmos_framework/posttrain/config/config_joint_ppo.py:66: in validate_joint_ppo_config
+    instantiate(config.recipe_check, ranks=ranks)
+cosmos_framework/utils/lazy_config/instantiate.py:103: in instantiate
+    return cls(*args, **instantiate_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/model/gr00t/build.py:58: in validate_joint_recipe
+    raise ValueError("GR00T joint PPO currently requires at least two learner ranks")
+E   ValueError: GR00T joint PPO currently requires at least two learner ranks
+_ test_telemetry_startup_failure_closes_client_before_model_setup[on_app_start] _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:420: in test_telemetry_startup_failure_closes_client_before_model_setup
+    gr00t_ppo.run(config)
+cosmos_framework/posttrain/entrypoints/joint_ppo.py:308: in run
+    validate_config(config, width)
+cosmos_framework/posttrain/entrypoints/joint_ppo.py:195: in validate_config
+    validate_joint_ppo_config(config, ranks)
+cosmos_framework/posttrain/config/config_joint_ppo.py:66: in validate_joint_ppo_config
+    instantiate(config.recipe_check, ranks=ranks)
+cosmos_framework/utils/lazy_config/instantiate.py:103: in instantiate
+    return cls(*args, **instantiate_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/model/gr00t/build.py:58: in validate_joint_recipe
+    raise ValueError("GR00T joint PPO currently requires at least two learner ranks")
+E   ValueError: GR00T joint PPO currently requires at least two learner ranks
+________ test_telemetry_ends_app_when_model_setup_fails_before_training ________
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:437: in test_telemetry_ends_app_when_model_setup_fails_before_training
+    gr00t_ppo.run(config)
+cosmos_framework/posttrain/entrypoints/joint_ppo.py:308: in run
+    validate_config(config, width)
+cosmos_framework/posttrain/entrypoints/joint_ppo.py:195: in validate_config
+    validate_joint_ppo_config(config, ranks)
+cosmos_framework/posttrain/config/config_joint_ppo.py:66: in validate_joint_ppo_config
+    instantiate(config.recipe_check, ranks=ranks)
+cosmos_framework/utils/lazy_config/instantiate.py:103: in instantiate
+    return cls(*args, **instantiate_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/model/gr00t/build.py:58: in validate_joint_recipe
+    raise ValueError("GR00T joint PPO currently requires at least two learner ranks")
+E   ValueError: GR00T joint PPO currently requires at least two learner ranks
+______ test_checkpoint_failure_preserves_error_without_telemetry_success _______
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:464: in test_checkpoint_failure_preserves_error_without_telemetry_success
+    gr00t_ppo.run(config)
+cosmos_framework/posttrain/entrypoints/joint_ppo.py:308: in run
+    validate_config(config, width)
+cosmos_framework/posttrain/entrypoints/joint_ppo.py:195: in validate_config
+    validate_joint_ppo_config(config, ranks)
+cosmos_framework/posttrain/config/config_joint_ppo.py:66: in validate_joint_ppo_config
+    instantiate(config.recipe_check, ranks=ranks)
+cosmos_framework/utils/lazy_config/instantiate.py:103: in instantiate
+    return cls(*args, **instantiate_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/model/gr00t/build.py:58: in validate_joint_recipe
+    raise ValueError("GR00T joint PPO currently requires at least two learner ranks")
+E   ValueError: GR00T joint PPO currently requires at least two learner ranks
+_______ test_training_error_survives_telemetry_send_and_finish_failures ________
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:498: in test_training_error_survives_telemetry_send_and_finish_failures
+    gr00t_ppo.run(config)
+cosmos_framework/posttrain/entrypoints/joint_ppo.py:308: in run
+    validate_config(config, width)
+cosmos_framework/posttrain/entrypoints/joint_ppo.py:195: in validate_config
+    validate_joint_ppo_config(config, ranks)
+cosmos_framework/posttrain/config/config_joint_ppo.py:66: in validate_joint_ppo_config
+    instantiate(config.recipe_check, ranks=ranks)
+cosmos_framework/utils/lazy_config/instantiate.py:103: in instantiate
+    return cls(*args, **instantiate_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/model/gr00t/build.py:58: in validate_joint_recipe
+    raise ValueError("GR00T joint PPO currently requires at least two learner ranks")
+E   ValueError: GR00T joint PPO currently requires at least two learner ranks
+______ test_joint_failure_does_not_complete_telemetry_intervals[trainer] _______
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:544: in test_joint_failure_does_not_complete_telemetry_intervals
+    gr00t_ppo.run(config)
+cosmos_framework/posttrain/entrypoints/joint_ppo.py:308: in run
+    validate_config(config, width)
+cosmos_framework/posttrain/entrypoints/joint_ppo.py:195: in validate_config
+    validate_joint_ppo_config(config, ranks)
+cosmos_framework/posttrain/config/config_joint_ppo.py:66: in validate_joint_ppo_config
+    instantiate(config.recipe_check, ranks=ranks)
+cosmos_framework/utils/lazy_config/instantiate.py:103: in instantiate
+    return cls(*args, **instantiate_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/model/gr00t/build.py:58: in validate_joint_recipe
+    raise ValueError("GR00T joint PPO currently requires at least two learner ranks")
+E   ValueError: GR00T joint PPO currently requires at least two learner ranks
+____ test_joint_failure_does_not_complete_telemetry_intervals[publication] _____
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:544: in test_joint_failure_does_not_complete_telemetry_intervals
+    gr00t_ppo.run(config)
+cosmos_framework/posttrain/entrypoints/joint_ppo.py:308: in run
+    validate_config(config, width)
+cosmos_framework/posttrain/entrypoints/joint_ppo.py:195: in validate_config
+    validate_joint_ppo_config(config, ranks)
+cosmos_framework/posttrain/config/config_joint_ppo.py:66: in validate_joint_ppo_config
+    instantiate(config.recipe_check, ranks=ranks)
+cosmos_framework/utils/lazy_config/instantiate.py:103: in instantiate
+    return cls(*args, **instantiate_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/model/gr00t/build.py:58: in validate_joint_recipe
+    raise ValueError("GR00T joint PPO currently requires at least two learner ranks")
+E   ValueError: GR00T joint PPO currently requires at least two learner ranks
+_____ test_joint_failure_does_not_complete_telemetry_intervals[validation] _____
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:544: in test_joint_failure_does_not_complete_telemetry_intervals
+    gr00t_ppo.run(config)
+cosmos_framework/posttrain/entrypoints/joint_ppo.py:308: in run
+    validate_config(config, width)
+cosmos_framework/posttrain/entrypoints/joint_ppo.py:195: in validate_config
+    validate_joint_ppo_config(config, ranks)
+cosmos_framework/posttrain/config/config_joint_ppo.py:66: in validate_joint_ppo_config
+    instantiate(config.recipe_check, ranks=ranks)
+cosmos_framework/utils/lazy_config/instantiate.py:103: in instantiate
+    return cls(*args, **instantiate_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/model/gr00t/build.py:58: in validate_joint_recipe
+    raise ValueError("GR00T joint PPO currently requires at least two learner ranks")
+E   ValueError: GR00T joint PPO currently requires at least two learner ranks
+_ test_checkpoint_location_is_captured_before_later_save_and_delayed_delivery __
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:590: in test_checkpoint_location_is_captured_before_later_save_and_delayed_delivery
+    gr00t_ppo.run(config)
+cosmos_framework/posttrain/entrypoints/joint_ppo.py:308: in run
+    validate_config(config, width)
+cosmos_framework/posttrain/entrypoints/joint_ppo.py:195: in validate_config
+    validate_joint_ppo_config(config, ranks)
+cosmos_framework/posttrain/config/config_joint_ppo.py:66: in validate_joint_ppo_config
+    instantiate(config.recipe_check, ranks=ranks)
+cosmos_framework/utils/lazy_config/instantiate.py:103: in instantiate
+    return cls(*args, **instantiate_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/model/gr00t/build.py:58: in validate_joint_recipe
+    raise ValueError("GR00T joint PPO currently requires at least two learner ranks")
+E   ValueError: GR00T joint PPO currently requires at least two learner ranks
+____ test_partial_initialization_error_survives_bounded_pending_sdk_finish _____
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:640: in test_partial_initialization_error_survives_bounded_pending_sdk_finish
+    gr00t_ppo.run(config)
+cosmos_framework/posttrain/entrypoints/joint_ppo.py:308: in run
+    validate_config(config, width)
+cosmos_framework/posttrain/entrypoints/joint_ppo.py:195: in validate_config
+    validate_joint_ppo_config(config, ranks)
+cosmos_framework/posttrain/config/config_joint_ppo.py:66: in validate_joint_ppo_config
+    instantiate(config.recipe_check, ranks=ranks)
+cosmos_framework/utils/lazy_config/instantiate.py:103: in instantiate
+    return cls(*args, **instantiate_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/model/gr00t/build.py:58: in validate_joint_recipe
+    raise ValueError("GR00T joint PPO currently requires at least two learner ranks")
+E   ValueError: GR00T joint PPO currently requires at least two learner ranks
+=============================== warnings summary ===============================
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_formal_window_validation_runs_before_and_after_training_without_analysis
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_checkpoint_evaluation_restores_exact_state_without_training_or_resaving
+  /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/torch/distributed/checkpoint/utils.py:483: UserWarning: torch.distributed is disabled, unavailable or uninitialized, assuming the intent is to save in a single process.
+    return func(*args, **kwargs)
+
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_checkpoint_evaluation_restores_exact_state_without_training_or_resaving
+  /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/torch/distributed/checkpoint/utils.py:483: UserWarning: torch.distributed is disabled, unavailable or uninitialized, assuming the intent is to load in a single process.
+    return func(*args, **kwargs)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_window_counter_is_per_process_and_preserves_durable_window_rows
+FAILED cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_training_cleanup_covers_early_and_late_failures[counter]
+FAILED cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_training_cleanup_covers_early_and_late_failures[loop]
+FAILED cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_training_cleanup_covers_early_and_late_failures[collector_close]
+FAILED cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_assessment_cleanup_and_complete_reentry_leave_training_untouched
+FAILED cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_checkpoint_evaluation_rejects_missing_resume_before_model_allocation
+FAILED cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_online_reporting_failure_does_not_block_training
+FAILED cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_telemetry_startup_failure_closes_client_before_model_setup[__init__]
+FAILED cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_telemetry_startup_failure_closes_client_before_model_setup[on_app_start]
+FAILED cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_telemetry_ends_app_when_model_setup_fails_before_training
+FAILED cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_checkpoint_failure_preserves_error_without_telemetry_success
+FAILED cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_training_error_survives_telemetry_send_and_finish_failures
+FAILED cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_joint_failure_does_not_complete_telemetry_intervals[trainer]
+FAILED cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_joint_failure_does_not_complete_telemetry_intervals[publication]
+FAILED cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_joint_failure_does_not_complete_telemetry_intervals[validation]
+FAILED cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_checkpoint_location_is_captured_before_later_save_and_delayed_delivery
+FAILED cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_partial_initialization_error_survives_bounded_pending_sdk_finish
+17 failed, 2 passed, 3 warnings in 83.75s (0:01:23)
+srun: error: cpu-00111: task 0: Exited with exit code 1
+srun: Terminating StepId=38510452.0
