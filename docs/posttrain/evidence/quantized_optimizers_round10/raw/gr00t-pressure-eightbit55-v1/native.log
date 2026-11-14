@@ -1,0 +1,209 @@
+2026-11-14 03:22:49.904 | DEBUG    | cosmos_framework.utils.config:_load_py_config:624 - get_config_module: took 0.20ms
+2026-11-14 03:22:50.141 | DEBUG    | cosmos_framework.utils.config:_load_py_config:642 - importlib.import_module: took 235.42ms
+2026-11-14 03:22:50.333 | DEBUG    | cosmos_framework.utils.config:_load_py_config:647 - override: took 191.14ms
+2026-11-14 03:22:50.333 | DEBUG    | cosmos_framework.utils.config:load_config:608 - total time to load config: 428.80ms
+Config is saved using omegaconf at /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-pressure-eightbit55-v1/runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/config_resolved.yaml.
+2026-11-14 03:23:09,394	INFO worker.py:2024 -- Started a local Ray instance.
+[posttrain|I|r0] 2026-11-14 03:24:20 setup progress group=joint_ppo_experience done=0/4 elapsed_s=60 waiting=r0k0@batch-block7-01718 r1k0@batch-block7-01718 r2k0@batch-block7-01718 r3k0@batch-block7-01718
+[posttrain|I|r0] 2026-11-14 03:29:24 step    0/32  val/success_rate +0.9700
+[posttrain|I|r0] 2026-11-14 03:29:24 Joint PPO collect version=0 optimizer_step=0
+[posttrain|I|r0] 2026-11-14 03:30:03 step    1/32  train/joint_loss +0.1446  train/episode_success_rate +1.0000
+[posttrain|I|r0] 2026-11-14 03:30:03 Joint PPO collect version=1 optimizer_step=1
+[posttrain|I|r0] 2026-11-14 03:30:32 step    2/32  train/joint_loss +0.1575  train/episode_success_rate +1.0000
+[posttrain|I|r0] 2026-11-14 03:30:32 Joint PPO collect version=2 optimizer_step=2
+[posttrain|I|r0] 2026-11-14 03:31:01 step    3/32  train/joint_loss +0.0726  train/episode_success_rate +1.0000
+[posttrain|I|r0] 2026-11-14 03:31:01 Joint PPO collect version=3 optimizer_step=3
+[posttrain|I|r0] 2026-11-14 03:31:29 step    4/32  train/joint_loss +0.1066  train/episode_success_rate +1.0000
+[posttrain|I|r0] 2026-11-14 03:31:29 Joint PPO collect version=4 optimizer_step=4
+[posttrain|I|r0] 2026-11-14 03:31:57 step    5/32  train/joint_loss +0.1347  train/episode_success_rate +0.8889
+[posttrain|I|r0] 2026-11-14 03:31:57 Joint PPO collect version=5 optimizer_step=5
+[posttrain|I|r0] 2026-11-14 03:32:26 step    6/32  train/joint_loss +0.0928  train/episode_success_rate +1.0000
+[posttrain|I|r0] 2026-11-14 03:32:26 Joint PPO collect version=6 optimizer_step=6
+[posttrain|I|r0] 2026-11-14 03:32:54 step    7/32  train/joint_loss +0.1012  train/episode_success_rate +1.0000
+[posttrain|I|r0] 2026-11-14 03:32:54 Joint PPO collect version=7 optimizer_step=7
+[posttrain|I|r0] 2026-11-14 03:33:22 step    8/32  train/joint_loss +0.0607  train/episode_success_rate +0.9000
+[posttrain|I|r0] 2026-11-14 03:33:22 Joint PPO collect version=8 optimizer_step=8
+[posttrain|I|r0] 2026-11-14 03:33:49 step    9/32  train/joint_loss +0.0409  train/episode_success_rate +0.8750
+[posttrain|I|r0] 2026-11-14 03:33:49 Joint PPO collect version=9 optimizer_step=9
+[posttrain|I|r0] 2026-11-14 03:34:17 step   10/32  train/joint_loss +0.0608  train/episode_success_rate +0.8571
+[posttrain|I|r0] 2026-11-14 03:34:17 Joint PPO collect version=10 optimizer_step=10
+[posttrain|I|r0] 2026-11-14 03:34:46 step   11/32  train/joint_loss +0.0755  train/episode_success_rate +0.8750
+[posttrain|I|r0] 2026-11-14 03:34:46 Joint PPO collect version=11 optimizer_step=11
+[posttrain|I|r0] 2026-11-14 03:35:15 step   12/32  train/joint_loss +0.1157  train/episode_success_rate +0.9000
+[posttrain|I|r0] 2026-11-14 03:35:15 Joint PPO collect version=12 optimizer_step=12
+[posttrain|I|r0] 2026-11-14 03:35:44 step   13/32  train/joint_loss +0.0565  train/episode_success_rate +1.0000
+[posttrain|I|r0] 2026-11-14 03:35:44 Joint PPO collect version=13 optimizer_step=13
+[posttrain|I|r0] 2026-11-14 03:36:13 step   14/32  train/joint_loss +0.0874  train/episode_success_rate +0.9000
+[posttrain|I|r0] 2026-11-14 03:36:13 Joint PPO collect version=14 optimizer_step=14
+[posttrain|I|r0] 2026-11-14 03:36:42 step   15/32  train/joint_loss +0.0611  train/episode_success_rate +1.0000
+[posttrain|I|r0] 2026-11-14 03:36:42 Joint PPO collect version=15 optimizer_step=15
+[posttrain|I|r0] 2026-11-14 03:37:09 saving full checkpoint /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-pressure-eightbit55-v1/runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/checkpoints/iter_000016 components=['model', 'optimizer', 'training_state']
+Traceback (most recent call last):
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/workers/worker_group.py", line 136, in as_completed
+    val = self._get(ref)
+          ^^^^^^^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 22, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 110, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/ray/_private/worker.py", line 2968, in get
+    values, debugger_breakpoint = worker.get_objects(
+                                  ^^^^^^^^^^^^^^^^^^^
+  File "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-wts-20261028T234324Z/environment/lib/python3.12/site-packages/ray/_private/worker.py", line 1050, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(RuntimeError): [36mray::_HostImpl.invoke()[39m (pid=1863215, ip=10.49.164.19, actor_id=2f3a4b7d7c41b2ea9945d0cc01000000, repr=<cosmos_framework.posttrain.workers.ray._HostImpl object at 0x1525f3b0c830>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/workers/ray.py", line 1417, in invoke
+    return self._invoke_impl(name, method, args, kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/workers/ray.py", line 1504, in _invoke_impl
+    out = getattr(body, method)(*args, **kw)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/roles/trainer/llm.py", line 1332, in save
+    location = self._save_dcp_components(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/roles/trainer/base.py", line 421, in _save_dcp_components
+    return self.checkpoint_manager.save_dcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/checkpoint/manager.py", line 549, in save_dcp
+    self._write_dcp_components(location, selected_dcp, names, context="DCP checkpoint")
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/checkpoint/manager.py", line 362, in _write_dcp_components
+    run_rank_converged(
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/utils/dist.py", line 206, in run_rank_converged
+    (raise_errors or raise_if_any_rank_failed)(error, context)
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/utils/dist.py", line 190, in raise_if_any_rank_failed
+    raise RuntimeError(f"{context} failed on one or more ranks: {details}")
+RuntimeError: DCP checkpoint component write (model) failed on one or more ranks: rank 0: RuntimeError: NCCL Error 1: unhandled cuda error (run with NCCL_DEBUG=INFO for details); rank 1: RuntimeError: NCCL Error 1: unhandled cuda error (run with NCCL_DEBUG=INFO for details); rank 2: RuntimeError: NCCL Error 1: unhandled cuda error (run with NCCL_DEBUG=INFO for details); rank 3: RuntimeError: NCCL Error 1: unhandled cuda error (run with NCCL_DEBUG=INFO for details)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/entrypoints/joint_ppo.py", line 618, in <module>
+    main()
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/entrypoints/joint_ppo.py", line 614, in main
+    run(config, opts, evaluate_only=flags["evaluate_only"])
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/entrypoints/joint_ppo.py", line 580, in run
+    outcome = validation.at_step(step, frame, scheduled_checkpoint_due=due)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/control/validation/boundary.py", line 194, in at_step
+    return self._run(
+           ^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/control/validation/boundary.py", line 62, in _run
+    report = self.transaction.run(model_step, reasons, self._evaluator(), train_metrics=metrics)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/control/validation/transaction.py", line 154, in run
+    self.checkpoints.save_full(model_step, publish=False)
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/control/checkpointing.py", line 504, in save_full
+    self.save(model_step, components=FULL_CHECKPOINT_COMPONENTS, publish=publish)
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/control/checkpointing.py", line 478, in save
+    component_plan = self._save_path(
+                     ^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/control/checkpointing.py", line 442, in _save_path
+    save_policy_checkpoint(
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/control/checkpointing.py", line 362, in save_policy_checkpoint
+    resolve_all(policy.save(*arguments, **keywords))
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/utils/entry.py", line 388, in resolve_all
+    raise RuntimeError(f"mesh operation failed on {len(failures)} cell(s): {details}") from first_error
+RuntimeError: mesh operation failed on 4 cell(s): cell (0, 3): RayTaskError(RuntimeError): [36mray::_HostImpl.invoke()[39m (pid=1863215, ip=10.49.164.19, actor_id=2f3a4b7d7c41b2ea9945d0cc01000000, repr=<cosmos_framework.posttrain.workers.ray._HostImpl object at 0x1525f3b0c830>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/workers/ray.py", line 1417, in invoke
+    return self._invoke_impl(name, method, args, kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/workers/ray.py", line 1504, in _invoke_impl
+    out = getattr(body, method)(*args, **kw)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/roles/trainer/llm.py", line 1332, in save
+    location = self._save_dcp_components(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/roles/trainer/base.py", line 421, in _save_dcp_components
+    return self.checkpoint_manager.save_dcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/checkpoint/manager.py", line 549, in save_dcp
+    self._write_dcp_components(location, selected_dcp, names, context="DCP checkpoint")
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/checkpoint/manager.py", line 362, in _write_dcp_components
+    run_rank_converged(
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/utils/dist.py", line 206, in run_rank_converged
+    (raise_errors or raise_if_any_rank_failed)(error, context)
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/utils/dist.py", line 190, in raise_if_any_rank_failed
+    raise RuntimeError(f"{context} failed on one or more ranks: {details}")
+RuntimeError: DCP checkpoint component write (model) failed on one or more ranks: rank 0: RuntimeError: NCCL Error 1: unhandled cuda error (run with NCCL_DEBUG=INFO for details); rank 1: RuntimeError: NCCL Error 1: unhandled cuda error (run with NCCL_DEBUG=INFO for details); rank 2: RuntimeError: NCCL Error 1: unhandled cuda error (run with NCCL_DEBUG=INFO for details); rank 3: RuntimeError: NCCL Error 1: unhandled cuda error (run with NCCL_DEBUG=INFO for details); cell (0, 0): RayTaskError(RuntimeError): [36mray::_HostImpl.invoke()[39m (pid=1863222, ip=10.49.164.19, actor_id=d54930d2886def0251f9857f01000000, repr=<cosmos_framework.posttrain.workers.ray._HostImpl object at 0x1524e06596a0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/workers/ray.py", line 1417, in invoke
+    return self._invoke_impl(name, method, args, kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/workers/ray.py", line 1504, in _invoke_impl
+    out = getattr(body, method)(*args, **kw)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/roles/trainer/llm.py", line 1332, in save
+    location = self._save_dcp_components(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/roles/trainer/base.py", line 421, in _save_dcp_components
+    return self.checkpoint_manager.save_dcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/checkpoint/manager.py", line 549, in save_dcp
+    self._write_dcp_components(location, selected_dcp, names, context="DCP checkpoint")
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/checkpoint/manager.py", line 362, in _write_dcp_components
+    run_rank_converged(
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/utils/dist.py", line 206, in run_rank_converged
+    (raise_errors or raise_if_any_rank_failed)(error, context)
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/utils/dist.py", line 190, in raise_if_any_rank_failed
+    raise RuntimeError(f"{context} failed on one or more ranks: {details}")
+RuntimeError: DCP checkpoint component write (model) failed on one or more ranks: rank 0: RuntimeError: NCCL Error 1: unhandled cuda error (run with NCCL_DEBUG=INFO for details); rank 1: RuntimeError: NCCL Error 1: unhandled cuda error (run with NCCL_DEBUG=INFO for details); rank 2: RuntimeError: NCCL Error 1: unhandled cuda error (run with NCCL_DEBUG=INFO for details); rank 3: RuntimeError: NCCL Error 1: unhandled cuda error (run with NCCL_DEBUG=INFO for details); cell (0, 2): RayTaskError(RuntimeError): [36mray::_HostImpl.invoke()[39m (pid=1863220, ip=10.49.164.19, actor_id=3e13fde084360ce45563e2bf01000000, repr=<cosmos_framework.posttrain.workers.ray._HostImpl object at 0x1524e06a16a0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/workers/ray.py", line 1417, in invoke
+    return self._invoke_impl(name, method, args, kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/workers/ray.py", line 1504, in _invoke_impl
+    out = getattr(body, method)(*args, **kw)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/roles/trainer/llm.py", line 1332, in save
+    location = self._save_dcp_components(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/roles/trainer/base.py", line 421, in _save_dcp_components
+    return self.checkpoint_manager.save_dcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/checkpoint/manager.py", line 549, in save_dcp
+    self._write_dcp_components(location, selected_dcp, names, context="DCP checkpoint")
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/checkpoint/manager.py", line 362, in _write_dcp_components
+    run_rank_converged(
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/utils/dist.py", line 206, in run_rank_converged
+    (raise_errors or raise_if_any_rank_failed)(error, context)
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/utils/dist.py", line 190, in raise_if_any_rank_failed
+    raise RuntimeError(f"{context} failed on one or more ranks: {details}")
+RuntimeError: DCP checkpoint component write (model) failed on one or more ranks: rank 0: RuntimeError: NCCL Error 1: unhandled cuda error (run with NCCL_DEBUG=INFO for details); rank 1: RuntimeError: NCCL Error 1: unhandled cuda error (run with NCCL_DEBUG=INFO for details); rank 2: RuntimeError: NCCL Error 1: unhandled cuda error (run with NCCL_DEBUG=INFO for details); rank 3: RuntimeError: NCCL Error 1: unhandled cuda error (run with NCCL_DEBUG=INFO for details); cell (0, 1): RayTaskError(RuntimeError): [36mray::_HostImpl.invoke()[39m (pid=1863219, ip=10.49.164.19, actor_id=a2d4602befafa81027eac19501000000, repr=<cosmos_framework.posttrain.workers.ray._HostImpl object at 0x1524dfe0c500>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/workers/ray.py", line 1417, in invoke
+    return self._invoke_impl(name, method, args, kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/workers/ray.py", line 1504, in _invoke_impl
+    out = getattr(body, method)(*args, **kw)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/roles/trainer/llm.py", line 1332, in save
+    location = self._save_dcp_components(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/roles/trainer/base.py", line 421, in _save_dcp_components
+    return self.checkpoint_manager.save_dcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/checkpoint/manager.py", line 549, in save_dcp
+    self._write_dcp_components(location, selected_dcp, names, context="DCP checkpoint")
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/checkpoint/manager.py", line 362, in _write_dcp_components
+    run_rank_converged(
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/utils/dist.py", line 206, in run_rank_converged
+    (raise_errors or raise_if_any_rank_failed)(error, context)
+  File "/tmp/optimizer-gr00t.656pM3/cosmos_framework/posttrain/utils/dist.py", line 190, in raise_if_any_rank_failed
+    raise RuntimeError(f"{context} failed on one or more ranks: {details}")
+RuntimeError: DCP checkpoint component write (model) failed on one or more ranks: rank 0: RuntimeError: NCCL Error 1: unhandled cuda error (run with NCCL_DEBUG=INFO for details); rank 1: RuntimeError: NCCL Error 1: unhandled cuda error (run with NCCL_DEBUG=INFO for details); rank 2: RuntimeError: NCCL Error 1: unhandled cuda error (run with NCCL_DEBUG=INFO for details); rank 3: RuntimeError: NCCL Error 1: unhandled cuda error (run with NCCL_DEBUG=INFO for details)

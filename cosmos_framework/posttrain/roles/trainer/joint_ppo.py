@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from dataclasses import asdict, replace
 from typing import Any
@@ -35,6 +35,7 @@ from cosmos_framework.posttrain.roles.trainer.ppo_runtime import (
     run_ppo_batch_update,
 )
 from cosmos_framework.posttrain.schema import FINAL_REWARD_KEY, Trajectory
+from cosmos_framework.posttrain.schema.checkpoint import CheckpointComponentPlan
 from cosmos_framework.posttrain.utils.dist import rank_max_count, run_rank_converged
 from cosmos_framework.posttrain.utils.identity import normalize_json_dict
 from cosmos_framework.posttrain.utils.rank_state import gather_rank_states
@@ -109,6 +110,32 @@ class JointPPOTrainer(PPOTrainableRole):
 
     def progress(self) -> dict:
         return {"optimizer_step": self.optimizer_step, "publication_version": self.publication_version()}
+
+    def save(
+        self,
+        path: str,
+        publish: bool = True,
+        update_latest: bool = True,
+        components: Iterable[str] | CheckpointComponentPlan | None = None,
+        data_state: dict[str, Any] | None = None,
+    ) -> None:
+        # These gradients belong to a completed update and are not recovery state.
+        # Keeping both BF16 model gradients and FP32 master staging alive can strand
+        # multiple GiB per rank while DCP/NCCL needs temporary device allocations.
+        # The existing boundary guard rejects partial accumulation before mutation.
+        self.release_completed_gradients()
+
+        def release_device_cache() -> None:
+            devices = {parameter.device for parameter in self.model.net.parameters() if parameter.is_cuda}
+            for device in sorted(devices, key=str):
+                # NCCL allocates outside PyTorch's caching allocator. Make the dead
+                # blocks available to it, only at this infrequent checkpoint phase.
+                with torch.cuda.device(device):
+                    torch.cuda.synchronize(device)
+                    torch.cuda.empty_cache()
+
+        run_rank_converged(release_device_cache, "joint PPO checkpoint device memory preparation")
+        super().save(path, publish, update_latest, components, data_state)
 
     def ppo_identity(self) -> dict:
         return self.model.ppo_identity()

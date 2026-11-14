@@ -49,6 +49,54 @@
       "checkpoint_created": false,
       "scope": "One update is not sustained training, quality or recovery. Initial evaluation score is not a final task endpoint. The fixed-pressure capacity failure is retained; independent nonpaged and paged controls remain in scope.",
       "raw": "raw/gr00t-pressure-fused55-v1"
+    },
+    "nonpaged55_v1": {
+      "job": "38532517",
+      "status": "FAILED checkpoint model-component NCCL CUDA error",
+      "source": "ef9f69589595724c8d166bf699557a2223bb832c",
+      "completed_updates": 16,
+      "failure_phase": "first model-component DCP write at16 before validation/publication",
+      "root_cause": "Unresolved: all ranks report ncclUnhandledCudaError. No explicit allocator OOM is present in this error; do not equate it with the fused backward OOM. Consumed model/master gradients and allocator cache remained live at this boundary.",
+      "reservation_bytes_per_gpu": 59055800320,
+      "reservation_workers": 4,
+      "finite_intended_updates": true,
+      "behavior_checks_pass": true,
+      "attempt": {
+        "returncode": 1,
+        "native_seconds": 896.9182387309847
+      },
+      "allocation_seconds_including_teardown": 1016,
+      "gpu_allocation_seconds": 4064,
+      "memory_peaks_including_separate_reservation": {
+        "memory-gpu0": {
+          "sampled_device_bytes": 85892857856,
+          "sampled_matched_process_gpu_bytes": 84582334464
+        },
+        "memory-gpu1": {
+          "sampled_device_bytes": 85894955008,
+          "sampled_matched_process_gpu_bytes": 84584431616
+        },
+        "memory-gpu2": {
+          "sampled_device_bytes": 85894955008,
+          "sampled_matched_process_gpu_bytes": 84584431616
+        },
+        "memory-gpu3": {
+          "sampled_device_bytes": 85890760704,
+          "sampled_matched_process_gpu_bytes": 84580237312
+        }
+      },
+      "full_launcher_peak_pss_bytes": 66709259264,
+      "complete_checkpoint_created": false,
+      "raw": "raw/gr00t-pressure-eightbit55-v1"
     }
+  },
+  "checkpoint_memory_intervention": {
+    "recorded_at_utc": "2026-11-14T11:43:39.815265+00:00",
+    "factor": "At a validated completed native Joint PPO checkpoint boundary, release consumed model/master gradients and return unused CUDA allocator blocks before DCP. No tensor/math, recipe, reservation or checkpoint-format change.",
+    "evidence": "Original native receipts retain6,499,373,572 bytes FP32 gradient staging plus3,249,686,786 bytes BF16 gradients across four learners. Joint PPO previously inherited save without the existing SFT completed-gradient cleanup. NCCL allocates outside PyTorch cache.",
+    "prediction": "Lower checkpoint device demand and successful16/32 checkpoint publication at55GiB without changing saved learner state or subsequent updates.",
+    "falsification": "Any changed saved state/next update, discarded partial accumulation or recurrent checkpoint error. A recurrent NCCL error requires collected NCCL diagnostics; no automatic rerun or pressure-size reduction.",
+    "validation": "Two fail-before cleanup regressions;33 affected local tests pass after, including a no-save next-update control and partial-boundary rejection. Native corrected pressure reference and paged recovery remain required.",
+    "admission_plan": "One corrected nonpaged32 reference with pinned33-test preflight and NCCL diagnostic logs, followed only on classification by paged32 and its existing dependent reload/resume. Fused55 fails at update2 before this changed checkpoint path, so its failure remains applicable. All future arms share the cleanup. Prior resident32 source remains historical and needs a corrected-path paged recovery boundary."
   }
 }

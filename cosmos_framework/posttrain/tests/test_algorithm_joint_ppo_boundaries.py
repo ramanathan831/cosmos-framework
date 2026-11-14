@@ -150,6 +150,10 @@ def test_reference_shuffle_is_fixed_across_publications_and_checkpoint_resume(tm
     model, session = RecordingPolicy(), GaussianSession()
     learner = JointPPOTrainer(model, recipe)
     collector = _collector(model, recipe)
+    control_model = RecordingPolicy()
+    control_model.net.load_state_dict(model.net.state_dict())
+    control = JointPPOTrainer(control_model, recipe)
+    control_collector, control_session = _collector(control_model, recipe), GaussianSession()
     reward = RewardWorker([reward_provider()], training_group_size=1)
     expected = torch.randperm(recipe.decisions, generator=torch.Generator().manual_seed(recipe.seed)).tolist()
 
@@ -168,10 +172,19 @@ def test_reference_shuffle_is_fixed_across_publications_and_checkpoint_resume(tm
     restored_collector = None
     try:
         first = train_window(learner, collector, session, 0)
+        assert train_window(control, control_collector, control_session, 0) == first
+        assert learner.evaluation_state() == control.evaluation_state()
         checkpoint_state = learner.evaluation_state()
         checkpoint = str(tmp_path / "checkpoint")
+        assert any(parameter.grad is not None for parameter in learner.opt.param_groups[0]["params"])
         save_policy_checkpoint(learner, checkpoint, data=collector)
+        assert all(parameter.grad is None for group in learner.opt.param_groups for parameter in group["params"])
+        if update_policy == "fp32_master":
+            assert all(parameter.grad is None for parameter in learner.opt.masters)
+        assert learner.evaluation_state() == checkpoint_state
         second = train_window(learner, collector, session, 1)
+        assert train_window(control, control_collector, control_session, 1) == second
+        assert learner.evaluation_state() == control.evaluation_state()
         learner.finalize_checkpoints()
         restored = JointPPOTrainer(RecordingPolicy(), recipe)
         restored.load(checkpoint)
@@ -190,5 +203,26 @@ def test_reference_shuffle_is_fixed_across_publications_and_checkpoint_resume(tm
 
     finally:
         collector.close()
+        control_collector.close()
         if restored_collector is not None:
             restored_collector.close()
+
+
+@pytest.mark.parametrize("update_policy", ["parameter", "fp32_master"])
+def test_checkpoint_memory_cleanup_never_discards_partial_gradients(tmp_path, update_policy):
+    recipe = JointPPOConfig()
+    recipe.optimizer.update_policy = update_policy
+    learner = JointPPOTrainer(GaussianPolicy(), recipe)
+    gradients = []
+    for group in learner.opt.param_groups:
+        for parameter in group["params"]:
+            parameter.grad = torch.ones_like(parameter)
+            gradients.append((parameter, parameter.grad))
+    learner._accum = 1
+    with pytest.raises(RuntimeError, match="completed update boundary"):
+        learner.save(str(tmp_path / "unsafe"))
+    assert all(
+        parameter.grad is gradient and torch.equal(gradient, torch.ones_like(gradient))
+        for parameter, gradient in gradients
+    )
+    assert not (tmp_path / "unsafe").exists()

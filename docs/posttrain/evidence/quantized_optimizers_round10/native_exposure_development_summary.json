@@ -807,7 +807,7 @@
     "One training seed and exposed100-case pool; native physical evaluation varies even from exact restored states. A two-episode decline is the locked descriptive screen failure, not a population-level degradation estimate.",
     "Behavior/action alignment, finite updates and frozen exclusion pass; no optimizer numerical defect inferred.",
     "Actor/critic losses and value explained variance are descriptive, not proof of a particular causal quality mechanism.",
-    "Pending-publication recovery completed; read-only final reloads and nonpaged40-to-80 continuation are admitted and tracked separately.",
+    "Pending-publication recovery, both read-only final reloads and nonpaged40-to-80 continuation completed; their results remain separate from the original quality endpoints.",
     "Revised content publication source changes delivery overhead; historical fused delivery is not an equally optimized successful end-to-end comparator."
   ],
   "evaluation_variability_audit": {
@@ -830,5 +830,22 @@
     "both_arms_improve_own_frozen_success_count_pass": false,
     "final_comparison_admitted": false,
     "scope": "Stored-precision descriptive development screens. One training seed, exposed cases and native closed-loop variation; no independent population or quality-preservation confidence claim. Earlier fused delivery failed publication; corrected nonpaged source is not a successful matched end-to-end comparator."
+  },
+  "critical_path_observation": {
+    "window_means": {
+      "fused": {
+        "mean_window_seconds_excluding_first": 28.08149115343967,
+        "forward_backward_and_update_fraction": 0.15960957454798605,
+        "collection_and_publication_fraction": 0.7732337713416405
+      },
+      "nonpaged": {
+        "mean_window_seconds_excluding_first": 28.726286599319725,
+        "forward_backward_and_update_fraction": 0.15628299504889623,
+        "collection_and_publication_fraction": 0.7783526703152752
+      }
+    },
+    "interpretation": "The whole forward/backward/update phase is about16% of native-window time; optimizer calls are only a subset. Collection and policy publication dominate. These descriptive single runs do not establish optimizer speed: fused delivery failed under the prior publication code, and the quality target was not reached.",
+    "nonpaged_full_native_update_fraction": 0.11346969251658812,
+    "nested_timer_rule": "The native subprocess includes setup, windows, validation, checkpoints and teardown. Do not add its components to its total."
   }
 }
