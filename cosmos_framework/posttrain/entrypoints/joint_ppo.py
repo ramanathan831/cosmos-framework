@@ -320,6 +320,7 @@ def run(config: Any, opts: list[str] | None = None, *, evaluate_only: bool = Fal
     )
     from cosmos_framework.utils.lazy_config import instantiate
 
+    run_started = time.monotonic()
     config = resolve_joint_config(config)
     nodes, gpus = detect_mesh()
     width = nodes * gpus
@@ -352,6 +353,15 @@ def run(config: Any, opts: list[str] | None = None, *, evaluate_only: bool = Fal
         cleanup.callback(observers.on_app_end)
         observers.on_app_start()
         units = assemble(config, recipe, output, resume, width)
+        setup_seconds = time.monotonic() - run_started
+        (output / "native-setup.json").write_text(
+            json.dumps(
+                {
+                    "seconds": setup_seconds,
+                    "scope": "native run entry through assembled and restored roles; excludes launcher preflights and evaluation",
+                }
+            )
+        )
         collector, rollout, policy = units["collector"], units["rollout"], units["policy"]
         reward, replay = units["rm"], units["replay"]
         cleanup.callback(lambda: resolve_all(rollout.close()))
@@ -452,14 +462,17 @@ def run(config: Any, opts: list[str] | None = None, *, evaluate_only: bool = Fal
                 trajectories = collect_decision_window(
                     collector, units["sim"], version=version, decisions=recipe.window_decisions
                 )
+                collected = time.monotonic()
                 scored = reward.score_with_provider_report(trajectories)
                 resolve_all(replay.put_samples(scored))
                 batch = replay.get_exact_samples()
                 receipt = resolve_identical(policy.prepare_ppo_targets(batch), operation="joint PPO targets")
+                prepared = time.monotonic()
                 batch_id, success = receipt["batch_id"], False
                 try:
                     with observers.train_batch():
                         result = resolve_identical(policy.train_batch(batch_id), operation="Joint PPO joint update")
+                    updated = time.monotonic()
                     if result["optimizer_step"] != step + updates or receipt["decisions"] != recipe.decisions:
                         raise RuntimeError("Joint PPO window counters differ from the fixed recipe")
                     step, version = result["optimizer_step"], version + 1
@@ -470,7 +483,14 @@ def run(config: Any, opts: list[str] | None = None, *, evaluate_only: bool = Fal
                 finally:
                     if not success:
                         resolve_all(policy.abort_batch(batch_id))
-            seconds = time.monotonic() - started
+            finished = time.monotonic()
+            seconds = finished - started
+            phases = {
+                "collect_seconds": collected - started,
+                "targets_seconds": prepared - collected,
+                "update_seconds": updated - prepared,
+                "publication_and_clear_seconds": finished - updated,
+            }
             shards = resolve_all(collector.window_statistics())
             episodes = [episode for shard in shards for episode in shard["episodes"]]
             diagnostics = receipt["target_diagnostics"]
@@ -520,6 +540,7 @@ def run(config: Any, opts: list[str] | None = None, *, evaluate_only: bool = Fal
                 **result,
                 "publication_version": version,
                 "seconds": seconds,
+                "phase_seconds": phases,
                 "episodes": episodes,
             }
             with (output / "windows.jsonl").open("a") as stream:

@@ -191,6 +191,11 @@ def test_window_counter_is_per_process_and_preserves_durable_window_rows(
     )
     rows = [json.loads(line) for line in (attempt["output"] / "windows.jsonl").read_text().splitlines()]
     assert [row["optimizer_step"] for row in rows] == [2, 4]
+    for row in rows:
+        assert all(value >= 0 for value in row["phase_seconds"].values())
+        assert sum(row["phase_seconds"].values()) == pytest.approx(row["seconds"])
+    setup = json.loads((attempt["output"] / "native-setup.json").read_text())
+    assert setup["seconds"] >= 0
     checkpoint_metrics = [frame for frame in one_logger_sink[0].metrics if "joint_ppo_checkpoint_path" in frame]
     assert checkpoint_metrics == [
         {
