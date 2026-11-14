@@ -215,3 +215,21 @@ and artifact checks. Admit runs only after the engineering measurements establis
 their duration and durable capacity; if correctness, finite loss, or storage
 checks fail, stop the affected attempt and preserve it. Do not change the target,
 margin, seed list, or one arm's horizon in response to quality outcomes.
+
+## Completed native engineering checks
+
+The [completed ten-update engineering run](evidence/native_qlora_family_engineering_4cba88f.json)
+(`38507817`, native `4cba88f`) passed exact historical-state checks, update-5-to-10
+recovery, and fresh checkpoint/portable task scores in both arms. It used
+`PYTORCH_ALLOC_CONF=expandable_segments:True` for both arms after the earlier BF16
+attempt exhausted memory at update seven. There are 247 eligible matrices and
+903 trainable tensors: 494 LoRA factors plus all 409 expert/action-projection tensors.
+
+NF4/BF16 peak allocated training memory was **64.664/74.009 GiB**, a **9.345 GiB**
+reduction. Native-process host high-water marks reached approximately 42.67/42.65 GiB
+during portable export. Historical NVML sampling failed, so no device-process or
+complete process-tree peak is claimed for that run. Mean updates 3–10 took
+2.966/3.092 seconds in a single short BF16-then-NF4 engineering block; this does not
+establish sustained speed or time-to-quality. Open-loop ADE on its two validation
+clips worsened in both arms. Process-loss recovery, full development, dense conversion
+and processed-shape profiling remain separate qualification checks.

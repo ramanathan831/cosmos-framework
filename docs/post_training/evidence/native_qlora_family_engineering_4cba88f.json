@@ -1,0 +1,800 @@
+{
+  "scope": "Native family engineering and controlled artifact conversion; not recipe quality or performance qualification",
+  "implementation_revision": "4cba88f4d84ce69037c194e58670e8491388a36d",
+  "wheel_sha256": "9113351965b501d293f9a71f476926fc212c51732144a63f90aca144120f0697",
+  "receipt_archive": "cosmos-qlora-family-20261113/family-engineering-4cba88f-receipts-v2.tar.gz",
+  "receipt_archive_sha256": "934d9b56bc47dc71d8cf18001d582b545a6c63207ba08cb03d4b5ee37a038078",
+  "jobs": {
+    "38507817": {
+      "family": "alpamayo",
+      "slurm_state": "COMPLETED",
+      "allocation_gpu_seconds": 2236,
+      "acceptance_sha256": "236d005b4ff7a29e3a14f69b014972a66bfed42bea1b7bb4aef035a8e8130e58",
+      "passed": true,
+      "allocator": "PYTORCH_ALLOC_CONF=expandable_segments:True in both precision arms",
+      "scope": "Ten native updates, exact historical-state checks, fresh checkpoint/portable scoring and deliberate5-to10 resume; process-loss test remains separate",
+      "results": [
+        {
+          "mode": "bf16_lora",
+          "fresh": [
+            {
+              "exact_task_score_parity": true,
+              "kind": "checkpoint"
+            },
+            {
+              "exact_task_score_parity": true,
+              "kind": "portable"
+            }
+          ],
+          "historical_parity": {
+            "atol": 0,
+            "controls_rng_and_data_exact": true,
+            "excluded_storage_identity_fields": [
+              "validation.publication.destination",
+              "validation.publication.id",
+              "validation.publication.manifest"
+            ],
+            "maximum_tensor_difference": {
+              "model": 0.0,
+              "optim": 0.0
+            },
+            "passed": true,
+            "rtol": 0
+          },
+          "recovery_parity": {
+            "atol": 0,
+            "controls_rng_and_data_exact": true,
+            "excluded_storage_identity_fields": [
+              "validation.publication.destination",
+              "validation.publication.id",
+              "validation.publication.manifest"
+            ],
+            "maximum_tensor_difference": {
+              "model": 0.0,
+              "optim": 0.0
+            },
+            "passed": true,
+            "rtol": 0
+          },
+          "native_workflow_seconds": 291.8544841749972,
+          "phase_seconds": {
+            "checkpoint_seconds": 93.07023270700302,
+            "evaluation_seconds": 22.60063130701019,
+            "portable_export_seconds": 30.70707373600453,
+            "startup_seconds": 98.1709324800031,
+            "training_seconds": 31.247973838020698
+          },
+          "history": [
+            {
+              "metrics": {
+                "loss": 0.17267518490552902,
+                "open_loop_ade_1s_meters": 0.02234843000769615,
+                "open_loop_ade_3s_meters": 0.40389831364154816,
+                "open_loop_ade_6p4s_meters": 2.212483525276184,
+                "open_loop_fde_1s_meters": 0.0673495028167963,
+                "open_loop_fde_3s_meters": 1.4264774322509766,
+                "open_loop_fde_6p4s_meters": 6.356669902801514
+              },
+              "step": 0
+            },
+            {
+              "metrics": {
+                "loss": 0.17817312479019165,
+                "open_loop_ade_1s_meters": 0.038141120225191116,
+                "open_loop_ade_3s_meters": 0.5588408559560776,
+                "open_loop_ade_6p4s_meters": 3.241901993751526,
+                "open_loop_fde_1s_meters": 0.0995588069781661,
+                "open_loop_fde_3s_meters": 2.0062161087989807,
+                "open_loop_fde_6p4s_meters": 9.3301420211792
+              },
+              "step": 5
+            },
+            {
+              "metrics": {
+                "loss": 0.18409669399261475,
+                "open_loop_ade_1s_meters": 0.04287958797067404,
+                "open_loop_ade_3s_meters": 0.6550527215003967,
+                "open_loop_ade_6p4s_meters": 3.94908607006073,
+                "open_loop_fde_1s_meters": 0.10932989604771137,
+                "open_loop_fde_3s_meters": 2.3866173028945923,
+                "open_loop_fde_6p4s_meters": 11.448138236999512
+              },
+              "step": 10
+            }
+          ],
+          "mean_update_seconds_steps3_to10": 3.0918617910028843,
+          "supervised_flow_elements_per_update": [
+            128
+          ],
+          "native_memory_records": [
+            {
+              "interval_end_phase": "data_preparation_begin",
+              "cuda_peak_allocated_bytes": 0,
+              "cuda_peak_reserved_bytes": 0,
+              "native_process_cumulative_host_hwm_bytes": 976732160
+            },
+            {
+              "interval_end_phase": "data_preparation_complete",
+              "cuda_peak_allocated_bytes": 0,
+              "cuda_peak_reserved_bytes": 0,
+              "native_process_cumulative_host_hwm_bytes": 980074496
+            },
+            {
+              "interval_end_phase": "model_loading_begin",
+              "cuda_peak_allocated_bytes": 0,
+              "cuda_peak_reserved_bytes": 0,
+              "native_process_cumulative_host_hwm_bytes": 980074496
+            },
+            {
+              "interval_end_phase": "model_loading_complete",
+              "cuda_peak_allocated_bytes": 27172013056,
+              "cuda_peak_reserved_bytes": 27193769984,
+              "native_process_cumulative_host_hwm_bytes": 23478390784
+            },
+            {
+              "interval_end_phase": "evaluation_begin",
+              "cuda_peak_allocated_bytes": 27059100160,
+              "cuda_peak_reserved_bytes": 27193769984,
+              "native_process_cumulative_host_hwm_bytes": 23478390784
+            },
+            {
+              "interval_end_phase": "evaluation_complete",
+              "cuda_peak_allocated_bytes": 32654130688,
+              "cuda_peak_reserved_bytes": 32759611392,
+              "native_process_cumulative_host_hwm_bytes": 23478390784
+            },
+            {
+              "interval_end_phase": "evaluation_begin",
+              "cuda_peak_allocated_bytes": 79466941440,
+              "cuda_peak_reserved_bytes": 80645980160,
+              "native_process_cumulative_host_hwm_bytes": 23478390784
+            },
+            {
+              "interval_end_phase": "evaluation_complete",
+              "cuda_peak_allocated_bytes": 61078667776,
+              "cuda_peak_reserved_bytes": 80645980160,
+              "native_process_cumulative_host_hwm_bytes": 23478390784
+            },
+            {
+              "interval_end_phase": "checkpoint_begin",
+              "cuda_peak_allocated_bytes": 55518240768,
+              "cuda_peak_reserved_bytes": 80645980160,
+              "native_process_cumulative_host_hwm_bytes": 23478390784
+            },
+            {
+              "interval_end_phase": "checkpoint_begin",
+              "cuda_peak_allocated_bytes": 55518240768,
+              "cuda_peak_reserved_bytes": 80645980160,
+              "native_process_cumulative_host_hwm_bytes": 23478390784
+            },
+            {
+              "interval_end_phase": "checkpoint_complete",
+              "cuda_peak_allocated_bytes": 55519524864,
+              "cuda_peak_reserved_bytes": 80645980160,
+              "native_process_cumulative_host_hwm_bytes": 36216053760
+            },
+            {
+              "interval_end_phase": "checkpoint_complete",
+              "cuda_peak_allocated_bytes": 55518240768,
+              "cuda_peak_reserved_bytes": 80645980160,
+              "native_process_cumulative_host_hwm_bytes": 36216053760
+            },
+            {
+              "interval_end_phase": "evaluation_begin",
+              "cuda_peak_allocated_bytes": 79466941440,
+              "cuda_peak_reserved_bytes": 80645980160,
+              "native_process_cumulative_host_hwm_bytes": 36651323392
+            },
+            {
+              "interval_end_phase": "evaluation_complete",
+              "cuda_peak_allocated_bytes": 61078667776,
+              "cuda_peak_reserved_bytes": 80645980160,
+              "native_process_cumulative_host_hwm_bytes": 36651323392
+            },
+            {
+              "interval_end_phase": "checkpoint_begin",
+              "cuda_peak_allocated_bytes": 55518240768,
+              "cuda_peak_reserved_bytes": 80645980160,
+              "native_process_cumulative_host_hwm_bytes": 36651323392
+            },
+            {
+              "interval_end_phase": "checkpoint_begin",
+              "cuda_peak_allocated_bytes": 55518240768,
+              "cuda_peak_reserved_bytes": 80645980160,
+              "native_process_cumulative_host_hwm_bytes": 36651323392
+            },
+            {
+              "interval_end_phase": "checkpoint_complete",
+              "cuda_peak_allocated_bytes": 55519524864,
+              "cuda_peak_reserved_bytes": 80645980160,
+              "native_process_cumulative_host_hwm_bytes": 36651323392
+            },
+            {
+              "interval_end_phase": "checkpoint_complete",
+              "cuda_peak_allocated_bytes": 55518240768,
+              "cuda_peak_reserved_bytes": 80645980160,
+              "native_process_cumulative_host_hwm_bytes": 36651323392
+            },
+            {
+              "interval_end_phase": "portable_export_begin",
+              "cuda_peak_allocated_bytes": 55518240768,
+              "cuda_peak_reserved_bytes": 80645980160,
+              "native_process_cumulative_host_hwm_bytes": 36651323392
+            },
+            {
+              "interval_end_phase": "portable_export_complete",
+              "cuda_peak_allocated_bytes": 55518567424,
+              "cuda_peak_reserved_bytes": 80645980160,
+              "native_process_cumulative_host_hwm_bytes": 45800218624
+            }
+          ],
+          "native_memory_scope": "CUDA peaks cover intervals since prior reset marker; reserved memory can remain cached across phases. Native-process host HWM is cumulative, not phase-local or whole process tree.",
+          "peak_cuda_allocated_bytes": 79466941440,
+          "peak_cuda_reserved_bytes": 80645980160,
+          "native_process_host_hwm_bytes": 45800218624
+        },
+        {
+          "mode": "nf4_lora",
+          "fresh": [
+            {
+              "exact_task_score_parity": true,
+              "kind": "checkpoint"
+            },
+            {
+              "exact_task_score_parity": true,
+              "kind": "portable"
+            }
+          ],
+          "historical_parity": {
+            "atol": 0,
+            "controls_rng_and_data_exact": true,
+            "excluded_storage_identity_fields": [
+              "validation.publication.destination",
+              "validation.publication.id",
+              "validation.publication.manifest"
+            ],
+            "maximum_tensor_difference": {
+              "model": 0.0,
+              "optim": 0.0
+            },
+            "passed": true,
+            "rtol": 0
+          },
+          "recovery_parity": {
+            "atol": 0,
+            "controls_rng_and_data_exact": true,
+            "excluded_storage_identity_fields": [
+              "validation.publication.destination",
+              "validation.publication.id",
+              "validation.publication.manifest"
+            ],
+            "maximum_tensor_difference": {
+              "model": 0.0,
+              "optim": 0.0
+            },
+            "passed": true,
+            "rtol": 0
+          },
+          "native_workflow_seconds": 278.5756948079943,
+          "phase_seconds": {
+            "checkpoint_seconds": 73.15912692100392,
+            "evaluation_seconds": 21.814538906008238,
+            "portable_export_seconds": 49.25849243500852,
+            "startup_seconds": 96.83597527700476,
+            "training_seconds": 30.29843264100782
+          },
+          "history": [
+            {
+              "metrics": {
+                "loss": 0.17297665774822235,
+                "open_loop_ade_1s_meters": 0.02095179003663361,
+                "open_loop_ade_3s_meters": 0.40253666043281555,
+                "open_loop_ade_6p4s_meters": 2.2659194469451904,
+                "open_loop_fde_1s_meters": 0.06264137849211693,
+                "open_loop_fde_3s_meters": 1.4429682493209839,
+                "open_loop_fde_6p4s_meters": 6.529123306274414
+              },
+              "step": 0
+            },
+            {
+              "metrics": {
+                "loss": 0.17847242206335068,
+                "open_loop_ade_1s_meters": 0.04045766964554787,
+                "open_loop_ade_3s_meters": 0.5732874870300293,
+                "open_loop_ade_6p4s_meters": 3.3605949878692627,
+                "open_loop_fde_1s_meters": 0.10378445871174335,
+                "open_loop_fde_3s_meters": 2.065445065498352,
+                "open_loop_fde_6p4s_meters": 9.65183162689209
+              },
+              "step": 5
+            },
+            {
+              "metrics": {
+                "loss": 0.18319092690944672,
+                "open_loop_ade_1s_meters": 0.04578101355582476,
+                "open_loop_ade_3s_meters": 0.6644976139068604,
+                "open_loop_ade_6p4s_meters": 4.01861834526062,
+                "open_loop_fde_1s_meters": 0.11575537454336882,
+                "open_loop_fde_3s_meters": 2.421308755874634,
+                "open_loop_fde_6p4s_meters": 11.606481552124023
+              },
+              "step": 10
+            }
+          ],
+          "mean_update_seconds_steps3_to10": 2.965532330874339,
+          "supervised_flow_elements_per_update": [
+            128
+          ],
+          "native_memory_records": [
+            {
+              "interval_end_phase": "data_preparation_begin",
+              "cuda_peak_allocated_bytes": 0,
+              "cuda_peak_reserved_bytes": 0,
+              "native_process_cumulative_host_hwm_bytes": 976674816
+            },
+            {
+              "interval_end_phase": "data_preparation_complete",
+              "cuda_peak_allocated_bytes": 0,
+              "cuda_peak_reserved_bytes": 0,
+              "native_process_cumulative_host_hwm_bytes": 980099072
+            },
+            {
+              "interval_end_phase": "model_loading_begin",
+              "cuda_peak_allocated_bytes": 0,
+              "cuda_peak_reserved_bytes": 0,
+              "native_process_cumulative_host_hwm_bytes": 980099072
+            },
+            {
+              "interval_end_phase": "model_loading_complete",
+              "cuda_peak_allocated_bytes": 17205096448,
+              "cuda_peak_reserved_bytes": 17257463808,
+              "native_process_cumulative_host_hwm_bytes": 23978209280
+            },
+            {
+              "interval_end_phase": "evaluation_begin",
+              "cuda_peak_allocated_bytes": 17092183552,
+              "cuda_peak_reserved_bytes": 17257463808,
+              "native_process_cumulative_host_hwm_bytes": 23978209280
+            },
+            {
+              "interval_end_phase": "evaluation_complete",
+              "cuda_peak_allocated_bytes": 22653659648,
+              "cuda_peak_reserved_bytes": 22758293504,
+              "native_process_cumulative_host_hwm_bytes": 23978209280
+            },
+            {
+              "interval_end_phase": "evaluation_begin",
+              "cuda_peak_allocated_bytes": 69432915968,
+              "cuda_peak_reserved_bytes": 70835503104,
+              "native_process_cumulative_host_hwm_bytes": 23978209280
+            },
+            {
+              "interval_end_phase": "evaluation_complete",
+              "cuda_peak_allocated_bytes": 51044642304,
+              "cuda_peak_reserved_bytes": 70835503104,
+              "native_process_cumulative_host_hwm_bytes": 23978209280
+            },
+            {
+              "interval_end_phase": "checkpoint_begin",
+              "cuda_peak_allocated_bytes": 45484215296,
+              "cuda_peak_reserved_bytes": 70835503104,
+              "native_process_cumulative_host_hwm_bytes": 23978209280
+            },
+            {
+              "interval_end_phase": "checkpoint_begin",
+              "cuda_peak_allocated_bytes": 45484215296,
+              "cuda_peak_reserved_bytes": 70835503104,
+              "native_process_cumulative_host_hwm_bytes": 23978209280
+            },
+            {
+              "interval_end_phase": "checkpoint_complete",
+              "cuda_peak_allocated_bytes": 45485499392,
+              "cuda_peak_reserved_bytes": 70835503104,
+              "native_process_cumulative_host_hwm_bytes": 36200787968
+            },
+            {
+              "interval_end_phase": "checkpoint_complete",
+              "cuda_peak_allocated_bytes": 45484215296,
+              "cuda_peak_reserved_bytes": 70835503104,
+              "native_process_cumulative_host_hwm_bytes": 36200787968
+            },
+            {
+              "interval_end_phase": "evaluation_begin",
+              "cuda_peak_allocated_bytes": 69432915968,
+              "cuda_peak_reserved_bytes": 70835503104,
+              "native_process_cumulative_host_hwm_bytes": 36670021632
+            },
+            {
+              "interval_end_phase": "evaluation_complete",
+              "cuda_peak_allocated_bytes": 51044642304,
+              "cuda_peak_reserved_bytes": 70835503104,
+              "native_process_cumulative_host_hwm_bytes": 36670021632
+            },
+            {
+              "interval_end_phase": "checkpoint_begin",
+              "cuda_peak_allocated_bytes": 45484215296,
+              "cuda_peak_reserved_bytes": 70835503104,
+              "native_process_cumulative_host_hwm_bytes": 36670021632
+            },
+            {
+              "interval_end_phase": "checkpoint_begin",
+              "cuda_peak_allocated_bytes": 45484215296,
+              "cuda_peak_reserved_bytes": 70835503104,
+              "native_process_cumulative_host_hwm_bytes": 36670021632
+            },
+            {
+              "interval_end_phase": "checkpoint_complete",
+              "cuda_peak_allocated_bytes": 45485499392,
+              "cuda_peak_reserved_bytes": 70835503104,
+              "native_process_cumulative_host_hwm_bytes": 36670021632
+            },
+            {
+              "interval_end_phase": "checkpoint_complete",
+              "cuda_peak_allocated_bytes": 45484215296,
+              "cuda_peak_reserved_bytes": 70835503104,
+              "native_process_cumulative_host_hwm_bytes": 36670021632
+            },
+            {
+              "interval_end_phase": "portable_export_begin",
+              "cuda_peak_allocated_bytes": 45484215296,
+              "cuda_peak_reserved_bytes": 70835503104,
+              "native_process_cumulative_host_hwm_bytes": 36670021632
+            },
+            {
+              "interval_end_phase": "portable_export_complete",
+              "cuda_peak_allocated_bytes": 45484541952,
+              "cuda_peak_reserved_bytes": 70835503104,
+              "native_process_cumulative_host_hwm_bytes": 45819248640
+            }
+          ],
+          "native_memory_scope": "CUDA peaks cover intervals since prior reset marker; reserved memory can remain cached across phases. Native-process host HWM is cumulative, not phase-local or whole process tree.",
+          "peak_cuda_allocated_bytes": 69432915968,
+          "peak_cuda_reserved_bytes": 70835503104,
+          "native_process_host_hwm_bytes": 45819248640
+        }
+      ],
+      "external_process_memory": "Missing historical NVML samples; native allocator/RSS records remain valid. No reconstructed process peak.",
+      "trainability": {
+        "eligible_matrices": 247,
+        "eligible_base_elements": 6761218048,
+        "lora_tensors": 494,
+        "lora_elements": 85196800,
+        "trained_auxiliary_tensors": 409,
+        "trained_auxiliary_elements": 2280592386,
+        "total_trainable_tensors": 903,
+        "total_trainable_elements": 2365789186,
+        "optimizer_groups": 1,
+        "quantized_matrix_count": {
+          "nf4_lora": 247,
+          "bf16_lora": 0
+        }
+      }
+    },
+    "38507907": {
+      "family": "gr00t",
+      "slurm_state": "FAILED",
+      "allocation_gpu_seconds": 670,
+      "acceptance_sha256": "44e67a2fc2b78656e98960c90ebe768be3beb2e0632c1436507043ab311bdca2",
+      "recovery_passed": true,
+      "scope": "Actual process loss during backward for attempt6 after committed update5, then native recovery to10",
+      "results": [
+        {
+          "interruption": {
+            "accumulation_step": 0,
+            "attempt_id": 6,
+            "exact_optimizer_membership_validated": true,
+            "frozen_base_and_metadata_validated": true,
+            "gradient_norm": 0.01681748405098915,
+            "gradient_parameter": "backbone.model.model.language_model.layers.15.mlp.down_proj.lora_B.weight",
+            "optimizer_step": 5,
+            "partial_checkpoint_rejected": "checkpoint save requires every optimizer attempt to have a completed outcome: attempt_id=6, optimizer_step=5, nonfinite_skips_total=0"
+          },
+          "mode": "nf4_lora",
+          "native_task_scores_exact": true,
+          "parity": {
+            "atol": 0,
+            "controls_rng_and_data_exact": true,
+            "excluded_storage_identity_fields": [
+              "validation.publication.destination",
+              "validation.publication.id",
+              "validation.publication.manifest"
+            ],
+            "maximum_tensor_difference": {
+              "model": 0.0,
+              "optim": 0.0
+            },
+            "passed": true,
+            "rtol": 0
+          },
+          "recovered_checkpoint": "/run/output/recovery/native/qualification/family/nf4_lora-post-interruption/canary/checkpoints/iter_000010",
+          "reference_checkpoint": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38507341/native/qualification/family/nf4_lora-full/canary/checkpoints/iter_000010"
+        },
+        {
+          "interruption": {
+            "accumulation_step": 0,
+            "attempt_id": 6,
+            "exact_optimizer_membership_validated": true,
+            "frozen_base_and_metadata_validated": true,
+            "gradient_norm": 0.013518291525542736,
+            "gradient_parameter": "backbone.model.model.language_model.layers.15.mlp.down_proj.lora_B.weight",
+            "optimizer_step": 5,
+            "partial_checkpoint_rejected": "checkpoint save requires every optimizer attempt to have a completed outcome: attempt_id=6, optimizer_step=5, nonfinite_skips_total=0"
+          },
+          "mode": "bf16_lora",
+          "native_task_scores_exact": true,
+          "parity": {
+            "atol": 0,
+            "controls_rng_and_data_exact": true,
+            "excluded_storage_identity_fields": [
+              "validation.publication.destination",
+              "validation.publication.id",
+              "validation.publication.manifest"
+            ],
+            "maximum_tensor_difference": {
+              "model": 0.0,
+              "optim": 0.0
+            },
+            "passed": true,
+            "rtol": 0
+          },
+          "recovered_checkpoint": "/run/output/recovery/native/qualification/family/bf16_lora-post-interruption/canary/checkpoints/iter_000010",
+          "reference_checkpoint": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38506697/native/qualification/family/bf16_lora-full/canary/checkpoints/iter_000010"
+        }
+      ],
+      "subsequent_failure": "Profile launcher precreated output owned by its driver; FileExistsError before profile started. Recovery results remain valid; job remains failed.",
+      "external_process_memory": "Historical NVML sampler unavailable; no process-memory claim."
+    },
+    "38508290": {
+      "family": "gr00t",
+      "slurm_state": "FAILED",
+      "allocation_gpu_seconds": 1397,
+      "scope": "Existing trained portable policies, effective-base CPU FP32 merge/BF16 language output, fresh native dense reload; two controlled probes per arm plus engineering task rows",
+      "dense_conversion_passed": false,
+      "arms": {
+        "nf4_lora": {
+          "acceptance_sha256": "5482050a125a58c6cd57f2ab988abc4ec6ad0b2b0024f294ad58fc4961ed3013",
+          "claim": "native artifact conversion on the declared probe rows, not learned-policy qualification or serving latency",
+          "conversion_gates": {
+            "decoded_atol": 0.02,
+            "flow_loss_atol": 0.002,
+            "flow_loss_rtol": 0.02,
+            "normalized_atol": 0.02
+          },
+          "dense_bytes": 10167458938,
+          "dense_manifest_sha256": "7d7685926f292c6b1bcfe003b8033ca10b147b413c5768d3cad1566c40a5165c",
+          "exact_auxiliary_preservation": true,
+          "family": "gr00t",
+          "native_task_evaluation": {
+            "action_mae_environment_units": {
+              "delta": 5.4928448682101116e-05,
+              "dense": 0.14654723756681354,
+              "portable": 0.14649230911813144
+            },
+            "action_mae_gripper_environment_units": {
+              "delta": 6.799697875975452e-05,
+              "dense": 0.19866403192281723,
+              "portable": 0.19859603494405748
+            },
+            "action_mae_pitch_environment_units": {
+              "delta": -7.581555693244452e-05,
+              "dense": 0.050002236627443804,
+              "portable": 0.05007805218437625
+            },
+            "action_mae_roll_environment_units": {
+              "delta": -8.372496865566986e-05,
+              "dense": 0.0354981677392398,
+              "portable": 0.03558189270789547
+            },
+            "action_mae_x_environment_units": {
+              "delta": -4.946635647798403e-05,
+              "dense": 0.21181974262437947,
+              "portable": 0.21186920898085745
+            },
+            "action_mae_y_environment_units": {
+              "delta": 0.0006380194710784437,
+              "dense": 0.30587315855289743,
+              "portable": 0.305235139081819
+            },
+            "action_mae_yaw_environment_units": {
+              "delta": 3.193230611664433e-05,
+              "dense": 0.023658882974487264,
+              "portable": 0.02362695066837062
+            },
+            "action_mae_z_environment_units": {
+              "delta": -0.0001444427331141196,
+              "dense": 0.20031444252642966,
+              "portable": 0.20045888525954378
+            },
+            "loss": {
+              "delta": 0.0009029967710375564,
+              "dense": 0.5682828309014439,
+              "portable": 0.5673798341304064
+            },
+            "normalized_action_mse": {
+              "delta": 7.182419300080789e-05,
+              "dense": 0.1741205873659679,
+              "portable": 0.17404876317296708
+            }
+          },
+          "numerical_contract": {
+            "accumulation_dtype": "float32",
+            "base": "dequantize(Q(W))",
+            "merge": "effective_base + (alpha/rank) * B @ A",
+            "merge_device": "cpu",
+            "merged_backbone_dtype": "bfloat16",
+            "other_parameters_and_buffers": "preserve_native_dtype",
+            "requantized": false
+          },
+          "outputs": [
+            {
+              "error": "GR00T flow_loss maximum error 0.002462059259414673 exceeds declared tolerance 0.002",
+              "native_id": "libero-1491-0",
+              "passed": false
+            },
+            {
+              "error": "GR00T normalized_actions maximum error 0.1064453125 exceeds declared tolerance 0.02",
+              "native_id": "libero-1491-90",
+              "passed": false
+            }
+          ],
+          "parameter_aliases": [
+            [
+              "backbone.model.lm_head.weight",
+              "backbone.model.model.language_model.embed_tokens.weight"
+            ]
+          ],
+          "passed": false,
+          "sampled_memory": {
+            "device_peak_bytes": 12763463680,
+            "errors": [],
+            "gpu_memory_evidence_valid": true,
+            "host_pss_complete": true,
+            "host_pss_sum_peak_bytes": 14807862272,
+            "host_rss_sum_peak_bytes": 15072579584,
+            "nvml_capacity_bytes": 85899345920,
+            "observed_span_seconds": 627.6479771137238,
+            "owned_device_process_peak_bytes": 12029263872,
+            "peaks_are_sampled_lower_bounds": true,
+            "samples": 478,
+            "sampling_gap_seconds": {
+              "count": 477,
+              "maximum": 1.6020939350128174,
+              "mean": 1.3158238513914544,
+              "median": 1.311265230178833,
+              "p95": 1.36691575050354,
+              "sum": 627.6479771137238
+            }
+          },
+          "standard_sharding": {
+            "indexed_tensors": 1033,
+            "weight_files": 21,
+            "max_shard_payload_bytes": 536870912,
+            "oversize_tensor_policy": "single tensor in its own shard"
+          }
+        },
+        "bf16_lora": {
+          "acceptance_sha256": "19172bcb42e469a3f2a280ed0127ace8af9c4976f405589879503981991452ae",
+          "claim": "native artifact conversion on the declared probe rows, not learned-policy qualification or serving latency",
+          "conversion_gates": {
+            "decoded_atol": 0.02,
+            "flow_loss_atol": 0.002,
+            "flow_loss_rtol": 0.02,
+            "normalized_atol": 0.02
+          },
+          "dense_bytes": 10167458938,
+          "dense_manifest_sha256": "0dfbe1cb7b4b4caafe698b837d5963c12a818965ae725eb26a5427015fac35d1",
+          "exact_auxiliary_preservation": true,
+          "family": "gr00t",
+          "native_task_evaluation": {
+            "action_mae_environment_units": {
+              "delta": -0.00030743042940084564,
+              "dense": 0.12023958992174745,
+              "portable": 0.1205470203511483
+            },
+            "action_mae_gripper_environment_units": {
+              "delta": -0.00041212081909178244,
+              "dense": 0.1768808686733246,
+              "portable": 0.17729298949241637
+            },
+            "action_mae_pitch_environment_units": {
+              "delta": -0.0001564673219785831,
+              "dense": 0.045069791201481656,
+              "portable": 0.04522625852346024
+            },
+            "action_mae_roll_environment_units": {
+              "delta": -0.00043749013479117693,
+              "dense": 0.03510210336350484,
+              "portable": 0.03553959349829602
+            },
+            "action_mae_x_environment_units": {
+              "delta": -0.0008460921744010141,
+              "dense": 0.18160296458420633,
+              "portable": 0.18244905675860734
+            },
+            "action_mae_y_environment_units": {
+              "delta": 0.0001266716645184074,
+              "dense": 0.21088578272638428,
+              "portable": 0.21075911106186587
+            },
+            "action_mae_yaw_environment_units": {
+              "delta": -2.3932707867040104e-05,
+              "dense": 0.023897932148097073,
+              "portable": 0.023921864855964113
+            },
+            "action_mae_z_environment_units": {
+              "delta": -0.000402581512194633,
+              "dense": 0.1682376867552332,
+              "portable": 0.16864026826742784
+            },
+            "loss": {
+              "delta": -0.0019658455625176097,
+              "dense": 0.4611234560608864,
+              "portable": 0.463089301623404
+            },
+            "normalized_action_mse": {
+              "delta": -0.0008944843070847475,
+              "dense": 0.1538024600488799,
+              "portable": 0.15469694435596465
+            }
+          },
+          "numerical_contract": {
+            "accumulation_dtype": "float32",
+            "base": "W_bf16",
+            "merge": "effective_base + (alpha/rank) * B @ A",
+            "merge_device": "cpu",
+            "merged_backbone_dtype": "bfloat16",
+            "other_parameters_and_buffers": "preserve_native_dtype",
+            "requantized": false
+          },
+          "outputs": [
+            {
+              "error": "GR00T normalized_actions maximum error 0.0341796875 exceeds declared tolerance 0.02",
+              "native_id": "libero-1491-0",
+              "passed": false
+            },
+            {
+              "error": "GR00T normalized_actions maximum error 0.037109375 exceeds declared tolerance 0.02",
+              "native_id": "libero-1491-90",
+              "passed": false
+            }
+          ],
+          "parameter_aliases": [
+            [
+              "backbone.model.lm_head.weight",
+              "backbone.model.model.language_model.embed_tokens.weight"
+            ]
+          ],
+          "passed": false,
+          "sampled_memory": {
+            "device_peak_bytes": 13889634304,
+            "errors": [],
+            "gpu_memory_evidence_valid": true,
+            "host_pss_complete": true,
+            "host_pss_sum_peak_bytes": 14274067456,
+            "host_rss_sum_peak_bytes": 14545186816,
+            "nvml_capacity_bytes": 85899345920,
+            "observed_span_seconds": 666.8977875709534,
+            "owned_device_process_peak_bytes": 13155434496,
+            "peaks_are_sampled_lower_bounds": true,
+            "samples": 512,
+            "sampling_gap_seconds": {
+              "count": 511,
+              "maximum": 1.693857192993164,
+              "mean": 1.3050837330155642,
+              "median": 1.2995245456695557,
+              "p95": 1.349814534187317,
+              "sum": 666.8977875709534
+            }
+          },
+          "standard_sharding": {
+            "indexed_tensors": 1033,
+            "weight_files": 21,
+            "max_shard_payload_bytes": 536870912,
+            "oversize_tensor_policy": "single tensor in its own shard"
+          }
+        }
+      },
+      "decision": "Keep native quantized portable path; dense BF16 conversion is not qualified. Both arms failed unchanged numerical gates. Diagnose shared merge arithmetic before attributing the failure to quantization."
+    }
+  }
+}

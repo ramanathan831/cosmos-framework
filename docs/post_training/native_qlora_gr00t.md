@@ -270,3 +270,19 @@ records remain valid. UUID normalization and sampler-health checks must pass
 before the larger comparison's memory claims; missing historical samples cannot
 be recreated. Full development, dense conversion and rollout qualification remain
 separate gates.
+
+The subsequent [family engineering receipts](evidence/native_qlora_family_engineering_4cba88f.json)
+preserve an actual process loss during update-six backward in both arms. Partial publication
+was rejected, and restart from committed update five reproduced model, optimizer, RNG, cursor,
+evaluation state and task scores at update ten exactly. Job `38507907` later failed before its
+profile began because the launcher precreated the profiler's output directory; that job remains
+failed and its completed recovery checks remain valid.
+
+Dense BF16 conversion **failed** the unchanged controlled-output gates in job `38508290`.
+NF4 had a 0.10645 maximum normalized-action difference on one probe and a 0.002462 flow-loss
+difference on another; the BF16 control's two action maxima were 0.03418 and 0.03711.
+The limits remain 0.02 action error and both 0.002/2% flow-loss error. All auxiliary tensors
+and tied-weight aliases were preserved, and fresh native evaluation completed, but small mean
+task-metric differences do not override failed probe gates. Both approximately 10.17 GB dense
+artifacts and negative decisions are retained. Shared merge arithmetic is being diagnosed;
+native portable reload and dense conversion are separate capabilities.
