@@ -289,6 +289,45 @@ def test_missing_dependency(monkeypatch):
         require_backend()
 
 
+def test_backend_class_does_not_own_parameters_after_instance_release(monkeypatch):
+    """A cached optimizer class must not retain a retired model/master allocation."""
+    import weakref
+    from contextlib import nullcontext
+    from types import SimpleNamespace
+
+    import cosmos_framework.utils.quantized_optimizer as backend
+
+    class Parameter(torch.nn.Parameter):
+        @property
+        def device(self):
+            return torch.device("cuda:0")
+
+    class Upstream(torch.optim.Optimizer):
+        def __init__(self, groups, **options):
+            super().__init__(groups, options)
+
+    monkeypatch.setattr(torch.nn, "Parameter", Parameter)
+    monkeypatch.setattr(torch.cuda, "device", lambda _: nullcontext())
+    monkeypatch.setattr(
+        backend, "require_backend", lambda **_: SimpleNamespace(optim=SimpleNamespace(AdamW8bit=Upstream))
+    )
+
+    def construct():
+        parameter = Parameter(torch.ones(8))
+        net = SimpleNamespace(named_parameters=lambda: iter((("weight", parameter),)))
+        optimizer = backend.build_quantized_optimizer(net, [parameter], OptimizerConfig(name="adamw_bnb_8bit"))
+        return optimizer, weakref.ref(parameter)
+
+    optimizer, parameter = construct()
+    retained_class = type(optimizer)
+    del optimizer
+    # No gc.collect(): old GPU storage must be freed at ownership replacement,
+    # even when tooling retains the class or Python's cyclic collector is delayed.
+    assert parameter() is None
+    other, _ = construct()
+    assert type(other) is retained_class
+
+
 def test_cuda_exceptions_are_local_and_restore_is_transactional():
     if not torch.cuda.is_available():
         pytest.skip("CUDA required")

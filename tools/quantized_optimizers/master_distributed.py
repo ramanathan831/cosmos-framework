@@ -125,10 +125,16 @@ def main():
     args.output.mkdir(parents=True, exist_ok=True)
     frozen = local_tensor(net.frozen).detach().clone()
     start = 0
+    retired_classes = []
     if args.phase == "resume":
+        retired_classes.append(type(opt.backend))
+        retired_masters = [weakref.ref(value) for value in opt.masters]
         start = trainer.load(str(args.output / "iter_000004"))
         assert start == 4
         assert trainer.checkpoint_manager.load_component(str(args.output / "iter_000004"), "data") == {"cursor": 8}
+        # A cached/traced backend class must never own retired master buffers.
+        # Check before any explicit GC: first resumed backward needs this memory.
+        assert all(reference() is None for reference in retired_masters)
     records = []
     for update in range(start + 1, 9):
         inputs = []
@@ -153,6 +159,22 @@ def main():
         records.append(update)
         if update == 4 and args.phase == "reference":
             trainer.save(str(args.output / "iter_000004"), data_state={"cursor": 8})
+    opt.zero_grad()
+    replacement_state = opt.state_dict()
+    retired_classes.append(type(opt.backend))
+    retired_masters = [weakref.ref(value) for value in opt.masters]
+    retired_pages = [
+        value._cosmos_managed_owner
+        for state in opt.backend.state.values()
+        for value in state.values()
+        if getattr(value, "is_paged", False)
+    ]
+    opt.load_state_dict(replacement_state)
+    assert all(reference() is None for reference in retired_masters)
+    assert all(reference() is None for reference in retired_pages)
+    equal(replacement_state, opt.state_dict())
+    if args.optimizer == "paged_adamw_8bit":
+        assert opt.state_report()["paged_moment_bytes"] > 0
     # A nonfinite gradient on ONE rank must skip both, including moments/masters.
     before = opt.state_dict()
     before_clock = trainer._trainer_state()["optimizer_step"]
@@ -280,6 +302,7 @@ def main():
         construction_failure_converged_and_released=True,
         rejected_state_released_with_retained_errors=True,
         changed_generation_rejected_before_mutation=True,
+        retired_masters_and_pages_released_without_gc=True,
     )
     (args.output / f"{args.phase}-rank{rank}.json").write_text(json.dumps(report, indent=2))
     dist.barrier()
