@@ -292,3 +292,16 @@ Use the matching fully published `iter_000016` from the original paged55 or
 nonpaged55 reference and a fresh `RESULTS`; submit the existing native launcher.
 This is recovery validation, not a new uninterrupted quality/timing comparison.
 The previous first-resumed-backward OOMs remain recorded.
+
+
+The conditional managed-memory trace uses the same source-v42 and native recipe,
+with eight diagnostic updates and checkpoint/evaluation at4/8. Copy the committed
+`paging_profile.py` to the owned cluster root as `profile-native-v1.py`; its hash
+is frozen in `gr00t_pressure_protocol.json`. Submit `paging_profile.sbatch` only
+after the pressure recovery prerequisite passes, with `CO_RESIDENT_GIB=55`,
+`OPTIMIZER_NAME=paged_adamw_8bit`, `UPDATES=8`, `CHECKPOINT_EVERY=4`,
+`VALIDATION_EVERY=4`, empty resume/root overrides and a fresh RESULTS. The profiler
+records CUDA/NVTX and unified-memory faults during the fixed600–1200second
+window, exports SQLite, and continues required evaluation/publication afterward.
+The instrumented run is not a timing comparison; native memory sampling excludes
+profiler ancestors. No inherited credential variables are forwarded.
