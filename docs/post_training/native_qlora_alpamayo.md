@@ -30,7 +30,7 @@ The action expert consumes prefix K/V; the final language layer's Q/O/MLP output
 and final normalization do not reach this loss. Those weights, vision/projectors,
 embeddings, output head, and language normalization stay frozen BF16. NF4 uses
 nested quantization, uint8 packed storage and BF16 computation. LoRA uses rank 32,
-alpha 64, FP32 parameters and FP32 adapter computation. The native expert and
+alpha 64, FP32 parameters; native BF16 autocast applies to adapter GEMMs. The native expert and
 input/output action projections are explicitly trained in FP32 by default. Their
 parameters and optimizer state are material memory costs, and all are included
 in checkpoint and portable artifacts.

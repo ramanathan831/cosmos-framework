@@ -218,3 +218,29 @@ and processed-input identities must match exactly. At the pinned OSC_POSE scales
 difference corresponds to at most 1 mm position-command or 0.01 rad orientation-command difference
 per step; this is a numerical budget, not a safety or rollout-quality claim. Same-quantized-base
 portable reload retains zero numerical tolerances. A failed conversion gate is retained as a failure.
+
+## Completed native engineering checks
+
+The [sealed `4cba88f` engineering receipts](evidence/native_qlora_gr00t_engineering_4cba88f.json)
+record ten real LIBERO action updates in both precision arms on A100 80GB. Job
+`38507341` passed exact fresh-process checkpoint and portable-policy task scores,
+and update-5-to-10 recovery of model, optimizer, RNG, data cursor and evaluation
+state. BF16's uninterrupted reference comes from job `38506697`; its original
+outer qualification checker failed after training completed. The later checks
+verify those retained artifacts and do not rewrite that job's failed status.
+
+The small engineering set's normalized action MSE increased from 0.04976 to
+0.17405 for NF4 and from 0.04870 to 0.15470 for BF16. This adverse ten-update
+result establishes neither useful adaptation nor recipe quality. Warm update
+means over steps 3–10 were 0.495/0.445 seconds, and native workflows took
+142.45/143.80 seconds. Different placement and one short trial prevent a speed
+claim; startup, scoring and checkpoint I/O dominate these workflows.
+
+The trainable FP32 action head dominates total memory. The measured allocator
+reduction is approximately 1.1 GiB, much smaller than Qwen's savings. Historical
+external GPU-process samples are missing: Torch 2.10 returned a bare UUID and
+the sampler expected NVML's `GPU-` prefix. Native allocator and process-RSS
+records remain valid. UUID normalization and sampler-health checks must pass
+before the larger comparison's memory claims; missing historical samples cannot
+be recreated. Full development, dense conversion and rollout qualification remain
+separate gates.

@@ -12,9 +12,11 @@ from pathlib import Path
 import pynvml
 
 try:
+    from .monitor_gpu import resolve_gpu_handle
     from .monitor_host import HostSampler, finish_sample
     from .monitor_stage import sample_stage
 except ImportError:
+    from monitor_gpu import resolve_gpu_handle
     from monitor_host import HostSampler, finish_sample
     from monitor_stage import sample_stage
 
@@ -22,8 +24,7 @@ root_pid = int(sys.argv[1])
 out = Path(sys.argv[2])
 stage_file = Path(sys.argv[3])
 pynvml.nvmlInit()
-device = os.environ["COSMOS_QLORA_GPU_UUID"]
-handle = pynvml.nvmlDeviceGetHandleByUUID(device)
+handle, device = resolve_gpu_handle(pynvml, os.environ["COSMOS_QLORA_GPU_UUID"])
 active = True
 
 
