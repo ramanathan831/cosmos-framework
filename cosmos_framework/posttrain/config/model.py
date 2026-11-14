@@ -237,6 +237,9 @@ class Gr00tN1d7ModelConfig:
 
     # None preserves the loader's buffer precision and historical policy identity.
     backbone_buffer_dtype: str | None = None
+    # Complete GR00T checkpoints own the nested backbone weights. Opt in to
+    # metadata-only SDPA construction, with strict full-checkpoint restoration.
+    backbone_from_checkpoint: bool = False
 
     # Observation adaptation: GR00T MODALITY KEY -> env observation key. The left side is fixed by the
     # checkpoint's `processor_config.json` and is verified against the loaded checkpoint at startup;
@@ -308,6 +311,8 @@ class Gr00tN1d7ModelConfig:
         result = {k: (list(v) if isinstance(v, tuple) else v) for k, v in asdict(self).items()}
         if self.backbone_buffer_dtype is None:
             result.pop("backbone_buffer_dtype")
+        if not self.backbone_from_checkpoint:
+            result.pop("backbone_from_checkpoint")
         return result
 
     def identity_hash(self) -> str:

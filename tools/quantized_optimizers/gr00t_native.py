@@ -35,12 +35,37 @@ def source_probe(assets, output):
             precision=BF16_PRECISION,
             local_files_only=True,
             ppo=True,
+            backbone_config=str(source.backbone),
         )
         processor = load_processor(str(source.checkpoint), model_name=str(source.processor))
         return model, processor
 
     before = time.monotonic()
-    (model, processor), identity = load_ppo_source(make_model_config(str(assets / "model")), load)
+    config = make_model_config(str(assets / "model"))
+    config.backbone_from_checkpoint = True
+    (model, processor), identity = load_ppo_source(config, load)
+    # Every persisted tensor must come from the approved full checkpoint. This
+    # probe does not accept a successful constructor as proof of materialization.
+    import torch
+    from safetensors import safe_open
+
+    state = model.state_dict()
+    weight_map = json.loads((assets / "model/model.safetensors.index.json").read_text())["weight_map"]
+    checked = set()
+    for filename in sorted(set(weight_map.values())):
+        with safe_open(assets / "model" / filename, framework="pt", device="cpu") as shard:
+            for name in shard.keys():
+                expected = shard.get_tensor(name)
+                actual = state[name]
+                if actual.is_meta or not torch.equal(actual, expected.to(actual.dtype)):
+                    raise RuntimeError(f"native GR00T checkpoint tensor differs: {name}")
+                checked.add(name)
+    optional = {name for name in state if "mask_token" in name}
+    if set(state) - checked - optional:
+        raise RuntimeError("native GR00T has unrestored persistent state")
+    for name, value in model.named_buffers():
+        if value.is_meta or (value.is_floating_point() and not torch.isfinite(value).all()):
+            raise RuntimeError(f"native GR00T has invalid derived buffer: {name}")
     inventory = Counter()
     for _, parameter in model.named_parameters():
         inventory[f"{'trainable' if parameter.requires_grad else 'frozen'}_{parameter.dtype}"] += parameter.numel()
@@ -52,6 +77,8 @@ def source_probe(assets, output):
                 "source": identity,
                 "parameter_elements": dict(inventory),
                 "processor": type(processor).__name__,
+                "exact_checkpoint_tensors": len(checked),
+                "construction": "complete-checkpoint-sdpa-v1",
             },
             indent=2,
         )

@@ -78,6 +78,7 @@ def build_official_gr00t_model(
     precision: Precision = OFFICIAL_PRECISION,
     local_files_only: bool = False,
     ppo: bool = False,
+    backbone_config: str | None = None,
 ) -> Any:
     """Build the official finetune model; PPO separates local loading from rank-zero publication.
 
@@ -120,13 +121,15 @@ def build_official_gr00t_model(
     # inner model before its meta tensors have been materialized.
     with torch.device("cpu"):
         pipeline = Gr00tN1d7Pipeline(config, Path(save_cfg_dir))
-        model = _load_local_ppo_model(pipeline) if ppo else pipeline._create_model()
+        if backbone_config is not None and not ppo:
+            raise ValueError("checkpoint-owned backbone construction requires the strict PPO source loader")
+        model = _load_local_ppo_model(pipeline, backbone_config=backbone_config) if ppo else pipeline._create_model()
     if precision.master == "bfloat16":
         model.action_head.to(torch.bfloat16)  # `load_bf16` reaches the backbone only
     return model
 
 
-def _load_local_ppo_model(pipeline: Any) -> Any:
+def _load_local_ppo_model(pipeline: Any, *, backbone_config: str | None = None) -> Any:
     """The load/check portion of Isaac 51d4c89f's setup.py::_create_model.
 
     Isaac does not expose that portion separately from its rank-zero write/barrier.
@@ -135,12 +138,20 @@ def _load_local_ppo_model(pipeline: Any) -> Any:
     """
     from transformers import AutoModel
 
+    loader, construction = AutoModel, {}
+    if backbone_config is not None:
+        from cosmos_framework.posttrain.model.gr00t.materialize import checkpoint_model_class
+
+        loader = checkpoint_model_class()
+        construction = {"backbone_config": backbone_config, "use_flash_attention": False}
+
     config = pipeline.config.model
     checkpoint = pipeline.config.training.start_from_checkpoint
     model = None
     try:
-        model, loading_info = AutoModel.from_pretrained(
+        model, loading_info = loader.from_pretrained(
             checkpoint,
+            **construction,
             tune_llm=config.tune_llm,
             tune_visual=config.tune_visual,
             tune_projector=config.tune_projector,
@@ -238,6 +249,7 @@ class Gr00tN1d7TrainPolicy:
                         precision=self.precision,
                         local_files_only=True,
                         ppo=True,
+                        backbone_config=str(source.backbone) if config.backbone_from_checkpoint else None,
                     )
                     processor = load_processor(str(source.checkpoint), model_name=str(source.processor))
                     return model, processor

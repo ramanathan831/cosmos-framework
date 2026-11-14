@@ -19,5 +19,6 @@ def make_config():
     # Verify the unchanged backbone for both the quantized arms and their matched
     # FP32-state control. Its hashing/copy cost belongs to the product clock.
     config.policy.verify_frozen_state = True
+    config.model.backbone_from_checkpoint = True
     config.job.name = "gr00t_n1d7_libero_quantized_optimizer"
     return config
