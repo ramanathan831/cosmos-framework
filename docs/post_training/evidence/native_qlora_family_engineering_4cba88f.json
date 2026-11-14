@@ -5626,6 +5626,761 @@
         "nf4_sampled_process_saving_bytes": 1184890880,
         "comparison_scope": "Fixed300 updates and observed target200 clocks; not equal-compute task superiority or a recipe CI."
       }
+    },
+    "38513808": {
+      "state": "COMPLETED",
+      "allocated_gpu_seconds": 6937,
+      "receipt": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/alpamayo-38513808-terminal-summary.json",
+        "sha256": "79b177499a553eeac91393d1b442054e3753e2c5989f98b22d16b0c0d7164efc"
+      },
+      "checkpoint_controls": {
+        "128": {
+          "control_file_sha256": {
+            "data": "1f62da0b2a5d702d710e2c79a507fafd5602210fba5b5b9e2fd412558439df29",
+            "model_metadata": "5efb6b9f11af246981fdcfa22c1ec0ac6c820ddd48bdcd5d515eabbdfac0e4b0",
+            "trainer": "5d59c30bf119bff57bf3d14f5b58684c9da97f39fd37f3acfd19d7e25febde09"
+          },
+          "healthy_completed_boundary": true,
+          "metadata_sha256": "ba5eed80532ee1ba8007393f2e5d6e9c8fd2c9d932d735dc503c129c31b0846e",
+          "optimizer_step": 128,
+          "parameter_tensors": 903
+        },
+        "256": {
+          "control_file_sha256": {
+            "data": "c04bb4147b06ba95f30ee661433da36b0295d097e316777ab407947a431f9457",
+            "model_metadata": "5efb6b9f11af246981fdcfa22c1ec0ac6c820ddd48bdcd5d515eabbdfac0e4b0",
+            "trainer": "fdd3a63ad456dd265de474ecb30d05d9d4af3b1b6683e653f2ced6040a88e7da"
+          },
+          "healthy_completed_boundary": true,
+          "metadata_sha256": "ba5eed80532ee1ba8007393f2e5d6e9c8fd2c9d932d735dc503c129c31b0846e",
+          "optimizer_step": 256,
+          "parameter_tensors": 903
+        },
+        "384": {
+          "control_file_sha256": {
+            "data": "0ed03b48627407d58f1b629e1d1b7809e85df6d97325fd55027667d5094e5b06",
+            "model_metadata": "5efb6b9f11af246981fdcfa22c1ec0ac6c820ddd48bdcd5d515eabbdfac0e4b0",
+            "trainer": "53cd53a7142c5e77914d030c8780a601ccceeb1530a35fcbc464b8844fce510d"
+          },
+          "healthy_completed_boundary": true,
+          "metadata_sha256": "ba5eed80532ee1ba8007393f2e5d6e9c8fd2c9d932d735dc503c129c31b0846e",
+          "optimizer_step": 384,
+          "parameter_tensors": 903
+        },
+        "512": {
+          "control_file_sha256": {
+            "data": "5347df67b9b2093208c1b54a037f191b93c74750e1e8f49a587c7c27d6523098",
+            "model_metadata": "5efb6b9f11af246981fdcfa22c1ec0ac6c820ddd48bdcd5d515eabbdfac0e4b0",
+            "trainer": "47b25ff5b99bf3452842f461b62001886e06256ab332fe9d178229c2bc13f1fc"
+          },
+          "healthy_completed_boundary": true,
+          "metadata_sha256": "ba5eed80532ee1ba8007393f2e5d6e9c8fd2c9d932d735dc503c129c31b0846e",
+          "optimizer_step": 512,
+          "parameter_tensors": 903
+        }
+      },
+      "clocks": {
+        "checkpoint_seconds": 135.95332429092377,
+        "complete_workflow_seconds": 6874.320324256085,
+        "evaluation_seconds": 4805.486531835049,
+        "native_workflow_seconds": 6827.704236004502,
+        "portable_export_seconds": 23.07138539198786,
+        "startup_seconds": 241.5407202746719,
+        "training_seconds": 1614.4462655242532
+      },
+      "decision": "Technical completed-development evidence; useful adaptation and fixed target failed in this seed. Paired BF16 control pending. No recipe noninferiority, quality improvement, faster time-to-quality, independent-data or deployment claim.",
+      "execution_receipt_sha256": "568c4b0a3f440430b47f875d06eee38c90aeeddd9b31053fa88523c0706d30de",
+      "format": "native-alpamayo-completed-development-arm-v1",
+      "history": [
+        {
+          "metrics": {
+            "loss": 0.26709095919500214,
+            "open_loop_ade_1s_meters": 0.04602302479088394,
+            "open_loop_ade_3s_meters": 0.39951302091867547,
+            "open_loop_ade_6p4s_meters": 1.972519713366637,
+            "open_loop_fde_1s_meters": 0.11959648791435029,
+            "open_loop_fde_3s_meters": 1.1776479348218345,
+            "open_loop_fde_6p4s_meters": 6.102828524013603
+          },
+          "step": 0
+        },
+        {
+          "metrics": {
+            "loss": 0.32808892029788694,
+            "open_loop_ade_1s_meters": 0.05843012623790855,
+            "open_loop_ade_3s_meters": 0.5207342694120598,
+            "open_loop_ade_6p4s_meters": 2.697398077318212,
+            "open_loop_fde_1s_meters": 0.15164832063237554,
+            "open_loop_fde_3s_meters": 1.5572748674312606,
+            "open_loop_fde_6p4s_meters": 8.589016542129684
+          },
+          "step": 128
+        },
+        {
+          "metrics": {
+            "loss": 0.31697126611652493,
+            "open_loop_ade_1s_meters": 0.054417665969594964,
+            "open_loop_ade_3s_meters": 0.4797966010582968,
+            "open_loop_ade_6p4s_meters": 2.245632417529123,
+            "open_loop_fde_1s_meters": 0.1442185012383561,
+            "open_loop_fde_3s_meters": 1.4051592881387478,
+            "open_loop_fde_6p4s_meters": 6.663703220925527
+          },
+          "step": 256
+        },
+        {
+          "metrics": {
+            "loss": 0.2928499961144553,
+            "open_loop_ade_1s_meters": 0.05354652175088859,
+            "open_loop_ade_3s_meters": 0.4481794692801486,
+            "open_loop_ade_6p4s_meters": 2.127965756386402,
+            "open_loop_fde_1s_meters": 0.13867578745356468,
+            "open_loop_fde_3s_meters": 1.3032105229067383,
+            "open_loop_fde_6p4s_meters": 6.441523855013656
+          },
+          "step": 384
+        },
+        {
+          "metrics": {
+            "loss": 0.2908061526500205,
+            "open_loop_ade_1s_meters": 0.05248630490098094,
+            "open_loop_ade_3s_meters": 0.4434622991711876,
+            "open_loop_ade_6p4s_meters": 2.107607095698768,
+            "open_loop_fde_1s_meters": 0.13557243854063472,
+            "open_loop_fde_3s_meters": 1.2937562002352934,
+            "open_loop_fde_6p4s_meters": 6.3824037908925675
+          },
+          "step": 512
+        }
+      ],
+      "job_id": "38513808",
+      "memory": {
+        "allocator_evidence_complete": true,
+        "allocator_peak_allocated_bytes": 69432915968,
+        "allocator_peak_reserved_bytes": 70835503104,
+        "phases": {
+          "action_checkpoint_setup": {
+            "allocator_peak_allocated_bytes": 45484215296,
+            "allocator_peak_reserved_bytes": 70835503104,
+            "interval_seconds": {
+              "count": 8,
+              "maximum": 0.22337446827441454,
+              "mean": 0.1622645992320031,
+              "median": 0.19076294684782624,
+              "p95": 0.22099649556912482,
+              "sum": 1.2981167938560247
+            },
+            "sampled_errors": [
+              "no_samples"
+            ],
+            "sampled_gpu_evidence_complete": false,
+            "sampled_host_pss_complete": false,
+            "sampled_host_pss_sum_peak_bytes": 37204555776,
+            "sampled_host_rss_sum_peak_bytes": 37739458560,
+            "sampled_owned_device_process_peak_bytes": 72051851264
+          },
+          "action_checkpoint_verification": {
+            "allocator_peak_allocated_bytes": 45484215296,
+            "allocator_peak_reserved_bytes": 70835503104,
+            "interval_seconds": {
+              "count": 4,
+              "maximum": 0.2801470039412379,
+              "mean": 0.27323413523845375,
+              "median": 0.2751598577015102,
+              "p95": 0.2794031203724444,
+              "sum": 1.092936540953815
+            },
+            "sampled_errors": [
+              "no_samples"
+            ],
+            "sampled_gpu_evidence_complete": false,
+            "sampled_host_pss_complete": false,
+            "sampled_host_pss_sum_peak_bytes": 37137504256,
+            "sampled_host_rss_sum_peak_bytes": 37672312832,
+            "sampled_owned_device_process_peak_bytes": 72051851264
+          },
+          "action_evaluation": {
+            "allocator_peak_allocated_bytes": 51044642304,
+            "allocator_peak_reserved_bytes": 70835503104,
+            "interval_seconds": {
+              "count": 5,
+              "maximum": 974.154280019924,
+              "mean": 960.9803541099652,
+              "median": 967.131667370908,
+              "p95": 973.1975661741569,
+              "sum": 4804.901770549826
+            },
+            "sampled_errors": [],
+            "sampled_gpu_evidence_complete": true,
+            "sampled_host_pss_complete": true,
+            "sampled_host_pss_sum_peak_bytes": 37591907328,
+            "sampled_host_rss_sum_peak_bytes": 38124957696,
+            "sampled_owned_device_process_peak_bytes": 72051851264
+          },
+          "action_final_integrity": {
+            "allocator_peak_allocated_bytes": 45484215296,
+            "allocator_peak_reserved_bytes": 70835503104,
+            "interval_seconds": {
+              "count": 1,
+              "maximum": 6.2204287722706795,
+              "mean": 6.2204287722706795,
+              "median": 6.2204287722706795,
+              "p95": 6.2204287722706795,
+              "sum": 6.2204287722706795
+            },
+            "sampled_errors": [],
+            "sampled_gpu_evidence_complete": true,
+            "sampled_host_pss_complete": true,
+            "sampled_host_pss_sum_peak_bytes": 37137504256,
+            "sampled_host_rss_sum_peak_bytes": 37672312832,
+            "sampled_owned_device_process_peak_bytes": 72051851264
+          },
+          "action_model_setup": {
+            "allocator_peak_allocated_bytes": 0,
+            "allocator_peak_reserved_bytes": 0,
+            "interval_seconds": {
+              "count": 1,
+              "maximum": 0.013180825859308243,
+              "mean": 0.013180825859308243,
+              "median": 0.013180825859308243,
+              "p95": 0.013180825859308243,
+              "sum": 0.013180825859308243
+            },
+            "sampled_errors": [
+              "no_samples"
+            ],
+            "sampled_gpu_evidence_complete": false,
+            "sampled_host_pss_complete": false,
+            "sampled_host_pss_sum_peak_bytes": null,
+            "sampled_host_rss_sum_peak_bytes": null,
+            "sampled_owned_device_process_peak_bytes": null
+          },
+          "action_trainer_setup_or_resume": {
+            "allocator_peak_allocated_bytes": 17092183552,
+            "allocator_peak_reserved_bytes": 17257463808,
+            "interval_seconds": {
+              "count": 1,
+              "maximum": 0.07711933925747871,
+              "mean": 0.07711933925747871,
+              "median": 0.07711933925747871,
+              "p95": 0.07711933925747871,
+              "sum": 0.07711933925747871
+            },
+            "sampled_errors": [
+              "no_samples"
+            ],
+            "sampled_gpu_evidence_complete": false,
+            "sampled_host_pss_complete": false,
+            "sampled_host_pss_sum_peak_bytes": null,
+            "sampled_host_rss_sum_peak_bytes": null,
+            "sampled_owned_device_process_peak_bytes": null
+          },
+          "action_training_block": {
+            "allocator_peak_allocated_bytes": 69432915968,
+            "allocator_peak_reserved_bytes": 70835503104,
+            "interval_seconds": {
+              "count": 4,
+              "maximum": 407.11868578661233,
+              "mean": 404.0020117801614,
+              "median": 404.0529247466475,
+              "p95": 406.72000080854633,
+              "sum": 1616.0080471206456
+            },
+            "sampled_errors": [],
+            "sampled_gpu_evidence_complete": true,
+            "sampled_host_pss_complete": true,
+            "sampled_host_pss_sum_peak_bytes": 37595219968,
+            "sampled_host_rss_sum_peak_bytes": 38130081792,
+            "sampled_owned_device_process_peak_bytes": 72051851264
+          },
+          "checkpoint_write": {
+            "allocator_peak_allocated_bytes": 45485499392,
+            "allocator_peak_reserved_bytes": 70835503104,
+            "interval_seconds": {
+              "count": 4,
+              "maximum": 39.71856522373855,
+              "mean": 33.39270021999255,
+              "median": 31.564387558028102,
+              "p95": 38.514190181111914,
+              "sum": 133.5708008799702
+            },
+            "sampled_errors": [],
+            "sampled_gpu_evidence_complete": true,
+            "sampled_host_pss_complete": true,
+            "sampled_host_pss_sum_peak_bytes": 37137471488,
+            "sampled_host_rss_sum_peak_bytes": 37672312832,
+            "sampled_owned_device_process_peak_bytes": 72051851264
+          },
+          "data_preparation": {
+            "allocator_peak_allocated_bytes": 0,
+            "allocator_peak_reserved_bytes": 0,
+            "interval_seconds": {
+              "count": 1,
+              "maximum": 145.04473000764847,
+              "mean": 145.04473000764847,
+              "median": 145.04473000764847,
+              "p95": 145.04473000764847,
+              "sum": 145.04473000764847
+            },
+            "sampled_errors": [],
+            "sampled_gpu_evidence_complete": true,
+            "sampled_host_pss_complete": true,
+            "sampled_host_pss_sum_peak_bytes": 1682854912,
+            "sampled_host_rss_sum_peak_bytes": 2217836544,
+            "sampled_owned_device_process_peak_bytes": 434110464
+          },
+          "loading": {
+            "allocator_peak_allocated_bytes": 17205096448,
+            "allocator_peak_reserved_bytes": 17257463808,
+            "interval_seconds": {
+              "count": 1,
+              "maximum": 94.44097746443003,
+              "mean": 94.44097746443003,
+              "median": 94.44097746443003,
+              "p95": 94.44097746443003,
+              "sum": 94.44097746443003
+            },
+            "sampled_errors": [],
+            "sampled_gpu_evidence_complete": true,
+            "sampled_host_pss_complete": true,
+            "sampled_host_pss_sum_peak_bytes": 24608860160,
+            "sampled_host_rss_sum_peak_bytes": 25140690944,
+            "sampled_owned_device_process_peak_bytes": 17848860672
+          },
+          "portable_export": {
+            "allocator_peak_allocated_bytes": 45484541952,
+            "allocator_peak_reserved_bytes": 70835503104,
+            "interval_seconds": {
+              "count": 1,
+              "maximum": 22.899412010796368,
+              "mean": 22.899412010796368,
+              "median": 22.899412010796368,
+              "p95": 22.899412010796368,
+              "sum": 22.899412010796368
+            },
+            "sampled_errors": [],
+            "sampled_gpu_evidence_complete": true,
+            "sampled_host_pss_complete": true,
+            "sampled_host_pss_sum_peak_bytes": 46746363904,
+            "sampled_host_rss_sum_peak_bytes": 47244369920,
+            "sampled_owned_device_process_peak_bytes": 72051851264
+          }
+        },
+        "sampled": {
+          "device_peak_bytes": 72851062784,
+          "errors": [
+            "incomplete_host_pss"
+          ],
+          "gpu_memory_evidence_valid": true,
+          "host_pss_complete": false,
+          "host_pss_sum_peak_bytes": 46746363904,
+          "host_rss_sum_peak_bytes": 47244369920,
+          "nvml_capacity_bytes": 85899345920,
+          "observed_span_seconds": 6861.350354194641,
+          "owned_device_process_peak_bytes": 72051851264,
+          "peaks_are_sampled_lower_bounds": true,
+          "samples": 4984,
+          "sampling_gap_seconds": {
+            "count": 4983,
+            "maximum": 2.7142648696899414,
+            "mean": 1.3769517066415093,
+            "median": 1.4258482456207275,
+            "p95": 1.4667227506637572,
+            "sum": 6861.350354194641
+          }
+        }
+      },
+      "memory_analysis": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/alpamayo-38513808-memory-summary.json",
+        "revision": "fb642dc",
+        "sha256": "19f102706436abd50a9e188391fe9c286566567e0eedbb77a0dc766266d0a082"
+      },
+      "mode": "nf4_lora",
+      "native_implementation": "4cba88f4d84ce69037c194e58670e8491388a36d",
+      "payload_manifest_sha256": "113b9b34da922808ca7c45c7d051d971b73b6be8d8e32388e63ec7225355975f",
+      "portable_manifest": {
+        "checkpoint_components": [
+          "model"
+        ],
+        "checkpoint_format": "consolidated",
+        "components": {
+          "model": {
+            "kind": "file",
+            "path": "model.pt",
+            "sha256": "8c69262bede9f7c4eb9ea47c52ce8372cb5b4c0168a47752001b5c5fbf19b0e0",
+            "size": 9463450819
+          },
+          "model_metadata": {
+            "kind": "file",
+            "path": "model_metadata.pt",
+            "sha256": "61e38ff520c8a358cf11e2bfa727106389765a68fc17c786ec80e06943c9d469",
+            "size": 483671
+          }
+        },
+        "iteration": 512,
+        "iteration_name": "iter_000512",
+        "protocol": "posttrain.checkpoint-artifact.v1"
+      },
+      "receipt_archive": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/alpamayo-38513808-terminal-receipts-v1.tar.gz",
+        "sha256": "59f0810e16f039235936aa5e5a7f91de8a1c360ec28719eb18f221f2d207d875"
+      },
+      "reliability_scope": {
+        "committed_boundary_control_checks": true,
+        "completed_native_frozen_integrity_and_optimizer_membership": true,
+        "portable_digest_inventory_native_validation": true,
+        "prepared_followup_payload_manifest_sha256": "b9a52152a208e410c8d0e166d6eb134a2c9ca0113d1631b10d3f0cef437a04ba",
+        "selected384_to_512_mature_recovery": false,
+        "selected512_fresh_native_reconstruction": false
+      },
+      "retained_diagnostics": {
+        "/localhome/local-rarunachalam/qlora-family-qualification-20261113/alpamayo-38513808-diagnostic512-retained-only.json": "89523c5bdd44a3d786f6416c2a825328d155f42a778ceb29c6fde8bd4fd86893",
+        "/localhome/local-rarunachalam/qlora-family-qualification-20261113/alpamayo-38513808-high-loss-action-diagnostic.json": "057b5da960bf8c6f2055887dc77cab50645dfe51b2711d15437cc211f9e4804e"
+      },
+      "runtime": {
+        "code": "4cba88f4d84ce69037c194e58670e8491388a36d",
+        "cpu_affinity": [
+          32,
+          33,
+          34,
+          35,
+          38,
+          39,
+          40,
+          41,
+          142,
+          143,
+          146,
+          147,
+          148,
+          149,
+          150,
+          151
+        ],
+        "cuda_visible_devices": "0",
+        "gpu": {
+          "bytes": 85174583296,
+          "name": "NVIDIA A100-SXM4-80GB",
+          "nvml_total_memory_bytes": 85899345920,
+          "nvml_uuid_roundtrip_verified": true,
+          "torch_reported_uuid": "18a94b0c-d529-4b53-0669-2d5cfeea9cf1",
+          "uuid": "GPU-18a94b0c-d529-4b53-0669-2d5cfeea9cf1"
+        },
+        "slurm_job": "38513808",
+        "versions": {
+          "bitsandbytes": "0.49.2",
+          "diffusers": "0.35.1",
+          "safetensors": "0.8.0",
+          "torch": "2.10.0+cu128",
+          "transformers": "4.57.6"
+        }
+      },
+      "scientific_protocol_sha256": "c78a4ae86af4a874bfa7411b9b7f5c56c5220ca1850f04d45cf77a8e605e57ef",
+      "seed": 17,
+      "slurm": {
+        "elapsed_gpu_seconds": 6937,
+        "exit_code": "0:0",
+        "gpu_hours": 1.9269444444444443,
+        "node": "batch-block4-2071",
+        "state": "COMPLETED"
+      },
+      "sources_sha256": {
+        "completed512-controls-check.json": "f4ab70e53ef7a6fb74cc0cbaaa053ada6fb2c18c340bc3e0409ac3dfee4728a3",
+        "dependencies.json": "0dc9e788ad16b1489b82044978d36a0dd500f8992a393a2021befbd7b81e936f",
+        "memory-samples.jsonl": "0bf4db20e87acec585add90769ca2f9f5b5cad2c5d6c9bd85da2774bcc0116bb",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/checkpoint_artifacts/iter_000512/.posttrain-checkpoint-artifact.json": "cf2dde4823622cd4f1417b52449d2b4b92a66ccea3b9ec1d05fbcceb9af6fe04",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/checkpoints/iter_000128/data.pt": "1f62da0b2a5d702d710e2c79a507fafd5602210fba5b5b9e2fd412558439df29",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/checkpoints/iter_000128/model/.metadata": "402b31ba054aa0151e125147a59a0226e547f967b5c4490d015af9046771dbb6",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/checkpoints/iter_000128/model_metadata.pt": "5efb6b9f11af246981fdcfa22c1ec0ac6c820ddd48bdcd5d515eabbdfac0e4b0",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/checkpoints/iter_000128/optim/.metadata": "96d929c3af2b6f4f59139073a2c5f26b4a89ba12d4adbb7ae88a8aa4ba401671",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/checkpoints/iter_000128/trainer.pt": "5d59c30bf119bff57bf3d14f5b58684c9da97f39fd37f3acfd19d7e25febde09",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/checkpoints/iter_000256/data.pt": "c04bb4147b06ba95f30ee661433da36b0295d097e316777ab407947a431f9457",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/checkpoints/iter_000256/model/.metadata": "e80c4fab37e822b8d4ecfba6ecd8d4f7e9d27bb3a0d919bd88995322fdd46990",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/checkpoints/iter_000256/model_metadata.pt": "5efb6b9f11af246981fdcfa22c1ec0ac6c820ddd48bdcd5d515eabbdfac0e4b0",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/checkpoints/iter_000256/optim/.metadata": "a9350e1a916a9600eee14f4119223d1bf88d8d57e3c77f6cd8f8cdcab8e032da",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/checkpoints/iter_000256/trainer.pt": "fdd3a63ad456dd265de474ecb30d05d9d4af3b1b6683e653f2ced6040a88e7da",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/checkpoints/iter_000384/data.pt": "0ed03b48627407d58f1b629e1d1b7809e85df6d97325fd55027667d5094e5b06",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/checkpoints/iter_000384/model/.metadata": "e9ad3403594140bfc92a251bbb63dcba96a4756f2ee4e0800e7d954df16cb88b",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/checkpoints/iter_000384/model_metadata.pt": "5efb6b9f11af246981fdcfa22c1ec0ac6c820ddd48bdcd5d515eabbdfac0e4b0",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/checkpoints/iter_000384/optim/.metadata": "5c7ef0f2c0e46e68f6604caab3668596eab00adac142057dcfd046d24172a68f",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/checkpoints/iter_000384/trainer.pt": "53cd53a7142c5e77914d030c8780a601ccceeb1530a35fcbc464b8844fce510d",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/checkpoints/iter_000512/data.pt": "5347df67b9b2093208c1b54a037f191b93c74750e1e8f49a587c7c27d6523098",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/checkpoints/iter_000512/model/.metadata": "abba2d8b559febc15f6f7dd5c6d289f21bcf811775547f55db4083f0a3cae5b9",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/checkpoints/iter_000512/model_metadata.pt": "5efb6b9f11af246981fdcfa22c1ec0ac6c820ddd48bdcd5d515eabbdfac0e4b0",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/checkpoints/iter_000512/optim/.metadata": "1b8541ca88f13c58b72f68fff61ad3be3f55b4be96cc8bd9386fe079e8954c27",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/checkpoints/iter_000512/trainer.pt": "47b25ff5b99bf3452842f461b62001886e06256ab332fe9d178229c2bc13f1fc",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/checkpoints/latest_checkpoint.txt": "bd5c79a6e774d7de5da1877c2cb7a1174fa7622041ec530304b58cc3480747d2",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/completion.json": "5c6d56c3107733790abebec74f301a2a107b294e459950890603b9e2d331099d",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/evaluation-000000.json": "d49c76a556341d6037d507dae3213a492179278ea5dcd3cfc503af4e37b96053",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/evaluation-000128.json": "f09142c22fc11e22a69d15b9e726a7eb9dc49c746297c74bd462df5ef62288d8",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/evaluation-000256.json": "6ee84e4e2a8111a859de566fa5f250345d6f7d34cdff8ced3a212a54e1d4a281",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/evaluation-000384.json": "9c6a873897dba4a2ce85d31665a8604f4e32dc95066911e571dc9ae348a00a14",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/evaluation-000512.json": "48eb0a1a29623ea2e3d9b5b5b3958a789a950d3d92181b8b860e1e85f6d6d48b",
+        "native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/metrics.jsonl": "f433435e60baadf466e4f8970e96c8abfec1d169136088bf52df6f66681ca56c",
+        "protocol.json": "568c4b0a3f440430b47f875d06eee38c90aeeddd9b31053fa88523c0706d30de",
+        "result.json": "f44edb6abfd04981c8114682ecb90f6c6c3ef23c0c2558ae2d38683a3aa70e69",
+        "runtime.json": "fcd807419ca412afd534179e415e02e7b5e1613a98ac355745c5c4ab4944b48b",
+        "stages/native-development/memory.jsonl": "97bf26baf17083de4d170c00a24611e8cebcdd73c248ec9bf2678ac7a746068f",
+        "workflow.json": "519290b7a1a1b3bfbcd82c89b8193efd0e2b916b3d4784909a94eb78a2b93271"
+      },
+      "steps": 512,
+      "target": {
+        "publication_seconds": null,
+        "reached": false,
+        "sha256": "7296ca5692d68d4dd792cd66a3125109375d9200fb03b7010af0d3dfe58f558c",
+        "threshold_meters": 1.8582104004141
+      },
+      "training": {
+        "adapter_numel": 85196800,
+        "adapter_tensors": 494,
+        "applied_updates": 512,
+        "auxiliary_numel": 2280592386,
+        "clipped_update_fraction": 0.9921875,
+        "exact_trainable_tensors": 903,
+        "mean_update_31_through_512_seconds": 3.1528909204612754,
+        "quantized_linear_targets": 247,
+        "samples_per_second_update_only": 0.3171692345936591,
+        "skipped_updates": 0.0,
+        "trainable_numel": 2365789186
+      },
+      "verified_publications": [
+        {
+          "checkpoint": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38513808/native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/checkpoints/iter_000128",
+          "seconds": 2601.687694990076,
+          "step": 128
+        },
+        {
+          "checkpoint": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38513808/native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/checkpoints/iter_000256",
+          "seconds": 4006.8214888777584,
+          "step": 256
+        },
+        {
+          "checkpoint": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38513808/native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/checkpoints/iter_000384",
+          "seconds": 5410.8015131680295,
+          "step": 384
+        },
+        {
+          "checkpoint": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38513808/native/qualification/alpamayo-development-v1/nf4_lora-seed17/development/checkpoints/iter_000512",
+          "seconds": 6823.468076998368,
+          "step": 512
+        }
+      ],
+      "wheel_sha256": "9113351965b501d293f9a71f476926fc212c51732144a63f90aca144120f0697"
+    },
+    "38517306": {
+      "state": "COMPLETED",
+      "allocated_gpu_seconds": 1403,
+      "scope": "Native full-model arithmetic-preserving gradient-check candidate correctness; performance promotion remains pending.",
+      "implementation_revision": "3c96ce8503eef263b7feb3fd2a23cad28efa6ab7",
+      "receipt": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-finite-38517306-receipts.json",
+        "sha256": "f1f1f2c3ea630b610439a1be427f159a81a80859b417e9d7eb9f84e535a975ff"
+      },
+      "acceptance_sha256": "3e0d7808f226aa1439fcf0664fd157524be745810456f60cf60f36291012c12a",
+      "process_loss_acceptance_sha256": "52a3ba278a42dc7c3d7f4ad353d037af1bba1be3b8e4f4112bc271cfaacfbdae",
+      "workflow_sha256": "cf947568d80b597991bf8126300a42391ed4a9644414951c3bd8b05d2468f8cb",
+      "runtime_sha256": "18a84590fa3570f50469c381e026316608b0ebc46cbf1d7217d8074b1bc68c27",
+      "runtime": {
+        "code": "3c96ce8503eef263b7feb3fd2a23cad28efa6ab7",
+        "cpu_affinity": [
+          4,
+          5
+        ],
+        "cpu_numa_nodes": {
+          "4": [
+            "node0"
+          ],
+          "5": [
+            "node0"
+          ]
+        },
+        "cuda_visible_devices": "0",
+        "gpu": {
+          "bytes": 85174583296,
+          "name": "NVIDIA A100-SXM4-80GB",
+          "nvml_uuid_roundtrip": true,
+          "torch_uuid": "89ef729e-b8f7-2136-7148-db0371beac08",
+          "uuid": "GPU-89ef729e-b8f7-2136-7148-db0371beac08"
+        },
+        "process_memory_policy": [
+          "Cpus_allowed_list:\t4-5",
+          "Mems_allowed_list:\t0-7"
+        ],
+        "slurm_job": "38517306",
+        "versions": {
+          "bitsandbytes": "0.49.2",
+          "diffusers": "0.35.1",
+          "safetensors": "0.8.0",
+          "torch": "2.10.0+cu128",
+          "transformers": "4.57.6"
+        }
+      },
+      "protocol_sha256": "faee39d951e4df37f5b4ea3896afb5444642d989dcb22100d389c64dc03ce216",
+      "source_contract_sha256": "31a849f41e046ad3bf96dbc271e35ec0b9dbff2a3bc2bf029c691c8e21ec5d1a",
+      "reference_state_parity": {
+        "bf16_lora": {
+          "10": {
+            "atol": 0,
+            "controls_rng_and_data_exact": true,
+            "excluded_storage_identity_fields": [
+              "validation.publication.destination",
+              "validation.publication.id",
+              "validation.publication.manifest"
+            ],
+            "maximum_tensor_difference": {
+              "model": 0.0,
+              "optim": 0.0
+            },
+            "passed": true,
+            "rtol": 0
+          },
+          "5": {
+            "atol": 0,
+            "controls_rng_and_data_exact": true,
+            "excluded_storage_identity_fields": [
+              "validation.publication.destination",
+              "validation.publication.id",
+              "validation.publication.manifest"
+            ],
+            "maximum_tensor_difference": {
+              "model": 0.0,
+              "optim": 0.0
+            },
+            "passed": true,
+            "rtol": 0
+          }
+        },
+        "nf4_lora": {
+          "10": {
+            "atol": 0,
+            "controls_rng_and_data_exact": true,
+            "excluded_storage_identity_fields": [
+              "validation.publication.destination",
+              "validation.publication.id",
+              "validation.publication.manifest"
+            ],
+            "maximum_tensor_difference": {
+              "model": 0.0,
+              "optim": 0.0
+            },
+            "passed": true,
+            "rtol": 0
+          },
+          "5": {
+            "atol": 0,
+            "controls_rng_and_data_exact": true,
+            "excluded_storage_identity_fields": [
+              "validation.publication.destination",
+              "validation.publication.id",
+              "validation.publication.manifest"
+            ],
+            "maximum_tensor_difference": {
+              "model": 0.0,
+              "optim": 0.0
+            },
+            "passed": true,
+            "rtol": 0
+          }
+        }
+      },
+      "own_build_process_loss": {
+        "family": "gr00t",
+        "passed": true,
+        "results": [
+          {
+            "interruption": {
+              "accumulation_step": 0,
+              "attempt_id": 6,
+              "exact_optimizer_membership_validated": true,
+              "frozen_base_and_metadata_validated": true,
+              "gradient_norm": 0.01681748405098915,
+              "gradient_parameter": "backbone.model.model.language_model.layers.15.mlp.down_proj.lora_B.weight",
+              "optimizer_step": 5,
+              "partial_checkpoint_rejected": "checkpoint save requires every optimizer attempt to have a completed outcome: attempt_id=6, optimizer_step=5, nonfinite_skips_total=0"
+            },
+            "mode": "nf4_lora",
+            "native_task_scores_exact": true,
+            "parity": {
+              "atol": 0,
+              "controls_rng_and_data_exact": true,
+              "excluded_storage_identity_fields": [
+                "validation.publication.destination",
+                "validation.publication.id",
+                "validation.publication.manifest"
+              ],
+              "maximum_tensor_difference": {
+                "model": 0.0,
+                "optim": 0.0
+              },
+              "passed": true,
+              "rtol": 0
+            },
+            "recovered_checkpoint": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38517306/finite-candidate-process-loss/native/qualification/family/nf4_lora-post-interruption/canary/checkpoints/iter_000010",
+            "reference_checkpoint": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38517306/gate/native/qualification/family/nf4_lora-full/canary/checkpoints/iter_000010"
+          },
+          {
+            "interruption": {
+              "accumulation_step": 0,
+              "attempt_id": 6,
+              "exact_optimizer_membership_validated": true,
+              "frozen_base_and_metadata_validated": true,
+              "gradient_norm": 0.013518291525542736,
+              "gradient_parameter": "backbone.model.model.language_model.layers.15.mlp.down_proj.lora_B.weight",
+              "optimizer_step": 5,
+              "partial_checkpoint_rejected": "checkpoint save requires every optimizer attempt to have a completed outcome: attempt_id=6, optimizer_step=5, nonfinite_skips_total=0"
+            },
+            "mode": "bf16_lora",
+            "native_task_scores_exact": true,
+            "parity": {
+              "atol": 0,
+              "controls_rng_and_data_exact": true,
+              "excluded_storage_identity_fields": [
+                "validation.publication.destination",
+                "validation.publication.id",
+                "validation.publication.manifest"
+              ],
+              "maximum_tensor_difference": {
+                "model": 0.0,
+                "optim": 0.0
+              },
+              "passed": true,
+              "rtol": 0
+            },
+            "recovered_checkpoint": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38517306/finite-candidate-process-loss/native/qualification/family/bf16_lora-post-interruption/canary/checkpoints/iter_000010",
+            "reference_checkpoint": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38517306/gate/native/qualification/family/bf16_lora-full/canary/checkpoints/iter_000010"
+          }
+        ]
+      },
+      "fresh_artifact_evidence": "Reused only through exact trained tensors plus unchanged native model/scorer/codec hashes; no fresh reload claimed for this gate.",
+      "memory": {
+        "device_peak_bytes": 45313359872,
+        "errors": [
+          "incomplete_host_pss"
+        ],
+        "gpu_memory_evidence_valid": true,
+        "host_pss_complete": false,
+        "host_pss_sum_peak_bytes": 34729177088,
+        "host_rss_sum_peak_bytes": 35526725632,
+        "nvml_capacity_bytes": 85899345920,
+        "observed_span_seconds": 1327.377311706543,
+        "owned_device_process_peak_bytes": 44537217024,
+        "peaks_are_sampled_lower_bounds": true,
+        "samples": 959,
+        "sampling_gap_seconds": {
+          "count": 958,
+          "maximum": 2.665315628051758,
+          "mean": 1.3855713065830302,
+          "median": 1.353999137878418,
+          "p95": 1.5929116129875183,
+          "sum": 1327.377311706543
+        }
+      },
+      "limitations": [
+        "This gate reused compatible fresh-artifact evidence through exact source/model/scorer/codec hashes and trained tensors; no new fresh-process reload is claimed.",
+        "Host PSS evidence is incomplete; sampled GPU/host peaks are lower bounds and this is not a performance comparison.",
+        "Alpamayo full-model candidate parity, sustained counterbalanced performance, and selected mature recovery remain separate promotion gates."
+      ]
     }
   },
   "read_only_head_memory_diagnostic": {

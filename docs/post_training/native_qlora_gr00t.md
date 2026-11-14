@@ -457,5 +457,12 @@ target; later outcomes cannot redefine it.
 The batched gradient-check candidate `3c96ce8` passed 22 real CUDA cases on each of the
 Torch 2.10 family and Torch 2.11 Qwen runtimes in job `38510926`, with no skips. Those tests
 cover finite/NaN/Inf detection, unmodified gradient bytes/RNG and tiny native updates/recovery.
-Full-model parity and unprofiled workflow benefit remain promotion gates; the selected
-family training comparison still uses `4cba88f`.
+Full-model GR00T gate `38517306` subsequently passed exact model, optimizer,
+RNG/data/control and task-score comparisons with `4cba88f` at updates five and ten
+in both precision arms. Each candidate arm also passed actual process loss during
+backward six, rejection of a partial save, and exact own-build recovery from five
+to ten. Compatible fresh-artifact evidence was reused only through exact trained
+tensors and unchanged native model/scorer/codec hashes; this gate does not claim
+a new fresh-process reload. It consumed 1,403 GPU-seconds, with incomplete host-PSS
+sampling retained. Alpamayo full-model parity and sustained unprofiled workflow
+benefit remain promotion gates; selected family training still uses `4cba88f`.

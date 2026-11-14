@@ -67,6 +67,10 @@ the training cursor, and associates target crossings with committed checkpoints.
 Stage immutable checkpoints and content-bound JSONL rows first, then run:
 
 ```bash
+export IMAGINAIRE_OUTPUT_ROOT=/durable/path/alpamayo-runs
+export PYTHONHASHSEED=17 CUBLAS_WORKSPACE_CONFIG=:4096:8
+export PYTORCH_ALLOC_CONF=expandable_segments:True
+
 torchrun --standalone --nproc-per-node=1 \
   -m cosmos_framework.posttrain.entrypoints.action_sft \
   --config cosmos_framework/posttrain/configs/sft_alpamayo_qlora.py -- \
@@ -264,3 +268,26 @@ their allocator peaks remain unknown despite valid external sampling. The
 [retained receipts](evidence/native_qlora_family_engineering_4cba88f.json) include
 these distinctions and the failed BF16 measurements. The selected 512-update
 checkpoint still needs its own mature-recovery and artifact checks.
+
+The first full NF4 seed-17 study (`38513808`) completed all 512 updates and
+published every scheduled checkpoint plus the complete portable policy. On all
+256 development clips, final 6.4-second ADE/FDE were **2.10761/6.38240 m** versus
+the same quantized frozen source's **1.97252/6.10283 m**. The fixed ADE target was
+**unreached**. ADE worsened on 144/256 clips and 21/32 coarse blocks; no rows were
+removed. These are adverse development observations, not a quantization-specific
+diagnosis or a comparison with the still-pending matched BF16 training arm.
+
+The complete measured workflow took **114.57 minutes**, including **26.91 minutes
+training, 80.09 minutes scheduled evaluation, 2.27 minutes checkpoint publication**
+and 23.07 seconds portable export. Native startup took 241.54 seconds. The allocation
+consumed 6,937 GPU-seconds; wrapper and native clocks have distinct boundaries in
+the retained evidence. Allocated/reserved peaks were **64.664/65.971 GiB**, sampled
+owned GPU-process peak **67.104 GiB**, and sampled process-tree RSS peak **44.000 GiB**
+at portable export. Loading, training, evaluation, checkpoint and export intervals
+had valid GPU and complete host samples; startup/exit gaps keep the whole-run PSS
+flag incomplete. These sampled peaks are lower bounds.
+
+The 903-parameter-tensor inventory and optimizer/update/data/evaluation controls
+passed verification at updates 128/256/384/512. This completed uninterrupted run
+does not replace selected-checkpoint fresh reconstruction or the prepared
+384-to-512 recovery check. Earlier ten-update recovery evidence retains its scope.
