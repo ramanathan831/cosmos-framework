@@ -90,9 +90,9 @@ def local_run(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         rollout, gateway = Rollout(), Gateway("sim")
         evaluation_enabled = recipe.validation.enabled if evaluation is None else evaluation
         evaluation_gateway = Gateway("eval_sim") if evaluation_enabled else None
-        from cosmos_framework.utils.lazy_config import instantiate
         from cosmos_framework.posttrain.control.buffer import ExperienceBuffer
         from cosmos_framework.posttrain.roles.reward.worker import RewardWorker
+        from cosmos_framework.utils.lazy_config import instantiate
 
         environment = instantiate(config.environment)
         collector = Collector(recipe, 0, 2, environment=environment)
@@ -289,6 +289,39 @@ def test_formal_window_validation_runs_before_and_after_training_without_analysi
     assert len(one_logger_sink) == 1 and one_logger_sink[0].finishes == 1
     assert one_logger_sink[0].store["validation_iterations"] == len(reports)
     assert any(frame.get("validation_iterations_time_total", 0) > 0 for frame in one_logger_sink[0].metrics)
+
+
+def test_checkpoint_evaluation_restores_exact_state_without_training_or_resaving(local_run, monkeypatch):
+    from cosmos_framework.posttrain.utils import mesh
+
+    config, attempt, _, allocated = local_run
+    monkeypatch.setattr(mesh, "detect_mesh", lambda: (1, 1))
+    config.recipe_check = None
+    config.rl.validation.enabled = True
+    config.rl.validation.save_checkpoint = False
+    original = gr00t_ppo.run(config)
+    source = attempt["output"]
+    step = original["optimizer_step"]
+    before = json.loads((source / "evaluation" / f"step_{step:06d}.json").read_text())
+    attempt["resume"] = str(source / "checkpoints" / f"iter_{step:06d}")
+    attempt["output"] = source.parent / "evaluation-only"
+    summary = gr00t_ppo.run(config, evaluate_only=True)
+    after = json.loads((attempt["output"] / "evaluation" / f"step_{step:06d}.json").read_text())
+    assert summary["mode"] == "checkpoint_evaluation" and summary["windows"] == 0
+    assert summary["optimizer_step"] == step
+    assert before["learner_state"] == after["learner_state"]
+    assert before["episodes"] == after["episodes"]
+    assert not (attempt["output"] / "windows.jsonl").exists()
+    assert not (attempt["output"] / "checkpoints").exists()
+    assert allocated[-1][1].state_dict() == allocated[-2][1].state_dict()
+
+
+def test_checkpoint_evaluation_rejects_missing_resume_before_model_allocation(local_run):
+    config, _, _, allocated = local_run
+    config.rl.validation.enabled = True
+    with pytest.raises(ValueError, match="explicit resumable checkpoint"):
+        gr00t_ppo.run(config, evaluate_only=True)
+    assert allocated == []
 
 
 def test_online_reporting_failure_does_not_block_training(
@@ -565,8 +598,8 @@ def test_checkpoint_location_is_captured_before_later_save_and_delayed_delivery(
 def test_partial_initialization_error_survives_bounded_pending_sdk_finish(
     local_run, one_logger_sink, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from cosmos_framework.utils.one_logger.one_logger_utils import OneLoggerUtils
     from cosmos_framework.posttrain.control import lifecycle
+    from cosmos_framework.utils.one_logger.one_logger_utils import OneLoggerUtils
 
     config, _, _, allocated = local_run
     failure = RuntimeError("injected partial initialization with stalled SDK finish")

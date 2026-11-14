@@ -91,9 +91,12 @@ def main():
     parser.add_argument("--resume", default="")
     parser.add_argument("--updates", type=int, default=8)
     parser.add_argument("--source-only", action="store_true")
+    parser.add_argument("--evaluate-only", action="store_true")
     args = parser.parse_args()
     if args.updates < 1:
         parser.error("updates must be positive")
+    if args.evaluate_only and not args.resume:
+        parser.error("--evaluate-only requires --resume")
     root, output = Path(os.environ["RESOURCE_ROOT"]), Path(os.environ["RESULTS"])
     expected = {"numpy": "1.26.4", "transformers": "4.57.6", "diffusers": "0.35.1", "bitsandbytes": "0.49.2"}
     actual = {name: importlib.metadata.version(name) for name in expected}
@@ -160,6 +163,8 @@ def main():
         "--config",
         "cosmos_framework/posttrain/configs/gr00t_n1d7_libero_quantized_optimizer.py",
     ]
+    if args.evaluate_only:
+        command.append("--evaluate-only")
     overrides = [
         f"model.checkpoint_path={assets / 'model'}",
         f"rl.max_steps={args.updates}",

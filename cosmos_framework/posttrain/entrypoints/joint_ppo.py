@@ -244,7 +244,7 @@ def assemble(
     return {role.name: role for role in (*experience_roles, policy)}
 
 
-def run(config: Any, opts: list[str] | None = None) -> dict:
+def run(config: Any, opts: list[str] | None = None, *, evaluate_only: bool = False) -> dict:
     import ray
 
     from cosmos_framework.posttrain.control.checkpointing import CheckpointLifecycle
@@ -283,6 +283,8 @@ def run(config: Any, opts: list[str] | None = None) -> dict:
     output.mkdir(parents=True, exist_ok=True)
     dump_resolved(config, str(output))
     resume = attempt.resume_checkpoint
+    if evaluate_only and (resume is None or not recipe.validation.enabled):
+        raise ValueError("checkpoint evaluation requires an explicit resumable checkpoint and enabled validation")
     lifecycle = CheckpointLifecycle.from_config(config, recipe, run_out_dir=str(output), resume_checkpoint=resume)
     with ExitStack() as cleanup:
         cleanup.callback(ray.shutdown)
@@ -307,6 +309,29 @@ def run(config: Any, opts: list[str] | None = None) -> dict:
         updates = recipe.decisions // recipe.global_minibatch
         if step != version * updates or step > recipe.max_steps:
             raise ValueError("restored optimizer/publication counters differ from the configured training budget")
+        if evaluate_only:
+            from cosmos_framework.posttrain.checkpoint.io import atomic_write_json
+            from cosmos_framework.posttrain.control.validation.lifecycle import ValidationTrigger
+
+            # Use the same restored learner, policy publication, native simulator
+            # and fixed-case evaluator. No training/validation journal is advanced
+            # and no checkpoint is rewritten by this fresh-process evaluation.
+            weight_sync(rollout, policy, validation_step=version)
+            evaluator = WindowEvaluator(
+                policy, collector, instantiate(config.environment), width, str(output), units.get("eval_sim")
+            )
+            report = evaluator(step, frozenset({ValidationTrigger.FINAL}))
+            summary = {
+                "mode": "checkpoint_evaluation",
+                "windows": 0,
+                "restored_from": resume,
+                "optimizer_step": step,
+                "publication_version": version,
+                "output": str(output),
+                "metrics": report.metrics,
+            }
+            atomic_write_json(str(output / f"evaluation-summary-step-{step}.json"), summary)
+            return summary
         observers.on_train_start(train_iterations_start=version, train_samples_start=version * recipe.decisions)
         cleanup.callback(observers.on_train_end)
         checkpoints = lifecycle.coordinator(
@@ -447,18 +472,22 @@ def run(config: Any, opts: list[str] | None = None) -> dict:
 
 
 def main() -> None:
-    from cosmos_framework.posttrain.utils.entry import cli
+    from cosmos_framework.posttrain.utils.entry import cli_flags
     from cosmos_framework.posttrain.utils.mesh import detect_mesh
     from cosmos_framework.utils.config import load_config
 
-    path, opts, validate = cli(__doc__, "cosmos_framework/posttrain/config/config_joint_ppo.py")
+    path, opts, flags = cli_flags(
+        __doc__,
+        "cosmos_framework/posttrain/config/config_joint_ppo.py",
+        extra_flags={"--evaluate-only": "Restore rl.resume and evaluate native cases without training or resaving."},
+    )
     config = load_config(path, ["--", *opts])
-    if validate:
+    if flags["validate_manifest"]:
         nodes, gpus = detect_mesh()
         validate_config(config, nodes * gpus)
         print("Joint PPO configuration, sources and role manifest are valid", flush=True)
         return
-    run(config, opts)
+    run(config, opts, evaluate_only=flags["evaluate_only"])
 
 
 if __name__ == "__main__":
