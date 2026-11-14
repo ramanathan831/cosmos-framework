@@ -123,6 +123,41 @@ def test_fp32_storage_is_already_the_master_and_rejects_rebinding():
     assert opt.state_report()["master_bytes"] == 0
 
 
+@pytest.mark.parametrize("legacy", [False, True])
+def test_dcp_rank_payload_chunk_boundaries_and_legacy_read(tmp_path, monkeypatch, legacy):
+    import io
+
+    import torch.distributed.checkpoint as dcp
+
+    from cosmos_framework.posttrain.checkpoint import master_optimizer as checkpoint
+
+    net = model()
+    opt = make(net)
+    net.weight.grad = torch.ones_like(net.weight)
+    opt.step()
+    monkeypatch.setattr(checkpoint, "_CHUNK_BYTES", 1024)
+    payload = checkpoint.optimizer_payload(opt)
+    if legacy:
+        stream = io.BytesIO()
+        torch.save(opt.state_dict(), stream)
+        payload["format"] = "cosmos_rank_master_v1"
+        payload["ranks"]["0"] = stream.getvalue()
+    else:
+        _, _, chunks = payload["ranks"]["0"]
+        assert len(chunks) > 1 and max(map(len, chunks)) <= 1024
+    dcp.save(payload, checkpoint_id=tmp_path)
+    # A bytes placeholder must restore the tuple as one opaque DCP leaf.
+    target = {"format": "", "world_size": 0, "ranks": {"0": b""}}
+    dcp.load(target, checkpoint_id=tmp_path)
+    saved = checkpoint._deserialize_rank_state(target["ranks"]["0"], target["format"])
+    assert_equal(saved, opt.state_dict())
+    if not legacy:
+        size, digest, chunks = target["ranks"]["0"]
+        for broken in (chunks[:-1], (*chunks[:-1], b"changed"), tuple(reversed(chunks))):
+            with pytest.raises(ValueError, match="checksum/length"):
+                checkpoint._deserialize_rank_state((size, digest, broken), target["format"])
+
+
 @pytest.mark.parametrize("format", ["dcp", "consolidated"])
 def test_native_trainer_save_restore_master_transaction(tmp_path, format, monkeypatch):
     from cosmos_framework.posttrain.algorithm.primitives.objective import Objective, Reduction
@@ -166,18 +201,16 @@ def test_native_trainer_save_restore_master_transaction(tmp_path, format, monkey
     before_net = deepcopy(restored.model.net.state_dict())
     before_control = restored._trainer_state()
     # A rank-local metadata rejection must precede every model/control mutation.
-    import io
+    from cosmos_framework.posttrain.checkpoint.master_optimizer import _deserialize_rank_state, _serialize_rank_state
 
     reader = restored.checkpoint_manager.load_dcp_component
 
     def corrupted(path, name, state, **kwargs):
         found = reader(path, name, state, **kwargs)
         if name == "optim":
-            saved = torch.load(io.BytesIO(state["ranks"]["0"]), weights_only=False)
+            saved = _deserialize_rank_state(state["ranks"]["0"], state["format"])
             del saved["masters"]
-            buffer = io.BytesIO()
-            torch.save(saved, buffer)
-            state["ranks"]["0"] = buffer.getvalue()
+            state["ranks"]["0"] = _serialize_rank_state(saved)
         return found
 
     with monkeypatch.context() as context:

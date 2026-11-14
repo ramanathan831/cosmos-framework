@@ -57,6 +57,11 @@ def main():
     rank = int(os.environ["LOCAL_RANK"])
     torch.cuda.set_device(rank)
     dist.init_process_group("nccl")
+    # Exercise multiple opaque chunks on the small accelerator fixture. The
+    # production threshold is 64 MiB; model-sized GR00T validates >4-GiB payloads.
+    from cosmos_framework.posttrain.checkpoint import master_optimizer as checkpoint
+
+    checkpoint._CHUNK_BYTES = 256 * 1024
     torch.manual_seed(17 if args.phase == "reference" else 91)
     mesh = init_device_mesh("cuda", (dist.get_world_size(),))
     net = torch.nn.Sequential(torch.nn.Linear(512, 512), torch.nn.Tanh(), torch.nn.Linear(512, 512))
@@ -165,7 +170,7 @@ def main():
     equal(before, opt.state_dict())
     # Corrupt one rank's optimizer envelope after durable read. Both ranks must
     # reject it before changing any live checkpoint component.
-    import io
+    from cosmos_framework.posttrain.checkpoint.master_optimizer import _deserialize_rank_state, _serialize_rank_state
 
     reader = trainer.checkpoint_manager.load_dcp_component
     before_parameters = {n: local_tensor(p).detach().cpu().clone() for n, p in net.named_parameters()}
@@ -174,11 +179,9 @@ def main():
     def corrupt(path, name, target, **kwargs):
         found = reader(path, name, target, **kwargs)
         if name == "optim" and rank == 1:
-            payload = torch.load(io.BytesIO(target["ranks"][str(rank)]), weights_only=False)
+            payload = _deserialize_rank_state(target["ranks"][str(rank)], target["format"])
             del payload["masters"]
-            stream = io.BytesIO()
-            torch.save(payload, stream)
-            target["ranks"][str(rank)] = stream.getvalue()
+            target["ranks"][str(rank)] = _serialize_rank_state(payload)
         return found
 
     trainer.checkpoint_manager.load_dcp_component = corrupt

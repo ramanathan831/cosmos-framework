@@ -9,6 +9,7 @@ This is deliberately same-topology recovery, not topology-changing conversion.
 
 from __future__ import annotations
 
+import hashlib
 import io
 from copy import deepcopy
 from traceback import clear_frames
@@ -20,14 +21,51 @@ from torch.utils._pytree import tree_map
 from cosmos_framework.posttrain.utils.dist import run_rank_converged
 from cosmos_framework.utils.optimizer_master import local_tensor
 
+_CHUNK_BYTES = 64 * 1024 * 1024
+
+
+def _serialize_rank_state(state):
+    # DCP serializes non-tensor leaves with pickle protocol 2. A single bytes
+    # object can exceed its 4-GiB string limit on real action-model shards. A
+    # tuple of bounded bytes remains one opaque leaf, without that size limit.
+    with io.BytesIO() as buffer:
+        torch.save(state, buffer)
+        size = buffer.tell()
+        buffer.seek(0)
+        chunks, digest = [], hashlib.sha256()
+        while chunk := buffer.read(_CHUNK_BYTES):
+            chunks.append(chunk)
+            digest.update(chunk)
+    return size, digest.hexdigest(), tuple(chunks)
+
+
+def _deserialize_rank_state(payload, format):
+    if format == "cosmos_rank_master_v1":
+        if not isinstance(payload, bytes):
+            raise ValueError("invalid legacy master optimizer payload")
+        content = payload
+    elif format == "cosmos_rank_master_v2":
+        if not isinstance(payload, tuple) or len(payload) != 3:
+            raise ValueError("invalid chunked master optimizer payload")
+        size, expected, chunks = payload
+        if not isinstance(chunks, tuple) or not chunks or any(not isinstance(c, bytes) or not c for c in chunks):
+            raise ValueError("invalid master optimizer chunks")
+        digest = hashlib.sha256()
+        for chunk in chunks:
+            digest.update(chunk)
+        if sum(map(len, chunks)) != size or digest.hexdigest() != expected:
+            raise ValueError("master optimizer payload checksum/length mismatch")
+        content = b"".join(chunks)
+    else:
+        raise ValueError("master optimizer checkpoint format mismatch")
+    return torch.load(io.BytesIO(content), map_location="cpu", weights_only=False)
+
 
 def optimizer_payload(optimizer):
-    buffer = io.BytesIO()
-    torch.save(optimizer.state_dict(), buffer)
     return {
-        "format": "cosmos_rank_master_v1",
+        "format": "cosmos_rank_master_v2",
         "world_size": optimizer.identity["world_size"],
-        "ranks": {str(optimizer.identity["rank"]): buffer.getvalue()},
+        "ranks": {str(optimizer.identity["rank"]): _serialize_rank_state(optimizer.state_dict())},
     }
 
 
@@ -38,11 +76,9 @@ def staged_optimizer(manager, path, optimizer):
             raise FileNotFoundError("master optimizer checkpoint is missing its rank-local component")
 
         def stage():
-            if target["format"] != "cosmos_rank_master_v1" or target["world_size"] != optimizer.identity["world_size"]:
+            if target["world_size"] != optimizer.identity["world_size"]:
                 raise ValueError("master optimizer checkpoint format/topology mismatch")
-            saved = torch.load(
-                io.BytesIO(target["ranks"][str(optimizer.identity["rank"])]), map_location="cpu", weights_only=False
-            )
+            saved = _deserialize_rank_state(target["ranks"][str(optimizer.identity["rank"])], target["format"])
             return optimizer.stage_state_dict(saved)
 
         return run_rank_converged(stage, "master optimizer restore staging")
