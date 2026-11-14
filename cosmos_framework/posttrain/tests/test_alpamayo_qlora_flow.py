@@ -106,7 +106,7 @@ def batch():
 
 
 @pytest.mark.parametrize("checkpointing", [False, True])
-@pytest.mark.parametrize("mode", ["bf16_lora", "nf4_lora"])
+@pytest.mark.parametrize("mode", ["bf16_lora", "nf4_lora", "bf16_frozen"])
 def test_actual_flow_reaches_adapters_and_auxiliary_heads(tmp_path, checkpointing, mode):
     import os
 
@@ -159,6 +159,15 @@ def test_actual_flow_reaches_adapters_and_auxiliary_heads(tmp_path, checkpointin
     data = batch()
     optimizer = torch.optim.AdamW([p for p in net.parameters() if p.requires_grad], lr=1e-3)
     state.assert_optimizer(optimizer)
+    trainables = set(state.codec.parameters)
+    assert set(auxiliary) <= trainables
+    if mode == "bf16_frozen":
+        assert trainables == set(auxiliary)
+        assert not any("lora_" in name for name, _ in net.named_parameters())
+    else:
+        assert trainables - set(auxiliary) == {
+            f"{name}.{factor}.weight" for name in targets for factor in ("lora_A", "lora_B")
+        }
     before = {name: p.detach().clone() for name, p in state.codec.parameters.items()}
     for step in range(3):
         optimizer.zero_grad(set_to_none=True)
