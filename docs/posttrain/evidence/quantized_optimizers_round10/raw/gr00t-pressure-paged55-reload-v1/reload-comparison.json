@@ -1,0 +1,12 @@
+{
+  "all_four_learner_records_exact": true,
+  "managed_moment_bytes": 3246784512,
+  "no_training_or_new_checkpoint": true,
+  "original_success_count": 99,
+  "reloaded_success_count": 99,
+  "source_generation": {
+    "signature": "a1ab618419af475c1a24ec52f8d5a41ceff96c9de4973c2b7be1c82c36123dfc",
+    "source": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-pressure-paged55-v1/runs/cosmos3_action/joint_ppo/gr00t-master-paged_adamw_8bit/integration/checkpoints/iter_000016",
+    "version": 1
+  }
+}

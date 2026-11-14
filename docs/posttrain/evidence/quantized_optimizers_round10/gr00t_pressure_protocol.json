@@ -156,6 +156,15 @@
       "admitted_at_utc": "2026-11-14T13:15:38.972043+00:00",
       "predecessor": "38534833 terminal COMPLETED:32finite updates,checkpoint16/32 publication,300 evaluation episodes",
       "policy": "No training or new checkpoint. Exact all-rank learner state and reconstructed managed owners required. Same32-update recipe identity and55GiB reservation; no evaluation-score selection."
+    },
+    {
+      "job": "38535734",
+      "arm": "paged_adamw_8bit reservation55 fresh-process16-to32 continuation",
+      "results": "gr00t-pressure-paged55-resume16-v1",
+      "source": "677e7e039012b40033e4ea137587619808d12a01",
+      "admitted_at_utc": "2026-11-14T13:27:42.215416+00:00",
+      "predecessor": "38535485 terminal COMPLETED: all four learner records exact, managed allocations reconstructed, zero updates/checkpoints",
+      "policy": "Exact original learner and collector boundary before first new update.16new finite updates and new checkpoint32 publication required; physical simulator resets, so subsequent trajectory/parameter equality is not claimed. No changed reservation or recipe."
     }
   ],
   "descriptor_cpu_admission": {

@@ -1,0 +1,11 @@
+{
+  "bytes_per_gpu": 59055800320,
+  "pids": [
+    2419127,
+    2419128,
+    2419129,
+    2419130
+  ],
+  "startup_seconds": 4.225977902300656,
+  "scope": "synthetic co-resident ordinary CUDA buffers; separate from native model memory"
+}
