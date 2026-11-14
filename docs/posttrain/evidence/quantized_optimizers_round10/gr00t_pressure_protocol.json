@@ -1,6 +1,6 @@
 {
   "locked_at_utc": "2026-11-14T05:35:09.006280+00:00",
-  "source": "94ecd8ba4e4b238feaaaceb8d5282ef0bcc40ded (source-v37)",
+  "source": "ef9f69589595724c8d166bf699557a2223bb832c",
   "purpose": "Bounded native four-GPU GR00T capacity and managed-allocation lifecycle screen, not paged speed or final task-quality qualification",
   "single_factor": "55GiB of ordinary CUDA storage in one explicit supervised co-resident process per GPU; zero reservation in the all-resident control. No hidden allocator cap or optimizer fallback.",
   "pressure_choice_evidence": {
@@ -53,6 +53,21 @@
       "previous_source": "655567de (source-v35; exact archive identity in native_sources.json)",
       "source": "94ecd8ba4e4b238feaaaceb8d5282ef0bcc40ded",
       "reason": "Before any32-update resident/pressure outcome: use the same server-synchronized checkpoint identity fix in all arms after affected CPU/CUDA/native gates. Canceled resident38517262 never allocated. Numerical recipes,55GiB reservation,counts,endpoints and failure policy unchanged."
+    },
+    {
+      "at_utc": "2026-11-14T08:36:40.994476+00:00",
+      "previous_source": "94ecd8ba4e4b238feaaaceb8d5282ef0bcc40ded",
+      "source": "ef9f69589595724c8d166bf699557a2223bb832c",
+      "reason": "Fused38520212 final publication falsified statx alone. All-rank full-content publication passes affected CPU tests; old pending80 native gate then existing resident32 fresh-writer gate precede nonpaged80 and its dependencies. Numerical settings unchanged.",
+      "failed_job": "38520212",
+      "canceled_unallocated_jobs": [
+        "38520213",
+        "38520214",
+        "38520215",
+        "38520216",
+        "38520219"
+      ],
+      "quality_policy": "Fused0/40/80 success97/91/95 retained; adaptation fails. No final superiority study, no extra fused80 timing rerun, no mixed-source successful end-to-end comparison."
     }
   ]
 }

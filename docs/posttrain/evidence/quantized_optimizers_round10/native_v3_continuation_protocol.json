@@ -1,6 +1,6 @@
 {
   "locked_at_utc": "2026-11-14T05:58:30.407841+00:00",
-  "source": "dcf5775241fcf5491a4dfd5a6d023c7d2a2bab83",
+  "source": "ef9f69589595724c8d166bf699557a2223bb832c",
   "purpose": "Affected native four-GPU checkpoint-v3 continuation, separate from product timing and development endpoint selection",
   "prerequisites": [
     "v3 two-GPU gate38516568",
@@ -53,6 +53,23 @@
       "optimizer": "adamw_bnb_8bit",
       "source_reference": "gr00t-exposure-eightbit-seed17-v3 published40",
       "status": "admitted; pending dependency"
+    }
+  ],
+  "source_amendments": [
+    {
+      "at_utc": "2026-11-14T08:36:40.994476+00:00",
+      "previous_source": "94ecd8ba4e4b238feaaaceb8d5282ef0bcc40ded",
+      "source": "ef9f69589595724c8d166bf699557a2223bb832c",
+      "reason": "Fused38520212 final publication falsified statx alone. All-rank full-content publication passes affected CPU tests; old pending80 native gate then existing resident32 fresh-writer gate precede nonpaged80 and its dependencies. Numerical settings unchanged.",
+      "failed_job": "38520212",
+      "canceled_unallocated_jobs": [
+        "38520213",
+        "38520214",
+        "38520215",
+        "38520216",
+        "38520219"
+      ],
+      "quality_policy": "Fused0/40/80 success97/91/95 retained; adaptation fails. No final superiority study, no extra fused80 timing rerun, no mixed-source successful end-to-end comparison."
     }
   ]
 }

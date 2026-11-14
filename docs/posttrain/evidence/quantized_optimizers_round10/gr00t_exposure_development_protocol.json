@@ -1,7 +1,7 @@
 {
   "kind": "Prospective native GR00T development exposure study, not final release evaluation",
   "locked_at_utc": "2026-11-14T05:06:02.442039+00:00",
-  "source": "94ecd8ba4e4b238feaaaceb8d5282ef0bcc40ded",
+  "source": "ef9f69589595724c8d166bf699557a2223bb832c",
   "hypothesis": "Eight completed windows may be too short to reveal useful adaptation; compare both unchanged optimizer recipes through the public native recipe first 80-update validation interval. No numerical intervention is selected by the short-run success counts.",
   "arms": [
     "adamw impl=fused update_policy=fp32_master",
@@ -109,6 +109,21 @@
       ],
       "quality_before_failure_retained": "99/100 frozen,93/100 at40; update80 unavailable",
       "unchanged": "80updates, seed17, original actor/value LRs, optimizer settings, precision/strategy, manifests, cadence, adaptation/protection screens and fixed development target"
+    },
+    {
+      "at_utc": "2026-11-14T08:36:40.994476+00:00",
+      "previous_source": "94ecd8ba4e4b238feaaaceb8d5282ef0bcc40ded",
+      "source": "ef9f69589595724c8d166bf699557a2223bb832c",
+      "reason": "Fused38520212 final publication falsified statx alone. All-rank full-content publication passes affected CPU tests; old pending80 native gate then existing resident32 fresh-writer gate precede nonpaged80 and its dependencies. Numerical settings unchanged.",
+      "failed_job": "38520212",
+      "canceled_unallocated_jobs": [
+        "38520213",
+        "38520214",
+        "38520215",
+        "38520216",
+        "38520219"
+      ],
+      "quality_policy": "Fused0/40/80 success97/91/95 retained; adaptation fails. No final superiority study, no extra fused80 timing rerun, no mixed-source successful end-to-end comparison."
     }
   ],
   "dependent_evaluation_rule": "Final update80 fresh-process evaluation is mandatory engineering coverage. If update40 is the first native100/100 checkpoint and initial success is below100, also fresh-score that exact checkpoint before reporting any update40 target attainment. An unavailable/failed fresh score is censored. Development work-time compositions are labeled composed; they are not a directly measured final time-to-quality win."

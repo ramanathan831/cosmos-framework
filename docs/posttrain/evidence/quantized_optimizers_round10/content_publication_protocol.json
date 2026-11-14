@@ -58,5 +58,12 @@
     "source": "ef9f69589595724c8d166bf699557a2223bb832c",
     "additional_guard": "reject symlink directories/files from full-content publication; 8 local affected checks pass",
     "status": "admitted after pinned CPU gate; pending"
+  },
+  "fresh_writer_gate": {
+    "locked_at_utc": "2026-11-14T08:36:40.994476+00:00",
+    "source": "ef9f69589595724c8d166bf699557a2223bb832c",
+    "run": "existing32-update resident-paged protocol moves before the new80-update nonpaged run",
+    "reason": "Pending80 recovery hashes an old completed payload. Newly written rank-owned shards must exercise full-content publication before a longer allocation. Reuses an already required run instead of adding a canary.",
+    "unchanged": "All32-update paging recipe/counts/checkpoint16/32/evaluation/pressure criteria; all80-update numerical controls. No additional full fused80 run or final superiority study."
   }
 }
