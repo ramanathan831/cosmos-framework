@@ -1,0 +1,15 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+________ test_resolve_all_reports_failure_before_draining_lagging_cells ________
+cosmos_framework/posttrain/tests/test_utils_entry.py:40: in test_resolve_all_reports_failure_before_draining_lagging_cells
+    resolve_all(Result())
+cosmos_framework/posttrain/utils/entry.py:380: in resolve_all
+    for coordinate, value in as_completed():
+                             ^^^^^^^^^^^^^^
+cosmos_framework/posttrain/tests/test_utils_entry.py:34: in as_completed
+    assert len(reported) == 1 and "CUDA out of memory" in reported[0]
+E   assert (0 == 1)
+E    +  where 0 = len([])
+=========================== short test summary info ============================
+FAILED cosmos_framework/posttrain/tests/test_utils_entry.py::test_resolve_all_reports_failure_before_draining_lagging_cells
+1 failed, 5 deselected in 0.07s

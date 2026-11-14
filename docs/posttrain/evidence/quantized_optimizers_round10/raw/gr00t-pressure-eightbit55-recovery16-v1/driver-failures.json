@@ -1,0 +1,8 @@
+[
+  {
+    "name": "failures",
+    "addr": 23247567345856,
+    "arg": false,
+    "repr": "[((0, 0), <RayTaskError(OutOfMemoryError) at 0x1553fe23b4d0>)]"
+  }
+]
