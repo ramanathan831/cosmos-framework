@@ -134,7 +134,9 @@ def local_run(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         shutdown()
 
     monkeypatch.setenv("WANDB_MODE", "disabled")
-    monkeypatch.setattr(mesh, "detect_mesh", lambda: (1, 2))
+    # This fixture owns one local learner/collector with two environment lanes;
+    # it must not advertise a second collector absent from its saved inventory.
+    monkeypatch.setattr(mesh, "detect_mesh", lambda: (1, 1))
     monkeypatch.setattr(entry, "pin_run_attempt", lambda *_: RunAttempt(str(attempt["output"]), (), attempt["resume"]))
     monkeypatch.setattr(gr00t_ppo, "assemble", assemble)
     monkeypatch.setattr(weight_sync, "weight_sync", publish)
