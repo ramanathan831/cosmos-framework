@@ -161,12 +161,12 @@ masked normalized-action MSE, per-component decoded environment-action MAE and n
 flow loss separately. Prediction never receives demonstration actions as RTC conditioning. Generic
 HF language-model loading and serving acceleration are not established by this portable loader.
 
-The native dense export path separately reconstructs `dequantize(Q(W)) + (alpha/rank) B A` with
-FP32 CPU accumulation and declared BF16 or FP32 merged-language storage. Non-target tensors retain
-their native dtype, including FP32 trained action components. Standard indexed shards have a
-configurable payload limit (512 MiB by default; a larger individual tensor gets its own shard).
-The commit-last manifest includes per-tensor/file digests and copied native processor, embodiment,
-statistics and backbone-tokenizer metadata. Fresh dense reconstruction needs no original base weights.
+The qualified standalone representation is **dequantized and unmerged**. It stores the actual
+BF16 effective base, separate FP32 LoRA factors, all trained action components and native sidecars.
+Native loading preserves the separate adapter GEMMs and cast order without reading the original
+base or running a quantizer. Standard indexed shards have a configurable payload limit (512 MiB
+by default; a larger individual tensor gets its own shard). The commit-last manifest binds tensor
+and file digests, processor, embodiment, normalization statistics and backbone-tokenizer metadata.
 
 ```bash
 # Set these to the exact installed build identities, not guessed values.
@@ -175,41 +175,33 @@ export COSMOS_TRAINING_WHEEL_SHA256=<64-character-wheel-sha256>
 torchrun --standalone --nproc-per-node=1 \
   -m cosmos_framework.posttrain.checkpoint.tools.export_family_dense \
   --config cosmos_framework/posttrain/configs/gr00t_n1d7_libero_qlora.py \
-  --checkpoint /run/checkpoints/iter_000100 --output /durable/gr00t-dense \
-  --merged-backbone-dtype bfloat16 --max-shard-size-bytes 536870912 \
+  --checkpoint /run/checkpoints/iter_000300 --output /durable/gr00t-unmerged \
+  --unmerged --max-shard-size-bytes 536870912 \
   --override model.checkpoint_path=/staged/GR00T-N1.7-LIBERO/libero_spatial \
   --override model.backbone_adaptation.backbone_path=/staged/Cosmos-Reason2-2B-metadata
 
 torchrun --standalone --nproc-per-node=1 \
   -m cosmos_framework.posttrain.entrypoints.action_eval \
-  --config cosmos_framework/posttrain/configs/gr00t_n1d7_libero_qlora.py --dense \
-  --checkpoint /durable/gr00t-dense --output /durable/dense-evaluation -- \
+  --config cosmos_framework/posttrain/configs/gr00t_n1d7_libero_qlora.py --unmerged \
+  --checkpoint /durable/gr00t-unmerged --output /durable/unmerged-evaluation -- \
   data.validation_path=/prepared/gr00t/validation.jsonl
 ```
 
-This effective-base dense artifact is a different numerical execution from separate BF16-autocast
-LoRA arithmetic. A further BF16 merge cast also changes the numerical model. Dense tensor checks,
-fresh native task-output tolerances and task-quality evaluation are separate qualification gates;
-implementation or file conversion alone does not establish their pass. Merging onto the untouched
-original BF16 base, requantization, generic serving and deployment-latency improvements remain outside
-this export contract. Dense artifacts cannot resume training.
+Preserve the original mode, rank/alpha/dropout/adapter seed and task configuration.
+Source training metadata is preserved; the exporter build is recorded separately.
+This representation was implemented on `8c64b5a`. CPU checks cover exact factors/heads,
+aliases, interrupted publication, corrupt artifacts and fresh loading without source
+weights or a quantizer. It is dense-base deployment, not four-bit inference, and
+cannot resume training. The full-model qualification below identifies its tested scope.
 
-An explicit **dequantized, unmerged** artifact is implemented on `8c64b5a`.
-It stores the actual BF16 effective base, the separate FP32 LoRA factors, all
-trained action components and native sidecars. Native loading rebuilds the same
-separate adapter GEMMs and cast order without reading the original base or running
-a quantizer. It uses a distinct commit manifest; `--dense` continues to mean the
-existing merged representation. This is dense-base deployment, not four-bit
-inference, and it does not turn the failed merged-output gates below into passes.
-
-Use the export command above with `--unmerged` in place of
-`--merged-backbone-dtype bfloat16`, then use `action_eval --unmerged` or
-`gr00t_rollout --unmerged` instead of `--dense`. Preserve the original mode,
-rank/alpha/dropout/adapter seed and task configuration. The two representation
-flags are mutually exclusive. Source training metadata is preserved; the exporter
-build is recorded separately. CPU checks cover exact factors/heads, aliases,
-interrupted publication, corrupt artifacts and fresh loading without the source
-weights or quantizer.
+The separate **merged** representation remains unqualified: its controlled-output gates
+failed in both precision arms. It reconstructs `dequantize(Q(W)) + (alpha/rank) B A` with
+FP32 CPU accumulation and declared BF16 or FP32 merged-language storage, preserving other
+native dtypes. It uses `--merged-backbone-dtype` for export and `--dense` for loading;
+these flags do not select the qualified unmerged graph. The representation flags are
+mutually exclusive. Merging and any additional BF16 cast change finite-precision execution.
+The negative results below are retained. Merging onto the untouched original BF16 base,
+requantization, generic serving and deployment-latency improvements are outside this contract.
 
 Full-model job `38522604` passed on exporter/inference build `64ea823` for both
 selected `4cba88f` LR `1e-5`, seed-17, update-300 policies. Fresh native loading
@@ -260,8 +252,8 @@ torchrun --standalone --nproc-per-node=1 \
   model.backbone_adaptation.backbone_path=/staged/Cosmos-Reason2-2B-metadata
 ```
 
-For dense policy inference, add `--dense` and point `--checkpoint` to the effective-base dense
-artifact. The separate official-head control uses this same rollout entrypoint with its
+For the qualified standalone representation, add `--unmerged` and point `--checkpoint`
+to the unmerged artifact. The separate merged `--dense` conversion remains unqualified. The separate official-head control uses this same rollout entrypoint with its
 `gr00t_n1d7_libero_official_head.py` config and `data.backbone_path` override; it accepts committed
 native or portable head artifacts, but rejects `--dense`. Each loader checks the pinned source
 and complete native parameter/processor identity before applying trained tensors.
@@ -622,4 +614,28 @@ The versioned dispatch correction sets Python safe-path mode and explicit observ
 sibling imports for both native builds and the final comparison. All scientific,
 training and observer code, target and acceptance gates remain unchanged. Sixty-one
 CPU checks reproduced the failure and verified corrected parent, child and monitor
-imports. Replacement `38528318` is pending qualification; admission is not a speed result.
+imports. Replacement `38528318` completed as described below; the original failed allocation remains retained.
+
+
+The seed-17 replacement completed all four 300-update cases and exact 100/200/300
+model, optimizer, RNG/data and task-score comparisons. Every case had complete
+owned-GPU and host-PSS evidence. The candidate reduced mean steady update time
+from 0.4890 to 0.4382 seconds for NF4 (10.38%) and 0.4627 to 0.4104 seconds for BF16
+(11.31%). Native workflow time fell 2.93%/3.58%; both precisions first met the same
+offline target at update 200, with native-clock NF4 time 435.72→421.76 seconds and
+BF16 time 406.12→398.85 seconds. These are one-seed engineering observations;
+NF4 still took longer than optimized BF16 and did not improve its fixed-step
+quality. Candidate GPU-process peaks still differed by only about 1.10 GiB.
+
+The complete-case timing claim is **unqualified**: Slurm returned from one
+candidate `srun` about 64 seconds before releasing its step, shifting that cleanup
+wait into the next reference case. The original NF4 1226.58→1149.48-second and
+BF16 1129.17→1108.43-second case clocks are retained, without retrospective
+reassignment or promotion. The allocation used 5,149 GPU-seconds; its separate exact-state comparison step
+recorded 522 seconds. A prospectively corrected launcher binds
+the actual owned step and waits for its verified release inside the producing
+case clock, with bounded failure handling. Forty-nine focused CPU checks,
+including the actual Enroot UID map and controller responses, supplement the
+unchanged 61 import/measurement checks. Fresh 17/42 blocks under that measurement
+contract are required; no old/new timing blocks may be combined. Candidate-owned
+mature recovery and the remaining family gates are still separate requirements.

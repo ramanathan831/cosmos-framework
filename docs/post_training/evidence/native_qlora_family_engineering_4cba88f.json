@@ -13359,7 +13359,7 @@
           "receipt_kind": "Retained summary of actual peer tool stdout; full pytest log was not redirected."
         },
         "replacement_job": 38528318,
-        "replacement_results": "Pending; no pass or speed claim from admission."
+        "replacement_results": "Completed5149GPU-seconds with exact state/strictmemory checks; see38528318. Complete-case timing attribution remains unqualified due a separately discovered Slurm cleanup boundary, so no performance promotion."
       }
     },
     "38528271": {
@@ -13582,6 +13582,82 @@
         "Third original expert-only control and paired-seed development completion",
         "Independent recording-family confirmation"
       ]
+    },
+    "38528318": {
+      "family": "gr00t",
+      "slurm_state": "COMPLETED",
+      "exit_code": "0:0",
+      "allocation_gpu_seconds": 5149,
+      "scope": "Single seed17 four-case read-only finite-gradient optimization study, original4c versus candidate3c. All300 updates/complete scoring/native artifacts retained; complete-case clock attribution is unqualified.",
+      "reference_revision": "4cba88f4d84ce69037c194e58670e8491388a36d",
+      "candidate_revision": "3c96ce8503eef263b7feb3fd2a23cad28efa6ab7",
+      "protocol_sha256": "70d0722b69758491afb66139d4dfa5ed10c8e95de9d0aed09af096da2d1e2e46",
+      "block_result": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-finite-seed17-38528318-block-result.json",
+        "sha256": "61533ab3400d241dafe0bfc66c322840fe502f6880caa9b9af7a1fd059269bbd"
+      },
+      "summary": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-finite-seed17-38528318-summary.json",
+        "sha256": "a624b4d050c908cf1d4da1382cf80de823b3385ae3c22ccfac6dc5006f1662be"
+      },
+      "comparison_step_seconds": 522,
+      "correctness": {
+        "exact100_200_300_model_optimizer_rng_data_and_task_both_arms": true,
+        "strict_owned_gpu_and_host_pss_complete_all_four": true
+      },
+      "precision_results": {
+        "bf16_lora": {
+          "steady_update_seconds_reference": 0.4627369196046493,
+          "steady_update_seconds_candidate": 0.41038116557872856,
+          "steady_reduction_percent": 11.31436715070243,
+          "native_workflow_seconds_reference": 574.9757179710141,
+          "native_workflow_seconds_candidate": 554.4013036199904,
+          "native_workflow_reduction_percent": 3.578310128230655,
+          "target_step": 200,
+          "native_target_seconds_reference": 406.12049298899365,
+          "native_target_seconds_candidate": 398.85069926900906,
+          "preflight_inclusive_target_seconds_reference_unqualified": 488.4022989999794,
+          "preflight_inclusive_target_seconds_candidate_unqualified": 483.332332105987,
+          "complete_case_seconds_reference_unqualified": 1129.1698745850008,
+          "complete_case_seconds_candidate_unqualified": 1108.4295017889817,
+          "allocator_increase_bytes": 4194304,
+          "sampled_gpu_process_increase_bytes": 46137344,
+          "candidate_sampled_gpu_peak_bytes": 33885782016
+        },
+        "nf4_lora": {
+          "steady_update_seconds_reference": 0.4889938330242876,
+          "steady_update_seconds_candidate": 0.4382231132367451,
+          "steady_reduction_percent": 10.382691224046747,
+          "native_workflow_seconds_reference": 605.8945185790071,
+          "native_workflow_seconds_candidate": 588.1546195200062,
+          "native_workflow_reduction_percent": 2.9278857152571613,
+          "target_step": 200,
+          "native_target_seconds_reference": 435.72178404801525,
+          "native_target_seconds_candidate": 421.7613516820129,
+          "preflight_inclusive_target_seconds_reference_unqualified": 579.0223798280058,
+          "preflight_inclusive_target_seconds_candidate_unqualified": 504.90962056900025,
+          "complete_case_seconds_reference_unqualified": 1226.5772671359882,
+          "complete_case_seconds_candidate_unqualified": 1149.4816671809822,
+          "allocator_increase_bytes": 5767168,
+          "sampled_gpu_process_increase_bytes": 50331648,
+          "candidate_sampled_gpu_peak_bytes": 32705085440
+        }
+      },
+      "performance_promoted": false,
+      "complete_case_attribution_qualified": false,
+      "limitation": "CandidateNF srun returned about64seconds before its owned Slurm step released; the next referenceNF clock included that cleanup wait. Original clocks are retained and never retroactively reassigned. One block also cannot establish the predeclared two-seed decision.",
+      "utc_diagnostic": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/finite-step-attribution-38528318-utc.json",
+        "sha256": "32d10d35ef88916c6afb35ab0d5e466000a2149c8dc043713a6460fbdb50c0cd"
+      },
+      "next_measurement": {
+        "archive_sha256": "5e529fe508b322e62142c1fc5d7af9ab17043bb1019870271fd9899a6ad1c52c",
+        "payload_manifest_sha256": "4ee1714a66f3b12d4d6b41a48a603fd64f9609e20fc20e566a4aa20a1df731e4",
+        "release_contract_sha256": "36773266543e55956fd4871eb6c1d92eb03600c24693b382bdab6fb1a230672a",
+        "submitted": false
+      },
+      "quality": "Exact trained trajectories cannot establish improved fixed-step learning; historical source-relative rollout failures and confidence-bound failures remain unchanged.",
+      "candidate_nf4_training_memory_saved_bytes": 1180696576
     }
   },
   "read_only_head_memory_diagnostic": {
@@ -13677,6 +13753,12 @@
       "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/alpamayo-38511234-terminal-receipts-v1.tar.gz",
       "scope": "93 receipt/sampling/output files, no weights; terminalAlpamayo38511234.",
       "sha256": "822a8f90636e352bf03e4ed0061c2de4f1edb6f6c89726d959f551ec6a7cd5b2"
+    },
+    {
+      "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-finite-38528318-receipts-v1.tar.gz",
+      "sha256": "f0af6b8804acbf793e9a2ea5c9681f46a272e4a0b15f14445dc39ba5884119b6",
+      "inventory_sha256": "82dbfe0bcedefd606b41d95233a49db08091847bb1cf0426254c2d7b3b876162",
+      "scope": "187 actual completed finite17 case, native metadata/control/score, process/allocator and scheduler receipts; no trained weight payloads."
     }
   ],
   "fixed_development_targets": {
