@@ -347,6 +347,55 @@
       "success_after_restart": 0.97,
       "interpretation": "Native completed-window learner/control restore and publication. Simulator resets; different100-case score is not a model/optimizer state mismatch. No timing or quality superiority claim.",
       "raw": "raw/gr00t-fused-publication80-v1"
+    },
+    "fresh_reload80": {
+      "job": "38526676",
+      "source": "ef9f69589595724c8d166bf699557a2223bb832c",
+      "status": "COMPLETED",
+      "all_saved_learner_fields_exact_on_all_four_ranks": true,
+      "training_state_unchanged": true,
+      "source_generation_unchanged_before_score_publication": true,
+      "checkpoint_provenance": {
+        "signature": "c63576a07059fef1c1dd42afdde134b8ac24547cdd4743b4af5ed61f1c38b213",
+        "source": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-exposure-fused-seed17-v3/runs/cosmos3_action/joint_ppo/gr00t-master-adamw/integration/checkpoints/iter_000080",
+        "version": 1
+      },
+      "new_training_windows": 0,
+      "new_checkpoints": 0,
+      "metrics": {
+        "val/episode_count": 100,
+        "val/episode_return": 0.88,
+        "val/episode_steps": 125.92,
+        "val/success_rate": 0.94,
+        "val/task_0/success_count": 10,
+        "val/task_0/success_rate": 1.0,
+        "val/task_1/success_count": 10,
+        "val/task_1/success_rate": 1.0,
+        "val/task_2/success_count": 10,
+        "val/task_2/success_rate": 1.0,
+        "val/task_3/success_count": 8,
+        "val/task_3/success_rate": 0.8,
+        "val/task_4/success_count": 8,
+        "val/task_4/success_rate": 0.8,
+        "val/task_5/success_count": 10,
+        "val/task_5/success_rate": 1.0,
+        "val/task_6/success_count": 9,
+        "val/task_6/success_rate": 0.9,
+        "val/task_7/success_count": 10,
+        "val/task_7/success_rate": 1.0,
+        "val/task_8/success_count": 10,
+        "val/task_8/success_rate": 1.0,
+        "val/task_9/success_count": 9,
+        "val/task_9/success_rate": 0.9
+      },
+      "attempt": {
+        "returncode": 0,
+        "native_seconds": 459.36338620004244
+      },
+      "allocation_seconds_including_teardown": 660,
+      "gpu_allocation_seconds": 2640,
+      "raw": "raw/gr00t-exposure-fused-reload80-v4",
+      "interpretation": "Exact learner restore and read-only evaluation;94/100 differs from original95/100 and pending-publication replay97/100. Do not replace the original endpoint or select the best repeat; the cause of closed-loop variation is not isolated."
     }
   },
   "nonpaged": {
