@@ -137,6 +137,11 @@ class MasterWeightOptimizer(torch.optim.Optimizer):
             dict, {p: self.backend.state[m] for p, m in zip(self.live, self.masters) if m in self.backend.state}
         )
 
+    def sync_groups(self):
+        """Capture the scheduler-owned groups, including changes after a step."""
+        for live, backend in zip(self.param_groups, self.backend.param_groups):
+            backend.update({k: v for k, v in live.items() if k != "params"})
+
     @torch.no_grad()
     def step(self, closure=None):
         if closure is not None:
@@ -167,8 +172,7 @@ class MasterWeightOptimizer(torch.optim.Optimizer):
         gradients = run_rank_converged(stage, "master optimizer gradient staging")
         for master, grad in zip(self.masters, gradients):
             master.grad = grad
-        for live, backend in zip(self.param_groups, self.backend.param_groups):
-            backend.update({k: v for k, v in live.items() if k != "params"})
+        self.sync_groups()
         result = self.backend.step()
         for p, m in zip(self.live, self.masters):
             local_tensor(p).copy_(m)
@@ -185,6 +189,7 @@ class MasterWeightOptimizer(torch.optim.Optimizer):
         self.backend.zero_grad(set_to_none=set_to_none)
 
     def state_dict(self):
+        self.sync_groups()
         return {
             "identity": deepcopy(self.identity),
             "masters": _snapshot(self.masters),
@@ -278,6 +283,13 @@ class MasterWeightOptimizer(torch.optim.Optimizer):
                 m.numel() * m.element_size() for p, m in zip(self.live, self.masters) if p.dtype == torch.float32
             ),
             gradient_staging_bytes=sum(
-                m.grad.numel() * m.grad.element_size() for m in self.masters if m.grad is not None
+                m.grad.numel() * m.grad.element_size()
+                for p, m in zip(self.live, self.masters)
+                if m.grad is not None and p.dtype != torch.float32
+            ),
+            fp32_gradient_alias_bytes=sum(
+                m.grad.numel() * m.grad.element_size()
+                for p, m in zip(self.live, self.masters)
+                if m.grad is not None and p.dtype == torch.float32
             ),
         )

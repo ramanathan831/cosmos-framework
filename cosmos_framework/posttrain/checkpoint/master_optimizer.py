@@ -84,6 +84,7 @@ def restore(trainer, path):
     run_rank_converged(validate_model, "master/model snapshot consistency")
     before_control = trainer._trainer_state()
     before_validation = deepcopy(trainer.validation_state)
+    optimizer.sync_groups()
     before_optimizer = (optimizer.masters, optimizer.backend)
     try:
         # Validate the control program first. Its mutations are rolled back if any

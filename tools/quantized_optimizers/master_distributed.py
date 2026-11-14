@@ -74,7 +74,7 @@ def main():
         name=args.optimizer,
         update_policy="fp32_master",
         lr=1e-4,
-        warmup_steps=3,
+        warmup_steps=6,
         impl="fused" if args.optimizer == "adamw" else "",
         bnb_fp32_state_names=[],
     )

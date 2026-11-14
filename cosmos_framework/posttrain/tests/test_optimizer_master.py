@@ -21,8 +21,10 @@ def model():
     return net
 
 
-def make(net):
-    return build_optimizer(net, OptimizerConfig(lr=1e-4, weight_decay=0, update_policy="fp32_master"))
+def make(net, warmup=0):
+    return build_optimizer(
+        net, OptimizerConfig(lr=1e-4, weight_decay=0, warmup_steps=warmup, update_policy="fp32_master")
+    )
 
 
 def assert_equal(a, b):
@@ -135,10 +137,14 @@ def test_native_trainer_save_restore_master_transaction(tmp_path, format, monkey
         from types import SimpleNamespace
 
         policy = SimpleNamespace(net=net)
+        from cosmos_framework.posttrain.config.build import build_lr_scheduler
+
+        optimizer = make(net, warmup=4)
         return LLMTrainer(
             policy,
             objective,
-            make(net),
+            optimizer,
+            lr_scheduler=build_lr_scheduler(optimizer, optimizer.config),
             checkpoint_manager=CheckpointManager(checkpoint_format=format, save_async=False),
         )
 
