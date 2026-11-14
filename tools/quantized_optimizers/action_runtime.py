@@ -50,6 +50,12 @@ def main():
         try:
             host = _Host.options(runtime_env={"env_vars": {"PYTHONPATH": os.pathsep.join(paths)}}).remote(paths)
             result["native_actor"] = ray.get(host.run.remote(lambda _: probe()))
+            # Ray adds its vendored thirdparty_files (e.g. colorama) to workers.
+            # Record extras, but require every driver dependency and imported
+            # module to retain the exact identity; extras cannot replace a pin.
+            result["actor_extra_distributions"] = sorted(
+                set(result["native_actor"]["versions"]) - set(result["versions"])
+            )
         finally:
             ray.shutdown()
     args.output.write_text(json.dumps(result, indent=2))
@@ -59,7 +65,9 @@ def main():
         raise SystemExit(1)
     if args.ray_worker:
         worker = result["native_actor"]
-        if worker["imports"] != result["imports"] or worker["versions"] != result["versions"]:
+        if worker["imports"] != result["imports"] or any(
+            worker["versions"].get(name) != version for name, version in result["versions"].items()
+        ):
             raise RuntimeError("native actor dependency/module identity differs from the driver")
 
 
