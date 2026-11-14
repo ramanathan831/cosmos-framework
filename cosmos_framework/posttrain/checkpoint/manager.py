@@ -690,14 +690,23 @@ class CheckpointManager:
         """Return the non-secret checkpoint generation and publication destination."""
         if self.store.is_object_store:
             return dict(self.store.publication_identity(iter_dir))
-        provenance = self.checkpoint_provenance(iter_dir)
+        from cosmos_framework.posttrain.checkpoint.provenance import checkpoint_provenance
+
+        inventory: list[dict[str, Any]] = []
+        provenance = checkpoint_provenance(iter_dir, inventory=inventory)
         if self.upload:
             from cosmos_framework.posttrain.utils.object_store import upload_destination_identity
 
             destination = upload_destination_identity(self.upload, os.path.basename(os.path.abspath(iter_dir)))
         else:
             destination = {"kind": "local"}
-        return {"destination": destination, "checkpoint_generation": provenance["signature"]}
+        return {
+            "destination": destination,
+            "checkpoint_generation": provenance["signature"],
+            # Capture the exact inputs to the signature once, so rank disagreement
+            # can identify a changed file/stat rather than only opaque digests.
+            "inventory": inventory,
+        }
 
     def rebind_copied_publication_record(
         self,

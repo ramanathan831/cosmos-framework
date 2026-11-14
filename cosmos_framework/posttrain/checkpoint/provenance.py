@@ -29,6 +29,8 @@ def _rank() -> int:
 def checkpoint_inventory_signature(
     checkpoint_dir: str,
     overrides: dict[str, str] | None = None,
+    *,
+    inventory: list[dict[str, Any]] | None = None,
 ) -> str:
     """Hash checkpoint structure plus small-file contents without reading giant tensors."""
     normalized_overrides = {relative.replace(os.sep, "/"): path for relative, path in (overrides or {}).items()}
@@ -38,6 +40,8 @@ def checkpoint_inventory_signature(
         filenames.sort()
         relative_directory = os.path.relpath(directory, checkpoint_dir)
         digest.update(f"dir\0{relative_directory}\0".encode("utf-8", errors="surrogateescape"))
+        if inventory is not None:
+            inventory.append({"directory": relative_directory})
         for filename in filenames:
             relative = filename if relative_directory == "." else os.path.join(relative_directory, filename)
             if (
@@ -65,16 +69,24 @@ def checkpoint_inventory_signature(
                     f"{stat.st_mtime_ns}\0{stat.st_ctime_ns}\0"
                 )
             digest.update(record.encode("utf-8", errors="surrogateescape"))
+            detail = {"record": record.replace("\0", "|")}
             if kind == "symlink":
-                digest.update(os.readlink(path).encode("utf-8", errors="surrogateescape"))
+                target = os.readlink(path)
+                digest.update(target.encode("utf-8", errors="surrogateescape"))
+                detail["symlink"] = target
             elif stat.st_size <= 4 * 1024 * 1024:
+                content = sha256()
                 with open(path, "rb") as handle:
                     while chunk := handle.read(1024 * 1024):
                         digest.update(chunk)
+                        content.update(chunk)
+                detail["sha256"] = content.hexdigest()
+            if inventory is not None:
+                inventory.append(detail)
     return digest.hexdigest()
 
 
-def checkpoint_provenance(source_dir: str) -> CheckpointProvenance:
+def checkpoint_provenance(source_dir: str, *, inventory: list[dict[str, Any]] | None = None) -> CheckpointProvenance:
     """Build a stable, cheap identity for one immutable training checkpoint."""
     source = os.path.realpath(os.path.expanduser(source_dir))
     if not os.path.isdir(source):
@@ -84,7 +96,7 @@ def checkpoint_provenance(source_dir: str) -> CheckpointProvenance:
             f"external pending checkpoint source is incomplete: {source!r} "
             "(model, optimizer, and trainer components are required)"
         )
-    signature = checkpoint_inventory_signature(source)
+    signature = checkpoint_inventory_signature(source, inventory=inventory)
     return {"version": 1, "source": source, "signature": signature}
 
 

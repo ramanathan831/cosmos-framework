@@ -63,3 +63,21 @@ def _publish(rank, directory, divergent_recipe):
 @pytest.mark.parametrize("divergent_recipe", [False, True])
 def test_large_dcp_validation_publication_across_processes(tmp_path, divergent_recipe):
     torch.multiprocessing.spawn(_publish, args=(str(tmp_path), divergent_recipe), nprocs=2, join=True)
+
+
+@pytest.mark.L0
+@pytest.mark.CPU
+def test_inventory_diagnostics_preserve_signature_and_identify_changed_entry(tmp_path):
+    from cosmos_framework.posttrain.checkpoint.provenance import checkpoint_inventory_signature
+
+    small, large = tmp_path / "control", tmp_path / "payload"
+    small.write_bytes(b"small control")
+    with large.open("wb") as handle:
+        handle.truncate(5 * 1024 * 1024)
+    baseline = checkpoint_inventory_signature(str(tmp_path))
+    before = []
+    assert checkpoint_inventory_signature(str(tmp_path), inventory=before) == baseline
+    small.write_bytes(b"changed control")
+    after = []
+    assert checkpoint_inventory_signature(str(tmp_path), inventory=after) != baseline
+    assert [a == b for a, b in zip(before, after)] == [True, False, True]
