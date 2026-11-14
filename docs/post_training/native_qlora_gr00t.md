@@ -133,6 +133,10 @@ Do not edit metadata to bypass this restriction. Portable inference reload remai
 separate contract and accepts compatible older artifacts. The guard has 67 passing
 CPU lifecycle tests; current-build full-model accelerator recovery is being qualified
 separately from the retained `4cba88f` recovery evidence.
+The current inventory has 27 files: it also binds shared flow-dataset row lookup
+and media decoding, whose behavior can change without changing dataset bytes.
+Earlier 25-file contracts still require their original build; they are not rewritten
+or upgraded during resume. This extension does not bind portable inference to training code.
 
 Every checkpoint/portable policy includes all trained action-head/projector tensors alongside LoRA,
 with source, model, quantization, processor/statistics, embodiment, action settings, resolved targets,

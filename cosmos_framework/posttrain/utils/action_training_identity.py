@@ -34,6 +34,8 @@ TRAINING_SOURCE_FILES = (
     "config/build.py",  # native optimizer partition and scheduler construction
     "config/gr00t_official.py",  # explicit official-head optimizer/schedule policy
     "control/checkpointing.py",  # joint trainer/data restore selection
+    "data/datasets/flow_sft.py",  # content-bound row lookup and task data decoding
+    "data/flow_media.py",  # shared media resolution, decoding and content checks
     "entrypoints/action_sft.py",  # batch/step/evaluation clocks and resume admission
     "model/checkpoint.py",  # complete trainable inventory and exact-resume codec
     "roles/env/cursor.py",  # epoch, shuffle, consumed index and strict cursor restore

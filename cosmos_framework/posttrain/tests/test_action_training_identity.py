@@ -6,6 +6,8 @@ from __future__ import annotations
 
 import copy
 import hashlib
+import importlib.util
+import json
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -42,6 +44,7 @@ def test_source_inventory_is_explicit_complete_and_installation_path_independent
     original_rng = collect_rng_state()
     identity = source.action_training_source_identity()
     assert len(identity["files"]) == len(set(source.TRAINING_SOURCE_FILES))
+    assert {"data/datasets/flow_sft.py", "data/flow_media.py"} <= identity["files"].keys()
     for relative, digest in identity["files"].items():
         assert not Path(relative).is_absolute()
         assert digest == hashlib.sha256((installed_sources / relative).read_bytes()).hexdigest()
@@ -196,3 +199,126 @@ def test_legacy_model_metadata_remains_reloadable_but_not_resumable():
     codec.validate_metadata(metadata, purpose="reload")
     with pytest.raises(ValueError, match="identity differs"):
         codec.validate_metadata(metadata, trainer.opt, purpose="resume")
+
+
+@pytest.mark.parametrize("relative", ("data/datasets/flow_sft.py", "data/flow_media.py"))
+def test_changed_data_execution_with_same_content_refuses_before_native_preparation(
+    tmp_path, installed_sources, monkeypatch, relative
+):
+    """Real content identities and committed metadata; only CUDA/launch plumbing is stubbed."""
+    from PIL import Image
+
+    from cosmos_framework.posttrain.control.checkpointing import CheckpointLifecycle
+    from cosmos_framework.posttrain.data.datasets.flow_sft import FlowSFTDataset
+    from cosmos_framework.posttrain.entrypoints import action_sft
+    from cosmos_framework.posttrain.utils import determinism, entry, qlora_metrics
+    from cosmos_framework.posttrain.utils.rank_state import collect_rank_state
+    from cosmos_framework.utils.config import load_config
+
+    image = Image.new("RGB", (2, 1))
+    image.putpixel((0, 0), (255, 0, 0))
+    image.putpixel((1, 0), (0, 0, 255))
+    image_path = tmp_path / "camera.png"
+    image.save(image_path)
+    rows_path = tmp_path / "rows.jsonl"
+    rows_path.write_text(
+        json.dumps(
+            {
+                "id": "row0",
+                "episode_id": "episode0",
+                "observation": {},
+                "actions": [[0.25]],
+                "media": {"camera": "camera.png"},
+            }
+        )
+        + "\n"
+    )
+    dataset = FlowSFTDataset(str(rows_path))
+    contract = {
+        "format": "cosmos-native-action-sft-v1",
+        "implementation": source.action_training_source_identity(),
+        "dataset_fingerprint": dataset.cursor_fingerprint(),
+    }
+    trainer, _, data, cursor = _trainer(contract)
+    for _ in range(3):
+        trainer.train([data[cursor.next_index()]])
+    checkpoint = tmp_path / "iter_000003"
+    trainer.save(str(checkpoint), data_state=collect_rank_state({"cursor": cursor.state_dict()}))
+    trainer.finalize_checkpoints()
+    checkpoint_bytes = {str(p.relative_to(checkpoint)): p.read_bytes() for p in checkpoint.rglob("*") if p.is_file()}
+
+    path = installed_sources / relative
+    original = path.read_text()
+    if relative.endswith("flow_sft.py"):
+        assert original.count("        return row\n") == 1
+        modified = original.replace("        return row\n", "        row['actions'][0][0] += 1\n        return row\n")
+    else:
+        assert original.count("yield image") == 2
+        modified = original.replace("yield image", "yield image.transpose(Image.Transpose.FLIP_LEFT_RIGHT)")
+    path.write_text(modified)
+    spec = importlib.util.spec_from_file_location("changed_data_execution_fixture", path)
+    changed = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(changed)
+    if relative.endswith("flow_sft.py"):
+        altered = changed.FlowSFTDataset(str(rows_path))
+        assert altered.cursor_fingerprint() == dataset.cursor_fingerprint()
+        assert altered[0]["actions"] != dataset[0]["actions"]
+    else:
+        with changed.open_flow_image(str(image_path)) as altered:
+            assert altered.getpixel((0, 0)) != image.getpixel((0, 0))
+        assert FlowSFTDataset(str(rows_path)).cursor_fingerprint() == dataset.cursor_fingerprint()
+
+    config_path = "cosmos_framework/posttrain/configs/gr00t_n1d7_libero_qlora.py"
+    config = load_config(config_path, ["--"])
+    before = _snapshot(trainer, cursor)
+    phases = []
+
+    def forbidden(*_args, **_kwargs):
+        pytest.fail("changed data source must refuse before preparation, model construction or state restoration")
+
+    with monkeypatch.context() as patch:
+        patch.setenv("LOCAL_RANK", "0")
+        patch.setattr(torch.cuda, "is_available", lambda: True)
+        patch.setattr(torch.cuda, "set_device", lambda _device: None)
+        patch.setattr(torch.distributed, "init_process_group", lambda *_a, **_k: None)
+        patch.setattr(determinism, "enable_determinism", lambda **_k: None)
+        patch.setattr(entry, "out_dir", lambda _config: str(tmp_path / "resume"))
+        patch.setattr(entry, "dump_resolved", lambda *_a, **_k: None)
+        patch.setattr(
+            entry,
+            "pin_run_attempt",
+            lambda *_a: SimpleNamespace(out_dir=str(tmp_path / "resume"), resume_checkpoint=str(checkpoint)),
+        )
+        patch.setattr(
+            CheckpointLifecycle,
+            "from_config",
+            lambda *_a, **_k: SimpleNamespace(manager=trainer.checkpoint_manager, load_trainer_and_component=forbidden),
+        )
+        patch.setattr(action_sft, "prepare_sources", forbidden)
+        patch.setattr(action_sft, "_factory", forbidden)
+        patch.setattr(qlora_metrics, "record_qlora_phase", lambda name, **_k: phases.append(name))
+        with pytest.raises(ValueError, match="training implementation differs") as failure:
+            action_sft.run(config, config_path=config_path, opts=[])
+    assert relative in str(failure.value)
+    assert "original qualified source build" in str(failure.value)
+    assert phases == []
+    assert_state_equal(_snapshot(trainer, cursor), before)
+    assert {
+        str(p.relative_to(checkpoint)): p.read_bytes() for p in checkpoint.rglob("*") if p.is_file()
+    } == checkpoint_bytes
+
+
+def test_prior_inventory_without_data_sources_requires_original_build_but_allows_reload():
+    current = source.action_training_source_identity()
+    saved = copy.deepcopy(current)
+    for relative in ("data/datasets/flow_sft.py", "data/flow_media.py"):
+        saved["files"].pop(relative)
+    original = copy.deepcopy(saved)
+    trainer, codec, _, _ = _trainer({"implementation": current})
+    metadata = codec.metadata(trainer.opt)
+    metadata["identity"]["training_contract"] = {"implementation": saved}
+    with pytest.raises(ValueError, match="original qualified source build") as failure:
+        source.require_matching_training_source(metadata["identity"]["training_contract"], current)
+    assert all(relative in str(failure.value) for relative in ("data/datasets/flow_sft.py", "data/flow_media.py"))
+    codec.validate_metadata(metadata, purpose="reload")
+    assert metadata["identity"]["training_contract"]["implementation"] == original

@@ -165,6 +165,10 @@ older resumable checkpoints; do not rewrite their identities. Compatible portabl
 inference reload remains independent of this training-only check. CPU lifecycle
 coverage passed; full-model checks of the new build remain separate from the
 retained `4cba88f` recovery results below.
+The current inventory extends this to 27 files by binding shared flow-dataset
+row lookup and media decoding. Dataset-content identity alone does not identify
+that execution. Earlier 25-file contracts require the original build and remain
+unchanged; compatible portable inference is still separate.
 
 The separate `posttrain.checkpoint.tools.export_family_dense` command reconstructs
 `dequantize(Q(W)) + (alpha/rank) BA` with FP32 accumulation. Specify
