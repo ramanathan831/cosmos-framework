@@ -10828,6 +10828,293 @@
         "NVML owned memory sums compute processes; total device usage additionally includes other allocations and cannot be attributed entirely to the policy.",
         "Standalone unmerged artifact and selected mature recovery are separate followups."
       ]
+    },
+    "38521659": {
+      "family": "gr00t",
+      "slurm_state": "COMPLETED",
+      "exit_code": "0:0",
+      "allocation_gpu_seconds": 1331,
+      "scope": "Selected LR1e-5 seed17 committed-update200-to300 recovery and fresh full160 checkpoint/portable reload; not a new learning seed, quality, conversion or performance claim",
+      "implementation_revision": "4cba88f4d84ce69037c194e58670e8491388a36d",
+      "wheel_sha256": "9113351965b501d293f9a71f476926fc212c51732144a63f90aca144120f0697",
+      "screen_protocol_sha256": "73f8317442a222a6cb78b543b77a11fa160daf02726a2399f0d4c0bcefe492c9",
+      "receipt": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-mature-38521659-summary.json",
+        "sha256": "012e01c300590eeb314b4c745fad45c49eb276927c54a38040d1346390ca6970"
+      },
+      "raw_receipts": {
+        "acceptance": {
+          "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-mature-38521659-acceptance.json",
+          "sha256": "2ea4f60b9069f9724e1d50099d1c2562d653f09b23dc379a77fef4c5b8a31aa2"
+        },
+        "workflow": {
+          "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-mature-38521659-workflow.json",
+          "sha256": "538c60e9c913db58734bf08b6cfdd39ab6e1e4a4709e88c848ecb4ea99a3e2ee"
+        },
+        "runtime": {
+          "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-mature-38521659-runtime.json",
+          "sha256": "f539e6763c74b0e93f8312a407e2ab641e9b69c8042c191357ac6af51bbce392"
+        },
+        "memory": {
+          "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-mature-38521659-memory.jsonl",
+          "sha256": "34b4acec643196758957a333736398fd843b128267076b70de1e0f420325478e"
+        }
+      },
+      "passed": true,
+      "runtime": {
+        "code": "4cba88f4d84ce69037c194e58670e8491388a36d",
+        "versions": {
+          "bitsandbytes": "0.49.2",
+          "diffusers": "0.35.1",
+          "safetensors": "0.8.0",
+          "torch": "2.10.0+cu128",
+          "transformers": "4.57.6"
+        },
+        "gpu": {
+          "bytes": 85174583296,
+          "name": "NVIDIA A100-SXM4-80GB",
+          "nvml_uuid_roundtrip": true,
+          "torch_uuid": "6ef56bc2-a30b-2cda-0ad2-074998423b9b",
+          "uuid": "GPU-6ef56bc2-a30b-2cda-0ad2-074998423b9b"
+        },
+        "cpu_affinity": [
+          2,
+          3,
+          4,
+          5,
+          8,
+          9,
+          44,
+          45,
+          126,
+          127,
+          132,
+          133,
+          134,
+          135,
+          136,
+          137
+        ],
+        "process_memory_policy": [
+          "Cpus_allowed_list:\t2-5,8-9,44-45,126-127,132-137",
+          "Mems_allowed_list:\t0-7"
+        ],
+        "slurm_job": "38521659"
+      },
+      "recovery": {
+        "nf4_lora": {
+          "boundary": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/nf4_lora/development/native/qualification/gr00t-development-v1/nf4_lora-seed17/fixed300/checkpoints/iter_000200",
+          "exact_parity": {
+            "atol": 0,
+            "controls_rng_and_data_exact": true,
+            "excluded_storage_identity_fields": [
+              "validation.publication.destination",
+              "validation.publication.id",
+              "validation.publication.manifest"
+            ],
+            "maximum_tensor_difference": {
+              "model": 0.0,
+              "optim": 0.0
+            },
+            "passed": true,
+            "rtol": 0
+          },
+          "reference_result": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/nf4_lora/development/development-result.json",
+          "reference_sha256": "94f9abc4b92b79dab9ddbc0c0f434fe0e09a96514300787f148ea27a7d031779",
+          "resumed_completion": {
+            "horizon_reached": true,
+            "resumed": true,
+            "step": 300,
+            "target": {
+              "checkpoint": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/nf4_lora/development/native/qualification/gr00t-development-v1/nf4_lora-seed17/fixed300/checkpoints/iter_000200",
+              "seconds": null,
+              "step": 200,
+              "timing_scope": "restored-crossing-uninterrupted-time-unavailable"
+            },
+            "timing_scope": "current-process-only"
+          },
+          "trainable_tensors": {
+            "auxiliary": 537,
+            "lora_factors": 224
+          },
+          "fresh_full160": [
+            {
+              "artifact_kind": "checkpoint",
+              "rows": 160,
+              "exact_rows_and_metrics": true,
+              "evaluation_sha256": "9eaad9a877a5f538f5ec2677db71f05ca7931ade3fed8202d1598e522b78567b",
+              "normalized_action_mse": 0.04154304856035326,
+              "flow_loss": 0.09369460996167618
+            },
+            {
+              "artifact_kind": "portable",
+              "rows": 160,
+              "exact_rows_and_metrics": true,
+              "evaluation_sha256": "ae3dc0039e53f8a3dbd8d8ee78078505af7163e7af4017a6281065986573e92c",
+              "normalized_action_mse": 0.04154304856035326,
+              "flow_loss": 0.09369460996167618
+            }
+          ]
+        },
+        "bf16_lora": {
+          "boundary": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_lora/development/native/qualification/gr00t-development-v1/bf16_lora-seed17/fixed300/checkpoints/iter_000200",
+          "exact_parity": {
+            "atol": 0,
+            "controls_rng_and_data_exact": true,
+            "excluded_storage_identity_fields": [
+              "validation.publication.destination",
+              "validation.publication.id",
+              "validation.publication.manifest"
+            ],
+            "maximum_tensor_difference": {
+              "model": 0.0,
+              "optim": 0.0
+            },
+            "passed": true,
+            "rtol": 0
+          },
+          "reference_result": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_lora/development/development-result.json",
+          "reference_sha256": "cd5342eec039e15d951f5ad6e39afbb94419dfb37a76b210ec3cfb34050a17a6",
+          "resumed_completion": {
+            "horizon_reached": true,
+            "resumed": true,
+            "step": 300,
+            "target": {
+              "checkpoint": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_lora/development/native/qualification/gr00t-development-v1/bf16_lora-seed17/fixed300/checkpoints/iter_000200",
+              "seconds": null,
+              "step": 200,
+              "timing_scope": "restored-crossing-uninterrupted-time-unavailable"
+            },
+            "timing_scope": "current-process-only"
+          },
+          "trainable_tensors": {
+            "auxiliary": 537,
+            "lora_factors": 224
+          },
+          "fresh_full160": [
+            {
+              "artifact_kind": "checkpoint",
+              "rows": 160,
+              "exact_rows_and_metrics": true,
+              "evaluation_sha256": "cf7242352150b706b437296916fcba41884c0598f2e2c6b912b8881bfc786f32",
+              "normalized_action_mse": 0.04244151129986026,
+              "flow_loss": 0.09592167070950382
+            },
+            {
+              "artifact_kind": "portable",
+              "rows": 160,
+              "exact_rows_and_metrics": true,
+              "evaluation_sha256": "ba087a21ac243a4d5ffec4a65846b3dc8b076fdc4b83aaa26810188522c04f64",
+              "normalized_action_mse": 0.04244151129986026,
+              "flow_loss": 0.09592167070950382
+            }
+          ]
+        }
+      },
+      "stage_seconds": {
+        "storage": 0.46764346095733345,
+        "nf4_lora-resume": 283.88488999498077,
+        "nf4_lora-checkpoint-fresh": 144.38578160107136,
+        "nf4_lora-portable-fresh": 157.28263742208946,
+        "bf16_lora-resume": 272.6380868660053,
+        "bf16_lora-checkpoint-fresh": 137.43525464797858,
+        "bf16_lora-portable-fresh": 152.773796836962
+      },
+      "sampled_memory": {
+        "bf16_lora-checkpoint-fresh": {
+          "samples": 106,
+          "owned_device_process_peak_bytes": 13633585152,
+          "device_peak_bytes": 14367784960,
+          "host_rss_sum_peak_bytes": 9029312512,
+          "host_pss_sum_peak_bytes": 8446552064,
+          "host_pss_complete": true,
+          "gpu_memory_evidence_valid": true,
+          "peaks_are_sampled_lower_bounds": true,
+          "errors": []
+        },
+        "bf16_lora-portable-fresh": {
+          "samples": 123,
+          "owned_device_process_peak_bytes": 13155434496,
+          "device_peak_bytes": 13889634304,
+          "host_rss_sum_peak_bytes": 14258634752,
+          "host_pss_sum_peak_bytes": 13671937024,
+          "host_pss_complete": true,
+          "gpu_memory_evidence_valid": true,
+          "peaks_are_sampled_lower_bounds": true,
+          "errors": []
+        },
+        "bf16_lora-resume": {
+          "samples": 246,
+          "owned_device_process_peak_bytes": 44537217024,
+          "device_peak_bytes": 45313359872,
+          "host_rss_sum_peak_bytes": 32395337728,
+          "host_pss_sum_peak_bytes": 31807924224,
+          "host_pss_complete": false,
+          "gpu_memory_evidence_valid": true,
+          "peaks_are_sampled_lower_bounds": true,
+          "errors": [
+            "incomplete_host_pss"
+          ],
+          "phase_allocator": {
+            "events": 12,
+            "host_process_peak_bytes": 31256686592,
+            "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-mature-38521659-bf16_lora-resume-phases.jsonl",
+            "peak_allocated_bytes": 42419895296,
+            "peak_reserved_bytes": 43463475200,
+            "sha256": "2999de3aa0da323cfa8bc21305b0a8d9047d4657394c9378f4f4fc3a25db88ce"
+          }
+        },
+        "nf4_lora-checkpoint-fresh": {
+          "samples": 112,
+          "owned_device_process_peak_bytes": 12505317376,
+          "device_peak_bytes": 13239517184,
+          "host_rss_sum_peak_bytes": 4235145216,
+          "host_pss_sum_peak_bytes": 3648346112,
+          "host_pss_complete": true,
+          "gpu_memory_evidence_valid": true,
+          "peaks_are_sampled_lower_bounds": true,
+          "errors": []
+        },
+        "nf4_lora-portable-fresh": {
+          "samples": 127,
+          "owned_device_process_peak_bytes": 12029263872,
+          "device_peak_bytes": 12763463680,
+          "host_rss_sum_peak_bytes": 10062954496,
+          "host_pss_sum_peak_bytes": 9475946496,
+          "host_pss_complete": true,
+          "gpu_memory_evidence_valid": true,
+          "peaks_are_sampled_lower_bounds": true,
+          "errors": []
+        },
+        "nf4_lora-resume": {
+          "samples": 254,
+          "owned_device_process_peak_bytes": 43381686272,
+          "device_peak_bytes": 44157829120,
+          "host_rss_sum_peak_bytes": 32191320064,
+          "host_pss_sum_peak_bytes": 31571013632,
+          "host_pss_complete": false,
+          "gpu_memory_evidence_valid": true,
+          "peaks_are_sampled_lower_bounds": true,
+          "errors": [
+            "incomplete_host_pss"
+          ],
+          "phase_allocator": {
+            "events": 12,
+            "host_process_peak_bytes": 31317405696,
+            "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-mature-38521659-nf4_lora-resume-phases.jsonl",
+            "peak_allocated_bytes": 41292840960,
+            "peak_reserved_bytes": 42305847296,
+            "sha256": "699c051b25f85c09f947bd82ed995d3591d989723e3bc8a59ae41329d7596dd8"
+          }
+        }
+      },
+      "quality_claim": false,
+      "timing_scope": "Recovery and artifact verification only, not original uninterrupted training time to quality.",
+      "limitations": [
+        "The old4c action_eval stages emit no allocator phase file; their GPU/process/host peaks are sampled only.",
+        "Global and specified per-stage host PSS completeness remains false where acquisition missed exiting processes; no v9 retrospective reconstruction.",
+        "Only destination/id/manifest publication-storage fields are excluded from recovery data-state comparison; sampler/RNG/cursor and evaluation content remain exact."
+      ]
     }
   },
   "read_only_head_memory_diagnostic": {

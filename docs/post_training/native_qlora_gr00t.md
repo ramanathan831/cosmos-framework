@@ -364,6 +364,22 @@ or establish rollout behavior. The separately completed 100-case simulator check
 below rejects promotion of this 300-update recipe. The previous LR `1e-4` failures,
 unchanged quality margins and independent-confirmation requirement remain intact.
 
+Selected-build recovery job `38521659` completed on the same `4cba88f` source:
+both LoRA arms resumed from their committed update-200 checkpoints through update
+300 with exact model/optimizer tensors, RNG, data cursor and evaluation state.
+Only the new publication destination, identifier and manifest fields differ.
+Fresh native checkpoint and portable loads preserved all 537 trained head tensors
+and 224 LoRA factors and exactly reproduced all 160 primary evaluation rows and
+metrics. Restored target crossings keep the original update-200 checkpoint and
+report no reconstructed elapsed time. This is recovery evidence for the same
+trained policies, not another seed or a change to the failed rollout decision.
+The allocation consumed 1,331 GPU-seconds. Both resume stages retain incomplete
+host-PSS sampling; all four fresh scoring stages have complete sampled host
+receipts. Old-build `action_eval` emitted no allocator phase records, so those
+fresh-scoring GPU/host peaks remain sampled lower bounds. The
+[terminal receipts](evidence/native_qlora_family_engineering_4cba88f.json) preserve
+these limitations and the separate resume allocator measurements.
+
 Job `38518798` completed all 400 prospectively fixed rollouts: ten Spatial tasks,
 ten initial states per task, seed 17, four flow-sampling steps, eight executed
 actions per chunk and at most 256 controls. The same native simulator/reset and
