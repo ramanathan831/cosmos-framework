@@ -177,3 +177,96 @@ def test_unknown_policy_factory_fails_before_artifact_or_model_access(tmp_path):
     config = SimpleNamespace(policy_factory="unknown.policy", dense_policy_factory="")
     with pytest.raises(ValueError, match="explicit native"):
         load_rollout_policy(config, "missing", device="cpu", output=tmp_path)
+
+
+@pytest.mark.parametrize("mode", ["official", "bf16_frozen", "nf4_frozen"])
+def test_direct_source_keeps_native_weights_without_artifact_io(tmp_path, monkeypatch, mode):
+    from cosmos_framework.posttrain.checkpoint import adapter
+    from cosmos_framework.posttrain.entrypoints import action_sft
+
+    config = configuration(mode)
+    config.model = SimpleNamespace(backbone_adaptation=SimpleNamespace(mode=mode))
+    policy, codec = fixture(mode)
+    expected = copy.deepcopy(policy.net.state_dict())
+    checked = []
+    policy.net._cosmos_validate_frozen_base = lambda: checked.append(True)
+    monkeypatch.setattr(action_sft, "_factory", lambda path: lambda *args, **kwargs: policy)
+    monkeypatch.setattr(adapter, "read_adapter_metadata", lambda *a, **k: pytest.fail("base read an artifact"))
+    monkeypatch.setattr(adapter, "load_adapter_weights", lambda *a, **k: pytest.fail("base loaded trained tensors"))
+    restored = load_rollout_policy(config, base=True, device="cpu", output=tmp_path / "source")
+    assert restored is policy and checked == [True] and not policy.net.training
+    assert codec.identity["base"] == recorded_source()
+    assert "training_contract" not in codec.identity
+    for name, value in policy.net.state_dict().items():
+        torch.testing.assert_close(value, expected[name], rtol=0, atol=0)
+    assert all(value.grad is None for value in policy.net.parameters())
+    assert not (tmp_path / "source/checkpoints").exists()
+    assert not (tmp_path / "source/checkpoint_artifacts").exists()
+
+
+@pytest.mark.parametrize("mode", ["nf4_lora", "bf16_lora", None])
+def test_source_refuses_adaptation_recipe_before_constructing_model(tmp_path, monkeypatch, mode):
+    from cosmos_framework.posttrain.entrypoints import action_sft
+
+    config = configuration("nf4_lora")
+    config.model = SimpleNamespace(backbone_adaptation=SimpleNamespace(mode=mode))
+    monkeypatch.setattr(action_sft, "_factory", lambda *args: pytest.fail("invalid source allocated its model"))
+    with pytest.raises(ValueError, match="LoRA requires an artifact"):
+        load_rollout_policy(config, base=True, device="cpu", output=tmp_path)
+
+
+@pytest.mark.parametrize("failure", ["revision", "trained", "format", "mode"])
+def test_source_rejects_incompatible_constructed_identity(tmp_path, monkeypatch, failure):
+    from cosmos_framework.posttrain.entrypoints import action_sft
+
+    config = configuration("nf4_frozen")
+    config.model = SimpleNamespace(backbone_adaptation=SimpleNamespace(mode="nf4_frozen"))
+    policy, codec = fixture("nf4_frozen")
+    if failure == "revision":
+        codec.identity["base"]["base"]["revision"] = "different"
+    elif failure == "trained":
+        codec.bind_training_identity({"data": "trained-source"})
+    elif failure == "format":
+        codec.identity["format"] = "cosmos.gr00t-official-head.v1"
+    else:
+        codec.identity["adapter"]["mode"] = "bf16_frozen"
+    monkeypatch.setattr(action_sft, "_factory", lambda path: lambda *args, **kwargs: policy)
+    with pytest.raises(ValueError, match="immutable untrained source"):
+        load_rollout_policy(config, base=True, device="cpu", output=tmp_path)
+
+
+@pytest.mark.parametrize("checkpoint,base,dense", [(None, False, False), ("artifact", True, False), (None, True, True)])
+def test_source_selection_is_explicit_and_exclusive(tmp_path, checkpoint, base, dense):
+    with pytest.raises(ValueError, match="exactly one"):
+        load_rollout_policy(
+            configuration("official"), checkpoint, base=base, dense=dense, device="cpu", output=tmp_path
+        )
+
+
+@pytest.mark.parametrize("source_args", [[], ["--base", "--checkpoint", "artifact"], ["--base", "--dense"]])
+def test_cli_rejects_ambiguous_source_without_initializing_cuda(monkeypatch, source_args):
+    import sys
+
+    from cosmos_framework.posttrain.entrypoints import gr00t_rollout
+
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "gr00t_rollout",
+            "--config",
+            "unused",
+            "--sim-python",
+            "unused",
+            "--cases",
+            "unused",
+            "--seed",
+            "17",
+            "--output",
+            "unused",
+            *source_args,
+        ],
+    )
+    with pytest.raises(SystemExit) as error:
+        gr00t_rollout.main()
+    assert error.value.code == 2

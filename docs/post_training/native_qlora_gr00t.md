@@ -195,6 +195,12 @@ artifact. The separate official-head control uses this same rollout entrypoint w
 `gr00t_n1d7_libero_official_head.py` config and `data.backbone_path` override; it accepts committed
 native or portable head artifacts, but rejects `--dense`. Each loader checks the pinned source
 and complete native parameter/processor identity before applying trained tensors.
+For a source-policy control, replace `--checkpoint ...` with `--base`. The matched recipe
+requires `model.backbone_adaptation.mode=bf16_frozen` or `nf4_frozen`; the separate official-head
+recipe loads its original FP32 source directly. This path creates no adapter/checkpoint artifact
+and refuses LoRA configurations or `--dense`. The rollout receipt distinguishes source from
+trained artifacts and records the complete immutable model/processor identity. Actual source
+rollout outcomes remain a separate required measurement.
 The training runtime does not itself contain the pinned simulator stack. Until an actual
 simulator campaign passes, this connection and its CPU convention tests do not establish rollout
 success, simulator compatibility or deployment latency. The artifact-output probe in

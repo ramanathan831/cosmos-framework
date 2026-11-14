@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: OpenMDW-1.1
-"""Native GR00T artifact evaluation through the existing isolated LIBERO simulator gateway."""
+"""Native GR00T source/artifact evaluation through the existing isolated LIBERO simulator gateway."""
 
 from __future__ import annotations
 
@@ -12,13 +12,15 @@ from dataclasses import asdict
 from pathlib import Path
 
 
-def load_rollout_policy(config, checkpoint, *, device, output, dense=False):
-    """Load a native matched or official-head artifact through its declared factory.
+def load_rollout_policy(config, checkpoint=None, *, device, output, dense=False, base=False):
+    """Load a declared native source or complete trained policy through its factory.
 
     Read and verify the committed artifact before allocating the immutable base.
     The constructed codec then checks every numerical identity and trained tensor;
     selecting the official head control must never dispatch the LoRA constructor.
     """
+    if bool(checkpoint) == bool(base) or (dense and base):
+        raise ValueError("choose exactly one native checkpoint or explicit --base; --dense requires a checkpoint")
     from cosmos_framework.posttrain.checkpoint.adapter import load_adapter_weights, read_adapter_metadata
     from cosmos_framework.posttrain.checkpoint.manager import CheckpointManager
     from cosmos_framework.posttrain.entrypoints.action_sft import _factory
@@ -29,6 +31,12 @@ def load_rollout_policy(config, checkpoint, *, device, output, dense=False):
     official = "cosmos_framework.posttrain.model.gr00t.official_head.build_policy"
     if config.policy_factory not in {matched, official}:
         raise ValueError("GR00T rollout requires its explicit native matched or official-head policy factory")
+    mode = None
+    if base and config.policy_factory == matched:
+        adaptation = getattr(config.model, "backbone_adaptation", None)
+        mode = getattr(adaptation, "mode", None)
+        if mode not in {"bf16_frozen", "nf4_frozen"}:
+            raise ValueError("GR00T source rollout requires bf16_frozen or nf4_frozen; LoRA requires an artifact")
     if dense:
         if config.policy_factory != matched or config.dense_policy_factory != (
             "cosmos_framework.posttrain.model.gr00t.dense.build_policy"
@@ -42,14 +50,30 @@ def load_rollout_policy(config, checkpoint, *, device, output, dense=False):
     if config.policy_factory == matched:
         expected["task_contract"] = {"family": "gr00t_n1d7"}
     manager = CheckpointManager(checkpoint_format="dcp")
-    metadata = read_adapter_metadata(checkpoint, manager=manager, expected_identity=expected)
+    metadata = None if base else read_adapter_metadata(checkpoint, manager=manager, expected_identity=expected)
     policy = _factory(config.policy_factory)(config, device=device, output=output)
     codec = getattr(policy.net, "_cosmos_adapter_checkpoint_codec", None)
     if not isinstance(codec, AdapterCheckpointCodec):
         raise ValueError("GR00T rollout policy must expose the native complete trained-parameter checkpoint codec")
     codec.assert_live(policy.net)
-    codec.validate_metadata(metadata, purpose="reload")
-    load_adapter_weights(checkpoint, codec, manager=manager)
+    if base:
+        if (
+            codec.identity.get("format") != expected["format"]
+            or codec.identity.get("base") != expected["base"]
+            or "training_contract" in codec.identity
+            or (
+                config.policy_factory == matched
+                and (
+                    codec.identity.get("task_contract", {}).get("family") != "gr00t_n1d7"
+                    or codec.identity.get("adapter", {}).get("mode") != mode
+                )
+            )
+        ):
+            raise ValueError("native GR00T source policy differs from its immutable untrained source contract")
+        codec.validate_frozen_base()
+    else:
+        codec.validate_metadata(metadata, purpose="reload")
+        load_adapter_weights(checkpoint, codec, manager=manager)
     policy.net.eval()
     return policy
 
@@ -57,7 +81,11 @@ def load_rollout_policy(config, checkpoint, *, device, output, dense=False):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", required=True)
-    parser.add_argument("--checkpoint", required=True)
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument("--checkpoint")
+    source.add_argument(
+        "--base", action="store_true", help="Evaluate the pinned source without an adapter/head artifact"
+    )
     parser.add_argument("--dense", action="store_true")
     parser.add_argument("--sim-python", required=True)
     parser.add_argument("--cases", required=True, help="Prospectively frozen JSON list of LiberoCase mappings")
@@ -67,6 +95,8 @@ def main():
     args, rest = parser.parse_known_args()
     if args.latency_warmup_calls < 0:
         parser.error("--latency-warmup-calls must be nonnegative")
+    if args.dense and args.base:
+        parser.error("--dense requires --checkpoint; source evaluation does not export or fabricate an artifact")
     opts = rest[1:] if rest and rest[0] == "--" else rest
     if any("=" not in item for item in opts):
         parser.error("configuration overrides require key=value")
@@ -105,7 +135,9 @@ def main():
     gateway = None
     try:
         output.mkdir(parents=True)
-        policy = load_rollout_policy(config, args.checkpoint, device=device, output=output, dense=args.dense)
+        policy = load_rollout_policy(
+            config, args.checkpoint, device=device, output=output, dense=args.dense, base=args.base
+        )
         policy_loading_seconds = time.monotonic() - started
         rollout = NativeArtifactRollout(policy, latency_capacity=32 * len(cases))
         protocol = execution_protocol("libero_spatial", GR00T_QLORA_SPATIAL_EXECUTION_PROFILE)
@@ -148,6 +180,14 @@ def main():
                 "format": "gr00t-native-artifact-rollout-v1",
                 "checkpoint": args.checkpoint,
                 "dense": args.dense,
+                "artifact_kind": "fresh-frozen-base"
+                if args.base
+                else "effective-base-dense"
+                if args.dense
+                else "same-base-trained-policy",
+                "model_identity": policy.dense_manifest["source_metadata"]["identity"]
+                if args.dense
+                else policy.net._cosmos_adapter_checkpoint_codec.identity,
                 "cases": [asdict(case) for case in cases],
                 "seed": args.seed,
                 "execution_profile": GR00T_QLORA_SPATIAL_EXECUTION_PROFILE,
