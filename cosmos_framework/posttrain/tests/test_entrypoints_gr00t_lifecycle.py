@@ -333,6 +333,9 @@ def test_online_reporting_failure_does_not_block_training(
 
     config, _, _, allocated = local_run
     monkeypatch.setenv("WANDB_MODE", "online")
+    # This test injects a W&B sink fault. A Slurm allocation must not additionally
+    # auto-enable the separate OneLogger credential/startup contract.
+    monkeypatch.setenv("ENABLE_ONELOGGER", "false")
     monkeypatch.setenv("WANDB_PROJECT", "cosmos3_action")
     monkeypatch.setenv("RANK", "0")
     monkeypatch.delenv("WANDB_API_KEY", raising=False)
