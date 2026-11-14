@@ -190,6 +190,16 @@ def test_native_trainer_save_restore_master_transaction(tmp_path, format, monkey
     # the old values, scheduler and clocks, rather than leaving a mixed checkpoint.
     commit = restored.opt.commit_state_dict
     calls = 0
+    import gc
+    import weakref
+
+    staged_backends = []
+    create_backend = restored.opt._backend
+
+    def track_backend(masters):
+        backend = create_backend(masters)
+        staged_backends.append(weakref.ref(backend))
+        return backend
 
     def fail_once(staged):
         nonlocal calls
@@ -200,8 +210,12 @@ def test_native_trainer_save_restore_master_transaction(tmp_path, format, monkey
 
     with monkeypatch.context() as context:
         context.setattr(restored.opt, "commit_state_dict", fail_once)
-        with pytest.raises(Exception, match="injected"):
+        context.setattr(restored.opt, "_backend", track_backend)
+        with pytest.raises(Exception, match="injected") as failure:
             restored.load(path)
+    assert failure.value is not None  # Keeping the error must not keep staged CUDA allocations alive.
+    gc.collect()
+    assert staged_backends and all(reference() is None for reference in staged_backends)
     assert_equal(before_opt, restored.opt.state_dict())
     assert_equal(before_net, restored.model.net.state_dict())
     # NumPy RNG arrays require their own equality helper.

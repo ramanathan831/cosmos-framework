@@ -158,10 +158,24 @@ def main():
         return found
 
     trainer.checkpoint_manager.load_dcp_component = corrupt
+    import gc
+    import weakref
+
+    staged_backends, managed_owners = [], []
+    create_backend = opt._backend
+
+    def tracked_backend(masters):
+        backend = create_backend(masters)
+        staged_backends.append(weakref.ref(backend))
+        return backend
+
+    opt._backend = tracked_backend
+    retained_errors = []
     try:
         trainer.load(str(args.output / "iter_000004"))
     except Exception as exc:
         assert "identity" in str(exc)
+        retained_errors.append(exc)
     else:
         raise AssertionError("corrupt rank-local state was accepted")
     finally:
@@ -169,6 +183,37 @@ def main():
     equal(before, opt.state_dict())
     equal(before_parameters, {n: local_tensor(p).detach().cpu() for n, p in net.named_parameters()})
     equal(before_control, trainer._trainer_state())
+    commit = opt.commit_state_dict
+    commit_calls = 0
+
+    def fail_after_commit(staged):
+        nonlocal commit_calls
+        commit(staged)
+        commit_calls += 1
+        if commit_calls == 1:
+            for state in opt.backend.state.values():
+                for value in state.values():
+                    if getattr(value, "is_paged", False):
+                        managed_owners.append(value._cosmos_managed_owner)
+            if rank == 1:
+                raise RuntimeError("injected post-commit failure")
+
+    opt.commit_state_dict = fail_after_commit
+    try:
+        trainer.load(str(args.output / "iter_000004"))
+    except Exception as exc:
+        assert "injected" in str(exc)
+        retained_errors.append(exc)
+    else:
+        raise AssertionError("rank-local commit failure was not converged")
+    finally:
+        opt.commit_state_dict, opt._backend = commit, create_backend
+    equal(before, opt.state_dict())
+    equal(before_parameters, {n: local_tensor(p).detach().cpu() for n, p in net.named_parameters()})
+    equal(before_control, trainer._trainer_state())
+    gc.collect()
+    assert len(retained_errors) == 2 and all(reference() is None for reference in staged_backends)
+    assert all(reference() is None for reference in managed_owners)
     report = dict(
         phase=args.phase,
         rank=rank,
@@ -179,6 +224,7 @@ def main():
         torch=torch.__version__,
         device=torch.cuda.get_device_name(),
         passed=True,
+        rejected_state_released_with_retained_errors=True,
     )
     (args.output / f"{args.phase}-rank{rank}.json").write_text(json.dumps(report, indent=2))
     dist.barrier()
