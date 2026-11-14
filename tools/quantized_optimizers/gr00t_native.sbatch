@@ -43,8 +43,9 @@ export GPUS_PER_NODE=4
 export LIBERO_MANIFEST_ROOT="$RESULTS/manifests" LIBERO_CONFIG_PATH="$RESULTS/libero-config"
 export POSTTRAIN_SIM_PYTHON="$SIM_PYTHON"
 export RAY_TMPDIR=/tmp/optim-ray B1K_SIM_IPC_DIR=/tmp/optim-sim B1K_SHM_DIR=/tmp/optim-shm
+export NUMBA_CACHE_DIR=/tmp/optim-numba XDG_CACHE_HOME=/tmp/optim-cache CUDA_CACHE_PATH=/tmp/optim-cuda-cache
 export IMAGINAIRE_OUTPUT_ROOT="$RESULTS/runs" __EGL_VENDOR_LIBRARY_FILENAMES="$RESULTS/egl.json"
-mkdir -p "$RAY_TMPDIR" "$B1K_SIM_IPC_DIR" "$B1K_SHM_DIR"
+mkdir -p "$RAY_TMPDIR" "$B1K_SIM_IPC_DIR" "$B1K_SHM_DIR" "$NUMBA_CACHE_DIR" "$XDG_CACHE_HOME" "$CUDA_CACHE_PATH"
 cd "$source_dir"
 nvidia-smi --query-gpu=name,memory.total,uuid --format=csv > "$RESULTS/devices.csv"
 extra=()
