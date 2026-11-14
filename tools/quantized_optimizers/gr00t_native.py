@@ -8,6 +8,7 @@ import argparse
 import importlib.metadata
 import json
 import os
+import platform
 import shutil
 import subprocess
 import sys
@@ -98,6 +99,32 @@ def main():
     if args.evaluate_only and not args.resume:
         parser.error("--evaluate-only requires --resume")
     root, output = Path(os.environ["RESOURCE_ROOT"]), Path(os.environ["RESULTS"])
+    # Allocation identity is needed before interpreting timing differences across
+    # scheduler-selected nodes. This records no environment or credential values.
+    cpu_models = sorted(
+        {
+            line.split(":", 1)[1].strip()
+            for line in Path("/proc/cpuinfo").read_text().splitlines()
+            if line.startswith("model name")
+        }
+    )
+    (output / "host-placement.json").write_text(
+        json.dumps(
+            {
+                "hostname": platform.node(),
+                "kernel": platform.release(),
+                "architecture": platform.machine(),
+                "cpu_models": cpu_models,
+                "launcher_cpu_affinity": sorted(os.sched_getaffinity(0)),
+                "numa_cpu_lists": {
+                    path.parent.name: path.read_text().strip()
+                    for path in sorted(Path("/sys/devices/system/node").glob("node*/cpulist"))
+                },
+                "scope": "allocation launcher; individual native worker affinity may differ",
+            },
+            indent=2,
+        )
+    )
     expected = {"numpy": "1.26.4", "transformers": "4.57.6", "diffusers": "0.39.0", "bitsandbytes": "0.49.2"}
     actual = {name: importlib.metadata.version(name) for name in expected}
     (output / "dependency-check.json").write_text(json.dumps({"expected": expected, "actual": actual}, indent=2))

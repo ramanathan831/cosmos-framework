@@ -58,7 +58,7 @@ export NUMBA_CACHE_DIR=/tmp/optim-numba XDG_CACHE_HOME=/tmp/optim-cache CUDA_CAC
 export IMAGINAIRE_OUTPUT_ROOT="${NATIVE_OUTPUT_ROOT:-$RESULTS/runs}" __EGL_VENDOR_LIBRARY_FILENAMES="$RESULTS/egl.json"
 mkdir -p "$RAY_TMPDIR" "$B1K_SIM_IPC_DIR" "$B1K_SHM_DIR" "$NUMBA_CACHE_DIR" "$XDG_CACHE_HOME" "$CUDA_CACHE_PATH"
 cd "$source_dir"
-nvidia-smi --query-gpu=name,memory.total,uuid --format=csv > "$RESULTS/devices.csv"
+nvidia-smi --query-gpu=name,memory.total,uuid,pci.bus_id,driver_version --format=csv > "$RESULTS/devices.csv"
 extra=()
 if [ "$EVALUATE_ONLY" = 1 ]; then extra+=(--evaluate-only); fi
 python -m tools.quantized_optimizers.gr00t_native --optimizer "$OPTIMIZER_NAME" --resume "$RESUME_CHECKPOINT" --updates "$UPDATES" "${extra[@]}"
