@@ -42,6 +42,28 @@ SFT surrogate is used. The matched head-only controls above use fused AdamW and 
 the older native official recipe uses unfused AdamW and HF decay groups, and remains a distinct
 comparison rather than an interchangeable control.
 
+The separate `gr00t_n1d7_libero_official_head.py` native action-SFT recipe makes that existing
+control executable. It streams the same pinned base into **FP32 backbone/head storage with BF16
+autocast**, trains only the native head, and uses `adamw_torch` with HF decay/no-decay groups.
+The actual pinned finetune launcher overrides its generic training-config fused-AdamW default;
+this control follows the launcher and the existing Cosmos optimizer recipe. Training uses the
+checkpoint's random crop/color jitter and 0.2 processor state dropout, while evaluation uses the
+native deterministic transforms. Albumentations 1.4.18 is required: its transform randomness uses
+the checkpointed global Python/NumPy streams, verified with actual nonzero augmentations.
+
+This control explicitly adjusts the upstream batch-64/10,000-update defaults to batch one and
+300 updates, with 15 warmup updates and the pinned HF cosine scheduler (including zero endpoints).
+The same prepared ten-action supervision prefix remains explicit. It is a separate practical
+control, not a replacement for matched BF16 LoRA or the already frozen development protocol.
+Use the normal training command below with `--config
+cosmos_framework/posttrain/configs/gr00t_n1d7_libero_official_head.py`, replace the
+`model.backbone_adaptation.*` overrides with `data.backbone_path=/staged/Cosmos-Reason2-2B-metadata`,
+and retain the dataset overrides. Native checkpoint/recovery and complete head-artifact reload
+use the same entrypoints; dense export is explicitly unavailable for this additional control.
+CPU optimizer/scheduler, augmentation, alias, frozen-base, trained recovery and portable-reload
+contracts are covered; full-model accelerator and task qualification remain required before
+claiming this control's measured quality or performance.
+
 Use pinned Isaac-GR00T source `51d4c89f72fda44cbf77285c6a8114b52676b8a1`, Transformers 4.57.6,
 and bitsandbytes 0.49.2 for NF4. Construction verifies the upstream source digest and content-bound
 checkpoint/processor identity. No missing-kernel, dense-weight or alternate-backend fallback occurs.

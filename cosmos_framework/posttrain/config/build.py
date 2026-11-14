@@ -350,6 +350,34 @@ def build_sft_lr_scheduler(
     constant; ``None`` at warmup 0, the pre-existing path); ``cosine`` = :func:`build_warmup_cosine_lr_scheduler` (the
     backbone's warmup + cosine, cycle = ``schedule.cycle_steps`` or ``max_steps``).
     """
+    from cosmos_framework.posttrain.config.gr00t_official import (
+        Gr00tOfficialHeadSchedule,
+        validate_official_head_optimizer,
+    )
+
+    if isinstance(schedule, Gr00tOfficialHeadSchedule):
+        from transformers import get_cosine_schedule_with_warmup
+
+        schedule.__post_init__()
+        validate_official_head_optimizer(opt_cfg)
+        horizon = schedule.cycle_steps or max_steps
+        if type(horizon) is not int or horizon <= 0:
+            raise ValueError("official GR00T schedule requires a positive update horizon")
+        scheduler = get_cosine_schedule_with_warmup(
+            optimizer, num_warmup_steps=opt_cfg.warmup_steps, num_training_steps=horizon
+        )
+        bind_scheduler_resume_identity(
+            scheduler,
+            {
+                "version": 1,
+                "kind": "gr00t_official_hf_cosine_v1",
+                "step_timing": "after_applied_optimizer_update_v1",
+                "warm_up_steps": opt_cfg.warmup_steps,
+                "cycle_length": horizon,
+                "num_cycles": 0.5,
+            },
+        )
+        return scheduler
     if schedule.kind == "constant":
         return build_lr_scheduler(optimizer, opt_cfg)
     cycle = int(schedule.cycle_steps or max_steps)
@@ -544,7 +572,7 @@ def build_optimizer(
     net = getattr(model, "net", model)
     adapter_parameters = getattr(net, "_cosmos_adapter_parameters", None)
     if adapter_parameters is not None:
-        _validate_native_adapter_optimizer(opt_cfg)
+        _validate_native_adapter_optimizer(opt_cfg, net=net)
         expected = list(adapter_parameters.values())
         expected_ids = {id(p) for p in expected}
         actual_ids = {id(p) for p in net.parameters() if p.requires_grad}
@@ -678,8 +706,28 @@ def build_optimizer(
     return optimizer
 
 
-def _validate_native_adapter_optimizer(opt_cfg: OptimizerConfig) -> None:
+def _validate_native_adapter_optimizer(opt_cfg: OptimizerConfig, *, net: Any = None) -> None:
     """Keep the initial paired recipes on one explicitly qualified optimizer path."""
+    from cosmos_framework.posttrain.config.gr00t_official import (
+        OFFICIAL_HEAD_PROFILE,
+        validate_official_head_optimizer,
+    )
+
+    profile = getattr(net, "_cosmos_adapter_optimizer_profile", None)
+    if profile is not None:
+        identity = getattr(net, "_cosmos_adapter_metadata", {})
+        parameters = getattr(net, "_cosmos_adapter_parameters", {})
+        if (
+            profile != OFFICIAL_HEAD_PROFILE
+            or identity.get("format") != "cosmos.gr00t-official-head.v1"
+            or identity.get("optimizer_profile") != OFFICIAL_HEAD_PROFILE
+            or not parameters
+            or set(identity.get("auxiliary_parameters", ())) != set(parameters)
+            or any(not name.startswith("action_head.") or ".lora_" in name for name in parameters)
+        ):
+            raise ValueError("official optimizer profile requires the explicit GR00T head-only task identity")
+        validate_official_head_optimizer(opt_cfg)
+        return
     if opt_cfg.name != "adamw" or opt_cfg.impl != "fused":
         raise ValueError("native LoRA requires OptimizerConfig(name='adamw', impl='fused')")
     if opt_cfg.train_keys:

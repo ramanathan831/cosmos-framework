@@ -18,6 +18,7 @@ from cosmos_framework.posttrain.config.sft import SFTLRScheduleConfig
 @dataclass
 class ActionSFTConfig(RunConfig):
     optimizer: OptimizerConfig = field(default_factory=lambda: OptimizerConfig(impl="fused"))
+    optimizer_profile: str = "native_fused_all_v1"
     max_steps: int = 100
     micro_batch_size: int = 1
     evaluation_every: int = 10
@@ -38,8 +39,19 @@ class ActionSFTConfig(RunConfig):
         self.lr_schedule.__post_init__()
         if type(self.max_steps) is not int or self.max_steps <= 0:
             raise ValueError("native action SFT requires a positive max_steps; use action_eval for evaluation only")
-        if self.optimizer.name != "adamw" or self.optimizer.impl != "fused" or self.optimizer.decay_groups != "":
-            raise ValueError("action SFT adaptation requires fused AdamW with explicit all-parameter decay groups")
+        from cosmos_framework.posttrain.config.gr00t_official import (
+            NATIVE_ADAPTER_OPTIMIZER_PROFILE,
+            OFFICIAL_HEAD_PROFILE,
+            validate_official_head_optimizer,
+        )
+
+        if self.optimizer_profile == OFFICIAL_HEAD_PROFILE:
+            validate_official_head_optimizer(self.optimizer)
+        elif self.optimizer_profile == NATIVE_ADAPTER_OPTIMIZER_PROFILE:
+            if self.optimizer.name != "adamw" or self.optimizer.impl != "fused" or self.optimizer.decay_groups != "":
+                raise ValueError("action SFT adaptation requires fused AdamW with explicit all-parameter decay groups")
+        else:
+            raise ValueError("unsupported native action optimizer profile")
         if self.optimizer.train_keys:
             raise ValueError("action SFT owns exact adapter/auxiliary trainability; optimizer train_keys must be empty")
         if self.grad_accum != 1:
