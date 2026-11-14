@@ -133,8 +133,9 @@ Do not edit metadata to bypass this restriction. Portable inference reload remai
 separate contract and accepts compatible older artifacts. The guard has 67 passing
 CPU lifecycle tests; current-build full-model accelerator recovery is being qualified
 separately from the retained `4cba88f` recovery evidence.
-The current inventory has 27 files: it also binds shared flow-dataset row lookup
-and media decoding, whose behavior can change without changing dataset bytes.
+The current inventory has 28 files: it also binds shared flow-dataset row lookup,
+media decoding and the opt-in evaluator helper. Those execution paths can change
+without changing dataset bytes; the evaluator cache remains off by default.
 Earlier 25-file contracts still require their original build; they are not rewritten
 or upgraded during resume. This extension does not bind portable inference to training code.
 
@@ -445,6 +446,33 @@ every case outcome, task-level comparison and response-time distribution.
 On-policy observations and response counts differ, so these response timings do
 not establish an inference acceleration claim. Offline time to the action-MSE
 target above is not time to preserved rollout success.
+
+The separate first-target stopping screen (`38523598`, 2,901 GPU-seconds) loaded
+existing update-200 DCPs without retraining. All three arms had first met the
+unchanged offline target at that update. On the same 100 development cases,
+NF4 LoRA + head scored **98/100**, BF16 LoRA + head **97/100**, and the matched
+BF16 trained-head-only control **97/100**. The prospective joint point screen
+passes; keep first-target stopping as a development candidate. The original
+update-300 failure above remains unchanged.
+
+The paired whole-task bootstrap (10,000 draws, seed 6809) gives NF4 upper loss
+bounds of **3 points versus BF16 LoRA** and **4 points versus its frozen source**,
+which do not meet the unchanged two-point preservation guard. Both LoRA arms
+improve five points over their own update-300 policies; their upper loss bounds
+for that comparison are −2 points (NF4) and −1 point (BF16). BF16 head-only
+loses two points against its source, with an upper bound of four points. These
+are fixed-checkpoint development comparisons, not independent or paired-training-seed
+qualification, superiority, or evidence of improved time to rollout quality.
+Original offline target clocks are retained; no rollout target clock is reconstructed.
+
+All 2,149 host samples were complete. NF4/BF16 LoRA sampled owned-process peaks
+through checkpoint loading and rollout were 11.646/12.697 GiB; they remain sampled
+lower bounds. The source-relative comparisons and all case outcomes are retained
+in the [terminal evidence](evidence/native_qlora_family_engineering_4cba88f.json).
+On-policy response inputs differ, so these timings do not establish inference
+acceleration. The previously verified update-300 portable and standalone artifacts
+validate their own tensors; selected update-200 publication and fresh scoring remain
+separate pending checks.
 
 To reproduce this screen through the native training command above, use the
 admitted `gr00t-development-v1` JSONL files and these overrides in **each** arm:

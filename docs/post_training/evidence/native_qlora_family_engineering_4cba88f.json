@@ -12257,6 +12257,858 @@
         "Short setup/verification intervals sometimes have no external samples; native allocator records remain separate.",
         "No natural long-context quality, independent task preservation, or deployment latency is established."
       ]
+    },
+    "38523598": {
+      "family": "gr00t",
+      "slurm_state": "COMPLETED",
+      "allocation_gpu_seconds": 2901,
+      "scope": "Existing first-target200 DCPs on300 development rollouts. Technical and prospective point screen pass;2pp95% quality guards remain unmet. No retraining or independent confirmation.",
+      "trained_implementation_revision": "4cba88f4d84ce69037c194e58670e8491388a36d",
+      "inference_implementation_revision": "3c96ce8503eef263b7feb3fd2a23cad28efa6ab7",
+      "receipt": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-target200-38523598-summary.json",
+        "sha256": "8c8c1000cbb04f6806c859f9262573440f15887628ad8d76dd0bc4ddf73292ca"
+      },
+      "raw_receipt_archive": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-target200-38523598-receipts-v1.tar.gz",
+        "sha256": "cddde848c147681794c2848465dc09205a04a2206c292af9329eb12099b702c2"
+      },
+      "memory_receipt": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-target200-38523598-memory-summary.json",
+        "sha256": "2b01a77be56200cbe42bc2346be63728f651d87a35e2159c91f891a534a2452b"
+      },
+      "protocol_sha256": "9180ad50387426260923824ba05dff770f8423b37da14f401cb9ded63aa3dd4b",
+      "cases_sha256": "ab84a1fdca08d901d1830430452f4a1eee5ef52fa171ca61c95b76d9f7f1d4b9",
+      "acceptance": {
+        "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38523598/acceptance.json",
+        "sha256": "80ab0983ab181235d40a647e0b02c43bd381717a3ae09b36a1db4862a75f4cd0",
+        "passed": true,
+        "development_joint_point_screen": true,
+        "release_qualified": false
+      },
+      "independent_verification": {
+        "all38_hash_listed_files_verified": true,
+        "all7_sealed_bootstrap_comparisons_exact_replay": true,
+        "separate_root_reanalysis_matches_within": 1e-09
+      },
+      "arms": {
+        "bf16_frozen": {
+          "checkpoint": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_frozen/development/native/qualification/gr00t-development-v1/bf16_frozen-seed17/fixed300/checkpoints/iter_000200",
+          "episodes": 100,
+          "native_workflow_seconds": 847.8512775090057,
+          "policy_loading_seconds": 51.99648514800356,
+          "response_latency": {
+            "cold_first_response_seconds": 1.3314584949985147,
+            "comparison_limit": "On-policy observations can diverge between artifacts; these response distributions alone do not establish matched-input inference acceleration.",
+            "scope": "native observation preparation, transfer, four-step action sampling, decoding and RNG/mode restoration; excludes gateway IPC and simulator rendering/control",
+            "steady_calls": 1417,
+            "steady_seconds": {
+              "mean": 0.26880053143425636,
+              "p50": 0.2685055790061597,
+              "p95": 0.2720346568210516,
+              "p99": 0.27396894348086787
+            },
+            "warmup_calls": 5
+          },
+          "result_path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-target200-38523598-receipts-v1/bf16_frozen/rollout.json",
+          "result_sha256": "26206c6e1a5ee882932cf0249b24dc50f304b0e40a6ccd5ef045fc7a3a03e15f",
+          "successes": 97
+        },
+        "bf16_lora": {
+          "checkpoint": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_lora/development/native/qualification/gr00t-development-v1/bf16_lora-seed17/fixed300/checkpoints/iter_000200",
+          "episodes": 100,
+          "native_workflow_seconds": 904.5978571329906,
+          "policy_loading_seconds": 48.141513094014954,
+          "response_latency": {
+            "cold_first_response_seconds": 1.2613396089873277,
+            "comparison_limit": "On-policy observations can diverge between artifacts; these response distributions alone do not establish matched-input inference acceleration.",
+            "scope": "native observation preparation, transfer, four-step action sampling, decoding and RNG/mode restoration; excludes gateway IPC and simulator rendering/control",
+            "steady_calls": 1451,
+            "steady_seconds": {
+              "mean": 0.300476152798671,
+              "p50": 0.30040385597385466,
+              "p95": 0.3034557689970825,
+              "p99": 0.30473080099909566
+            },
+            "warmup_calls": 5
+          },
+          "result_path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-target200-38523598-receipts-v1/bf16_lora/rollout.json",
+          "result_sha256": "5d0f5b02b3854e090352ffb6ae33c401dfb88d844328759895b9920a9902d2cb",
+          "successes": 97
+        },
+        "nf4_lora": {
+          "checkpoint": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/nf4_lora/development/native/qualification/gr00t-development-v1/nf4_lora-seed17/fixed300/checkpoints/iter_000200",
+          "episodes": 100,
+          "native_workflow_seconds": 932.3728713589953,
+          "policy_loading_seconds": 50.99099690900766,
+          "response_latency": {
+            "cold_first_response_seconds": 1.1067003910138737,
+            "comparison_limit": "On-policy observations can diverge between artifacts; these response distributions alone do not establish matched-input inference acceleration.",
+            "scope": "native observation preparation, transfer, four-step action sampling, decoding and RNG/mode restoration; excludes gateway IPC and simulator rendering/control",
+            "steady_calls": 1433,
+            "steady_seconds": {
+              "mean": 0.3233102764949737,
+              "p50": 0.3232688950083684,
+              "p95": 0.32600564799504356,
+              "p99": 0.3272294098744169
+            },
+            "warmup_calls": 5
+          },
+          "result_path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-target200-38523598-receipts-v1/nf4_lora/rollout.json",
+          "result_sha256": "6555da707a7395138eaf863a4736c699aa0c1c0180ed9541dd76ed8a9ef223e6",
+          "successes": 98
+        }
+      },
+      "comparisons": {
+        "analysis_code_sha256": "6adac36b7ae17744e881afbb4dd395b3fdfe3fca45924dae838203602aba91b4",
+        "cases_sha256": "ab84a1fdca08d901d1830430452f4a1eee5ef52fa171ca61c95b76d9f7f1d4b9",
+        "comparisons": {
+          "adaptation_bf16_lora200_vs_bf16_source": {
+            "candidate_equal_task_success": 0.97,
+            "cases": 100,
+            "draws": 10000,
+            "method": "paired whole-task bootstrap; fixed initial states averaged within task; equal task weights",
+            "per_task": [
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "candidate_success": 0.9,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "candidate_success": 0.8,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 0.9,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 9
+              }
+            ],
+            "recipe_preservation_established": false,
+            "reference_equal_task_success": 0.99,
+            "resampling_seed": 6809,
+            "scope": "One fixed checkpoint/source pair on exposed development cases; training-seed variation and independent confirmation are not established.",
+            "success_loss_percentage_points": 1.9999999999999996,
+            "success_loss_upper_one_sided95_percentage_points": 5.999999999999998,
+            "tasks": 10,
+            "useful_adaptation_established": false
+          },
+          "adaptation_nf4_200_vs_nf4_source": {
+            "candidate_equal_task_success": 0.9800000000000001,
+            "cases": 100,
+            "draws": 10000,
+            "method": "paired whole-task bootstrap; fixed initial states averaged within task; equal task weights",
+            "per_task": [
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "candidate_success": 0.9,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "candidate_success": 0.9,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 0.9,
+                "suite": "libero_spatial",
+                "task_id": 9
+              }
+            ],
+            "recipe_preservation_established": false,
+            "reference_equal_task_success": 0.99,
+            "resampling_seed": 6809,
+            "scope": "One fixed checkpoint/source pair on exposed development cases; training-seed variation and independent confirmation are not established.",
+            "success_loss_percentage_points": 0.9999999999999998,
+            "success_loss_upper_one_sided95_percentage_points": 3.999999999999999,
+            "tasks": 10,
+            "useful_adaptation_established": false
+          },
+          "bf16_lora_200_vs_own300": {
+            "candidate_equal_task_success": 0.97,
+            "cases": 100,
+            "draws": 10000,
+            "method": "paired whole-task bootstrap; fixed initial states averaged within task; equal task weights",
+            "per_task": [
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 0.9,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 0.9,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "candidate_success": 0.9,
+                "reference_success": 0.9,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "candidate_success": 0.8,
+                "reference_success": 0.8,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 0.7,
+                "suite": "libero_spatial",
+                "task_id": 9
+              }
+            ],
+            "recipe_preservation_established": false,
+            "reference_equal_task_success": 0.9199999999999999,
+            "resampling_seed": 6809,
+            "scope": "One fixed checkpoint/source pair on exposed development cases; training-seed variation and independent confirmation are not established.",
+            "success_loss_percentage_points": -5.0,
+            "success_loss_upper_one_sided95_percentage_points": -0.9999999999999998,
+            "tasks": 10,
+            "useful_adaptation_established": false
+          },
+          "head200_vs_bf16_source": {
+            "candidate_equal_task_success": 0.97,
+            "cases": 100,
+            "draws": 10000,
+            "method": "paired whole-task bootstrap; fixed initial states averaged within task; equal task weights",
+            "per_task": [
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "candidate_success": 0.9,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "candidate_success": 0.9,
+                "reference_success": 0.9,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "candidate_success": 0.9,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 9
+              }
+            ],
+            "recipe_preservation_established": false,
+            "reference_equal_task_success": 0.99,
+            "resampling_seed": 6809,
+            "scope": "One fixed checkpoint/source pair on exposed development cases; training-seed variation and independent confirmation are not established.",
+            "success_loss_percentage_points": 1.9999999999999996,
+            "success_loss_upper_one_sided95_percentage_points": 3.999999999999999,
+            "tasks": 10,
+            "useful_adaptation_established": false
+          },
+          "nf4_200_vs_trained_bf16_head200": {
+            "candidate_equal_task_success": 0.9800000000000001,
+            "cases": 100,
+            "draws": 10000,
+            "method": "paired whole-task bootstrap; fixed initial states averaged within task; equal task weights",
+            "per_task": [
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "candidate_success": 0.9,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 0.9,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "candidate_success": 0.9,
+                "reference_success": 0.9,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 0.9,
+                "suite": "libero_spatial",
+                "task_id": 9
+              }
+            ],
+            "recipe_preservation_established": false,
+            "reference_equal_task_success": 0.97,
+            "resampling_seed": 6809,
+            "scope": "One fixed checkpoint/source pair on exposed development cases; training-seed variation and independent confirmation are not established.",
+            "success_loss_percentage_points": -0.9999999999999998,
+            "success_loss_upper_one_sided95_percentage_points": 1.9999999999999996,
+            "tasks": 10,
+            "useful_adaptation_established": false
+          },
+          "nf4_lora_200_vs_own300": {
+            "candidate_equal_task_success": 0.9800000000000001,
+            "cases": 100,
+            "draws": 10000,
+            "method": "paired whole-task bootstrap; fixed initial states averaged within task; equal task weights",
+            "per_task": [
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 0.9,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "candidate_success": 0.9,
+                "reference_success": 0.9,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 0.8,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "candidate_success": 0.9,
+                "reference_success": 0.9,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 0.9,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 0.9,
+                "suite": "libero_spatial",
+                "task_id": 9
+              }
+            ],
+            "recipe_preservation_established": false,
+            "reference_equal_task_success": 0.93,
+            "resampling_seed": 6809,
+            "scope": "One fixed checkpoint/source pair on exposed development cases; training-seed variation and independent confirmation are not established.",
+            "success_loss_percentage_points": -4.999999999999999,
+            "success_loss_upper_one_sided95_percentage_points": -1.9999999999999996,
+            "tasks": 10,
+            "useful_adaptation_established": false
+          },
+          "precision_nf4_vs_bf16_trained200": {
+            "candidate_equal_task_success": 0.9800000000000001,
+            "cases": 100,
+            "draws": 10000,
+            "method": "paired whole-task bootstrap; fixed initial states averaged within task; equal task weights",
+            "per_task": [
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "candidate_success": 0.9,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 0.9,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 0.8,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "candidate_success": 0.9,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "candidate_success": 1.0,
+                "reference_success": 1.0,
+                "suite": "libero_spatial",
+                "task_id": 9
+              }
+            ],
+            "recipe_preservation_established": false,
+            "reference_equal_task_success": 0.97,
+            "resampling_seed": 6809,
+            "scope": "One fixed checkpoint/source pair on exposed development cases; training-seed variation and independent confirmation are not established.",
+            "success_loss_percentage_points": -0.9999999999999998,
+            "success_loss_upper_one_sided95_percentage_points": 2.999999999999999,
+            "tasks": 10,
+            "useful_adaptation_established": false
+          }
+        },
+        "development_joint_point_screen": true,
+        "exact_point_losses_percentage_points": {
+          "adaptation_nf4_200_vs_nf4_source": {
+            "denominator": 1,
+            "numerator": 1
+          },
+          "precision_nf4_vs_bf16_trained200": {
+            "denominator": 1,
+            "numerator": -1
+          }
+        },
+        "format": "gr00t-first-target200-rollout-comparison-v1",
+        "latency_limit": "Separate allocations and different on-policy observations; no matched-input acceleration claim.",
+        "offline_target_passed": true,
+        "original300_failure_preserved": true,
+        "original300_four_arm_screen_unchanged": true,
+        "protocol_sha256": "9180ad50387426260923824ba05dff770f8423b37da14f401cb9ded63aa3dd4b",
+        "release_qualified": false,
+        "result_sha256": {
+          "bf16_frozen": "26206c6e1a5ee882932cf0249b24dc50f304b0e40a6ccd5ef045fc7a3a03e15f",
+          "bf16_lora": "5d0f5b02b3854e090352ffb6ae33c401dfb88d844328759895b9920a9902d2cb",
+          "nf4_lora": "6555da707a7395138eaf863a4736c699aa0c1c0180ed9541dd76ed8a9ef223e6"
+        },
+        "time_to_rollout_quality_established": false
+      },
+      "runtime": {
+        "code": "3c96ce8503eef263b7feb3fd2a23cad28efa6ab7",
+        "cpu_affinity": [
+          30,
+          31,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          154,
+          155,
+          158,
+          159,
+          160,
+          161,
+          162,
+          163
+        ],
+        "cpu_numa_nodes": {
+          "154": [
+            "node1"
+          ],
+          "155": [
+            "node1"
+          ],
+          "158": [
+            "node1"
+          ],
+          "159": [
+            "node1"
+          ],
+          "160": [
+            "node2"
+          ],
+          "161": [
+            "node2"
+          ],
+          "162": [
+            "node2"
+          ],
+          "163": [
+            "node2"
+          ],
+          "30": [
+            "node1"
+          ],
+          "31": [
+            "node1"
+          ],
+          "34": [
+            "node2"
+          ],
+          "35": [
+            "node2"
+          ],
+          "36": [
+            "node2"
+          ],
+          "37": [
+            "node2"
+          ],
+          "38": [
+            "node2"
+          ],
+          "39": [
+            "node2"
+          ]
+        },
+        "cuda_visible_devices": "0",
+        "gpu": {
+          "bytes": 85174583296,
+          "name": "NVIDIA A100-SXM4-80GB",
+          "nvml_total_memory_bytes": 85899345920,
+          "nvml_uuid_roundtrip_verified": true,
+          "torch_reported_uuid": "19c99066-d5c0-b2c9-14b1-093dfc9bc9ed",
+          "uuid": "GPU-19c99066-d5c0-b2c9-14b1-093dfc9bc9ed"
+        },
+        "process_memory_policy": [
+          "Cpus_allowed_list:\t30-31,34-39,154-155,158-163",
+          "Mems_allowed_list:\t0-7"
+        ],
+        "slurm_job": "38523598",
+        "versions": {
+          "bitsandbytes": "0.49.2",
+          "diffusers": "0.35.1",
+          "safetensors": "0.8.0",
+          "torch": "2.10.0+cu128",
+          "transformers": "4.57.6"
+        }
+      },
+      "sampled_memory": {
+        "all": {
+          "device_peak_bytes": 14932639744,
+          "errors": [],
+          "gpu_memory_evidence_valid": true,
+          "host_pss_complete": true,
+          "host_pss_sum_peak_bytes": 5808290816,
+          "host_rss_sum_peak_bytes": 6405181440,
+          "nvml_capacity_bytes": 85899345920,
+          "observed_span_seconds": 2731.8793210983276,
+          "owned_device_process_peak_bytes": 13633585152,
+          "peaks_are_sampled_lower_bounds": true,
+          "samples": 2149,
+          "sampling_gap_seconds": {
+            "count": 2148,
+            "maximum": 1.5334274768829346,
+            "mean": 1.2718246373828341,
+            "median": 1.2691450119018555,
+            "p95": 1.2963785409927369,
+            "sum": 2731.8793210983276
+          }
+        },
+        "modes": {
+          "bf16_frozen": {
+            "device_peak_bytes": 14811004928,
+            "errors": [],
+            "gpu_memory_evidence_valid": true,
+            "host_pss_complete": true,
+            "host_pss_sum_peak_bytes": 5779373056,
+            "host_rss_sum_peak_bytes": 6376898560,
+            "nvml_capacity_bytes": 85899345920,
+            "observed_span_seconds": 862.332181930542,
+            "owned_device_process_peak_bytes": 13511950336,
+            "peaks_are_sampled_lower_bounds": true,
+            "samples": 676,
+            "sampling_gap_seconds": {
+              "count": 675,
+              "maximum": 1.5334274768829346,
+              "mean": 1.2775291584156179,
+              "median": 1.2720255851745605,
+              "p95": 1.3092965602874755,
+              "sum": 862.332181930542
+            }
+          },
+          "bf16_lora": {
+            "device_peak_bytes": 14932639744,
+            "errors": [],
+            "gpu_memory_evidence_valid": true,
+            "host_pss_complete": true,
+            "host_pss_sum_peak_bytes": 5794595840,
+            "host_rss_sum_peak_bytes": 6392184832,
+            "nvml_capacity_bytes": 85899345920,
+            "observed_span_seconds": 919.6469240188599,
+            "owned_device_process_peak_bytes": 13633585152,
+            "peaks_are_sampled_lower_bounds": true,
+            "samples": 722,
+            "sampling_gap_seconds": {
+              "count": 721,
+              "maximum": 1.4944686889648438,
+              "mean": 1.2755158446863522,
+              "median": 1.2711575031280518,
+              "p95": 1.2954380512237549,
+              "sum": 919.6469240188599
+            }
+          },
+          "nf4_lora": {
+            "device_peak_bytes": 13804371968,
+            "errors": [],
+            "gpu_memory_evidence_valid": true,
+            "host_pss_complete": true,
+            "host_pss_sum_peak_bytes": 5808290816,
+            "host_rss_sum_peak_bytes": 6405181440,
+            "nvml_capacity_bytes": 85899345920,
+            "observed_span_seconds": 947.3899779319763,
+            "owned_device_process_peak_bytes": 12505317376,
+            "peaks_are_sampled_lower_bounds": true,
+            "samples": 751,
+            "sampling_gap_seconds": {
+              "count": 750,
+              "maximum": 1.4782328605651855,
+              "mean": 1.263186637242635,
+              "median": 1.259436845779419,
+              "p95": 1.2779544949531556,
+              "sum": 947.3899779319763
+            }
+          }
+        },
+        "raw_path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-target200-38523598-receipts-v1/memory-samples.jsonl",
+        "raw_sha256": "4cbb3ada017dd5ad0de55a97af349eae55d87d57dd1f121757b157ddf6c9fbbc",
+        "scope": "Sampled lower bounds through each native rollout process, including loading; no allocator peak or matched-input latency superiority inferred."
+      },
+      "decision": "Keep first-target stopping as development candidate only. Preserve failed300decision. NF upperloss3ppvsBF/4ppvssource does not meet2ppguard; no recipe-level/independent preservation, superiority or retrospective rollout-time-to-quality claim.",
+      "unchanged_original300_failure": true,
+      "selected200_portable_export_validated": false,
+      "selected200_unmerged_export_validated": false,
+      "next_action": "Publish and fresh-score the actual200 portable artifacts, then prospectively continue paired42/123 training seeds with unchanged300horizon/first-target rule. No admission follows from this evidence entry."
     }
   },
   "read_only_head_memory_diagnostic": {
