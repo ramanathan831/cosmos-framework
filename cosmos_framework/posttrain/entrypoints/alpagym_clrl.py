@@ -397,6 +397,7 @@ def alpagym_optimizer_config(
     train_config: Any,
     *,
     name="adamw",
+    impl="",
     update_policy="parameter",
     bnb_min_8bit_size=4096,
     bnb_fp32_state_names=(),
@@ -406,6 +407,7 @@ def alpagym_optimizer_config(
 
     return OptimizerConfig(
         name=name,
+        impl=impl,
         update_policy=update_policy,
         lr=float(train_config.optm_lr),
         betas=[0.9, 0.999],
@@ -828,12 +830,17 @@ def run(config: EntryConfig) -> dict:
 
 def main() -> None:
     """CLI. AlpaGym's host CLI invokes this in place of `cosmos_rl.launcher.launch_all`."""
+    from cosmos_framework.posttrain.config.rl import OPTIMIZER_IMPLS
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--resolved-config", required=True, help="AlpaGym's resolved_config.yaml")
     parser.add_argument("--gpus", type=int, required=True, help="GPUs for the cosmos half")
     parser.add_argument("--steps", type=int, required=True)
     parser.add_argument("--group-size", type=int, required=True)
     parser.add_argument("--optimizer", choices=("adamw", "adamw_bnb_8bit", "paged_adamw_8bit"), default="adamw")
+    parser.add_argument(
+        "--optimizer-impl", choices=OPTIMIZER_IMPLS, default="", help="Explicit torch AdamW implementation."
+    )
     parser.add_argument("--optimizer-update-policy", choices=("parameter", "fp32_master"), default="parameter")
     parser.add_argument("--optimizer-bnb-min-8bit-size", type=int, default=4096)
     parser.add_argument(
@@ -916,6 +923,7 @@ def main() -> None:
             optimizer=alpagym_optimizer_config(
                 run_config.cosmos.train,
                 name=args.optimizer,
+                impl=args.optimizer_impl,
                 update_policy=args.optimizer_update_policy,
                 bnb_min_8bit_size=args.optimizer_bnb_min_8bit_size,
                 bnb_fp32_state_names=args.optimizer_bnb_fp32_state_name,

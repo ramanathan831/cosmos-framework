@@ -80,8 +80,10 @@ def test_alpagym_actual_entry_constructs_after_setup(name, override, monkeypatch
         assert backend_capture[0][2].bnb_fp32_state_names == (["weight"] if override else [])
 
 
-@pytest.mark.parametrize("name", ["adamw", "adamw_bnb_8bit", "paged_adamw_8bit"])
-def test_alpagym_cli_resolves_shared_state_options_without_allocating_model(name, monkeypatch):
+@pytest.mark.parametrize(
+    "name,impl", [("adamw", ""), ("adamw", "fused"), ("adamw_bnb_8bit", ""), ("paged_adamw_8bit", "")]
+)
+def test_alpagym_cli_resolves_shared_state_options_without_allocating_model(name, impl, monkeypatch):
     from cosmos_framework.posttrain.entrypoints import alpagym_clrl as entry
 
     train = SimpleNamespace(
@@ -110,10 +112,14 @@ def test_alpagym_cli_resolves_shared_state_options_without_allocating_model(name
             "--optimizer-bnb-fp32-state-name",
             "bias",
         ]
+    if impl:
+        argv += ["--optimizer-impl", impl, "--optimizer-update-policy", "fp32_master"]
     monkeypatch.setattr(sys, "argv", argv)
     entry.main()
     selected = captured[0].optimizer
     assert selected.name == name
+    assert selected.impl == impl
+    assert selected.update_policy == ("fp32_master" if impl or name != "adamw" else "parameter")
     assert selected.bnb_min_8bit_size == (4096 if name == "adamw" else 8192)
     assert selected.bnb_fp32_state_names == ([] if name == "adamw" else ["weight", "bias"])
     assert (selected.lr, selected.eps, selected.betas, selected.weight_decay) == (2e-5, 1e-6, [0.9, 0.999], 0.01)
@@ -126,6 +132,7 @@ def test_alpagym_cli_resolves_shared_state_options_without_allocating_model(name
         {"bnb_min_8bit_size": 0},
         {"bnb_fp32_state_names": ["weight", "weight"]},
         {"name": "adamw", "bnb_min_8bit_size": 8192},
+        {"impl": "fused"},
     ],
 )
 def test_alpagym_state_options_use_shared_validation(options):
