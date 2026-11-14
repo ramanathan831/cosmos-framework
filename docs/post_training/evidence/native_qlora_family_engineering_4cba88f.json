@@ -12821,7 +12821,60 @@
     "native_simulator_control_hz": 20,
     "preparation": "Consecutive source action indices retained, without temporal resampling. No upstream conversion attestation retained; physical-clock equivalence unverified.",
     "published_recipe": "Pinned upstream examples/LIBERO/README.md uses generic GR00T-N1.7-3B, IPEC Spatial no-noops data, global batch640,8GPUs,20000updates. This specialized-checkpoint batch1/300-update study is a distinct development comparison.",
-    "upstream_readme_sha256": "3967f78d2706f1a85cfdd88060feb3c551cd0deb6bc96f31ee8598b6f8450b78"
+    "upstream_readme_sha256": "3967f78d2706f1a85cfdd88060feb3c551cd0deb6bc96f31ee8598b6f8450b78",
+    "exposed_episode1347_cpu_probe": {
+      "scope": "Existing exposed TRAIN1347 only; no new training/evaluation or recipe change.",
+      "diagnostic": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-temporal-provenance-diagnostic-v1.json",
+        "sha256": "61e21235fba88cf73aa002a60a81bacd9f6701bd6f9501415b4643a4c6c22b43"
+      },
+      "upstream_dataset_revision": "physical-intelligence/libero@a4336d589d589045d1c56423ffdf3b88a0e19b1f",
+      "upstream_file": "data/chunk-001/episode_001347.parquet",
+      "upstream_file_sha256": "831effd01f1fb4d884c12c08aff6479ce2adb8d37d5f32b735ed3d22802be85b",
+      "hfvla_source": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-source-v3-episode1347-control-rows.json",
+        "sha256": "95a9be05dcedf46f388f0b5be53276c31a35223b0104bffc76266e57eb7e2139",
+        "source_file": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-adapter-all-family-2node-20261111/data/libero/86958911c0f959db2bbbdb107eb3e17c5f9c798e/data/chunk-000/file-321.parquet",
+        "source_sha256": "cb08e9faba2e3453a28f7fb23b72e47b59aeff9a8c5370fd25d5265d2c5ec043"
+      },
+      "source_frames": 92,
+      "source_checks": {
+        "episode_index": true,
+        "frame_index": true,
+        "timestamp": true,
+        "task_index": true,
+        "state_bitwise_equal": true,
+        "actions_bitwise_equal": true
+      },
+      "prepared_windows": 16,
+      "prepared_state_and_ten_action_sequences_bitwise_equal": true,
+      "metadata_locator_error": {
+        "metadata_sha256": "708573e3caf9f03aed5f572d73ac6a29c0209ce4579bfc794bc6c4b1c1ff68b5",
+        "recorded_file": "data/chunk-000/file-057.parquet",
+        "actual_file": "data/chunk-000/file-321.parquet",
+        "observed_wrong_file_episodes": [
+          143,
+          144
+        ],
+        "cosmos_preparer_uses": "enumerates actual raw rows, does not use metadata file locator",
+        "original_failed_lookup": "Strict92row assertion stopped before publication; no dataset mutation.",
+        "footer_receipt": {
+          "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-source-footer-audit-v1.json",
+          "sha256": "d55701aa4a65bb71a62f111d743be7db9b4f8d3b45984b41e4be0499c58d39ac"
+        }
+      },
+      "upstream_conversion_source": {
+        "repository": "Physical-Intelligence/openpi",
+        "path": "examples/libero/convert_libero_data_to_lerobot.py",
+        "git_blob": "51db6f138e6a5e290402ad42d940d7e232232bbd",
+        "sha256": "199c309a601f23fa120e0c9ca3d8f7f2dba525924a60e79906fca4c6b9f03602",
+        "observed_behavior": "setsfps10 and writes each rawRLDS step; no temporal subsampling in this script",
+        "limit": "Not independently established as the exact converter used for this snapshot."
+      },
+      "decision": "No verified Cosmos temporal action subsampling or source-state/action corruption in this probe. Do not resample or change20Hz simulator based on fps10 metadata alone. Raw simulator clock/complete dataset provenance remain unestablished.",
+      "data_and_recipe_changed": false,
+      "additional_gpu_seconds": 0
+    }
   },
   "alpamayo_seed17_development_comparison": {
     "equal_compute_endpoints": {

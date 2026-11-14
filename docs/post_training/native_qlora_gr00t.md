@@ -304,6 +304,17 @@ physical clock. The pinned official and Cosmos LIBERO simulators use 20 Hz contr
 These are separate recorded facts: do not infer 20 Hz dataset equivalence or convert
 the ten supervised action indices into a claimed physical horizon. Source conversion
 provenance remains required for that broader temporal claim.
+
+A separate CPU provenance probe compared the already-exposed training episode
+1347 with `physical-intelligence/libero@a4336d589d589045d1c56423ffdf3b88a0e19b1f`.
+All 92 source state/action rows, indices and timestamps matched exactly; all 16
+prepared training windows retained the same FP32 states and consecutive ten-action
+sequences. The export's episode metadata points to the wrong parquet file for this
+episode, but Cosmos enumerates the actual rows and does not use that locator.
+The [scoped receipts](evidence/native_qlora_family_engineering_4cba88f.json) retain
+both observations. This probe found no reason to resample actions; it does not
+attest the original simulator clock or establish whole-dataset provenance.
+
 A processor-only census of one real row per instruction covered all ten fixed instructions
 in both splits: 151–156 tokens, `pixel_values=[512,1536]`, two image grids `[1,16,16]`,
 state `[1,1,132]`, and action/mask `[1,40,132]` with exactly 70 supervised elements.
