@@ -10,7 +10,7 @@ not a completed final quality protocol.
 ```bash
 git archive --format=tar.gz <tested-commit> cosmos_framework tools pyproject.toml .pytest.toml -o source.tar.gz
 # On the configured cluster; R is the existing authorized per-user project root.
-export SOURCE_ARCHIVE="$R/cosmos-optimizer-native-20261113/source-v37.tar.gz"
+export SOURCE_ARCHIVE="$R/cosmos-optimizer-native-20261113/source-v39.tar.gz"
 export CONTAINER_IMAGE="$R/cosmos-automl-focused-20261012/image-conversion/cosmos-framework-focused.sqsh"
 export ASSETS="$R/cosmos-qlora-wts-20261028T234324Z"
 export RESULTS="$R/cosmos-optimizer-native-20261113/new-master-attempt"
@@ -96,11 +96,11 @@ The superseded pending v30 jobs and mistaken pending checkpoint-path submissions
 were canceled before allocation and remain in the ledger. The native result
 path is `runs/cosmos3_action/joint_ppo/gr00t-master-<optimizer>/integration`.
 
-The current development exposure pair uses source-v37 (`94ecd8ba`), after the
-checkpoint-format and synchronized-provenance gates:
+The following exposure settings were locked before the development outcomes.
+Use source-v39 (`ef9f6958`) for the corrected publication implementation:
 
 ```bash
-export SOURCE_ARCHIVE="$R/cosmos-optimizer-native-20261113/source-v37.tar.gz"
+export SOURCE_ARCHIVE="$R/cosmos-optimizer-native-20261113/source-v39.tar.gz"
 export TRAINING_SEED=17 UPDATES=80 CHECKPOINT_EVERY=40 VALIDATION_EVERY=40
 export CO_RESIDENT_GIB=0 EVALUATE_ONLY=0 RESUME_CHECKPOINT= NATIVE_OUTPUT_ROOT=
 # Set a fresh RESULTS for each optimizer. Keep the existing resource requests.
@@ -109,8 +109,9 @@ sbatch --time=120 tools/quantized_optimizers/gr00t_native.sbatch
 # EVALUATE_ONLY=1, a new RESULTS, and RESUME_CHECKPOINT=.../iter_000080.
 ```
 
-Current admission IDs are38520212/213/214/215; the last two are dependent fresh
-reloads. They follow pending-checkpoint recovery38520018. Source-v35 job38516570
+Historical admission IDs38520212/213/214/215 were superseded after final
+publication failed in38520212; the dependent jobs never allocated. They followed
+pending-checkpoint recovery38520018. Source-v35 job38516570
 failed update40 publication; its99/100 initial and93/100 midpoint scores remain
 recorded. Its unallocated dependent jobs and earlier source-v33 jobs were canceled
 and remain in the ledger. No numerical or quality threshold changed.
@@ -119,12 +120,12 @@ claim. See `gr00t_exposure_development_protocol.json`; neither the 80-update hor
 nor a later checkpoint substitutes for a historical WTS endpoint.
 
 
-The affected v3 native continuation uses source-v37, including the read-only
+The affected v3 native continuation uses source-v39, including the read-only
 pre-update learner/cursor receipt introduced at`dcf57752`. Numerical behavior
 is unchanged from v35:
 
 ```bash
-export SOURCE_ARCHIVE="$R/cosmos-optimizer-native-20261113/source-v37.tar.gz"
+export SOURCE_ARCHIVE="$R/cosmos-optimizer-native-20261113/source-v39.tar.gz"
 export TRAINING_SEED=17 UPDATES=80 CHECKPOINT_EVERY=40 VALIDATION_EVERY=40
 export CO_RESIDENT_GIB=0 EVALUATE_ONLY=0 NATIVE_OUTPUT_ROOT=
 export RESUME_CHECKPOINT=/exact/reference/output/checkpoints/iter_000040
@@ -132,7 +133,8 @@ export RESUME_CHECKPOINT=/exact/reference/output/checkpoints/iter_000040
 sbatch tools/quantized_optimizers/gr00t_native.sbatch
 ```
 
-Nonpaged admission38520216 follows the fresh references/reloads. Fused admission
+Nonpaged admission38526679 follows the fresh references/reloads;38520216 never
+allocated. Fused admission
 38520018 recovers the original pending checkpoint40 in its original output root
 after preserving all control/evaluation receipts; it is not an uninterrupted
 quality/timing control. The superseded38518227/229 and38517262 never allocated.
@@ -178,3 +180,20 @@ RESULTS and the exact checkpoint source. For resident32, set `UPDATES=32`,
 The full-content change adds publication I/O; no mixed-source successful
 end-to-end comparison is inferred. Pressure arms remain separately conditional
 on the resident fresh-writer gate and unchanged55GiB protocol.
+
+Resident32 job38526671 completed with new checkpoint16/32 publication. The first
+pressure arm38528405 follows38526679. Run each pressure arm in a fresh RESULTS:
+
+```bash
+export SOURCE_ARCHIVE="$R/cosmos-optimizer-native-20261113/source-v39.tar.gz"
+export TRAINING_SEED=17 UPDATES=32 CHECKPOINT_EVERY=16 VALIDATION_EVERY=16
+export CO_RESIDENT_GIB=55 EVALUATE_ONLY=0 RESUME_CHECKPOINT= NATIVE_OUTPUT_ROOT=
+# OPTIMIZER_NAME=adamw, then adamw_bnb_8bit, then paged_adamw_8bit.
+# Admit the next independent arm only after classifying the preceding result.
+sbatch tools/quantized_optimizers/gr00t_native.sbatch
+```
+
+The launcher holds the explicit reservation on every GPU throughout native
+training. A completed pressure checkpoint16 is the source for read-only reload
+and16-to-32 continuation, with the same reservation. If pressure fails, resident
+checkpoint16 can establish resident recovery only; preserve the pressure failure.
