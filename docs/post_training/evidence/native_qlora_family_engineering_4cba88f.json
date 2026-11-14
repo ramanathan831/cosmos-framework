@@ -1368,6 +1368,1352 @@
         }
       },
       "promotion": "Pending full-model arithmetic/recovery parity and prospective unprofiled timing; selected family training baseline remains 4cba88f."
+    },
+    "38511234": {
+      "allocated_gpu_seconds": 3585,
+      "artifacts": {
+        "bf16_lora": {
+          "acceptance_sha256": "28db162b4afd263510b8b10f4bcf8bdf9193bc00a3a37df82e28c26e8505580c",
+          "allocator_and_workflow_stages": {
+            "checkpoint-update-audit": {
+              "allocator_peak_allocated_bytes": 0,
+              "allocator_peak_reserved_bytes": 0,
+              "exit_code": 0,
+              "injected_interruption_expected": false,
+              "native_phase_records": 2,
+              "process_lifetime_host_peak_rss_bytes": 19690967040,
+              "seconds": 129.33603942603804
+            },
+            "dense-capture": {
+              "allocator_peak_allocated_bytes": 27683674112,
+              "allocator_peak_reserved_bytes": 27734835200,
+              "exit_code": 0,
+              "injected_interruption_expected": false,
+              "native_phase_records": 4,
+              "process_lifetime_host_peak_rss_bytes": 3783053312,
+              "seconds": 155.34721793199424
+            },
+            "dense-evaluation": {
+              "allocator_peak_allocated_bytes": null,
+              "allocator_peak_reserved_bytes": null,
+              "exit_code": 0,
+              "injected_interruption_expected": false,
+              "native_phase_records": 0,
+              "process_lifetime_host_peak_rss_bytes": null,
+              "seconds": 146.9018954919884
+            },
+            "dense-export": {
+              "allocator_peak_allocated_bytes": 27172013056,
+              "allocator_peak_reserved_bytes": 27193769984,
+              "exit_code": 0,
+              "injected_interruption_expected": false,
+              "native_phase_records": 3,
+              "process_lifetime_host_peak_rss_bytes": 23212867584,
+              "seconds": 408.46270851802547
+            },
+            "portable-capture": {
+              "allocator_peak_allocated_bytes": 32654131712,
+              "allocator_peak_reserved_bytes": 32759611392,
+              "exit_code": 0,
+              "injected_interruption_expected": false,
+              "native_phase_records": 4,
+              "process_lifetime_host_peak_rss_bytes": 23467950080,
+              "seconds": 183.9820838420419
+            },
+            "portable-evaluation": {
+              "allocator_peak_allocated_bytes": null,
+              "allocator_peak_reserved_bytes": null,
+              "exit_code": 0,
+              "injected_interruption_expected": false,
+              "native_phase_records": 0,
+              "process_lifetime_host_peak_rss_bytes": null,
+              "seconds": 175.0804669969948
+            },
+            "storage-preflight": {
+              "allocator_peak_allocated_bytes": null,
+              "allocator_peak_reserved_bytes": null,
+              "exit_code": 0,
+              "injected_interruption_expected": false,
+              "native_phase_records": 0,
+              "process_lifetime_host_peak_rss_bytes": null,
+              "seconds": 0.4176152149448171
+            }
+          },
+          "claim": "native artifact conversion on the declared probe rows, not learned-policy qualification or serving latency",
+          "dense_bytes": 26730049253,
+          "dense_manifest_sha256": "73699f25a0d42d01517b19a1a1ecb6c59a2718d9e67850c5a95638789eeac3ba",
+          "exact_auxiliary_preservation": true,
+          "native_task_evaluation": {
+            "loss": {
+              "delta": 0.00032317638397216797,
+              "dense": 0.18441987037658691,
+              "portable": 0.18409669399261475
+            },
+            "open_loop_ade_1s_meters": {
+              "delta": 0.0001355293206870556,
+              "dense": 0.043015117291361094,
+              "portable": 0.04287958797067404
+            },
+            "open_loop_ade_3s_meters": {
+              "delta": 0.0008428692817687988,
+              "dense": 0.6558955907821655,
+              "portable": 0.6550527215003967
+            },
+            "open_loop_ade_6p4s_meters": {
+              "delta": 0.0011795759201049805,
+              "dense": 3.950265645980835,
+              "portable": 3.94908607006073
+            },
+            "open_loop_fde_1s_meters": {
+              "delta": 0.0003948388621211052,
+              "dense": 0.10972473490983248,
+              "portable": 0.10932989604771137
+            },
+            "open_loop_fde_3s_meters": {
+              "delta": 0.0022525787353515625,
+              "dense": 2.388869881629944,
+              "portable": 2.3866173028945923
+            },
+            "open_loop_fde_6p4s_meters": {
+              "delta": 0.0009374618530273438,
+              "dense": 11.449075698852539,
+              "portable": 11.448138236999512
+            }
+          },
+          "numerical_contract": {
+            "accumulation_dtype": "float32",
+            "base": "W_bf16",
+            "merge": "effective_base + (alpha/rank) * B @ A",
+            "merge_device": "cpu",
+            "merged_backbone_dtype": "bfloat16",
+            "other_parameters_and_buffers": "preserve_native_dtype",
+            "requantized": false
+          },
+          "outputs": [
+            {
+              "comparison": {
+                "claim": "artifact_numerical_conversion_only_not_recipe_quality_or_closed_loop",
+                "flow_loss_bound": 0.0027626764774322512,
+                "gates": {
+                  "flow_loss_absolute_floor": 1e-05,
+                  "flow_loss_relative": 0.01,
+                  "flow_velocity_max_abs": 0.05,
+                  "flow_velocity_rmse": 0.01,
+                  "task_metric_absolute_floor_meters": 0.02,
+                  "task_metric_relative": 0.01,
+                  "trajectory_ade_6p4s_meters": 0.1,
+                  "trajectory_fde_6p4s_meters": 0.25
+                },
+                "individual_pass": {
+                  "flow_loss": true,
+                  "flow_velocity_max_abs": true,
+                  "flow_velocity_rmse": true,
+                  "open_loop_ade_1s_meters": true,
+                  "open_loop_ade_3s_meters": true,
+                  "open_loop_ade_6p4s_meters": true,
+                  "open_loop_fde_1s_meters": true,
+                  "open_loop_fde_3s_meters": true,
+                  "open_loop_fde_6p4s_meters": true,
+                  "trajectory_ade_6p4s_meters": true,
+                  "trajectory_fde_6p4s_meters": true
+                },
+                "measured": {
+                  "flow_loss_absolute_delta": 0.0006163120269775391,
+                  "flow_velocity_max_abs": 0.015625,
+                  "flow_velocity_rmse": 0.0028809360392407822,
+                  "trajectory_ade_6p4s_meters": 0.017747788860212714,
+                  "trajectory_fde_6p4s_meters": 0.06584646962045687
+                },
+                "passed": true,
+                "task_metric_deltas": {
+                  "open_loop_ade_1s_meters": {
+                    "absolute_delta": 4.925951361656189e-05,
+                    "bound": 0.02
+                  },
+                  "open_loop_ade_3s_meters": {
+                    "absolute_delta": 0.0018290877342224121,
+                    "bound": 0.02
+                  },
+                  "open_loop_ade_6p4s_meters": {
+                    "absolute_delta": 0.017694473266601562,
+                    "bound": 0.08997320175170899
+                  },
+                  "open_loop_fde_1s_meters": {
+                    "absolute_delta": 9.224191308021545e-05,
+                    "bound": 0.02
+                  },
+                  "open_loop_fde_3s_meters": {
+                    "absolute_delta": 0.008737564086914062,
+                    "bound": 0.044717416763305665
+                  },
+                  "open_loop_fde_6p4s_meters": {
+                    "absolute_delta": 0.06580734252929688,
+                    "bound": 0.2827794647216797
+                  }
+                }
+              },
+              "native_id": "physicalai-0251886b-1b95-43ff-b5a7-dc6140e8096a-5100000",
+              "passed": true
+            },
+            {
+              "comparison": {
+                "claim": "artifact_numerical_conversion_only_not_recipe_quality_or_closed_loop",
+                "flow_loss_bound": 0.0013525570929050447,
+                "gates": {
+                  "flow_loss_absolute_floor": 1e-05,
+                  "flow_loss_relative": 0.01,
+                  "flow_velocity_max_abs": 0.05,
+                  "flow_velocity_rmse": 0.01,
+                  "task_metric_absolute_floor_meters": 0.02,
+                  "task_metric_relative": 0.01,
+                  "trajectory_ade_6p4s_meters": 0.1,
+                  "trajectory_fde_6p4s_meters": 0.25
+                },
+                "individual_pass": {
+                  "flow_loss": true,
+                  "flow_velocity_max_abs": true,
+                  "flow_velocity_rmse": true,
+                  "open_loop_ade_1s_meters": true,
+                  "open_loop_ade_3s_meters": true,
+                  "open_loop_ade_6p4s_meters": false,
+                  "open_loop_fde_1s_meters": true,
+                  "open_loop_fde_3s_meters": true,
+                  "open_loop_fde_6p4s_meters": false,
+                  "trajectory_ade_6p4s_meters": true,
+                  "trajectory_fde_6p4s_meters": true
+                },
+                "measured": {
+                  "flow_loss_absolute_delta": 7.010996341705322e-05,
+                  "flow_velocity_max_abs": 0.0078125,
+                  "flow_velocity_rmse": 0.0022861274159435797,
+                  "trajectory_ade_6p4s_meters": 0.031162177303526654,
+                  "trajectory_fde_6p4s_meters": 0.10209747567246527
+                },
+                "passed": false,
+                "task_metric_deltas": {
+                  "open_loop_ade_1s_meters": {
+                    "absolute_delta": 0.0002934243530035019,
+                    "bound": 0.02
+                  },
+                  "open_loop_ade_3s_meters": {
+                    "absolute_delta": 0.0035089105367660522,
+                    "bound": 0.02
+                  },
+                  "open_loop_ade_6p4s_meters": {
+                    "absolute_delta": 0.028063416481018066,
+                    "bound": 0.02
+                  },
+                  "open_loop_fde_1s_meters": {
+                    "absolute_delta": 0.0007567368447780609,
+                    "bound": 0.02
+                  },
+                  "open_loop_fde_3s_meters": {
+                    "absolute_delta": 0.015184342861175537,
+                    "bound": 0.02
+                  },
+                  "open_loop_fde_6p4s_meters": {
+                    "absolute_delta": 0.09106111526489258,
+                    "bound": 0.06137565135955811
+                  }
+                }
+              },
+              "native_id": "physicalai-144f01a4-5540-4df3-8835-22cd568b0226-5100000",
+              "passed": false
+            }
+          ],
+          "passed": false,
+          "sampled": {
+            "device_peak_bytes": 34194259968,
+            "errors": [],
+            "gpu_memory_evidence_valid": true,
+            "host_pss_complete": true,
+            "host_pss_sum_peak_bytes": 24320557056,
+            "host_rss_sum_peak_bytes": 24859680768,
+            "nvml_capacity_bytes": 85899345920,
+            "observed_span_seconds": 1241.8863952159882,
+            "owned_device_process_peak_bytes": 33460060160,
+            "peaks_are_sampled_lower_bounds": true,
+            "samples": 958,
+            "sampling_gap_seconds": {
+              "count": 957,
+              "maximum": 1.9142987728118896,
+              "mean": 1.2976869333500398,
+              "median": 1.2835829257965088,
+              "p95": 1.4029417037963867,
+              "sum": 1241.8863952159882
+            }
+          }
+        },
+        "nf4_lora": {
+          "acceptance_sha256": "85896c6c47e009ed15fcd39baee7e3969b8cdeb1dabe5843291c35e5977895ae",
+          "allocator_and_workflow_stages": {
+            "checkpoint-update-audit": {
+              "allocator_peak_allocated_bytes": 0,
+              "allocator_peak_reserved_bytes": 0,
+              "exit_code": 0,
+              "injected_interruption_expected": false,
+              "native_phase_records": 2,
+              "process_lifetime_host_peak_rss_bytes": 19693207552,
+              "seconds": 130.8955419770209
+            },
+            "dense-capture": {
+              "allocator_peak_allocated_bytes": 27683674112,
+              "allocator_peak_reserved_bytes": 27734835200,
+              "exit_code": 0,
+              "injected_interruption_expected": false,
+              "native_phase_records": 4,
+              "process_lifetime_host_peak_rss_bytes": 3783553024,
+              "seconds": 157.56413801410235
+            },
+            "dense-evaluation": {
+              "allocator_peak_allocated_bytes": null,
+              "allocator_peak_reserved_bytes": null,
+              "exit_code": 0,
+              "injected_interruption_expected": false,
+              "native_phase_records": 0,
+              "process_lifetime_host_peak_rss_bytes": null,
+              "seconds": 148.0412328550592
+            },
+            "dense-export": {
+              "allocator_peak_allocated_bytes": 17205096448,
+              "allocator_peak_reserved_bytes": 17257463808,
+              "exit_code": 0,
+              "injected_interruption_expected": false,
+              "native_phase_records": 3,
+              "process_lifetime_host_peak_rss_bytes": 20333617152,
+              "seconds": 402.4843467519386
+            },
+            "portable-capture": {
+              "allocator_peak_allocated_bytes": 22653660672,
+              "allocator_peak_reserved_bytes": 22758293504,
+              "exit_code": 0,
+              "injected_interruption_expected": false,
+              "native_phase_records": 4,
+              "process_lifetime_host_peak_rss_bytes": 23968727040,
+              "seconds": 173.0310807680944
+            },
+            "portable-evaluation": {
+              "allocator_peak_allocated_bytes": null,
+              "allocator_peak_reserved_bytes": null,
+              "exit_code": 0,
+              "injected_interruption_expected": false,
+              "native_phase_records": 0,
+              "process_lifetime_host_peak_rss_bytes": null,
+              "seconds": 160.7126817270182
+            },
+            "storage-preflight": {
+              "allocator_peak_allocated_bytes": null,
+              "allocator_peak_reserved_bytes": null,
+              "exit_code": 0,
+              "injected_interruption_expected": false,
+              "native_phase_records": 0,
+              "process_lifetime_host_peak_rss_bytes": null,
+              "seconds": 0.36820102599449456
+            }
+          },
+          "claim": "native artifact conversion on the declared probe rows, not learned-policy qualification or serving latency",
+          "dense_bytes": 26730049253,
+          "dense_manifest_sha256": "4e1fd6bbe881ff5236644b8a3fec3c216b4e28518e7640ebf6f293c2e15bf041",
+          "exact_auxiliary_preservation": true,
+          "native_task_evaluation": {
+            "loss": {
+              "delta": 0.00015019625425338745,
+              "dense": 0.1833411231637001,
+              "portable": 0.18319092690944672
+            },
+            "open_loop_ade_1s_meters": {
+              "delta": 2.805422991514206e-05,
+              "dense": 0.0458090677857399,
+              "portable": 0.04578101355582476
+            },
+            "open_loop_ade_3s_meters": {
+              "delta": -0.0013402700424194336,
+              "dense": 0.6631573438644409,
+              "portable": 0.6644976139068604
+            },
+            "open_loop_ade_6p4s_meters": {
+              "delta": -0.012422680854797363,
+              "dense": 4.006195664405823,
+              "portable": 4.01861834526062
+            },
+            "open_loop_fde_1s_meters": {
+              "delta": 4.218798130750656e-05,
+              "dense": 0.11579756252467632,
+              "portable": 0.11575537454336882
+            },
+            "open_loop_fde_3s_meters": {
+              "delta": -0.005467653274536133,
+              "dense": 2.4158411026000977,
+              "portable": 2.421308755874634
+            },
+            "open_loop_fde_6p4s_meters": {
+              "delta": -0.041286468505859375,
+              "dense": 11.565195083618164,
+              "portable": 11.606481552124023
+            }
+          },
+          "numerical_contract": {
+            "accumulation_dtype": "float32",
+            "base": "dequantize(Q(W))",
+            "merge": "effective_base + (alpha/rank) * B @ A",
+            "merge_device": "cpu",
+            "merged_backbone_dtype": "bfloat16",
+            "other_parameters_and_buffers": "preserve_native_dtype",
+            "requantized": false
+          },
+          "outputs": [
+            {
+              "comparison": {
+                "claim": "artifact_numerical_conversion_only_not_recipe_quality_or_closed_loop",
+                "flow_loss_bound": 0.0027615523338317873,
+                "gates": {
+                  "flow_loss_absolute_floor": 1e-05,
+                  "flow_loss_relative": 0.01,
+                  "flow_velocity_max_abs": 0.05,
+                  "flow_velocity_rmse": 0.01,
+                  "task_metric_absolute_floor_meters": 0.02,
+                  "task_metric_relative": 0.01,
+                  "trajectory_ade_6p4s_meters": 0.1,
+                  "trajectory_fde_6p4s_meters": 0.25
+                },
+                "individual_pass": {
+                  "flow_loss": true,
+                  "flow_velocity_max_abs": true,
+                  "flow_velocity_rmse": true,
+                  "open_loop_ade_1s_meters": true,
+                  "open_loop_ade_3s_meters": true,
+                  "open_loop_ade_6p4s_meters": true,
+                  "open_loop_fde_1s_meters": true,
+                  "open_loop_fde_3s_meters": true,
+                  "open_loop_fde_6p4s_meters": true,
+                  "trajectory_ade_6p4s_meters": true,
+                  "trajectory_fde_6p4s_meters": true
+                },
+                "measured": {
+                  "flow_loss_absolute_delta": 6.151199340820312e-05,
+                  "flow_velocity_max_abs": 0.015625,
+                  "flow_velocity_rmse": 0.0026138722092962836,
+                  "trajectory_ade_6p4s_meters": 0.014148080474653994,
+                  "trajectory_fde_6p4s_meters": 0.03353285254074741
+                },
+                "passed": true,
+                "task_metric_deltas": {
+                  "open_loop_ade_1s_meters": {
+                    "absolute_delta": 0.00011277571320533752,
+                    "bound": 0.02
+                  },
+                  "open_loop_ade_3s_meters": {
+                    "absolute_delta": 0.0026785731315612793,
+                    "bound": 0.02
+                  },
+                  "open_loop_ade_6p4s_meters": {
+                    "absolute_delta": 0.014134407043457031,
+                    "bound": 0.0881226634979248
+                  },
+                  "open_loop_fde_1s_meters": {
+                    "absolute_delta": 0.00024984776973724365,
+                    "bound": 0.02
+                  },
+                  "open_loop_fde_3s_meters": {
+                    "absolute_delta": 0.010393619537353516,
+                    "bound": 0.04344563007354736
+                  },
+                  "open_loop_fde_6p4s_meters": {
+                    "absolute_delta": 0.03353309631347656,
+                    "bound": 0.27683874130249025
+                  }
+                }
+              },
+              "native_id": "physicalai-0251886b-1b95-43ff-b5a7-dc6140e8096a-5100000",
+              "passed": true
+            },
+            {
+              "comparison": {
+                "claim": "artifact_numerical_conversion_only_not_recipe_quality_or_closed_loop",
+                "flow_loss_bound": 0.001392243504524231,
+                "gates": {
+                  "flow_loss_absolute_floor": 1e-05,
+                  "flow_loss_relative": 0.01,
+                  "flow_velocity_max_abs": 0.05,
+                  "flow_velocity_rmse": 0.01,
+                  "task_metric_absolute_floor_meters": 0.02,
+                  "task_metric_relative": 0.01,
+                  "trajectory_ade_6p4s_meters": 0.1,
+                  "trajectory_fde_6p4s_meters": 0.25
+                },
+                "individual_pass": {
+                  "flow_loss": true,
+                  "flow_velocity_max_abs": true,
+                  "flow_velocity_rmse": true,
+                  "open_loop_ade_1s_meters": true,
+                  "open_loop_ade_3s_meters": true,
+                  "open_loop_ade_6p4s_meters": true,
+                  "open_loop_fde_1s_meters": true,
+                  "open_loop_fde_3s_meters": true,
+                  "open_loop_fde_6p4s_meters": true,
+                  "trajectory_ade_6p4s_meters": true,
+                  "trajectory_fde_6p4s_meters": true
+                },
+                "measured": {
+                  "flow_loss_absolute_delta": 7.237493991851807e-05,
+                  "flow_velocity_max_abs": 0.0078125,
+                  "flow_velocity_rmse": 0.002391672206176444,
+                  "trajectory_ade_6p4s_meters": 0.015941735657776217,
+                  "trajectory_fde_6p4s_meters": 0.048649214495245445
+                },
+                "passed": true,
+                "task_metric_deltas": {
+                  "open_loop_ade_1s_meters": {
+                    "absolute_delta": 1.7035752534866333e-05,
+                    "bound": 0.02
+                  },
+                  "open_loop_ade_3s_meters": {
+                    "absolute_delta": 0.001728340983390808,
+                    "bound": 0.02
+                  },
+                  "open_loop_ade_6p4s_meters": {
+                    "absolute_delta": 0.0134505033493042,
+                    "bound": 0.02
+                  },
+                  "open_loop_fde_1s_meters": {
+                    "absolute_delta": 0.00014196708798408508,
+                    "bound": 0.02
+                  },
+                  "open_loop_fde_3s_meters": {
+                    "absolute_delta": 0.009114265441894531,
+                    "bound": 0.02
+                  },
+                  "open_loop_fde_6p4s_meters": {
+                    "absolute_delta": 0.04146289825439453,
+                    "bound": 0.05994528293609619
+                  }
+                }
+              },
+              "native_id": "physicalai-144f01a4-5540-4df3-8835-22cd568b0226-5100000",
+              "passed": true
+            }
+          ],
+          "passed": true,
+          "sampled": {
+            "device_peak_bytes": 29169483776,
+            "errors": [],
+            "gpu_memory_evidence_valid": true,
+            "host_pss_complete": true,
+            "host_pss_sum_peak_bytes": 24805996544,
+            "host_rss_sum_peak_bytes": 25356443648,
+            "nvml_capacity_bytes": 85899345920,
+            "observed_span_seconds": 1215.8989219665527,
+            "owned_device_process_peak_bytes": 28435283968,
+            "peaks_are_sampled_lower_bounds": true,
+            "samples": 934,
+            "sampling_gap_seconds": {
+              "count": 933,
+              "maximum": 1.6032161712646484,
+              "mean": 1.3032142786351049,
+              "median": 1.2940142154693604,
+              "p95": 1.399698257446289,
+              "sum": 1215.8989219665527
+            }
+          }
+        }
+      },
+      "exit_code": "1:0",
+      "family": "alpamayo",
+      "limitations": [
+        "Sampled process peaks are lower bounds. Fresh evaluator subprocesses emitted no allocator phase records; their allocator peaks remain null, not inferred from adjacent capture stages.",
+        "Selected512-update artifact and mature recovery remain separate checks.",
+        "A dense BF16 artifact does not retain four-bit inference memory or imply faster serving."
+      ],
+      "memory_receipt_sha256": "067f8fdea1a523f8977630859cf65540aa5b85091ccc7d2675742cdadee059e7",
+      "recovery": {
+        "family": "alpamayo",
+        "passed": true,
+        "results": [
+          {
+            "interruption": {
+              "accumulation_step": 0,
+              "attempt_id": 6,
+              "exact_optimizer_membership_validated": true,
+              "frozen_base_and_metadata_validated": true,
+              "gradient_norm": 0.1237613633275032,
+              "gradient_parameter": "vlm.model.language_model.layers.35.self_attn.v_proj.lora_B.weight",
+              "optimizer_step": 5,
+              "partial_checkpoint_rejected": "checkpoint save requires every optimizer attempt to have a completed outcome: attempt_id=6, optimizer_step=5, nonfinite_skips_total=0"
+            },
+            "mode": "bf16_lora",
+            "native_task_scores_exact": true,
+            "parity": {
+              "atol": 0,
+              "controls_rng_and_data_exact": true,
+              "excluded_storage_identity_fields": [
+                "validation.publication.destination",
+                "validation.publication.id",
+                "validation.publication.manifest"
+              ],
+              "maximum_tensor_difference": {
+                "model": 0.0,
+                "optim": 0.0
+              },
+              "passed": true,
+              "rtol": 0
+            },
+            "recovered_checkpoint": "/run/output/recovery/native/qualification/family/bf16_lora-post-interruption/canary/checkpoints/iter_000010",
+            "reference_checkpoint": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38507817/native/qualification/family/bf16_lora-full/canary/checkpoints/iter_000010"
+          },
+          {
+            "interruption": {
+              "accumulation_step": 0,
+              "attempt_id": 6,
+              "exact_optimizer_membership_validated": true,
+              "frozen_base_and_metadata_validated": true,
+              "gradient_norm": 0.12148209661245346,
+              "gradient_parameter": "vlm.model.language_model.layers.35.self_attn.v_proj.lora_B.weight",
+              "optimizer_step": 5,
+              "partial_checkpoint_rejected": "checkpoint save requires every optimizer attempt to have a completed outcome: attempt_id=6, optimizer_step=5, nonfinite_skips_total=0"
+            },
+            "mode": "nf4_lora",
+            "native_task_scores_exact": true,
+            "parity": {
+              "atol": 0,
+              "controls_rng_and_data_exact": true,
+              "excluded_storage_identity_fields": [
+                "validation.publication.destination",
+                "validation.publication.id",
+                "validation.publication.manifest"
+              ],
+              "maximum_tensor_difference": {
+                "model": 0.0,
+                "optim": 0.0
+              },
+              "passed": true,
+              "rtol": 0
+            },
+            "recovered_checkpoint": "/run/output/recovery/native/qualification/family/nf4_lora-post-interruption/canary/checkpoints/iter_000010",
+            "reference_checkpoint": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38507817/native/qualification/family/nf4_lora-full/canary/checkpoints/iter_000010"
+          }
+        ]
+      },
+      "recovery_acceptance_sha256": "37c5a43890b2fe204b38693708d1fb032bff9a1c854c56297197b2402782fec0",
+      "root_acceptance_sha256": "70cb6f983a7b3431046476a4b972239dd4e529b34af08949c50a4ea848e2a325",
+      "runtime": {
+        "code": "4cba88f4d84ce69037c194e58670e8491388a36d",
+        "cpu_affinity": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          126,
+          127,
+          128,
+          129,
+          132,
+          133,
+          134,
+          135
+        ],
+        "cuda_visible_devices": "0",
+        "gpu": {
+          "bytes": 85174583296,
+          "name": "NVIDIA A100-SXM4-80GB",
+          "nvml_uuid_roundtrip": true,
+          "torch_uuid": "df89491f-f0e6-0131-87f1-3b2570decbfc",
+          "uuid": "GPU-df89491f-f0e6-0131-87f1-3b2570decbfc"
+        },
+        "slurm_job": "38511234",
+        "versions": {
+          "bitsandbytes": "0.49.2",
+          "diffusers": "0.35.1",
+          "safetensors": "0.8.0",
+          "torch": "2.10.0+cu128",
+          "transformers": "4.57.6"
+        }
+      },
+      "scope": "Ten-update actual process-loss recovery and artifact conversion, not512-update selected-policy quality or latency. Overall job failed because BF16 dense conversion failed unchanged per-row task gates; NF4 conversion and both recovery arms passed independently.",
+      "state": "FAILED"
+    },
+    "38511256": {
+      "allocated_gpu_seconds": 3802,
+      "arms": {
+        "bf16_frozen": {
+          "all_axis_mae_worsened": true,
+          "all_task_mse_worsened": true,
+          "allocation_case_seconds": 1344.401889642002,
+          "evidence": {
+            "allocation_clock_sha256": "11b8d3d6f5f29b234e83ce23f7c76eca97a9d5a675b17697bb68cd69072da947",
+            "completion_sha256": "27f3c9ae653104fc4888ddb39a23fe0804501a7f6b363b1e2b3c4a2fdbedbe8e",
+            "development_result_sha256": "f50a71d9faa499c1011007fc51b32ec0a7870c38c4d1e6e527fd9ea387ab1867",
+            "evaluation-000000.json": "1b7ef4bdca0528ad329d43c58613493a71415a2ded48a69096f14bf289515538",
+            "evaluation-000100.json": "79fd99f729d014cef4320730cdf8c2963edf206b25ba149aad6d07a19712d235",
+            "evaluation-000200.json": "d523010a9e20690bb1ebaea23a55976fe34d52786776d5eb89b4723de4ea615a",
+            "evaluation-000300.json": "512c0aaf956930ce52cc29ab4c088d493a8cff091e55199319c5fa69b177c88e",
+            "metrics_sha256": "5799140f2240ad2d7edcf278b23788e8c97d065df7d82425d6c3251154765301",
+            "runtime_sha256": "d225a552148854cd7c2d94afef129e179298fb609a38a6fad82dfe19361abdd7"
+          },
+          "final_metrics": {
+            "action_mae_environment_units": 0.18448357737483312,
+            "action_mae_gripper_environment_units": 0.3953206013888121,
+            "action_mae_pitch_environment_units": 0.05770173057410798,
+            "action_mae_roll_environment_units": 0.031231042896401096,
+            "action_mae_x_environment_units": 0.24660074655992925,
+            "action_mae_y_environment_units": 0.18480949730295912,
+            "action_mae_yaw_environment_units": 0.04126776799491017,
+            "action_mae_z_environment_units": 0.33445365490671164,
+            "loss": 0.4739174695685506,
+            "normalized_action_mse": 0.2257943087177617
+          },
+          "fresh_portable_exact_primary_parity": true,
+          "initial_metrics": {
+            "action_mae_environment_units": 0.04916228426215635,
+            "action_mae_gripper_environment_units": 0.1372063398733735,
+            "action_mae_pitch_environment_units": 0.016093830139640716,
+            "action_mae_roll_environment_units": 0.008225875696466987,
+            "action_mae_x_environment_units": 0.053972841933195764,
+            "action_mae_y_environment_units": 0.0449414604387712,
+            "action_mae_yaw_environment_units": 0.009601551121868425,
+            "action_mae_z_environment_units": 0.07409409063177787,
+            "loss": 0.128999243787257,
+            "normalized_action_mse": 0.05506814191766483
+          },
+          "native_clocks": {
+            "checkpoint_seconds": 116.92356609000126,
+            "evaluation_seconds": 339.0595610900491,
+            "portable_export_seconds": 26.307526849006535,
+            "startup_seconds": 42.3439298440062,
+            "training_seconds": 135.7818756061315
+          },
+          "native_workflow_seconds": 665.6582712400123,
+          "sampled_memory": {
+            "device_peak_bytes": 34225717248,
+            "errors": [
+              "incomplete_host_pss"
+            ],
+            "gpu_memory_evidence_valid": true,
+            "host_pss_complete": false,
+            "host_pss_sum_peak_bytes": 30793090048,
+            "host_rss_sum_peak_bytes": 31113252864,
+            "nvml_capacity_bytes": 85899345920,
+            "observed_span_seconds": 1279.4362642765045,
+            "owned_device_process_peak_bytes": 33451671552,
+            "peaks_are_sampled_lower_bounds": true,
+            "samples": 861,
+            "sampling_gap_seconds": {
+              "count": 860,
+              "maximum": 2.8991034030914307,
+              "mean": 1.4877165863680286,
+              "median": 1.4462329149246216,
+              "p95": 1.8675121188163755,
+              "sum": 1279.4362642765045
+            }
+          },
+          "steady_update_seconds_101_300": {
+            "count": 200,
+            "maximum": 1.028421265014913,
+            "mean": 0.5223007938850788,
+            "median": 0.48786167599610053,
+            "p95": 0.7819776790667669,
+            "sum": 104.46015877701575
+          },
+          "target": {
+            "attained": false,
+            "baseline": 0.05506814191766483,
+            "metric": "normalized_action_mse",
+            "native_seconds": null,
+            "preflight_inclusive_seconds": null,
+            "step": null,
+            "threshold": 0.049561327725898344
+          },
+          "training_windows": [
+            {
+              "clip_coefficient": {
+                "count": 100,
+                "maximum": 1.0,
+                "mean": 0.3019551710858168,
+                "median": 0.24864649655709484,
+                "minimum": 0.009401926836067862
+              },
+              "clipped": 96.0,
+              "first": 1,
+              "last": 100,
+              "learning_rates": [
+                0.0001
+              ],
+              "loss": {
+                "count": 100,
+                "maximum": 4.161113739013672,
+                "mean": 0.422789928400889,
+                "median": 0.273114874958992,
+                "minimum": 0.009802499786019325
+              },
+              "unclipped_gradient_norm": {
+                "count": 100,
+                "maximum": 106.36117553710938,
+                "mean": 7.732663366794586,
+                "median": 4.021958589553833,
+                "minimum": 0.538109540939331
+              },
+              "update_seconds": {
+                "count": 100,
+                "maximum": 0.5510128530149814,
+                "mean": 0.3132171682911576,
+                "median": 0.3096551385096973,
+                "minimum": 0.30783518400858156
+              }
+            },
+            {
+              "clip_coefficient": {
+                "count": 100,
+                "maximum": 0.7520212655416797,
+                "mean": 0.28914526676532204,
+                "median": 0.241654605664967,
+                "minimum": 0.02220113940908169
+              },
+              "clipped": 100.0,
+              "first": 101,
+              "last": 200,
+              "learning_rates": [
+                0.0001
+              ],
+              "loss": {
+                "count": 100,
+                "maximum": 2.219318389892578,
+                "mean": 0.43707759290933607,
+                "median": 0.3542824983596802,
+                "minimum": 0.07432039827108383
+              },
+              "unclipped_gradient_norm": {
+                "count": 100,
+                "maximum": 45.04273223876953,
+                "mean": 5.32207685470581,
+                "median": 4.138343095779419,
+                "minimum": 1.3297486305236816
+              },
+              "update_seconds": {
+                "count": 100,
+                "maximum": 1.028421265014913,
+                "mean": 0.5732404499003314,
+                "median": 0.5366166215098929,
+                "minimum": 0.4021031159791164
+              }
+            },
+            {
+              "clip_coefficient": {
+                "count": 100,
+                "maximum": 0.948671479043227,
+                "mean": 0.27745035179865707,
+                "median": 0.2554663970118856,
+                "minimum": 0.0432523383711667
+              },
+              "clipped": 100.0,
+              "first": 201,
+              "last": 300,
+              "learning_rates": [
+                0.0001
+              ],
+              "loss": {
+                "count": 100,
+                "maximum": 2.0594656467437744,
+                "mean": 0.5170787052810192,
+                "median": 0.4312668591737747,
+                "minimum": 0.052668146789073944
+              },
+              "unclipped_gradient_norm": {
+                "count": 100,
+                "maximum": 23.120136260986328,
+                "mean": 5.4114993381500245,
+                "median": 3.914509415626526,
+                "minimum": 1.0541046857833862
+              },
+              "update_seconds": {
+                "count": 100,
+                "maximum": 0.6348521279869601,
+                "mean": 0.47136113786982603,
+                "median": 0.4430389214830939,
+                "minimum": 0.38878114099497907
+              }
+            }
+          ],
+          "update_counts": {
+            "applied": 300,
+            "clipped": 296.0,
+            "nonfinite_gradient": 0.0,
+            "nonfinite_loss": 0.0,
+            "skipped": 0.0
+          }
+        },
+        "bf16_lora": {
+          "all_axis_mae_worsened": true,
+          "all_task_mse_worsened": true,
+          "allocation_case_seconds": 1240.9842583740246,
+          "evidence": {
+            "allocation_clock_sha256": "56cbb9fb527212e56cf82a6bd7fa5e80f191d22a3dc7c43f226299c438520ce1",
+            "completion_sha256": "96fd96bc06f67de4dc9bf8b1cc10b336bd2656a6482ee452663180b4626c6488",
+            "development_result_sha256": "debb14c9cd6dc6d3ac1a2a930f380f017f4e8ca63ac2fe976af54c2999f918e1",
+            "evaluation-000000.json": "1b7ef4bdca0528ad329d43c58613493a71415a2ded48a69096f14bf289515538",
+            "evaluation-000100.json": "52a0255e7750155a7f840b57e05cacda87229373a43b01ddcac947cf673f5e88",
+            "evaluation-000200.json": "6749c6a7d188dd9cf8862d26d18a6132e02df13f68def937d1251fb35e1548d6",
+            "evaluation-000300.json": "94250b8e47e912d510cd8658249a4c2b1f9403d905cab3cc7cadbc5037f686b0",
+            "metrics_sha256": "578580442aa343ed0b8434add9ca509d762644d1b62a4544925aca69f247e09d",
+            "runtime_sha256": "d225a552148854cd7c2d94afef129e179298fb609a38a6fad82dfe19361abdd7"
+          },
+          "final_metrics": {
+            "action_mae_environment_units": 0.2672910412435681,
+            "action_mae_gripper_environment_units": 0.6656019321829081,
+            "action_mae_pitch_environment_units": 0.06861431680327838,
+            "action_mae_roll_environment_units": 0.03512463964817058,
+            "action_mae_x_environment_units": 0.3158590958981581,
+            "action_mae_y_environment_units": 0.21090868732541712,
+            "action_mae_yaw_environment_units": 0.047313300324008434,
+            "action_mae_z_environment_units": 0.5276153165230353,
+            "loss": 0.6504828998818993,
+            "normalized_action_mse": 0.3787672823241779
+          },
+          "fresh_portable_exact_primary_parity": true,
+          "initial_metrics": {
+            "action_mae_environment_units": 0.04916228426215635,
+            "action_mae_gripper_environment_units": 0.1372063398733735,
+            "action_mae_pitch_environment_units": 0.016093830139640716,
+            "action_mae_roll_environment_units": 0.008225875696466987,
+            "action_mae_x_environment_units": 0.053972841933195764,
+            "action_mae_y_environment_units": 0.0449414604387712,
+            "action_mae_yaw_environment_units": 0.009601551121868425,
+            "action_mae_z_environment_units": 0.07409409063177787,
+            "loss": 0.128999243787257,
+            "normalized_action_mse": 0.05506814191766483
+          },
+          "native_clocks": {
+            "checkpoint_seconds": 81.72123235900654,
+            "evaluation_seconds": 343.1833213260106,
+            "portable_export_seconds": 20.22834551599226,
+            "startup_seconds": 42.16795426499448,
+            "training_seconds": 173.64704760105815
+          },
+          "native_workflow_seconds": 665.1503564990126,
+          "sampled_memory": {
+            "device_peak_bytes": 34615787520,
+            "errors": [
+              "incomplete_host_pss"
+            ],
+            "gpu_memory_evidence_valid": true,
+            "host_pss_complete": false,
+            "host_pss_sum_peak_bytes": 31122424832,
+            "host_rss_sum_peak_bytes": 31388217344,
+            "nvml_capacity_bytes": 85899345920,
+            "observed_span_seconds": 1173.1081004142761,
+            "owned_device_process_peak_bytes": 33839644672,
+            "peaks_are_sampled_lower_bounds": true,
+            "samples": 850,
+            "sampling_gap_seconds": {
+              "count": 849,
+              "maximum": 1.9398975372314453,
+              "mean": 1.3817527684502664,
+              "median": 1.36710524559021,
+              "p95": 1.5928554058074949,
+              "sum": 1173.1081004142761
+            }
+          },
+          "steady_update_seconds_101_300": {
+            "count": 200,
+            "maximum": 1.589315221994184,
+            "mean": 0.5998966523249691,
+            "median": 0.5604908440145664,
+            "p95": 0.9387725865904939,
+            "sum": 119.97933046499384
+          },
+          "target": {
+            "attained": false,
+            "baseline": 0.05506814191766483,
+            "metric": "normalized_action_mse",
+            "native_seconds": null,
+            "preflight_inclusive_seconds": null,
+            "step": null,
+            "threshold": 0.049561327725898344
+          },
+          "training_windows": [
+            {
+              "clip_coefficient": {
+                "count": 100,
+                "maximum": 1.0,
+                "mean": 0.3014882040980686,
+                "median": 0.25625505448987923,
+                "minimum": 0.01817549711004727
+              },
+              "clipped": 96.0,
+              "first": 1,
+              "last": 100,
+              "learning_rates": [
+                0.0001
+              ],
+              "loss": {
+                "count": 100,
+                "maximum": 3.3418233394622803,
+                "mean": 0.45679315300658346,
+                "median": 0.3221137970685959,
+                "minimum": 0.009802499786019325
+              },
+              "unclipped_gradient_norm": {
+                "count": 100,
+                "maximum": 55.019126892089844,
+                "mean": 6.1866832447052005,
+                "median": 3.9024499654769897,
+                "minimum": 0.6164220571517944
+              },
+              "update_seconds": {
+                "count": 100,
+                "maximum": 0.8995193149894476,
+                "mean": 0.5366771713606431,
+                "median": 0.5222679004800739,
+                "minimum": 0.4488561440084595
+              }
+            },
+            {
+              "clip_coefficient": {
+                "count": 100,
+                "maximum": 0.749159485631445,
+                "mean": 0.27273747947702415,
+                "median": 0.24209759389071425,
+                "minimum": 0.03306287220881968
+              },
+              "clipped": 100.0,
+              "first": 101,
+              "last": 200,
+              "learning_rates": [
+                0.0001
+              ],
+              "loss": {
+                "count": 100,
+                "maximum": 2.1782803535461426,
+                "mean": 0.5158313531428576,
+                "median": 0.4037839323282242,
+                "minimum": 0.0831795260310173
+              },
+              "unclipped_gradient_norm": {
+                "count": 100,
+                "maximum": 30.245405197143555,
+                "mean": 5.609293023347854,
+                "median": 4.130585432052612,
+                "minimum": 1.33482825756073
+              },
+              "update_seconds": {
+                "count": 100,
+                "maximum": 1.589315221994184,
+                "mean": 0.6320877768294304,
+                "median": 0.5535370230063563,
+                "minimum": 0.4608959150209557
+              }
+            },
+            {
+              "clip_coefficient": {
+                "count": 100,
+                "maximum": 0.7262709767425097,
+                "mean": 0.26279418424335427,
+                "median": 0.25157927452053463,
+                "minimum": 0.03545228403433337
+              },
+              "clipped": 100.0,
+              "first": 201,
+              "last": 300,
+              "learning_rates": [
+                0.0001
+              ],
+              "loss": {
+                "count": 100,
+                "maximum": 2.4916770458221436,
+                "mean": 0.5536833617091179,
+                "median": 0.44135065376758575,
+                "minimum": 0.07998612523078918
+              },
+              "unclipped_gradient_norm": {
+                "count": 100,
+                "maximum": 28.206926345825195,
+                "mean": 5.459325700998306,
+                "median": 3.976379632949829,
+                "minimum": 1.376895546913147
+              },
+              "update_seconds": {
+                "count": 100,
+                "maximum": 0.7081901729980018,
+                "mean": 0.567705527820508,
+                "median": 0.5620681535074254,
+                "minimum": 0.46268337400397286
+              }
+            }
+          ],
+          "update_counts": {
+            "applied": 300,
+            "clipped": 296.0,
+            "nonfinite_gradient": 0.0,
+            "nonfinite_loss": 0.0,
+            "skipped": 0.0
+          }
+        },
+        "nf4_lora": {
+          "all_axis_mae_worsened": true,
+          "all_task_mse_worsened": true,
+          "allocation_case_seconds": 1205.8939458570094,
+          "evidence": {
+            "allocation_clock_sha256": "2942eda35baacf4704b134c88bba22a808d293cae980685c9c1900f0a3cf7bac",
+            "completion_sha256": "afae64efb9c82cc816385f20bf6f76bcbfc5d4af303be75cbb12c53c80df79cf",
+            "development_result_sha256": "829627b296ede3cd8180fdd15b5a27b0558cc0c9c2d61593d292fc67d44d59e8",
+            "evaluation-000000.json": "23b66865e15c418ad08d784a11891b88d4a83b7960aa6bc47e520da026fb83b0",
+            "evaluation-000100.json": "f053009cfcab03a946b77aee6710e826f58ba121f8687bed492015e049572e6b",
+            "evaluation-000200.json": "279e2c7f2f3a551e2d40a0901903ccdbe15280884bf0fd4a3412120837a79bc0",
+            "evaluation-000300.json": "1e669b3fbf5849f660021f4e9cb0f54344f90bd5565ffd02b74181b1b5db2280",
+            "metrics_sha256": "cce7d65aab8b90b6678a509ce50fca554e5b27c1564b53b857158e94d6faac04",
+            "runtime_sha256": "d225a552148854cd7c2d94afef129e179298fb609a38a6fad82dfe19361abdd7"
+          },
+          "final_metrics": {
+            "action_mae_environment_units": 0.21490283515874478,
+            "action_mae_gripper_environment_units": 0.4423054968565702,
+            "action_mae_pitch_environment_units": 0.0722125013556838,
+            "action_mae_roll_environment_units": 0.03167414734642286,
+            "action_mae_x_environment_units": 0.3058589508025075,
+            "action_mae_y_environment_units": 0.2686811735189014,
+            "action_mae_yaw_environment_units": 0.04059897432873278,
+            "action_mae_z_environment_units": 0.3429886019023941,
+            "loss": 0.5825465795118362,
+            "normalized_action_mse": 0.28610022261738777
+          },
+          "fresh_portable_exact_primary_parity": true,
+          "initial_metrics": {
+            "action_mae_environment_units": 0.04993531420917876,
+            "action_mae_gripper_environment_units": 0.1357787735760212,
+            "action_mae_pitch_environment_units": 0.01679471389145995,
+            "action_mae_roll_environment_units": 0.008380835461261412,
+            "action_mae_x_environment_units": 0.056422665883997095,
+            "action_mae_y_environment_units": 0.04715542558013691,
+            "action_mae_yaw_environment_units": 0.009905640157403974,
+            "action_mae_z_environment_units": 0.07510914491397083,
+            "loss": 0.1313539528971887,
+            "normalized_action_mse": 0.055654463751457765
+          },
+          "native_clocks": {
+            "checkpoint_seconds": 69.73833952299901,
+            "evaluation_seconds": 339.75516172201606,
+            "portable_export_seconds": 17.17881393499556,
+            "startup_seconds": 43.17527172801783,
+            "training_seconds": 154.26548361111782
+          },
+          "native_workflow_seconds": 626.7845920149994,
+          "sampled_memory": {
+            "device_peak_bytes": 33430896640,
+            "errors": [
+              "incomplete_host_pss"
+            ],
+            "gpu_memory_evidence_valid": true,
+            "host_pss_complete": false,
+            "host_pss_sum_peak_bytes": 31206788096,
+            "host_rss_sum_peak_bytes": 31489048576,
+            "nvml_capacity_bytes": 85899345920,
+            "observed_span_seconds": 1138.3931822776794,
+            "owned_device_process_peak_bytes": 32654753792,
+            "peaks_are_sampled_lower_bounds": true,
+            "samples": 872,
+            "sampling_gap_seconds": {
+              "count": 871,
+              "maximum": 1.6109063625335693,
+              "mean": 1.3069956168515264,
+              "median": 1.2836601734161377,
+              "p95": 1.3777574300765991,
+              "sum": 1138.3931822776794
+            }
+          },
+          "steady_update_seconds_101_300": {
+            "count": 200,
+            "maximum": 0.7566499160020612,
+            "mean": 0.5152719886302657,
+            "median": 0.49730194748553913,
+            "p95": 0.6411749243023221,
+            "sum": 103.05439772605314
+          },
+          "target": {
+            "attained": false,
+            "baseline": 0.05506814191766483,
+            "metric": "normalized_action_mse",
+            "native_seconds": null,
+            "preflight_inclusive_seconds": null,
+            "step": null,
+            "threshold": 0.049561327725898344
+          },
+          "training_windows": [
+            {
+              "clip_coefficient": {
+                "count": 100,
+                "maximum": 1.0,
+                "mean": 0.31087480950961405,
+                "median": 0.22700364460339154,
+                "minimum": 0.01738770383209612
+              },
+              "clipped": 96.0,
+              "first": 1,
+              "last": 100,
+              "learning_rates": [
+                0.0001
+              ],
+              "loss": {
+                "count": 100,
+                "maximum": 4.239700794219971,
+                "mean": 0.5107379670720548,
+                "median": 0.3069745749235153,
+                "minimum": 0.00944164115935564
+              },
+              "unclipped_gradient_norm": {
+                "count": 100,
+                "maximum": 57.511905670166016,
+                "mean": 7.385778894424439,
+                "median": 4.40530252456665,
+                "minimum": 0.6389755606651306
+              },
+              "update_seconds": {
+                "count": 100,
+                "maximum": 1.2846957470173948,
+                "mean": 0.5121108588506468,
+                "median": 0.4999137599807,
+                "minimum": 0.48947223398135975
+              }
+            },
+            {
+              "clip_coefficient": {
+                "count": 100,
+                "maximum": 1.0,
+                "mean": 0.2705924862216313,
+                "median": 0.23138512951180423,
+                "minimum": 0.042110408579284324
+              },
+              "clipped": 99.0,
+              "first": 101,
+              "last": 200,
+              "learning_rates": [
+                0.0001
+              ],
+              "loss": {
+                "count": 100,
+                "maximum": 1.5171051025390625,
+                "mean": 0.4602965012565255,
+                "median": 0.38110172748565674,
+                "minimum": 0.040615979582071304
+              },
+              "unclipped_gradient_norm": {
+                "count": 100,
+                "maximum": 23.74709701538086,
+                "mean": 5.505878455638886,
+                "median": 4.323316335678101,
+                "minimum": 0.895276665687561
+              },
+              "update_seconds": {
+                "count": 100,
+                "maximum": 0.7566499160020612,
+                "mean": 0.5368430556100793,
+                "median": 0.5030279865022749,
+                "minimum": 0.4897275510011241
+              }
+            },
+            {
+              "clip_coefficient": {
+                "count": 100,
+                "maximum": 0.9144625871630792,
+                "mean": 0.2764774127572671,
+                "median": 0.25825580056959097,
+                "minimum": 0.036270806622541917
+              },
+              "clipped": 100.0,
+              "first": 201,
+              "last": 300,
+              "learning_rates": [
+                0.0001
+              ],
+              "loss": {
+                "count": 100,
+                "maximum": 3.0652735233306885,
+                "mean": 0.5762001489847899,
+                "median": 0.408264622092247,
+                "minimum": 0.07299449294805527
+              },
+              "unclipped_gradient_norm": {
+                "count": 100,
+                "maximum": 27.57038116455078,
+                "mean": 5.410121078491211,
+                "median": 3.872132420539856,
+                "minimum": 1.093537449836731
+              },
+              "update_seconds": {
+                "count": 100,
+                "maximum": 0.5029087539878674,
+                "mean": 0.4937009216504521,
+                "median": 0.49324015399906784,
+                "minimum": 0.488513090997003
+              }
+            }
+          ],
+          "update_counts": {
+            "applied": 300,
+            "clipped": 295.0,
+            "nonfinite_gradient": 0.0,
+            "nonfinite_loss": 0.0,
+            "skipped": 0.0
+          }
+        }
+      },
+      "cohort": {
+        "episodes": 40,
+        "fixed_windows_per_episode": 4,
+        "rows": 160,
+        "sha256": "c726e37725c2d4be88efb17e8f96b956d018a07db9f72bde1f6825084392dd00",
+        "tasks": 10,
+        "weighting": "Equal tasks, episodes within tasks and fixed windows within episodes; balanced cohort also matches native token-weighted aggregate."
+      },
+      "decision": "All three completed300updates and exact fresh primary portable reload, but all targets were unreached. All task slices and action axes worsened from source. NF4 beating the degraded BF16 endpoint does not establish useful adaptation or recipe preservation.",
+      "diagnosis_path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-seed17-38511256-diagnosis.json",
+      "diagnosis_sha256": "5cc541e45c6f9d09c2d931e9bc2e846d323bb322ff2477b58cdd5db462ad62af",
+      "family": "gr00t",
+      "implementation_revision": "4cba88f4d84ce69037c194e58670e8491388a36d",
+      "limitations": [
+        "Parameter-delta norms were not logged; gradient norms, clipping coefficients, exact applied-update counts and retained checkpoint update audits must not be relabeled parameter-delta norms.",
+        "Training windows contain different samples and noise; their loss trend alone is not a controlled same-batch optimization curve.",
+        "Single seed and fixed order; no time-to-quality or recipe superiority established.",
+        "All arms have incomplete sampled host PSS at exiting native workers: BFhead2/861, BFLoRA2/850, NF4 1/872. ESRCH occurred during shared-mm teardown, not a permission failure. Preserve incomplete flags and lower-bound peaks.",
+        "The sampler native-training stage covers the full resident invocation including evaluation/checkpoint/export; it does not isolate steady training.",
+        "Requested16CPUs, actual pre-native affinity2logicalCPUs. Future explicit stepCPU correction changes execution conditions; cross-study time changes cannot be attributed only to learning rate."
+      ],
+      "observed_logical_cpu_affinity": [
+        6,
+        7
+      ],
+      "order": [
+        "bf16_frozen",
+        "bf16_lora",
+        "nf4_lora"
+      ],
+      "pair_result_sha256": "5d5ec88659bd200b1ef931e44923282fbd7a9ff8fe77068826b30aafc1f53d4d",
+      "placement": {
+        "cpu_affinity": [
+          6,
+          7
+        ],
+        "cpu_numa_nodes": {
+          "6": [
+            "node0"
+          ],
+          "7": [
+            "node0"
+          ]
+        },
+        "gpu_bytes": 85174583296,
+        "gpu_name": "NVIDIA A100-SXM4-80GB",
+        "gpu_uuid": "GPU-33695c6e-7ee8-515b-61e5-94de85a35356",
+        "process_memory_policy": [
+          "Cpus_allowed_list:\t6-7",
+          "Mems_allowed_list:\t0-7"
+        ],
+        "slurm_job": "38511256"
+      },
+      "protocol_sha256": "56c5419d3033fe71e9a9d364ff172e2fd35abd2cab43d92a92d5c3d7ebe3e0d7",
+      "requested_cpus": 16,
+      "scope": "Single exposed development seed. No confidence interval, independent confirmation, or recipe-level improvement claim.",
+      "state": "COMPLETED"
     }
   },
   "read_only_head_memory_diagnostic": {
@@ -1454,10 +2800,15 @@
   },
   "additional_receipt_archives": [
     {
-      "path": "cosmos-qlora-family-20261113/family-qualification-receipts-20261114-v1.tar.gz",
-      "sha256": "6b82298b0a52aabdfdfdbb19854d8cedcd866c548ccba94e4ac7af08b9c11eef",
+      "bytes": 16735672,
       "files": 198,
-      "bytes": 16735672
+      "path": "cosmos-qlora-family-20261113/family-qualification-receipts-20261114-v1.tar.gz",
+      "sha256": "6b82298b0a52aabdfdfdbb19854d8cedcd866c548ccba94e4ac7af08b9c11eef"
+    },
+    {
+      "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/alpamayo-38511234-terminal-receipts-v1.tar.gz",
+      "scope": "93 receipt/sampling/output files, no weights; terminalAlpamayo38511234.",
+      "sha256": "822a8f90636e352bf03e4ed0061c2de4f1edb6f6c89726d959f551ec6a7cd5b2"
     }
   ],
   "fixed_development_targets": {
@@ -1613,7 +2964,7 @@
     },
     "supervised_action_elements": 70,
     "input_semantic_check": "Native content fingerprint exactly matches original real rows after content-preserving local media remapping. State/action values and image bytes were not substituted.",
-    "processor_geometry_basis": "All 1,440 admitted rows have two 256×256 RGB images, 8D state, and 10×7 actions. The pinned eval processor forms VLM text from its template and instruction; fixed image geometry determines image grid, independent of pixel values. State/action values remain separate tensor inputs.",
+    "processor_geometry_basis": "All 1,440 admitted rows have two 256\u00d7256 RGB images, 8D state, and 10\u00d77 actions. The pinned eval processor forms VLM text from its template and instruction; fixed image geometry determines image grid, independent of pixel values. State/action values remain separate tensor inputs.",
     "cuda_initialized": false,
     "model_weights_loaded": false,
     "processor_elapsed_seconds": 9.134169723838568,
@@ -1635,5 +2986,12 @@
       "Does not qualify official training augmentation, longer contexts, another embodiment, task preservation or inference acceleration.",
       "Actual accelerator coverage remains the retained native engineering/profile runs and completed development work; processor census is not a GPU training test."
     ]
+  },
+  "allocation_cost_snapshot": {
+    "active_gpu_seconds_at_snapshot": 3712,
+    "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/family-allocation-cost-20261114T040229Z.json",
+    "scope": "All30task-owned numeric job directories. Snapshot predates GR38511256 completion; its terminal3802seconds are recorded separately above. Includes failed allocations, excludes unrelated campaigns and later jobs.",
+    "sha256": "63695942e64e914ea1340743f8eb51ba769087401505ce3a98eafbf3fa01663a",
+    "terminal_gpu_seconds_at_snapshot": 15443
   }
 }

@@ -228,6 +228,37 @@ This used the pinned deterministic native processor without model weights or CUD
 The remaining rows share these instructions and admitted image geometry; this establishes
 processor shape coverage, not additional GPU training or quality coverage. Actual GPU evidence
 remains the traced updates described below and completed portions of the 300-update study.
+
+The first complete seed-17 study (`38511256`, native `4cba88f`) retained all three
+300-update runs and exact fresh portable scoring on the full 160-row development set:
+
+| Mode | Source normalized action MSE | Update 300 MSE | Native workflow | Sampled GPU-process peak |
+|---|---:|---:|---:|---:|
+| BF16 head-only | 0.055068 | 0.225794 | 665.66 s | 31.154 GiB |
+| BF16 LoRA + head | 0.055068 | 0.378767 | 665.15 s | 31.516 GiB |
+| NF4 LoRA + head | 0.055654 | 0.286100 | 626.78 s | 30.412 GiB |
+
+All targets were unreached. Every task slice and all seven action-axis MAEs
+worsened from the source; favorable NF4-versus-trained-BF16 means therefore do
+not establish useful adaptation. Training loss also rose, and 296/296/295 of 300
+updates were clipped respectively, with no skipped/nonfinite updates. A checked
+audit found no new loss-normalization, mask, source-action truncation or cursor
+defect. The next prospectively bounded learning screen reduces LR from 1e-4 to 1e-5
+for all three arms while preserving the data, loss, heads, horizon and fixed target.
+It must reach that target and satisfy the 5% paired precision point guard before
+additional seeds are considered; this screen cannot establish recipe noninferiority.
+
+The allocation included separate fresh scoring after each native workflow; its
+per-arm totals were 1344.40/1240.98/1205.89 s in the table's order. These are one-seed,
+fixed-order observations on one GPU, not a time-to-quality improvement. Requested
+CPU allocation was 16, but measured pre-native process affinity was only two logical
+CPUs. Future paired launchers must explicitly request and verify the step CPUs;
+cross-study timing changes cannot be attributed solely to LR. The measured NF4
+memory reduction was only 1.104 GiB versus matched BF16 LoRA because full FP32 head
+training dominates. Host PSS sampling was incomplete during process teardown in
+2/861, 2/850 and 1/872 samples; retain its lower-bound peaks and incomplete flags.
+The [terminal evidence](evidence/native_qlora_family_engineering_4cba88f.json)
+contains clocks, phase distinctions, task diagnostics, identities and failed targets.
 Episode, row and media-content splits are disjoint.
 These previously exposed episodes provide development evidence, not independent confirmation.
 

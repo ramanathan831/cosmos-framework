@@ -244,3 +244,23 @@ Actual first/last development probes had 3,008 input tokens, 16 image-grid entri
 packed pixels `[11520,1536]`, 16 history poses and `[1,64,2]` action targets/masks.
 These new observations do not recreate missing shape records from the earlier
 ten-update run or establish all possible input geometries.
+
+Job `38511234` subsequently passed actual process-loss recovery in both arms:
+exit during backward attempt six after committed update five, explicit rejection
+of a partial checkpoint, then exact model/optimizer/RNG/data and task-score
+agreement at update ten. Its NF4 effective-base dense export passed every fixed
+conversion gate on both real driving clips, including exact auxiliary tensors.
+Maximum paired trajectory displacement was 0.015942 m ADE and 0.048649 m FDE.
+The BF16 control failed one clip's task-ADE/FDE tolerances; the overall allocation
+therefore remains **FAILED**, independently of the passed recovery and NF4 checks.
+This is ten-update artifact evidence, not qualification of a selected 512-update
+policy, task-quality preservation or closed-loop driving.
+
+Both dense policies occupied 26.73 GB on disk. NF4/BF16 export allocated peaks were
+16.023/25.306 GiB; fresh dense capture reached 25.782 GiB in both arms. Complete
+artifact-workflow sampled GPU-process peaks were 26.482/31.162 GiB, including dense
+loading. Fresh evaluator subprocesses emitted no allocator phase records, so
+their allocator peaks remain unknown despite valid external sampling. The
+[retained receipts](evidence/native_qlora_family_engineering_4cba88f.json) include
+these distinctions and the failed BF16 measurements. The selected 512-update
+checkpoint still needs its own mature-recovery and artifact checks.
