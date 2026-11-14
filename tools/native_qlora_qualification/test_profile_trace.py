@@ -30,6 +30,50 @@ def test_nested_annotations_and_overlapping_device_streams_not_double_counted():
     assert not result["end_to_end_speed_evidence"]
 
 
+def test_native_family_head_preparation_and_workflow_ranges_keep_separate_accounting():
+    records = [
+        event("family.native_update.21", 0, 100),
+        event("family.packer.forward", 0, 10),
+        event("family.processor.forward", 1, 6),
+        event("family.module.head.forward", 20, 50),
+        event("family.module.head_model.forward", 25, 30),
+        event("aten::mm", 30, 5, "cpu_op", **{"External id": 7}),
+        event("gemm", 200, 20, "kernel", **{"External id": 7, "device": 0}),
+        event("family.evaluation", 300, 200),
+        event("family.evaluation.callback", 320, 100),
+        event("family.checkpoint", 600, 50),
+    ]
+    result = summarize({"traceEvents": records})
+    phases = result["cpu_phases"]
+    assert phases["family.native_update.21"]["exclusive_named_phase_wall_us"] == 40
+    assert phases["family.packer.forward"]["exclusive_named_phase_wall_us"] == 4
+    assert phases["family.module.head.forward"]["exclusive_named_phase_wall_us"] == 20
+    assert phases["family.evaluation"]["exclusive_named_phase_wall_us"] == 100
+    assert phases["family.checkpoint"]["inclusive_wall_us"] == 50
+    assert result["device_observation_union_us"] == {"0": 20}
+    assert result["device_operations"]["family.module.head_model.forward"]["summed_duration_us"] == 20
+    [group] = result["kernel_attribution_diagnostics"]["groups"]
+    assert group["same_thread_named_range"] == "family.module.head_model.forward"
+    assert not result["end_to_end_speed_evidence"]
+
+
+def test_family_cpu_spans_are_included_without_conflating_separate_workers():
+    rows = [
+        {
+            "protocol": "cosmos.sft-cpu-span.v1",
+            "name": "family.processor.forward",
+            "pid": pid,
+            "thread": 1,
+            "begin_monotonic_ns": 0,
+            "end_monotonic_ns": stop,
+            "inclusive_wall_ns": stop,
+        }
+        for pid, stop in ((1, 100000), (2, 80000))
+    ]
+    result = worker_spans(rows)["family.processor.forward"]
+    assert result == {"calls": 2, "inclusive_wall_us": 180, "exclusive_named_phase_wall_us": 180}
+
+
 def test_ambiguous_external_id_retains_unattributed_kernel():
     result = summarize(
         {

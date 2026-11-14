@@ -18,6 +18,9 @@ from bisect import bisect_left, bisect_right
 from collections import defaultdict
 from pathlib import Path
 
+PHASE_PREFIXES = ("sft.", "trainer.", "family.")
+MODULE_PREFIXES = ("sft.module.", "family.module.", "trainer.optimizer", "trainer.backward")
+
 
 def union(intervals: list[tuple[float, float]]) -> float:
     total, end = 0.0, -math.inf
@@ -42,9 +45,7 @@ def phase_totals(events: list[dict]) -> dict:
     It is not CPU execution time: scheduling and waits remain within these spans.
     Overlapping peer spans are unioned and never subtracted twice.
     """
-    phases = [
-        e for e in events if e.get("cat") == "user_annotation" and e.get("name", "").startswith(("sft.", "trainer."))
-    ]
+    phases = [e for e in events if e.get("cat") == "user_annotation" and e.get("name", "").startswith(PHASE_PREFIXES)]
     groups = defaultdict(list)
     for event in phases:
         groups[event["name"]].append(event)
@@ -124,9 +125,9 @@ def summarize(trace: dict) -> dict:
             named = [e for e in named if interval(e)[1] >= start]
             autograd = [e for e in autograd if interval(e)[1] >= start]
             if event.get("cat") == "user_annotation":
-                if event.get("name", "").startswith(("sft.module.", "trainer.optimizer", "trainer.backward")):
+                if event.get("name", "").startswith(MODULE_PREFIXES):
                     active.append(event)
-                if event.get("name", "").startswith(("sft.", "trainer.")):
+                if event.get("name", "").startswith(PHASE_PREFIXES):
                     named.append(event)
             else:
                 parents = [e for e in active if interval(e)[1] >= stop]
@@ -217,6 +218,7 @@ def summarize(trace: dict) -> dict:
         },
         "limitations": [
             "CPU ranges are wall time, including waits; inclusive parent/child values must not be added.",
+            "Native family preparation, evaluation and checkpoint annotations are included when recorded; an update-only trace does not establish unrecorded workflow costs.",
             "Device class unions can overlap each other; summed operation durations can exceed elapsed time across streams.",
             "GPU attribution requires one unique CPU external ID and its enclosing module range; unmatched kernels remain unattributed.",
             "Traced measurements cannot establish end-to-end speed or quality; retain cold and untraced complete runs separately.",
