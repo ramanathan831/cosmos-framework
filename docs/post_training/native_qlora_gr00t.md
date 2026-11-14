@@ -15,6 +15,13 @@ training converts environment gripper `[-1,1]` to native `[0,1]`, then uses chec
 Action evaluation reverses normalization and gripper conversion. Native four-step flow sampling
 is unchanged. Offline action error is not rollout success or a real-robot safety result.
 
+Backbone processor/configuration metadata is pinned to
+`nvidia/Cosmos-Reason2-2B@9ce19a195e423419c349abfc86fd07178b230561`; the public
+`Qwen/Qwen3-VL-2B-Instruct@89644892e4d85e24eaac8bacfd4f463576704203` supplies
+byte-identical metadata. The weights come from the complete pinned GR00T checkpoint
+above, not replacement Qwen weights. These identities are enforced in
+[`qlora_source.py`](../../cosmos_framework/posttrain/model/gr00t/qlora_source.py).
+
 The language allowlist contains exactly 112 bias-free matrices: q/k/v/o and gate/up/down in each
 retained layer. Vision, embeddings, norms, output head and all action components are excluded
 from NF4. The source architecture is built on meta and official safetensors are read one tensor at
@@ -175,19 +182,27 @@ export COSMOS_TRAINING_WHEEL_SHA256=<64-character-wheel-sha256>
 torchrun --standalone --nproc-per-node=1 \
   -m cosmos_framework.posttrain.checkpoint.tools.export_family_dense \
   --config cosmos_framework/posttrain/configs/gr00t_n1d7_libero_qlora.py \
-  --checkpoint /run/checkpoints/iter_000300 --output /durable/gr00t-unmerged \
+  --checkpoint /run/checkpoint_artifacts/iter_000200 --output /durable/gr00t-unmerged \
   --unmerged --max-shard-size-bytes 536870912 \
   --override model.checkpoint_path=/staged/GR00T-N1.7-LIBERO/libero_spatial \
-  --override model.backbone_adaptation.backbone_path=/staged/Cosmos-Reason2-2B-metadata
+  --override model.backbone_adaptation.backbone_path=/staged/Cosmos-Reason2-2B-metadata \
+  --override model.backbone_adaptation.mode=nf4_lora \
+  --override model.backbone_adaptation.rank=32 --override model.backbone_adaptation.alpha=64 \
+  --override model.backbone_adaptation.dropout=0 --override model.backbone_adaptation.seed=17
 
 torchrun --standalone --nproc-per-node=1 \
   -m cosmos_framework.posttrain.entrypoints.action_eval \
   --config cosmos_framework/posttrain/configs/gr00t_n1d7_libero_qlora.py --unmerged \
   --checkpoint /durable/gr00t-unmerged --output /durable/unmerged-evaluation -- \
-  data.validation_path=/prepared/gr00t/validation.jsonl
+  model.backbone_adaptation.mode=nf4_lora \
+  model.backbone_adaptation.rank=32 model.backbone_adaptation.alpha=64 \
+  model.backbone_adaptation.dropout=0 model.backbone_adaptation.seed=17 \
+  rl.evaluation_seed=123 data.validation_path=/prepared/gr00t/validation.jsonl
 ```
 
-Preserve the original mode, rank/alpha/dropout/adapter seed and task configuration.
+The example uses the selected seed-17 NF4 update-200 artifact; use `bf16_lora` in both
+commands for its BF16 control. Preserve the original mode, rank/alpha/dropout/adapter
+seed and task configuration.
 Source training metadata is preserved; the exporter build is recorded separately.
 This representation was implemented on `8c64b5a`. CPU checks cover exact factors/heads,
 aliases, interrupted publication, corrupt artifacts and fresh loading without source
@@ -650,5 +665,23 @@ references. This closes selected-checkpoint portable coverage without creating n
 quality evidence or reconstructing the earlier target clock. The complete nine-stage
 workflow had valid owned-GPU sampling and 489 complete host samples; its sampled
 process/host peaks are lower bounds, since the original `4cba88f` evaluator does not
-emit allocator-phase peaks. Selected update-200 standalone unmerged export remains
-a separate pending qualification; the update-300 result is not substituted for it.
+emit allocator-phase peaks.
+
+The selected NF4 and BF16 LoRA update-200 artifacts then passed standalone unmerged
+qualification in job `38532260` on build `64ea823` (1,222 GPU-seconds). Fresh native
+loading exactly preserved all 761 trained tensors, 112 effective BF16 matrices,
+tied ownership, controlled first/last-row outputs and all 160 primary score rows.
+The original base paths were absent under both filesystem spellings and quantizer
+imports were blocked. Each artifact has 21 weight shards and 10,247,208,358
+manifest-listed bytes, including three oversized singleton tensors. Native export
+took 145.70/149.65 seconds for NF4/BF16; fresh full-160 subprocesses took
+145.18/143.93 seconds. Both fresh reloads peaked at 9.043 GiB allocated, 9.174 GiB
+reserved and 9.695 GiB sampled GPU-process memory. All 795 observed host samples
+were complete; sampled peaks remain lower bounds.
+
+This closes standalone coverage for the actual selected update-200 LoRA checkpoints.
+It preserves native separate adapter arithmetic and is dense-base inference, not a
+merged or four-bit serving result. The historical merged failures and pending
+final-current-build qualification remain unchanged. The
+[raw hashes, exact source bindings and phase measurements](evidence/native_qlora_family_engineering_4cba88f.json)
+do not establish new task quality, rollout success or inference acceleration.

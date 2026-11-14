@@ -14042,6 +14042,372 @@
         "sha256": "2811de0c3ae93afc6257183c1aa1e45546ce675805af3fdc40f1c039c2b53387",
         "scope": "Two NF/BF portable model_metadata.pt files, matching the acceptance hashes, retained separately for native loader preflight; original55-file archive unchanged."
       }
+    },
+    "38532260": {
+      "scope": "Selected update-200 standalone dequantized-unmerged native inference fidelity; no merged/four-bit inference, new quality estimate or acceleration claim",
+      "job_id": "38532260",
+      "family": "gr00t",
+      "slurm_state": "COMPLETED",
+      "exit_code": "0:0",
+      "allocation_gpu_seconds": 1222,
+      "allocation_seconds": 1213.5906725450186,
+      "allocation_sha256": "fe3db2faa7ff9b2a148a44a59813eca721e96edf6740c34ea08c01cbc0989a9f",
+      "implementation_revision": "64ea823db4a7978c387d195bb464879b4f4733d0",
+      "wheel_sha256": "f1a3cc7332007881d41e6daef3379d3d08985bc883cebbe21cdc491d18acdaf7",
+      "original_training_revision": "4cba88f4d84ce69037c194e58670e8491388a36d",
+      "selected_update": 200,
+      "source_portable_publication_job": "38531405",
+      "passed": true,
+      "raw_receipt_archive": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-target200-unmerged-38532260-receipts-v1.tar.gz",
+        "sha256": "bfea3ee09977697a7f8669d5edf21a146179524580276696294bbee6adb3ad41"
+      },
+      "raw_inventory_sha256": "bd52aee7cd04fab657525acdbe8aa59127d495e9e0c543d071da673de2e11891",
+      "verified_raw_files": 88,
+      "receipt": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-target200-unmerged-38532260-peer-review.json",
+        "sha256": "d92986c006539cdd60f41406f51e8a3b2d3262a63071e93ed81e25dad6f50abe"
+      },
+      "qualification_source_sha256": "275d80baaddd9791bc4732f7b9f885025d3dbdd6bdd8122503024c27952b2604",
+      "reused_tiny_CUDA_gate_job": "38522604",
+      "scope_limits": [
+        "The exact original source paths were absent under fsw/fs11 and configured sentinels; this does not assert every equivalent checkpoint anywhere is absent.",
+        "No quantizer imports/objects in the tested standalone worker; the container still carried bitsandbytes as a dependency, so no bnb-absent installation claim.",
+        "Native phase allocator peaks and sampled ownedGPU/host lower bounds are separate; raw sampling gaps remain.",
+        "Complete160 score equality is artifact parity, not a new independent quality estimate. Existing failed merged BF16/FP32 results unchanged.",
+        "All21 standard shards include3 oversized singleton tensors;512MiB is the ordinary tensor-payload packing limit.",
+        "Final current-build source/cache qualification remains separate; this job tests build 64ea823."
+      ],
+      "runtime": {
+        "code": "64ea823db4a7978c387d195bb464879b4f4733d0",
+        "versions": {
+          "torch": "2.10.0+cu128",
+          "transformers": "4.57.6",
+          "bitsandbytes": "0.49.2",
+          "safetensors": "0.8.0",
+          "diffusers": "0.35.1",
+          "numpy": "1.26.4"
+        },
+        "gpu": {
+          "name": "NVIDIA A100-SXM4-80GB",
+          "bytes": 85174583296,
+          "uuid": "GPU-0627f518-8b38-e550-e3b8-0486a92dd0d3",
+          "nvml_uuid_roundtrip": true
+        },
+        "cpu_affinity": [
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          18,
+          19,
+          136,
+          137,
+          144,
+          145,
+          152,
+          153,
+          154,
+          155
+        ],
+        "slurm_job": "38532260",
+        "node": "batch-block4-0045",
+        "numa_nodes": [
+          "node0",
+          "node1"
+        ]
+      },
+      "common_checks": {
+        "stages_exit_zero": 8,
+        "exact_full160_rows_metrics_inputs_and_scorer": true,
+        "evaluation_seed": 123,
+        "controlled_first_last_outputs_seed": 17,
+        "exact_FP32_heads": 537,
+        "exact_FP32_factors": 224,
+        "exact_effective_BF16_matrices": 112,
+        "all_tensor_inventory_count": 1257,
+        "tied_embedding_output_head_ownership_preserved": true,
+        "sidecar_files": 13,
+        "original_fsw_fs11_and_configured_source_paths_absent": true,
+        "quantizer_imports_blocked": true,
+        "all_observed_host_samples_complete": true,
+        "observed_host_samples": 795,
+        "owned_GPU_sampling_valid": true,
+        "sampled_peaks_are_lower_bounds": true
+      },
+      "packaging": {
+        "weight_shards": 21,
+        "manifest_listed_files": 35,
+        "manifest_listed_bytes": 10247208358,
+        "max_shard_payload_bytes": 536870912,
+        "oversized_singletons": [
+          {
+            "file": "model-00002-of-00021.safetensors",
+            "name": "action_head.action_encoder.W2.W",
+            "tensor_bytes": 603979776
+          },
+          {
+            "file": "model-00015-of-00021.safetensors",
+            "name": "backbone.model.lm_head.weight",
+            "tensor_bytes": 622329856
+          },
+          {
+            "file": "model-00016-of-00021.safetensors",
+            "name": "backbone.model.model.language_model.embed_tokens.weight",
+            "tensor_bytes": 622329856
+          }
+        ]
+      },
+      "modes": {
+        "nf4_lora": {
+          "selected_source": {
+            "portable": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38531405/publication/nf4_lora/checkpoint_artifacts/iter_000200",
+            "portable_manifest_sha256": "2d2bfdeb966df8f2a52ca7bcdc5440c213a3ea7c0ad4568b77f66840f69d04b7",
+            "portable_metadata_sha256": "92e0723a46610dd2e3c646828a4854cf01c8a3fab6032774938b4c8260180a70",
+            "reference_evaluation": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38531405/publication/nf4_lora/fresh-portable/evaluation.json",
+            "reference_evaluation_sha256": "aa303edb7f7dc2898fe713138870c9e7e90ffd530ee9ad3bf46627ebeefc3896"
+          },
+          "acceptance_sha256": "c2293eb56819d9eecf1ffa42075ba7ee6cd1e7dacb76c33a77846c65f4f92988",
+          "manifest_sha256": "7a7ce8dbf62ab66181b4238a95b35f88d6823a64e773559fb9c42ea43f2ecd36",
+          "original200_evaluation_sha256": "d4b076a99fdf5ce69021d36dcc5cb12529d18b5533b741c38719353f42012591",
+          "full160_evaluation_sha256": "b6024a169ba3582a7d435a503fac4bf7788b670a26d92f6812b64da4fc912112",
+          "controlled_portable_capture_sha256": "9387f932cb866250a7e1a6fba169e8bbcc64199b673076a18ebb8f3f226e0588",
+          "controlled_standalone_capture_sha256": "c98f00db1b908a0283cefa97362790b00606751083856c2a3937254ef23a8836",
+          "primary_metrics": {
+            "action_mae_environment_units": 0.045291675304619666,
+            "action_mae_gripper_environment_units": 0.09406431980431079,
+            "action_mae_pitch_environment_units": 0.01730836013968725,
+            "action_mae_roll_environment_units": 0.008952295170712908,
+            "action_mae_x_environment_units": 0.059338889628854516,
+            "action_mae_y_environment_units": 0.04943658298211604,
+            "action_mae_yaw_environment_units": 0.010713143740155768,
+            "action_mae_z_environment_units": 0.07722813566650023,
+            "loss": 0.11121392435743474,
+            "normalized_action_mse": 0.043024753683712336
+          },
+          "aliases": [
+            [
+              "backbone.model.lm_head.weight",
+              "backbone.model.model.language_model.embed_tokens.weight"
+            ]
+          ],
+          "standalone_namespace": {
+            "original_source_paths_absent": [
+              "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-family-adapters-20261030/gr00t-public-assets-v1/model",
+              "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-family-adapters-20261030/gr00t-public-assets-v1/backbone",
+              "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-family-adapters-20261030/gr00t-public-assets-v1/model",
+              "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-family-adapters-20261030/gr00t-public-assets-v1/backbone",
+              "/original-source-unavailable/model",
+              "/original-source-unavailable/backbone"
+            ],
+            "quantizer_imports_blocked": true
+          },
+          "manifest_bytes": 3147266,
+          "total_manifest_plus_inventory_bytes": 10250355624,
+          "fresh_native_clocks": {
+            "scoring_seconds": 75.79584764398169,
+            "startup_seconds": 56.70027635898441,
+            "workflow_seconds": 132.4961241929559
+          },
+          "effective_base": "dequantize(Q(W))",
+          "separate_native_LoRA_arithmetic_preserved": true,
+          "phases": {
+            "export": {
+              "workflow_sha256": "f9edaa2c4d9811490c03dc372299661ba0816a914e4aecf3b92664f0f71ff05a",
+              "memory_summary_sha256": "56382bfd32278c1bb7816693c1769b4fbfad72302b4749625a29a4d95a5a23bc",
+              "stage_seconds": {
+                "native-unmerged-export": 145.69582013599575,
+                "portable-capture": 91.92720190400723
+              },
+              "sampled_memory": {
+                "device_peak_bytes": 12763463680,
+                "gpu_memory_evidence_valid": true,
+                "host_pss_complete": true,
+                "host_pss_sum_peak_bytes": 9420999680,
+                "host_rss_sum_peak_bytes": 10004099072,
+                "owned_device_process_peak_bytes": 12029263872,
+                "peaks_are_sampled_lower_bounds": true,
+                "samples": 198
+              },
+              "phase_allocator_records": {
+                "native-unmerged-export": {
+                  "events": 3,
+                  "peak_allocated_bytes": 8507924992,
+                  "peak_process_host_rss_bytes": 8523534336,
+                  "peak_reserved_bytes": 8652849152,
+                  "sha256": "4e171dcf56f4db6a9f7811421a65b448c5132a0b58c8418d6b95fafa5d1501bc"
+                },
+                "portable-capture": {
+                  "events": 4,
+                  "peak_allocated_bytes": 11153870336,
+                  "peak_process_host_rss_bytes": 8529534976,
+                  "peak_reserved_bytes": 11433672704,
+                  "sha256": "afc1ec2d314d13ccb0c559313d9025de89adbef0f9c293c3e1b149b4c59204cf"
+                }
+              }
+            },
+            "reload": {
+              "workflow_sha256": "e5bddee14ba34437fb6bbe71aad5b0b8ffc7b4f754b891983f5f93c15d75508f",
+              "memory_summary_sha256": "22b7c1b631493cdfbfd40990e3f6c80b288f67e88015d0f48841bd15058308d6",
+              "stage_seconds": {
+                "native-full160-evaluation": 145.18430739699397,
+                "unmerged-capture": 83.21991129999515
+              },
+              "sampled_memory": {
+                "device_peak_bytes": 11144462336,
+                "gpu_memory_evidence_valid": true,
+                "host_pss_complete": true,
+                "host_pss_sum_peak_bytes": 3213646848,
+                "host_rss_sum_peak_bytes": 3795779584,
+                "owned_device_process_peak_bytes": 10410262528,
+                "peaks_are_sampled_lower_bounds": true,
+                "samples": 199
+              },
+              "phase_allocator_records": {
+                "native-full160-evaluation": {
+                  "events": 6,
+                  "peak_allocated_bytes": 9709470720,
+                  "peak_process_host_rss_bytes": 2403332096,
+                  "peak_reserved_bytes": 9850322944,
+                  "sha256": "112c926ca1147af935a8064698b8d9e338446c53e3e4e902bac138dca6f087bb"
+                },
+                "unmerged-capture": {
+                  "events": 4,
+                  "peak_allocated_bytes": 9709470208,
+                  "peak_process_host_rss_bytes": 2432954368,
+                  "peak_reserved_bytes": 9850322944,
+                  "sha256": "e4cce825bf3fbdc1950151a622b5568c061179d55b08d72168cbec04e3703f2a"
+                }
+              }
+            }
+          }
+        },
+        "bf16_lora": {
+          "selected_source": {
+            "portable": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38531405/publication/bf16_lora/checkpoint_artifacts/iter_000200",
+            "portable_manifest_sha256": "a3faf7771725336bed85219e9d87258ddb98b282efa2bedaf573e367a0fa362c",
+            "portable_metadata_sha256": "d12af7495a3fcb2b917be13ddea208c4060d0c3bfc2b3a6b12b735a35d8b15b8",
+            "reference_evaluation": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38531405/publication/bf16_lora/fresh-portable/evaluation.json",
+            "reference_evaluation_sha256": "72f4ae0eb1bf155c3b6aa9ff4b3395f2ffaa1cdbcad190db4800cf8103f1da98"
+          },
+          "acceptance_sha256": "bf094dafce2b95c926231cf3c9e4a15778266881e3884d8b6632a26c58c016b1",
+          "manifest_sha256": "90e69f79b0a8eb571edfd5318be1c430fa0d428cc0ecb635ea36879d5359183e",
+          "original200_evaluation_sha256": "c5b4e2e90333a0d7d4cb9673600e20f553c7091f2d632648311be79fb0094b91",
+          "full160_evaluation_sha256": "0dbbf2d11b0be65bceb8d36c4c95c244bc370ba6c2dd1c4f6f8c42e929fcc07c",
+          "controlled_portable_capture_sha256": "99c4bc7f3ad3425b32c063f3a1b55f92596b5e691e84cc6c6b60ce7dcc78c2d2",
+          "controlled_standalone_capture_sha256": "3ccb6880e37779c18fd3602849ee59c9c2f14bcc4ebac96c0fefb3df955df6a5",
+          "primary_metrics": {
+            "action_mae_environment_units": 0.04663848148303661,
+            "action_mae_gripper_environment_units": 0.1024786601215601,
+            "action_mae_pitch_environment_units": 0.016971740714602813,
+            "action_mae_roll_environment_units": 0.008921623027977981,
+            "action_mae_x_environment_units": 0.05914822609036982,
+            "action_mae_y_environment_units": 0.049100237615119065,
+            "action_mae_yaw_environment_units": 0.010006967378345546,
+            "action_mae_z_environment_units": 0.07984191543328104,
+            "loss": 0.11087707963306456,
+            "normalized_action_mse": 0.04435785325077762
+          },
+          "aliases": [
+            [
+              "backbone.model.lm_head.weight",
+              "backbone.model.model.language_model.embed_tokens.weight"
+            ]
+          ],
+          "standalone_namespace": {
+            "original_source_paths_absent": [
+              "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-family-adapters-20261030/gr00t-public-assets-v1/model",
+              "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-family-adapters-20261030/gr00t-public-assets-v1/backbone",
+              "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-family-adapters-20261030/gr00t-public-assets-v1/model",
+              "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-family-adapters-20261030/gr00t-public-assets-v1/backbone",
+              "/original-source-unavailable/model",
+              "/original-source-unavailable/backbone"
+            ],
+            "quantizer_imports_blocked": true
+          },
+          "manifest_bytes": 3061498,
+          "total_manifest_plus_inventory_bytes": 10250269856,
+          "fresh_native_clocks": {
+            "scoring_seconds": 74.9684978389414,
+            "startup_seconds": 56.095769118051976,
+            "workflow_seconds": 131.0642671569949
+          },
+          "effective_base": "W_bf16",
+          "separate_native_LoRA_arithmetic_preserved": true,
+          "phases": {
+            "export": {
+              "workflow_sha256": "c54daad91b4585682e5ccd2b0ec4356a320eca90838e8e1c07094a82dd048557",
+              "memory_summary_sha256": "c1962647cfbf3f4171775bf2ddbae6ead415775a3390e402f0b240eb3efe827f",
+              "stage_seconds": {
+                "native-unmerged-export": 149.64526360097807,
+                "portable-capture": 91.92897035402711
+              },
+              "sampled_memory": {
+                "device_peak_bytes": 13889634304,
+                "gpu_memory_evidence_valid": true,
+                "host_pss_complete": true,
+                "host_pss_sum_peak_bytes": 8801033216,
+                "host_rss_sum_peak_bytes": 9384378368,
+                "owned_device_process_peak_bytes": 13155434496,
+                "peaks_are_sampled_lower_bounds": true,
+                "samples": 201
+              },
+              "phase_allocator_records": {
+                "native-unmerged-export": {
+                  "events": 3,
+                  "peak_allocated_bytes": 9614532096,
+                  "peak_process_host_rss_bytes": 7990710272,
+                  "peak_reserved_bytes": 9747562496,
+                  "sha256": "479da0c4b166be347d3dbe46a3273f7c64c315004219da78db7c86c2c7d994cc"
+                },
+                "portable-capture": {
+                  "events": 4,
+                  "peak_allocated_bytes": 12314741248,
+                  "peak_process_host_rss_bytes": 7992848384,
+                  "peak_reserved_bytes": 12595494912,
+                  "sha256": "9845e3d9f002987cfb68e53b428e8cc0bcb0daa821e19395911fb334341dd259"
+                }
+              }
+            },
+            "reload": {
+              "workflow_sha256": "48643252b72f9fe0ad6eedb231a024bd9f168665090ed282af5c284005811211",
+              "memory_summary_sha256": "c0b54c7395150054434ecb5d7e06c8595f2fd5551a369ce7b713ef6e0a9eb834",
+              "stage_seconds": {
+                "native-full160-evaluation": 143.9324195019435,
+                "unmerged-capture": 83.21617864596192
+              },
+              "sampled_memory": {
+                "device_peak_bytes": 11144462336,
+                "gpu_memory_evidence_valid": true,
+                "host_pss_complete": true,
+                "host_pss_sum_peak_bytes": 3334196224,
+                "host_rss_sum_peak_bytes": 3902808064,
+                "owned_device_process_peak_bytes": 10410262528,
+                "peaks_are_sampled_lower_bounds": true,
+                "samples": 197
+              },
+              "phase_allocator_records": {
+                "native-full160-evaluation": {
+                  "events": 6,
+                  "peak_allocated_bytes": 9709470720,
+                  "peak_process_host_rss_bytes": 2401665024,
+                  "peak_reserved_bytes": 9850322944,
+                  "sha256": "71e590f5e575e888f5ac50037e3137fe26ae7fcb51b90ad64a109cb2bb042060"
+                },
+                "unmerged-capture": {
+                  "events": 4,
+                  "peak_allocated_bytes": 9709470208,
+                  "peak_process_host_rss_bytes": 2431811584,
+                  "peak_reserved_bytes": 9850322944,
+                  "sha256": "351142c21b437bbba66f57c42d35d39d3b3d70f796963a9018d550e31df7ef66"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "read_only_head_memory_diagnostic": {
