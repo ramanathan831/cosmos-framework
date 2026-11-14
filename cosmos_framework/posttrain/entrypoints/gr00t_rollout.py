@@ -20,8 +20,11 @@ def main():
     parser.add_argument("--sim-python", required=True)
     parser.add_argument("--cases", required=True, help="Prospectively frozen JSON list of LiberoCase mappings")
     parser.add_argument("--seed", type=int, required=True)
+    parser.add_argument("--latency-warmup-calls", type=int, default=5)
     parser.add_argument("--output", required=True)
     args, rest = parser.parse_known_args()
+    if args.latency_warmup_calls < 0:
+        parser.error("--latency-warmup-calls must be nonnegative")
     opts = rest[1:] if rest and rest[0] == "--" else rest
     if any("=" not in item for item in opts):
         parser.error("configuration overrides require key=value")
@@ -66,7 +69,8 @@ def main():
             if args.dense
             else load_artifact(config, args.checkpoint, device=device, output=output)
         )
-        rollout = NativeArtifactRollout(policy)
+        policy_loading_seconds = time.monotonic() - started
+        rollout = NativeArtifactRollout(policy, latency_capacity=32 * len(cases))
         protocol = execution_protocol("libero_spatial", GR00T_QLORA_SPATIAL_EXECUTION_PROFILE)
         gateway = SimGatewayBody(
             sim="libero",
@@ -117,6 +121,8 @@ def main():
                 "successes": sum(row["success"] for row in episodes),
                 "episodes": len(episodes),
                 "workflow_seconds": time.monotonic() - started,
+                "policy_loading_seconds": policy_loading_seconds,
+                "response_latency": rollout.latency_report(warmup_calls=args.latency_warmup_calls),
             },
         )
     finally:

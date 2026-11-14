@@ -91,6 +91,36 @@ def test_rollout_slices_supervised_prefix_and_never_inverts_gripper_twice(monkey
     assert body.describe().horizon == 8
 
 
+def test_response_measurement_preserves_actions_rng_and_bounds(monkeypatch):
+    from cosmos_framework.posttrain.model.gr00t import rollout
+
+    policy = SimpleNamespace(config=make_config().model, net=nn.Linear(2, 2))
+    monkeypatch.setattr(rollout, "prepare_observations", lambda policy, obs: ({}, None))
+    monkeypatch.setattr(rollout, "predict_processed", lambda *a, **kw: (None, torch.randn(1, 16, 7).numpy()))
+    clock = iter([1.0, 1.25, 2.0, 2.5, 3.0, 3.75, 4.0])
+    monkeypatch.setattr(rollout.time, "perf_counter", lambda: next(clock))
+    observation = {"image": np.zeros((256, 256, 3), dtype=np.uint8), "wrist_image": np.zeros((256, 256, 3))}
+    context = {"case": {"suite": "libero_spatial", "task_id": 2, "init_state_id": 3}, "seed": 17, "decision": 0}
+    plain = NativeArtifactRollout(policy)
+    measured = NativeArtifactRollout(policy, latency_capacity=2)
+    rng = torch.get_rng_state().clone()
+    expected = plain.act([observation], context=context)
+    first = measured.act([observation], context=context)
+    second = measured.act([observation], context=context)
+    np.testing.assert_array_equal(first, expected)
+    np.testing.assert_array_equal(second, expected)
+    assert torch.equal(torch.get_rng_state(), rng)
+    report = measured.latency_report(warmup_calls=1)
+    assert report["cold_first_response_seconds"] == 0.5
+    assert report["steady_seconds"]["p95"] == 0.75
+    assert report["calls"][0]["media_shapes"] == [{"image": [256, 256, 3], "wrist_image": [256, 256, 3]}]
+    assert measured.latency_report(warmup_calls=2)["steady_seconds"] is None
+    with pytest.raises(RuntimeError, match="capacity"):
+        measured.act([observation], context=context)
+    with pytest.raises(ValueError, match="warmup"):
+        measured.latency_report(warmup_calls=-1)
+
+
 def test_actual_output_comparison_has_no_implicit_tolerance_or_input_substitution():
     reference = {
         "format": "gr00t-native-output-probe-v1",

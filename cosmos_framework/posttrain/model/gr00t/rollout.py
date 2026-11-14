@@ -9,6 +9,8 @@ accepts its canonical upright RGB/axis-angle observation and returns native deco
 
 from __future__ import annotations
 
+import time
+
 import numpy as np
 
 ACTION_KEYS = ("x", "y", "z", "roll", "pitch", "yaw", "gripper")
@@ -71,14 +73,41 @@ def predict_processed(policy, inputs, *, native_states=None):
 
 
 class NativeArtifactRollout:
-    def __init__(self, policy):
+    def __init__(self, policy, *, latency_capacity=0):
         from cosmos_framework.posttrain.model.gr00t.adaptation import validate_task_config
 
         validate_task_config(policy.config)
         if policy.config.execution_horizon != 8 or policy.config.training_prefix < 8:
             raise ValueError("GR00T QLoRA spatial rollout requires eight supervised execution actions")
+        if type(latency_capacity) is not int or latency_capacity < 0:
+            raise ValueError("latency_capacity must be a nonnegative declared decision bound")
         self.policy = policy
         self.policy.net.eval()
+        self.latency_capacity = latency_capacity
+        self.response_timings = []
+
+    def latency_report(self, *, warmup_calls):
+        if type(warmup_calls) is not int or warmup_calls < 0:
+            raise ValueError("warmup_calls must be a nonnegative prospectively selected count")
+        steady = [row["response_seconds"] for row in self.response_timings[warmup_calls:]]
+        return {
+            "scope": "native observation preparation, transfer, four-step action sampling, decoding and RNG/mode restoration; excludes gateway IPC and simulator rendering/control",
+            "warmup_calls": warmup_calls,
+            "cold_first_response_seconds": self.response_timings[0]["response_seconds"]
+            if self.response_timings
+            else None,
+            "steady_calls": len(steady),
+            "steady_seconds": {
+                "mean": float(np.mean(steady)),
+                "p50": float(np.quantile(steady, 0.50)),
+                "p95": float(np.quantile(steady, 0.95)),
+                "p99": float(np.quantile(steady, 0.99)),
+            }
+            if steady
+            else None,
+            "calls": list(self.response_timings),
+            "comparison_limit": "On-policy observations can diverge between artifacts; these response distributions alone do not establish matched-input inference acceleration.",
+        }
 
     def describe(self):
         from cosmos_framework.posttrain.embodied.rollout import RolloutInfo
@@ -89,6 +118,9 @@ class NativeArtifactRollout:
         from cosmos_framework.posttrain.embodied.sims.libero.protocol import libero_seed
         from cosmos_framework.posttrain.entrypoints.action_sft import preserved_evaluation
 
+        started = time.perf_counter()
+        if self.latency_capacity and len(self.response_timings) >= self.latency_capacity:
+            raise RuntimeError("native rollout exceeded its declared response-measurement capacity")
         case = context["case"]
         if case["suite"] != "libero_spatial":
             raise ValueError("this GR00T artifact rollout supports only LIBERO spatial")
@@ -107,4 +139,26 @@ class NativeArtifactRollout:
             torch.manual_seed(seed)
             inputs, states = prepare_observations(self.policy, observations)
             _, actions = predict_processed(self.policy, inputs, native_states=states)
-        return [action[:8].copy() for action in actions]
+        result = [action[:8].copy() for action in actions]
+        # predict_processed transfers the complete predictions to CPU before
+        # decoding. The returned controller commands therefore include completed
+        # GPU work; timing a CUDA enqueue alone would understate response latency.
+        elapsed = time.perf_counter() - started
+        if self.latency_capacity:
+            self.response_timings.append(
+                {
+                    "case": dict(case),
+                    "decision": context["decision"],
+                    "seed": context["seed"],
+                    "response_seconds": elapsed,
+                    "batch_size": len(observations),
+                    "media_shapes": [
+                        {camera: list(row[camera].shape) for camera in ("image", "wrist_image")} for row in observations
+                    ],
+                    "decoded_horizon": 16,
+                    "executed_horizon": 8,
+                    "action_dimensions": 7,
+                    "flow_sampling_steps": 4,
+                }
+            )
+        return result
