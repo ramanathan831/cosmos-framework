@@ -36,6 +36,9 @@ class Tokenizer:
     chat_template = "unchanged"
     special_tokens_map = {"eos_token": "eos"}
 
+    def __init__(self):
+        self.init_kwargs = {}
+
     def __len__(self):
         return 32
 
@@ -51,12 +54,17 @@ class MediaProcessor:
         return {"size": self.size}
 
 
+class Processor(SimpleNamespace):
+    def _merge_kwargs(self, *args, **kwargs):
+        from transformers.processing_utils import ProcessorMixin
+
+        return ProcessorMixin._merge_kwargs(self, *args, **kwargs)
+
+
 class Packer:
     def __init__(self):
         self.config = Settings()
-        self.processor = SimpleNamespace(
-            chat_template="template", tokenizer=Tokenizer(), image_processor=MediaProcessor()
-        )
+        self.processor = Processor(chat_template="template", tokenizer=Tokenizer(), image_processor=MediaProcessor())
         self.model_config = SimpleNamespace(action_space_cfg={"n_waypoints": 64})
         self.action_space = nn.Module()
         self.action_space.register_buffer("scale", torch.tensor(1.0))
@@ -403,8 +411,7 @@ def test_entrypoints_install_wrapper_before_objective_captures_packer(tmp_path, 
     assert model.net._cosmos_adapter_checkpoint_codec.identity == {"fixture": "unchanged"}
 
 
-def test_actual_native_packer_cpu_image_action_tree_and_processor_identity(tmp_path):
-    """Actual pinned processor, image decoding and native trajectory normalization; no model-quality claim."""
+def _actual_native_packer(tmp_path):
     pytest.importorskip("alpamayo_r1")
     import transformers
 
@@ -424,6 +431,10 @@ def test_actual_native_packer_cpu_image_action_tree_and_processor_identity(tmp_p
     )
     packer.model_config = native.config
     packer.processor = native.config._build_processor()
+    packer.processor.tokenizer.add_special_tokens(
+        {"additional_special_tokens": ["<|vision_start|>", "<|vision_end|>", "<|image_pad|>"]}
+    )
+    packer.processor.chat_template = "{% for message in messages %}{% for content in message['content'] %}{% if content['type'] == 'image' %}<|vision_start|><|image_pad|><|vision_end|>{% elif content['type'] == 'text' %}{{ content['text'] }}{% endif %}{% endfor %}{% endfor %}"
     packer.action_space = UnicycleAccelCurvatureActionSpace(n_waypoints=64)
     row = sample()
     for camera in row["media"]:
@@ -441,6 +452,12 @@ def test_actual_native_packer_cpu_image_action_tree_and_processor_identity(tmp_p
     row["actions"] = [[i * 0.1, 0, 0] for i in range(1, 65)]
     step = SimpleNamespace(obs=SimpleNamespace(representations={"flow_sample": row}), algo_extra={})
     batch = [SimpleNamespace(id="physical-fixture", transitions=[step])]
+    return packer, batch
+
+
+def test_actual_native_packer_cpu_image_action_tree_and_processor_identity(tmp_path):
+    """Actual pinned processor, image decoding and native trajectory normalization; no model-quality claim."""
+    packer, batch = _actual_native_packer(tmp_path)
     before = collect_rng_state()
     reference = packer(batch)
     wrapped = reuse._EvaluationPacker(packer)
@@ -452,6 +469,74 @@ def test_actual_native_packer_cpu_image_action_tree_and_processor_identity(tmp_p
     assert first["history"]["ego_history_xyz"].shape == (1, 1, 16, 3)
     assert wrapped.stats["retained_tensor_bytes_peak"] > 0
     assert_state_equal(collect_rng_state(), before)
+
+
+@pytest.mark.parametrize("change", ["image_token", "image_token_id", "init_padding", "init_rescale"])
+def test_actual_processor_token_and_resolved_defaults_cannot_reuse_stale_inputs(tmp_path, change):
+    packer, batch = _actual_native_packer(tmp_path)
+    wrapped = reuse._EvaluationPacker(packer)
+    rng = collect_rng_state()
+    initial = reuse._processor_identity(packer)
+    with pytest.raises(RuntimeError, match="changed before reuse"), wrapped.batch_scope(batch):
+        first = wrapped(batch)
+        if change == "image_token":
+            packer.processor.image_token = "<|changed_image|>"
+        elif change == "image_token_id":
+            packer.processor.image_token_id = -1
+        elif change == "init_padding":
+            packer.processor.tokenizer.init_kwargs.update(padding="max_length", max_length=512)
+        else:
+            packer.processor.tokenizer.init_kwargs["do_rescale"] = False
+        assert reuse._processor_identity(packer) != initial
+        # Reproduce the actual uncached consequence. The cache must refuse before
+        # returning previously prepared tensors even if the new processor fails.
+        if change.startswith("image_token"):
+            with pytest.raises(ValueError, match="token count"):
+                packer(batch)
+        else:
+            changed = packer(batch)
+            key = "input_ids" if change == "init_padding" else "pixel_values"
+            assert not torch.equal(first["tokenized"][key], changed["tokenized"][key])
+        wrapped(batch)
+    assert wrapped._prepared is None and wrapped._identity is None and not wrapped.pending
+    assert wrapped.stats["hits"] == 0
+    assert_state_equal(collect_rng_state(), rng)
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        name
+        for token in ("image_token", "video_token", "vision_start_token", "vision_end_token")
+        for name in (token, token + "_id")
+    ],
+)
+def test_every_pinned_multimodal_token_field_is_identity_bound(name):
+    packer = Packer()
+    initial = reuse._processor_identity(packer)
+    setattr(packer.processor, name, -1 if name.endswith("_id") else "changed")
+    assert reuse._processor_identity(packer) != initial
+
+
+def test_resolved_processor_kwargs_follow_live_precedence_without_mutating_defaults():
+    from transformers.models.qwen3_vl.processing_qwen3_vl import Qwen3VLProcessorKwargs
+
+    packer = Packer()
+    tokenizer = packer.processor.tokenizer
+    tokenizer.init_kwargs.update(padding="max_length", max_length=512, do_rescale=False)
+    tokenizer.max_length = 1024  # The pinned merge uses a live attribute when present.
+    original_defaults = copy.deepcopy(Qwen3VLProcessorKwargs._defaults)
+    original_init = copy.deepcopy(tokenizer.init_kwargs)
+    snapshot = reuse._processor_identity(packer)["resolved_kwargs"]
+    assert snapshot["text_kwargs"]["padding"] == "max_length"
+    assert snapshot["text_kwargs"]["max_length"] == 1024
+    assert snapshot["images_kwargs"]["do_rescale"] is False
+    assert snapshot["text_kwargs"]["return_tensors"] == "pt"
+    assert Qwen3VLProcessorKwargs._defaults == original_defaults
+    assert tokenizer.init_kwargs == original_init
+    before = reuse._processor_identity(packer)
+    tokenizer.init_kwargs["name_or_path"] = "unused-local-path"
+    assert reuse._processor_identity(packer) == before  # No blanket init dictionary/vocabulary serialization.
 
 
 def test_cached_evaluation_checkpoint_recovery_and_portable_identity(tmp_path):

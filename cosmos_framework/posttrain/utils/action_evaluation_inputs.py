@@ -69,6 +69,8 @@ def _file_version(path):
 
 
 def _processor_identity(packer):
+    from transformers.models.qwen3_vl.processing_qwen3_vl import Qwen3VLProcessorKwargs
+
     from cosmos_framework.posttrain.utils.identity import canonical_config_value
 
     processor = packer.processor
@@ -115,7 +117,23 @@ def _processor_identity(packer):
         {
             "config": asdict(packer.config),
             "processor_object": id(processor),
+            "processor_class": f"{type(processor).__module__}.{type(processor).__qualname__}",
             "chat_template": processor.chat_template,
+            # Qwen3VL owns these separately from tokenizer.special_tokens_map.
+            # Its __call__ uses them for image expansion and multimodal checks.
+            "multimodal_tokens": {
+                name: getattr(processor, name, None)
+                for token in ("image_token", "video_token", "vision_start_token", "vision_end_token")
+                for name in (token, token + "_id")
+            },
+            # Match the pinned processor's actual precedence, including tokenizer
+            # init defaults and live attributes. Snapshot only resolved modality
+            # kwargs, not vocabulary files or the mutable tokenizer backend.
+            "resolved_kwargs": processor._merge_kwargs(
+                Qwen3VLProcessorKwargs,
+                tokenizer_init_kwargs=tokenizer.init_kwargs,
+                return_tensors="pt",
+            ),
             "components": components,
             "action_space_object": id(packer.action_space),
             "action_space_config": packer.model_config.action_space_cfg,
