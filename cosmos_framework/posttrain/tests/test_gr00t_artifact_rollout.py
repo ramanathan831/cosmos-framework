@@ -99,22 +99,27 @@ def test_actual_output_comparison_has_no_implicit_tolerance_or_input_substitutio
         "inputs": {"state": {"sha256": "bound"}},
         "masked_elements": 70,
         "flow_loss": 0.1,
-        "normalized_actions": [[[0.2]]],
-        "native_decoded_actions": [[[0.3]]],
+        "normalized_actions": np.full((1, 40, 132), 0.2).tolist(),
+        "native_decoded_actions": np.full((1, 16, 7), 0.3).tolist(),
     }
-    assert compare_outputs(reference, reference, normalized_atol=0, decoded_atol=0, flow_loss_atol=0) == {
+    assert compare_outputs(
+        reference, reference, normalized_atol=0, decoded_atol=0, flow_loss_atol=0, flow_loss_rtol=0
+    ) == {
         "flow_loss": 0,
         "normalized_actions": 0,
+        "normalized_actions_all_slots": 0,
         "native_decoded_actions": 0,
+        "flow_loss_relative": 0,
+        "gripper_decisions_equal": True,
     }
     changed = copy.deepcopy(reference)
     changed["normalized_actions"][0][0][0] += 0.01
     with pytest.raises(ValueError, match="exceeds"):
-        compare_outputs(reference, changed, normalized_atol=0.001, decoded_atol=0, flow_loss_atol=0)
+        compare_outputs(reference, changed, normalized_atol=0.001, decoded_atol=0, flow_loss_atol=0, flow_loss_rtol=0)
     changed = copy.deepcopy(reference)
     changed["inputs"]["state"]["sha256"] = "different"
     with pytest.raises(ValueError, match="inputs"):
-        compare_outputs(reference, changed, normalized_atol=1, decoded_atol=1, flow_loss_atol=1)
+        compare_outputs(reference, changed, normalized_atol=1, decoded_atol=1, flow_loss_atol=1, flow_loss_rtol=1)
 
 
 def test_selected_profile_uses_existing_explicit_environment_seed_branch(monkeypatch):
@@ -157,3 +162,48 @@ def test_selected_profile_uses_existing_explicit_environment_seed_branch(monkeyp
     assert len(physics.commands) == 15
     np.testing.assert_array_equal(physics.commands[0], [0, 0, 0, 0, 0, 0, -1])
     np.testing.assert_array_equal(physics.initial, np.ones(2))
+
+
+def test_conversion_rejects_relative_loss_regression_and_discrete_gripper_flip():
+    reference = {
+        "format": "gr00t-native-output-probe-v1",
+        "seed": 17,
+        "ids": ["clip"],
+        "inputs": {"state": {"sha256": "bound"}},
+        "masked_elements": 70,
+        "flow_loss": 0.01,
+        "normalized_actions": np.full((1, 40, 132), 0.2).tolist(),
+        "native_decoded_actions": [[([0.0] * 6 + [0.499]) for _ in range(16)]],
+    }
+    changed = copy.deepcopy(reference)
+    changed["flow_loss"] = 0.011
+    with pytest.raises(ValueError, match="relative error"):
+        compare_outputs(
+            reference, changed, normalized_atol=0.02, decoded_atol=0.02, flow_loss_atol=0.002, flow_loss_rtol=0.02
+        )
+    changed = copy.deepcopy(reference)
+    changed["native_decoded_actions"][0][0][-1] = 0.501
+    with pytest.raises(ValueError, match="discrete gripper"):
+        compare_outputs(
+            reference, changed, normalized_atol=0.02, decoded_atol=0.02, flow_loss_atol=0.002, flow_loss_rtol=0.02
+        )
+
+
+def test_conversion_reports_unexecuted_padding_without_replacing_valid_action_gate():
+    reference = {
+        "format": "gr00t-native-output-probe-v1",
+        "seed": 17,
+        "ids": ["clip"],
+        "inputs": {"state": {"sha256": "bound"}},
+        "masked_elements": 70,
+        "flow_loss": 0.01,
+        "normalized_actions": np.zeros((1, 40, 132)).tolist(),
+        "native_decoded_actions": np.zeros((1, 16, 7)).tolist(),
+    }
+    changed = copy.deepcopy(reference)
+    changed["normalized_actions"][0][20][100] = 1.0
+    result = compare_outputs(reference, changed, normalized_atol=0, decoded_atol=0, flow_loss_atol=0, flow_loss_rtol=0)
+    assert result["normalized_actions"] == 0 and result["normalized_actions_all_slots"] == 1
+    changed["native_decoded_actions"] = [[[0.0] * 7]]
+    with pytest.raises(ValueError, match="shape"):
+        compare_outputs(reference, changed, normalized_atol=0, decoded_atol=0, flow_loss_atol=0, flow_loss_rtol=0)
