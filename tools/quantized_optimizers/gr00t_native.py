@@ -9,6 +9,8 @@ import os
 import shutil
 import subprocess
 import sys
+import threading
+import time
 from pathlib import Path
 
 
@@ -86,7 +88,35 @@ def main():
     ]
     (output / "command.json").write_text(json.dumps(command + ["--", *overrides], indent=2))
     subprocess.run(command + ["--validate-manifest", "--", *overrides], check=True)
-    subprocess.run(command + ["--", *overrides], check=True)
+    import pynvml
+
+    from tools.quantized_optimizers.run_deployment import monitor
+
+    pynvml.nvmlInit()
+    before = time.monotonic()
+    with (output / "native.log").open("x") as log:
+        process = subprocess.Popen(command + ["--", *overrides], stdout=log, stderr=subprocess.STDOUT)
+        stop = threading.Event()
+        monitors = []
+        for index, visible in enumerate(os.environ["CUDA_VISIBLE_DEVICES"].split(",")):
+            handle = (
+                pynvml.nvmlDeviceGetHandleByIndex(int(visible))
+                if visible.isdigit()
+                else pynvml.nvmlDeviceGetHandleByUUID(visible)
+            )
+            thread = threading.Thread(target=monitor, args=(handle, process, output / f"memory-gpu{index}.jsonl", stop))
+            thread.start()
+            monitors.append(thread)
+        try:
+            code = process.wait()
+        finally:
+            stop.set()
+            for thread in monitors:
+                thread.join()
+            pynvml.nvmlShutdown()
+    (output / "attempt.json").write_text(json.dumps({"returncode": code, "native_seconds": time.monotonic() - before}))
+    if code:
+        raise SystemExit(code)
 
 
 if __name__ == "__main__":

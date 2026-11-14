@@ -29,8 +29,8 @@ ROLE_SPECS = (
 def validation_identity(config: PosttrainJointPPOConfig) -> dict:
     from dataclasses import asdict
 
-    from cosmos_framework.utils.lazy_config import instantiate
     from cosmos_framework.posttrain.utils.identity import canonical_config_value
+    from cosmos_framework.utils.lazy_config import instantiate
 
     config = resolve_joint_config(config)
     recipe = instantiate(config.rl)
@@ -47,10 +47,10 @@ def setup_policy(config: PosttrainJointPPOConfig, output: str, resume: str | Non
     import numpy as np
     import torch
 
-    from cosmos_framework.utils.lazy_config import instantiate
     from cosmos_framework.posttrain.control.checkpointing import CheckpointLifecycle
     from cosmos_framework.posttrain.roles.trainer.joint_ppo import JointPPOTrainer
     from cosmos_framework.posttrain.workers.ray import current_pdims
+    from cosmos_framework.utils.lazy_config import instantiate
 
     config = resolve_joint_config(config)
     random.seed(recipe.seed)
@@ -59,8 +59,8 @@ def setup_policy(config: PosttrainJointPPOConfig, output: str, resume: str | Non
     if recipe.optimizer.name in ("adamw_bnb_8bit", "paged_adamw_8bit"):
         if recipe.optimizer.update_policy != "fp32_master":
             raise ValueError("native Joint PPO quantized optimizers require optimizer.update_policy=fp32_master")
-        from cosmos_framework.utils.quantized_optimizer import require_backend
         from cosmos_framework.posttrain.utils.dist import run_rank_converged
+        from cosmos_framework.utils.quantized_optimizer import require_backend
 
         run_rank_converged(
             lambda: require_backend(paged=recipe.optimizer.name == "paged_adamw_8bit"), "Joint PPO optimizer preflight"
@@ -89,13 +89,13 @@ def setup_experience(
     members: tuple[str, ...] = ("sim", "collector", "rollout", "rm", "replay"),
 ) -> dict:
     """Build independently owned bodies; ActorGroup membership controls their placement."""
-    from cosmos_framework.utils.lazy_config import instantiate
     from cosmos_framework.posttrain.config.build import REPLICA_INDEX_ENV
     from cosmos_framework.posttrain.control.buffer import ExperienceBuffer
     from cosmos_framework.posttrain.control.checkpointing import CheckpointLifecycle
     from cosmos_framework.posttrain.roles.env.ppo_window import PPOWindowCollector, build_window_gateway
     from cosmos_framework.posttrain.roles.env.sim_role import require_sim_capability
     from cosmos_framework.posttrain.roles.reward.worker import RewardWorker
+    from cosmos_framework.utils.lazy_config import instantiate
 
     config = resolve_joint_config(config)
     replica = int(os.environ[REPLICA_INDEX_ENV])
@@ -247,7 +247,6 @@ def assemble(
 def run(config: Any, opts: list[str] | None = None) -> dict:
     import ray
 
-    from cosmos_framework.utils.lazy_config import instantiate
     from cosmos_framework.posttrain.control.checkpointing import CheckpointLifecycle
     from cosmos_framework.posttrain.control.lifecycle import build_controller_observers
     from cosmos_framework.posttrain.control.loop.decision_window import collect_decision_window
@@ -272,6 +271,7 @@ def run(config: Any, opts: list[str] | None = None) -> dict:
         make_reporters,
         start_best_effort,
     )
+    from cosmos_framework.utils.lazy_config import instantiate
 
     config = resolve_joint_config(config)
     nodes, gpus = detect_mesh()
@@ -447,9 +447,9 @@ def run(config: Any, opts: list[str] | None = None) -> dict:
 
 
 def main() -> None:
-    from cosmos_framework.utils.config import load_config
     from cosmos_framework.posttrain.utils.entry import cli
     from cosmos_framework.posttrain.utils.mesh import detect_mesh
+    from cosmos_framework.utils.config import load_config
 
     path, opts, validate = cli(__doc__, "cosmos_framework/posttrain/config/config_joint_ppo.py")
     config = load_config(path, ["--", *opts])

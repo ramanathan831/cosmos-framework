@@ -438,8 +438,8 @@ def _build_trainer(run_config: Any, updates_per_step: int, *, optimizer: Optimiz
     if optimizer_config.name in ("adamw_bnb_8bit", "paged_adamw_8bit"):
         if optimizer_config.update_policy != "fp32_master":
             raise ValueError("native AlpaGym quantized optimizers require update_policy=fp32_master")
-        from cosmos_framework.utils.quantized_optimizer import require_backend
         from cosmos_framework.posttrain.utils.dist import run_rank_converged
+        from cosmos_framework.utils.quantized_optimizer import require_backend
 
         run_rank_converged(
             lambda: require_backend(paged=optimizer_config.name == "paged_adamw_8bit"), "AlpaGym optimizer preflight"

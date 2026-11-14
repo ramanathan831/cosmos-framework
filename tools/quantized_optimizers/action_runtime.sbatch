@@ -20,7 +20,7 @@ srun --kill-on-bad-exit=1 --container-image="$CONTAINER_IMAGE" --container-mount
 set -euo pipefail
 mkdir -p "$RESULTS/source" "$RESULTS/cache"
 tar -xzf "$SOURCE_ARCHIVE" -C "$RESULTS/source"
-export PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 UV_CACHE_DIR="$RESULTS/cache"
+export PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 NO_ALBUMENTATIONS_UPDATE=1 UV_CACHE_DIR="$RESULTS/cache"
 "$UV" venv --python "$ASSETS/environment/bin/python" "$RESULTS/model"
 # Read-only inherited packages; installs below go exclusively to this new venv.
 printf "%s\n" "$ASSETS/environment/lib/python3.12/site-packages" > "$RESULTS/model/lib/python3.12/site-packages/qualified-base.pth"
@@ -31,6 +31,7 @@ export PATH="$RESULTS/model/bin:$PATH" PYTHONPATH="$RESULTS/source"
  torchsde==0.2.6 x-transformers==2.12.2 soundfile==0.13.1 \
  dm-tree==0.1.10 lmdb==1.7.5 msgpack-numpy==0.4.8 tyro==0.9.17 jsonlines==4.0.0 \
  gymnasium==1.2.2 shtab==1.7.2 peft==0.17.1 \
+ scikit-image==0.25.2 lazy-loader==0.4 tifffile==2025.5.10 numpy==1.26.4 opencv-python-headless==4.11.0.86 \
  "git+https://github.com/NVIDIA/Isaac-GR00T@51d4c89f72fda44cbf77285c6a8114b52676b8a1" \
  "git+https://github.com/vllm-project/vllm-omni@2d0b1d8a29ff686698dbf0a123ca15be20fb0a8f"
 python "${SOURCE_ARCHIVE%/*}/action_runtime.py" --output "$RESULTS/imports.json"

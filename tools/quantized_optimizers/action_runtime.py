@@ -26,6 +26,8 @@ def main():
             results[name] = {"ok": True, "file": module.__file__}
         except Exception:
             results[name] = {"ok": False, "traceback": traceback.format_exc()}
+        print(json.dumps({name: results[name]["ok"]}), flush=True)
+        args.output.write_text(json.dumps({"imports": results, "complete": False}, indent=2))
     versions = {
         name: importlib.metadata.version(name)
         for name in {d.metadata["Name"] for d in importlib.metadata.distributions()}
