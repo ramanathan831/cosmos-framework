@@ -48,7 +48,13 @@ LIBERO_PROTOCOLS = {
 LIBERO_SUITES = tuple(LIBERO_PROTOCOLS)
 DEFAULT_EXECUTION_PROFILE = "default"
 PI05_SPATIAL_EXECUTION_PROFILE = "rlinf_pi05_spatial_v2"
+GR00T_QLORA_SPATIAL_EXECUTION_PROFILE = "gr00t_qlora_spatial_8_v1"
 HASH_POLICY_REPLICA_ENV_SEEDS = "libero-sha256-policy-rlinf-replica-env-v1"
+# Explicitly distinct from legacy 16-step spatial: selected QLoRA demonstrations
+# supervise ten actions and replan after eight. Preserve every legacy profile.
+_GR00T_QLORA_SPATIAL_PROTOCOL = LiberoProtocol(
+    8, 256, 15, -1.0, False, "relative", "open-gripper-zero", HASH_POLICY_REPLICA_ENV_SEEDS
+)
 _PI05_SPATIAL_PROTOCOL = LiberoProtocol(
     5,
     240,
@@ -70,6 +76,8 @@ def execution_protocol(suite: str, profile: str = DEFAULT_EXECUTION_PROFILE) -> 
         raise ValueError(f"unsupported LIBERO suite {suite!r}")
     if profile == DEFAULT_EXECUTION_PROFILE:
         return LIBERO_PROTOCOLS[suite]
+    if profile == GR00T_QLORA_SPATIAL_EXECUTION_PROFILE and suite == "libero_spatial":
+        return _GR00T_QLORA_SPATIAL_PROTOCOL
     if profile == PI05_SPATIAL_EXECUTION_PROFILE and suite == "libero_spatial":
         return _PI05_SPATIAL_PROTOCOL
     raise ValueError(f"unsupported LIBERO execution_profile {profile!r} for suite {suite!r}")
