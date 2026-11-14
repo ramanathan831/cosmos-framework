@@ -204,8 +204,28 @@ rank/alpha/dropout/adapter seed and task configuration. The two representation
 flags are mutually exclusive. Source training metadata is preserved; the exporter
 build is recorded separately. CPU checks cover exact factors/heads, aliases,
 interrupted publication, corrupt artifacts and fresh loading without the source
-weights or quantizer. Full-model CUDA and task qualification of this new format
-remain pending; there is no inference-speed claim.
+weights or quantizer.
+
+Full-model job `38522604` passed on exporter/inference build `64ea823` for both
+selected `4cba88f` LR `1e-5`, seed-17, update-300 policies. Fresh native loading
+exactly reproduced all 160 primary evaluation rows and controlled first/last-row
+flow losses and action outputs, including input identities. All 537 FP32 trained
+head tensors, 224 FP32 adapter factors, 112 BF16 effective backbone matrices and
+the tied embedding/output-head ownership were preserved. The fresh containers
+verified both original `fsw`/`fs11` checkpoint/backbone paths unavailable and
+blocked quantizer imports before loading. The installed runtime still contains
+bitsandbytes; this is not qualification of a bitsandbytes-free installation.
+
+Each artifact contains 21 weight shards and 10,247,208,358 bytes across its
+manifest-listed files. Three tensors exceed the 512 MiB payload limit and each
+occupies its own shard, as declared by the format. The complete artifact-only
+allocation consumed 1,240 GPU-seconds. Fresh loading/scoring peaked at 9.043 GiB
+allocated and 9.695 GiB sampled GPU-process memory in both arms. All observed host
+samples were complete; sampled peaks remain lower bounds between observations.
+The [raw receipts and phase measurements](evidence/native_qlora_family_engineering_4cba88f.json)
+separate source capture, export, loading, evaluation and publication costs. This
+establishes fidelity for these selected checkpoints, not rollout quality or an
+inference-speed improvement. The failed merged conversion gates remain unchanged.
 
 Build `64ea823` additionally emits opt-in allocator records from native
 `action_eval` when `COSMOS_QLORA_METRICS_FILE` is set. Loading includes portable
@@ -417,6 +437,8 @@ admitted `gr00t-development-v1` JSONL files and these overrides in **each** arm:
 ```text
 rl.optimizer.lr=1e-5 rl.optimizer.weight_decay=1e-5 rl.optimizer.grad_clip_norm=1.0
 rl.max_steps=300 rl.evaluation_every=100 rl.save_every=100 rl.seed=17
+model.backbone_adaptation.rank=32 model.backbone_adaptation.alpha=64
+model.backbone_adaptation.seed=17
 rl.target_metric=normalized_action_mse rl.target_threshold=0.049561327725898344
 rl.target_direction=min rl.stop_on_target=false
 ```
