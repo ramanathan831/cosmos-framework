@@ -126,13 +126,56 @@ def inspect_checkpoint(path: str, *, expected_step: int | None = None) -> dict[s
             raise ValueError("checkpoint is not a healthy completed optimizer boundary")
         if state.get("zero_grad_skips_total", 0) != 0:
             raise ValueError("checkpoint contains skipped zero-gradient updates")
-        validation = state.get("validation")
-        if (
-            not isinstance(validation, dict)
-            or validation["progress"]["pending_step"] is not None
-            or validation.get("publication") is not None
-        ):
-            raise ValueError("checkpoint requires completed validation and publication")
+        # Native action SFT commits its family-owned evaluation history in the
+        # rank-bound data component. It does not configure the separate Qwen
+        # resident-validation controller. Dispatch only on the explicit family
+        # and training formats; all existing Qwen checks remain mandatory.
+        native_action = metadata["identity"].get("format") == "cosmos.family-backbone.v1"
+        if native_action:
+            from cosmos_framework.posttrain.utils.rank_state import state_for_current_rank
+
+            if metadata["identity"].get("training_contract", {}).get("format") != "cosmos-native-action-sft-v1":
+                raise ValueError("family checkpoint requires its native action training contract")
+            action_data = state_for_current_rank(data)
+            if (
+                not isinstance(action_data, dict)
+                or action_data.get("format") != "action-sft-state-v1"
+                or not isinstance(action_data.get("cursor"), dict)
+            ):
+                raise ValueError("family checkpoint requires the native action cursor and evaluation state")
+            history = action_data.get("evaluation")
+            if not isinstance(history, list) or not history:
+                raise ValueError("family checkpoint requires completed native action evaluation history")
+            steps = []
+            for record in history:
+                if (
+                    not isinstance(record, dict)
+                    or set(record) != {"step", "metrics"}
+                    or type(record["step"]) is not int
+                    or not 0 <= record["step"] <= step
+                    or not isinstance(record["metrics"], dict)
+                    or not record["metrics"]
+                    or any(
+                        type(value) not in (int, float) or not math.isfinite(value)
+                        for value in record["metrics"].values()
+                    )
+                ):
+                    raise ValueError("family checkpoint has invalid native action evaluation history")
+                steps.append(record["step"])
+            if steps != sorted(set(steps)):
+                raise ValueError("family checkpoint native action evaluation steps must increase")
+            if state.get("validation") is not None:
+                raise ValueError(
+                    "native action checkpoint unexpectedly carries the separate Qwen validation controller"
+                )
+        else:
+            validation = state.get("validation")
+            if (
+                not isinstance(validation, dict)
+                or validation["progress"]["pending_step"] is not None
+                or validation.get("publication") is not None
+            ):
+                raise ValueError("checkpoint requires completed validation and publication")
         if not all(key in state for key in ("rng", "lr_scheduler", "objective_identity", "adapter_training")):
             raise ValueError("checkpoint is missing required exact-resume controls")
         return {

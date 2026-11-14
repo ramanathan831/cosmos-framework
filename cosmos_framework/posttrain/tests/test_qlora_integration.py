@@ -46,6 +46,83 @@ def test_checkpoint_inspection_reads_real_dcp_controls_without_constructing_base
         inspect_checkpoint(str(path), expected_step=1)
 
 
+def _native_action_checkpoint(tmp_path):
+    from cosmos_framework.posttrain.algorithm.primitives.objective import Objective, Reduction
+    from cosmos_framework.posttrain.roles.trainer.llm import LLMTrainer
+    from cosmos_framework.posttrain.tests.test_family_backbone import TaskPolicy, batch, install
+    from cosmos_framework.posttrain.utils.rank_state import collect_rank_state
+
+    net = TaskPolicy()
+    family = install(net)
+    family.codec.bind_training_identity({"format": "cosmos-native-action-sft-v1", "seed": 17})
+    optimizer = torch.optim.AdamW(family.codec.parameters.values(), lr=0.01)
+
+    def objective(policy, unused):
+        images, actions = batch()
+        return (policy.net(images) - actions).square().mean(), {}
+
+    trainer = LLMTrainer(
+        SimpleNamespace(net=net),
+        Objective(objective, reduction=Reduction.MEAN),
+        optimizer,
+        lr_scheduler=torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.9),
+        checkpoint_format="dcp",
+    )
+    trainer.train([None])
+    path = tmp_path / "checkpoints/iter_000001"
+    trainer.save(
+        str(path),
+        data_state=collect_rank_state(
+            {
+                "format": "action-sft-state-v1",
+                "cursor": {"consumed": 1},
+                "evaluation": [{"step": 0, "metrics": {"loss": 0.5}}, {"step": 1, "metrics": {"loss": 0.4}}],
+            }
+        ),
+    )
+    return path
+
+
+def test_native_action_inspection_reads_real_family_dcp_and_its_own_evaluation_state(tmp_path):
+    path = _native_action_checkpoint(tmp_path)
+    assert "validation" not in torch.load(path / "trainer.pt", weights_only=False)
+    result = inspect_checkpoint(str(path), expected_step=1)
+    assert result["healthy_completed_boundary"]
+    assert result["model_identity"]["format"] == "cosmos.family-backbone.v1"
+    assert "head.weight" in result["parameters"]
+
+
+@pytest.mark.parametrize("failure", ["missing", "future", "duplicate", "nonfinite", "cursor"])
+def test_native_action_inspection_rejects_incomplete_or_invalid_task_evaluation(tmp_path, failure):
+    from cosmos_framework.posttrain.utils.rank_state import collect_rank_state, state_for_current_rank
+
+    path = _native_action_checkpoint(tmp_path)
+    data = state_for_current_rank(torch.load(path / "data.pt", weights_only=False))
+    if failure == "missing":
+        del data["evaluation"]
+    elif failure == "future":
+        data["evaluation"][-1]["step"] = 2
+    elif failure == "duplicate":
+        data["evaluation"].append(copy.deepcopy(data["evaluation"][-1]))
+    elif failure == "nonfinite":
+        data["evaluation"][-1]["metrics"]["loss"] = float("nan")
+    else:
+        del data["cursor"]
+    torch.save(collect_rank_state(data), path / "data.pt")
+    with pytest.raises(ValueError, match="native action"):
+        inspect_checkpoint(str(path), expected_step=1)
+
+
+def test_existing_nonfamily_inspection_still_requires_its_resident_validation_controller(tmp_path):
+    from cosmos_framework.posttrain.tests.test_checkpoint_adapter import _save, _trainer
+
+    trainer = _trainer()
+    trainer.train([None])
+    path = _save(trainer, tmp_path)
+    with pytest.raises(ValueError, match="completed validation and publication"):
+        inspect_checkpoint(str(path), expected_step=1)
+
+
 def test_real_accumulation_interruption_proves_checkpoint_rejection_and_membership():
     from cosmos_framework.posttrain.tests.test_checkpoint_adapter import _trainer
 
