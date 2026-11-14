@@ -165,9 +165,10 @@ older resumable checkpoints; do not rewrite their identities. Compatible portabl
 inference reload remains independent of this training-only check. CPU lifecycle
 coverage passed; full-model checks of the new build remain separate from the
 retained `4cba88f` recovery results below.
-The current inventory extends this to 27 files by binding shared flow-dataset
-row lookup and media decoding. Dataset-content identity alone does not identify
-that execution. Earlier 25-file contracts require the original build and remain
+The current inventory extends this to 28 files by binding shared flow-dataset
+row lookup, media decoding, and the evaluation-input reuse implementation.
+Dataset-content identity alone does not identify that execution. Earlier 25-file
+contracts require the original build and remain
 unchanged; compatible portable inference is still separate.
 
 The separate `posttrain.checkpoint.tools.export_family_dense` command reconstructs
@@ -193,6 +194,49 @@ Its commit manifest, strict native loader and original training identity remain
 separate from merged export. Tiny native Alpamayo CPU flow tests preserve exact
 outputs after unmerged reload; full-model CUDA qualification remains pending.
 The failed BF16 merged-conversion result below remains unchanged.
+
+For observation-only prediction, use
+`model.alpamayo.observation.prepare_observation(policy, sample)` with the loaded
+native policy. `sample` contains the same ordered four-camera `media` and
+`observation` calibration, timestamps, coordinate frame and 16 history poses as
+the training inputs. It needs neither `actions` nor `ego_future_rot`; do not
+fabricate future labels. Preparation preserves the selected empty-reasoning
+prompt and returns only `tokenized` and `history`. The existing ten-step Euler
+sampler returns `[1,64,3]` trajectory positions in vehicle-at-t0 meters, at 0.1 s
+intervals. This is the selected open-loop policy, not the upstream reasoning
+generation workflow or a closed-loop controller.
+
+Within an initialized single-rank native process, using the same resolved model
+configuration and device as the training/evaluation recipe:
+
+```python
+import torch
+
+from cosmos_framework.posttrain.checkpoint.adapter import load_adapter_weights
+from cosmos_framework.posttrain.checkpoint.manager import CheckpointManager
+from cosmos_framework.posttrain.model.alpamayo.observation import prepare_observation
+from cosmos_framework.posttrain.model.alpamayo.policy import build_policy, sample_trajectories
+
+policy = build_policy(config, device=device, output=output)
+load_adapter_weights(
+    artifact, policy.net._cosmos_adapter_checkpoint_codec,
+    manager=CheckpointManager(checkpoint_format="dcp"),
+)
+policy.net.eval()
+inputs = prepare_observation(policy, observation_sample)
+with torch.random.fork_rng(devices=[device.index]):
+    torch.manual_seed(123)
+    trajectory_xyz_meters = sample_trajectories(policy, inputs)
+```
+
+For a qualified standalone unmerged artifact, replace the construction/reload
+lines with `model.alpamayo.dense.build_dense_policy(config, artifact,
+device=device, output=output, unmerged=True)`; preparation and sampling stay the
+same. CPU tests use the actual pinned processor, history tokenizer and native
+sampler: deleting future labels preserves prepared tensors and controlled
+trajectories exactly, without mutating inputs or caller RNG. Full-model
+observation-only artifact checks remain part of the final-build qualification;
+this API does not establish closed-loop quality or deployment latency.
 
 For the first full-model conversion check, the prospectively fixed budgets are:
 controlled normalized flow velocity RMSE ≤0.01 and maximum absolute error ≤0.05;
