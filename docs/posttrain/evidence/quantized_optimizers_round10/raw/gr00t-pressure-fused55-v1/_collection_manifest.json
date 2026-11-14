@@ -1,0 +1,173 @@
+{
+  "source": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-pressure-fused55-v1",
+  "allocation_end": "2026-11-14T11:18:47Z",
+  "extra_native_root": null,
+  "reviewed_file_ceiling_bytes": 134217728,
+  "scope": "complete recognized textual evidence; model and optimizer binary payloads remain at source",
+  "files": {
+    "allocation-end.txt": {
+      "bytes": 21,
+      "sha256": "0a8ed95feaba857a8e0e7e0dfdffbe04bfe9df596c09541cf4576438cfda72b1"
+    },
+    "allocation-start.txt": {
+      "bytes": 21,
+      "sha256": "29fcd85854aa43b18657845a0da443b06e33a16bb0d8f79a359a58a3835dce2d"
+    },
+    "attempt.json": {
+      "bytes": 54,
+      "sha256": "cffffb909898d1aa922d903d21b47a6c64c99ae5a67e69d2c4b49cb3cba4bddd"
+    },
+    "command.json": {
+      "bytes": 793,
+      "sha256": "66f0cd2be2ed7567bbb2c24c3937b972f6d0f38d9d6ef931b6833678541d99e6"
+    },
+    "dependency-check.json": {
+      "bytes": 260,
+      "sha256": "5d930b52663c25694fb84d7853eea00ac6937d286ed8afaf66afb67f23f7d843"
+    },
+    "devices.csv": {
+      "bytes": 479,
+      "sha256": "8109dc51941ad7bded7a5d567b8baa02b98fe9133a88de5fe83ceba41ff4c255"
+    },
+    "egl.json": {
+      "bytes": 79,
+      "sha256": "902ce1a29e2e84fbf7b38168bf953ad42b689f2d46510fd07a54e4a18cb5ad1c"
+    },
+    "exit-code.txt": {
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    "host-placement.json": {
+      "bytes": 806,
+      "sha256": "c04a557789536ad1e9b3207e0fbd30579ac5db3e73bc7469e4a9343e05f0d9ea"
+    },
+    "job.txt": {
+      "bytes": 1924,
+      "sha256": "369ea6791d5b750f7d0664d2c0b207997f6f56bf5f98c6fb1f18c270af413c96"
+    },
+    "launcher-phases.jsonl": {
+      "bytes": 333,
+      "sha256": "23ebc17ad78df444b9679f7444def9e2b49ba7bddb7cb42073de0041e7aa6614"
+    },
+    "libero-config/config.yaml": {
+      "bytes": 734,
+      "sha256": "d2ddc17868812448637c1ea8b008a142a7590f8491364d7235d7f799c055a788"
+    },
+    "manifests/libero_spatial-eval.json": {
+      "bytes": 7901,
+      "sha256": "a26e3b53808ce3610bfc60816e28e5bd1da5f66479cb29f33977576c05f243f7"
+    },
+    "manifests/libero_spatial-train.json": {
+      "bytes": 31702,
+      "sha256": "31fe8461627694c6eef686f2e1dc132da316e0e3e60cd38630844b1693f2d696"
+    },
+    "memory-gpu0.jsonl": {
+      "bytes": 1158178,
+      "sha256": "98d9eeda798472baeef070acf06444859284712a65acd144b1fc29420dce6c53"
+    },
+    "memory-gpu1.jsonl": {
+      "bytes": 1145167,
+      "sha256": "2ba61bcf5ec110963a6fe6e8c0183af19ed612d3f1254ea259830fefee9c89b6"
+    },
+    "memory-gpu2.jsonl": {
+      "bytes": 1148515,
+      "sha256": "d0e1e7bacda3be1e06db7db719c9de5c401bce871f4da251175da6307d76fe01"
+    },
+    "memory-gpu3.jsonl": {
+      "bytes": 1155400,
+      "sha256": "700c3a5f932f838cecbbcb54a2110675b57c918847c38b4a9343bed39199fa38"
+    },
+    "memory-scope.json": {
+      "bytes": 93,
+      "sha256": "5ae734bcbe7c1f8ccbcbba87f680eef85a27927639d279cbd4ce35a10a813737"
+    },
+    "model-preflight.json": {
+      "bytes": 449,
+      "sha256": "3489bc0c661638f54afbdf4ffa59ce70080bc78a43b24e86ddf068e5bb471ca1"
+    },
+    "native.log": {
+      "bytes": 24301,
+      "sha256": "f030f11626cd9662ab2d5b4a9562ca32659f32545576f6f9c64ba07ff49997bb"
+    },
+    "reservation-gpu0.json": {
+      "bytes": 245,
+      "sha256": "332c8a7ce733a88f356ab56e8a1155f4cc4bbe67ebbbae8dfcad8f56818784d7"
+    },
+    "reservation-gpu0.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "reservation-gpu1.json": {
+      "bytes": 245,
+      "sha256": "2ed5fe5fe28a6163f473234240f612b8d629b23a67a55416ee0ac94cb143edf4"
+    },
+    "reservation-gpu1.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "reservation-gpu2.json": {
+      "bytes": 245,
+      "sha256": "3d2fe8b7cf779b68d05c5b2b37ee092b99350ee7a43b4f9dc354d3d18e00053f"
+    },
+    "reservation-gpu2.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "reservation-gpu3.json": {
+      "bytes": 245,
+      "sha256": "40bfe53975fda8fa7a954cfc754b8c3887feb3c6421e13e3056ada7d8ebe8608"
+    },
+    "reservation-gpu3.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "reservation-scope.json": {
+      "bytes": 235,
+      "sha256": "9b548bf5d3614d5a383b137a156aa7c4fc4ec28e77cfec4abb325b1c3c4022a9"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw/integration/config_resolved.yaml": {
+      "bytes": 10510,
+      "sha256": "132db8f9aea55eefd52375bdb8caedf49a4caeffd7e52227e494c3e203e188ca"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw/integration/evaluation/step_000000.json": {
+      "bytes": 1104409,
+      "sha256": "a7409419dd966c6328b7b68c6c14e259819bd111a6b9d598af11a5294c70b62c"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw/integration/model-config/policy-0/final_model_config.json": {
+      "bytes": 1513,
+      "sha256": "5927bbeb634c9efae2b4d7e1dd730c6d82a8c0a154b30528c70653db5d5cd903"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw/integration/model-config/rollout-0/final_model_config.json": {
+      "bytes": 1513,
+      "sha256": "5927bbeb634c9efae2b4d7e1dd730c6d82a8c0a154b30528c70653db5d5cd903"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw/integration/model-config/rollout-1/final_model_config.json": {
+      "bytes": 1513,
+      "sha256": "5927bbeb634c9efae2b4d7e1dd730c6d82a8c0a154b30528c70653db5d5cd903"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw/integration/model-config/rollout-2/final_model_config.json": {
+      "bytes": 1513,
+      "sha256": "5927bbeb634c9efae2b4d7e1dd730c6d82a8c0a154b30528c70653db5d5cd903"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw/integration/model-config/rollout-3/final_model_config.json": {
+      "bytes": 1513,
+      "sha256": "5927bbeb634c9efae2b4d7e1dd730c6d82a8c0a154b30528c70653db5d5cd903"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw/integration/native-setup.json": {
+      "bytes": 142,
+      "sha256": "ad22e6afbd1dd8f197b7511fb5226b65be38e52c21267c4c0c1799207910eaec"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw/integration/windows.jsonl": {
+      "bytes": 22990,
+      "sha256": "b9c468d8203f0a89e51bd25c287272ffad717fcc91bf76876ba90b712f7e432e"
+    },
+    "sim-preflight.json": {
+      "bytes": 917,
+      "sha256": "0c51e68e3540760bcc1fa5cc1cfe8a2e0642bba319d82c3d809d7384b0389e3e"
+    },
+    "slurm-38528405.out": {
+      "bytes": 1801,
+      "sha256": "a81e0958a954f09234fb24f9cff24b6717cf1f5af9d4ebb0ffddddc181fe8e9f"
+    }
+  }
+}

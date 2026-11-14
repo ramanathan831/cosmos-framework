@@ -1,0 +1,54 @@
+{
+  "protocol": "gr00t_pressure_protocol.json",
+  "source": "ef9f69589595724c8d166bf699557a2223bb832c",
+  "arms": {
+    "fused55": {
+      "job": "38528405",
+      "status": "FAILED capacity OOM",
+      "completed_updates": 1,
+      "failure_phase": "second update backward; before durable checkpoint16",
+      "oom_request_mib": 288,
+      "oom_reported_free_mib": 184.19,
+      "reservation_bytes_per_gpu": 59055800320,
+      "reservation_workers": 4,
+      "initial_native_success_count": 96,
+      "first_update_behavior_checks_pass": true,
+      "first_update_finite_and_positive": true,
+      "first_window_seconds": 40.41931015602313,
+      "first_window_phases": {
+        "collect_seconds": 24.421487945946865,
+        "targets_seconds": 3.1416829200461507,
+        "update_seconds": 5.710149050923064,
+        "publication_and_clear_seconds": 7.14599023910705
+      },
+      "attempt": {
+        "returncode": 1,
+        "native_seconds": 483.4236522340216
+      },
+      "allocation_seconds_including_teardown": 696,
+      "gpu_allocation_seconds": 2784,
+      "memory_peaks_including_separate_reservation": {
+        "memory-gpu0": {
+          "sampled_device_bytes": 85896986624,
+          "sampled_matched_process_gpu_bytes": 84586528768
+        },
+        "memory-gpu1": {
+          "sampled_device_bytes": 85792194560,
+          "sampled_matched_process_gpu_bytes": 84481671168
+        },
+        "memory-gpu2": {
+          "sampled_device_bytes": 85720891392,
+          "sampled_matched_process_gpu_bytes": 84410368000
+        },
+        "memory-gpu3": {
+          "sampled_device_bytes": 85706211328,
+          "sampled_matched_process_gpu_bytes": 84395687936
+        }
+      },
+      "full_launcher_peak_pss_bytes": 52456097792,
+      "checkpoint_created": false,
+      "scope": "One update is not sustained training, quality or recovery. Initial evaluation score is not a final task endpoint. The fixed-pressure capacity failure is retained; independent nonpaged and paged controls remain in scope.",
+      "raw": "raw/gr00t-pressure-fused55-v1"
+    }
+  }
+}

@@ -90,6 +90,15 @@
       "source": "ef9f69589595724c8d166bf699557a2223bb832c",
       "admitted_at_utc": "2026-11-14T09:19:18.258671+00:00",
       "policy": "Only first pressure arm admitted. Classify its terminal result before admitting independent nonpaged/paged controls; expected capacity OOM does not cancel those controls."
+    },
+    {
+      "job": "38532517",
+      "arm": "adamw_bnb_8bit reservation55",
+      "results": "gr00t-pressure-eightbit55-v1",
+      "source": "ef9f69589595724c8d166bf699557a2223bb832c",
+      "admitted_at_utc": "2026-11-14T11:20:26.686155+00:00",
+      "predecessor": "38528405 terminal FAILED: capacity OOM in second backward after one completed update",
+      "policy": "Predeclared independent control, identical55GiB pressure and32-update recipe; no reservation change."
     }
   ]
 }
