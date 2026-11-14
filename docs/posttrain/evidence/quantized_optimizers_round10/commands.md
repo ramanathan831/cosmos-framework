@@ -22,6 +22,48 @@ resume pairs, including one-rank failure tests. It does not run an action model.
 Do not overlap owned GPU allocations on the same node; use explicit dependencies
 when placement cannot be guaranteed without changing configured routing.
 
+## Retained native SFT training, evaluation and continuation
+
+The executed SFT sequence is preserved in
+`../quantized_optimizers_round9/full_seed17_spec.json`: fused and nonpaged
+reference training through174updates, retained checkpoint87, then fresh-process
+87→174 continuations with native validation and next-input/update observers.
+It uses the SFT environment and prepared-input identities in the corresponding
+`full_seed17_launch.json`, not GR00T's separate Transformers runtime. The launcher
+calls `task_development`, which runs the native SFT entrypoint and read-only
+development observers. No SFT surrogate is used for either action-model path.
+
+From the configured Slurm host, reproduce the retained sequence in a new directory:
+
+```bash
+python - <<'PYCODE'
+import json, os, subprocess
+from pathlib import Path
+receipt = json.loads(Path(
+    'docs/posttrain/evidence/quantized_optimizers_round9/full_seed17_launch.json'
+).read_text())
+env = os.environ.copy()
+env.update(receipt['environment'])
+env['RESULTS'] += '-reproduction'
+assert not Path(env['RESULTS']).exists()
+subprocess.run([
+    'sbatch', '--parsable', '--export=ALL', '--time=60', '--partition=polar',
+    '--job-name=optimizer-sft-reproduction',
+    '--output=' + env['RESULTS'] + '-%j.log',
+    'tools/quantized_optimizers/deployment.sbatch',
+], env=env, check=True)
+PYCODE
+```
+
+This reproduces the pinned historical source and full chain; it does not claim a
+new round-ten SFT benchmark. Per-allocation work/grace settings remain scheduler
+termination guards, not aggregate compute ceilings. For a current-source run,
+explicitly replace `SOURCE_ARCHIVE` with the newly recorded immutable archive and
+retain every other model/data/recipe field; record that changed source identity.
+The direct SFT CLI and independent model-only `score_dense` path are documented in
+`tools/quantized_optimizers/README.md`. Existing SFT recovery evidence is retained
+because the class-lifetime correction changes ownership, not update arithmetic.
+
 ## Native GR00T Joint PPO
 
 The checked model is the existing GR00T-N1.7-LIBERO Spatial snapshot

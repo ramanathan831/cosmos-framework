@@ -6,9 +6,11 @@ qualification tools, not an alternative training implementation. `native_probe.p
 calls the native SFT entrypoint and adds synchronized timing/shape hooks. Its
 instrumented timings must not be presented as uninstrumented performance.
 
-The latest bounded continuation is recorded in
-[round-seven commands](../../docs/posttrain/evidence/quantized_optimizers_round7/commands.md).
-Its development recipe selection is separate from the historical final comparisons.
+The current native SFT/GR00T/AlpaGym implementation and qualification commands are in
+[round ten](../../docs/posttrain/evidence/quantized_optimizers_round10/commands.md).
+GR00T executes the native robot workflow; AlpaGym construction is implemented but
+its external runtime/scenario dependency remains unresolved. Historical WTS
+recipe selection and final comparisons remain separate.
 
 For dense fresh-process scoring, `score_dense.py --checkpoint-sha256 DIGEST`
 binds `model.pt` to an independently recorded SHA-256. Both `serial` and `overlap`
