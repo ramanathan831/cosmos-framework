@@ -116,9 +116,17 @@ class JointPPOTrainer(PPOTrainableRole):
     def optimizer_memory(self) -> dict | None:
         """Current allocations, including transient gradients excluded from resume state."""
         if getattr(self.opt, "cosmos_local_master_optimizer", False):
+            import os
+            import time
+
             from cosmos_framework.utils.optimizer_master import local_tensor
 
             report = self.opt.state_report()
+            report["observation"] = {
+                "time_ns": time.time_ns(),
+                "pid": os.getpid(),
+                "cpu_affinity": sorted(os.sched_getaffinity(0)),
+            }
             report["model_gradient_bytes"] = sum(
                 local_tensor(p.grad).numel() * p.grad.element_size() for p in self.opt.live if p.grad is not None
             )
