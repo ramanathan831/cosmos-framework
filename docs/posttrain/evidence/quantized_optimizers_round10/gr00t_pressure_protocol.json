@@ -1,6 +1,6 @@
 {
   "locked_at_utc": "2026-11-14T05:35:09.006280+00:00",
-  "source": "ef9f69589595724c8d166bf699557a2223bb832c",
+  "source": "36610372f48f1a692f363996458bcefc637eb12c",
   "purpose": "Bounded native four-GPU GR00T capacity and managed-allocation lifecycle screen, not paged speed or final task-quality qualification",
   "single_factor": "55GiB of ordinary CUDA storage in one explicit supervised co-resident process per GPU; zero reservation in the all-resident control. No hidden allocator cap or optimizer fallback.",
   "pressure_choice_evidence": {
@@ -68,6 +68,15 @@
         "38520219"
       ],
       "quality_policy": "Fused0/40/80 success97/91/95 retained; adaptation fails. No final superiority study, no extra fused80 timing rerun, no mixed-source successful end-to-end comparison."
+    },
+    {
+      "at_utc": "2026-11-14T11:44:36.196175+00:00",
+      "previous_source": "ef9f69589595724c8d166bf699557a2223bb832c",
+      "source": "36610372f48f1a692f363996458bcefc637eb12c",
+      "reason": "Nonpaged55 completed16 updates but model DCP write failed with NCCL CUDA errors. Release consumed gradients and unused allocator blocks only at a validated native Joint PPO checkpoint boundary.33 local tests pass; pinned tests precede corrected native reference. No recipe, pressure level, counts, masks or optimizer math change.",
+      "failed_job": "38532517",
+      "additional_diagnostics": "NCCL INFO files retained; no timing claim from this diagnostic run.",
+      "fused_control": "Fused55 fails at second backward before the changed checkpoint path; preserve its failure without a redundant rerun."
     }
   ],
   "resident_completion": {
@@ -99,6 +108,16 @@
       "admitted_at_utc": "2026-11-14T11:20:26.686155+00:00",
       "predecessor": "38528405 terminal FAILED: capacity OOM in second backward after one completed update",
       "policy": "Predeclared independent control, identical55GiB pressure and32-update recipe; no reservation change."
+    },
+    {
+      "job": "38533459",
+      "arm": "adamw_bnb_8bit reservation55 corrected checkpoint memory",
+      "results": "gr00t-pressure-eightbit55-v2",
+      "source": "36610372f48f1a692f363996458bcefc637eb12c",
+      "admitted_at_utc": "2026-11-14T11:45:03.225987+00:00",
+      "predecessor": "38532517 terminal FAILED at checkpoint16; all other GPU jobs terminal",
+      "validation": "Pinned33-test preflight; same32-update native reference; NCCL diagnostic logs; checkpoint16/32 and post-save zero transient-gradient accounting.",
+      "policy": "No pressure-size or numerical change. Qualify the completed-boundary cleanup before admitting paged reference/recovery."
     }
   ]
 }
