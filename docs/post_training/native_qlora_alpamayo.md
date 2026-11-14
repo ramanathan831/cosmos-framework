@@ -466,11 +466,31 @@ training media layout remains four cameras with four frames each and 64 future
 poses; the separate first/last development probes recorded 3,008 processed tokens
 and 16 image-grid entries. These records are not an all-row token census.
 Fresh reconstruction of the selected 512-update policies and 384-to-512 recovery
-remain pending their dedicated 128-GiB-host allocations. An additional login-only
+required separate 128-GiB-host allocations. An additional login-only
 portable inspection exceeded the login host-memory limit; it is retained as a
 failed auxiliary check, not relabeled as a training or artifact failure. The
 completed native jobs verified their published artifacts; small metadata checks
 do not establish fresh full-policy task parity.
+
+The selected NF4 policy subsequently passed mature recovery in allocation
+`38525895`: all 128 updates from committed update 384 to 512, model/optimizer
+tensors, scheduler/update controls, RNG, cursor and evaluation history matched
+the uninterrupted run exactly. All 256 final development rows were identical.
+Fresh native DCP and portable loads also matched controlled flow/trajectory
+outputs on indices 0 and 255 and preserved every trained auxiliary tensor.
+The resumed clock is explicitly current-process-only; the quality target remains
+unreached. BF16 mature recovery and standalone 512-update artifact qualification
+remain separate checks.
+
+The native qualification finished successfully, but Slurm retained the allocation
+after reporting completion. Only that owned allocation was cancelled after its
+42 hash-listed receipt files had been verified. Final scheduler status is
+**CANCELLED after completed scientific work**, with **2,602 GPU-seconds**, including
+379 seconds beyond the preliminary 2,223-second accounting record. The archive
+has those 42 receipts plus their inventory; the later cleanup receipt preserves
+the controller/accounting discrepancy. Sampled owned GPU memory and host RSS are
+valid lower bounds, while whole-run host PSS coverage is incomplete. This does
+not establish a complete-memory performance gate or a new quality result.
 
 The paired diagnostic profile (`38523526`, native `4cba88f`, 1,284 GPU-seconds)
 completed 24 updates per arm and traced the last four updates plus the final
@@ -491,5 +511,9 @@ no gradient clipping; its update timings do not represent the selected 512-updat
 cosine/clip-1.0 recipe. Profiler serialization also inflated stage clocks.
 The [profile receipts and independent raw-event review](evidence/native_qlora_family_engineering_4cba88f.json)
 retain allocator measurements, sampled memory bounds and incomplete whole-run
-host-PSS flags. Preparation reuse still needs implementation, exact-state checks
-and a matched uninstrumented workflow comparison in both precision arms.
+host-PSS flags. Commit `81c9913` implements default-off, one-row CPU preparation
+reuse with a fixed 128-MiB retained limit, local-media/settings mutation checks,
+separate tensor ownership and cleanup on failure. Thirty focused CPU cases
+include native evaluation, committed recovery and the actual pinned processor.
+Full-model accelerator checks and a matched uninstrumented workflow comparison
+in both precision arms remain required before promotion.

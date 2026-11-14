@@ -13109,6 +13109,229 @@
       "selected200_portable_export_validated": false,
       "selected200_unmerged_export_validated": false,
       "next_action": "Publish and fresh-score the actual200 portable artifacts, then prospectively continue paired42/123 training seeds with unchanged300horizon/first-target rule. No admission follows from this evidence entry."
+    },
+    "38525895": {
+      "family": "alpamayo",
+      "mode": "nf4_lora",
+      "seed": 17,
+      "slurm_state": "CANCELLED",
+      "native_qualification_passed": true,
+      "allocation_gpu_seconds": 2602,
+      "preliminary_accounting_gpu_seconds": 2223,
+      "post_completion_cleanup_seconds": 379,
+      "cost_scope": "Final parent accounting after authorized stuck-allocation cleanup;2602includes the preliminary2223 and379cleanup seconds, not added twice.",
+      "scope": "Original selected NF512 policy: exact384-to512 mature recovery, full256 development scores and fresh native DCP/portable probes. No new training recipe or quality/inference claim.",
+      "implementation_revision": "4cba88f4d84ce69037c194e58670e8491388a36d",
+      "wheel_sha256": "9113351965b501d293f9a71f476926fc212c51732144a63f90aca144120f0697",
+      "reference_job": "38513808",
+      "reference_result_sha256": "f44edb6abfd04981c8114682ecb90f6c6c3ef23c0c2558ae2d38683a3aa70e69",
+      "protocol": {
+        "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38525895/mature/protocol.json",
+        "sha256": "436fe9a4c0e1275ed828f802d10eaf77e14ab709ebb1985ccc97dd713ee1e911",
+        "resume_step": 384,
+        "final_step": 512,
+        "native_updates": 128,
+        "max_steps_and_cosine_cycle": 512,
+        "warmup_steps": 100,
+        "grad_clip_norm": 1.0,
+        "original_checkpoint_collection_retained": true,
+        "fixed_probe_indices": [
+          0,
+          255
+        ]
+      },
+      "runtime": {
+        "code": "4cba88f4d84ce69037c194e58670e8491388a36d",
+        "versions": {
+          "torch": "2.10.0+cu128",
+          "transformers": "4.57.6",
+          "bitsandbytes": "0.49.2",
+          "safetensors": "0.8.0",
+          "diffusers": "0.35.1"
+        },
+        "gpu": {
+          "name": "NVIDIA A100-SXM4-80GB",
+          "bytes": 85174583296,
+          "uuid": "GPU-77308eab-c813-5725-ca4b-77e281050e4e",
+          "nvml_total_memory_bytes": 85899345920,
+          "torch_reported_uuid": "77308eab-c813-5725-ca4b-77e281050e4e",
+          "nvml_uuid_roundtrip_verified": true
+        },
+        "cpu_affinity": [
+          10,
+          11,
+          14,
+          15,
+          18,
+          19,
+          24,
+          25,
+          134,
+          135,
+          138,
+          139,
+          142,
+          143,
+          148,
+          149
+        ],
+        "slurm_job": "38525895",
+        "cuda_visible_devices": "0"
+      },
+      "acceptance": {
+        "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38525895/mature/acceptance.json",
+        "sha256": "9c69699f7087532552ff973b5b3f9ac930435fca363feb804c7980b28474d2dc",
+        "passed": true,
+        "recovery": {
+          "atol": 0,
+          "controls_rng_and_data_exact": true,
+          "excluded_storage_identity_fields": [
+            "validation.publication.destination",
+            "validation.publication.id",
+            "validation.publication.manifest"
+          ],
+          "maximum_tensor_difference": {
+            "model": 0.0,
+            "optim": 0.0
+          },
+          "passed": true,
+          "rtol": 0
+        },
+        "full256_scores_exact": true,
+        "all128_update_numerics_exact": true,
+        "fresh_checkpoint_portable": {
+          "all_outputs_exact": true,
+          "complete_auxiliary_values_exact": true,
+          "fixed_probe_indices": [
+            0,
+            255
+          ],
+          "native_ids": [
+            "physicalai-09a45f28-2e6f-4cbd-9ca4-5a23bc20fdef-5100000",
+            "physicalai-14f406a1-7c38-42ce-927a-adc6a6f5e718-5100000"
+          ],
+          "passed": true
+        },
+        "quality_claim": false,
+        "dense_export_qualified": false
+      },
+      "recovery_acceptance_sha256": "e2206a5d0481c3c35634c38a198c3deb31cba70b4d8ed7aa727e89db98bee2d6",
+      "resumed_clock_scope": "current-process-only",
+      "target": null,
+      "full256_evaluation_sha256": "48eb0a1a29623ea2e3d9b5b5b3958a789a950d3d92181b8b860e1e85f6d6d48b",
+      "fresh_checkpoint_capture_sha256": "2f22e0eb0608f2af44abddf101af5cbf667f8c63a5e6ffea196f0b24e480bf37",
+      "fresh_portable_capture_sha256": "270d209043bf52ee11ec42dd9c8b17b789034a451b363067d166ee52b48538bc",
+      "memory": {
+        "device_peak_bytes": 72754593792,
+        "errors": [
+          "incomplete_host_pss"
+        ],
+        "gpu_memory_evidence_valid": true,
+        "host_pss_complete": false,
+        "host_pss_sum_peak_bytes": 46407181312,
+        "host_rss_sum_peak_bytes": 46944194560,
+        "nvml_capacity_bytes": 85899345920,
+        "observed_span_seconds": 2142.335851430893,
+        "owned_device_process_peak_bytes": 71955382272,
+        "peaks_are_sampled_lower_bounds": true,
+        "samples": 1658,
+        "sampling_gap_seconds": {
+          "count": 1657,
+          "maximum": 3.5080995559692383,
+          "mean": 1.2929003327887103,
+          "median": 1.2754123210906982,
+          "p95": 1.384524393081665,
+          "sum": 2142.335851430893
+        }
+      },
+      "memory_limits": "Sampled lower bounds; whole-run hostPSS is incomplete. Parent reference-integrity admission precedes monitor startup. This does not pass a complete-memory runtime-promotion gate.",
+      "workflow": {
+        "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38525895/mature/workflow.json",
+        "sha256": "7ba87740279fd5478e5a5707293793a32d89ac1b044d93efe4d01a80479e38d6",
+        "elapsed_seconds": 2144.537176347978,
+        "ended_unix": 1794646915.22125,
+        "monitor_exit": 0,
+        "stages": [
+          {
+            "elapsed_seconds": 0.31649655001820065,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "storage",
+            "owned_process_cleanup": {
+              "observed_processes": 1,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 1708.4175174529955,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "resume384to512",
+            "owned_process_cleanup": {
+              "observed_processes": 4,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 179.08562857302604,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "checkpoint-fresh",
+            "owned_process_cleanup": {
+              "observed_processes": 3,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          },
+          {
+            "elapsed_seconds": 176.87969593898742,
+            "exit_code": 0,
+            "injected_interruption_expected": false,
+            "name": "portable-fresh",
+            "owned_process_cleanup": {
+              "observed_processes": 3,
+              "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+              "signaled_processes": 0
+            },
+            "timed_out": false
+          }
+        ],
+        "scope": "Measured qualification after original-reference admission; allocation cost also includes admission/cleanup."
+      },
+      "raw_receipt_archive": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/alpamayo-38525895-mature-receipts-v1.tar.gz",
+        "sha256": "16081babc2fce244574d958f64ca6067f3089a79b42911a13940711243f6f0d4",
+        "hash_listed_files": 42,
+        "archive_entries_including_inventory": 43,
+        "snapshot": "Before authorized controller cleanup; preliminary accounting preserved."
+      },
+      "receipt_inventory": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/alpamayo-38525895-mature-receipts-v1/alpamayo-38525895-mature-receipts-v1.manifest.json",
+        "sha256": "8fcc6d50152ab5957d5bb965382a76694dedd1b5c433124a6e71fd624d85095a",
+        "all42_file_hashes_independently_verified": true
+      },
+      "allocation_cleanup": {
+        "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38525895/allocation-cleanup-v1.json",
+        "local_copy": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/alpamayo-38525895-allocation-cleanup-v1.json",
+        "sha256": "e0ef4a87ad9031733fab91eb14449d2c410c42be8ccf3160a0e93553c7d4f427",
+        "scientific_work_finished_before_cleanup": true,
+        "only_owned_job_cancelled": "38525895",
+        "before": "ControllerRUNNING despite parentCOMPLETED2223s and completed/cancelled child steps.",
+        "after": "ControllerCANCELLED, targetedqueueempty, parentCANCELLEDby41852/0:0/2602s.",
+        "no_clean_scheduler_completion_claim": true
+      },
+      "remaining": [
+        "Matched BF512 mature recovery",
+        "Selected512 standalone unmerged artifact task qualification",
+        "Final-build source/cache and observation-only qualification",
+        "Task-quality improvement and fixed-target attainment",
+        "Independent recording-family confirmation"
+      ]
     }
   },
   "read_only_head_memory_diagnostic": {
