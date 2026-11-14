@@ -13,7 +13,8 @@ from cosmos_framework.utils.optimizer_master import MasterWeightOptimizer
 
 
 @pytest.mark.parametrize("name", ["adamw", "adamw_bnb_8bit", "paged_adamw_8bit"])
-def test_alpagym_actual_entry_constructs_after_setup(name, monkeypatch, backend_capture):
+@pytest.mark.parametrize("override", [False, True])
+def test_alpagym_actual_entry_constructs_after_setup(name, override, monkeypatch, backend_capture):
     from cosmos_framework.posttrain.algorithm.primitives.objective import Objective, Reduction
     from cosmos_framework.posttrain.entrypoints.alpagym_clrl import _build_trainer, alpagym_optimizer_config
 
@@ -51,13 +52,22 @@ def test_alpagym_actual_entry_constructs_after_setup(name, monkeypatch, backend_
         policy=SimpleNamespace(model=SimpleNamespace(kind="alpamayo", path="unallocated")),
     )
     selected = None if name == "adamw" else alpagym_optimizer_config(train, name=name, update_policy="fp32_master")
+    if override:
+        selected = selected or alpagym_optimizer_config(train)
+        selected.lr, selected.warmup_steps, selected.grad_clip_norm = 6e-5, 2, 0.5
     trainer = _build_trainer(config, 3, optimizer=selected)
     params = [p for g in trainer.opt.param_groups for p in g["params"]]
     assert {id(p) for p in params} == {id(p) for p in trainer.model.net.parameters() if p.requires_grad}
     assert all(p is not trainer.model.before_setup for p in params)
     group = trainer.opt.param_groups[0]
-    assert (group["lr"], group["eps"], group["betas"], group["weight_decay"]) == (2.5e-5, 1e-6, (0.9, 0.999), 0.01)
-    assert trainer.max_grad_norm == 1.0 and trainer.n_mini == 3 and trainer.skip_zero_grad
+    assert (group["lr"], group["eps"], group["betas"], group["weight_decay"]) == (
+        3e-5 if override else 2.5e-5,
+        1e-6,
+        (0.9, 0.999),
+        0.01,
+    )
+    assert trainer.max_grad_norm == (0.5 if override else 1.0)
+    assert trainer.n_mini == 3 and trainer.skip_zero_grad
     if name == "adamw":
         assert type(trainer.opt) is torch.optim.AdamW and not backend_capture
     else:

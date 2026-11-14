@@ -405,6 +405,7 @@ def alpagym_optimizer_config(train_config: Any, *, name="adamw", update_policy="
         eps=1e-6,
         weight_decay=0.01,
         warmup_steps=int(train_config.optm_warmup_steps),
+        grad_clip_norm=1.0,
     )
 
 
@@ -416,8 +417,6 @@ def _build_trainer(run_config: Any, updates_per_step: int, *, optimizer: Optimiz
     result — which is exactly why AlpaGym's forward contract can live in the objective and the
     ~450 lines of cosmos-rl trainer plumbing are replaced rather than ported.
     """
-    from types import SimpleNamespace
-
     import torch
     from alpagym_runtime.policies.registry import get_policy_bundle
     from alpagym_runtime.posttrain.model import AlpamayoTrainModel
@@ -463,20 +462,19 @@ def _build_trainer(run_config: Any, updates_per_step: int, *, optimizer: Optimiz
     )
     # `build_lr_scheduler` is cosmos-rl's `optm_warmup_steps` — linear ramp, then constant, on the
     # 1-based convention its docstring pins down (step 0 is lr/warmup, not zero). Reached through a
-    # SimpleNamespace because it reads `warmup_steps` while AlpaGym spells the field
+    # OptimizerConfig because it reads `warmup_steps` while AlpaGym spells the field
     # `optm_warmup_steps`: handed `run_config.cosmos.train` directly, its `getattr(..., 0)` finds no
     # such attribute, reads 0, and returns None -- no warmup, no error. That silence is the bug this
     # replaces, so the value is renamed explicitly rather than left to a lookup that cannot fail.
-    train_cfg = run_config.cosmos.train
     # NOT scaled to the optimizer clock, though `LLMTrainer` advances the scheduler with it while
     # cosmos-rl steps once per closed-loop step. The two agree anyway at this setting: the ramp is
     # `lr * (step + 1) / warmup`, so `warmup_steps=1` is full LR from the very first update -- and
     # the baseline measurably runs at full LR from its first minibatch too (`lr=0.0001` on every
     # one of them). Scaling it by `updates_per_step` was tried and is wrong in the other direction:
     # it invents a 66-update ramp across the first closed-loop step that the baseline never has.
-    lr_scheduler = build_lr_scheduler(optimizer, SimpleNamespace(warmup_steps=int(train_cfg.optm_warmup_steps)))
+    lr_scheduler = build_lr_scheduler(optimizer, optimizer_config)
     logging.getLogger(__name__).info(
-        "[alpagym] lr=%g, %d-step linear warmup", float(train_cfg.optm_lr), int(train_cfg.optm_warmup_steps)
+        "[alpagym] lr=%g, %d-step linear warmup", optimizer_config.lr, optimizer_config.warmup_steps
     )
     objective = make_alpagym_objective(
         bundle.build_model_inputs(run_config),
@@ -493,7 +491,7 @@ def _build_trainer(run_config: Any, updates_per_step: int, *, optimizer: Optimiz
         # actually ran with (its `optm_grad_norm_clip` default of 1.0, visible as grad_norm=1.04 in
         # that run's log). LLMTrainer defaults max_grad_norm to 0.0, i.e. NO clipping -- inheriting
         # that default would silently change the update rule rather than preserve it.
-        max_grad_norm=1.0,
+        max_grad_norm=optimizer_config.grad_clip_norm,
         # cosmos-rl treats an all-zero GRPO gradient as no update. This is intentionally not an
         # LLMTrainer default: AdamW normally applies weight decay and advances moments when a zero
         # gradient tensor is present, so changing it for existing entries would change training.
