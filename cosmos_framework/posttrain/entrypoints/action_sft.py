@@ -189,12 +189,14 @@ def training_identity(config, rl, objective, validation):
     """Bind resolved native configuration, including OmegaConf container leaves."""
     import torch
 
+    from cosmos_framework.posttrain.utils.action_training_identity import action_training_source_identity
     from cosmos_framework.posttrain.utils.identity import canonical_config_value
 
     return canonical_config_value(
         {
             "format": "cosmos-native-action-sft-v1",
             "factories": _factory_identity(config),
+            "implementation": action_training_source_identity(),
             "objective": objective.identity,
             "validation": validation.identity,
             "seed": rl.seed,
@@ -227,6 +229,10 @@ def run(config, *, config_path: str, opts: list[str]):
     from cosmos_framework.posttrain.control.termination import TerminationWatch
     from cosmos_framework.posttrain.roles.env.cursor import IndexedCursor
     from cosmos_framework.posttrain.roles.trainer.llm import LLMTrainer
+    from cosmos_framework.posttrain.utils.action_training_identity import (
+        action_training_source_identity,
+        require_matching_training_source,
+    )
     from cosmos_framework.posttrain.utils.determinism import enable_determinism
     from cosmos_framework.posttrain.utils.entry import dump_resolved, out_dir, pin_run_attempt
     from cosmos_framework.posttrain.utils.qlora_metrics import record_qlora_phase
@@ -249,6 +255,11 @@ def run(config, *, config_path: str, opts: list[str]):
     lifecycle = CheckpointLifecycle.from_config(
         config, rl, run_out_dir=str(output), resume_checkpoint=attempt.resume_checkpoint
     )
+    if attempt.resume_checkpoint:
+        metadata = read_adapter_metadata(attempt.resume_checkpoint, require_resume=True, manager=lifecycle.manager)
+        require_matching_training_source(
+            metadata["identity"].get("training_contract"), action_training_source_identity()
+        )
     record_qlora_phase("data_preparation_begin", reset_peak=True)
     train, validation = prepare_sources(config)
     record_qlora_phase("data_preparation_complete", reset_peak=True)

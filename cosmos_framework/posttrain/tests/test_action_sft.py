@@ -68,6 +68,8 @@ def test_actual_native_recipe_training_identity_is_finite_json_and_binds_optimiz
     assert identity["optimizer"]["train_keys"] == []
     assert identity["objective"] == objective.identity
     assert identity["validation"] == validation.identity
+    assert identity["implementation"]["format"] == "cosmos-native-action-training-sources-v1"
+    assert "roles/trainer/finite.py" in identity["implementation"]["files"]
     rl.optimizer.lr = 0.0001
     assert training_identity(native, rl, objective, validation) != identity
 
