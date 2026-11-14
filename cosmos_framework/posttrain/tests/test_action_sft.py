@@ -22,6 +22,22 @@ from cosmos_framework.posttrain.roles.trainer.llm import LLMTrainer
 pytestmark = [pytest.mark.L0, pytest.mark.CPU]
 
 
+@pytest.mark.parametrize("mode", ["bf16_frozen", "nf4_frozen"])
+def test_explicit_base_scoring_requires_frozen_policy_and_never_substitutes_missing_artifact(mode):
+    from cosmos_framework.posttrain.entrypoints.action_eval import validate_source
+
+    native = SimpleNamespace(model=SimpleNamespace(backbone_adaptation=SimpleNamespace(mode=mode)))
+    validate_source(native, checkpoint=None, dense=False, base=True)
+    validate_source(native, checkpoint="/committed", dense=False, base=False)
+    validate_source(native, checkpoint="/dense", dense=True, base=False)
+    for checkpoint, dense, base in [(None, False, False), ("/committed", False, True), (None, True, True)]:
+        with pytest.raises(ValueError, match="exactly one"):
+            validate_source(native, checkpoint=checkpoint, dense=dense, base=base)
+    native.model.backbone_adaptation.mode = mode.replace("frozen", "lora")
+    with pytest.raises(ValueError, match="adapters require an artifact"):
+        validate_source(native, checkpoint=None, dense=False, base=True)
+
+
 @pytest.mark.parametrize("recipe", ["sft_alpamayo_qlora", "gr00t_n1d7_libero_qlora"])
 def test_actual_native_recipe_training_identity_is_finite_json_and_binds_optimizer(recipe, monkeypatch):
     """CLI construction retains ListConfig leaves inside instantiated dataclasses."""
