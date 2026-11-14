@@ -220,6 +220,25 @@
       "gpus": 2,
       "wall_minutes": 20,
       "grace_seconds": 60
+    },
+    "conditional_profile": {
+      "status": "prepared, not admitted until corrected pressure continuation completes",
+      "native_source": "ff2572f266d9463c6cb820f883e514387aecd869",
+      "updates": 8,
+      "save_and_evaluate_every": 4,
+      "co_resident_gib_per_gpu": 55,
+      "capture_delay_seconds": 600,
+      "capture_duration_seconds": 600,
+      "trace": "cuda,nvtx; CPU/GPU unified-memory page faults; SQLite export",
+      "sample": "none",
+      "cpuctxsw": "none",
+      "profiler_environment": "explicit nonsecret operational allowlist; only key names recorded",
+      "memory_scope": "native launcher/process children; profiler ancestors excluded and disclosed",
+      "helper_files": {
+        "paging_profile.py": "29d4157c2366f8195a87e91a8c3f1a4199baac026a7a717721f518170cb337ab",
+        "paging_profile.sbatch": "6064e7b507938d52dd2376b81df0f6f786d355614f754d0aa185a33d6d15540e"
+      },
+      "interpretation": "Instrumented diagnostic only. Initial managed touches, checkpoint transfers and steady training migrations must be distinguished. No optimizer or end-to-end speed claim; no follow-up pressure sweep."
     }
   }
 }
