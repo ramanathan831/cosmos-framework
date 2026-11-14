@@ -36,6 +36,7 @@ def run(
         validate_config,
     )
     from cosmos_framework.posttrain.utils.determinism import enable_determinism
+    from cosmos_framework.posttrain.utils.qlora_metrics import record_qlora_phase
     from cosmos_framework.utils import misc
 
     start = time.monotonic()
@@ -48,6 +49,9 @@ def run(
     if not dist.is_initialized():
         dist.init_process_group("nccl")
     manager = CheckpointManager(checkpoint_format="dcp")
+    # Include the complete portable tensor-inventory verification in loading;
+    # its host-memory peak can exceed native model construction.
+    record_qlora_phase("family_evaluation_loading_begin", reset_peak=True)
     # Validate the commit and tensor inventory before allocating the immutable base.
     metadata = None if dense or unmerged or base else read_adapter_metadata(checkpoint, manager=manager)
     misc.set_random_seed(seed=rl.seed, by_rank=False)
@@ -69,14 +73,18 @@ def run(
             metadata = {"identity": codec.identity}
         else:
             load_adapter_weights(checkpoint, codec, manager=manager)
+    record_qlora_phase("family_evaluation_loading_complete", reset_peak=True)
     source = _Source(_factory(config.data_factory)(config, "validation", policy))
     objective = _factory(config.objective_factory)(policy, config)
     callback = _factory(config.evaluation_callback) if config.evaluation_callback else None
     try:
         loaded = time.monotonic()
+        record_qlora_phase("family_evaluation_begin", reset_peak=True)
         metrics, rows = evaluate(policy, objective, source, config, callback)
+        record_qlora_phase("family_evaluation_complete", reset_peak=True)
         if codec is not None:
             codec.validate_frozen_base()
+        record_qlora_phase("family_evaluation_integrity_complete", reset_peak=True)
         result = {
             "format": "cosmos-native-action-evaluation-v1",
             "checkpoint": checkpoint,
@@ -97,6 +105,7 @@ def run(
             "workflow_seconds": time.monotonic() - start,
         }
         _json(destination / "evaluation.json", result)
+        record_qlora_phase("family_evaluation_publication_complete", reset_peak=True)
         return result
     finally:
         if objective.close is not None:

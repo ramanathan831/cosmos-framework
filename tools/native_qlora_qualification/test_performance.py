@@ -280,6 +280,43 @@ def test_action_and_reasoner_checkpoint_labels_require_explicit_family():
         phase_name("checkpoint_begin", "checkpoint_complete", phase_family="guessed")
 
 
+def test_fresh_action_scoring_separates_post_score_integrity_and_publication_peaks():
+    rows = [
+        boundary("family_evaluation_loading_begin", 0, 0),
+        boundary("family_evaluation_loading_complete", 2, 1000),
+        boundary("family_evaluation_begin", 3, 2000),
+        boundary("family_evaluation_complete", 7, 5000),
+        boundary("family_evaluation_integrity_complete", 9, 8000),
+        boundary("family_evaluation_publication_complete", 10, 3000),
+    ]
+    report = memory_summary(rows, [sample(t) for t in range(1, 11)], runtime(), phase_family="native_action")
+    phases = report["phases"]
+    assert "unclassified" not in phases
+    assert report["allocator_peak_allocated_bytes"] == 8000
+    assert phases["loading"]["allocator_peak_allocated_bytes"] == 1000
+    assert phases["action_evaluation"]["allocator_peak_allocated_bytes"] == 5000
+    assert phases["action_evaluation"]["interval_seconds"]["sum"] == 4
+    assert phases["action_final_integrity"]["allocator_peak_allocated_bytes"] == 8000
+    assert phases["evaluation_publication"]["interval_seconds"]["sum"] == 1
+    assert sum(phase["interval_seconds"]["sum"] for phase in phases.values()) == 10
+
+
+@pytest.mark.parametrize("failed", [False, True])
+def test_family_artifact_export_keeps_failure_and_loading_intervals_distinct(failed):
+    rows = [
+        boundary("family_dense_loading_begin", 0, 0),
+        boundary("family_dense_loading_complete", 2, 9000),
+        boundary("family_dense_export_failed" if failed else "family_dense_export_complete", 5, 2000),
+    ]
+    report = memory_summary(rows, [sample(t) for t in range(1, 6)], runtime(), phase_family="native_action")
+    phases = report["phases"]
+    assert set(phases) == {"loading", "dense_export_incomplete" if failed else "dense_export"}
+    export = phases["dense_export_incomplete" if failed else "dense_export"]
+    assert export["allocator_peak_allocated_bytes"] == 2000
+    assert export["interval_seconds"]["sum"] == 3
+    assert report["allocator_peak_allocated_bytes"] == 9000
+
+
 def test_missing_reset_or_other_process_cannot_establish_loading_interval():
     rows = [
         boundary("adapter_loading_start", 1, 5, reset=False),

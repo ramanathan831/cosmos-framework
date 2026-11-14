@@ -353,6 +353,17 @@ def phase_name(before: str, after: str, *, phase_family: str = "reasoner") -> st
             ("checkpoint_complete", "checkpoint_complete"): "action_checkpoint_verification",
             ("checkpoint_complete", "portable_export_begin"): "action_final_integrity",
             ("portable_export_begin", "portable_export_complete"): "portable_export",
+            ("family_evaluation_loading_begin", "family_evaluation_loading_complete"): "loading",
+            ("family_evaluation_loading_complete", "family_evaluation_begin"): "scoring_setup",
+            ("family_evaluation_begin", "family_evaluation_complete"): "action_evaluation",
+            ("family_evaluation_complete", "family_evaluation_integrity_complete"): "action_final_integrity",
+            (
+                "family_evaluation_integrity_complete",
+                "family_evaluation_publication_complete",
+            ): "evaluation_publication",
+            ("family_dense_loading_begin", "family_dense_loading_complete"): "loading",
+            ("family_dense_loading_complete", "family_dense_export_complete"): "dense_export",
+            ("family_dense_loading_complete", "family_dense_export_failed"): "dense_export_incomplete",
         }.get((before, after), "unclassified")
     if phase_family != "reasoner":
         raise InvalidEvidence("unknown native memory phase family")
