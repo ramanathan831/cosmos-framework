@@ -529,6 +529,28 @@ def _group_by_decay_and_lr(net: Any, params: list, opt_cfg: OptimizerConfig) -> 
 def build_optimizer(
     model: Any, opt_cfg: OptimizerConfig, *, parameter_groups: tuple[OptimizerParameterGroup, ...] | None = None
 ) -> Any:
+    """Build on final model parameters; converge local-master failures before later collectives."""
+    if opt_cfg.update_policy != "fp32_master":
+        return _build_optimizer_local(model, opt_cfg, parameter_groups=parameter_groups)
+    from traceback import clear_frames
+
+    from cosmos_framework.posttrain.utils.dist import run_rank_converged
+
+    try:
+        return run_rank_converged(
+            lambda: _build_optimizer_local(model, opt_cfg, parameter_groups=parameter_groups),
+            "native master optimizer construction",
+        )
+    except BaseException as error:
+        # A successful peer may have allocated masters before another rank
+        # rejected its groups. Retaining the converged error must release them.
+        clear_frames(error.__traceback__)
+        raise
+
+
+def _build_optimizer_local(
+    model: Any, opt_cfg: OptimizerConfig, *, parameter_groups: tuple[OptimizerParameterGroup, ...] | None = None
+) -> Any:
     """RL owns the optimizer: freeze everything except params whose name contains a
     `train_keys` substring, then the optimizer `opt_cfg.name` selects (`OPTIMIZER_NAMES`) over the
     trainable subset. `train_keys=[]` ⇒ train all `requires_grad` params. Operates on `model.net` (native policy) or the module itself (hf).

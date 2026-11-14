@@ -7,8 +7,10 @@ reference, then in a fresh torchrun as resume against the same output directory.
 from __future__ import annotations
 
 import argparse
+import gc
 import json
 import os
+import weakref
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -78,6 +80,28 @@ def main():
         impl="fused" if args.optimizer == "adamw" else "",
         bnb_fp32_state_names=[],
     )
+    from cosmos_framework.utils.optimizer_master import MasterWeightOptimizer
+
+    constructed = []
+    initialize = MasterWeightOptimizer.__init__
+
+    def track(instance, *args, **kwargs):
+        initialize(instance, *args, **kwargs)
+        constructed.append(weakref.ref(instance))
+
+    MasterWeightOptimizer.__init__ = track
+    try:
+        try:
+            build_optimizer(net, cfg, parameter_groups=() if rank == 1 else None)
+        except RuntimeError as error:
+            construction_error = error
+            assert "native master optimizer construction" in str(error)
+        else:
+            raise AssertionError("one-rank construction failure did not converge")
+    finally:
+        MasterWeightOptimizer.__init__ = initialize
+    gc.collect()
+    assert construction_error.__traceback__ is not None and all(ref() is None for ref in constructed)
     opt = build_optimizer(net, cfg)
     objective = Objective(
         lambda m, b: (m.net(b[0]).float().square().mean(), {}),
@@ -158,8 +182,6 @@ def main():
         return found
 
     trainer.checkpoint_manager.load_dcp_component = corrupt
-    import gc
-    import weakref
 
     staged_backends, managed_owners = [], []
     create_backend = opt._backend
@@ -224,6 +246,7 @@ def main():
         torch=torch.__version__,
         device=torch.cuda.get_device_name(),
         passed=True,
+        construction_failure_converged_and_released=True,
         rejected_state_released_with_retained_errors=True,
     )
     (args.output / f"{args.phase}-rank{rank}.json").write_text(json.dumps(report, indent=2))
