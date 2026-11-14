@@ -534,6 +534,25 @@
       "publication_and_clear_seconds": 7.157841761115818
     },
     "scope": "Resident four-GPU native GR00T managed-state training and fresh-writer publication gate. One seed, historically observed100-case pool, no quality or speed superiority claim; pressure and fresh v3 managed restore remain separate.",
-    "raw": "raw/gr00t-paged-resident32-v3"
+    "raw": "raw/gr00t-paged-resident32-v3",
+    "nonoverlapping_clock_components_seconds": {
+      "launcher_preflight_phases": {
+        "model_preflight": 59.565473483875394,
+        "simulator_preflight": 36.36754860635847,
+        "manifest_validation": 13.900862276554108
+      },
+      "native_subprocess_total": 1713.1417502462864,
+      "within_native": {
+        "setup_through_assembled_and_restored_roles": 161.73264833539724,
+        "all_training_window_phases": {
+          "collect_seconds": 481.07614335697144,
+          "targets_seconds": 60.11488628014922,
+          "update_seconds": 145.01291903294623,
+          "publication_and_clear_seconds": 229.00873115565628
+        },
+        "unattributed_residual_including_validation_checkpoint_publication_imports_and_teardown": 636.196422085166
+      },
+      "scope": "Preflights precede the native subprocess and may be added to it. setup, summed nonoverlapping windows, and residual partition the native subprocess; do not add native total to its components. Residual is derived, not a measured isolated validation or checkpoint timer. Single resident development run; no paired speed inference."
+    }
   }
 }

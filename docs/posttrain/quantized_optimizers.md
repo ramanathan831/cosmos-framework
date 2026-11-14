@@ -1389,7 +1389,7 @@ remains compatible.151 pinned checks pass. Four CPU readers agree on the actual
 checkpoint content in about24.28seconds each. Native pending80 recovery matches
 all saved learner/data fields and publishes with zero new updates; its fresh97/100
 score illustrates simulator variability. Newly written checkpoints and the remaining
-nonpaged/paging studies are tracked separately. Both failures remain recorded. See the
+nonpaged/paging studies are tracked separately. Both failures remain recorded. The corrected nonpaged80 run completes and publishes40/80 with97/90/91 successes at0/40/80. It also fails adaptation and the descriptive cross-optimizer guards: four fewer successes than fused at80, and4.97% more all-episode control steps. No final superiority comparison is admitted. Its busiest-device peak is26.19GiB and full-launcher host PSS69.28GiB; these are single-run measurements. Fresh final reloads and40-to-80 continuation are tracked separately. See the
 [native nonpaged evidence](evidence/quantized_optimizers_round10/native_eightbit_development_summary.json).
 
 Resident paged GR00T also completed8updates and publications, with98/100/96
@@ -1397,7 +1397,7 @@ successes. Fresh checkpoint4 reload matches every learner field on all4ranks
 and reconstructs3,246,784,512 bytes of managed moment allocations; its99/100
 score differs from the original100/100. Native continuation4→8 completed with
 finite updates, managed ownership preserved, a durable checkpoint and97/100
-successes after the explicit environment reset. The separate fixed-pressure
+successes after the explicit environment reset. A later resident32-update run passes new checkpoint16/32 publication, with99/96/97 successes at0/16/32 and74.12GiB peak full-launcher host PSS. The separate fixed-pressure
 study remains in progress. The complete-launcher peak host PSS was112.75GiB;
 this broader sampling scope differs from the earlier fused/nonpaged sources.
 
