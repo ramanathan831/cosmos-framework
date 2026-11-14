@@ -50,6 +50,13 @@ def checkpoint_inventory_signature(
     for directory, dirnames, filenames in os.walk(checkpoint_dir):
         dirnames.sort()
         filenames.sort()
+        if full_content:
+            # os.walk does not descend directory symlinks. Reject them rather
+            # than declaring a checkpoint content-bound with an unread subtree.
+            for child in dirnames:
+                child_path = os.path.join(directory, child)
+                if not stat.S_ISDIR(synchronized_stat(child_path).st_mode):
+                    raise RuntimeError(f"checkpoint publication requires real directories: {child_path!r}")
         relative_directory = os.path.relpath(directory, checkpoint_dir)
         digest.update(f"dir\0{relative_directory}\0".encode("utf-8", errors="surrogateescape"))
         if inventory is not None:

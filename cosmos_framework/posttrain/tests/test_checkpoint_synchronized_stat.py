@@ -158,3 +158,14 @@ def test_publication_hash_rejects_mutation_during_file_read(tmp_path, monkeypatc
     monkeypatch.setattr(builtins, "open", hooked_open)
     with pytest.raises(RuntimeError, match="changed while hashing"):
         CheckpointManager().publication_identity(str(tmp_path))
+
+
+@pytest.mark.parametrize("directory", [False, True])
+def test_full_content_identity_rejects_unread_symlink_payloads(tmp_path, directory):
+    source, checkpoint = tmp_path / "source", tmp_path / "checkpoint"
+    source.mkdir()
+    checkpoint.mkdir()
+    (source / "weights").write_bytes(b"payload")
+    (checkpoint / "model").symlink_to(source if directory else source / "weights", target_is_directory=directory)
+    with pytest.raises(RuntimeError, match="requires (real directories|regular files)"):
+        checkpoint_inventory_signature(str(checkpoint), full_content=True)
