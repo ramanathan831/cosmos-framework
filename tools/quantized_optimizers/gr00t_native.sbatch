@@ -11,7 +11,7 @@
 #SBATCH --signal=B:USR1@600
 #SBATCH --no-requeue
 set -euo pipefail
-: "${SOURCE_ARCHIVE:?}" "${RESULTS:?}" "${CONTAINER_IMAGE:?}" "${RESOURCE_ROOT:?}" "${MODEL_PYTHON:?}"
+: "${SOURCE_ARCHIVE:?}" "${RESULTS:?}" "${CONTAINER_IMAGE:?}" "${RESOURCE_ROOT:?}" "${MODEL_PYTHON:?}" "${SIM_PYTHON:?}"
 mkdir -p "$RESULTS"
 date -u +%FT%TZ > "$RESULTS/allocation-start.txt"
 scontrol show job "$SLURM_JOB_ID" > "$RESULTS/job.txt"
@@ -29,7 +29,7 @@ for lib in libEGL.so.1 libGLdispatch.so.0 libOpenGL.so.0; do
 done
 export NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics,display
 srun --kill-on-bad-exit=1 --container-image="$CONTAINER_IMAGE" --container-mounts="$mounts" \
- --container-env=SOURCE_ARCHIVE,RESULTS,RESOURCE_ROOT,MODEL_PYTHON,NVIDIA_DRIVER_CAPABILITIES,SLURM_LOG_DIR,OPTIMIZER_NAME,RESUME_CHECKPOINT,UPDATES \
+ --container-env=SOURCE_ARCHIVE,RESULTS,RESOURCE_ROOT,MODEL_PYTHON,SIM_PYTHON,NVIDIA_DRIVER_CAPABILITIES,SLURM_LOG_DIR,OPTIMIZER_NAME,RESUME_CHECKPOINT,UPDATES \
  --container-workdir=/tmp --container-writable bash -c '
 set -euo pipefail
 source_dir=$(mktemp -d /tmp/optimizer-gr00t.XXXXXX)
@@ -40,7 +40,7 @@ export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NO_ALBUMENTATIONS_UPDATE=1 TOKENIZERS
 export MUJOCO_GL=egl PYOPENGL_PLATFORM=egl GR00T_DIT_SDPA_MODE=math CUBLAS_WORKSPACE_CONFIG=:4096:8
 export GPUS_PER_NODE=4
 export LIBERO_MANIFEST_ROOT="$RESULTS/manifests" LIBERO_CONFIG_PATH="$RESULTS/libero-config"
-export POSTTRAIN_SIM_PYTHON=/localhome/local-rarunachalam/cosmos-adapter-all-family-2node-20261111/runtime-libero-renderer-31377dd-v2/bin/python
+export POSTTRAIN_SIM_PYTHON="$SIM_PYTHON"
 export RAY_TMPDIR=/tmp/optim-ray B1K_SIM_IPC_DIR=/tmp/optim-sim B1K_SHM_DIR=/tmp/optim-shm
 export IMAGINAIRE_OUTPUT_ROOT="$RESULTS/runs" __EGL_VENDOR_LIBRARY_FILENAMES="$RESULTS/egl.json"
 mkdir -p "$RAY_TMPDIR" "$B1K_SIM_IPC_DIR" "$B1K_SHM_DIR"
