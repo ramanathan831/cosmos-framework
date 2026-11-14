@@ -198,6 +198,30 @@ def preflight_pending_publication(manager, path, output):
         require_atomic_directory_promotion(os.path.dirname(target))
 
 
+def record_restored_boundary(manager, path, output, policy, collector):
+    """Attest the live restored learner/cursor before any rollout or optimizer update."""
+    from cosmos_framework.posttrain.checkpoint.io import atomic_write_json
+    from cosmos_framework.posttrain.utils.entry import resolve_all, resolve_identical
+
+    source = resolve_identical(policy.loaded_checkpoint_provenance(), operation="training resume provenance")
+    collector_source = resolve_identical(
+        collector.loaded_checkpoint_provenance(), operation="training collector resume provenance"
+    )
+    if not source or collector_source != source or manager.checkpoint_provenance(path) != source:
+        raise RuntimeError("training resume checkpoint generation differs from restored roles")
+    progress = resolve_identical(policy.progress(), operation="training resume progress")
+    receipt = {
+        "checkpoint_provenance": source,
+        "progress": progress,
+        "learner_state": resolve_all(policy.evaluation_state()),
+        "data": CollectorCheckpointState(collector).state_dict(),
+        "scope": "completed native update boundary; simulator state is reset, not restored",
+    }
+    if manager.checkpoint_provenance(path) != source:
+        raise RuntimeError("training resume checkpoint generation changed during attestation")
+    atomic_write_json(str(Path(output) / f"resume-state-step-{progress['optimizer_step']}.json"), receipt)
+
+
 def manifest(evaluation_enabled: bool = True):
     from cosmos_framework.posttrain.control.recipe import joint_ppo_manifest
 
@@ -419,6 +443,8 @@ def run(config: Any, opts: list[str] | None = None, *, evaluate_only: bool = Fal
             }
             atomic_write_json(str(output / f"evaluation-summary-step-{step}.json"), summary)
             return summary
+        if resume:
+            record_restored_boundary(lifecycle.manager, resume, output, policy, collector)
         observers.on_train_start(train_iterations_start=version, train_samples_start=version * recipe.decisions)
         cleanup.callback(observers.on_train_end)
         checkpoints = lifecycle.coordinator(

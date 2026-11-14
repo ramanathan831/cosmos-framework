@@ -327,6 +327,71 @@ def test_checkpoint_evaluation_restores_exact_state_without_training_or_resaving
     assert after["checkpoint_provenance"] == allocated[-1][0].loaded_checkpoint_provenance()
 
 
+def test_training_resume_receipt_matches_live_state_before_next_update(local_run, monkeypatch):
+    config, attempt, _, allocated = local_run
+    config.rl.validation.enabled = True
+    config.rl.validation.save_checkpoint = False
+    original = gr00t_ppo.run(config)
+    source = attempt["output"]
+    step = original["optimizer_step"]
+    expected = json.loads((source / "evaluation" / f"step_{step:06d}.json").read_text())["learner_state"]
+    cursor = allocated[-1][1].state_dict()
+    attempt["resume"] = str(source / "checkpoints" / f"iter_{step:06d}")
+    attempt["output"] = source.parent / "resume-attestation"
+    config.rl.max_steps = step + 2
+    attest = gr00t_ppo.record_restored_boundary
+    observations = []
+
+    def unchanged(manager, path, output, policy, collector):
+        before = resolve_all(policy.evaluation_state())
+        mode = policy.body.model.net.training
+        attest(manager, path, output, policy, collector)
+        assert resolve_all(policy.evaluation_state()) == before
+        assert policy.body.model.net.training == mode
+        observations.append(before)
+
+    monkeypatch.setattr(gr00t_ppo, "record_restored_boundary", unchanged)
+    result = gr00t_ppo.run(config)
+    receipt = json.loads((attempt["output"] / f"resume-state-step-{step}.json").read_text())
+    assert receipt["learner_state"] == observations[0] == expected
+    assert receipt["data"] == {"collectors": {"0": cursor}}
+    assert receipt["checkpoint_provenance"] == allocated[-1][0].loaded_checkpoint_provenance()
+    assert receipt["progress"]["optimizer_step"] == step
+    assert result["optimizer_step"] == step + 2 and result["windows"] == 1
+
+
+@pytest.mark.parametrize("change", ["collector", "during_attestation"])
+def test_resume_attestation_rejects_generation_change_without_receipt(local_run, monkeypatch, change):
+    config, attempt, _, allocated = local_run
+    gr00t_ppo.run(config)
+    attempt["resume"] = str(attempt["output"] / "checkpoints/iter_000004")
+    attempt["output"] = attempt["output"].parent / "bad-attestation"
+    config.rl.max_steps = 6
+    assemble = gr00t_ppo.assemble
+
+    def inject(*args, **kwargs):
+        units = assemble(*args, **kwargs)
+        if change == "collector":
+            units["collector"].body.loaded_checkpoint_provenance = lambda: {"invalid": True}
+        else:
+            observe = units["policy"].body.evaluation_state
+
+            def mutate():
+                state = observe()
+                (Path(attempt["resume"]) / "generation-mutated.txt").write_text("changed")
+                return state
+
+            units["policy"].body.evaluation_state = mutate
+        return units
+
+    monkeypatch.setattr(gr00t_ppo, "assemble", inject)
+    with pytest.raises(RuntimeError, match="checkpoint generation"):
+        gr00t_ppo.run(config)
+    assert allocated[-1][0].optimizer_step == 4
+    assert not list(attempt["output"].glob("resume-state-*.json"))
+    assert not (attempt["output"] / "windows.jsonl").exists()
+
+
 def test_checkpoint_evaluation_rejects_source_mutation_before_publishing_scores(local_run, monkeypatch):
     from cosmos_framework.posttrain.control.validation.rollout import WindowEvaluator
 
