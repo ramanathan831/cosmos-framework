@@ -1,0 +1,65 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+"""Real multiprocess DCP publication control checks; no accelerator qualification."""
+
+from pathlib import Path
+
+import pytest
+import torch
+
+
+def _publish(rank, directory, divergent_recipe):
+    import torch.distributed as dist
+
+    from cosmos_framework.posttrain.checkpoint import CheckpointManager
+    from cosmos_framework.posttrain.control.validation.lifecycle import ValidationTrigger
+    from cosmos_framework.posttrain.roles.trainer.validation.publication import PublicationJournal
+    from cosmos_framework.posttrain.roles.trainer.validation.state import ValidationState
+    from cosmos_framework.posttrain.tests.helpers.distributed import init_gloo_process_group
+
+    init_gloo_process_group(rank, 2, str(Path(directory) / "rendezvous"))
+    try:
+        path = str(Path(directory) / "iter_000004")
+        manager = CheckpointManager(checkpoint_format="dcp", keep_optim_last=0, keep_model_last=0)
+        state = ValidationState({"enabled": True, "seed": rank if divergent_recipe else 17})
+        journal = PublicationJournal(state)
+        state.begin(4, frozenset({ValidationTrigger.PERIODIC}))
+
+        def control():
+            return {
+                "iter": 4,
+                "validation": state.state_dict(version=2, extra={"publication": journal.checkpoint_record()}),
+            }
+
+        # Exceed the inventory's small-file content-hashing threshold. Replicated
+        # model and rank-owned optimizer leaves exercise both writer layouts.
+        manager.save_dcp(
+            path,
+            {"model": {"weight": torch.ones(2**21)}, "optim": {str(rank): torch.zeros(2**21)}},
+            {"trainer": control()},
+            async_safe_snapshot=False,
+            publish=False,
+        )
+        before = manager.checkpoint_provenance(path)
+        journal.complete(4)
+        if divergent_recipe:
+            with pytest.raises(RuntimeError, match="publication recipe identity differs across ranks"):
+                journal.publish(
+                    path, manager=manager, publication_identity={}, trainer_state=control, on_checkpoint=lambda: None
+                )
+            assert manager.checkpoint_provenance(path) == before
+        else:
+            journal.publish(
+                path, manager=manager, publication_identity={}, trainer_state=control, on_checkpoint=lambda: None
+            )
+            assert manager.load_component(path, "trainer") == control()
+            assert journal.pending_step is None and state.progress.pending_step is None
+    finally:
+        dist.destroy_process_group()
+
+
+@pytest.mark.L0
+@pytest.mark.CPU
+@pytest.mark.parametrize("divergent_recipe", [False, True])
+def test_large_dcp_validation_publication_across_processes(tmp_path, divergent_recipe):
+    torch.multiprocessing.spawn(_publish, args=(str(tmp_path), divergent_recipe), nprocs=2, join=True)
