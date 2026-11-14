@@ -125,6 +125,15 @@ Only committed optimizer boundaries are resumable; a mid-update interruption res
 committed checkpoint. Optimizer, scheduler, RNG, data cursor and evaluation history are restored.
 No simulator state is captured, so this is not a claim of exact online rollout continuation.
 
+Build `cbe368d` additionally binds 25 explicit training/recovery source files in the
+checkpoint's training contract. A changed or missing source contract refuses resume
+before data preparation and model construction; the checkpoint codec checks it again
+before restoring state. Resume older checkpoints with their original qualified build.
+Do not edit metadata to bypass this restriction. Portable inference reload remains a
+separate contract and accepts compatible older artifacts. The guard has 67 passing
+CPU lifecycle tests; current-build full-model accelerator recovery is being qualified
+separately from the retained `4cba88f` recovery evidence.
+
 Every checkpoint/portable policy includes all trained action-head/projector tensors alongside LoRA,
 with source, model, quantization, processor/statistics, embodiment, action settings, resolved targets,
 implementation hashes and dtype identities. Portable reload reconstructs the same quantized base.

@@ -88,6 +88,14 @@ a different numerical model. A fresh native portable/checkpoint evaluation uses
 `posttrain.entrypoints.action_eval` with `--config`, `--checkpoint`, `--output`
 and the same model/data overrides.
 
+From `cbe368d`, exact resume also binds 25 explicit training/recovery source files.
+Changed sources or a legacy checkpoint without this contract fail before data/model
+construction and before state restoration. Use the original qualified build for
+older resumable checkpoints; do not rewrite their identities. Compatible portable
+inference reload remains independent of this training-only check. CPU lifecycle
+coverage passed; full-model checks of the new build remain separate from the
+retained `4cba88f` recovery results below.
+
 The separate `posttrain.checkpoint.tools.export_family_dense` command reconstructs
 `dequantize(Q(W)) + (alpha/rank) BA` with FP32 accumulation. Specify
 `--merged-backbone-dtype=bfloat16` or `float32`; all other parameters and buffers
