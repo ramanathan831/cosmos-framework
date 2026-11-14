@@ -15,6 +15,7 @@ from tools.native_qlora_qualification.performance import (
     memory_summary,
     metric_summary,
     paired_bootstrap,
+    phase_name,
     sampled_memory,
     summarize_run,
 )
@@ -223,6 +224,60 @@ def test_checkpoint_begin_is_prior_window_and_overall_peak_survives_unknown_boun
     assert report["phases"]["checkpoint_write"]["interval_seconds"]["sum"] == 3
     assert report["phases"]["validation_or_boundary_overhead"]["allocator_peak_allocated_bytes"] == 900
     assert report["phases"]["unclassified"]["allocator_peak_allocated_bytes"] == 1000
+
+
+def test_native_action_intervals_separate_training_evaluation_and_nested_checkpoint():
+    timeline = [
+        ("data_preparation_begin", 0),
+        ("data_preparation_complete", 2),
+        ("model_loading_begin", 3),
+        ("model_loading_complete", 5),
+        ("evaluation_begin", 6),
+        ("evaluation_complete", 10),
+        ("evaluation_begin", 20),  # Ten seconds of training, not one update.
+        ("evaluation_complete", 24),
+        ("checkpoint_begin", 25),
+        ("checkpoint_begin", 26),
+        ("checkpoint_complete", 29),
+        ("checkpoint_complete", 30),
+        ("portable_export_begin", 31),
+        ("portable_export_complete", 35),
+    ]
+    rows = [boundary(phase, t, t * 100) for phase, t in timeline]
+    for row in rows:
+        row["rss_high_water_bytes"] = 70 * GIB  # Cumulative HWM is not a phase-local RSS sample.
+    samples = [sample(t) for t in range(1, 36)]
+    samples[26]["host_pss_complete"] = False
+    report = memory_summary(rows, samples, runtime(), phase_family="native_action")
+    phases = report["phases"]
+    assert report["phase_family"] == "native_action"
+    assert "unclassified" not in phases
+    assert phases["action_training_block"]["interval_seconds"]["sum"] == 10
+    assert phases["action_evaluation"]["interval_seconds"]["sum"] == 8
+    assert phases["action_checkpoint_setup"]["interval_seconds"]["sum"] == 2
+    assert phases["checkpoint_write"]["interval_seconds"]["sum"] == 3
+    assert phases["action_checkpoint_verification"]["interval_seconds"]["sum"] == 1
+    assert phases["portable_export"]["interval_seconds"]["sum"] == 4
+    assert sum(phase["interval_seconds"]["sum"] for phase in phases.values()) == 35
+    assert phases["checkpoint_write"]["allocator_peak_allocated_bytes"] == 2900
+    assert phases["checkpoint_write"]["sampled_host_rss_sum_peak_bytes"] == 4 * GIB
+    assert phases["checkpoint_write"]["sampled_host_pss_sum_peak_bytes"] == 3 * GIB
+    assert not phases["checkpoint_write"]["sampled_host_pss_complete"]
+    assert phases["action_evaluation"]["sampled_host_pss_complete"]
+
+
+def test_action_and_reasoner_checkpoint_labels_require_explicit_family():
+    assert phase_name("checkpoint_complete", "checkpoint_begin") == "validation_or_boundary_overhead"
+    assert (
+        phase_name("checkpoint_complete", "checkpoint_begin", phase_family="native_action") == "action_training_block"
+    )
+    assert phase_name("model_loading_complete", "evaluation_begin") == "unclassified"
+    assert phase_name("adapter_loading_start", "adapter_loading_complete") == "loading"
+    assert phase_name("unknown", "evaluation_begin", phase_family="native_action") == "unclassified"
+    with pytest.raises(ValueError, match="phase family"):
+        memory_summary([], [], runtime(), phase_family="guessed")
+    with pytest.raises(ValueError, match="phase family"):
+        phase_name("checkpoint_begin", "checkpoint_complete", phase_family="guessed")
 
 
 def test_missing_reset_or_other_process_cannot_establish_loading_interval():

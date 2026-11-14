@@ -334,7 +334,28 @@ def metric_summary(records: list[dict], *, steps: int, effective_batch: int) -> 
     }
 
 
-def phase_name(before: str, after: str) -> str:
+def phase_name(before: str, after: str, *, phase_family: str = "reasoner") -> str:
+    if phase_family == "native_action":
+        # Adjacent reset-delimited intervals, not enclosing/nested clock totals.
+        # A training block can contain many updates, ingestion and logging.
+        return {
+            ("data_preparation_begin", "data_preparation_complete"): "data_preparation",
+            ("data_preparation_complete", "model_loading_begin"): "action_model_setup",
+            ("model_loading_begin", "model_loading_complete"): "loading",
+            ("model_loading_complete", "evaluation_begin"): "action_trainer_setup_or_resume",
+            ("evaluation_complete", "evaluation_begin"): "action_training_block",
+            ("checkpoint_complete", "evaluation_begin"): "action_training_block",
+            ("checkpoint_complete", "checkpoint_begin"): "action_training_block",
+            ("evaluation_begin", "evaluation_complete"): "action_evaluation",
+            ("evaluation_complete", "checkpoint_begin"): "action_checkpoint_setup",
+            ("checkpoint_begin", "checkpoint_begin"): "action_checkpoint_setup",
+            ("checkpoint_begin", "checkpoint_complete"): "checkpoint_write",
+            ("checkpoint_complete", "checkpoint_complete"): "action_checkpoint_verification",
+            ("checkpoint_complete", "portable_export_begin"): "action_final_integrity",
+            ("portable_export_begin", "portable_export_complete"): "portable_export",
+        }.get((before, after), "unclassified")
+    if phase_family != "reasoner":
+        raise InvalidEvidence("unknown native memory phase family")
     if (before, after) == ("adapter_loading_start", "adapter_loading_complete"):
         return "loading"
     if (before, after) == ("adapter_loading_complete", "trainer_ready"):
@@ -453,7 +474,16 @@ def sampled_memory(samples: list[dict], *, expected_uuid: str, device_bytes: int
     }
 
 
-def memory_summary(records: list[dict], samples: list[dict], runtime: dict) -> dict:
+def memory_summary(records: list[dict], samples: list[dict], runtime: dict, *, phase_family: str = "reasoner") -> dict:
+    """Summarize adjacent intervals with an explicit entrypoint's phase vocabulary.
+
+    Host RSS/PSS use only external samples inside each interval. VmHWM is a
+    cumulative process high-water mark and is not a phase-local memory peak.
+    Native action's enclosing training/evaluation/checkpoint clocks remain
+    separate evidence; do not add them to these disjoint phase intervals.
+    """
+    if phase_family not in ("reasoner", "native_action"):
+        raise InvalidEvidence("unknown native memory phase family")
     previous, intervals, by_phase = {}, [], defaultdict(list)
     overall_alloc, overall_reserved = [], []
     allocator_valid = True
@@ -474,7 +504,7 @@ def memory_summary(records: list[dict], samples: list[dict], runtime: dict) -> d
             start, end = prior.get("unix_seconds"), row.get("unix_seconds")
             mono_a, mono_b = prior.get("monotonic_seconds"), row.get("monotonic_seconds")
             if all(number(v) for v in (start, end, mono_a, mono_b)) and end >= start and mono_b >= mono_a:
-                phase = phase_name(prior.get("phase", ""), row.get("phase", ""))
+                phase = phase_name(prior.get("phase", ""), row.get("phase", ""), phase_family=phase_family)
                 window = [
                     sample
                     for sample in samples
@@ -523,14 +553,24 @@ def memory_summary(records: list[dict], samples: list[dict], runtime: dict) -> d
                 default=None,
             ),
         }
+        for statistic in ("host_rss_sum_peak_bytes", "host_pss_sum_peak_bytes"):
+            phases[name][f"sampled_{statistic}"] = max(
+                (r["sampled"][statistic] for r in rows if r["sampled"][statistic] is not None), default=None
+            )
+        phases[name]["sampled_host_pss_complete"] = all(r["sampled"]["host_pss_complete"] for r in rows)
     return {
+        "phase_family": phase_family,
         "allocator_evidence_complete": allocator_valid and bool(cuda_records),
         "allocator_peak_allocated_bytes": max(overall_alloc, default=None),
         "allocator_peak_reserved_bytes": max(overall_reserved, default=None),
         "sampled": sampled_memory(samples, expected_uuid=runtime["uuid"], device_bytes=runtime["device_bytes"]),
         "phases": phases,
         "intervals": intervals,
-        "phase_semantics": "Peaks end at the current boundary after the preceding reset. checkpoint_begin records the preceding validation/boundary window; only checkpoint_complete after checkpoint_begin is checkpoint writing. Loading excludes earlier source verification and process startup.",
+        "phase_semantics": (
+            "Adjacent reset-delimited native action intervals; training blocks include multiple updates, ingestion and logging. Nested checkpoint setup/write/verification intervals are disjoint, not additional enclosing checkpoint clocks. Loading includes factory work after model_loading_begin, but excludes earlier process startup. Host RSS/PSS are interval samples, not cumulative VmHWM."
+            if phase_family == "native_action"
+            else "Peaks end at the current boundary after the preceding reset. checkpoint_begin records the preceding validation/boundary window; only checkpoint_complete after checkpoint_begin is checkpoint writing. Loading excludes earlier source verification and process startup."
+        ),
     }
 
 
