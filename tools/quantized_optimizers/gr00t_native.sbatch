@@ -19,6 +19,11 @@ trap 'status=$?; echo "$status" > "$RESULTS/exit-code.txt"; date -u +%FT%TZ > "$
 export SLURM_LOG_DIR="$RESULTS"
 export OPTIMIZER_NAME="${OPTIMIZER_NAME:-adamw}" RESUME_CHECKPOINT="${RESUME_CHECKPOINT:-}" UPDATES="${UPDATES:-8}"
 export EVALUATE_ONLY="${EVALUATE_ONLY:-0}"
+export NATIVE_OUTPUT_ROOT="${NATIVE_OUTPUT_ROOT:-}"
+if [ -n "$NATIVE_OUTPUT_ROOT" ] && { [ -z "$RESUME_CHECKPOINT" ] || [ "$EVALUATE_ONLY" = 1 ]; }; then
+ echo 'NATIVE_OUTPUT_ROOT is only for explicit same-attempt training resume' >&2
+ exit 2
+fi
 trap 'touch "$SLURM_LOG_DIR/SIGUSR1_RECEIVED"' USR1
 closure="$RESOURCE_ROOT/cosmos-adapter-all-family-2node-20261111/runtime-pi05-sim-closure-v1-attempt01/payload/rootfs"
 family=/localhome/local-rarunachalam/cosmos-adapter-all-family-2node-20261111
@@ -30,7 +35,7 @@ for lib in libEGL.so.1 libGLdispatch.so.0 libOpenGL.so.0; do
 done
 export NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics,display
 srun --kill-on-bad-exit=1 --container-image="$CONTAINER_IMAGE" --container-mounts="$mounts" \
- --container-env=SOURCE_ARCHIVE,RESULTS,RESOURCE_ROOT,MODEL_PYTHON,SIM_PYTHON,NVIDIA_DRIVER_CAPABILITIES,SLURM_LOG_DIR,OPTIMIZER_NAME,RESUME_CHECKPOINT,UPDATES,EVALUATE_ONLY \
+ --container-env=SOURCE_ARCHIVE,RESULTS,RESOURCE_ROOT,MODEL_PYTHON,SIM_PYTHON,NVIDIA_DRIVER_CAPABILITIES,SLURM_LOG_DIR,OPTIMIZER_NAME,RESUME_CHECKPOINT,UPDATES,EVALUATE_ONLY,NATIVE_OUTPUT_ROOT \
  --container-workdir=/tmp --container-writable bash -c '
 set -euo pipefail
 source_dir=$(mktemp -d /tmp/optimizer-gr00t.XXXXXX)
@@ -50,7 +55,7 @@ export LIBERO_MANIFEST_ROOT="$RESULTS/manifests" LIBERO_CONFIG_PATH="$RESULTS/li
 export POSTTRAIN_SIM_PYTHON="$SIM_PYTHON"
 export RAY_TMPDIR=/tmp/optim-ray B1K_SIM_IPC_DIR=/tmp/optim-sim B1K_SHM_DIR=/tmp/optim-shm
 export NUMBA_CACHE_DIR=/tmp/optim-numba XDG_CACHE_HOME=/tmp/optim-cache CUDA_CACHE_PATH=/tmp/optim-cuda-cache
-export IMAGINAIRE_OUTPUT_ROOT="$RESULTS/runs" __EGL_VENDOR_LIBRARY_FILENAMES="$RESULTS/egl.json"
+export IMAGINAIRE_OUTPUT_ROOT="${NATIVE_OUTPUT_ROOT:-$RESULTS/runs}" __EGL_VENDOR_LIBRARY_FILENAMES="$RESULTS/egl.json"
 mkdir -p "$RAY_TMPDIR" "$B1K_SIM_IPC_DIR" "$B1K_SHM_DIR" "$NUMBA_CACHE_DIR" "$XDG_CACHE_HOME" "$CUDA_CACHE_PATH"
 cd "$source_dir"
 nvidia-smi --query-gpu=name,memory.total,uuid --format=csv > "$RESULTS/devices.csv"
