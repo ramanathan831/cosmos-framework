@@ -224,5 +224,19 @@
     "archive_bytes": 7717465,
     "archive": "optimizer-native-runtime-v37.tar.gz",
     "scope": "tracked cosmos_framework/, tools/, pyproject.toml, .pytest.toml"
+  },
+  {
+    "revision": "079bd0521359a8164875f2077c9e70d02ff7f022",
+    "archive_sha256": "9d2135419f0b051298e7ddb383002f1057628f8ba5ebbbeff147985aaf20d507",
+    "archive_bytes": 7720165,
+    "archive": "optimizer-native-runtime-v38.tar.gz",
+    "scope": "tracked cosmos_framework/, tools/, pyproject.toml, .pytest.toml"
+  },
+  {
+    "revision": "ef9f69589595724c8d166bf699557a2223bb832c",
+    "archive_sha256": "58ff516e1c1853087b9ae5d95a06b5abe64c27904b65de41bdeb7fbdf1723cb0",
+    "archive_bytes": 7720677,
+    "archive": "optimizer-native-runtime-v39.tar.gz",
+    "scope": "tracked cosmos_framework/, tools/, pyproject.toml, .pytest.toml"
   }
 ]

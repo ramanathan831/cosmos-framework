@@ -1,6 +1,6 @@
 {
   "sealed": false,
-  "updated_at_utc": "2026-11-14T08:04:26.730897+00:00",
+  "updated_at_utc": "2026-11-14T08:31:52.969594+00:00",
   "method": "Earliest allocation/step start through latest end including termination grace; pending unallocated cancellations cost zero. GPU-seconds = allocation wall x allocated GPUs; CPU-only wall excludes GPU jobs. Running entries are provisional observations, not final charges. No aggregate caps.",
   "allocations": [
     {
@@ -825,18 +825,18 @@
     },
     {
       "job": "38520212",
-      "state": "RUNNING",
-      "terminal": false,
-      "allocation_seconds": 2341,
+      "state": "FAILED",
+      "terminal": true,
+      "allocation_seconds": 3258,
       "gpus": 4,
       "cpus": 32,
       "node": "batch-block4-2071",
-      "exit_code": "0:0"
+      "exit_code": "1:0"
     },
     {
       "job": "38520213",
-      "state": "PENDING",
-      "terminal": false,
+      "state": "CANCELLED",
+      "terminal": true,
       "allocation_seconds": 0,
       "gpus": 0,
       "cpus": 0,
@@ -845,8 +845,8 @@
     },
     {
       "job": "38520214",
-      "state": "PENDING",
-      "terminal": false,
+      "state": "CANCELLED",
+      "terminal": true,
       "allocation_seconds": 0,
       "gpus": 0,
       "cpus": 0,
@@ -855,8 +855,8 @@
     },
     {
       "job": "38520215",
-      "state": "PENDING",
-      "terminal": false,
+      "state": "CANCELLED",
+      "terminal": true,
       "allocation_seconds": 0,
       "gpus": 0,
       "cpus": 0,
@@ -865,8 +865,8 @@
     },
     {
       "job": "38520216",
-      "state": "PENDING",
-      "terminal": false,
+      "state": "CANCELLED",
+      "terminal": true,
       "allocation_seconds": 0,
       "gpus": 0,
       "cpus": 0,
@@ -875,23 +875,38 @@
     },
     {
       "job": "38520219",
-      "state": "PENDING",
-      "terminal": false,
+      "state": "CANCELLED",
+      "terminal": true,
       "allocation_seconds": 0,
       "gpus": 0,
       "cpus": 0,
       "node": "None assigned",
       "exit_code": "0:0"
+    },
+    {
+      "job": "38525992",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 252,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00062",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38526258",
+      "state": "RUNNING",
+      "terminal": false,
+      "allocation_seconds": 4,
+      "gpus": 4,
+      "cpus": 32,
+      "node": "batch-block4-0052",
+      "exit_code": "0:0"
     }
   ],
-  "terminal_gpu_allocation_seconds": 71458,
-  "terminal_cpu_only_wall_seconds": 6040,
+  "terminal_gpu_allocation_seconds": 84490,
+  "terminal_cpu_only_wall_seconds": 6292,
   "nonterminal_jobs": [
-    "38520212",
-    "38520213",
-    "38520214",
-    "38520215",
-    "38520216",
-    "38520219"
+    "38526258"
   ]
 }

@@ -38,5 +38,25 @@
     "38520219"
   ],
   "no_model_or_optimizer_math_change": true,
-  "aggregate_caps": null
+  "aggregate_caps": null,
+  "pinned_result": {
+    "job": "38525992",
+    "source": "079bd0521359a8164875f2077c9e70d02ff7f022",
+    "tests_passed": 151,
+    "native_checkpoint_full_content_readers": 4,
+    "all_readers_equal": true,
+    "seconds": [
+      24.277940116007812,
+      24.274002920952626,
+      24.27767975104507,
+      24.277690270915627
+    ],
+    "interpretation": "Single actual-checkpoint CPU verification screen; no training speed claim."
+  },
+  "native_recovery": {
+    "job": "38526258",
+    "source": "ef9f69589595724c8d166bf699557a2223bb832c",
+    "additional_guard": "reject symlink directories/files from full-content publication; 8 local affected checks pass",
+    "status": "admitted after pinned CPU gate; pending"
+  }
 }

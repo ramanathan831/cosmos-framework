@@ -1,7 +1,7 @@
 {
   "observed_job": "38516570",
   "observed_source": "655567de02008a5e64364cc56266847600e510fe",
-  "status": "Native run failed closed at update40 publication; dependent allocations canceled without starting",
+  "status": "Original metadata divergence captured. FORCE_SYNC passed initial gates but was falsified by38520212 at80. Full-content publication correction079bd052 plus symlink guardef9f6958 passed local/pinned CPU gates; native pending80 proof38526258 queued.",
   "observed_difference": {
     "rank": 2,
     "entry": "model/__0_0.distcp",
@@ -103,5 +103,13 @@
     ],
     "new_checkpoint80_published": true,
     "raw_summary": "native_v3_recovery_summary.json"
+  },
+  "later_falsification": {
+    "job": "38520212",
+    "source": "94ecd8ba4e4b238feaaaceb8d5282ef0bcc40ded",
+    "boundary": 80,
+    "result": "FAILED despite FORCE_SYNC: rank3 model/__3_0.distcp mtime/ctime one second older, same device/inode/size. Completed all80 finite training updates; final95/100 versus initial97/100. No successful final publication.",
+    "details": "content_publication_protocol.json",
+    "correction": "079bd052 full payload content identity for publication; pinned/native gates pending. Previous passed statx/local/native recovery evidence does not establish a general fix."
   }
 }

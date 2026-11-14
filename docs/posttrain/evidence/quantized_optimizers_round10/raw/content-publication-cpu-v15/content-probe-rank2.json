@@ -1,0 +1,74 @@
+{
+  "rank": 2,
+  "checkpoint": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-exposure-fused-seed17-v3/runs/cosmos3_action/joint_ppo/gr00t-master-adamw/integration/checkpoints/iter_000080",
+  "seconds": 24.27767975104507,
+  "identity": {
+    "destination": {
+      "kind": "local"
+    },
+    "checkpoint_generation": "f9a95b5c6d9f1a38ce6ce335c22451b54d6cb61f89f88f59880c297fc2dbe9ee",
+    "inventory": [
+      {
+        "directory": "."
+      },
+      {
+        "record": "file|data.pt|6171|",
+        "sha256": "0b0295ff164df9b198dbc928456dd4c9e5258f7468d3b4d0e613a81276e3da3f"
+      },
+      {
+        "record": "file|trainer.pt|61389|",
+        "sha256": "fb4133b917bc4d9aaef26792befa4f99db3bff3f672a4cb6b486713298e64060"
+      },
+      {
+        "directory": "model"
+      },
+      {
+        "record": "file|model/.metadata|491762|",
+        "sha256": "7bfb1d40498c055a5fe05e31c12de429cd37b7691f68845ab4700277a0af49c4"
+      },
+      {
+        "record": "file|model/__0_0.distcp|813281545|",
+        "sha256": "eb8652b8964ae79b0c3787c658763622dbfbb1e937203de2332573ad06703fd7"
+      },
+      {
+        "record": "file|model/__1_0.distcp|813277879|",
+        "sha256": "e9ec08b1151617814f8f13a7911f622bb3dbafd81142d66ae6e1373c3e412d43"
+      },
+      {
+        "record": "file|model/__2_0.distcp|813279392|",
+        "sha256": "88a363e043b088e33cf88dc277568162939b0c89a1251caad0a96bc1783831d1"
+      },
+      {
+        "record": "file|model/__3_0.distcp|813279392|",
+        "sha256": "7623f678337cf617f6469ac86934fa369ee2400082e5250ff6e8c087b570560d"
+      },
+      {
+        "directory": "optim"
+      },
+      {
+        "record": "file|optim/.metadata|1303|",
+        "sha256": "435ec37860142e3cdfaa226d6741691962475eb478ef9a71bc6a417bfbc95b1b"
+      },
+      {
+        "record": "file|optim/__0_0.distcp|4875255306|",
+        "sha256": "33dea11c3e64c7974fa6791e57d55a0fa4853bde22c0e9ecf620fa3980249d91"
+      },
+      {
+        "record": "file|optim/__1_0.distcp|4875250378|",
+        "sha256": "45d43e58f10859fe3bf5dd7c6e856cb87f2d2e1223a966d3d0781369e9f2d2f3"
+      },
+      {
+        "record": "file|optim/__2_0.distcp|4875249117|",
+        "sha256": "275e4c04a04b893884d6a2f445d53ebcc181f07514c1fe0bb88302a33aacf308"
+      },
+      {
+        "record": "file|optim/__3_0.distcp|4875249117|",
+        "sha256": "1e6e6bea12a64207d88ac95782a1881569561610cff20ca5d758fc9407f8668a"
+      }
+    ]
+  },
+  "all_four_readers_equal": true,
+  "max_rss_kib": 485300,
+  "source_commit": "079bd0521359a8164875f2077c9e70d02ff7f022",
+  "scope": "One full-content publication identity read per CPU rank of actual completed native checkpoint; no publication mutation"
+}

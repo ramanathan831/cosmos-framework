@@ -1,0 +1,333 @@
+{
+  "scope": "Native GR00T four-GPU FSDP2 single-seed development; failed publication retained. Not final quality/paired timing qualification.",
+  "fused": {
+    "job": "38520212",
+    "source": "94ecd8ba4e4b238feaaaceb8d5282ef0bcc40ded",
+    "status": "FAILED final publication after all80 updates and native evaluations",
+    "native_attempt": {
+      "returncode": 1,
+      "native_seconds": 3086.6881713056937
+    },
+    "evaluations": {
+      "0": {
+        "metrics": {
+          "val/episode_count": 100,
+          "val/episode_return": 0.92,
+          "val/episode_steps": 117.92,
+          "val/success_rate": 0.97,
+          "val/task_0/success_count": 10,
+          "val/task_0/success_rate": 1.0,
+          "val/task_1/success_count": 10,
+          "val/task_1/success_rate": 1.0,
+          "val/task_2/success_count": 10,
+          "val/task_2/success_rate": 1.0,
+          "val/task_3/success_count": 10,
+          "val/task_3/success_rate": 1.0,
+          "val/task_4/success_count": 8,
+          "val/task_4/success_rate": 0.8,
+          "val/task_5/success_count": 10,
+          "val/task_5/success_rate": 1.0,
+          "val/task_6/success_count": 10,
+          "val/task_6/success_rate": 1.0,
+          "val/task_7/success_count": 10,
+          "val/task_7/success_rate": 1.0,
+          "val/task_8/success_count": 10,
+          "val/task_8/success_rate": 1.0,
+          "val/task_9/success_count": 9,
+          "val/task_9/success_rate": 0.9
+        },
+        "training_state_unchanged": true,
+        "lost_success_cases": [],
+        "gained_success_cases": []
+      },
+      "40": {
+        "metrics": {
+          "val/episode_count": 100,
+          "val/episode_return": 0.86,
+          "val/episode_steps": 133.92,
+          "val/success_rate": 0.91,
+          "val/task_0/success_count": 10,
+          "val/task_0/success_rate": 1.0,
+          "val/task_1/success_count": 9,
+          "val/task_1/success_rate": 0.9,
+          "val/task_2/success_count": 10,
+          "val/task_2/success_rate": 1.0,
+          "val/task_3/success_count": 8,
+          "val/task_3/success_rate": 0.8,
+          "val/task_4/success_count": 9,
+          "val/task_4/success_rate": 0.9,
+          "val/task_5/success_count": 9,
+          "val/task_5/success_rate": 0.9,
+          "val/task_6/success_count": 10,
+          "val/task_6/success_rate": 1.0,
+          "val/task_7/success_count": 9,
+          "val/task_7/success_rate": 0.9,
+          "val/task_8/success_count": 10,
+          "val/task_8/success_rate": 1.0,
+          "val/task_9/success_count": 7,
+          "val/task_9/success_rate": 0.7
+        },
+        "training_state_unchanged": true,
+        "lost_success_cases": [
+          [
+            1,
+            4
+          ],
+          [
+            3,
+            3
+          ],
+          [
+            3,
+            5
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            5,
+            9
+          ],
+          [
+            7,
+            0
+          ],
+          [
+            9,
+            1
+          ],
+          [
+            9,
+            8
+          ]
+        ],
+        "gained_success_cases": [
+          [
+            4,
+            1
+          ],
+          [
+            4,
+            6
+          ]
+        ]
+      },
+      "80": {
+        "metrics": {
+          "val/episode_count": 100,
+          "val/episode_return": 0.83,
+          "val/episode_steps": 125.44,
+          "val/success_rate": 0.95,
+          "val/task_0/success_count": 10,
+          "val/task_0/success_rate": 1.0,
+          "val/task_1/success_count": 10,
+          "val/task_1/success_rate": 1.0,
+          "val/task_2/success_count": 10,
+          "val/task_2/success_rate": 1.0,
+          "val/task_3/success_count": 8,
+          "val/task_3/success_rate": 0.8,
+          "val/task_4/success_count": 8,
+          "val/task_4/success_rate": 0.8,
+          "val/task_5/success_count": 10,
+          "val/task_5/success_rate": 1.0,
+          "val/task_6/success_count": 10,
+          "val/task_6/success_rate": 1.0,
+          "val/task_7/success_count": 10,
+          "val/task_7/success_rate": 1.0,
+          "val/task_8/success_count": 10,
+          "val/task_8/success_rate": 1.0,
+          "val/task_9/success_count": 9,
+          "val/task_9/success_rate": 0.9
+        },
+        "training_state_unchanged": true,
+        "lost_success_cases": [
+          [
+            3,
+            5
+          ],
+          [
+            3,
+            8
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            4,
+            4
+          ],
+          [
+            9,
+            8
+          ]
+        ],
+        "gained_success_cases": [
+          [
+            4,
+            1
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            9,
+            0
+          ]
+        ]
+      }
+    },
+    "intended_updates": 80,
+    "finite_updates": true,
+    "sequential_update_and_publication_counters": true,
+    "behavior_checks_pass": true,
+    "frozen_backbone_unchanged_all_ranks": true,
+    "adaptation_screen_pass": false,
+    "fixed100_target": "not reached at eligible40/80; censored",
+    "window_phases_mean_excluding_first_seconds": {
+      "collect_seconds": 14.611106920904845,
+      "targets_seconds": 1.8858589882950616,
+      "update_seconds": 4.48207485567354,
+      "publication_and_clear_seconds": 7.102450388566226
+    },
+    "window_phase_scope": "nonoverlapping native windows only; excludes initial setup, boundary checkpoint/validation and teardown. update includes forward/backward/optimizer; not isolated optimizer call.",
+    "optimizer_storage_bytes_and_elements": {
+      "master_bytes": 6499373572,
+      "moment_bytes": 12998747144,
+      "metadata_bytes": 8696,
+      "fp32_model_alias_bytes": 0
+    },
+    "gradient_staging_bytes_at80": 6499373572,
+    "device_process_peaks": {
+      "memory-gpu0": {
+        "device_bytes": 31023497216,
+        "process_gpu_bytes": 29150412800
+      },
+      "memory-gpu1": {
+        "device_bytes": 30266490880,
+        "process_gpu_bytes": 28393340928
+      },
+      "memory-gpu2": {
+        "device_bytes": 30218321920,
+        "process_gpu_bytes": 28345106432
+      },
+      "memory-gpu3": {
+        "device_bytes": 30193156096,
+        "process_gpu_bytes": 28319940608
+      }
+    },
+    "full_launcher_peak_pss_bytes": 94384713728,
+    "learning_diagnostics_by_segment": {
+      "1-10": {
+        "metrics": {
+          "joint_loss": 0.12738270848058164,
+          "policy_loss": 4.377216100692749e-09,
+          "clip_fraction": 0.0,
+          "value_loss": 0.1273827082128264,
+          "ratio_mean": 1.0,
+          "policy_lr": 5e-06,
+          "policy_grad_norm": 43.375,
+          "policy_optimizer_step": 5.5
+        },
+        "target_metrics": {
+          "train/old_value_mean": 0.7831977844238281,
+          "train/target_return_mean": 0.7456912534055264,
+          "train/raw_advantage_mean": -0.03750653144188618,
+          "train/raw_advantage_std": 0.42019439201737996,
+          "train/bootstrap_value_mean": 0.04274682998657227,
+          "train/nonzero_reward_decisions": 6.6,
+          "train/value_explained_variance_defined": 1.0,
+          "train/value_explained_variance": -0.445433164698246
+        },
+        "parameter_update_l2": {
+          "actor": 0.16252560370199115,
+          "value": 0.19116364525837862
+        }
+      },
+      "11-40": {
+        "metrics": {
+          "joint_loss": 0.06667384624791642,
+          "policy_loss": 6.829698880513509e-10,
+          "clip_fraction": 0.0,
+          "value_loss": 0.06667384647686656,
+          "ratio_mean": 1.0,
+          "policy_lr": 5e-06,
+          "policy_grad_norm": 45.525,
+          "policy_optimizer_step": 25.5
+        },
+        "target_metrics": {
+          "train/old_value_mean": 0.6458822250366211,
+          "train/target_return_mean": 0.6704924038025377,
+          "train/raw_advantage_mean": 0.024610178737752144,
+          "train/raw_advantage_std": 0.3363921518972022,
+          "train/bootstrap_value_mean": 0.03511867523193359,
+          "train/nonzero_reward_decisions": 5.466666666666667,
+          "train/value_explained_variance_defined": 1.0,
+          "train/value_explained_variance": -0.1597724966998366
+        },
+        "parameter_update_l2": {
+          "actor": 0.22334714373221307,
+          "value": 0.12506626853530844
+        }
+      },
+      "41-80": {
+        "metrics": {
+          "joint_loss": 0.055542347650043664,
+          "policy_loss": 8.498318493366241e-10,
+          "clip_fraction": 0.0,
+          "value_loss": 0.0555423469573725,
+          "ratio_mean": 1.0,
+          "policy_lr": 5e-06,
+          "policy_grad_norm": 48.1375,
+          "policy_optimizer_step": 60.5
+        },
+        "target_metrics": {
+          "train/old_value_mean": 0.6725833058357239,
+          "train/target_return_mean": 0.6584363213949095,
+          "train/raw_advantage_mean": -0.014146984438451683,
+          "train/raw_advantage_std": 0.3046278354991879,
+          "train/bootstrap_value_mean": 0.035302925109863284,
+          "train/nonzero_reward_decisions": 5.35,
+          "train/value_explained_variance_defined": 1.0,
+          "train/value_explained_variance": 0.12147912952781771
+        },
+        "parameter_update_l2": {
+          "actor": 0.24997377872515236,
+          "value": 0.11769868750759649
+        }
+      }
+    },
+    "training_exposure": {
+      "decisions": 5120,
+      "completed_episodes": 594,
+      "completed_episodes_per_task": {
+        "0": 69,
+        "1": 48,
+        "2": 54,
+        "3": 52,
+        "4": 66,
+        "5": 58,
+        "6": 57,
+        "7": 60,
+        "8": 72,
+        "9": 58
+      },
+      "training_initial_state_range_observed": [
+        10,
+        49
+      ],
+      "limits": "Counts of completed physical episodes, not independent training seeds or all partial trajectories. No omitted task hypothesis: all10 tasks appear."
+    }
+  },
+  "nonpaged": "not yet executed: dependencies canceled on fused publication failure; correction gate pending",
+  "final_comparison": "not admitted: fused adaptation screen fails. Complete native eight-bit integration/continuation independently; no extra seeds to seek a favorable interval.",
+  "diagnosis_limits": [
+    "One training seed and exposed100-case pool; native physical evaluation varies even from exact restored states. A two-episode decline is the locked descriptive screen failure, not a population-level degradation estimate.",
+    "Behavior/action alignment, finite updates and frozen exclusion pass; no optimizer numerical defect inferred.",
+    "Actor/critic losses and value explained variance are descriptive, not proof of a particular causal quality mechanism.",
+    "Read-only final reload and pending-publication recovery remain required.",
+    "Revised content publication source changes delivery overhead; historical fused delivery is not an equally optimized successful end-to-end comparator."
+  ]
+}
