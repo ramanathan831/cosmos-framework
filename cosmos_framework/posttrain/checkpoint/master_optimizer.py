@@ -102,9 +102,9 @@ def restore(trainer, path):
         raise
 
 
-def _restore(trainer, path):
-    """Validate and stage before mutation; roll back all ranks on application failure."""
-    replacement = before_model = model = before_optimizer = None
+def _stage_restore(trainer, path):
+    """Read a complete replacement without mutating any live training state."""
+    replacement = before_model = model = None
     try:
         manager, optimizer, net = trainer.checkpoint_manager, trainer.opt, trainer._net()
         trainer._require_checkpoint_boundary()
@@ -142,6 +142,22 @@ def _restore(trainer, path):
                     raise ValueError(f"checkpoint model/master values disagree for {name}")
 
         run_rank_converged(validate_model, "master/model snapshot consistency")
+        return control, replacement, before_model, model
+    finally:
+        replacement = before_model = model = None
+
+
+def _restore(trainer, path):
+    """Validate one stable generation before mutation; roll back application failures."""
+    replacement = before_model = model = before_optimizer = None
+    try:
+        manager, optimizer, net = trainer.checkpoint_manager, trainer.opt, trainer._net()
+        # The lifecycle also binds provenance around trainer+cursor loading. That
+        # outer check alone is too late for transactional restore: a mutation
+        # during reads would be detected after the new model/moments are live.
+        (control, replacement, before_model, model), _ = manager.load_with_stable_provenance(
+            path, lambda: _stage_restore(trainer, path)
+        )
         before_control = trainer._trainer_state()
         before_validation = deepcopy(trainer.validation_state)
         optimizer.sync_groups()

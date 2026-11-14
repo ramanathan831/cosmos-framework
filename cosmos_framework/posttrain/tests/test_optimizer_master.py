@@ -280,3 +280,22 @@ def test_native_trainer_save_restore_master_transaction(tmp_path, format, monkey
     from tools.quantized_optimizers.master_distributed import equal
 
     equal(before_control, restored._trainer_state())
+
+    # A valid-but-replaced generation during reads must be rejected before the
+    # staged model, optimizer and clocks become live, including direct load().
+    control_file = tmp_path / "iter_000001" / "trainer.pt"
+    original_control_bytes = control_file.read_bytes()
+
+    def mutated_generation(path, name, state, **kwargs):
+        found = reader(path, name, state, **kwargs)
+        if name == "optim":
+            control_file.write_bytes(original_control_bytes + b"changed generation")
+        return found
+
+    with monkeypatch.context() as context:
+        context.setattr(restored.checkpoint_manager, "load_dcp_component", mutated_generation)
+        with pytest.raises(Exception, match="changed while it was being loaded"):
+            restored.checkpoint_manager.load_checkpoint(path, lambda: restored.load(path))
+    assert_equal(before_opt, restored.opt.state_dict())
+    assert_equal(before_net, restored.model.net.state_dict())
+    equal(before_control, restored._trainer_state())

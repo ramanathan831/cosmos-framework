@@ -208,6 +208,33 @@ def main():
     equal(before, opt.state_dict())
     equal(before_parameters, {n: local_tensor(p).detach().cpu() for n, p in net.named_parameters()})
     equal(before_control, trainer._trainer_state())
+    control_file = args.output / "iter_000004" / "trainer.pt"
+    control_bytes = control_file.read_bytes() if rank == 0 else None
+
+    def mutate_generation(path, name, target, **kwargs):
+        found = reader(path, name, target, **kwargs)
+        if name == "optim":
+            if rank == 0:
+                control_file.write_bytes(control_bytes + b"changed generation")
+            dist.barrier()
+        return found
+
+    trainer.checkpoint_manager.load_dcp_component = mutate_generation
+    try:
+        trainer.load(str(args.output / "iter_000004"))
+    except Exception as exc:
+        assert "changed while it was being loaded" in str(exc)
+        retained_errors.append(exc)
+    else:
+        raise AssertionError("mutation during checkpoint reads was accepted")
+    finally:
+        trainer.checkpoint_manager.load_dcp_component = reader
+        if rank == 0:
+            control_file.write_bytes(control_bytes)
+        dist.barrier()
+    equal(before, opt.state_dict())
+    equal(before_parameters, {n: local_tensor(p).detach().cpu() for n, p in net.named_parameters()})
+    equal(before_control, trainer._trainer_state())
     commit = opt.commit_state_dict
     commit_calls = 0
 
@@ -237,7 +264,7 @@ def main():
     equal(before_parameters, {n: local_tensor(p).detach().cpu() for n, p in net.named_parameters()})
     equal(before_control, trainer._trainer_state())
     gc.collect()
-    assert len(retained_errors) == 2 and all(reference() is None for reference in staged_backends)
+    assert len(retained_errors) == 3 and all(reference() is None for reference in staged_backends)
     assert all(reference() is None for reference in managed_owners)
     report = dict(
         phase=args.phase,
@@ -251,6 +278,7 @@ def main():
         passed=True,
         construction_failure_converged_and_released=True,
         rejected_state_released_with_retained_errors=True,
+        changed_generation_rejected_before_mutation=True,
     )
     (args.output / f"{args.phase}-rank{rank}.json").write_text(json.dumps(report, indent=2))
     dist.barrier()
