@@ -151,6 +151,35 @@ class CollectorCheckpointState:
         return {"collectors": {str(state["replica"]): state for state in states}}
 
 
+def validate_resume_boundary(manager, path, recipe, environment, width):
+    """Reject inconsistent RL cursors before workers allocate or restore models."""
+    from cosmos_framework.posttrain.roles.env.ppo_window import PPOWindowCollector
+
+    control = manager.load_component(path, "trainer")
+    data = manager.load_component(path, "data")
+    if not isinstance(control, dict) or not isinstance(data, dict):
+        raise ValueError("joint PPO resume requires trainer and collection state")
+    version, step = control.get("publication_version"), control.get("optimizer_step")
+    if (
+        type(version) is not int
+        or version < 0
+        or type(step) is not int
+        or step != version * (recipe.decisions // recipe.global_minibatch)
+        or step > recipe.max_steps
+        or control.get("accum") != 0
+    ):
+        raise ValueError("joint PPO checkpoint is not a completed update/publication boundary")
+    states = data.get("collectors")
+    if not isinstance(states, dict) or set(states) != {str(rank) for rank in range(width)}:
+        raise ValueError("joint PPO checkpoint collector topology differs")
+    for replica in range(width):
+        collector = PPOWindowCollector(recipe, replica, recipe.num_envs // width, environment=environment)
+        state = states[str(replica)]
+        collector.validate_state_dict(state)
+        if state["next_window"] != version:
+            raise ValueError("joint PPO collector cursor differs from the committed policy version")
+
+
 def manifest(evaluation_enabled: bool = True):
     from cosmos_framework.posttrain.control.recipe import joint_ppo_manifest
 
@@ -286,6 +315,11 @@ def run(config: Any, opts: list[str] | None = None, *, evaluate_only: bool = Fal
     if evaluate_only and (resume is None or not recipe.validation.enabled):
         raise ValueError("checkpoint evaluation requires an explicit resumable checkpoint and enabled validation")
     lifecycle = CheckpointLifecycle.from_config(config, recipe, run_out_dir=str(output), resume_checkpoint=resume)
+    if resume:
+        lifecycle.manager.load_with_stable_provenance(
+            resume,
+            lambda: validate_resume_boundary(lifecycle.manager, resume, recipe, instantiate(config.environment), width),
+        )
     with ExitStack() as cleanup:
         cleanup.callback(ray.shutdown)
         observers = build_controller_observers(

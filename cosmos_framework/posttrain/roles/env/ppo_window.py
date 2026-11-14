@@ -269,7 +269,18 @@ class PPOWindowCollector:
             "environment": self.environment.identity(),
         }
 
-    def load_state_dict(self, state: dict) -> None:
+    def validate_state_dict(self, state: dict) -> None:
+        """Validate a completed-window cursor without changing collection state."""
+        if self._version is not None or self._evaluation_version is not None:
+            raise ValueError("cannot restore an active PPO collector")
+        if (
+            not isinstance(state, dict)
+            or set(state) != {"next_window", "replica", "n_lanes", "reset_on_resume", "recipe", "environment"}
+            or type(state["next_window"]) is not int
+            or state["next_window"] < 0
+            or state["reset_on_resume"] is not True
+        ):
+            raise ValueError("invalid completed-window PPO collector checkpoint")
         if (
             state["recipe"] != self.recipe.identity()
             or state["environment"] != self.environment.identity()
@@ -277,6 +288,9 @@ class PPOWindowCollector:
             or state["n_lanes"] != self.n_lanes
         ):
             raise ValueError("PPO collector checkpoint identity differs")
+
+    def load_state_dict(self, state: dict) -> None:
+        self.validate_state_dict(state)
         self._next_window = state["next_window"]
 
     def close(self) -> None:
