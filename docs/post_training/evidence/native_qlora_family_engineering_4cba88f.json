@@ -2714,6 +2714,316 @@
       "requested_cpus": 16,
       "scope": "Single exposed development seed. No confidence interval, independent confirmation, or recipe-level improvement claim.",
       "state": "COMPLETED"
+    },
+    "38513829": {
+      "state": "FAILED",
+      "allocated_gpu_seconds": 181,
+      "receipt": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-source-38513829-partial.json",
+        "sha256": "6ba2e772b1f487db7945d69cea4039e620b9a888df815373df3c34709dceacb3"
+      },
+      "scope": "BF16 source completed both fixed exposed cases successfully; wrapper rejected legitimate early success before other source arms.",
+      "failure": "Wrapper required maximum control count despite success. Final sampler health was not observed on exception path; false field is not evidence of sampler death. Original failure retained.",
+      "replacement": "38514573; unchanged source/native task protocol, corrected success-count validation, exception-path sampler observation, writable kernel cache and explicit 16 step CPUs."
+    },
+    "38514573": {
+      "state": "COMPLETED",
+      "allocated_gpu_seconds": 347,
+      "scope": "Two exposed cases per source; engineering outcome and observed latency, no population preservation, adaptation damage or acceleration qualification.",
+      "acceptance_sha256": "45236d6dcacc99ae3161abf91b871636627769462f9a72e54bdbfcfe8736ff4a",
+      "receipt": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-source-38514573-receipts.json",
+        "sha256": "d237060ab8c14d0cad63b58e701f85b1289484b392ebdffd28a416343df4e158"
+      },
+      "placement": {
+        "cpu_affinity": [
+          14,
+          15,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          138,
+          139,
+          142,
+          143,
+          144,
+          145,
+          146,
+          147
+        ],
+        "cpu_numa_nodes": {
+          "138": [
+            "node0"
+          ],
+          "139": [
+            "node0"
+          ],
+          "14": [
+            "node0"
+          ],
+          "142": [
+            "node0"
+          ],
+          "143": [
+            "node0"
+          ],
+          "144": [
+            "node1"
+          ],
+          "145": [
+            "node1"
+          ],
+          "146": [
+            "node1"
+          ],
+          "147": [
+            "node1"
+          ],
+          "15": [
+            "node0"
+          ],
+          "18": [
+            "node1"
+          ],
+          "19": [
+            "node1"
+          ],
+          "20": [
+            "node1"
+          ],
+          "21": [
+            "node1"
+          ],
+          "22": [
+            "node1"
+          ],
+          "23": [
+            "node1"
+          ]
+        },
+        "gpu_name": "NVIDIA A100-SXM4-80GB",
+        "gpu_uuid": "GPU-77308eab-c813-5725-ca4b-77e281050e4e",
+        "inheritance": "This process execs torchrun; single native worker inherits its CPU affinity and allocated CUDA visibility.",
+        "process_memory_policy": [
+          "Cpus_allowed_list:\t14-15,18-23,138-139,142-147",
+          "Mems_allowed_list:\t0-7"
+        ],
+        "slurm_job": "38514573"
+      },
+      "memory": {
+        "modes": {
+          "bf16_frozen": {
+            "complete_host_samples": 59,
+            "host_pss_peak_bytes": 5294156800,
+            "host_rss_peak_bytes": 5891477504,
+            "limits": "Sampled lower bounds across loading and native rollout; varying on-policy observations and call counts prevent matched-input latency inference.",
+            "owned_gpu_peak_bytes": 13033799680,
+            "samples": 59
+          },
+          "nf4_frozen": {
+            "complete_host_samples": 61,
+            "host_pss_peak_bytes": 5351304192,
+            "host_rss_peak_bytes": 5948293120,
+            "limits": "Sampled lower bounds across loading and native rollout; varying on-policy observations and call counts prevent matched-input latency inference.",
+            "owned_gpu_peak_bytes": 11905531904,
+            "samples": 61
+          },
+          "official_source": {
+            "complete_host_samples": 67,
+            "host_pss_peak_bytes": 5199727616,
+            "host_rss_peak_bytes": 5797384192,
+            "limits": "Sampled lower bounds across loading and native rollout; varying on-policy observations and call counts prevent matched-input latency inference.",
+            "owned_gpu_peak_bytes": 16078864384,
+            "samples": 67
+          }
+        },
+        "samples_sha256": "f8208d4dd5aa681cb52f26a211a5cb9a86601c54b309d14e5d6ee76f4c2b342a"
+      },
+      "arms": {
+        "bf16_frozen": {
+          "artifact_kind": "fresh-frozen-base",
+          "execution_profile": "gr00t_qlora_spatial_8_v1",
+          "cases": [
+            {
+              "init_state_id": 0,
+              "suite": "libero_spatial",
+              "task_id": 0
+            },
+            {
+              "init_state_id": 9,
+              "suite": "libero_spatial",
+              "task_id": 9
+            }
+          ],
+          "episodes": 2,
+          "successes": 2,
+          "seed": 17,
+          "policy_loading_seconds": 37.73583562998101,
+          "workflow_seconds": 59.296287941979244,
+          "result_sha256": "07147e7dbc904709e8ef64e9d53d3ec0db2130dd4eaeb8e057b700e6436500c6",
+          "response_latency": {
+            "cold_first_response_seconds": 1.466745351004647,
+            "comparison_limit": "On-policy observations can diverge between artifacts; these response distributions alone do not establish matched-input inference acceleration.",
+            "scope": "native observation preparation, transfer, four-step action sampling, decoding and RNG/mode restoration; excludes gateway IPC and simulator rendering/control",
+            "steady_calls": 21,
+            "steady_seconds": {
+              "mean": 0.2622362309983665,
+              "p50": 0.26275212300242856,
+              "p95": 0.26374223799211904,
+              "p99": 0.2644063523854129
+            },
+            "warmup_calls": 5
+          },
+          "response_calls": 26
+        },
+        "nf4_frozen": {
+          "artifact_kind": "fresh-frozen-base",
+          "execution_profile": "gr00t_qlora_spatial_8_v1",
+          "cases": [
+            {
+              "init_state_id": 0,
+              "suite": "libero_spatial",
+              "task_id": 0
+            },
+            {
+              "init_state_id": 9,
+              "suite": "libero_spatial",
+              "task_id": 9
+            }
+          ],
+          "episodes": 2,
+          "successes": 2,
+          "seed": 17,
+          "policy_loading_seconds": 39.30305794198648,
+          "workflow_seconds": 61.748980597010814,
+          "result_sha256": "6218ba825bbf8b1a2d5366f7d4415fc2b701b89001400b8d7718dc70f2744eb8",
+          "response_latency": {
+            "cold_first_response_seconds": 1.1515445630066097,
+            "comparison_limit": "On-policy observations can diverge between artifacts; these response distributions alone do not establish matched-input inference acceleration.",
+            "scope": "native observation preparation, transfer, four-step action sampling, decoding and RNG/mode restoration; excludes gateway IPC and simulator rendering/control",
+            "steady_calls": 22,
+            "steady_seconds": {
+              "mean": 0.2855605604590065,
+              "p50": 0.285268345993245,
+              "p95": 0.2882000540193985,
+              "p99": 0.28882268319342985
+            },
+            "warmup_calls": 5
+          },
+          "response_calls": 27
+        },
+        "official_source": {
+          "artifact_kind": "fresh-frozen-base",
+          "execution_profile": "gr00t_qlora_spatial_8_v1",
+          "cases": [
+            {
+              "init_state_id": 0,
+              "suite": "libero_spatial",
+              "task_id": 0
+            },
+            {
+              "init_state_id": 9,
+              "suite": "libero_spatial",
+              "task_id": 9
+            }
+          ],
+          "episodes": 2,
+          "successes": 2,
+          "seed": 17,
+          "policy_loading_seconds": 48.97055963301682,
+          "workflow_seconds": 70.43761280199396,
+          "result_sha256": "27debda6cc875b70dff0ea7e01a64766c5448abd3a59c441def6031bda9ba080",
+          "response_latency": {
+            "cold_first_response_seconds": 1.206565344997216,
+            "comparison_limit": "On-policy observations can diverge between artifacts; these response distributions alone do not establish matched-input inference acceleration.",
+            "scope": "native observation preparation, transfer, four-step action sampling, decoding and RNG/mode restoration; excludes gateway IPC and simulator rendering/control",
+            "steady_calls": 21,
+            "steady_seconds": {
+              "mean": 0.26687795238242307,
+              "p50": 0.2669417189899832,
+              "p95": 0.2689442510018125,
+              "p99": 0.2692343350034207
+            },
+            "warmup_calls": 5
+          },
+          "response_calls": 26
+        }
+      }
+    },
+    "38514034": {
+      "state": "COMPLETED",
+      "allocated_gpu_seconds": 714,
+      "scope": "Controlled conversion diagnosis, not recipe quality or performance qualification",
+      "implementation_revision": "4cba88f4d84ce69037c194e58670e8491388a36d",
+      "wheel_sha256": "9113351965b501d293f9a71f476926fc212c51732144a63f90aca144120f0697",
+      "receipt": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-dense-38514034-receipts.json",
+        "sha256": "f2e9c378e29d666c20e965f21680ce411ffdbc940e54db79fb6508b705b4ef5a"
+      },
+      "diagnosis_sha256": "563089560e6a75592157e3fa3caca3c510bec60bae112128f2e0af39807dbc40",
+      "memory": {
+        "GiB": {
+          "device_peak_bytes": 13.00018310546875,
+          "host_pss_sum_peak_bytes": 8.257621765136719,
+          "host_rss_sum_peak_bytes": 8.519989013671875,
+          "owned_device_process_peak_bytes": 12.31640625
+        },
+        "device_peak_bytes": 13958840320,
+        "gpu_memory_evidence_valid": true,
+        "host_pss_complete": true,
+        "host_pss_sum_peak_bytes": 8866553856,
+        "host_rss_sum_peak_bytes": 9148268544,
+        "owned_device_process_peak_bytes": 13224640512,
+        "samples": 507,
+        "sampling_gap_seconds": {
+          "count": 506,
+          "maximum": 1.5660011768341064,
+          "mean": 1.2911862869978894,
+          "median": 1.287689447402954,
+          "p95": 1.3222520351409912,
+          "sum": 653.340261220932
+        },
+        "scope": "Sampled whole diagnostic allocation peak across both arms; lower bound, not a per-arm or serving/training benchmark."
+      }
+    },
+    "38514818": {
+      "state": "COMPLETED",
+      "allocated_gpu_seconds": 323,
+      "scope": "Controlled conversion diagnosis, not recipe quality or performance qualification",
+      "implementation_revision": "4cba88f4d84ce69037c194e58670e8491388a36d",
+      "wheel_sha256": "9113351965b501d293f9a71f476926fc212c51732144a63f90aca144120f0697",
+      "receipt": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-fp32-38514818-receipts.json",
+        "sha256": "5212d91287355bca5e736ae3a1aa025ed9dcc1453fd1a4464fa5df066d9bff36"
+      },
+      "diagnosis_sha256": "87d2d4b7d3338a2574031fc38c89e2854b90ff347c7857da6a93a3a6d294e673",
+      "memory": {
+        "GiB": {
+          "device_peak_bytes": 14.50994873046875,
+          "host_pss_sum_peak_bytes": 8.256932258605957,
+          "host_rss_sum_peak_bytes": 8.519378662109375,
+          "owned_device_process_peak_bytes": 13.826171875
+        },
+        "device_peak_bytes": 15579938816,
+        "gpu_memory_evidence_valid": true,
+        "host_pss_complete": true,
+        "host_pss_sum_peak_bytes": 8865813504,
+        "host_rss_sum_peak_bytes": 9147613184,
+        "owned_device_process_peak_bytes": 14845739008,
+        "samples": 198,
+        "sampling_gap_seconds": {
+          "count": 197,
+          "maximum": 1.4835166931152344,
+          "mean": 1.2666071066396491,
+          "median": 1.2626042366027832,
+          "p95": 1.2899630069732666,
+          "sum": 249.52160000801086
+        },
+        "scope": "Sampled whole diagnostic allocation peak across both arms; lower bound, not a per-arm or serving/training benchmark."
+      }
     }
   },
   "read_only_head_memory_diagnostic": {
@@ -2993,5 +3303,511 @@
     "scope": "All30task-owned numeric job directories. Snapshot predates GR38511256 completion; its terminal3802seconds are recorded separately above. Includes failed allocations, excludes unrelated campaigns and later jobs.",
     "sha256": "63695942e64e914ea1340743f8eb51ba769087401505ce3a98eafbf3fa01663a",
     "terminal_gpu_seconds_at_snapshot": 15443
+  },
+  "gr00t_conversion_diagnosis": {
+    "summary_receipt": {
+      "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-conversion-keep-discard.json",
+      "sha256": "a97f8e3e1a7a943b7fb830024983f7f7e00a8fec5fe5ec89f5e9f71a349db2d6"
+    },
+    "cost": {
+      "diagnostic_gpu_seconds": 1037,
+      "excludes": "Original export/training/qualification allocations; this is not total family development cost.",
+      "includes": [
+        38514034,
+        38514818
+      ]
+    },
+    "decision": {
+      "bf16_merged_dense": "Do not qualify these GR00T conversions: unchanged per-probe gates failed in both arms.",
+      "fp32_merged_compute": "Discard promotion; preserve prototype and negative evidence only. No production FP32 compute profile or further precision variants authorized by this decision.",
+      "mechanistic_inference": "Exact unmerged outputs/replays with byte-exact declared merged weights isolate observed drift to merge reassociation/casting/arithmetic on these probes rather than quantized-operator substitution or missing auxiliary state. FP32 changes the finite-precision reference arithmetic and did not improve it reliably; ideal-math precision alone is not a fidelity guarantee. No source/correctness defect was established by this investigation.",
+      "native_portable_quantized_reload": "Retain the separately qualified native path; no native training arithmetic changed.",
+      "next_action": "Continue separately authorized native LR1e-5 development screen on unchanged4c implementation. GR00T merged deployment-artifact fidelity remains unresolved.",
+      "transient_dequantized_unmerged": "Exact diagnosis only; no new deployable artifact or training support claimed."
+    },
+    "implementation_revision": "4cba88f4d84ce69037c194e58670e8491388a36d",
+    "memory": {
+      "38514034": {
+        "GiB": {
+          "device_peak_bytes": 13.00018310546875,
+          "host_pss_sum_peak_bytes": 8.257621765136719,
+          "host_rss_sum_peak_bytes": 8.519989013671875,
+          "owned_device_process_peak_bytes": 12.31640625
+        },
+        "device_peak_bytes": 13958840320,
+        "gpu_memory_evidence_valid": true,
+        "host_pss_complete": true,
+        "host_pss_sum_peak_bytes": 8866553856,
+        "host_rss_sum_peak_bytes": 9148268544,
+        "owned_device_process_peak_bytes": 13224640512,
+        "samples": 507,
+        "sampling_gap_seconds": {
+          "count": 506,
+          "maximum": 1.5660011768341064,
+          "mean": 1.2911862869978894,
+          "median": 1.287689447402954,
+          "p95": 1.3222520351409912,
+          "sum": 653.340261220932
+        },
+        "scope": "Sampled whole diagnostic allocation peak across both arms; lower bound, not a per-arm or serving/training benchmark."
+      },
+      "38514818": {
+        "GiB": {
+          "device_peak_bytes": 14.50994873046875,
+          "host_pss_sum_peak_bytes": 8.256932258605957,
+          "host_rss_sum_peak_bytes": 8.519378662109375,
+          "owned_device_process_peak_bytes": 13.826171875
+        },
+        "device_peak_bytes": 15579938816,
+        "gpu_memory_evidence_valid": true,
+        "host_pss_complete": true,
+        "host_pss_sum_peak_bytes": 8865813504,
+        "host_rss_sum_peak_bytes": 9147613184,
+        "owned_device_process_peak_bytes": 14845739008,
+        "samples": 198,
+        "sampling_gap_seconds": {
+          "count": 197,
+          "maximum": 1.4835166931152344,
+          "mean": 1.2666071066396491,
+          "median": 1.2626042366027832,
+          "p95": 1.2899630069732666,
+          "sum": 249.52160000801086
+        },
+        "scope": "Sampled whole diagnostic allocation peak across both arms; lower bound, not a per-arm or serving/training benchmark."
+      }
+    },
+    "modes": {
+      "bf16_lora": {
+        "all_merged_weights_exact": true,
+        "bf16_unmerged_target_weight_bytes": 1610612736,
+        "common_input_replay": {
+          "bf16_merged": {
+            "0": {
+              "all_exact": false,
+              "max_absolute": 0.125,
+              "max_relative_l2": 0.004964250123261046
+            },
+            "15": {
+              "all_exact": false,
+              "max_absolute": 1.0,
+              "max_relative_l2": 0.00045296630138936476
+            },
+            "7": {
+              "all_exact": false,
+              "max_absolute": 0.5,
+              "max_relative_l2": 0.00016159695857942785
+            }
+          },
+          "fp32_merged_compute": {
+            "0": {
+              "all_exact": false,
+              "max_absolute": 0.25,
+              "max_relative_l2": 0.00479481165197129
+            },
+            "15": {
+              "all_exact": false,
+              "max_absolute": 1.0,
+              "max_relative_l2": 0.0004829600161407217
+            },
+            "7": {
+              "all_exact": false,
+              "max_absolute": 0.5,
+              "max_relative_l2": 0.0001795929132042857
+            }
+          },
+          "unmerged": {
+            "0": {
+              "all_exact": true,
+              "max_absolute": 0.0,
+              "max_relative_l2": 0.0
+            },
+            "15": {
+              "all_exact": true,
+              "max_absolute": 0.0,
+              "max_relative_l2": 0.0
+            },
+            "7": {
+              "all_exact": true,
+              "max_absolute": 0.0,
+              "max_relative_l2": 0.0
+            }
+          }
+        },
+        "dense_load_without_original_paths": true,
+        "fp32_all_unchanged_gates_met": false,
+        "fp32_checkpoint_and_training_forbidden": true,
+        "fp32_construction_seconds": 14.488798286998644,
+        "fp32_cpu_cuda_rng_preserved": true,
+        "fp32_target_weight_bytes": 3221225472,
+        "fresh_merged_exact_original": true,
+        "fresh_portable_exact_original": true,
+        "merged_targets": 112,
+        "portable_vs_bf16_merged": [
+          {
+            "all_gates_met": false,
+            "decoded_max": 0.004108846187591553,
+            "flow_loss_abs": 0.08318454027175903,
+            "flow_loss_relative": 0.18878123253981066,
+            "gripper_command_flips": 0,
+            "index": 0,
+            "native_id": "libero-1491-0",
+            "normalized_all_slots_max": 0.0439453125,
+            "normalized_max": 0.0341796875,
+            "unchanged_conversion_gates": {
+              "decoded": true,
+              "flow_absolute": false,
+              "flow_relative": false,
+              "gripper": true,
+              "identity": true,
+              "normalized": false
+            }
+          },
+          {
+            "all_gates_met": false,
+            "decoded_max": 0.0185546875,
+            "flow_loss_abs": 0.024633049964904785,
+            "flow_loss_relative": 0.017154988488872133,
+            "gripper_command_flips": 0,
+            "index": 1,
+            "native_id": "libero-1491-90",
+            "normalized_all_slots_max": 0.0537109375,
+            "normalized_max": 0.037109375,
+            "unchanged_conversion_gates": {
+              "decoded": true,
+              "flow_absolute": false,
+              "flow_relative": true,
+              "gripper": true,
+              "identity": true,
+              "normalized": false
+            }
+          }
+        ],
+        "portable_vs_dequantized_unmerged": [
+          {
+            "all_gates_met": true,
+            "decoded_max": 0.0,
+            "flow_loss_abs": 0.0,
+            "flow_loss_relative": 0.0,
+            "gripper_command_flips": 0,
+            "index": 0,
+            "native_id": "libero-1491-0",
+            "normalized_all_slots_max": 0.0,
+            "normalized_max": 0.0,
+            "unchanged_conversion_gates": {
+              "decoded": true,
+              "flow_absolute": true,
+              "flow_relative": true,
+              "gripper": true,
+              "identity": true,
+              "normalized": true
+            }
+          },
+          {
+            "all_gates_met": true,
+            "decoded_max": 0.0,
+            "flow_loss_abs": 0.0,
+            "flow_loss_relative": 0.0,
+            "gripper_command_flips": 0,
+            "index": 1,
+            "native_id": "libero-1491-90",
+            "normalized_all_slots_max": 0.0,
+            "normalized_max": 0.0,
+            "unchanged_conversion_gates": {
+              "decoded": true,
+              "flow_absolute": true,
+              "flow_relative": true,
+              "gripper": true,
+              "identity": true,
+              "normalized": true
+            }
+          }
+        ],
+        "portable_vs_fp32_merged_compute": [
+          {
+            "all_gates_met": false,
+            "decoded_max": 0.025561541318893433,
+            "flow_loss_abs": 0.5014870464801788,
+            "flow_loss_relative": 1.1380881883579779,
+            "gripper_command_flips": 0,
+            "index": 0,
+            "native_id": "libero-1491-0",
+            "normalized_all_slots_max": 0.1220703125,
+            "normalized_max": 0.0810546875,
+            "unchanged_conversion_gates": {
+              "decoded": false,
+              "flow_absolute": false,
+              "flow_relative": false,
+              "gripper": true,
+              "identity": true,
+              "normalized": false
+            }
+          },
+          {
+            "all_gates_met": false,
+            "decoded_max": 0.0556640625,
+            "flow_loss_abs": 0.028598904609680176,
+            "flow_loss_relative": 0.019916895393481657,
+            "gripper_command_flips": 0,
+            "index": 1,
+            "native_id": "libero-1491-90",
+            "normalized_all_slots_max": 0.16357421875,
+            "normalized_max": 0.111328125,
+            "unchanged_conversion_gates": {
+              "decoded": false,
+              "flow_absolute": false,
+              "flow_relative": true,
+              "gripper": true,
+              "identity": true,
+              "normalized": false
+            }
+          }
+        ],
+        "probes": [
+          0,
+          1
+        ],
+        "quantized_or_dense_base_formula_verified": "BF16(DQ_actual_BF16 + (alpha/rank)*(B_FP32 @ A_FP32)), CPU row blocks256; no original-W merge",
+        "seed": 17
+      },
+      "nf4_lora": {
+        "all_merged_weights_exact": true,
+        "bf16_unmerged_target_weight_bytes": 1610612736,
+        "common_input_replay": {
+          "bf16_merged": {
+            "0": {
+              "all_exact": false,
+              "max_absolute": 0.25,
+              "max_relative_l2": 0.005096071774521931
+            },
+            "15": {
+              "all_exact": false,
+              "max_absolute": 1.0,
+              "max_relative_l2": 0.00043807985625340414
+            },
+            "7": {
+              "all_exact": false,
+              "max_absolute": 0.5,
+              "max_relative_l2": 0.00016281451247776943
+            }
+          },
+          "fp32_merged_compute": {
+            "0": {
+              "all_exact": false,
+              "max_absolute": 0.25,
+              "max_relative_l2": 0.004898715433970865
+            },
+            "15": {
+              "all_exact": false,
+              "max_absolute": 1.0,
+              "max_relative_l2": 0.00047122088804012766
+            },
+            "7": {
+              "all_exact": false,
+              "max_absolute": 0.5,
+              "max_relative_l2": 0.00018155868194351876
+            }
+          },
+          "unmerged": {
+            "0": {
+              "all_exact": true,
+              "max_absolute": 0.0,
+              "max_relative_l2": 0.0
+            },
+            "15": {
+              "all_exact": true,
+              "max_absolute": 0.0,
+              "max_relative_l2": 0.0
+            },
+            "7": {
+              "all_exact": true,
+              "max_absolute": 0.0,
+              "max_relative_l2": 0.0
+            }
+          }
+        },
+        "dense_load_without_original_paths": true,
+        "fp32_all_unchanged_gates_met": false,
+        "fp32_checkpoint_and_training_forbidden": true,
+        "fp32_construction_seconds": 13.091594968995196,
+        "fp32_cpu_cuda_rng_preserved": true,
+        "fp32_target_weight_bytes": 3221225472,
+        "fresh_merged_exact_original": true,
+        "fresh_portable_exact_original": true,
+        "merged_targets": 112,
+        "portable_vs_bf16_merged": [
+          {
+            "all_gates_met": false,
+            "decoded_max": 0.00821763277053833,
+            "flow_loss_abs": 0.002462059259414673,
+            "flow_loss_relative": 0.005915520470280046,
+            "gripper_command_flips": 0,
+            "index": 0,
+            "native_id": "libero-1491-0",
+            "normalized_all_slots_max": 0.027587890625,
+            "normalized_max": 0.01171875,
+            "unchanged_conversion_gates": {
+              "decoded": true,
+              "flow_absolute": false,
+              "flow_relative": true,
+              "gripper": true,
+              "identity": true,
+              "normalized": true
+            }
+          },
+          {
+            "all_gates_met": false,
+            "decoded_max": 0.05322265625,
+            "flow_loss_abs": 0.020204544067382812,
+            "flow_loss_relative": 0.01446181596953503,
+            "gripper_command_flips": 0,
+            "index": 1,
+            "native_id": "libero-1491-90",
+            "normalized_all_slots_max": 0.1064453125,
+            "normalized_max": 0.1064453125,
+            "unchanged_conversion_gates": {
+              "decoded": false,
+              "flow_absolute": false,
+              "flow_relative": true,
+              "gripper": true,
+              "identity": true,
+              "normalized": false
+            }
+          }
+        ],
+        "portable_vs_dequantized_unmerged": [
+          {
+            "all_gates_met": true,
+            "decoded_max": 0.0,
+            "flow_loss_abs": 0.0,
+            "flow_loss_relative": 0.0,
+            "gripper_command_flips": 0,
+            "index": 0,
+            "native_id": "libero-1491-0",
+            "normalized_all_slots_max": 0.0,
+            "normalized_max": 0.0,
+            "unchanged_conversion_gates": {
+              "decoded": true,
+              "flow_absolute": true,
+              "flow_relative": true,
+              "gripper": true,
+              "identity": true,
+              "normalized": true
+            }
+          },
+          {
+            "all_gates_met": true,
+            "decoded_max": 0.0,
+            "flow_loss_abs": 0.0,
+            "flow_loss_relative": 0.0,
+            "gripper_command_flips": 0,
+            "index": 1,
+            "native_id": "libero-1491-90",
+            "normalized_all_slots_max": 0.0,
+            "normalized_max": 0.0,
+            "unchanged_conversion_gates": {
+              "decoded": true,
+              "flow_absolute": true,
+              "flow_relative": true,
+              "gripper": true,
+              "identity": true,
+              "normalized": true
+            }
+          }
+        ],
+        "portable_vs_fp32_merged_compute": [
+          {
+            "all_gates_met": true,
+            "decoded_max": 0.005021035671234131,
+            "flow_loss_abs": 0.0014531314373016357,
+            "flow_loss_relative": 0.0034913979955985717,
+            "gripper_command_flips": 0,
+            "index": 0,
+            "native_id": "libero-1491-0",
+            "normalized_all_slots_max": 0.0556640625,
+            "normalized_max": 0.009765625,
+            "unchanged_conversion_gates": {
+              "decoded": true,
+              "flow_absolute": true,
+              "flow_relative": true,
+              "gripper": true,
+              "identity": true,
+              "normalized": true
+            }
+          },
+          {
+            "all_gates_met": false,
+            "decoded_max": 0.1590576171875,
+            "flow_loss_abs": 0.01647031307220459,
+            "flow_loss_relative": 0.01178896370125831,
+            "gripper_command_flips": 0,
+            "index": 1,
+            "native_id": "libero-1491-90",
+            "normalized_all_slots_max": 0.318115234375,
+            "normalized_max": 0.318115234375,
+            "unchanged_conversion_gates": {
+              "decoded": false,
+              "flow_absolute": false,
+              "flow_relative": true,
+              "gripper": true,
+              "identity": true,
+              "normalized": false
+            }
+          }
+        ],
+        "probes": [
+          0,
+          1
+        ],
+        "quantized_or_dense_base_formula_verified": "BF16(DQ_actual_BF16 + (alpha/rank)*(B_FP32 @ A_FP32)), CPU row blocks256; no original-W merge",
+        "seed": 17
+      }
+    },
+    "receipts": {
+      "38514034": {
+        "allocation_gpu_seconds": 714,
+        "comparison_sha256": "563089560e6a75592157e3fa3caca3c510bec60bae112128f2e0af39807dbc40",
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-dense-38514034-receipts.json",
+        "sampled_memory_sha256": "d45c5f8fe65154edfdd6f572f151dec58eb2cbb9694fc1857e33a22d970801f6",
+        "sha256": "f2e9c378e29d666c20e965f21680ce411ffdbc940e54db79fb6508b705b4ef5a",
+        "terminal_state": "COMPLETED",
+        "workflow_sha256": "6b57dd086e17c077790f4e7128caf8ade2fe6d67827f79534e31e3ca3ec2b3a6"
+      },
+      "38514818": {
+        "allocation_gpu_seconds": 323,
+        "comparison_sha256": "87d2d4b7d3338a2574031fc38c89e2854b90ff347c7857da6a93a3a6d294e673",
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-fp32-38514818-receipts.json",
+        "sampled_memory_sha256": "bf0e0bdf9d9f7ea0cde7caf9e3abb126bb808eba49d17e35519703e99ad7a058",
+        "sha256": "5212d91287355bca5e736ae3a1aa025ed9dcc1453fd1a4464fa5df066d9bff36",
+        "terminal_state": "COMPLETED",
+        "workflow_sha256": "88fb90d54d8e7ef6e6a6e10d7333fda59da47eb8fd72557ae71360a873de4d18"
+      }
+    },
+    "scope": "Completed GR00T effective-base conversion fidelity diagnostics on two retained10-update real multimodal probes per precision arm; separate from native learning quality, runtime optimization and rollout results. No new model format or production precision feature.",
+    "unchanged_gates": {
+      "decoded_all16_by7_max_absolute": 0.02,
+      "flow_loss_absolute": 0.002,
+      "flow_loss_relative": 0.02,
+      "gripper_signs": "exact",
+      "identities_auxiliary": "exact",
+      "normalized_first16_by7_max_absolute": 0.02,
+      "unit": "Every probe in both arms; no averaging of failed probes; unused40x132 padding diagnostic only."
+    },
+    "wheel_sha256": "9113351965b501d293f9a71f476926fc212c51732144a63f90aca144120f0697"
+  },
+  "gr00t_temporal_and_benchmark_provenance": {
+    "dataset_revision": "HuggingFaceVLA/libero@86958911c0f959db2bbbdb107eb3e17c5f9c798e",
+    "source_info": {
+      "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/source-libero-86958911-meta-info.json",
+      "sha256": "c4e032902aa4c2a694d35e8a0cc7b592a8816123f46c33ee629dfca29f1e954e"
+    },
+    "source_card": {
+      "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/source-libero-86958911-README.md",
+      "sha256": "b3387b5890017ce8cdea40168b56d611fb782bb1e2aed922d92f0e9ad4c963f7"
+    },
+    "declared_source_fps": 10.0,
+    "native_simulator_control_hz": 20,
+    "preparation": "Consecutive source action indices retained, without temporal resampling. No upstream conversion attestation retained; physical-clock equivalence unverified.",
+    "published_recipe": "Pinned upstream examples/LIBERO/README.md uses generic GR00T-N1.7-3B, IPEC Spatial no-noops data, global batch640,8GPUs,20000updates. This specialized-checkpoint batch1/300-update study is a distinct development comparison.",
+    "upstream_readme_sha256": "3967f78d2706f1a85cfdd88060feb3c551cd0deb6bc96f31ee8598b6f8450b78"
   }
 }

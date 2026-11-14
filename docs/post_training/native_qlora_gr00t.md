@@ -51,7 +51,7 @@ checkpoint's random crop/color jitter and 0.2 processor state dropout, while eva
 native deterministic transforms. Albumentations 1.4.18 is required: its transform randomness uses
 the checkpointed global Python/NumPy streams, verified with actual nonzero augmentations.
 
-This control explicitly adjusts the upstream batch-64/10,000-update defaults to batch one and
+This control explicitly adjusts the generic upstream batch-64/10,000-update defaults to batch one and
 300 updates, with 15 warmup updates and the pinned HF cosine scheduler (including zero endpoints).
 The same prepared ten-action supervision prefix remains explicit. It is a separate practical
 control, not a replacement for matched BF16 LoRA or the already frozen development protocol.
@@ -65,6 +65,14 @@ also passed ten real updates, exact fresh checkpoint/portable scores, update-5-t
 frozen-source and optimizer-membership checks, eight shared CUDA cases, and fresh reload of
 the earlier NF4 artifact. These checks establish lifecycle behavior; the separate 300-update
 practical comparison is still required for this control's task quality and performance.
+
+This is not a reproduction of the published LIBERO training benchmark. The pinned
+[upstream Spatial recipe](https://github.com/NVIDIA/Isaac-GR00T/blob/51d4c89f72fda44cbf77285c6a8114b52676b8a1/examples/LIBERO/README.md#fine-tune-libero-spatial)
+uses eight GPUs, global batch 640 and 20,000 updates from the generic
+`nvidia/GR00T-N1.7-3B` base on the IPEC Spatial no-noops dataset. The present study
+continues an already LIBERO-specialized checkpoint on the separately identified
+HuggingFaceVLA export. Its outcome cannot be compared directly with the published
+success rate or attributed to quantization without the matched BF16 LoRA arm.
 
 Use pinned Isaac-GR00T source `51d4c89f72fda44cbf77285c6a8114b52676b8a1`, Transformers 4.57.6,
 and bitsandbytes 0.49.2 for NF4. Construction verifies the upstream source digest and content-bound
@@ -202,7 +210,7 @@ requires `model.backbone_adaptation.mode=bf16_frozen` or `nf4_frozen`; the separ
 recipe loads its original FP32 source directly. This path creates no adapter/checkpoint artifact
 and refuses LoRA configurations or `--dense`. The rollout receipt distinguishes source from
 trained artifacts and records the complete immutable model/processor identity. Actual source
-rollout outcomes remain a separate required measurement.
+rollout outcomes remain a separate measurement from training quality.
 The training runtime does not itself contain the pinned simulator stack. With the isolated
 pinned LIBERO/EGL runtime, job `38510600` completed both predeclared engineering episodes for
 each retained ten-update portable policy. Both precision arms had zero successes out of two.
@@ -210,6 +218,18 @@ This verifies native policy/simulator execution only; it establishes neither tas
 nor deployment-latency improvement. The artifact-output probe in
 `model/gr00t/qualification.py` separately captures actual normalized and decoded actions, native
 flow loss and processed-input digests; its comparison requires explicit predeclared tolerances.
+
+Source-policy job `38514573` subsequently completed those same two exposed cases
+with both frozen precision arms and the separate original FP32 source: all three
+achieved 2/2 successes. This confirms that the observation/action bridge can execute
+successful policies on these cases; it does not qualify adaptation or a success-rate
+margin. NF4/BF16 sampled process peaks were 11.088/12.139 GiB. Mean response times
+after five warmup calls were 0.286/0.262 s, including native preparation and action
+sampling but excluding simulator rendering/control and gateway IPC. Policy-dependent
+observations and unequal call counts prevent a matched-input latency claim.
+The earlier attempt `38513829` remains failed: its wrapper incorrectly rejected a
+valid early success. The corrected wrapper accepts the recorded successful control
+count, checks sampler health even on exceptions, and verifies the allocated CPUs.
 
 The prospective `gr00t-development-v1` study compares `nf4_lora`, `bf16_lora` and `bf16_frozen`
 with the same FP32 action-head policy, fused AdamW, learning rate `1e-4`, constant schedule,
@@ -221,6 +241,14 @@ eight training episodes per task with sixteen time-spaced windows (1,280 rows), 
 episodes per task with four windows (160 rows). Its manifest SHA256 is
 `c726e37725c2d4be88efb17e8f96b956d018a07db9f72bde1f6825084392dd00`.
 All 2,880 source images are RGB 256 × 256 with verified PNG payloads/content hashes.
+The source is `HuggingFaceVLA/libero@86958911c0f959db2bbbdb107eb3e17c5f9c798e`;
+its [immutable metadata](https://huggingface.co/datasets/HuggingFaceVLA/libero/blob/86958911c0f959db2bbbdb107eb3e17c5f9c798e/meta/info.json)
+declares 10 Hz. Cosmos preserves consecutive source action rows without temporal
+resampling, but no retained upstream conversion attestation establishes their
+physical clock. The pinned official and Cosmos LIBERO simulators use 20 Hz control.
+These are separate recorded facts: do not infer 20 Hz dataset equivalence or convert
+the ten supervised action indices into a claimed physical horizon. Source conversion
+provenance remains required for that broader temporal claim.
 A processor-only census of one real row per instruction covered all ten fixed instructions
 in both splits: 151–156 tokens, `pixel_values=[512,1536]`, two image grids `[1,16,16]`,
 state `[1,1,132]`, and action/mask `[1,40,132]` with exactly 70 supervised elements.
@@ -332,8 +360,21 @@ difference on another; the BF16 control's two action maxima were 0.03418 and 0.0
 The limits remain 0.02 action error and both 0.002/2% flow-loss error. All auxiliary tensors
 and tied-weight aliases were preserved, and fresh native evaluation completed, but small mean
 task-metric differences do not override failed probe gates. Both approximately 10.17 GB dense
-artifacts and negative decisions are retained. Shared merge arithmetic is being diagnosed;
-native portable reload and dense conversion are separate capabilities.
+artifacts and negative decisions are retained. Native portable reload and dense
+conversion are separate capabilities.
+
+Follow-up `38514034` isolated the conversion difference: dequantized but unmerged
+execution matched the portable policy exactly on both probes and common-input
+layer replays; all 112 merged matrices exactly matched the declared FP32 accumulation
+followed by BF16 cast. Auxiliary tensors and standalone reconstruction were also exact.
+This implicates changed finite-precision arithmetic in the observed drift, rather
+than missing task state or a different quantized base. A bounded FP32 merged-compute
+prototype (`38514818`) also failed the unchanged gates in both arms and increased
+the sampled diagnostic process peak from 12.316 to 13.826 GiB. It is rejected;
+no FP32 execution option is promoted. These two diagnostic allocations cost
+1,037 GPU-seconds and do not constitute a training or serving benchmark. The
+[retained decisions](evidence/native_qlora_family_engineering_4cba88f.json) preserve
+every failed probe. GR00T merged-artifact fidelity remains unresolved.
 
 Paired profile job `38509185` completed 24 native updates per arm on the same A100
 and CPU allocation, tracing updates 21–24 after warmup. Actual inputs contained
