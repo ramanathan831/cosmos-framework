@@ -6381,6 +6381,4453 @@
         "Host PSS evidence is incomplete; sampled GPU/host peaks are lower bounds and this is not a performance comparison.",
         "Alpamayo full-model candidate parity, sustained counterbalanced performance, and selected mature recovery remain separate promotion gates."
       ]
+    },
+    "38518798": {
+      "family": "gr00t",
+      "slurm_state": "COMPLETED",
+      "allocation_gpu_seconds": 3733,
+      "scope": "Completed four-arm development rollout screen. Technical gates passed; predeclared additional-learning-seed screen failed. Not recipe-level or independent quality qualification.",
+      "trained_implementation_revision": "4cba88f4d84ce69037c194e58670e8491388a36d",
+      "inference_implementation_revision": "3c96ce8503eef263b7feb3fd2a23cad28efa6ab7",
+      "receipt": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-rollout-38518798-receipts.json",
+        "sha256": "bbc05e03979546cb859d6baad6d6de47c64d14e590be90706eefe62da744cde3"
+      },
+      "memory_receipt": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-rollout-38518798-memory-summary.json",
+        "sha256": "569486d7d3892be3a9cbae87b4cde3f64c58e84b13e74bc99913ee16cf5045d7"
+      },
+      "acceptance": {
+        "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38518798/acceptance.json",
+        "sha256": "da32ff18c8d4eb6099078f7f5b0e6a6f0f93ab849dac651fb9b1228043e94df8",
+        "value": {
+          "additional_learning_seed_point_screen": false,
+          "comparisons_sha256": "ccc427e75b4ddd23713b84c59d77d5a0e3761bc38949e58a5ca580b88e7d2109",
+          "inference_latency_qualification": false,
+          "memory_sampling_health": {
+            "bf16_frozen": {
+              "complete_host_samples": 2780,
+              "device_uuid": "GPU-431c94d3-fce3-8e8e-2130-4c18da5e6e82",
+              "positive_owned_gpu_observations": 626,
+              "samples": 2780,
+              "scope": "sampled lower bounds; allocation-phase peaks retained separately"
+            },
+            "bf16_lora": {
+              "complete_host_samples": 2780,
+              "device_uuid": "GPU-431c94d3-fce3-8e8e-2130-4c18da5e6e82",
+              "positive_owned_gpu_observations": 718,
+              "samples": 2780,
+              "scope": "sampled lower bounds; allocation-phase peaks retained separately"
+            },
+            "nf4_frozen": {
+              "complete_host_samples": 2780,
+              "device_uuid": "GPU-431c94d3-fce3-8e8e-2130-4c18da5e6e82",
+              "positive_owned_gpu_observations": 666,
+              "samples": 2780,
+              "scope": "sampled lower bounds; allocation-phase peaks retained separately"
+            },
+            "nf4_lora": {
+              "complete_host_samples": 2780,
+              "device_uuid": "GPU-431c94d3-fce3-8e8e-2130-4c18da5e6e82",
+              "positive_owned_gpu_observations": 727,
+              "samples": 2780,
+              "scope": "sampled lower bounds; allocation-phase peaks retained separately"
+            }
+          },
+          "passed": true,
+          "placement": {
+            "cpu_affinity": [
+              0,
+              1,
+              4,
+              5,
+              12,
+              13,
+              14,
+              15,
+              124,
+              125,
+              128,
+              129,
+              136,
+              137,
+              138,
+              139
+            ],
+            "cpu_numa_nodes": {
+              "0": [
+                "node0"
+              ],
+              "1": [
+                "node0"
+              ],
+              "12": [
+                "node0"
+              ],
+              "124": [
+                "node7"
+              ],
+              "125": [
+                "node7"
+              ],
+              "128": [
+                "node0"
+              ],
+              "129": [
+                "node0"
+              ],
+              "13": [
+                "node0"
+              ],
+              "136": [
+                "node0"
+              ],
+              "137": [
+                "node0"
+              ],
+              "138": [
+                "node0"
+              ],
+              "139": [
+                "node0"
+              ],
+              "14": [
+                "node0"
+              ],
+              "15": [
+                "node0"
+              ],
+              "4": [
+                "node0"
+              ],
+              "5": [
+                "node0"
+              ]
+            },
+            "gpu_name": "NVIDIA A100-SXM4-80GB",
+            "gpu_uuid": "GPU-431c94d3-fce3-8e8e-2130-4c18da5e6e82",
+            "inheritance": "This process execs torchrun; single native worker inherits its CPU affinity and allocated CUDA visibility.",
+            "process_memory_policy": [
+              "Cpus_allowed_list:\t0-1,4-5,12-15,124-125,128-129,136-139",
+              "Mems_allowed_list:\t0-7"
+            ],
+            "slurm_job": "38518798"
+          },
+          "quality_qualification": false,
+          "results": [
+            {
+              "all_cases_completed": true,
+              "claim": "Complete fixed checkpoint/source development case inventory; no recipe-level or independent confirmation claim.",
+              "episodes": 100,
+              "mode": "bf16_frozen",
+              "response_calls": 1364,
+              "result_sha256": "28f265f27dc818903849adb613518607d3ff8d5b42f4da295ea5492b7b1419ed",
+              "successes": 99
+            },
+            {
+              "all_cases_completed": true,
+              "claim": "Complete fixed checkpoint/source development case inventory; no recipe-level or independent confirmation claim.",
+              "episodes": 100,
+              "mode": "nf4_lora",
+              "response_calls": 1484,
+              "result_sha256": "305bd1a36da1acaddeec499b7e5c12ac7f78f2fc31e328e2c13e289a03def3ec",
+              "successes": 93
+            },
+            {
+              "all_cases_completed": true,
+              "claim": "Complete fixed checkpoint/source development case inventory; no recipe-level or independent confirmation claim.",
+              "episodes": 100,
+              "mode": "bf16_lora",
+              "response_calls": 1497,
+              "result_sha256": "80886a30876192c121fe8f15ab2d63816f7139a694f29568a72debc1f0f2caca",
+              "successes": 92
+            },
+            {
+              "all_cases_completed": true,
+              "claim": "Complete fixed checkpoint/source development case inventory; no recipe-level or independent confirmation claim.",
+              "episodes": 100,
+              "mode": "nf4_frozen",
+              "response_calls": 1401,
+              "result_sha256": "4e29e9b217f012004ce3c7624db80c103a63de49b9eafe00b6d6165d4db77881",
+              "successes": 99
+            }
+          ],
+          "scope": "All100 development cases per declared source/checkpoint"
+        }
+      },
+      "arms": {
+        "bf16_frozen": {
+          "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38518798/bf16_frozen/rollout.json",
+          "sha256": "28f265f27dc818903849adb613518607d3ff8d5b42f4da295ea5492b7b1419ed",
+          "summary": {
+            "artifact_kind": "fresh-frozen-base",
+            "cases": [
+              {
+                "episode_id": "301be3f560b04ec98e13972f487c053b:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "31cd56911286456ba7c3277889ac2406:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "87269caf6ed64cd485e65ab5a66b843b:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "dec1a9bad68c452493e04dd64bc15012:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "c418508232f5422080ea9bef6fb30745:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "b6eaeb0e176647ef89e51e2c691a149f:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "ad1cc23d01694aefa351633e0baacc55:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "a585352c9a0d4633b2923b186c2f293a:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "7ce833bf35c3464aa17bb9661ca5fd04:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "b283cca34ab94edbb8c556c2474697fb:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "31c9fb6d60d24d2fa94f941e1c739617:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "d3beaf365d7a44968daf860e270511b3:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "63e4742d7bc342e99679c5df32542a3a:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "429da9fc9c354c40b90a4482e20f0331:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "21306d51fad64a0daf75b74ca6171744:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "f2b243e6bbe14e0daa3f24fbf1881f8a:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "91ca898d907b40a4b4eee4bec93aed5a:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "b10b06dc384d4cbdb9bd542c49aa902a:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "895ef5129ab8413aa6754899d9d1bf9f:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "a5258126150647599606dae2f2fc19e5:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "2378174445d14b6aa57407ef80aa0189:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "4ab77d3ce5b84eda8ba6f7f95bb0a01c:0:0",
+                "init_state_id": 1,
+                "return": 0.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "6b53c2b0ec564a8cacab73148f030d58:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "a5956515c0054cc4a60d736cff1205d7:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "2d302ea088d44842a6d83091ef304fa8:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "cb782592d70c4fb4a89b14fb2bb238db:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "30332f21fecd4e1ea2b6e005544e0006:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "98052a1629504444b97072c01d091bea:0:0",
+                "init_state_id": 7,
+                "return": 0.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "f80b6b1284e840c6b071b3a9ad838289:0:0",
+                "init_state_id": 8,
+                "return": 0.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "b10dca04d6ff43efafe757fb2323fdc5:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "d2847242111c47f0979d11f5e3e8d55b:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "8045a33f3ba34414abb157658b03228b:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "df562a06f2af4a559e884c0437ffa08c:0:0",
+                "init_state_id": 2,
+                "return": 0.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "30e4120d0e244a3fb6635d2712efe3fc:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "821431733c1449f88440f9ce0b9cc8db:0:0",
+                "init_state_id": 4,
+                "return": 0.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "99c0fbf8d7764d6e859c22741be6a357:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "b95f8db10d374241baae10586e126b6e:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "dcee98d7b729482d9f413df47695e589:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "28e812761bad4a07a6e4d59b967c75dd:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "283db36279ed46678ebba67337b62e62:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "e4210acdfa7c4fa1b6346c7e460aecb1:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "e464b3e7146d4455bbb8aca16458856e:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "d2de9a5d090b431baf56e0d97b4dba04:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "e238a758c4bb45ec9d09c5d01d98e35a:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 144,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "446f23c2e99345c89c848a10699afd40:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "40285176dd244b16a34ff791313e3a56:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "2b962ee2ab564736ac64623030eca118:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 152,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "10a5cdfd77be48f0ae8c8deeb31d30e5:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "3cd3b18e360545d1a37303bd8f851a48:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 136,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "61a776fe363849b5bdb7fe6f8c7d592e:0:0",
+                "init_state_id": 9,
+                "return": 0.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "265d20e2653f4b308c4addf10803b94b:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "e87a5dc38cc3434ab87d4dd9d7e6724c:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "d6bf7d3f26c74ffc96de66e914eedf2d:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "4298f5378e844df4bc3477feaeedc769:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "447b224fcf074bdfa929d72bec5e659b:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "4da73877a5244ddfab6f86f72f262a32:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "293886bb02e0451eb2054282eaa93cf1:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "4932d948a78a493d9db885eedc21cbd0:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "344b851c61544eb791db3ab08c079be3:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "7e66b3e9e8654e1fa4fa49208275cd35:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "7ad8ce79bdcf4ac58fe9a64c2e60797a:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "4051c4034b7540fb8f222254a26832ec:0:0",
+                "init_state_id": 1,
+                "return": 0.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "04166f0a5b954af881a58eca3a78940c:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "40c53dfdce504496bc9fd333c760bcb0:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "c103a20c389948778b9dd8e83bcd8d86:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "b693afb22edc402197079be558770871:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "20fc8e355e6747d8a7a680bf57901707:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 136,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "ee8d15aee36141ee840f5a91a1629263:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "a1c5d2046c544f8387798ead4ee62add:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "f5764b7b799946128d6e909b20d64595:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "8764898ff33542508c133d0ae4b6dc0f:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "4ca3b9e770354d08b34aeb46cfd66158:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "3da3b818570b43f8894303a4d6dc60b4:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "2687d91b4ce94555aca175e82b5c3fae:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "b248fe3912c442a999ece33ad1237a5f:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "8fb77126475944a58ffb4941f5c9eded:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "213601d1f191434ab052bbe28adc9aa2:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "2163caa0d51a45a4b6f76db31205470c:0:0",
+                "init_state_id": 7,
+                "return": 0.0,
+                "steps": 256,
+                "success": false,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "ef21801851ab4eb597b133438a46ae00:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "86a0d96c975a4ddd843cac6894b25788:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "23d56dd2c2e2462b9cf174222e6014c0:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "7f31bcd662794ac19c5fd01a7488b6fa:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "a7a319b4253c4716bedea7ab46eadd1e:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "5b9fd6fbbcb54d4fbb6cbaf6e0e483cf:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "3eb0391344c040b898b2b836439f0f67:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "14cbbdc27dc948dcb5314573a7683b04:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "dac40bcde62c4176a1cbdd4728a65d1d:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "127b8f92e49c4807ad2a7538ea8432ea:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "059b703dbcd2475594dfaeb395a3d67d:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "591d5a5a3e084c2bb8589e6d57cba85e:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "1f3d888dee534cb4b82ce41cfe7bf201:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 200,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "c778a5dd5cca4cd49962ec1b95104d1a:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "67c5281eeb2246d09b9f8517a5ef1400:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "6e8f6b4e197a42ddb76ebf0e63779d5b:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "14ba40fdbda9495885297d35f511dec2:0:0",
+                "init_state_id": 4,
+                "return": 0.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "2ec0e6f17e8f487db2877511f5ac9316:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "145ac070e917493d9904fb97672f76a5:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "45d9c810c9ce47e1a7393c1789142968:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "7b087fe0b47244c3bb14b0a23a8da08c:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "d83893e23dd34899a6989c13ccc403cf:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              }
+            ],
+            "checkpoint": null,
+            "episodes": 100,
+            "execution_profile": "gr00t_qlora_spatial_8_v1",
+            "policy_loading_seconds": 42.653169347991934,
+            "precision": {
+              "adapter": "float32",
+              "auxiliary": "float32",
+              "target_source_cast": "bfloat16"
+            },
+            "recorded_response_calls": 1364,
+            "response_latency": {
+              "cold_first_response_seconds": 1.2128094140061876,
+              "comparison_limit": "On-policy observations can diverge between artifacts; these response distributions alone do not establish matched-input inference acceleration.",
+              "scope": "native observation preparation, transfer, four-step action sampling, decoding and RNG/mode restoration; excludes gateway IPC and simulator rendering/control",
+              "steady_calls": 1359,
+              "steady_seconds": {
+                "mean": 0.26389439693693467,
+                "p50": 0.26293641301163007,
+                "p95": 0.26859906329482325,
+                "p99": 0.28283316601737174
+              },
+              "warmup_calls": 5
+            },
+            "seed": 17,
+            "successes": 99,
+            "workflow_seconds": 811.1370422969921
+          }
+        },
+        "bf16_lora": {
+          "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38518798/bf16_lora/rollout.json",
+          "sha256": "80886a30876192c121fe8f15ab2d63816f7139a694f29568a72debc1f0f2caca",
+          "summary": {
+            "artifact_kind": "same-base-trained-policy",
+            "cases": [
+              {
+                "episode_id": "f7914f522a6e4ef7bc10552407defad3:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "a47e4cfdec00454ab6065137f3ac7884:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "10cf13be043d4d85a6e7e7e31257f13f:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "8f1965f8d7514643abd246fbedbadac1:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "4dab84aeceb84e8e920a197880476f11:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "1b887b9962f947aaad08ccef740a1acc:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "1d0f66b05e224029a6d5f1e95cd6daca:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "e7c6f8308e3f4710a963db86f8431331:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "b642a766d2f542819b453c58a4365a8b:0:0",
+                "init_state_id": 8,
+                "return": 0.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "21a3d35f50fc49ec8d8a75b5cea413b7:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "4a63807eaa0640a79401c93e23a8d05d:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "8b9880dffc6646b191159bb596907fe7:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "0b34ee34bd3e49199ee35ba523dd8088:0:0",
+                "init_state_id": 2,
+                "return": 0.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "1310c4d4ff404f3893ea65e52e493b6c:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "fc72a86eb3564c6fae320cf50bff24a6:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "27ad0e2ff8c14438bb2cc3e374b90a90:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "fc918210997d4cdbb7539e58462cdc24:0:0",
+                "init_state_id": 6,
+                "return": 0.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "3ff2fa2a9646495b87b87aacd8920a04:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "0bfe2a52f6c4446380b224240a40b2fe:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "4d626883d4414e3f8ff0e215eb7a152d:0:0",
+                "init_state_id": 9,
+                "return": 0.0,
+                "steps": 256,
+                "success": false,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "b189b354517646f898a5ce9c81575ece:0:0",
+                "init_state_id": 0,
+                "return": 0.0,
+                "steps": 256,
+                "success": false,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "97e47e3824f9446db0b401cd58d1ce50:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "47de15d3f425417e82e6d724aa623f89:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "c4200fb3b9124de5850e724aad429232:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "86ffcddf55814cfc92dc5c6725382082:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "491043a932444162abaa4322740387be:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "e600b278e39e438394579783b8acb173:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "d73a0f103770415682dcb9be22153b21:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "f40842809eaa46508f45f6d20a952881:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "a6f5185d8aab4126a92c6763dfb99aca:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "a67ff7c3597246bf8a6d18ee29c4e3b5:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "c42ac24b998d4003ab399649cbb06726:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "27a2d43a60ae4ce2a601a814bba0f544:0:0",
+                "init_state_id": 2,
+                "return": 0.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "e95630e928f34ff6992168e05a623059:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "42e879c53b2d4fc989288ebf9884c699:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "5602dfa1fa3e4ce994ed4733bf43372d:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "1c08f372007c46d7a6896606c1c0d3f7:0:0",
+                "init_state_id": 6,
+                "return": 0.0,
+                "steps": 256,
+                "success": false,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "cbf4ade9da594fb5a38a483503fbb3f7:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "f1d391cd4ceb4c58a20477815a264521:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "fc315b453b1f45788b12aa23dd4971b4:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "97815a9d4fa3449ab208d37f99a95a4d:0:0",
+                "init_state_id": 0,
+                "return": 0.0,
+                "steps": 256,
+                "success": false,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "16978500f32f43d69dfd4fdd3c170a7e:0:0",
+                "init_state_id": 1,
+                "return": 0.0,
+                "steps": 144,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "350d2eb275fe4b68992b88a1833ec45c:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "92233be24f6541df8d64619f0f02453a:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 152,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "6664a5927fdf473ca4aa9a01e3c84cc4:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "4b4e969bee424a2d84e10353b2c04db3:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 136,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "2450cbdfa228411eb1f274a588ecee7f:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 136,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "45afe5201bfa4c789c0076d36d4077cd:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 136,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "71cdbbd181444552be68f65d00736941:0:0",
+                "init_state_id": 8,
+                "return": 0.0,
+                "steps": 256,
+                "success": false,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "63847dbac9c54505b92119f8d091d324:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "57bd041b4a8c444589f5895b7e4858a4:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "68f2b205cc6743c58cfa21200a56b21e:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "15234de58beb447aa786a8fd5f21f131:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "de01cf370eff438ebba818c8273d4ed0:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "734a406f30344beaac5c687918ba5b73:0:0",
+                "init_state_id": 4,
+                "return": 0.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "d38f8146860443679eee2df7ac8b9e62:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "6a79d43144694dc89d9b7c5f6de53c70:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "953f3151050841c5b7ffb326f3bcd11b:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "b9b487ea06ab412f997ea62b11bb872c:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "5e7f84fe012b41a0a20b462d631ccd67:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "2baca712da8349b2a9dd9fe50a5905ce:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "1b945259fba846709a4e2d0cf9d168b3:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "d224f4d8ae094a65bce24792e965faf2:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 144,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "22ce821317c64fb3a7e326b0622cb6a9:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 136,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "3b4db5004f8e46b58a6f1187f1f853ad:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "93ea10d45729402685962179f4cb9c99:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "fb6e757367624f2083102cdf268eb9f3:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "c99ca01211624a63a0d42aa729850165:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "e673f1bd492b48cb97b708166dd5feb4:0:0",
+                "init_state_id": 8,
+                "return": 0.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "bb4186a517f347058610d3f2644dd8b0:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "2f801d28568248ed8366e5c938187e4c:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "76e3e5c680704d77ae270ea74820b86f:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "0d72819940b2430cb59dc0b57260a987:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "f200f190ec774ef5be47defcf36e5e0d:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "5e90d52853de4e539acc38849b5ba9ac:0:0",
+                "init_state_id": 4,
+                "return": 0.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "6b0f033d14eb4c5aace54956e010e061:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "ffdac54b69ca4fd0ba189e9ae5de8608:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "2763336e30fd482a872ac75e2a768d68:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "8aab25384e8d4382b65d0e11cc210040:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "099cd0ee0c8042f39ab3a906dd50ee84:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "406263a1d29146789021e66928149be9:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "90b9b23a095c4cf0b485956a69142b40:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "8a13ea1fc30f4a53b9c93d438f6ae576:0:0",
+                "init_state_id": 2,
+                "return": 0.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "3e280112530d464f9b09092def1c2b03:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "817ad8aaffa9463eb3b2ccc85c4494b1:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "44861aaf712b49cd9ab967862c7766a6:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "21efc80a378643229ef541a1a0e5baf9:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "a5ac6a7e9c16422fb53988b920b2f675:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "0d4d838208ba4871bb73bdff85eb5c1d:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "c74d7a7ae1df42fea872a620fe23bf57:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "097c18b02de94c77bb9f74508de058d6:0:0",
+                "init_state_id": 0,
+                "return": 0.0,
+                "steps": 256,
+                "success": false,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "fa8f3d5360104beb9bcd4a4a5637e7fd:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 136,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "52c85b7d18fb488f913f9c0dc9fd31c6:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "ad192c73fc8046ab8d1ae0662a9a6f9e:0:0",
+                "init_state_id": 3,
+                "return": 0.0,
+                "steps": 256,
+                "success": false,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "8dd1aacec75e421491bc212ca3efc84e:0:0",
+                "init_state_id": 4,
+                "return": 0.0,
+                "steps": 256,
+                "success": false,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "2e22087f9784415b885af4e4bc20bc61:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "10c3e55645394ca69e6feccac8ad3cbc:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 136,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "ebb0d140f2d1433f8c55cfb9f78cbd99:0:0",
+                "init_state_id": 7,
+                "return": 0.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "d7f8adf3e13344c6b9c2cec7e47424ed:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "d82ef210ca9d4b34bedf2b36d676baf6:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 136,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              }
+            ],
+            "checkpoint": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/bf16_lora/development/native/qualification/gr00t-development-v1/bf16_lora-seed17/fixed300/checkpoint_artifacts/iter_000300",
+            "episodes": 100,
+            "execution_profile": "gr00t_qlora_spatial_8_v1",
+            "policy_loading_seconds": 64.36052827700041,
+            "precision": {
+              "adapter": "float32",
+              "auxiliary": "float32",
+              "target_source_cast": "bfloat16"
+            },
+            "recorded_response_calls": 1497,
+            "response_latency": {
+              "cold_first_response_seconds": 1.2744322350044968,
+              "comparison_limit": "On-policy observations can diverge between artifacts; these response distributions alone do not establish matched-input inference acceleration.",
+              "scope": "native observation preparation, transfer, four-step action sampling, decoding and RNG/mode restoration; excludes gateway IPC and simulator rendering/control",
+              "steady_calls": 1492,
+              "steady_seconds": {
+                "mean": 0.29698715224993494,
+                "p50": 0.2959690160059836,
+                "p95": 0.30391868535516553,
+                "p99": 0.3130480258807074
+              },
+              "warmup_calls": 5
+            },
+            "seed": 17,
+            "successes": 92,
+            "workflow_seconds": 937.7081020059995
+          }
+        },
+        "nf4_frozen": {
+          "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38518798/nf4_frozen/rollout.json",
+          "sha256": "4e29e9b217f012004ce3c7624db80c103a63de49b9eafe00b6d6165d4db77881",
+          "summary": {
+            "artifact_kind": "fresh-frozen-base",
+            "cases": [
+              {
+                "episode_id": "b4fbcbd158044868ab5cbefefd0d2be0:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "df069a16b5044b0f8460086e4571a9e3:0:0",
+                "init_state_id": 1,
+                "return": 0.0,
+                "steps": 192,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "1554987f97ee4c6993c3f1ad6fe54266:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "dd6638b045b84129ad6e6e65de4310ec:0:0",
+                "init_state_id": 3,
+                "return": 0.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "436d479c6a084be7a83aa4047e8b363b:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "945e54ad1d334e48a3ebfef3c19d1990:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "dd5199e4724341f594f68f0531538e5e:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "23fd21929b554ea7b1acafb775bb0851:0:0",
+                "init_state_id": 7,
+                "return": 0.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "cfe28d53369f40a8bccb07b14e90cbcf:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "c39fec97ae0845a78bc18cfe6ae76cdf:0:0",
+                "init_state_id": 9,
+                "return": 0.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "2755fb232b23427bbae262636d30718f:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "336271ae299b4414aeb88b7c8146120b:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "a6e3c6d354ef416e8dfb9782c12ce2f2:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "aa612c432d3d4b17b431861aceed8047:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "3d9e04f63c5847c88131392660b088b7:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "6e91d380d16544ff805be9e82b784c7b:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "7e917f0b5a3e44d5b69f9d79d6a40a7f:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 192,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "e9beb842019e44f1b6366f3a96690d56:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "c5e8c577ae6c414b853c0b4449bc048e:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "577ff332ee644885a09dfcda97b3aefa:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "0102f9ba564f4dc9a27e5d62e4a85648:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "4eacf21883164128b094e0fdb5f4a6be:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "3a1ed960b84343ee9347e95476cb03da:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "772b5a8a791b452eac419f7f02dd1e35:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "846fb60792b64dfa9791182fcb67ab85:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "9647ae407cf94b529aacb15ad2992ead:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "915dd84721954316bc076965488f368c:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "07681fb44b174cc0971fc5e91ba903a0:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "8262c4fbd729421ebea7de49672412e1:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "a7bc865d16224588a221e1b55c9b15c7:0:0",
+                "init_state_id": 9,
+                "return": 0.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "c1d23fc833534e41bf217afb3f6e017e:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "646203e6eaca483caa6afddf66ea0e28:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "474bf2a0a72d44ffb66347470b73959e:0:0",
+                "init_state_id": 2,
+                "return": 0.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "2387affbb9aa4b1a967bcc54ae867ccd:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "a48086587bdb4281b6e38e35cd8b222d:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "f095e5ec567042faa3b42e6c43827c99:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "ac3da2c876de448796e251cb2ba9eb8f:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "a955a0540e3740b2af3f2129a7a61e93:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "1f7c9e7580de4bc1ac651cbba301b387:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "22793702e470401a85b7ed3773519efe:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "76c7f4348da34e04b89fcd439db129f6:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "e47a2688165246fa947ad0e8da956226:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 136,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "529f112696844689a30c6559c2013155:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 136,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "a3960b91f30d4be2b30b0c3af3bb8ed7:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 144,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "c8122cba87c94993a167585d523da39c:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "3bc0a7507d764408ab556c39d9930205:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "1f4ae4e8976a44d188c43561e6174e94:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 160,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "ec698cfd6e4c4c8483d40bf784199a64:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "d0134db79b1f432d8598fd3e1368a4b5:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 144,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "bd8c1ab0aef7473bb1f32ecd134e17ce:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "cd87aa3c3ffc4a17b528d03bb38c186f:0:0",
+                "init_state_id": 0,
+                "return": 0.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "983676a3919b4cb8a44a4487e627ce22:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "8b4b7541b2424d63baa59ba0c3ecff79:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "238fe52096d545e7b9ae5d7c5b27712f:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "96b9a8c2c52f4b98b7efd58d00fa3513:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "2f14a36471b9491a858d351bab16f357:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "8156027b16884285afeddf7682b0e1a3:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "50f2ae133ad942e49c8882bb0ee5a676:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "ad2f17fdc48b4f50b6eda53af1b54def:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "96e2073af0b64ff49bee672744934362:0:0",
+                "init_state_id": 9,
+                "return": 0.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "e74524cbd4bc4f48b0d48a07c20668a0:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "f47f1b30c9304e44af0797676b187b28:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "ebeef1e67b5741ec8e85ea4300251e65:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "3c6487b411d14af9b71f90b24ac366cf:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 136,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "f92c04dbe5ad4e69a9a238050700da03:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "37c241ac9c554b8ebc37c56e00d7b792:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "7403d7196f334e5eb06567eb228c2e6c:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "e3b0f556e838468497df1cff8d763f9f:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "cc51da5b154341e0892abb79597e2502:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 136,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "4520657000a847ea823ff1cbf417af48:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "e580888df3e8482fadbc03e901c9445b:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "c530f84d1ca64ed3b89c10513804fd78:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "5f0201cb2faa44cb94b038c9435f112e:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "58bed80fd14b47bc98a19c08565c2635:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "b78c3b48bc224639b67e25501d04f9db:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "2ace51a0eddc44d694dbacd6c661478f:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "c9390a6b17ba45188534f11a3f2e0a4f:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "8a5789d1cd5f433889614448a0f52b2a:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "268fbe26f6cf4aae919291efd0fe780d:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "f658e84f9b774562b5e0de6183eb684c:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "4e7def3c77014f8ea314fffb8502d81c:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "98b804a9a287483f93493f9ab8a98d28:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "383c0e5247c04127aefe4eda8f06611f:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "dc9da2dfb7c34033a0a0eae541c69b56:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "f3be940acdd243ef8f17fb46f7d6d5ac:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "0d6af86520244253974171f7fed4f477:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 168,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "617261620d44491c8d46335d2d24c78a:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "d188c3127aa745a0b1bca4bed76f5823:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "556c74b8f50643a583cf6a2236e63337:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "fcd42a0a45d94fa5a683f2df8a04b939:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "47ae4228ac52476c91213fb0993ac70e:0:0",
+                "init_state_id": 0,
+                "return": 0.0,
+                "steps": 256,
+                "success": false,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "c5e9bf935ca6401282556f5d42ac1f90:0:0",
+                "init_state_id": 1,
+                "return": 0.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "3adf50504e5c4fdcade1a634a9f4160f:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "2ca9bef14e324d0f824a7b4e1e43eb44:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "a583495bbc4442ceb225743308649ef2:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "bf2a868f80d54e1697b9f8c7e383ffc5:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "b8a322c373e046dca874d9ae742e81f6:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "c2b2059b02a14a73add166f28705758d:0:0",
+                "init_state_id": 7,
+                "return": 0.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "dc6a6a8da26f43c1aa8750d483af0233:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "f774c5bf8ebb4c3e98b42b863960199c:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              }
+            ],
+            "checkpoint": null,
+            "episodes": 100,
+            "execution_profile": "gr00t_qlora_spatial_8_v1",
+            "policy_loading_seconds": 41.514458321995335,
+            "precision": {
+              "adapter": "float32",
+              "auxiliary": "float32",
+              "target_source_cast": "bfloat16"
+            },
+            "recorded_response_calls": 1401,
+            "response_latency": {
+              "cold_first_response_seconds": 1.146180470008403,
+              "comparison_limit": "On-policy observations can diverge between artifacts; these response distributions alone do not establish matched-input inference acceleration.",
+              "scope": "native observation preparation, transfer, four-step action sampling, decoding and RNG/mode restoration; excludes gateway IPC and simulator rendering/control",
+              "steady_calls": 1396,
+              "steady_seconds": {
+                "mean": 0.2860178099354042,
+                "p50": 0.2850673165085027,
+                "p95": 0.2936223309916386,
+                "p99": 0.30373462409334023
+              },
+              "warmup_calls": 5
+            },
+            "seed": 17,
+            "successes": 99,
+            "workflow_seconds": 853.9914014539972
+          }
+        },
+        "nf4_lora": {
+          "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38518798/nf4_lora/rollout.json",
+          "sha256": "305bd1a36da1acaddeec499b7e5c12ac7f78f2fc31e328e2c13e289a03def3ec",
+          "summary": {
+            "artifact_kind": "same-base-trained-policy",
+            "cases": [
+              {
+                "episode_id": "05fa3e3767aa472fbe735ad12aacdd4c:0:0",
+                "init_state_id": 0,
+                "return": 0.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "0fb2dc445afa4e5a9290629a655a12a9:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "f326479df08c44ae873a4da4a48ce152:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "75c8df5c191748c4a4e0b5bf387d1be4:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "c0dfb48d21c84e3db3b4ec21dd758ed8:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "c31c50fa083c44b7a7a22fbd909dc52f:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "95c6ec4fd83342ee81a6a82796b8cfbd:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "1cc8af25c332470ab6939855717017eb:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "600a3e7ee4bc4031b05e68f03c43a5d8:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "12d8fe94effb4890b172b0a6ea0a30cb:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 80,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 0
+              },
+              {
+                "episode_id": "298ca34593ec4ad98f595428796a064d:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "4edcf16fa4f7456ba42b465f07e3b49a:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "e62bb1f3898d4ca6853d7af315c51478:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "a0d78e43cd1f42e981bdb611908b8dc3:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "8d0629651a6446e2b32eebdad7659bf8:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "39a2bc821c4040338e9b81bad0100dc1:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "153c2ffd2ad14d19a197f6de7d213371:0:0",
+                "init_state_id": 6,
+                "return": 0.0,
+                "steps": 256,
+                "success": false,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "389010106a4a40d6903c0bca63c74f37:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "6af170728573433181d7c5aa6efe8455:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "c7d41972386c4604947296a188631296:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 1
+              },
+              {
+                "episode_id": "4eebb3bd49ce4bd39f5898d4812afe3f:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 160,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "38227d2bed404c7b85ed474e24f5c045:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "38721abd813a4f72bf6f73e9073b9109:0:0",
+                "init_state_id": 2,
+                "return": 0.0,
+                "steps": 256,
+                "success": false,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "1c5f404d0cad474884cc4a42a9c5445e:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "df33ee5fc972435383a303c5a501ded4:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "a81782db1c1e40bcad71b2afa993c77b:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "b044e46998b444f998a4ae2dff18a739:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "431fef393d5946cba8ef27ddcf640ff4:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "92a6c98908954c2a85f6728231db588d:0:0",
+                "init_state_id": 8,
+                "return": 0.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "ea760278f6fc417a8c851c9b78a84c47:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 2
+              },
+              {
+                "episode_id": "0a347145e3764fa293846f3452496e02:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "03a762b772cd47289ff4e88836a1175a:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "ca646039c7634efca6829ae2dc7e488d:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "afe2a2d17b26406ba3dd356fe9da2dc3:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "6e3543ecb6354d1d8c8241d237e040cc:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "98b813339c224eb4b8bdc7f23ce8b132:0:0",
+                "init_state_id": 5,
+                "return": 0.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "9da2fe7dc5044c92ab9925a77656e3aa:0:0",
+                "init_state_id": 6,
+                "return": 0.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "f96b5ef77d324195905f903daa3ac63e:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "5d5247d82ea44d4bbbe7518a9557e4cc:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "f4ec28b221d44e16a0f22e83d3cd8e09:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 3
+              },
+              {
+                "episode_id": "cc873fb3081b425daa886aad039c4375:0:0",
+                "init_state_id": 0,
+                "return": 0.0,
+                "steps": 256,
+                "success": false,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "69210273c2314ea8b82706e4aa135d5c:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 136,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "46321434d88b4536b900c25c1963a7bf:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "98ebde269c5947b7b618553a01b15c48:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 152,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "f17230446ffa4f40b2f0f5dbc711b00a:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "8d7d03586e164ccb957efad827f9461c:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 136,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "5aa12b89915a4b29a98b8f238c4d59db:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 136,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "68c3a90d6ed4422aa3a111fe82bad031:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "37aba28bb75b4b4bab8dccc86d9fd4d1:0:0",
+                "init_state_id": 8,
+                "return": 0.0,
+                "steps": 256,
+                "success": false,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "7b246883082845ee91d4503b43717218:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 4
+              },
+              {
+                "episode_id": "5b0d60846f3248bfabdf0cc74616f1d5:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "7a0b1e7c5d714ceebadd01dfdfc7b781:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "870597cfd6064c2fb5eacfbb719a9f84:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "05472793e16d4150be592b4fa0153fef:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "cb0bbff1719241739bf6a27084399a16:0:0",
+                "init_state_id": 4,
+                "return": 0.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "805d75b2a1c34e25b406a527267faffa:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "7e4d567d15b44a47a050ee2405f332be:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "20403155b9324274a6058f9f2bf9c04e:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "7da66b63cef94271ae226a2282c2aa39:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "b56a691c7b0445dc9f526c904ac8a413:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 5
+              },
+              {
+                "episode_id": "3525ff3927214a31ae16b93533b9e0ef:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "94f1825f91474084a8f4bf5cf6050aaa:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "69db67af59be48ff961c89df37bca4d1:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "125e8abe61f9493f9e6d8f832f317751:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 136,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "3d7964b3dee54857adc168cfaced1162:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "e9d74cdc65dc411cb6945eaf22ea86dc:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "5c32e48456a842bebe2e85f44710ee7f:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "84339ace5f354c9eb8cad04c32c51f35:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "9735272713464107bc4bac8cd67e2e4f:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "9926ddd003494f11913bc65a26c3ebe0:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 6
+              },
+              {
+                "episode_id": "de736f25f84240a2a4f6b9c90f016e7a:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "864d2e011e344403a80c7b28c20739b6:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 160,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "91836960359b44d793bad0277580a502:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "ce1f8670145f478baaf0a241811a2197:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "4e35f5b440784de5a0411f38a5e86bc7:0:0",
+                "init_state_id": 4,
+                "return": 0.0,
+                "steps": 256,
+                "success": false,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "0c6d294b02f8488eaa9c3abc3a4234bb:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "49b8a4f238d443db987239f19835110f:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "ae4594c89c41492baacc8f0b40672541:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "a37945a8112d4d818533d299f105dd5d:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "3d42a4c429a144838011f464555cecbc:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 7
+              },
+              {
+                "episode_id": "b5395bd5fe554dd59c0fe909f8b3d3d3:0:0",
+                "init_state_id": 0,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "d562d1eac90440feaf4a1cfa1f32df7f:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "afc7ff818ed849e2bded6333cc7894f4:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "0caf4a5407c84698b78cd8c1ef87cb13:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "b42de0a4f29744e8b2dbecaf58c705fd:0:0",
+                "init_state_id": 4,
+                "return": 0.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "8aefb76a990a4f9a9835eab8d2667582:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "cb79d71613e44ec29c289aba20e1f1db:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 96,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "e2b19e3b36a94049b1eaa62b6419f99d:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 88,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "5bf2c221a160473a83f98202f3da07a6:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 104,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "4be55e89d7b3415d997236de38040bc8:0:0",
+                "init_state_id": 9,
+                "return": 0.0,
+                "steps": 256,
+                "success": false,
+                "suite": "libero_spatial",
+                "task_id": 8
+              },
+              {
+                "episode_id": "3db26bc73f484c3990e24a0d5827ac7c:0:0",
+                "init_state_id": 0,
+                "return": 0.0,
+                "steps": 256,
+                "success": false,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "7375883cf2c34c6e9b6d6cb08e93f89e:0:0",
+                "init_state_id": 1,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "c65cab8171734837b326fa60a186e012:0:0",
+                "init_state_id": 2,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "3a7e36e531ab402b8d2759f576ae2a88:0:0",
+                "init_state_id": 3,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "339205800c604d6f824b9ae9be8a9eef:0:0",
+                "init_state_id": 4,
+                "return": 1.0,
+                "steps": 112,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "9e0de4c0770a4cf9acffc1508ccd5871:0:0",
+                "init_state_id": 5,
+                "return": 1.0,
+                "steps": 120,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "860935775b7049019916f882724f09cf:0:0",
+                "init_state_id": 6,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "f8c2d30fab5f4d5cb3b9ba15f7f9d1f9:0:0",
+                "init_state_id": 7,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "d3659100eba0417c9201523d2553ea6b:0:0",
+                "init_state_id": 8,
+                "return": 1.0,
+                "steps": 128,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              },
+              {
+                "episode_id": "49d90502ceea498b9647824aa208585d:0:0",
+                "init_state_id": 9,
+                "return": 1.0,
+                "steps": 136,
+                "success": true,
+                "suite": "libero_spatial",
+                "task_id": 9
+              }
+            ],
+            "checkpoint": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38515136/nf4_lora/development/native/qualification/gr00t-development-v1/nf4_lora-seed17/fixed300/checkpoint_artifacts/iter_000300",
+            "episodes": 100,
+            "execution_profile": "gr00t_qlora_spatial_8_v1",
+            "policy_loading_seconds": 56.014983258006396,
+            "precision": {
+              "adapter": "float32",
+              "auxiliary": "float32",
+              "target_source_cast": "bfloat16"
+            },
+            "recorded_response_calls": 1484,
+            "response_latency": {
+              "cold_first_response_seconds": 1.1027124510001158,
+              "comparison_limit": "On-policy observations can diverge between artifacts; these response distributions alone do not establish matched-input inference acceleration.",
+              "scope": "native observation preparation, transfer, four-step action sampling, decoding and RNG/mode restoration; excludes gateway IPC and simulator rendering/control",
+              "steady_calls": 1479,
+              "steady_seconds": {
+                "mean": 0.3189432662521104,
+                "p50": 0.3189280110091204,
+                "p95": 0.3212824168003863,
+                "p99": 0.3274796803185018
+              },
+              "warmup_calls": 5
+            },
+            "seed": 17,
+            "successes": 93,
+            "workflow_seconds": 951.1074652070092
+          }
+        }
+      },
+      "comparisons": {
+        "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38518798/rollout-comparisons.json",
+        "sha256": "ccc427e75b4ddd23713b84c59d77d5a0e3761bc38949e58a5ca580b88e7d2109",
+        "value": {
+          "additional_learning_seed_point_screen": false,
+          "analysis_code_sha256": "6adac36b7ae17744e881afbb4dd395b3fdfe3fca45924dae838203602aba91b4",
+          "cases_sha256": "ab84a1fdca08d901d1830430452f4a1eee5ef52fa171ca61c95b76d9f7f1d4b9",
+          "comparisons": {
+            "adaptation_bf16_vs_bf16_source": {
+              "candidate_equal_task_success": 0.9199999999999999,
+              "cases": 100,
+              "draws": 10000,
+              "method": "paired whole-task bootstrap; fixed initial states averaged within task; equal task weights",
+              "per_task": [
+                {
+                  "candidate_success": 1.0,
+                  "reference_success": 1.0,
+                  "suite": "libero_spatial",
+                  "task_id": 0
+                },
+                {
+                  "candidate_success": 0.9,
+                  "reference_success": 1.0,
+                  "suite": "libero_spatial",
+                  "task_id": 1
+                },
+                {
+                  "candidate_success": 0.9,
+                  "reference_success": 1.0,
+                  "suite": "libero_spatial",
+                  "task_id": 2
+                },
+                {
+                  "candidate_success": 0.9,
+                  "reference_success": 1.0,
+                  "suite": "libero_spatial",
+                  "task_id": 3
+                },
+                {
+                  "candidate_success": 0.8,
+                  "reference_success": 1.0,
+                  "suite": "libero_spatial",
+                  "task_id": 4
+                },
+                {
+                  "candidate_success": 1.0,
+                  "reference_success": 1.0,
+                  "suite": "libero_spatial",
+                  "task_id": 5
+                },
+                {
+                  "candidate_success": 1.0,
+                  "reference_success": 1.0,
+                  "suite": "libero_spatial",
+                  "task_id": 6
+                },
+                {
+                  "candidate_success": 1.0,
+                  "reference_success": 0.9,
+                  "suite": "libero_spatial",
+                  "task_id": 7
+                },
+                {
+                  "candidate_success": 1.0,
+                  "reference_success": 1.0,
+                  "suite": "libero_spatial",
+                  "task_id": 8
+                },
+                {
+                  "candidate_success": 0.7,
+                  "reference_success": 1.0,
+                  "suite": "libero_spatial",
+                  "task_id": 9
+                }
+              ],
+              "recipe_preservation_established": false,
+              "reference_equal_task_success": 0.99,
+              "resampling_seed": 6809,
+              "scope": "One fixed checkpoint/source pair on exposed development cases; training-seed variation and independent confirmation are not established.",
+              "success_loss_percentage_points": 7.0,
+              "success_loss_upper_one_sided95_percentage_points": 13.0,
+              "tasks": 10,
+              "useful_adaptation_established": false
+            },
+            "adaptation_nf4_vs_nf4_source": {
+              "candidate_equal_task_success": 0.93,
+              "cases": 100,
+              "draws": 10000,
+              "method": "paired whole-task bootstrap; fixed initial states averaged within task; equal task weights",
+              "per_task": [
+                {
+                  "candidate_success": 1.0,
+                  "reference_success": 1.0,
+                  "suite": "libero_spatial",
+                  "task_id": 0
+                },
+                {
+                  "candidate_success": 0.9,
+                  "reference_success": 1.0,
+                  "suite": "libero_spatial",
+                  "task_id": 1
+                },
+                {
+                  "candidate_success": 0.9,
+                  "reference_success": 1.0,
+                  "suite": "libero_spatial",
+                  "task_id": 2
+                },
+                {
+                  "candidate_success": 1.0,
+                  "reference_success": 1.0,
+                  "suite": "libero_spatial",
+                  "task_id": 3
+                },
+                {
+                  "candidate_success": 0.8,
+                  "reference_success": 1.0,
+                  "suite": "libero_spatial",
+                  "task_id": 4
+                },
+                {
+                  "candidate_success": 1.0,
+                  "reference_success": 1.0,
+                  "suite": "libero_spatial",
+                  "task_id": 5
+                },
+                {
+                  "candidate_success": 1.0,
+                  "reference_success": 1.0,
+                  "suite": "libero_spatial",
+                  "task_id": 6
+                },
+                {
+                  "candidate_success": 0.9,
+                  "reference_success": 1.0,
+                  "suite": "libero_spatial",
+                  "task_id": 7
+                },
+                {
+                  "candidate_success": 0.9,
+                  "reference_success": 1.0,
+                  "suite": "libero_spatial",
+                  "task_id": 8
+                },
+                {
+                  "candidate_success": 0.9,
+                  "reference_success": 0.9,
+                  "suite": "libero_spatial",
+                  "task_id": 9
+                }
+              ],
+              "recipe_preservation_established": false,
+              "reference_equal_task_success": 0.99,
+              "resampling_seed": 6809,
+              "scope": "One fixed checkpoint/source pair on exposed development cases; training-seed variation and independent confirmation are not established.",
+              "success_loss_percentage_points": 5.999999999999998,
+              "success_loss_upper_one_sided95_percentage_points": 8.999999999999998,
+              "tasks": 10,
+              "useful_adaptation_established": false
+            },
+            "precision_nf4_vs_bf16_trained": {
+              "candidate_equal_task_success": 0.93,
+              "cases": 100,
+              "draws": 10000,
+              "method": "paired whole-task bootstrap; fixed initial states averaged within task; equal task weights",
+              "per_task": [
+                {
+                  "candidate_success": 1.0,
+                  "reference_success": 1.0,
+                  "suite": "libero_spatial",
+                  "task_id": 0
+                },
+                {
+                  "candidate_success": 0.9,
+                  "reference_success": 0.9,
+                  "suite": "libero_spatial",
+                  "task_id": 1
+                },
+                {
+                  "candidate_success": 0.9,
+                  "reference_success": 0.9,
+                  "suite": "libero_spatial",
+                  "task_id": 2
+                },
+                {
+                  "candidate_success": 1.0,
+                  "reference_success": 0.9,
+                  "suite": "libero_spatial",
+                  "task_id": 3
+                },
+                {
+                  "candidate_success": 0.8,
+                  "reference_success": 0.8,
+                  "suite": "libero_spatial",
+                  "task_id": 4
+                },
+                {
+                  "candidate_success": 1.0,
+                  "reference_success": 1.0,
+                  "suite": "libero_spatial",
+                  "task_id": 5
+                },
+                {
+                  "candidate_success": 1.0,
+                  "reference_success": 1.0,
+                  "suite": "libero_spatial",
+                  "task_id": 6
+                },
+                {
+                  "candidate_success": 0.9,
+                  "reference_success": 1.0,
+                  "suite": "libero_spatial",
+                  "task_id": 7
+                },
+                {
+                  "candidate_success": 0.9,
+                  "reference_success": 1.0,
+                  "suite": "libero_spatial",
+                  "task_id": 8
+                },
+                {
+                  "candidate_success": 0.9,
+                  "reference_success": 0.7,
+                  "suite": "libero_spatial",
+                  "task_id": 9
+                }
+              ],
+              "recipe_preservation_established": false,
+              "reference_equal_task_success": 0.9199999999999999,
+              "resampling_seed": 6809,
+              "scope": "One fixed checkpoint/source pair on exposed development cases; training-seed variation and independent confirmation are not established.",
+              "success_loss_percentage_points": -1.0000000000000009,
+              "success_loss_upper_one_sided95_percentage_points": 2.999999999999999,
+              "tasks": 10,
+              "useful_adaptation_established": false
+            }
+          },
+          "format": "gr00t-lr-screen-rollout-comparison-v1",
+          "latency_limit": "Different on-policy inputs; no matched-input inference acceleration claim.",
+          "point_screen_margin_percentage_points": 2.0,
+          "protocol_sha256": "d1ca3efa8b65496e566ebd9d3a5a3dc5bb6cba7320750016f20c29e573871ce7",
+          "release_guard_unchanged": "One-sided95% upper loss<=2pp with paired training seeds and qualified population; this one-seed development comparison cannot establish it.",
+          "release_qualified": false,
+          "result_sha256": {
+            "bf16_frozen": "28f265f27dc818903849adb613518607d3ff8d5b42f4da295ea5492b7b1419ed",
+            "bf16_lora": "80886a30876192c121fe8f15ab2d63816f7139a694f29568a72debc1f0f2caca",
+            "nf4_frozen": "4e29e9b217f012004ce3c7624db80c103a63de49b9eafe00b6d6165d4db77881",
+            "nf4_lora": "305bd1a36da1acaddeec499b7e5c12ac7f78f2fc31e328e2c13e289a03def3ec"
+          },
+          "time_to_rollout_quality_established": false
+        }
+      },
+      "job_id": "38518798",
+      "runtime": {
+        "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38518798/runtime.json",
+        "sha256": "d002a98d5ee56cd654937bd7d1aa592e1e3a80e84dd75ee88e2e1d647640a0b2",
+        "value": {
+          "code": "3c96ce8503eef263b7feb3fd2a23cad28efa6ab7",
+          "cpu_affinity": [
+            0,
+            1,
+            4,
+            5,
+            12,
+            13,
+            14,
+            15,
+            124,
+            125,
+            128,
+            129,
+            136,
+            137,
+            138,
+            139
+          ],
+          "cpu_numa_nodes": {
+            "0": [
+              "node0"
+            ],
+            "1": [
+              "node0"
+            ],
+            "12": [
+              "node0"
+            ],
+            "124": [
+              "node7"
+            ],
+            "125": [
+              "node7"
+            ],
+            "128": [
+              "node0"
+            ],
+            "129": [
+              "node0"
+            ],
+            "13": [
+              "node0"
+            ],
+            "136": [
+              "node0"
+            ],
+            "137": [
+              "node0"
+            ],
+            "138": [
+              "node0"
+            ],
+            "139": [
+              "node0"
+            ],
+            "14": [
+              "node0"
+            ],
+            "15": [
+              "node0"
+            ],
+            "4": [
+              "node0"
+            ],
+            "5": [
+              "node0"
+            ]
+          },
+          "cuda_visible_devices": "0",
+          "gpu": {
+            "bytes": 85174583296,
+            "name": "NVIDIA A100-SXM4-80GB",
+            "nvml_total_memory_bytes": 85899345920,
+            "nvml_uuid_roundtrip_verified": true,
+            "torch_reported_uuid": "431c94d3-fce3-8e8e-2130-4c18da5e6e82",
+            "uuid": "GPU-431c94d3-fce3-8e8e-2130-4c18da5e6e82"
+          },
+          "process_memory_policy": [
+            "Cpus_allowed_list:\t0-1,4-5,12-15,124-125,128-129,136-139",
+            "Mems_allowed_list:\t0-7"
+          ],
+          "slurm_job": "38518798",
+          "versions": {
+            "bitsandbytes": "0.49.2",
+            "diffusers": "0.35.1",
+            "safetensors": "0.8.0",
+            "torch": "2.10.0+cu128",
+            "transformers": "4.57.6"
+          }
+        }
+      },
+      "terminal": "38518798|COMPLETED|0:0|3733|billing=1,cpu=16,gres/gpu=1,mem=128G,node=1|batch-block4-0052",
+      "workflow": {
+        "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38518798/workflow.json",
+        "sha256": "6e00639aa5bd2184974530ff8d1049aac76307c872f76ac6b8da6757cbc3a13a",
+        "value": {
+          "completed_all_modes": true,
+          "cost_note": "Use terminal sacct for allocation cost, including container startup. No deployment speed claim.",
+          "failure": null,
+          "monitor_exit": 0,
+          "monitor_was_alive_at_end": true,
+          "payload_seconds": 3663.913983268998,
+          "stages": [
+            {
+              "elapsed_seconds": 35.758069151997915,
+              "exit_code": 0,
+              "injected_interruption_expected": false,
+              "name": "recreate-and-verify-egl",
+              "owned_process_cleanup": {
+                "observed_processes": 6,
+                "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+                "signaled_processes": 0
+              },
+              "timed_out": false
+            },
+            {
+              "elapsed_seconds": 826.7041151059966,
+              "exit_code": 0,
+              "injected_interruption_expected": false,
+              "name": "bf16_frozen-native-rollout",
+              "owned_process_cleanup": {
+                "observed_processes": 4,
+                "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+                "signaled_processes": 0
+              },
+              "timed_out": false
+            },
+            {
+              "elapsed_seconds": 966.4692499410012,
+              "exit_code": 0,
+              "injected_interruption_expected": false,
+              "name": "nf4_lora-native-rollout",
+              "owned_process_cleanup": {
+                "observed_processes": 4,
+                "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+                "signaled_processes": 0
+              },
+              "timed_out": false
+            },
+            {
+              "elapsed_seconds": 953.4226939110085,
+              "exit_code": 0,
+              "injected_interruption_expected": false,
+              "name": "bf16_lora-native-rollout",
+              "owned_process_cleanup": {
+                "observed_processes": 4,
+                "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+                "signaled_processes": 0
+              },
+              "timed_out": false
+            },
+            {
+              "elapsed_seconds": 869.7633356509905,
+              "exit_code": 0,
+              "injected_interruption_expected": false,
+              "name": "nf4_frozen-native-rollout",
+              "owned_process_cleanup": {
+                "observed_processes": 4,
+                "pidfd_backend": "linux_x86_64_pidfd_syscalls",
+                "signaled_processes": 0
+              },
+              "timed_out": false
+            }
+          ],
+          "validated_modes": [
+            "bf16_frozen",
+            "nf4_lora",
+            "bf16_lora",
+            "nf4_frozen"
+          ]
+        }
+      },
+      "sampled_memory": {
+        "extractor": "tools.native_qlora_qualification.performance.sampled_memory",
+        "extractor_sha256": "a466196a76eb90acd39d1eb6fd69ead94c52bec0379d2c8c3f5bd5de4fdada7a",
+        "format": "gr00t-native-rollout-sampled-memory-v1",
+        "job_id": "38518798",
+        "per_arm": {
+          "bf16_frozen": {
+            "device_peak_bytes": 14332854272,
+            "errors": [],
+            "gpu_memory_evidence_valid": true,
+            "host_pss_complete": true,
+            "host_pss_sum_peak_bytes": 5530627072,
+            "host_rss_sum_peak_bytes": 6134874112,
+            "nvml_capacity_bytes": 85899345920,
+            "observed_span_seconds": 825.7383215427399,
+            "owned_device_process_peak_bytes": 13033799680,
+            "peaks_are_sampled_lower_bounds": true,
+            "samples": 636,
+            "sampling_gap_seconds": {
+              "count": 635,
+              "maximum": 1.4354982376098633,
+              "mean": 1.3003753095161257,
+              "median": 1.289625644683838,
+              "p95": 1.3377807855606079,
+              "sum": 825.7383215427399
+            }
+          },
+          "bf16_lora": {
+            "device_peak_bytes": 14454489088,
+            "errors": [],
+            "gpu_memory_evidence_valid": true,
+            "host_pss_complete": true,
+            "host_pss_sum_peak_bytes": 8801523712,
+            "host_rss_sum_peak_bytes": 9382944768,
+            "nvml_capacity_bytes": 85899345920,
+            "observed_span_seconds": 952.4733474254608,
+            "owned_device_process_peak_bytes": 13155434496,
+            "peaks_are_sampled_lower_bounds": true,
+            "samples": 729,
+            "sampling_gap_seconds": {
+              "count": 728,
+              "maximum": 1.5039722919464111,
+              "mean": 1.3083425101998087,
+              "median": 1.306475281715393,
+              "p95": 1.3256049633026123,
+              "sum": 952.4733474254608
+            }
+          },
+          "nf4_frozen": {
+            "device_peak_bytes": 13204652032,
+            "errors": [],
+            "gpu_memory_evidence_valid": true,
+            "host_pss_complete": true,
+            "host_pss_sum_peak_bytes": 5641649152,
+            "host_rss_sum_peak_bytes": 6238572544,
+            "nvml_capacity_bytes": 85899345920,
+            "observed_span_seconds": 868.7575306892395,
+            "owned_device_process_peak_bytes": 11905531904,
+            "peaks_are_sampled_lower_bounds": true,
+            "samples": 677,
+            "sampling_gap_seconds": {
+              "count": 676,
+              "maximum": 1.4694714546203613,
+              "mean": 1.285144276167514,
+              "median": 1.2798563241958618,
+              "p95": 1.315710723400116,
+              "sum": 868.7575306892395
+            }
+          },
+          "nf4_lora": {
+            "device_peak_bytes": 13328318464,
+            "errors": [],
+            "gpu_memory_evidence_valid": true,
+            "host_pss_complete": true,
+            "host_pss_sum_peak_bytes": 9330396160,
+            "host_rss_sum_peak_bytes": 9911402496,
+            "nvml_capacity_bytes": 85899345920,
+            "observed_span_seconds": 966.0097327232361,
+            "owned_device_process_peak_bytes": 12029263872,
+            "peaks_are_sampled_lower_bounds": true,
+            "samples": 738,
+            "sampling_gap_seconds": {
+              "count": 737,
+              "maximum": 1.4255390167236328,
+              "mean": 1.3107323374806459,
+              "median": 1.3099453449249268,
+              "p95": 1.3230594158172608,
+              "sum": 966.0097327232361
+            }
+          }
+        },
+        "raw_sha256": "986ed60c42161816fca4a9dd7325db81399fbf3eb6904784987ab12dfeddd0ec",
+        "scope": "Per recorded native rollout stage; sampled lower bounds, owned GPU metric includes NVML compute processes only; complete device peak includes all allocated device usage and is not ownership-attributed. No training-memory or matched-input inference acceleration claim."
+      },
+      "decision": "Do not promote the LR1e-5/300-update recipe or admit more learning seeds: NF4 loses6 percentage points to its own99/100 frozen source; the fixed point-screen limit was2 points. Retain earlier offline-MSE screen pass as a different completed gate.",
+      "limitations": [
+        "One trained seed17 and exposed development tasks/initial states; fixed-checkpoint whole-task bootstrap does not estimate training-recipe uncertainty.",
+        "On-policy observation sequences and control counts differ; response-time distributions do not establish matched-input inference acceleration.",
+        "NVML owned memory sums compute processes; total device usage additionally includes other allocations and cannot be attributed entirely to the policy.",
+        "Standalone unmerged artifact and selected mature recovery are separate followups."
+      ]
     }
   },
   "read_only_head_memory_diagnostic": {

@@ -360,9 +360,40 @@ All three arms retain incomplete host-PSS samples during native process teardown
 (2/851, 1/818 and 1/712 respectively); measured peaks remain lower bounds.
 NF4's decoded gripper MAE improves, while its decoded x/y/z MAEs increase relative
 to its source. This decomposition of decoded MAE does not decompose normalized MSE
-or establish rollout behavior. The frozen 100-case simulator check is the next
-task-behavior gate before more learning seeds. The previous LR `1e-4` failures,
+or establish rollout behavior. The separately completed 100-case simulator check
+below rejects promotion of this 300-update recipe. The previous LR `1e-4` failures,
 unchanged quality margins and independent-confirmation requirement remain intact.
+
+Job `38518798` completed all 400 prospectively fixed rollouts: ten Spatial tasks,
+ten initial states per task, seed 17, four flow-sampling steps, eight executed
+actions per chunk and at most 256 controls. The same native simulator/reset and
+observation-only policy path was used for every arm.
+
+| Policy | Successes / 100 |
+|---|---:|
+| Original frozen BF16 source | 99 |
+| Original frozen NF4 source | 99 |
+| Trained BF16 LoRA + head, update 300 | 92 |
+| Trained NF4 LoRA + head, update 300 | 93 |
+
+The original additional-seed screen **fails**: trained NF4 loses six percentage
+points against its own source, above the predefined two-point allowance. Its
+one-point advantage over trained BF16 does not establish preservation: the paired
+whole-task one-sided 95% upper loss bound is **3 points**. Corresponding bounds
+against each arm's frozen source are 9 points for NF4 and 13 for BF16. These are
+fixed-checkpoint development bounds from ten tasks, not recipe-level intervals
+across training seeds or independent confirmation. The earlier offline-MSE screen
+passed its own criteria; that result is preserved and does not override this
+failed behavior gate. No further learning seeds are promoted from this endpoint.
+
+The allocation consumed 3,733 GPU-seconds. All 2,780 host samples were complete;
+trained NF4/BF16 sampled compute-process GPU peaks were 11.203/12.252 GiB.
+Total-device peaks were also recorded separately. The
+[retained evidence](evidence/native_qlora_family_engineering_4cba88f.json) includes
+every case outcome, task-level comparison and response-time distribution.
+On-policy observations and response counts differ, so these response timings do
+not establish an inference acceleration claim. Offline time to the action-MSE
+target above is not time to preserved rollout success.
 
 To reproduce this screen through the native training command above, use the
 admitted `gr00t-development-v1` JSONL files and these overrides in **each** arm:
