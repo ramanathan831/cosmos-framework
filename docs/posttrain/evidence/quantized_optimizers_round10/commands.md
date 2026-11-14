@@ -153,7 +153,7 @@ repeatable `--optimizer-bnb-fp32-state-name` exact logical names. These use the
 same typed config and selector validation as the other native paths. Invalid,
 duplicate or backend-incompatible options fail; runtime unmatched names are
 rejected by shared construction after final model setup. No exception is enabled
-by default. Fourteen local construction/CLI checks pass; they are control-flow
+by default. Sixteen local construction/CLI checks pass; they are control-flow
 coverage, not real AlpaGym training evidence.
 
-For the compatible AlpaGym high-precision control, select `--optimizer adamw --optimizer-impl fused --optimizer-update-policy fp32_master`. Omitting these flags retains the legacy direct-parameter/default torch route. Quantized modes reject a torch-only `--optimizer-impl`; fourteen local routing/validation checks pass. This command still needs the approved external native runtime and scenarios.
+For the compatible AlpaGym high-precision control, select `--optimizer adamw --optimizer-impl fused --optimizer-update-policy fp32_master`. Omitting these flags retains the legacy direct-parameter/default torch route. Quantized modes reject a torch-only `--optimizer-impl`; sixteen local routing/validation checks pass. This command still needs the approved external native runtime and scenarios.

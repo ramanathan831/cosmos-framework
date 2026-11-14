@@ -34,6 +34,7 @@
       "--optimizer-impl"
     ],
     "local_checks": "14 passed; exact native factory/CLI routing and typed conflicts, with runtime/backend doubles. No real AlpaGym training claim.",
-    "defaults_unchanged": true
+    "defaults_unchanged": true,
+    "additional_actual_fused_construction": "16 local checks pass including BF16 live ownership, FP32 masters and fused backend through _build_trainer; runtime/kernel boundary remains unqualified."
   }
 }
