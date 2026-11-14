@@ -92,6 +92,55 @@ def _finite_flags_by_device(tensors: Iterable[torch.Tensor]) -> dict[torch.devic
     return flags
 
 
+def _foreach_finite_eligible(tensor: torch.Tensor) -> bool:
+    """Limit the grouped reduction to ordinary, contiguous CUDA gradients."""
+    return (
+        type(tensor) is torch.Tensor
+        and tensor.device.type == "cuda"
+        and tensor.layout == torch.strided
+        and tensor.dtype in (torch.float16, torch.bfloat16, torch.float32, torch.float64)
+        and tensor.is_contiguous()
+        and not tensor.is_neg()
+        and tensor.numel() > 0
+    )
+
+
+@torch.no_grad()
+def _gradient_finite_flags_by_device(gradients: Iterable[torch.Tensor]) -> dict[torch.device, torch.Tensor]:
+    """Reduce eligible gradients together without changing their values or versions.
+
+    PyTorch's CUDA foreach infinity norm uses absolute value and NaN-propagating
+    maximum reductions. Unlike a sum or L2 norm, it cannot overflow on finite
+    real inputs. Keeping the input dtype also avoids narrowing a finite float64
+    gradient to infinity. The final isfinite operates on only one scalar per
+    gradient, instead of allocating an elementwise boolean tensor per gradient.
+
+    Empty, non-contiguous, complex, CPU and tensor-subclass gradients retain the
+    existing elementwise path. This optimization is deliberately restricted to
+    gradient checks; loss, model and optimizer-state checks remain unchanged.
+    """
+    groups: dict[tuple[torch.device, torch.dtype], list[torch.Tensor]] = {}
+    fallback: list[torch.Tensor] = []
+    for gradient in gradients:
+        if _foreach_finite_eligible(gradient):
+            groups.setdefault((gradient.device, gradient.dtype), []).append(gradient)
+        else:
+            fallback.append(gradient)
+    flags = _finite_flags_by_device(fallback)
+    for (device, _dtype), group in groups.items():
+        # PyTorch aten/src/ATen/native/cuda/{ForeachReduceOp.cu,block_reduce.cuh}:
+        # 2.10.0 (449b1768410104d3ed79d3bcfe4ba1d65c7f22c0) and
+        # 2.11.0 (70d99e998b4955e0049d13a98d77ae1b14db1f45) propagate NaNs
+        # through LInf block/chunk reductions without writing inputs.
+        norms = torch._foreach_norm(group, float("inf"))  # one [] per gradient
+        finite = torch.isfinite(torch.stack(norms)).all()  # []
+        if device in flags:
+            flags[device].logical_and_(finite)
+        else:
+            flags[device] = finite
+    return flags
+
+
 def _local_finite_status(
     flags: Iterable[torch.Tensor],
     *,
@@ -167,7 +216,7 @@ def all_ranks_gradients_finite(
     if placement_error:
         device_names = sorted(str(device) for device in devices)
         logger.error(f"gradient finite check found multiple local devices: {device_names}")
-    flags = _finite_flags_by_device(gradients)
+    flags = _gradient_finite_flags_by_device(gradients)
     local_status = _local_finite_status(  # []
         flags.values(),
         missing_required=require_gradients and not gradients,
