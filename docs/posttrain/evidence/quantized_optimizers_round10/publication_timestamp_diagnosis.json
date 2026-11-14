@@ -1,0 +1,43 @@
+{
+  "observed_job": "38516570",
+  "observed_source": "655567de02008a5e64364cc56266847600e510fe",
+  "status": "Native run failed closed at update40 publication; dependent allocations canceled without starting",
+  "observed_difference": {
+    "rank": 2,
+    "entry": "model/__0_0.distcp",
+    "mtime_and_ctime_seconds_behind_peers": 2,
+    "same_inode_size_and_other_inventory_fields": true,
+    "evidence": "raw/gr00t-exposure-fused-seed17-v2/publication-failure-inventory.json"
+  },
+  "interpretation": "One rank observed older client-side file attributes after the writer completed. This explains the signature disagreement; the corrective server-synchronized read still requires native validation. No parameter, optimizer or task-scoring defect was demonstrated.",
+  "quality_retained": {
+    "initial_success": 99,
+    "update40_success": 93,
+    "cases": 100,
+    "initial_all_episode_steps": 117.12,
+    "update40_all_episode_steps": 123.2,
+    "update80": "not reached; do not impute"
+  },
+  "implementation": "Linux statx AT_STATX_FORCE_SYNC plus AT_SYMLINK_NOFOLLOW; retain all existing device/inode/size/nanosecond timestamp and small-file-content signature fields. Require returned fields; errors fail rather than falling back to cached metadata. Non-Linux local callers retain old behavior.",
+  "reference": "https://man7.org/linux/man-pages/man2/statx.2.html",
+  "source": "94ecd8ba4e4b238feaaaceb8d5282ef0bcc40ded",
+  "tests": {
+    "failing_before": "synchronized_stat_before.txt",
+    "local_shared_regressions": "119 passed; synchronized_stat_after_initial.txt",
+    "local_multi_process_publication": "8 passed including one-rank stale timestamp injection; synchronized_stat_distributed_tests.txt",
+    "pinned_project_filesystem": "38519701 pending at recording",
+    "two_gpu_restore": "38519719 conditional on pinned CPU pass"
+  },
+  "next_native_sequence": [
+    "Preserve failed attempt and small control files outside source checkpoint, then same-output pending-validation recovery40->80 with pre-update attestation. This diagnoses recovery; its continued quality/timing are not an uninterrupted baseline.",
+    "After successful recovery, run fresh fused/nonpaged80-update references under source-v37 with unchanged locked development recipe and screens, then exact fresh reloads. Retain the failed source-v35 comparison and its negative40-update quality.",
+    "Reuse fused pending40->80 recovery if it passes; a second identical fused40->80 continuation is unnecessary. Native nonpaged published40->80 and paged resident/pressure recovery remain required."
+  ],
+  "forbidden_shortcuts": [
+    "No timestamp exclusion",
+    "No rank0-only identity",
+    "No repeated hashing until agreement",
+    "No new final evaluation or empirical win from the failed allocation"
+  ],
+  "locked_at_utc": "2026-11-14T06:40:24.623104+00:00"
+}
