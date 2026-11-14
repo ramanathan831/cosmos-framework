@@ -99,9 +99,9 @@ def local_run(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         reward = RewardWorker([instantiate(config.reward)], training_group_size=1)
         replay = ExperienceBuffer(exact_batch_size=recipe.decisions)
         if resume:
-            learner.load(resume)
-            state = learner.checkpoint_manager.load_component(resume, "data")
-            collector.load_state_dict(state["collectors"]["0"])
+            _, provenance = learner.checkpoint_manager.load_checkpoint(resume, lambda: learner.load(resume))
+            learner.set_loaded_checkpoint_provenance(provenance)
+            collector.restore_checkpoint(learner.checkpoint_manager, resume)
         if recipe.validation.enabled:
             learner.configure_validation(gr00t_ppo.validation_identity(config))
         allocated.append((learner, collector, rollout, gateway, evaluation_gateway))
@@ -326,6 +326,39 @@ def test_checkpoint_evaluation_rejects_missing_resume_before_model_allocation(lo
     with pytest.raises(ValueError, match="explicit resumable checkpoint"):
         gr00t_ppo.run(config, evaluate_only=True)
     assert allocated == []
+
+
+def test_pending_validation_resumes_to_new_directory_with_collector_provenance(local_run, monkeypatch):
+    from cosmos_framework.posttrain.control.validation.rollout import WindowEvaluator
+
+    config, attempt, _, allocated = local_run
+    config.rl.validation.enabled = True
+    config.rl.validation.every_steps = 2
+    config.rl.validation.save_checkpoint = True
+    config.rl.keep_optim_last = config.rl.keep_model_last = 0
+    source = attempt["output"]
+    evaluate = WindowEvaluator.__call__
+
+    def interrupt(self, step, reasons):
+        if step == 2:
+            raise RuntimeError("interrupted before pending evaluation")
+        return evaluate(self, step, reasons)
+
+    with monkeypatch.context() as context:
+        context.setattr(WindowEvaluator, "__call__", interrupt)
+        with pytest.raises(RuntimeError, match="interrupted before pending evaluation"):
+            gr00t_ppo.run(config)
+    checkpoint = source / "checkpoints" / "iter_000002"
+    manager = allocated[-1][0].checkpoint_manager
+    source_identity = manager.checkpoint_provenance(str(checkpoint))
+    attempt["resume"], attempt["output"] = str(checkpoint), source.parent / "resumed-validation"
+    result = gr00t_ppo.run(config)
+    assert result["optimizer_step"] == 4
+    assert manager.checkpoint_provenance(str(checkpoint)) == source_identity
+    assert allocated[-1][1].loaded_checkpoint_provenance() == source_identity
+    assert allocated[-1][0].loaded_checkpoint_provenance() == source_identity
+    assert (attempt["output"] / "evaluation" / "step_000002.json").is_file()
+    assert (attempt["output"] / "evaluation" / "step_000004.json").is_file()
 
 
 def test_online_reporting_failure_does_not_block_training(

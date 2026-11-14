@@ -125,10 +125,7 @@ def setup_experience(
                 lifecycle = CheckpointLifecycle.from_config(
                     config, recipe, run_out_dir=output, resume_checkpoint=resume
                 )
-                state = lifecycle.manager.load_component(resume, "data")
-                if state is None:
-                    raise ValueError("joint PPO checkpoint is missing collection progress")
-                collector.load_state_dict(state["collectors"][str(replica)])
+                collector.restore_checkpoint(lifecycle.manager, resume)
             bodies["collector"] = collector
         if "rm" in members:
             bodies["rm"] = RewardWorker([instantiate(config.reward)], training_group_size=1)
@@ -149,6 +146,10 @@ class CollectorCheckpointState:
 
         states = resolve_all(self.collector.state_dict())
         return {"collectors": {str(state["replica"]): state for state in states}}
+
+    def loaded_checkpoint_provenance(self):
+        # Preserve all replica receipts for the coordinator's resolve_identical.
+        return self.collector.loaded_checkpoint_provenance()
 
 
 def validate_resume_boundary(manager, path, recipe, environment, width):

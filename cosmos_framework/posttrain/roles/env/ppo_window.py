@@ -77,6 +77,7 @@ class PPOWindowCollector:
         self._evaluation_version: int | None = None
         self._evaluation_before: dict | None = None
         self._closed = False
+        self._loaded_checkpoint_provenance: dict | None = None
 
     def bind_rollout(self, rollout: DecisionSamplingPolicy) -> None:
         if self._version is not None or self._evaluation_version is not None:
@@ -292,6 +293,25 @@ class PPOWindowCollector:
     def load_state_dict(self, state: dict) -> None:
         self.validate_state_dict(state)
         self._next_window = state["next_window"]
+        self._loaded_checkpoint_provenance = None
+
+    def restore_checkpoint(self, manager, path: str) -> None:
+        """Bind the collector cursor to the same stable generation as the learner."""
+
+        def stage():
+            data = manager.load_component(path, "data")
+            if not isinstance(data, dict) or str(self.replica) not in data.get("collectors", {}):
+                raise ValueError("joint PPO checkpoint is missing collection progress")
+            state = data["collectors"][str(self.replica)]
+            self.validate_state_dict(state)
+            return state
+
+        state, provenance = manager.load_with_stable_provenance(path, stage)
+        self.load_state_dict(state)
+        self._loaded_checkpoint_provenance = dict(provenance)
+
+    def loaded_checkpoint_provenance(self) -> dict | None:
+        return None if self._loaded_checkpoint_provenance is None else dict(self._loaded_checkpoint_provenance)
 
     def close(self) -> None:
         if self._closed:
