@@ -12,9 +12,17 @@ from cosmos_framework.posttrain.tests.helpers.optimizer_backend import backend_c
 from cosmos_framework.utils.optimizer_master import MasterWeightOptimizer
 
 
-@pytest.mark.parametrize("name", ["adamw", "adamw_bnb_8bit", "paged_adamw_8bit"])
+@pytest.mark.parametrize(
+    "name,update_policy",
+    [
+        ("adamw", "parameter"),
+        ("adamw", "fp32_master"),
+        ("adamw_bnb_8bit", "fp32_master"),
+        ("paged_adamw_8bit", "fp32_master"),
+    ],
+)
 @pytest.mark.parametrize("override", [False, True])
-def test_alpagym_actual_entry_constructs_after_setup(name, override, monkeypatch, backend_capture):
+def test_alpagym_actual_entry_constructs_after_setup(name, update_policy, override, monkeypatch, backend_capture):
     from cosmos_framework.posttrain.algorithm.primitives.objective import Objective, Reduction
     from cosmos_framework.posttrain.entrypoints.alpagym_clrl import _build_trainer, alpagym_optimizer_config
 
@@ -51,7 +59,13 @@ def test_alpagym_actual_entry_constructs_after_setup(name, override, monkeypatch
         cosmos=SimpleNamespace(train=train),
         policy=SimpleNamespace(model=SimpleNamespace(kind="alpamayo", path="unallocated")),
     )
-    selected = None if name == "adamw" else alpagym_optimizer_config(train, name=name, update_policy="fp32_master")
+    selected = (
+        None
+        if update_policy == "parameter"
+        else alpagym_optimizer_config(
+            train, name=name, update_policy=update_policy, impl="fused" if name == "adamw" else ""
+        )
+    )
     if override:
         selected = selected or alpagym_optimizer_config(train)
         selected.lr, selected.warmup_steps, selected.grad_clip_norm = 6e-5, 2, 0.5
@@ -71,13 +85,20 @@ def test_alpagym_actual_entry_constructs_after_setup(name, override, monkeypatch
     )
     assert trainer.max_grad_norm == (0.5 if override else 1.0)
     assert trainer.n_mini == 3 and trainer.skip_zero_grad
-    if name == "adamw":
+    if update_policy == "parameter":
         assert type(trainer.opt) is torch.optim.AdamW and not backend_capture
     else:
         assert isinstance(trainer.opt, MasterWeightOptimizer)
-        assert backend_capture[0][2].name == name
-        assert backend_capture[0][2].bnb_min_8bit_size == (8192 if override else 4096)
-        assert backend_capture[0][2].bnb_fp32_state_names == (["weight"] if override else [])
+        if name == "adamw":
+            assert not backend_capture
+            assert type(trainer.opt.backend) is torch.optim.AdamW
+            assert all(g["fused"] for g in trainer.opt.backend.param_groups)
+            assert all(p.dtype == torch.float32 for p in trainer.opt.masters)
+            assert all(p.dtype == torch.bfloat16 for p in params)
+        else:
+            assert backend_capture[0][2].name == name
+            assert backend_capture[0][2].bnb_min_8bit_size == (8192 if override else 4096)
+            assert backend_capture[0][2].bnb_fp32_state_names == (["weight"] if override else [])
 
 
 @pytest.mark.parametrize(
