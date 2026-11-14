@@ -4,6 +4,7 @@ This first eight-window run is an integration gate, not task-quality selection.
 Native evaluation, source validation, rollout and checkpoint paths stay enabled.
 """
 
+import importlib.metadata
 import json
 import os
 import shutil
@@ -16,6 +17,11 @@ from pathlib import Path
 
 def main():
     root, output = Path(os.environ["RESOURCE_ROOT"]), Path(os.environ["RESULTS"])
+    expected = {"numpy": "1.26.4", "transformers": "4.57.6", "diffusers": "0.35.1", "bitsandbytes": "0.49.2"}
+    actual = {name: importlib.metadata.version(name) for name in expected}
+    (output / "dependency-check.json").write_text(json.dumps({"expected": expected, "actual": actual}, indent=2))
+    if actual != expected:
+        raise RuntimeError("action runtime differs from its explicit dependency pins")
     assets = root / "cosmos-family-adapters-20261030/gr00t-public-assets-v1"
     cache = Path(os.environ["HF_HOME"]) / "hub/models--nvidia--Cosmos-Reason2-2B"
     revision = "9ce19a195e423419c349abfc86fd07178b230561"

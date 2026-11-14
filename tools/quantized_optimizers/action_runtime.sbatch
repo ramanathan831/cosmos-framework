@@ -25,7 +25,8 @@ export PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 NO_ALBUMENTATIONS_UPDATE=1 U
 # Read-only inherited packages; installs below go exclusively to this new venv.
 printf "%s\n" "$ASSETS/environment/lib/python3.12/site-packages" > "$RESULTS/model/lib/python3.12/site-packages/qualified-base.pth"
 export PATH="$RESULTS/model/bin:$PATH" PYTHONPATH="$RESULTS/source"
-"$UV" pip install --python "$RESULTS/model/bin/python" --no-deps \
+unset UV_OVERRIDE UV_CONSTRAINT
+"$UV" pip install --no-config --python "$RESULTS/model/bin/python" --no-deps \
  transformers==4.57.6 huggingface-hub==0.36.2 tokenizers==0.22.2 diffusers==0.35.1 accelerate==1.12.0 \
  albumentations==1.4.18 albucore==0.0.17 cache-dit==1.3.0 aenum==3.1.16 janus==2.0.0 \
  torchsde==0.2.6 x-transformers==2.12.2 soundfile==0.13.1 \
