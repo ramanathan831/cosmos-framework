@@ -138,6 +138,15 @@
       "source_checkpoint": "gr00t-pressure-eightbit55-v2 checkpoint16",
       "preserved_original_receipts": "gr00t-pressure-eightbit55-v2-before-recovery/manifest.json",
       "policy": "Same native output root required for pending-validation recovery on the tested Lustre mount; fresh result/memory/log directory. Match all learner/data state before updates, retain original16 windows byte-for-byte, continue through32 at55GiB. Not an uninterrupted32-update reference."
+    },
+    {
+      "job": "38534833",
+      "arm": "paged_adamw_8bit reservation55",
+      "results": "gr00t-pressure-paged55-v1",
+      "source": "677e7e039012b40033e4ea137587619808d12a01",
+      "admitted_at_utc": "2026-11-14T12:45:05.495487+00:00",
+      "predecessor": "38534388 terminal failed first resumed backward OOM; explicit afterany dependency enforces serial allocation",
+      "policy": "Unchanged32 updates,55GiB,seed17,native16/32 validation/save. Independent pressure arm. Recovery/profile depend on actual result; no pressure sweep."
     }
   ],
   "descriptor_cpu_admission": {

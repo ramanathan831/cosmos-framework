@@ -229,3 +229,41 @@ midpoint checkpoint. The correction releases consumed model/master gradients and
 unused CUDA cache only after the completed-boundary guard. Partial accumulation
 must still fail before any gradients are discarded. The earlier fused55 failure
 occurs at update2, before this checkpoint-only change can execute.
+
+The descriptor-bound publication implementation is source-v41 (`677e7e03`).
+The existing native model/optimizer/control format is unchanged; each publication
+payload is read twice and checked for identity/content stability. The exact
+pressure launcher adds NCCL INFO files only:
+
+```bash
+export SOURCE_ARCHIVE="$R/cosmos-optimizer-native-20261113/source-v41.tar.gz"
+export TRAINING_SEED=17 UPDATES=32 CHECKPOINT_EVERY=16 VALIDATION_EVERY=16
+export CO_RESIDENT_GIB=55 EVALUATE_ONLY=0 RESUME_CHECKPOINT= NATIVE_OUTPUT_ROOT=
+export OPTIMIZER_NAME=paged_adamw_8bit
+export RESULTS="$R/cosmos-optimizer-native-20261113/new-paged-pressure-reference"
+sbatch docs/posttrain/evidence/quantized_optimizers_round10/pressure_diagnostic.sbatch
+# Only from a completed, published midpoint, after the reference is terminal:
+export RESUME_CHECKPOINT="$RESULTS/runs/cosmos3_action/joint_ppo/gr00t-master-paged_adamw_8bit/integration/checkpoints/iter_000016"
+export RESULTS="$R/cosmos-optimizer-native-20261113/new-paged-pressure-reload"
+export EVALUATE_ONLY=1
+sbatch docs/posttrain/evidence/quantized_optimizers_round10/pressure_diagnostic.sbatch
+# After reload succeeds; retain the same source checkpoint and recipe:
+export RESULTS="$R/cosmos-optimizer-native-20261113/new-paged-pressure-resume"
+export EVALUATE_ONLY=0
+sbatch docs/posttrain/evidence/quantized_optimizers_round10/pressure_diagnostic.sbatch
+```
+
+These commands are serial, not simultaneous submissions. All standard resource,
+container, model and simulator variables above remain required. Read-only reload
+must reproduce every saved learner field and collector state; continuation must
+finish new updates and checkpoint32. Physical simulation resets are explicit.
+If pressure fails, the same sequence with `CO_RESIDENT_GIB=0` and the retained
+resident checkpoint16 qualifies resident recovery only.
+
+Source-v41 pending16 recovery38534388 reproduced every learner/data field and
+published the original midpoint. It then failed the first resumed backward with
+a rank0 `OutOfMemoryError`, leaving three peers blocked; read-only stack evidence
+was captured and the allocation terminated. No checkpoint32 or pressure recovery
+pass is inferred. The later reporting-only correction `d3f7bf16` logs a failed
+cell immediately while preserving the drain barrier;17 local checks pass.
+It is not present in source-v41 accelerator runs and does not alter their math.

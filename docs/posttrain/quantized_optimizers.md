@@ -1388,7 +1388,7 @@ mutation checks, and rejects symlink payloads/subtrees; existing load/copy prove
 remains compatible.151 pinned checks pass. Four CPU readers agree on the actual
 checkpoint content in about24.28seconds each. Native pending80 recovery matches
 all saved learner/data fields and publishes with zero new updates; its fresh97/100
-score illustrates simulator variability. Newly written checkpoints and the remaining
+score illustrates closed-loop execution variability. Newly written checkpoints and the remaining
 nonpaged/paging studies are tracked separately. Both failures remain recorded. The corrected nonpaged80 run completes and publishes40/80 with97/90/91 successes at0/40/80. It also fails adaptation and the descriptive cross-optimizer guards: four fewer successes than fused at80, and4.97% more all-episode control steps. No final superiority comparison is admitted. Its busiest-device peak is26.19GiB and full-launcher host PSS69.28GiB; these are single-run measurements. Fresh final reloads and40-to-80 continuation are tracked separately. See the
 [native nonpaged evidence](evidence/quantized_optimizers_round10/native_eightbit_development_summary.json).
 

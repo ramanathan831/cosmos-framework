@@ -110,6 +110,49 @@
       "allocation_seconds_including_teardown": 1240,
       "gpu_allocation_seconds": 4960,
       "raw": "raw/gr00t-pressure-eightbit55-v2"
+    },
+    "nonpaged55_recovery16_v1": {
+      "job": "38534388",
+      "source": "677e7e039012b40033e4ea137587619808d12a01",
+      "status": "FAILED: rank0 OutOfMemoryError during first resumed backward; peers stalled; explicitly terminated",
+      "exact_restored_all_four_learner_records": true,
+      "exact_saved_collector_data": true,
+      "saved_data_sha256": "a2ed5330233dd5fda139e31443f448df6c4e81553deb56fe1443527dec96ef83",
+      "saved_cursors": [
+        16,
+        16,
+        16,
+        16
+      ],
+      "original16_windows_byte_identical": true,
+      "pending16_validation_and_publication_pass": true,
+      "validation_success_count": 93,
+      "validation_state_unchanged": true,
+      "completed_new_updates": 0,
+      "checkpoint32_created": false,
+      "memory_peaks_including_separate_reservation": {
+        "memory-gpu0": {
+          "sampled_device_bytes": 85890760704,
+          "sampled_matched_process_gpu_bytes": 84580237312
+        },
+        "memory-gpu1": {
+          "sampled_device_bytes": 85540536320,
+          "sampled_matched_process_gpu_bytes": 84230012928
+        },
+        "memory-gpu2": {
+          "sampled_device_bytes": 85811068928,
+          "sampled_matched_process_gpu_bytes": 84500545536
+        },
+        "memory-gpu3": {
+          "sampled_device_bytes": 85532147712,
+          "sampled_matched_process_gpu_bytes": 84221624320
+        }
+      },
+      "full_launcher_peak_pss_bytes": 51024678912,
+      "allocation_seconds_including_teardown": 1100,
+      "gpu_allocation_seconds": 4400,
+      "scope": "Restore/publication correctness passed, pressure continuation failed. Not an uninterrupted32 run. OOM type and failed rank confirmed by read-only driver stack; exact allocation request unavailable. No reduced-pressure retry. Earlier resident40-to80 recovery remains applicable.",
+      "raw": "raw/gr00t-pressure-eightbit55-recovery16-v1"
     }
   },
   "checkpoint_memory_intervention": {
