@@ -1,0 +1,84 @@
+{
+  "checked_at_utc": "2026-11-14T08:12:14.961530+00:00",
+  "repository": "NVlabs/alpagym",
+  "branches_and_unique_PR_head": [
+    {
+      "ref": "refs/remotes/origin/HEAD",
+      "sha": "972d160eed0e23d388497851504a3a233fec5879",
+      "posttrain_paths": []
+    },
+    {
+      "ref": "refs/remotes/origin/chenyx09-patch-1",
+      "sha": "fc1af6e3cc391bce13f3e513225ec817c0bba41a",
+      "posttrain_paths": []
+    },
+    {
+      "ref": "refs/remotes/origin/codex/cosmos-rl-044-e2e",
+      "sha": "4933bfdf4d38245ff990c4519820f20a8d96ba67",
+      "posttrain_paths": []
+    },
+    {
+      "ref": "refs/remotes/origin/codex/g1-vla-rollout-cells-clean",
+      "sha": "a8e5e911a2c655431d83992727f3bb8adcb53f86",
+      "posttrain_paths": []
+    },
+    {
+      "ref": "refs/remotes/origin/codex/humanoid-mjlab-alpagym",
+      "sha": "ede34f1bcd2b2eed29af35c51ce1e5297737ff16",
+      "posttrain_paths": []
+    },
+    {
+      "ref": "refs/remotes/origin/codex/thomas-r6-iad-e2e",
+      "sha": "b3c2b5785b13b1365c31e557423d658c5b6bc67f",
+      "posttrain_paths": []
+    },
+    {
+      "ref": "refs/remotes/origin/gh-pages",
+      "sha": "7614b66fd041256f138a86c6e43a3a8f14dfe23f",
+      "posttrain_paths": []
+    },
+    {
+      "ref": "refs/remotes/origin/main",
+      "sha": "972d160eed0e23d388497851504a3a233fec5879",
+      "posttrain_paths": []
+    },
+    {
+      "ref": "refs/remotes/origin/pkarkus/inverse_convert",
+      "sha": "3db7bd704530245a5d421cb984a64010721934c9",
+      "posttrain_paths": []
+    },
+    {
+      "ref": "refs/remotes/origin/pkarkus/manual_sync_upto_06_26_2026",
+      "sha": "1327bd6fd2d564cd27398d70e245c96b4f27f5c1",
+      "posttrain_paths": []
+    },
+    {
+      "ref": "refs/remotes/origin/pkarkus/readme_fix",
+      "sha": "ac9430084895db83fdd03cff3c831fe1b63fde56",
+      "posttrain_paths": []
+    },
+    {
+      "ref": "refs/remotes/origin/thomast/humanoid-alpagym-integration",
+      "sha": "054f57b8bc9cefb13ec78b1a56ab53cf7ebc2724",
+      "posttrain_paths": []
+    },
+    {
+      "ref": "refs/remotes/optimizer-inspection/pr5",
+      "sha": "c8e9f7ddb9288ad224d6975937bc6c3ac06ce8f6",
+      "posttrain_paths": []
+    }
+  ],
+  "all_8_advertised_PR_heads": [
+    "ac9430084895db83fdd03cff3c831fe1b63fde56\trefs/pull/1/head",
+    "3db7bd704530245a5d421cb984a64010721934c9\trefs/pull/2/head",
+    "fc1af6e3cc391bce13f3e513225ec817c0bba41a\trefs/pull/3/head",
+    "1327bd6fd2d564cd27398d70e245c96b4f27f5c1\trefs/pull/4/head",
+    "c8e9f7ddb9288ad224d6975937bc6c3ac06ce8f6\trefs/pull/5/head",
+    "b3c2b5785b13b1365c31e557423d658c5b6bc67f\trefs/pull/6/head",
+    "b3c2b5785b13b1365c31e557423d658c5b6bc67f\trefs/pull/7/head",
+    "4933bfdf4d38245ff990c4519820f20a8d96ba67\trefs/pull/8/head"
+  ],
+  "scope": "Read-only tree inspection of all advertised branch heads and the one additional unique PR head, using the existing authorized Git connection. None contains the required posttrain module paths. This does not prove absence in private/unadvertised source or dynamically registered modules.",
+  "content_search": "A redundant all-source text scan was canceled after about3.5minutes because this partial clone lazily fetched individual blobs. No complete-content-search claim. Required module-path inspection completed.",
+  "constraints": "No branch merge, credential/permission change, runtime installation or protected-checkout writes. The GitHub App branch API was unavailable under organization SSO."
+}

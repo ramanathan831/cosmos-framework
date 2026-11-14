@@ -1,6 +1,6 @@
 {
   "starting_commit": "2516e9f1e9aecb0b68d6a21e27dd835f456109ab",
-  "current_implementation_parent": "1bb028c7f1f4910a30d5aef563101ade0a06c7c5",
+  "current_implementation_parent": "859d07ae11346ce74a1838b1d7a2ef9680e7c5e2",
   "sealed": false,
   "updated_at_utc": "2026-11-14T07:13:38.207491+00:00",
   "tested_native_source": {
@@ -21,7 +21,8 @@
     "resume_boundary_receipt": "dcf57752",
     "server_synchronized_provenance": "94ecd8ba",
     "alpagym_explicit_fused_control": "4f22bc48",
-    "alpagym_actual_fused_construction_test": "1bb028c7"
+    "alpagym_actual_fused_construction_test": "1bb028c7",
+    "alpagym_resolved_configuration": "859d07ae11346ce74a1838b1d7a2ef9680e7c5e2"
   },
   "current_file_sha256": {
     "cosmos_framework/posttrain/checkpoint/external_copy.py": "dc5a1f3dd873da5ed3a84cd160a61c2792695be85c5bb2db24bd3417df6312cb",
@@ -37,7 +38,7 @@
     "cosmos_framework/posttrain/embodied/sims/libero/adapter.py": "8b7c7aefdce66345aebafa955d5574d4af90df6c8e0828c8e12fd2b99f288d8e",
     "cosmos_framework/posttrain/embodied/sims/libero/config.py": "91b66c1b2229e07951ab45eb70509e1bf6a030793f16bdcdb8c17eb43158852f",
     "cosmos_framework/posttrain/embodied/window.py": "d780dcfc5bf542816fbf4ee06896e1f9ffff04967d89680392ddd57097892d13",
-    "cosmos_framework/posttrain/entrypoints/alpagym_clrl.py": "4b76e61d0c7d5e7048802e0d91c0ac9bcf47472cbb0aef5611ef63ae9538c584",
+    "cosmos_framework/posttrain/entrypoints/alpagym_clrl.py": "b7cecb6f2ec39dc65e23fc46d40b34d54aba1f03e5d5ba907052151017f9ffe6",
     "cosmos_framework/posttrain/entrypoints/joint_ppo.py": "0301493281efcbada2d438d77c340bb6df61e637a744d57295137c77004d815d",
     "cosmos_framework/posttrain/model/gr00t/build.py": "2399d05c526bfdf3e5e011598c495c5a8503a2a11b9ca83869d87b345e982e01",
     "cosmos_framework/posttrain/model/gr00t/materialize.py": "817ffd0315133d9ad35fb7cbf5384e3ebab8a7513425ce277baedbcc10930385",

@@ -157,3 +157,5 @@ by default. Sixteen local construction/CLI checks pass; they are control-flow
 coverage, not real AlpaGym training evidence.
 
 For the compatible AlpaGym high-precision control, select `--optimizer adamw --optimizer-impl fused --optimizer-update-policy fp32_master`. Omitting these flags retains the legacy direct-parameter/default torch route. Quantized modes reject a torch-only `--optimizer-impl`; sixteen local routing/validation checks pass. This command still needs the approved external native runtime and scenarios.
+
+AlpaGym CLI selections are atomically recorded in `optimizer_config_resolved.json` beside its host resolved config before workers start. Worker logs separately report the constructed wrapper/backend classes and complete typed configuration. No external host config or environment secrets are copied into this artifact.

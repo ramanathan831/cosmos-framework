@@ -36,5 +36,12 @@
     "local_checks": "14 passed; exact native factory/CLI routing and typed conflicts, with runtime/backend doubles. No real AlpaGym training claim.",
     "defaults_unchanged": true,
     "additional_actual_fused_construction": "16 local checks pass including BF16 live ownership, FP32 masters and fused backend through _build_trainer; runtime/kernel boundary remains unqualified."
-  }
+  },
+  "resolved_configuration_artifact": {
+    "source": "859d07ae11346ce74a1838b1d7a2ef9680e7c5e2",
+    "file": "optimizer_config_resolved.json beside the host resolved config",
+    "behavior": "Canonical typed optimizer CLI options atomically persisted before worker allocation; actual backend class separately reported after final model setup.",
+    "tests": "Four CLI regressions failed before the fix; all16 construction/CLI checks pass after."
+  },
+  "additional_public_source_resolution": "alpamayo_public_ref_inspection.json:all advertised branches and eight PR heads lack the required posttrain module paths; existing authorized Git connection used without permission changes. Missing runtime/scenario dependency remains."
 }

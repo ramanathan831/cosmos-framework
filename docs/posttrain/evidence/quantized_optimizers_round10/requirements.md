@@ -19,7 +19,7 @@ benefit is advertised. Generic bridge tests cannot qualify an unavailable model 
 | Exact backend/groups/defaults | Factory tests, Alpa actual construction route, native GR00T storage receipts | Real Alpa model/setup execution |
 | Finite intended updates; frozen exclusion | Native GR00T actor/value and backbone checks; shared rank-consistent skip gates | Alpa driving path |
 | Same-identity recovery and failed-load safety | Shared reference/resume/failure tests; native nonpaged/paged4→8; pending40 learner/cursor exact | Finish admitted nonpaged v3 continuation and paging-pressure recovery |
-| At least60% moment-state saving including metadata | GR00T74.5788%, WTS74.6061%; GR00T49.7192% when common masters are also counted | Alpa allocation measurement; total memory remains a separate scope |
+| At least60% optimizer tensor-state saving | GR00T moments+metadata74.5788%; all optimizer-owned persistent tensors including masters49.7192%. WTS74.6061% retained | Do not count the moment-only percentage as a pass for all persistent optimizer storage:49.7192% is below60%. Alpa is unmeasured; total device/host memory is separately reported |
 | Task adaptation and preserved quality | WTS adaptation retained; robot short-run scores retained without superiority claim | Locked80-update development and any justified final comparison; all confidence gates unchanged |
 | Equal-resource quality gain and >1.05 speed lower bound | No new pass; shared checkpoint roundtrip gain scoped to CPU screen | Model-specific final evidence after development selection; WTS gates remain unmet |
 
