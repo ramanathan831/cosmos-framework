@@ -16,11 +16,54 @@ import time
 from pathlib import Path
 
 
+def source_probe(assets, output):
+    """Load the real native model on CPU before admitting expensive GPU setup."""
+    from collections import Counter
+
+    from cosmos_framework.posttrain.configs.gr00t_n1d7_libero_ppo import make_model_config
+    from cosmos_framework.posttrain.model.gr00t.policy import BF16_PRECISION, build_official_gr00t_model, load_processor
+    from cosmos_framework.posttrain.model.gr00t.source import load_ppo_source
+
+    directory = output / "model-config"
+    directory.mkdir()
+
+    def load(source):
+        model = build_official_gr00t_model(
+            str(source.checkpoint),
+            save_cfg_dir=directory,
+            revision=source.backbone_revision,
+            precision=BF16_PRECISION,
+            local_files_only=True,
+            ppo=True,
+        )
+        processor = load_processor(str(source.checkpoint), model_name=str(source.processor))
+        return model, processor
+
+    before = time.monotonic()
+    (model, processor), identity = load_ppo_source(make_model_config(str(assets / "model")), load)
+    inventory = Counter()
+    for _, parameter in model.named_parameters():
+        inventory[f"{'trainable' if parameter.requires_grad else 'frozen'}_{parameter.dtype}"] += parameter.numel()
+    (output / "source-probe.json").write_text(
+        json.dumps(
+            {
+                "scope": "CPU native model/processor source load only; no training or GPU qualification",
+                "seconds": time.monotonic() - before,
+                "source": identity,
+                "parameter_elements": dict(inventory),
+                "processor": type(processor).__name__,
+            },
+            indent=2,
+        )
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--optimizer", choices=("adamw", "adamw_bnb_8bit", "paged_adamw_8bit"), default="adamw")
     parser.add_argument("--resume", default="")
     parser.add_argument("--updates", type=int, default=8)
+    parser.add_argument("--source-only", action="store_true")
     args = parser.parse_args()
     if args.updates < 1:
         parser.error("updates must be positive")
@@ -37,6 +80,9 @@ def main():
     (cache / "refs").mkdir()
     (cache / "snapshots" / revision).symlink_to(assets / "backbone", target_is_directory=True)
     (cache / "refs/main").write_text(revision)
+    if args.source_only:
+        source_probe(assets, output)
+        return
     config = Path(os.environ["LIBERO_CONFIG_PATH"])
     config.mkdir()
     shutil.copyfile(
