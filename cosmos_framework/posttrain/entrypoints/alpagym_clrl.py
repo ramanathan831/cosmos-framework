@@ -911,6 +911,22 @@ def main() -> None:
         )
     prompts_per_step = declared // args.group_size
 
+    selected_optimizer = alpagym_optimizer_config(
+        run_config.cosmos.train,
+        name=args.optimizer,
+        impl=args.optimizer_impl,
+        update_policy=args.optimizer_update_policy,
+        bnb_min_8bit_size=args.optimizer_bnb_min_8bit_size,
+        bnb_fp32_state_names=args.optimizer_bnb_fp32_state_name,
+    )
+    # These CLI overrides are outside AlpaGym's already-resolved host config.
+    # Persist their canonical typed values beside it before allocating workers;
+    # the actor log separately records the actual constructed backend class.
+    from dataclasses import asdict
+
+    from cosmos_framework.posttrain.checkpoint.io import atomic_write_json
+
+    atomic_write_json(str(Path(resolved_config).parent / "optimizer_config_resolved.json"), asdict(selected_optimizer))
     run(
         EntryConfig(
             alpagym=AlpagymSection(resolved_config_path=resolved_config, project_root=project_root),
@@ -920,14 +936,7 @@ def main() -> None:
             group_size=args.group_size,
             ticks_per_episode=ticks_per_episode,
             placement=normalize_gpu_placement(args.placement, field_name="--placement"),
-            optimizer=alpagym_optimizer_config(
-                run_config.cosmos.train,
-                name=args.optimizer,
-                impl=args.optimizer_impl,
-                update_policy=args.optimizer_update_policy,
-                bnb_min_8bit_size=args.optimizer_bnb_min_8bit_size,
-                bnb_fp32_state_names=args.optimizer_bnb_fp32_state_name,
-            ),
+            optimizer=selected_optimizer,
         )
     )
 

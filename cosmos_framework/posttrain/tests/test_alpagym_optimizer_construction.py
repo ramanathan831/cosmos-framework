@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: OpenMDW-1.1
 """Real native factory/entry routing, with CPU backend doubles only at the CUDA boundary."""
 
+import json
 import sys
 from types import SimpleNamespace
 
@@ -104,7 +105,7 @@ def test_alpagym_actual_entry_constructs_after_setup(name, update_policy, overri
 @pytest.mark.parametrize(
     "name,impl", [("adamw", ""), ("adamw", "fused"), ("adamw_bnb_8bit", ""), ("paged_adamw_8bit", "")]
 )
-def test_alpagym_cli_resolves_shared_state_options_without_allocating_model(name, impl, monkeypatch):
+def test_alpagym_cli_resolves_shared_state_options_without_allocating_model(name, impl, monkeypatch, tmp_path):
     from cosmos_framework.posttrain.entrypoints import alpagym_clrl as entry
 
     train = SimpleNamespace(
@@ -119,7 +120,17 @@ def test_alpagym_cli_resolves_shared_state_options_without_allocating_model(name
     monkeypatch.setattr(entry.logging, "basicConfig", lambda **_: None)
     captured = []
     monkeypatch.setattr(entry, "run", captured.append)
-    argv = ["alpagym", "--resolved-config", "unused.yaml", "--gpus", "4", "--steps", "2", "--group-size", "2"]
+    argv = [
+        "alpagym",
+        "--resolved-config",
+        str(tmp_path / "resolved_config.yaml"),
+        "--gpus",
+        "4",
+        "--steps",
+        "2",
+        "--group-size",
+        "2",
+    ]
     if name != "adamw":
         argv += [
             "--optimizer",
@@ -145,6 +156,17 @@ def test_alpagym_cli_resolves_shared_state_options_without_allocating_model(name
     assert selected.bnb_fp32_state_names == ([] if name == "adamw" else ["weight", "bias"])
     assert (selected.lr, selected.eps, selected.betas, selected.weight_decay) == (2e-5, 1e-6, [0.9, 0.999], 0.01)
     assert captured[0].prompts_per_step == 2 and captured[0].ticks_per_episode == 8
+    persisted = json.loads((tmp_path / "optimizer_config_resolved.json").read_text())
+    assert persisted["name"] == name and persisted["impl"] == impl
+    assert persisted["update_policy"] == selected.update_policy
+    assert persisted["bnb_min_8bit_size"] == selected.bnb_min_8bit_size
+    assert persisted["bnb_fp32_state_names"] == selected.bnb_fp32_state_names
+    assert (persisted["lr"], persisted["eps"], persisted["betas"], persisted["weight_decay"]) == (
+        2e-5,
+        1e-6,
+        [0.9, 0.999],
+        0.01,
+    )
 
 
 @pytest.mark.parametrize(
