@@ -312,6 +312,115 @@
       "allocation_seconds_including_teardown": 600,
       "gpu_allocation_seconds": 2400,
       "raw": "raw/gr00t-pressure-paged55-resume16-v1"
+    },
+    "paged55_resume16_v2": {
+      "job": "38536371",
+      "source": "ff2572f266d9463c6cb820f883e514387aecd869",
+      "status": "COMPLETED",
+      "completed_updates": 16,
+      "from_update": 16,
+      "to_update": 32,
+      "all_finite_actor_value_updates": true,
+      "behavior_logprob_and_version_checks": true,
+      "frozen_backbone_unchanged": true,
+      "post_save_model_and_staging_gradients_zero": true,
+      "storage": {
+        "trainable_elements": 1624843393,
+        "quantized_elements": 1624178688,
+        "fp32_elements": 664705,
+        "uninitialized_elements": 0,
+        "moment_bytes": 3253675016,
+        "metadata_bytes": 50763776,
+        "master_bytes": 6499373572,
+        "paged_moment_bytes": 3246784512
+      },
+      "native_attempt": {
+        "returncode": 0,
+        "native_seconds": 961.7900931329932
+      },
+      "mean_window_seconds": 30.264601701055653,
+      "mean_phase_seconds": {
+        "collect_seconds": 15.997107930445054,
+        "targets_seconds": 1.915796994799166,
+        "update_seconds": 4.86387266888778,
+        "publication_and_clear_seconds": 7.487824106923654
+      },
+      "evaluations": {
+        "step_000032": {
+          "val/episode_count": 100,
+          "val/episode_return": 0.9,
+          "val/episode_steps": 117.44,
+          "val/success_rate": 0.96,
+          "val/task_0/success_count": 10,
+          "val/task_0/success_rate": 1.0,
+          "val/task_1/success_count": 10,
+          "val/task_1/success_rate": 1.0,
+          "val/task_2/success_count": 10,
+          "val/task_2/success_rate": 1.0,
+          "val/task_3/success_count": 10,
+          "val/task_3/success_rate": 1.0,
+          "val/task_4/success_count": 10,
+          "val/task_4/success_rate": 1.0,
+          "val/task_5/success_count": 10,
+          "val/task_5/success_rate": 1.0,
+          "val/task_6/success_count": 8,
+          "val/task_6/success_rate": 0.8,
+          "val/task_7/success_count": 10,
+          "val/task_7/success_rate": 1.0,
+          "val/task_8/success_count": 10,
+          "val/task_8/success_rate": 1.0,
+          "val/task_9/success_count": 8,
+          "val/task_9/success_rate": 0.8
+        }
+      },
+      "native_checkpoint32_publication": true,
+      "memory_peaks": {
+        "memory-gpu0": {
+          "sampled_device_bytes_with_reservation": 85894234112,
+          "sampled_matched_process_gpu_bytes_with_reservation": 84355842048,
+          "sampled_process_gpu_bytes_excluding_reservation": 24786239488
+        },
+        "memory-gpu1": {
+          "sampled_device_bytes_with_reservation": 85894234112,
+          "sampled_matched_process_gpu_bytes_with_reservation": 84580237312,
+          "sampled_process_gpu_bytes_excluding_reservation": 25010634752
+        },
+        "memory-gpu2": {
+          "sampled_device_bytes_with_reservation": 85894234112,
+          "sampled_matched_process_gpu_bytes_with_reservation": 84339064832,
+          "sampled_process_gpu_bytes_excluding_reservation": 24769462272
+        },
+        "memory-gpu3": {
+          "sampled_device_bytes_with_reservation": 85894234112,
+          "sampled_matched_process_gpu_bytes_with_reservation": 84548780032,
+          "sampled_process_gpu_bytes_excluding_reservation": 24979177472
+        }
+      },
+      "full_launcher_peak_pss_bytes": 74137722880,
+      "allocation_seconds_including_teardown": 1167,
+      "gpu_allocation_seconds": 4668,
+      "scope": "One fixed-pressure native integration/capacity run. Not final task quality, an optimizer speed result, or proof of migration. Native simulator reset makes resumed future trajectories non-exact.",
+      "raw": "raw/gr00t-pressure-paged55-resume16-v2",
+      "exact_restored_all_four_learner_records": true,
+      "exact_saved_collector_data": true,
+      "saved_cursors": [
+        16,
+        16,
+        16,
+        16
+      ],
+      "post_save_allocator_bytes": [
+        6135718912,
+        6135714304,
+        6135714304,
+        6135714304
+      ],
+      "post_save_reserved_bytes": [
+        6822035456,
+        6822035456,
+        6822035456,
+        6822035456
+      ]
     }
   },
   "checkpoint_memory_intervention": {
@@ -383,6 +492,8 @@
     "verified_defect": "Per-instance dynamically defined optimizer class captured selected/groups/names/config/exceptions in methods; retaining the class retained retired master Parameter objects. The focused weakref regression fails before and passes after.",
     "fix": "Cached backend type with module-level mixin; all per-instance references live only on optimizer instance. No arithmetic/state-format/identity change.",
     "local_checks": "57 passed /15 CUDA skips; backend_class_ownership_before.txt and after.txt retain failing-then-passing test.",
-    "causal_limit": "Native allocation reduction and pressure continuation remain to be tested; do not assume this defect explains every pressure failure."
+    "causal_limit": "Class-owned master retention is proven by regression and immediate-release CUDA checks. Native paged pressure recovery now passes on matched-class A100 hardware; different node and observation boundary prevent attributing every byte/time difference solely to the fix. Nonpaged corrected continuation remains pending.",
+    "real_cuda_gate": "72 pinned checks and12 two-rank reference/resume/failure receipts pass, with immediate retired-master/page release without GC.",
+    "native_paged_result": "Corrected pressure16-to32 completes, exact restored learner/data and all16new finite updates, full checkpoint publication and100case evaluation pass. Post-save rank0 allocated6,135,718,912bytes, compared with earlier readonly7,709,446,144; different observation boundary/node, no sole-cause or performance inference."
   }
 }
