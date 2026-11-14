@@ -1,0 +1,78 @@
+{
+  "kind": "Prospective native GR00T development exposure study, not final release evaluation",
+  "locked_at_utc": "2026-11-14T05:06:02.442039+00:00",
+  "source": "a94470c35baadd87580dd4ae3dccefb3fa815b67",
+  "hypothesis": "Eight completed windows may be too short to reveal useful adaptation; compare both unchanged optimizer recipes through the public native recipe first 80-update validation interval. No numerical intervention is selected by the short-run success counts.",
+  "arms": [
+    "adamw impl=fused update_policy=fp32_master",
+    "adamw_bnb_8bit update_policy=fp32_master"
+  ],
+  "order": [
+    "seed17_fused",
+    "seed17_eightbit",
+    "seed17_fused_fresh_reload80",
+    "seed17_eightbit_fresh_reload80"
+  ],
+  "updates": 80,
+  "decisions_per_update": 64,
+  "training_decisions": 5120,
+  "checkpoint_updates": [
+    40,
+    80
+  ],
+  "evaluation_updates": [
+    0,
+    40,
+    80
+  ],
+  "controls": {
+    "seed": 17,
+    "actor_lr": 5e-06,
+    "value_lr": 0.0001,
+    "microbatch": 2,
+    "global_minibatch": 64,
+    "num_envs": 4,
+    "window_decisions": 16,
+    "scheduler": "unchanged native constant recipe",
+    "optimizer_hyperparameters": "unchanged native actor/value groups, betas, epsilon, decay, clipping",
+    "precision": "BF16 live/compute/communication; FP32 local update masters in both arms",
+    "model_revision": "2ea293aa20ba7cf5bbf3ba17a5fbcb1a01cbfe21",
+    "model_construction": "complete-checkpoint-sdpa-v1",
+    "evaluation": "LIBERO Spatial legacy_100; 10 tasks x 10 fixed initial states, all native control steps and rewards retained",
+    "training": "same native train manifest, initial states10-49",
+    "hardware": "4 A100-SXM4-80GB,32 CPUs,256GiB; same configured routing, placement recorded; serial owned GPU allocations"
+  },
+  "primary_metric": "native task success fraction, paired on task_id and init_state_id",
+  "secondary_metrics": [
+    "per-task success",
+    "all-episode control steps (including failures; no survivor-only denominator)",
+    "native return",
+    "invalid/nonfinite action or learner failures"
+  ],
+  "development_screen": {
+    "useful_adaptation": "At update80, each arm must exceed its own frozen success count; report fresh reload variability separately. A tie or decline is not useful adaptation. No best-of-40/80 selection.",
+    "cross_optimizer": "Eight-bit update80 success cannot be below fused by more than one question out of100; all episode steps cannot rise more than2%. These are descriptive development screens, not confidence passes.",
+    "next_replication": "Only after both adaptation and cross-optimizer screens pass, prospectively fix additional paired training seeds29/43 and final-quality procedure before new final scoring. No opportunistic extra seeds after an interval fails."
+  },
+  "fixed_development_target": {
+    "success_fraction": 1.0,
+    "reason": "Engineering frozen counts97-99/100 leave little observed headroom; 100/100 is the only prespecified improvement target exceeding every observed count. It is a sampled target, not a claim of population-perfect success.",
+    "eligible_updates": [
+      40,
+      80
+    ],
+    "clock": "First durable checkpoint completing native validation and required fresh-process validation; fresh-process target failure is censored. If initial success is100, mark target already met and do not claim a training speed gain.",
+    "limitations": "No final time-to-quality interval, equal-resource gain or inference-latency claim from this single seed; no interpolation or later checkpoint substitution."
+  },
+  "failure_policy": "Stop an affected run on native integrity/nonfinite/publication failure; retain all costs and diagnose before rerunning. Run both unchanged arms to80 when finite. No early stop or checkpoint selection based on an inspected quality metric. No final comparison if development screens fail.",
+  "wall_request_minutes": 120,
+  "termination_grace_minutes": 10,
+  "scope_limits": [
+    "No aggregate spend cap reinstated",
+    "All100 evaluation cases have already been observed in engineering; this is development/regression, not independent confirmation",
+    "No change to WTS thresholds or results",
+    "No change to paging pressure scope",
+    "Fresh-process environment reset is explicit; deterministic learner restore only, not exact simulator continuation"
+  ],
+  "cost_estimate": "Per arm: roughly30s/window x80 + 3 native100-case validations + 2 full saves + preparation/loading; reserve120min including10min termination grace. Fresh evaluation each90min ceiling based on measured ~11min allocations. Charge actual terminal allocation intervals and all4 GPUs."
+}
