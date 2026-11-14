@@ -1,0 +1,149 @@
+{
+  "source": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-exposure-eightbit-resume40-v3",
+  "allocation_end": "2026-11-14T11:06:53Z",
+  "extra_native_root": null,
+  "reviewed_file_ceiling_bytes": 134217728,
+  "scope": "complete recognized textual evidence; model and optimizer binary payloads remain at source",
+  "files": {
+    "allocation-end.txt": {
+      "bytes": 21,
+      "sha256": "dd393838100a35bc150ec2b8ef885f688d58888089154b20924feb8ce5910638"
+    },
+    "allocation-start.txt": {
+      "bytes": 21,
+      "sha256": "aecce94f10d039c853fbd1d57c0e6662e07642aa27f4e8ea71baafc751ec440b"
+    },
+    "attempt.json": {
+      "bytes": 55,
+      "sha256": "d5b7e38367f524cc09cd36082af06cacb08efb42d7f53c177cee04acb72cceee"
+    },
+    "command.json": {
+      "bytes": 1083,
+      "sha256": "5f3704a55557133bd9ac19f1227d6104aecd6077708e3a85726824045fa77470"
+    },
+    "dependency-check.json": {
+      "bytes": 260,
+      "sha256": "5d930b52663c25694fb84d7853eea00ac6937d286ed8afaf66afb67f23f7d843"
+    },
+    "devices.csv": {
+      "bytes": 479,
+      "sha256": "e604141963a66f89fbc911d604665fed93eccc1a748a141ee682f04272a8bf27"
+    },
+    "egl.json": {
+      "bytes": 79,
+      "sha256": "902ce1a29e2e84fbf7b38168bf953ad42b689f2d46510fd07a54e4a18cb5ad1c"
+    },
+    "exit-code.txt": {
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "host-placement.json": {
+      "bytes": 806,
+      "sha256": "34bb59a7c8ca674b494448020a721c0d5c38cfa17b08872e12958766aca43d79"
+    },
+    "job.txt": {
+      "bytes": 1943,
+      "sha256": "fffa26cde9f898dc5cf737239073d36104ee1833bcade1aa4baf8779d621dceb"
+    },
+    "launcher-phases.jsonl": {
+      "bytes": 331,
+      "sha256": "1fc6689aaba8c88754febdee2ae38fcb97edb045dd7fab0196495abced3bdc10"
+    },
+    "libero-config/config.yaml": {
+      "bytes": 734,
+      "sha256": "d2ddc17868812448637c1ea8b008a142a7590f8491364d7235d7f799c055a788"
+    },
+    "manifests/libero_spatial-eval.json": {
+      "bytes": 7901,
+      "sha256": "a26e3b53808ce3610bfc60816e28e5bd1da5f66479cb29f33977576c05f243f7"
+    },
+    "manifests/libero_spatial-train.json": {
+      "bytes": 31702,
+      "sha256": "31fe8461627694c6eef686f2e1dc132da316e0e3e60cd38630844b1693f2d696"
+    },
+    "memory-gpu0.jsonl": {
+      "bytes": 3385239,
+      "sha256": "755cc47b3fcaf692525c681e9ace453d195303373300242df84e04fecc0079f4"
+    },
+    "memory-gpu1.jsonl": {
+      "bytes": 3392233,
+      "sha256": "b56cadacb701b5a33992580d7c043e4696ea28691c2e7a6046292b354f83ab0e"
+    },
+    "memory-gpu2.jsonl": {
+      "bytes": 3387852,
+      "sha256": "7917bbd67f6a7b491c3e4294ae5f41c4fa3831bc8b182438b3dc9cd45883bb8d"
+    },
+    "memory-gpu3.jsonl": {
+      "bytes": 3380817,
+      "sha256": "08b2af54c3e9c104696bb2d66556d96e37d5e4ea88386af8d9ea1cbd51bfbba3"
+    },
+    "memory-scope.json": {
+      "bytes": 93,
+      "sha256": "6f132220451b8e452c59282a05c7fe3067d76fa8048be9aeae6d5b91e3f3d12e"
+    },
+    "model-preflight.json": {
+      "bytes": 449,
+      "sha256": "3489bc0c661638f54afbdf4ffa59ce70080bc78a43b24e86ddf068e5bb471ca1"
+    },
+    "native.log": {
+      "bytes": 10239,
+      "sha256": "45d8e50b6a034bdabe06635fdcce4b08e4f49f6fd1af9dc660fe41d5728a43e7"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/checkpoints/latest_checkpoint.txt": {
+      "bytes": 12,
+      "sha256": "0ed5fca4a47d07acc8e1af6e383daf265517ce040cb265d95e42966e9e5fca3e"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/config_resolved.yaml": {
+      "bytes": 10821,
+      "sha256": "c38b9acd6cbf23ce82ed9ba91831293fec08226e8b0de9f9483a49e4b5643109"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/evaluation/step_000080.json": {
+      "bytes": 2607373,
+      "sha256": "40146dd225c2190d6d958f30718603c4d99c399dea46ea1e64bdfea490f061ef"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/model-config/policy-0/final_model_config.json": {
+      "bytes": 1513,
+      "sha256": "5927bbeb634c9efae2b4d7e1dd730c6d82a8c0a154b30528c70653db5d5cd903"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/model-config/rollout-0/final_model_config.json": {
+      "bytes": 1513,
+      "sha256": "5927bbeb634c9efae2b4d7e1dd730c6d82a8c0a154b30528c70653db5d5cd903"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/model-config/rollout-1/final_model_config.json": {
+      "bytes": 1513,
+      "sha256": "5927bbeb634c9efae2b4d7e1dd730c6d82a8c0a154b30528c70653db5d5cd903"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/model-config/rollout-2/final_model_config.json": {
+      "bytes": 1513,
+      "sha256": "5927bbeb634c9efae2b4d7e1dd730c6d82a8c0a154b30528c70653db5d5cd903"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/model-config/rollout-3/final_model_config.json": {
+      "bytes": 1513,
+      "sha256": "5927bbeb634c9efae2b4d7e1dd730c6d82a8c0a154b30528c70653db5d5cd903"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/native-setup.json": {
+      "bytes": 142,
+      "sha256": "3ba2dddcc51a734535a40ae492fea86bd6f3484d1d0a701573ea61d335f7dbff"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/resume-state-step-40.json": {
+      "bytes": 1275920,
+      "sha256": "00bf86024c94b55e67d29f7d24dfd3f1b06cc47ab82188471fbe8c49f96000e4"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/summary-step-80.json": {
+      "bytes": 647,
+      "sha256": "08cfc41fae27275de53d9acc272b34b75adb9b67a0e382326c8b9da7dc820c5a"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/windows.jsonl": {
+      "bytes": 919506,
+      "sha256": "af337ae3baa053cf9f3f9659f106325d7980ae393ab0e5a8dc5c089f310d4766"
+    },
+    "sim-preflight.json": {
+      "bytes": 917,
+      "sha256": "0c51e68e3540760bcc1fa5cc1cfe8a2e0642bba319d82c3d809d7384b0389e3e"
+    },
+    "slurm-38526679.out": {
+      "bytes": 1699,
+      "sha256": "7ee006ce08b99d869f2af439f8c3248cab9201bb55d91ae85464521fb3ee8ebf"
+    }
+  }
+}

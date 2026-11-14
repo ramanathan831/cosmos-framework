@@ -1465,3 +1465,5 @@ Primary references: [pinned AdamW source](https://github.com/bitsandbytes-founda
 [Cosmos configuration](https://nvidia.github.io/cosmos-framework/posttrain/reference/config/).
 The [Transformers 5.8.1 alias](https://github.com/huggingface/transformers/blob/v5.8.1/src/transformers/training_args.py)
 `adamw_8bit` names bitsandbytes, not an Apex eight-bit implementation.
+
+The native nonpaged v3 continuation40→80 also passes: all four restored learner records and the complete saved collector boundary match exactly before the first resumed update; all40 subsequent updates are finite, preserve the frozen backbone and finish with native100-case evaluation and checkpoint80 publication. The resumed90/100 score is recovery evidence, not a replacement quality endpoint. See [the v3 continuation results](evidence/quantized_optimizers_round10/native_v3_recovery_summary.json).
