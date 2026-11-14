@@ -293,7 +293,91 @@
       "allocation_seconds_including_teardown": 1851,
       "gpu_allocation_seconds": 7404,
       "scope": "One fixed-pressure native integration/capacity run. Not final task quality, an optimizer speed result, or proof of migration. Native simulator reset makes resumed future trajectories non-exact.",
-      "raw": "raw/gr00t-pressure-paged55-v1"
+      "raw": "raw/gr00t-pressure-paged55-v1",
+      "phase_sampled_memory": {
+        "intervals_utc_ns": [
+          {
+            "phase": "launcher_setup_and_initial_validation",
+            "start_ns": 1794660292479393145,
+            "end_ns": 1794660770000000000
+          },
+          {
+            "phase": "training_windows",
+            "start_ns": 1794660770000000000,
+            "end_ns": 1794661222000000000
+          },
+          {
+            "phase": "checkpoint_write",
+            "start_ns": 1794661222000000000,
+            "end_ns": 1794661232000000000
+          },
+          {
+            "phase": "validation_and_publication",
+            "start_ns": 1794661232000000000,
+            "end_ns": 1794661425000000000
+          },
+          {
+            "phase": "post_validation_or_teardown",
+            "start_ns": 1794661425000000000,
+            "end_ns": 1794661425000000000
+          },
+          {
+            "phase": "training_windows",
+            "start_ns": 1794661425000000000,
+            "end_ns": 1794661872000000000
+          },
+          {
+            "phase": "checkpoint_write",
+            "start_ns": 1794661872000000000,
+            "end_ns": 1794661881000000000
+          },
+          {
+            "phase": "validation_and_publication",
+            "start_ns": 1794661881000000000,
+            "end_ns": 1794662078000000000
+          },
+          {
+            "phase": "post_validation_or_teardown",
+            "start_ns": 1794662078000000000,
+            "end_ns": 1794662092500648360
+          }
+        ],
+        "reproduction": "For each interval, select raw memory-gpu*.jsonl rows with start_ns <= time_ns < end_ns; take max(process_tree_pss) across rows, not a sum across GPU samplers. Device peak similarly uses max(device_used). Log UTC offset is the unique integer-hour shift placing the first native timestamp inside monitor lifetime.",
+        "scope": "Nonoverlapping logged phase intervals within monitor lifetime. Complete launcher tree PSS is max across samples, never summed across duplicate per-GPU samplers. Device usage includes separate55GiB reservation. Second-resolution log boundaries and periodic sampling limit attribution. Setup includes initial evaluation when present; validation and publication are combined, not separately inferred.",
+        "validated_log_utc_offset_hours": 8,
+        "phases": {
+          "checkpoint_write": {
+            "logged_interval_seconds": 19.0,
+            "samples": 93,
+            "sampled_full_tree_peak_pss_bytes": 80665734144,
+            "sampled_busiest_device_bytes_including_reservation": 85895020544
+          },
+          "launcher_setup_and_initial_validation": {
+            "logged_interval_seconds": 477.520606855,
+            "samples": 4228,
+            "sampled_full_tree_peak_pss_bytes": 45419381760,
+            "sampled_busiest_device_bytes_including_reservation": 78317223936
+          },
+          "post_validation_or_teardown": {
+            "logged_interval_seconds": 14.50064836,
+            "samples": 119,
+            "sampled_full_tree_peak_pss_bytes": 61040577536,
+            "sampled_busiest_device_bytes_including_reservation": 78879981568
+          },
+          "training_windows": {
+            "logged_interval_seconds": 899.0,
+            "samples": 5013,
+            "sampled_full_tree_peak_pss_bytes": 61031051264,
+            "sampled_busiest_device_bytes_including_reservation": 85895020544
+          },
+          "validation_and_publication": {
+            "logged_interval_seconds": 390.0,
+            "samples": 2050,
+            "sampled_full_tree_peak_pss_bytes": 65064940544,
+            "sampled_busiest_device_bytes_including_reservation": 79511224320
+          }
+        }
+      }
     },
     "paged55_resume16_v1": {
       "job": "38535734",
@@ -420,7 +504,71 @@
         6822035456,
         6822035456,
         6822035456
-      ]
+      ],
+      "phase_sampled_memory": {
+        "intervals_utc_ns": [
+          {
+            "phase": "launcher_setup_and_initial_validation",
+            "start_ns": 1794664416012147606,
+            "end_ns": 1794664830000000000
+          },
+          {
+            "phase": "training_windows",
+            "start_ns": 1794664830000000000,
+            "end_ns": 1794665314000000000
+          },
+          {
+            "phase": "checkpoint_write",
+            "start_ns": 1794665314000000000,
+            "end_ns": 1794665325000000000
+          },
+          {
+            "phase": "validation_and_publication",
+            "start_ns": 1794665325000000000,
+            "end_ns": 1794665534000000000
+          },
+          {
+            "phase": "post_validation_or_teardown",
+            "start_ns": 1794665534000000000,
+            "end_ns": 1794665545955466724
+          }
+        ],
+        "reproduction": "For each interval, select raw memory-gpu*.jsonl rows with start_ns <= time_ns < end_ns; take max(process_tree_pss) across rows, not a sum across GPU samplers. Device peak similarly uses max(device_used). Log UTC offset is the unique integer-hour shift placing the first native timestamp inside monitor lifetime.",
+        "scope": "Nonoverlapping logged phase intervals within monitor lifetime. Complete launcher tree PSS is max across samples, never summed across duplicate per-GPU samplers. Device usage includes separate55GiB reservation. Second-resolution log boundaries and periodic sampling limit attribution. Setup includes initial evaluation when present; validation and publication are combined, not separately inferred.",
+        "validated_log_utc_offset_hours": 8,
+        "phases": {
+          "checkpoint_write": {
+            "logged_interval_seconds": 11.0,
+            "samples": 65,
+            "sampled_full_tree_peak_pss_bytes": 74137722880,
+            "sampled_busiest_device_bytes_including_reservation": 85894234112
+          },
+          "launcher_setup_and_initial_validation": {
+            "logged_interval_seconds": 413.987852394,
+            "samples": 4881,
+            "sampled_full_tree_peak_pss_bytes": 49786714112,
+            "sampled_busiest_device_bytes_including_reservation": 80382066688
+          },
+          "post_validation_or_teardown": {
+            "logged_interval_seconds": 11.955466724,
+            "samples": 108,
+            "sampled_full_tree_peak_pss_bytes": 61379484672,
+            "sampled_busiest_device_bytes_including_reservation": 79263694848
+          },
+          "training_windows": {
+            "logged_interval_seconds": 484.0,
+            "samples": 3315,
+            "sampled_full_tree_peak_pss_bytes": 48404155392,
+            "sampled_busiest_device_bytes_including_reservation": 85894234112
+          },
+          "validation_and_publication": {
+            "logged_interval_seconds": 209.0,
+            "samples": 1279,
+            "sampled_full_tree_peak_pss_bytes": 64764020736,
+            "sampled_busiest_device_bytes_including_reservation": 79827828736
+          }
+        }
+      }
     },
     "nonpaged55_resume16_v2": {
       "job": "38536844",

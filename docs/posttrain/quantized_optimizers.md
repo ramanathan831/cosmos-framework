@@ -1367,7 +1367,9 @@ all model-specific references belong to optimizer instances. A failing-then-pass
 weakref regression and real CUDA restore checks require retired masters and managed
 buffers to disappear immediately, without garbage collection. Arithmetic and
 checkpoint identities are unchanged. Corrected paged pressure continuation16→32 now passes all16new updates,
-evaluation and publication. The nonpaged correction is being checked separately; see
+evaluation and publication. Corrected nonpaged pressure continuation passes updates17–19 but fails update20
+with a32-MiB allocation request and8.88MiB device free; that pressure row remains
+failed. Resident nonpaged40→80 recovery is separate applicable evidence. See
 [pressure results](evidence/quantized_optimizers_round10/native_pressure_summary.json).
 
 Actual GR00T moments plus metadata occupy **3,304,438,792 bytes**, versus
