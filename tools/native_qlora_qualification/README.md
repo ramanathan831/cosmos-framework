@@ -222,3 +222,38 @@ python -m pytest --noconftest -c /dev/null -q \
 The explicit opt-in requires one real passing CUDA case; a skipped test does not qualify it. The report separates instrumented lifetime/correctness checks from uninstrumented ABBA timings with two warmup and five measured updates per round, two rounds per arm. Both packed test models remain resident, so their allocator peaks are not full-model training footprints. Failed backward terminates the process; in-process retry is unsupported. No-checkpointing, selective checkpointing and compilation are excluded from this mechanism. Any later native integration still needs its own full-model quality, memory, reload/recovery and repeated end-to-end comparison.
 
 Multi-GPU training, other model families, other quantizers and other adapter methods remain outside this qualification.
+
+## Native Alpamayo development analysis
+
+`alpamayo_quality.py` consumes the frozen Alpamayo 512-update study after all nine
+arm/seed runs complete. Pass each native `result.json` with a separate `--run`:
+
+```bash
+python -m tools.native_qlora_qualification.alpamayo_quality \
+  --validation "$COHORT/alpamayo-validation.jsonl" \
+  --manifest "$COHORT/cohort-manifest.json" \
+  --target "$BF16_CALIBRATION/target.json" \
+  --run "$NF4_17/result.json" --run "$NF4_42/result.json" --run "$NF4_123/result.json" \
+  --run "$BF16_17/result.json" --run "$BF16_42/result.json" --run "$BF16_123/result.json" \
+  --run "$HEAD_17/result.json" --run "$HEAD_42/result.json" --run "$HEAD_123/result.json" \
+  --output /new/alpamayo-development-analysis.json
+```
+
+Keep `alpamayo-train.jsonl` beside validation, and retain referenced native
+checkpoints, evaluations, execution protocols and workflow clocks. Admission
+receipts reconstruct the native media-content cursor fingerprint; the JSONL byte
+hash is a different identity. The analyzer validates the trained configuration
+before comparing it with frozen-base calibration metadata.
+
+The protocol fixes equal clip/block/seed weighting, 10,000 crossed seed/block
+draws with seed 70241, and no within-block clip resampling. It reports both the
+fixed update-512 endpoint and the latest published checkpoint at or before the
+earlier NF4/BF16 final-publication time, including each arm's publication lag.
+ADE/FDE relative and absolute guards remain joint requirements. All unreached
+targets remain in the result. Calibration and complete workflow costs are retained
+separately; no attainer-only average or interpolated crossing is produced.
+
+These 32 platform/country/month blocks have unverified recording/event independence.
+Development intervals do not establish final preservation, closed-loop driving,
+serving latency or a population recipe claim. The frozen protocol and existing
+negative results remain unchanged.
