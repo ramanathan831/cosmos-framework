@@ -479,12 +479,24 @@ the uninterrupted run exactly. All 256 final development rows were identical.
 Fresh native DCP and portable loads also matched controlled flow/trajectory
 outputs on indices 0 and 255 and preserved every trained auxiliary tensor.
 The resumed clock is explicitly current-process-only; the quality target remains
-unreached. BF16 mature recovery and standalone 512-update artifact qualification
-remain separate checks.
+unreached. Matched BF16 mature recovery subsequently passed in `38528271` with
+the same exact model/optimizer/control, 128-update, full-256-row and fresh
+checkpoint/portable checks. Its scheduler completed normally in 2,304 GPU-seconds;
+the controller's brief completing state and subsequent record purge were
+reconciled against the successful full-user queue and terminal accounting. No
+cancellation was needed. Its 42 hash-listed receipts plus inventory are preserved,
+with the later allocation-release proof separate from that archive.
 
-The native qualification finished successfully, but Slurm retained the allocation
-after reporting completion. Only that owned allocation was cancelled after its
-42 hash-listed receipt files had been verified. Final scheduler status is
+BF16 recovery's sampled owned-GPU peak was 76.543 GiB and host RSS was 43.740 GiB.
+One membership-transition sample leaves whole-run host PSS incomplete. These are
+recovery measurements, distinct from the original 512-update training peaks;
+they are not a new paired performance comparison. Standalone 512-update artifact
+qualification and final-build cache/observation checks remain separate work.
+
+The earlier NF4 qualification (`38525895`) finished successfully, but Slurm
+retained its allocation after reporting completion. Only that allocation was
+cancelled after its 42 hash-listed receipt files had been verified. Final scheduler
+status is
 **CANCELLED after completed scientific work**, with **2,602 GPU-seconds**, including
 379 seconds beyond the preliminary 2,223-second accounting record. The archive
 has those 42 receipts plus their inventory; the later cleanup receipt preserves
