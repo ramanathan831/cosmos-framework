@@ -309,7 +309,7 @@ class Gr00tN1d7TrainPolicy:
         return {**self.config.identity(), "source": dict(self._ppo_source_identity)}
 
     def ppo_frozen_state(self) -> dict[str, str]:
-        if self.config.backbone_buffer_dtype is None:
+        if self.config.backbone_buffer_dtype is None and not getattr(self, "verify_frozen_state", False):
             return {}
         import hashlib
 
