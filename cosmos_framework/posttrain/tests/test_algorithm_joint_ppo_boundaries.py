@@ -143,8 +143,10 @@ def test_timeout_targets_preserve_reset_observations_and_libero_failure_rewards(
         collector.close()
 
 
-def test_reference_shuffle_is_fixed_across_publications_and_checkpoint_resume(tmp_path):
+@pytest.mark.parametrize("update_policy", ["parameter", "fp32_master"])
+def test_reference_shuffle_is_fixed_across_publications_and_checkpoint_resume(tmp_path, update_policy):
     recipe = JointPPOConfig(num_envs=2, window_decisions=4, global_minibatch=4, microbatch=1)
+    recipe.optimizer.update_policy = update_policy
     model, session = RecordingPolicy(), GaussianSession()
     learner = JointPPOTrainer(model, recipe)
     collector = _collector(model, recipe)
@@ -166,12 +168,14 @@ def test_reference_shuffle_is_fixed_across_publications_and_checkpoint_resume(tm
     restored_collector = None
     try:
         first = train_window(learner, collector, session, 0)
+        checkpoint_state = learner.evaluation_state()
         checkpoint = str(tmp_path / "checkpoint")
         save_policy_checkpoint(learner, checkpoint, data=collector)
         second = train_window(learner, collector, session, 1)
         learner.finalize_checkpoints()
         restored = JointPPOTrainer(RecordingPolicy(), recipe)
         restored.load(checkpoint)
+        assert restored.evaluation_state() == checkpoint_state
         restored_collector = _collector(restored.model, recipe)
         restored_collector.load_state_dict(restored.checkpoint_manager.load_component(checkpoint, "data"))
         resumed = train_window(restored, restored_collector, GaussianSession(), 1)
