@@ -183,11 +183,17 @@ def test_actual_flow_reaches_adapters_and_auxiliary_heads(tmp_path, checkpointin
     )
 
 
-def test_native_dense_meta_reconstruction_after_real_task_updates(tmp_path):
+@pytest.mark.parametrize("unmerged", [False, True])
+def test_native_dense_meta_reconstruction_after_real_task_updates(tmp_path, unmerged):
     from accelerate import init_empty_weights
 
     from cosmos_framework.posttrain.checkpoint.adapter import save_adapter_artifact
-    from cosmos_framework.posttrain.checkpoint.family_dense import export_family_dense, load_family_dense
+    from cosmos_framework.posttrain.checkpoint.family_dense import (
+        export_family_dense,
+        export_family_unmerged,
+        load_family_dense,
+        load_family_unmerged,
+    )
     from cosmos_framework.posttrain.checkpoint.manager import CheckpointManager
     from cosmos_framework.posttrain.model.alpamayo.policy import AlpamayoSFTNet
 
@@ -227,22 +233,26 @@ def test_native_dense_meta_reconstruction_after_real_task_updates(tmp_path):
         manager=CheckpointManager(checkpoint_format="consolidated"),
     )
     destination = tmp_path / "dense"
-    export_family_dense(
+    export = export_family_unmerged if unmerged else export_family_dense
+    load = load_family_unmerged if unmerged else load_family_dense
+    export(
         net,
         checkpoint=checkpoint,
         output=str(destination),
-        merged_backbone_dtype="bfloat16",
+        **({} if unmerged else {"merged_backbone_dtype": "bfloat16"}),
         exporter_build={"code_revision": "a" * 40, "wheel_sha256": "b" * 64},
         max_shard_size_bytes=65536,
     )
     with init_empty_weights(include_buffers=False):
         reconstructed = AlpamayoSFTNet(net.config)
     assert all(parameter.is_meta for parameter in reconstructed.parameters())
-    load_family_dense(reconstructed, destination, device="cpu", expected_identity=state.codec.identity)
+    rng = torch.get_rng_state().clone()
+    load(reconstructed, destination, device="cpu", expected_identity=state.codec.identity)
+    assert torch.equal(rng, torch.get_rng_state())
     assert not any(parameter.is_meta or parameter.requires_grad for parameter in reconstructed.parameters())
     for name in auxiliary:
         torch.testing.assert_close(reconstructed.get_parameter(name), net.get_parameter(name), atol=0, rtol=0)
     prediction = AlpamayoSFTPolicy(reconstructed).flow_matching_loss(data).prediction.detach()
     # BF16 weight merge changes arithmetic: this is a bounded tiny-output check,
     # not exact adapter parity and not a real driving task-quality qualification.
-    torch.testing.assert_close(prediction, reference, atol=2e-3, rtol=2e-2)
+    torch.testing.assert_close(prediction, reference, atol=0 if unmerged else 2e-3, rtol=0 if unmerged else 2e-2)

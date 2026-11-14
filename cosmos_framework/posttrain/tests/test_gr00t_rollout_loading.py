@@ -173,6 +173,40 @@ def test_dense_dispatch_remains_native_and_refuses_official_head_before_loading(
     assert calls == [DENSE]
 
 
+def test_unmerged_dispatch_is_explicit_and_does_not_load_original_base_or_portable(tmp_path, monkeypatch):
+    from cosmos_framework.posttrain.checkpoint import adapter
+    from cosmos_framework.posttrain.entrypoints import action_sft
+
+    calls, expected = [], object()
+
+    def factory(path):
+        assert path == DENSE
+
+        def load(config, artifact, **kwargs):
+            calls.append((artifact, kwargs))
+            return expected
+
+        return load
+
+    monkeypatch.setattr(action_sft, "_factory", factory)
+    monkeypatch.setattr(
+        adapter, "read_adapter_metadata", lambda *a, **k: pytest.fail("unmerged read a portable artifact")
+    )
+    monkeypatch.setattr(adapter, "load_adapter_weights", lambda *a, **k: pytest.fail("unmerged loaded original base"))
+    assert (
+        load_rollout_policy(configuration("nf4_lora"), "artifact", device="cpu", output=tmp_path, unmerged=True)
+        is expected
+    )
+    assert calls == [("artifact", {"device": "cpu", "output": tmp_path, "unmerged": True})]
+    with pytest.raises(ValueError, match="unavailable"):
+        load_rollout_policy(configuration("official"), "artifact", device="cpu", output=tmp_path, unmerged=True)
+    for kwargs in ({"dense": True}, {"base": True}):
+        with pytest.raises(ValueError, match="exactly one"):
+            load_rollout_policy(
+                configuration("nf4_lora"), "artifact", device="cpu", output=tmp_path, unmerged=True, **kwargs
+            )
+
+
 def test_unknown_policy_factory_fails_before_artifact_or_model_access(tmp_path):
     config = SimpleNamespace(policy_factory="unknown.policy", dense_policy_factory="")
     with pytest.raises(ValueError, match="explicit native"):
@@ -243,7 +277,16 @@ def test_source_selection_is_explicit_and_exclusive(tmp_path, checkpoint, base, 
         )
 
 
-@pytest.mark.parametrize("source_args", [[], ["--base", "--checkpoint", "artifact"], ["--base", "--dense"]])
+@pytest.mark.parametrize(
+    "source_args",
+    [
+        [],
+        ["--base", "--checkpoint", "artifact"],
+        ["--base", "--dense"],
+        ["--base", "--unmerged"],
+        ["--checkpoint", "artifact", "--dense", "--unmerged"],
+    ],
+)
 def test_cli_rejects_ambiguous_source_without_initializing_cuda(monkeypatch, source_args):
     import sys
 

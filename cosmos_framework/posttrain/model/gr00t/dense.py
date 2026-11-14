@@ -72,12 +72,17 @@ def _task_identity(config, root):
     return result
 
 
-def build_policy(config, artifact, *, device, output):
+def build_policy(config, artifact, *, device, output, unmerged=False):
     """Restore complete native policy on the framework-owned device without source-base loading."""
     import torch
 
     from cosmos_framework.posttrain.checkpoint.adapter import _require_subset
-    from cosmos_framework.posttrain.checkpoint.family_dense import load_family_dense, read_family_dense
+    from cosmos_framework.posttrain.checkpoint.family_dense import (
+        load_family_dense,
+        load_family_unmerged,
+        read_family_dense,
+        read_family_unmerged,
+    )
     from cosmos_framework.posttrain.model.gr00t.action_sft import Gr00tActionPacker
     from cosmos_framework.posttrain.model.gr00t.adaptation import _construct_meta, resolve_language_targets
     from cosmos_framework.posttrain.model.gr00t.policy import OFFICIAL_PRECISION, Gr00tN1d7TrainPolicy, load_processor
@@ -88,13 +93,19 @@ def build_policy(config, artifact, *, device, output):
     model = copy.deepcopy(instantiate(config.model))
     root = Path(artifact).resolve()
     # Verification occurs before any tokenizer/model constructor reads artifact sidecars.
-    manifest = read_family_dense(str(root))
+    read_artifact = read_family_unmerged if unmerged else read_family_dense
+    load_artifact = load_family_unmerged if unmerged else load_family_dense
+    manifest = read_artifact(str(root))
     expected = {
         "base": recorded_source(),
         "task_contract": _task_identity(model, root),
         "torch_version": torch.__version__,
         "dependencies": {name: version(name) for name in ("transformers", "safetensors")},
     }
+    if unmerged:
+        expected["adapter"] = {
+            name: getattr(model.backbone_adaptation, name) for name in ("mode", "rank", "alpha", "dropout", "seed")
+        }
     _require_subset(manifest["source_metadata"]["identity"], expected)
     task = manifest["source_metadata"]["identity"]["task_contract"]
     precision = task["precision"]
@@ -119,7 +130,7 @@ def build_policy(config, artifact, *, device, output):
         for name, parameter in net.named_parameters()
         if parameter.ndim == 5 and parameter.is_contiguous(memory_format=torch.channels_last_3d)
     ]
-    load_family_dense(net, str(root), device=torch.device(device), expected_identity=expected, manifest=manifest)
+    load_artifact(net, str(root), device=torch.device(device), expected_identity=expected, manifest=manifest)
     with torch.no_grad():
         for name in channels_last:
             parameter = net.get_parameter(name)
@@ -137,5 +148,8 @@ def build_policy(config, artifact, *, device, output):
     policy.packer = Gr00tActionPacker(
         model.checkpoint_path, model, training_prefix=model.training_prefix, action_dim=model.action_dim
     )
-    policy.dense_manifest = manifest
+    if unmerged:
+        policy.unmerged_manifest = manifest
+    else:
+        policy.dense_manifest = manifest
     return policy

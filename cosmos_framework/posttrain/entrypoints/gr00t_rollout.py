@@ -12,14 +12,14 @@ from dataclasses import asdict
 from pathlib import Path
 
 
-def load_rollout_policy(config, checkpoint=None, *, device, output, dense=False, base=False):
+def load_rollout_policy(config, checkpoint=None, *, device, output, dense=False, base=False, unmerged=False):
     """Load a declared native source or complete trained policy through its factory.
 
     Read and verify the committed artifact before allocating the immutable base.
     The constructed codec then checks every numerical identity and trained tensor;
     selecting the official head control must never dispatch the LoRA constructor.
     """
-    if bool(checkpoint) == bool(base) or (dense and base):
+    if bool(checkpoint) == bool(base) or ((dense or unmerged) and base) or (dense and unmerged):
         raise ValueError("choose exactly one native checkpoint or explicit --base; --dense requires a checkpoint")
     from cosmos_framework.posttrain.checkpoint.adapter import load_adapter_weights, read_adapter_metadata
     from cosmos_framework.posttrain.checkpoint.manager import CheckpointManager
@@ -37,12 +37,13 @@ def load_rollout_policy(config, checkpoint=None, *, device, output, dense=False,
         mode = getattr(adaptation, "mode", None)
         if mode not in {"bf16_frozen", "nf4_frozen"}:
             raise ValueError("GR00T source rollout requires bf16_frozen or nf4_frozen; LoRA requires an artifact")
-    if dense:
+    if dense or unmerged:
         if config.policy_factory != matched or config.dense_policy_factory != (
             "cosmos_framework.posttrain.model.gr00t.dense.build_policy"
         ):
             raise ValueError("GR00T dense rollout is unavailable for the official-head control")
-        return _factory(config.dense_policy_factory)(config, checkpoint, device=device, output=output)
+        options = {"unmerged": True} if unmerged else {}
+        return _factory(config.dense_policy_factory)(config, checkpoint, device=device, output=output, **options)
     expected = {
         "format": "cosmos.family-backbone.v1" if config.policy_factory == matched else "cosmos.gr00t-official-head.v1",
         "base": recorded_source(),
@@ -86,7 +87,11 @@ def main():
     source.add_argument(
         "--base", action="store_true", help="Evaluate the pinned source without an adapter/head artifact"
     )
-    parser.add_argument("--dense", action="store_true")
+    representation = parser.add_mutually_exclusive_group()
+    representation.add_argument("--dense", action="store_true")
+    representation.add_argument(
+        "--unmerged", action="store_true", help="Load a self-contained dequantized-unmerged native LoRA artifact"
+    )
     parser.add_argument("--sim-python", required=True)
     parser.add_argument("--cases", required=True, help="Prospectively frozen JSON list of LiberoCase mappings")
     parser.add_argument("--seed", type=int, required=True)
@@ -95,8 +100,10 @@ def main():
     args, rest = parser.parse_known_args()
     if args.latency_warmup_calls < 0:
         parser.error("--latency-warmup-calls must be nonnegative")
-    if args.dense and args.base:
-        parser.error("--dense requires --checkpoint; source evaluation does not export or fabricate an artifact")
+    if (args.dense or args.unmerged) and args.base:
+        parser.error(
+            "--dense/--unmerged requires --checkpoint; source evaluation does not export or fabricate an artifact"
+        )
     opts = rest[1:] if rest and rest[0] == "--" else rest
     if any("=" not in item for item in opts):
         parser.error("configuration overrides require key=value")
@@ -136,7 +143,13 @@ def main():
     try:
         output.mkdir(parents=True)
         policy = load_rollout_policy(
-            config, args.checkpoint, device=device, output=output, dense=args.dense, base=args.base
+            config,
+            args.checkpoint,
+            device=device,
+            output=output,
+            dense=args.dense,
+            base=args.base,
+            unmerged=args.unmerged,
         )
         policy_loading_seconds = time.monotonic() - started
         rollout = NativeArtifactRollout(policy, latency_capacity=32 * len(cases))
@@ -182,10 +195,14 @@ def main():
                 "dense": args.dense,
                 "artifact_kind": "fresh-frozen-base"
                 if args.base
+                else "dequantized-unmerged-native-lora"
+                if args.unmerged
                 else "effective-base-dense"
                 if args.dense
                 else "same-base-trained-policy",
-                "model_identity": policy.dense_manifest["source_metadata"]["identity"]
+                "model_identity": policy.unmerged_manifest["source_metadata"]["identity"]
+                if args.unmerged
+                else policy.dense_manifest["source_metadata"]["identity"]
                 if args.dense
                 else policy.net._cosmos_adapter_checkpoint_codec.identity,
                 "cases": [asdict(case) for case in cases],

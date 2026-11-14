@@ -60,11 +60,11 @@ class AliasedTaskNet(TaskNet):
         return super().forward(x + self.embedding(torch.zeros(x.shape[0], dtype=torch.int64, device=x.device)))
 
 
-def _prepared(tmp_path, *, mode="bf16_lora", net=None):
+def _prepared(tmp_path, *, mode="bf16_lora", net=None, dropout=0.0):
     net = TaskNet() if net is None else net
     state = install_family_backbone(
         net,
-        config=FamilyBackboneConfig(mode=mode, rank=2, alpha=4, seed=7),
+        config=FamilyBackboneConfig(mode=mode, rank=2, alpha=4, seed=7, dropout=dropout),
         targets={"backbone": (4, 3)},
         auxiliary_parameters=("head.weight", "head.bias"),
         source_identity={"repository": "fixture/native-action", "revision": "a" * 40},
@@ -132,6 +132,15 @@ def test_dense_export_preserves_native_task_heads_buffers_and_exact_declared_mer
     assert manifest["resumable_training_checkpoint"] is False
     assert manifest["native_loader_required"] is True
     assert manifest["source_metadata"] == read_adapter_metadata(source)
+    assert manifest["numerical_contract"] == {
+        "base": "W_bf16",
+        "merge": "effective_base + (alpha/rank) * B @ A" if mode.endswith("_lora") else "effective_base",
+        "accumulation_dtype": "float32",
+        "merge_device": "cpu",
+        "merged_backbone_dtype": dtype,
+        "other_parameters_and_buffers": "preserve_native_dtype",
+        "requantized": False,
+    }
     assert not any("lora_" in name for name in manifest["tensors"])
     state.validate_frozen_base()
 

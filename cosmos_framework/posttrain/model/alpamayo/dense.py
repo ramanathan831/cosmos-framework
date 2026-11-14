@@ -53,12 +53,17 @@ def _recorded_base(identity):
     return base
 
 
-def build_dense_policy(config, artifact, *, device, output=None):
+def build_dense_policy(config, artifact, *, device, output=None, unmerged=False):
     """Native action_eval factory; materialize one dense parameter at a time from meta."""
     import torch
     from accelerate import init_empty_weights
 
-    from cosmos_framework.posttrain.checkpoint.family_dense import load_family_dense, read_family_dense
+    from cosmos_framework.posttrain.checkpoint.family_dense import (
+        load_family_dense,
+        load_family_unmerged,
+        read_family_dense,
+        read_family_unmerged,
+    )
     from cosmos_framework.posttrain.model.alpamayo.policy import AlpamayoSFTNet, AlpamayoSFTPolicy, external_identity
     from cosmos_framework.posttrain.model.alpamayo.runtime import bind_rotary_aliases
     from cosmos_framework.posttrain.model.alpamayo.sft import AlpamayoSFTPacker, source_config
@@ -67,7 +72,9 @@ def build_dense_policy(config, artifact, *, device, output=None):
     cfg = instantiate(config.model)
     cfg.__post_init__()
     root = Path(artifact)
-    manifest = read_family_dense(root)
+    read_artifact = read_family_unmerged if unmerged else read_family_dense
+    load_artifact = load_family_unmerged if unmerged else load_family_dense
+    manifest = read_artifact(root)
     identity = manifest["source_metadata"]["identity"]
     if identity.get("task_contract", {}).get("family") != "alpamayo-r1-trajectory-only-v1":
         raise ValueError("dense artifact is not an Alpamayo native trajectory policy")
@@ -112,11 +119,14 @@ def build_dense_policy(config, artifact, *, device, output=None):
         "torch_version": torch.__version__,
         "dependencies": {name: version(name) for name in ("transformers", "safetensors")},
     }
-    load_family_dense(net, root, device=device, expected_identity=expected, manifest=manifest)
+    load_artifact(net, root, device=device, expected_identity=expected, manifest=manifest)
     bind_rotary_aliases(net)
     if any(parameter.requires_grad or parameter.is_meta for parameter in net.parameters()):
         raise RuntimeError("dense Alpamayo inference load left trainable or unmaterialized parameters")
     policy = AlpamayoSFTPolicy(net)
     policy.config, policy.packer = local_cfg, packer
-    policy.dense_manifest = manifest
+    if unmerged:
+        policy.unmerged_manifest = manifest
+    else:
+        policy.dense_manifest = manifest
     return policy

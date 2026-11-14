@@ -10,6 +10,8 @@ Parameter again after native reload; quantized targets and trainable auxiliaries
 must remain unaliased.
 The artifact requires its family-owned constructor/processor, not a generic HF
 language-model loader. It is deliberately not a training-resume checkpoint.
+The distinct unmerged format preserves actual BF16 effective weights and exact
+FP32 LoRA factors, reconstructing the native separate operations for inference.
 """
 
 from __future__ import annotations
@@ -38,10 +40,12 @@ from cosmos_framework.posttrain.checkpoint.dense_adapter import (
 from cosmos_framework.posttrain.checkpoint.io import atomic_write_json, fsync_directory
 from cosmos_framework.posttrain.checkpoint.provenance import checkpoint_inventory_signature
 from cosmos_framework.posttrain.model.quantization.loader import tensor_digest
-from cosmos_framework.utils.generator.lora import NativeLoRAMixin
+from cosmos_framework.utils.generator.lora import LoraInjectedLinear, NativeLoRAMixin
 
 FAMILY_DENSE_MANIFEST = "cosmos_family_dense_export.json"
 FAMILY_DENSE_PROTOCOL = "cosmos.native-family-dense-export.v1"
+FAMILY_UNMERGED_MANIFEST = "cosmos_family_unmerged_export.json"
+FAMILY_UNMERGED_PROTOCOL = "cosmos.native-family-unmerged-export.v1"
 _DTYPES = {
     name: getattr(torch, name)
     for name in ("bfloat16", "float32", "float64", "float16", "int64", "int32", "int16", "int8", "uint8", "bool")
@@ -86,7 +90,7 @@ def _sidecar_sources(sidecars: Mapping[str, str] | None) -> dict[str, Path]:
             or relative.is_absolute()
             or any(part in {".", ".."} for part in relative.parts)
             or str(relative) != name
-            or name in {FAMILY_DENSE_MANIFEST, "model.safetensors.index.json"}
+            or name in {FAMILY_DENSE_MANIFEST, FAMILY_UNMERGED_MANIFEST, "model.safetensors.index.json"}
             or name.endswith(".safetensors")
         ):
             raise ValueError(f"invalid family dense sidecar path: {name!r}")
@@ -99,7 +103,7 @@ def _sidecar_sources(sidecars: Mapping[str, str] | None) -> dict[str, Path]:
     return result
 
 
-def _validate_source_inventory(manifest: Mapping[str, Any]) -> None:
+def _validate_source_inventory(manifest: Mapping[str, Any], *, unmerged: bool = False) -> None:
     from cosmos_framework.posttrain.model.checkpoint import ADAPTER_CHECKPOINT_PROTOCOL
 
     metadata, tensors = manifest["source_metadata"], manifest["tensors"]
@@ -128,7 +132,15 @@ def _validate_source_inventory(manifest: Mapping[str, Any]) -> None:
             raise ValueError(f"family dense trained tensor metadata differs: {name}")
         if record["dtype"] != "float32" or re.fullmatch(r"[0-9a-f]{64}", record["sha256"]) is None:
             raise ValueError(f"family dense trained tensor precision/digest differs: {name}")
-    expected_parameters = set(identity["frozen_tensors"]) | targets | auxiliaries
+    if unmerged:
+        for name, (out_features, in_features) in identity["targets"].items():
+            for factor, shape in (
+                ("A", [identity["adapter"]["rank"], in_features]),
+                ("B", [out_features, identity["adapter"]["rank"]]),
+            ):
+                if trained[f"{name}.lora_{factor}.weight"]["shape"] != shape:
+                    raise ValueError(f"unmerged adapter shape differs from its target and rank: {name}")
+    expected_parameters = set(identity["frozen_tensors"]) | targets | auxiliaries | (adapters if unmerged else set())
     if {name for name, record in tensors.items() if record["kind"] == "parameter"} != expected_parameters:
         raise ValueError("family dense parameter inventory differs from the source family")
     if {name for name, record in tensors.items() if record["kind"] == "buffer"} != set(identity["base_buffers"]):
@@ -161,7 +173,7 @@ def _validate_source_inventory(manifest: Mapping[str, Any]) -> None:
         digest = {key: record[key] for key in ("shape", "dtype", "sha256")}
         expected = (
             trained[name]
-            if name in auxiliaries
+            if name in auxiliaries or (unmerged and name in adapters)
             else identity["base_buffers"][name]
             if record["kind"] == "buffer"
             else identity["frozen_tensors"].get(name)
@@ -171,11 +183,13 @@ def _validate_source_inventory(manifest: Mapping[str, Any]) -> None:
         if expected is not None and digest != {key: expected[key] for key in ("shape", "dtype", "sha256")}:
             raise ValueError(f"family dense changed a preserved head/base/buffer tensor: {name}")
         if name in targets:
-            if (
-                record["shape"] != identity["targets"][name.removesuffix(".weight")]
-                or record["dtype"] != manifest["numerical_contract"]["merged_backbone_dtype"]
+            if record["shape"] != identity["targets"][name.removesuffix(".weight")] or record["dtype"] != (
+                "bfloat16" if unmerged else manifest["numerical_contract"]["merged_backbone_dtype"]
             ):
                 raise ValueError(f"family dense target shape/output dtype differs: {name}")
+            if unmerged and identity["quantization"] is None:
+                if digest != {key: identity["frozen_tensors"][name][key] for key in ("shape", "dtype", "sha256")}:
+                    raise ValueError(f"unmerged BF16 target changed its frozen source values: {name}")
 
 
 def _buffers(net: nn.Module) -> dict[str, tuple[nn.Module, str, torch.Tensor, bool]]:
@@ -222,7 +236,7 @@ def _mixed_shard_plan(inventory: Mapping[str, Mapping[str, Any]], max_bytes: int
     }
 
 
-def _inventory(net: nn.Module, identity: Mapping[str, Any], dtype: str):
+def _inventory(net: nn.Module, identity: Mapping[str, Any], dtype: str, *, unmerged: bool = False):
     parameters = dict(net.named_parameters(remove_duplicate=False))
     buffers = _buffers(net)
     alias_names = {name for group in _parameter_aliases(parameters) for name in group}
@@ -245,7 +259,7 @@ def _inventory(net: nn.Module, identity: Mapping[str, Any], dtype: str):
         raise ValueError("family dense native buffers differ from the source identity")
     inventory = {}
     for name, parameter in parameters.items():
-        if name in adapter_names:
+        if name in adapter_names and not unmerged:
             continue
         target = name.removesuffix(".weight") if name.endswith(".weight") else None
         inventory[name] = {
@@ -263,8 +277,10 @@ def _inventory(net: nn.Module, identity: Mapping[str, Any], dtype: str):
     return inventory, parameters, buffers, modules
 
 
-def _dense_values(net: nn.Module, identity: Mapping[str, Any], dtype: str) -> Iterator[tuple[str, torch.Tensor]]:
-    inventory, parameters, buffers, modules = _inventory(net, identity, dtype)
+def _dense_values(
+    net: nn.Module, identity: Mapping[str, Any], dtype: str, *, unmerged: bool = False
+) -> Iterator[tuple[str, torch.Tensor]]:
+    inventory, parameters, buffers, modules = _inventory(net, identity, dtype, unmerged=unmerged)
     for name in sorted(inventory):
         target = name.removesuffix(".weight") if name.endswith(".weight") else None
         if target in modules:
@@ -272,13 +288,18 @@ def _dense_values(net: nn.Module, identity: Mapping[str, Any], dtype: str) -> It
             if isinstance(module, NativeLoRAMixin):
                 effective = _effective_weight(module)
                 try:
-                    value = merge_effective_weight(
-                        effective,
-                        module.lora_A.weight,
-                        module.lora_B.weight,
-                        scale=module._lora_scale,
-                        dtype=_DTYPES[dtype],
-                    )
+                    if unmerged:
+                        if effective.dtype != torch.bfloat16:
+                            raise ValueError("unmerged export requires the actual BF16 effective base")
+                        value = effective.to(device="cpu", copy=True)
+                    else:
+                        value = merge_effective_weight(
+                            effective,
+                            module.lora_A.weight,
+                            module.lora_B.weight,
+                            scale=module._lora_scale,
+                            dtype=_DTYPES[dtype],
+                        )
                 finally:
                     del effective
             elif type(module) is nn.Linear:
@@ -303,7 +324,7 @@ def _dense_values(net: nn.Module, identity: Mapping[str, Any], dtype: str) -> It
 
 
 @torch.no_grad()
-def export_family_dense(
+def _export_family_artifact(
     net: nn.Module,
     *,
     checkpoint: str,
@@ -312,6 +333,7 @@ def export_family_dense(
     exporter_build: Mapping[str, str],
     max_shard_size_bytes: int = DEFAULT_MAX_SHARD_SIZE_BYTES,
     sidecars: Mapping[str, str] | None = None,
+    unmerged: bool = False,
 ) -> dict[str, Any]:
     """Load a committed trained policy, stream the effective-base merge, commit last.
 
@@ -346,12 +368,31 @@ def export_family_dense(
         raise ValueError("family dense export requires the constructed native adapter policy")
     load_adapter_weights(checkpoint, codec, manager=CheckpointManager(checkpoint_format="dcp"))
     trained = {name: tensor_digest(value) for name, value in codec.parameters.items()}
-    inventory, parameters, _, _ = _inventory(net, identity, merged_backbone_dtype)
+    if unmerged:
+        _require_unmerged_identity(identity)
+        for name in identity["targets"]:
+            module = net.get_submodule(name)
+            if (
+                not isinstance(module, NativeLoRAMixin)
+                or module._lora_use_rslora
+                or module._lora_rank != identity["adapter"]["rank"]
+                or module._lora_alpha != identity["adapter"]["alpha"]
+                or module._adapter_compute_dtype not in (None, torch.float32)
+                or module.lora_A.weight.dtype != torch.float32
+                or module.lora_B.weight.dtype != torch.float32
+                or (type(module.lora_dropout) is nn.Identity and identity["adapter"]["dropout"] != 0)
+                or (type(module.lora_dropout) is nn.Dropout and module.lora_dropout.p != identity["adapter"]["dropout"])
+                or type(module.lora_dropout) not in (nn.Identity, nn.Dropout)
+            ):
+                raise ValueError("unmerged export requires the original ordinary native FP32-adapter arithmetic")
+    inventory, parameters, _, _ = _inventory(net, identity, merged_backbone_dtype, unmerged=unmerged)
     aliases = _parameter_aliases(parameters)
     weight_map = _mixed_shard_plan(inventory, max_shard_size_bytes)
     root.mkdir(parents=False, exist_ok=False)
     fsync_directory(str(root.parent))
-    records, total = _write_dense_shards(root, _dense_values(net, identity, merged_backbone_dtype), weight_map)
+    records, total = _write_dense_shards(
+        root, _dense_values(net, identity, merged_backbone_dtype, unmerged=unmerged), weight_map
+    )
     tensors = {name: {**record, **inventory[name]} for name, record in records.items()}
     atomic_write_json(
         str(root / "model.safetensors.index.json"), {"metadata": {"total_size": total}, "weight_map": weight_map}
@@ -374,24 +415,14 @@ def export_family_dense(
     if checkpoint_inventory_signature(checkpoint) != before:
         raise RuntimeError("family source checkpoint changed during dense export")
     manifest = {
-        "protocol": FAMILY_DENSE_PROTOCOL,
+        "protocol": FAMILY_UNMERGED_PROTOCOL if unmerged else FAMILY_DENSE_PROTOCOL,
         "complete": True,
-        "format": "cosmos_native_family_safetensors",
+        "format": "cosmos_native_family_unmerged_safetensors" if unmerged else "cosmos_native_family_safetensors",
         "source_metadata": metadata,
         "source_metadata_sha256": _digest_json(metadata),
         "trained_tensors": trained,
         "parameter_aliases": aliases,
-        "numerical_contract": {
-            "base": "dequantize(Q(W))" if identity["quantization"] else "W_bf16",
-            "merge": "effective_base + (alpha/rank) * B @ A"
-            if identity["adapter"]["mode"].endswith("_lora")
-            else "effective_base",
-            "accumulation_dtype": "float32",
-            "merge_device": "cpu",
-            "merged_backbone_dtype": merged_backbone_dtype,
-            "other_parameters_and_buffers": "preserve_native_dtype",
-            "requantized": False,
-        },
+        "numerical_contract": _numerical_contract(identity, merged_backbone_dtype, unmerged=unmerged),
         "resumable_training_checkpoint": False,
         "native_loader_required": True,
         "exporter_build": dict(exporter_build),
@@ -406,16 +437,17 @@ def export_family_dense(
             str(path.relative_to(root)): _file_record(path) for path in sorted(root.rglob("*")) if path.is_file()
         },
     }
-    atomic_write_json(str(root / FAMILY_DENSE_MANIFEST), manifest)
+    atomic_write_json(str(root / (FAMILY_UNMERGED_MANIFEST if unmerged else FAMILY_DENSE_MANIFEST)), manifest)
     fsync_directory(str(root))
-    return read_family_dense(root)
+    return _read_family_artifact(root, unmerged=unmerged)
 
 
-def read_family_dense(
+def _read_family_artifact(
     path: str | Path,
     *,
     expected_identity: Mapping[str, Any] | None = None,
     expected_manifest_sha256: str | None = None,
+    unmerged: bool = False,
 ) -> dict[str, Any]:
     """Verify all bytes, inventory and numerical contracts before native construction.
 
@@ -426,7 +458,8 @@ def read_family_dense(
     from safetensors import safe_open
 
     root = Path(path)
-    marker = root / FAMILY_DENSE_MANIFEST
+    manifest_name = FAMILY_UNMERGED_MANIFEST if unmerged else FAMILY_DENSE_MANIFEST
+    marker = root / manifest_name
     if not marker.is_file() or marker.is_symlink():
         raise ValueError("family dense export is incomplete: missing regular commit manifest")
     raw = marker.read_bytes()
@@ -452,7 +485,7 @@ def read_family_dense(
     }
     if (
         set(manifest) != expected_keys
-        or manifest["protocol"] != FAMILY_DENSE_PROTOCOL
+        or manifest["protocol"] != (FAMILY_UNMERGED_PROTOCOL if unmerged else FAMILY_DENSE_PROTOCOL)
         or manifest["complete"] is not True
     ):
         raise ValueError("unsupported or incomplete family dense manifest schema")
@@ -460,27 +493,22 @@ def read_family_dense(
     identity = metadata.get("identity", {})
     numerical = manifest["numerical_contract"]
     if (
-        manifest["format"] != "cosmos_native_family_safetensors"
+        manifest["format"]
+        != ("cosmos_native_family_unmerged_safetensors" if unmerged else "cosmos_native_family_safetensors")
         or manifest["resumable_training_checkpoint"] is not False
         or manifest["native_loader_required"] is not True
         or identity.get("format") != "cosmos.family-backbone.v1"
         or not identity.get("task_contract")
+        or "quantization" not in identity
+        or not isinstance(identity.get("adapter"), dict)
+        or not isinstance(identity["adapter"].get("mode"), str)
         or _digest_json(metadata) != manifest["source_metadata_sha256"]
-        or numerical
-        != {
-            "base": "dequantize(Q(W))" if identity.get("quantization") else "W_bf16",
-            "merge": "effective_base + (alpha/rank) * B @ A"
-            if identity.get("adapter", {}).get("mode", "").endswith("_lora")
-            else "effective_base",
-            "accumulation_dtype": "float32",
-            "merge_device": "cpu",
-            "merged_backbone_dtype": numerical.get("merged_backbone_dtype"),
-            "other_parameters_and_buffers": "preserve_native_dtype",
-            "requantized": False,
-        }
-        or numerical["merged_backbone_dtype"] not in {"bfloat16", "float32"}
+        or numerical != _numerical_contract(identity, numerical.get("merged_backbone_dtype"), unmerged=unmerged)
+        or (not unmerged and numerical["merged_backbone_dtype"] not in {"bfloat16", "float32"})
     ):
         raise ValueError("family dense source or numerical contract differs")
+    if unmerged:
+        _require_unmerged_identity(identity)
     if expected_identity is not None:
         _require_subset(identity, json.loads(json.dumps(dict(expected_identity), allow_nan=False)))
     files, tensors = manifest["files"], manifest["tensors"]
@@ -488,7 +516,7 @@ def read_family_dense(
         raise ValueError("family dense export requires complete file/tensor inventories")
     if {str(member.relative_to(root)) for member in root.rglob("*") if member.is_file()} != {
         *files,
-        FAMILY_DENSE_MANIFEST,
+        manifest_name,
     }:
         raise ValueError("family dense directory membership differs from its committed inventory")
     signatures = _tree_signatures(root)
@@ -513,7 +541,7 @@ def read_family_dense(
             raise ValueError(f"family dense tensor kind is invalid: {name}")
         if set(record) != keys or not isinstance(name, str) or not name or any(not part for part in name.split(".")):
             raise ValueError(f"family dense tensor schema differs: {name}")
-    _validate_source_inventory(manifest)
+    _validate_source_inventory(manifest, unmerged=unmerged)
     index = json.loads((root / "model.safetensors.index.json").read_text())
     weight_map = {name: record["file"] for name, record in tensors.items()}
     sharding = manifest["sharding"]
@@ -562,13 +590,14 @@ def read_family_dense(
 
 
 @torch.no_grad()
-def load_family_dense(
+def _load_family_artifact(
     net: nn.Module,
     path: str | Path,
     *,
     device: torch.device | str,
     expected_identity: Mapping[str, Any],
     manifest: Mapping[str, Any] | None = None,
+    unmerged: bool = False,
 ) -> dict[str, Any]:
     """Install a verified dense artifact into its native, unadapted CPU/meta policy.
 
@@ -584,13 +613,15 @@ def load_family_dense(
 
     if not expected_identity:
         raise ValueError("native family dense loading requires an explicit expected identity")
-    verified = read_family_dense(path, expected_identity=expected_identity)
+    verified = _read_family_artifact(path, expected_identity=expected_identity, unmerged=unmerged)
     if manifest is not None and dict(manifest) != verified:
         raise ValueError("family dense artifact changed after native construction preflight")
     if hasattr(net, "_cosmos_adapter_checkpoint_codec") or any(
         isinstance(module, NativeLoRAMixin) for module in net.modules()
     ):
         raise ValueError("family dense loading requires a fresh unadapted native architecture")
+    if unmerged:
+        _install_unmerged_graph(net, verified)
     parameters = dict(net.named_parameters(remove_duplicate=False))
     buffers = _buffers(net)
     if _parameter_aliases(parameters) != verified["parameter_aliases"]:
@@ -635,5 +666,200 @@ def load_family_dense(
     if _tree_signatures(root) != signatures:
         raise RuntimeError("family dense artifact changed during native load")
     net.eval()
-    net._cosmos_dense_family_identity = verified["source_metadata"]["identity"]
+    if unmerged:
+        net._cosmos_unmerged_family_identity = verified["source_metadata"]["identity"]
+    else:
+        net._cosmos_dense_family_identity = verified["source_metadata"]["identity"]
     return verified
+
+
+def _require_unmerged_identity(identity):
+    adapter = identity.get("adapter", {})
+    if (
+        adapter.get("mode") not in {"nf4_lora", "bf16_lora"}
+        or type(adapter.get("rank")) is not int
+        or adapter["rank"] < 1
+        or type(adapter.get("alpha")) not in (int, float)
+        or not math.isfinite(adapter["alpha"])
+        or adapter["alpha"] <= 0
+        or type(adapter.get("dropout")) not in (int, float)
+        or not 0 <= adapter["dropout"] < 1
+    ):
+        raise ValueError("unmerged deployment requires an ordinary native LoRA family identity")
+    expected_quantization = (
+        {
+            "backend": "bitsandbytes",
+            "backend_version": "0.49.2",
+            "format": "nf4",
+            "block_size": 64,
+            "nested": True,
+            "storage_dtype": "uint8",
+            "compute_dtype": "bfloat16",
+        }
+        if adapter["mode"] == "nf4_lora"
+        else None
+    )
+    if identity.get("quantization") != expected_quantization or identity.get("precision") != {
+        "target_source_cast": "bfloat16",
+        "adapter": "float32",
+        "auxiliary": "float32",
+    }:
+        raise ValueError("unmerged deployment requires the recorded NF4/BF16 base and FP32 adapter/head policy")
+
+
+def _numerical_contract(identity, merged_backbone_dtype, *, unmerged=False):
+    if unmerged:
+        return {
+            "base": "dequantize(Q(W))" if identity.get("quantization") else "W_bf16",
+            "representation": "dequantized_unmerged_native_lora",
+            "effective_backbone_dtype": "bfloat16",
+            "adapter_parameter_dtype": "float32",
+            "adapter_compute": "native_separate_gemms_ambient_autocast",
+            "scaling": "alpha/rank",
+            "addition": "base_output + (alpha/rank) * adapter_output.to(base_output.dtype)",
+            "other_parameters_and_buffers": "preserve_native_dtype",
+            "merged": False,
+            "requantized": False,
+        }
+    return {
+        "base": "dequantize(Q(W))" if identity.get("quantization") else "W_bf16",
+        "merge": "effective_base + (alpha/rank) * B @ A"
+        if identity.get("adapter", {}).get("mode", "").endswith("_lora")
+        else "effective_base",
+        "accumulation_dtype": "float32",
+        "merge_device": "cpu",
+        "merged_backbone_dtype": merged_backbone_dtype,
+        "other_parameters_and_buffers": "preserve_native_dtype",
+        "requantized": False,
+    }
+
+
+def _install_unmerged_graph(net, manifest):
+    """Build only meta adapter structure, consuming no RNG and reading no base weights."""
+    identity = manifest["source_metadata"]["identity"]
+    from cosmos_framework.utils.generator import lora
+
+    if identity.get("implementation", {}).get("adapter") != _file_record(Path(lora.__file__))["sha256"]:
+        raise ValueError("unmerged native adapter arithmetic source differs from the trained policy")
+    adapter = identity["adapter"]
+    parameters = dict(net.named_parameters(remove_duplicate=False))
+    aliases = {name for group in _parameter_aliases(parameters) for name in group}
+    for name, shape in identity["targets"].items():
+        old = net.get_submodule(name)
+        if (
+            type(old) is not nn.Linear
+            or old.bias is not None
+            or list(old.weight.shape) != shape
+            or old.weight.device.type not in {"cpu", "meta"}
+            or f"{name}.weight" in aliases
+        ):
+            raise ValueError(f"unmerged native target requires a matching unaliased CPU/meta Linear: {name}")
+    for name in identity["targets"]:
+        old = net.get_submodule(name)
+        meta = nn.Linear(old.in_features, old.out_features, bias=False, device="meta", dtype=torch.bfloat16)
+        replacement = LoraInjectedLinear(
+            meta, adapter["rank"], adapter["alpha"], dropout=adapter["dropout"], adapter_dtype=torch.float32
+        )
+        replacement.train(old.training)
+        parent, _, leaf = name.rpartition(".")
+        net.get_submodule(parent).register_module(leaf, replacement)
+
+
+def export_family_dense(
+    net: nn.Module,
+    *,
+    checkpoint: str,
+    output: str,
+    merged_backbone_dtype: str,
+    exporter_build: Mapping[str, str],
+    max_shard_size_bytes: int = DEFAULT_MAX_SHARD_SIZE_BYTES,
+    sidecars: Mapping[str, str] | None = None,
+) -> dict[str, Any]:
+    """Publish the existing merged family format; numerical parity is separately qualified."""
+    return _export_family_artifact(
+        net,
+        checkpoint=checkpoint,
+        output=output,
+        merged_backbone_dtype=merged_backbone_dtype,
+        exporter_build=exporter_build,
+        max_shard_size_bytes=max_shard_size_bytes,
+        sidecars=sidecars,
+    )
+
+
+def export_family_unmerged(
+    net: nn.Module,
+    *,
+    checkpoint: str,
+    output: str,
+    exporter_build: Mapping[str, str],
+    max_shard_size_bytes: int = DEFAULT_MAX_SHARD_SIZE_BYTES,
+    sidecars: Mapping[str, str] | None = None,
+) -> dict[str, Any]:
+    """Stream actual BF16 effective bases and exact FP32 factors/heads; no merge or requantization.
+
+    This is an inference-only dense-base native artifact, not four-bit inference.
+    GPU temporary storage is one dequantized matrix; CPU publication holds one
+    output shard plus the current tensor, in addition to the resident source policy.
+    """
+    return _export_family_artifact(
+        net,
+        checkpoint=checkpoint,
+        output=output,
+        merged_backbone_dtype="bfloat16",
+        exporter_build=exporter_build,
+        max_shard_size_bytes=max_shard_size_bytes,
+        sidecars=sidecars,
+        unmerged=True,
+    )
+
+
+def read_family_dense(
+    path: str | Path,
+    *,
+    expected_identity: Mapping[str, Any] | None = None,
+    expected_manifest_sha256: str | None = None,
+) -> dict[str, Any]:
+    return _read_family_artifact(
+        path, expected_identity=expected_identity, expected_manifest_sha256=expected_manifest_sha256
+    )
+
+
+def read_family_unmerged(
+    path: str | Path,
+    *,
+    expected_identity: Mapping[str, Any] | None = None,
+    expected_manifest_sha256: str | None = None,
+) -> dict[str, Any]:
+    return _read_family_artifact(
+        path, expected_identity=expected_identity, expected_manifest_sha256=expected_manifest_sha256, unmerged=True
+    )
+
+
+def load_family_dense(
+    net: nn.Module,
+    path: str | Path,
+    *,
+    device: torch.device | str,
+    expected_identity: Mapping[str, Any],
+    manifest: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    return _load_family_artifact(net, path, device=device, expected_identity=expected_identity, manifest=manifest)
+
+
+def load_family_unmerged(
+    net: nn.Module,
+    path: str | Path,
+    *,
+    device: torch.device | str,
+    expected_identity: Mapping[str, Any],
+    manifest: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Reconstruct the native separate LoRA arithmetic, frozen for inference only.
+
+    No original checkpoint, quantizer, adapter initialization, trainer codec or
+    optimizer is used. Exact task parity remains a measured configuration claim.
+    """
+    return _load_family_artifact(
+        net, path, device=device, expected_identity=expected_identity, manifest=manifest, unmerged=True
+    )

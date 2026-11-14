@@ -30,6 +30,10 @@ def test_explicit_base_scoring_requires_frozen_policy_and_never_substitutes_miss
     validate_source(native, checkpoint=None, dense=False, base=True)
     validate_source(native, checkpoint="/committed", dense=False, base=False)
     validate_source(native, checkpoint="/dense", dense=True, base=False)
+    validate_source(native, checkpoint="/unmerged", dense=False, base=False, unmerged=True)
+    for checkpoint, dense, base in [("/artifact", True, False), (None, False, True), (None, False, False)]:
+        with pytest.raises(ValueError, match="exactly one"):
+            validate_source(native, checkpoint=checkpoint, dense=dense, base=base, unmerged=True)
     for checkpoint, dense, base in [(None, False, False), ("/committed", False, True), (None, True, True)]:
         with pytest.raises(ValueError, match="exactly one"):
             validate_source(native, checkpoint=checkpoint, dense=dense, base=base)
