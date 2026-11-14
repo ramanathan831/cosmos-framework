@@ -14,7 +14,58 @@ import subprocess
 import sys
 import threading
 import time
+from contextlib import contextmanager
 from pathlib import Path
+from types import SimpleNamespace
+
+
+@contextmanager
+def workflow_memory(output):
+    """Sample the launcher and all children, including preflight and restoration."""
+    import pynvml
+
+    from tools.quantized_optimizers.run_deployment import monitor
+
+    pynvml.nvmlInit()
+    stop, threads = threading.Event(), []
+    (output / "memory-scope.json").write_text(
+        json.dumps({"root_pid": os.getpid(), "scope": "launcher_and_all_children_before_preflight_through_delivery"})
+    )
+    try:
+        for index, visible in enumerate(os.environ["CUDA_VISIBLE_DEVICES"].split(",")):
+            handle = (
+                pynvml.nvmlDeviceGetHandleByIndex(int(visible))
+                if visible.isdigit()
+                else pynvml.nvmlDeviceGetHandleByUUID(visible)
+            )
+            thread = threading.Thread(
+                target=monitor,
+                args=(handle, SimpleNamespace(pid=os.getpid()), output / f"memory-gpu{index}.jsonl", stop),
+            )
+            thread.start()
+            threads.append(thread)
+        yield
+    finally:
+        stop.set()
+        for thread in threads:
+            thread.join()
+        pynvml.nvmlShutdown()
+
+
+def checked_phase(command, output, phase, **kwargs):
+    """Sequential launcher phases; native_seconds contains its own nested timers."""
+    started, start_ns, passed = time.monotonic(), time.time_ns(), False
+    try:
+        subprocess.run(command, check=True, **kwargs)
+        passed = True
+    finally:
+        with (output / "launcher-phases.jsonl").open("a") as stream:
+            stream.write(
+                json.dumps(
+                    {"phase": phase, "start_ns": start_ns, "seconds": time.monotonic() - started, "passed": passed}
+                )
+                + "\n"
+            )
 
 
 def source_probe(assets, output):
@@ -102,6 +153,14 @@ def main():
     if args.evaluate_only and not args.resume:
         parser.error("--evaluate-only requires --resume")
     root, output = Path(os.environ["RESOURCE_ROOT"]), Path(os.environ["RESULTS"])
+    if args.source_only:
+        run(args, root, output)
+    else:
+        with workflow_memory(output):
+            run(args, root, output)
+
+
+def run(args, root, output):
     # Allocation identity is needed before interpreting timing differences across
     # scheduler-selected nodes. This records no environment or credential values.
     cpu_models = sorted(
@@ -160,7 +219,7 @@ def main():
     manifests.mkdir()
     for split in ("train", "eval"):
         fixed_manifest(split, "libero_spatial", "legacy_100").write(manifests / f"libero_spatial-{split}.json")
-    subprocess.run(
+    checked_phase(
         [
             sys.executable,
             "-m",
@@ -170,9 +229,10 @@ def main():
             "--output",
             str(output / "model-preflight.json"),
         ],
-        check=True,
+        output,
+        "model_preflight",
     )
-    subprocess.run(
+    checked_phase(
         [
             os.environ["POSTTRAIN_SIM_PYTHON"],
             "-m",
@@ -184,8 +244,9 @@ def main():
             "--output",
             str(output / "sim-preflight.json"),
         ],
+        output,
+        "simulator_preflight",
         env={**os.environ, "PYTHONPATH": os.environ["POSTTRAIN_SIM_PYTHONPATH"]},
-        check=True,
     )
     command = [
         sys.executable,
@@ -212,33 +273,11 @@ def main():
     if args.resume:
         overrides.append(f"rl.resume={args.resume}")
     (output / "command.json").write_text(json.dumps(command + ["--", *overrides], indent=2))
-    subprocess.run(command + ["--validate-manifest", "--", *overrides], check=True)
-    import pynvml
-
-    from tools.quantized_optimizers.run_deployment import monitor
-
-    pynvml.nvmlInit()
+    checked_phase(command + ["--validate-manifest", "--", *overrides], output, "manifest_validation")
     before = time.monotonic()
     with (output / "native.log").open("x") as log:
         process = subprocess.Popen(command + ["--", *overrides], stdout=log, stderr=subprocess.STDOUT)
-        stop = threading.Event()
-        monitors = []
-        for index, visible in enumerate(os.environ["CUDA_VISIBLE_DEVICES"].split(",")):
-            handle = (
-                pynvml.nvmlDeviceGetHandleByIndex(int(visible))
-                if visible.isdigit()
-                else pynvml.nvmlDeviceGetHandleByUUID(visible)
-            )
-            thread = threading.Thread(target=monitor, args=(handle, process, output / f"memory-gpu{index}.jsonl", stop))
-            thread.start()
-            monitors.append(thread)
-        try:
-            code = process.wait()
-        finally:
-            stop.set()
-            for thread in monitors:
-                thread.join()
-            pynvml.nvmlShutdown()
+        code = process.wait()
     (output / "attempt.json").write_text(json.dumps({"returncode": code, "native_seconds": time.monotonic() - before}))
     if code:
         raise SystemExit(code)
