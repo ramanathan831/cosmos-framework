@@ -17,7 +17,15 @@ import torch
 from cosmos_framework.posttrain.roles.trainer import finite
 
 DTYPES = (torch.float16, torch.bfloat16, torch.float32, torch.float64)
+QUALIFIED_TORCH_REVISIONS = (
+    "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+    "70d99e998b4955e0049d13a98d77ae1b14db1f45",
+)
 CUDA = pytest.mark.skipif(not torch.cuda.is_available(), reason="requires actual CUDA foreach kernels")
+QUALIFIED_CUDA = pytest.mark.skipif(
+    not torch.cuda.is_available() or getattr(torch.version, "git_version", None) not in QUALIFIED_TORCH_REVISIONS,
+    reason="requires a qualified PyTorch source revision and actual CUDA foreach kernels",
+)
 
 
 def _bytes(tensor: torch.Tensor) -> torch.Tensor:
@@ -93,8 +101,51 @@ def test_cpu_gradient_path_keeps_elementwise_semantics(dtype, fault, monkeypatch
 def test_grouped_reduction_contract_with_cpu_norms(dtype, fault, monkeypatch):
     # Exercise grouping/immutability on CPU without presenting this as CUDA
     # qualification; the separately marked tests below use actual CUDA kernels.
+    monkeypatch.setattr(torch.version, "git_version", QUALIFIED_TORCH_REVISIONS[0])
     monkeypatch.setattr(finite, "_foreach_finite_eligible", lambda _tensor: True)
     flags = _check_read_only_flags(_edge_gradients(dtype, "cpu", fault))
+    assert bool(flags[torch.device("cpu")]) is (fault == "finite")
+
+
+@pytest.mark.L0
+@pytest.mark.CPU
+@pytest.mark.parametrize("revision", QUALIFIED_TORCH_REVISIONS)
+@pytest.mark.parametrize("fault", ("finite", "nan"))
+def test_qualified_source_revisions_retain_grouped_dispatch(revision, fault, monkeypatch):
+    # This exercises dispatch and CPU arithmetic, not new accelerator qualification.
+    monkeypatch.setattr(torch.version, "git_version", revision)
+    monkeypatch.setattr(finite, "_foreach_finite_eligible", lambda _tensor: True)
+    original = torch._foreach_norm
+    calls = []
+
+    def observed(tensors, order):
+        calls.append((len(tensors), order))
+        return original(tensors, order)
+
+    monkeypatch.setattr(torch, "_foreach_norm", observed)
+    flags = _check_read_only_flags(_edge_gradients(torch.float32, "cpu", fault))
+    assert bool(flags[torch.device("cpu")]) is (fault == "finite")
+    assert calls == [(3, float("inf"))]
+
+
+@pytest.mark.L0
+@pytest.mark.CPU
+@pytest.mark.parametrize(
+    "revision", (None, "", "unqualified-torch-2.13-source", QUALIFIED_TORCH_REVISIONS[0] + "-dirty")
+)
+@pytest.mark.parametrize("fault", ("finite", "nan", "negative_inf"))
+def test_unqualified_source_uses_original_predicate_before_grouping(revision, fault, monkeypatch):
+    if revision is None:
+        monkeypatch.delattr(torch.version, "git_version")
+    else:
+        monkeypatch.setattr(torch.version, "git_version", revision)
+
+    def unexpected(*_args, **_kwargs):
+        pytest.fail("unqualified builds must not select or execute grouped CUDA reductions")
+
+    monkeypatch.setattr(finite, "_foreach_finite_eligible", unexpected)
+    monkeypatch.setattr(torch, "_foreach_norm", unexpected)
+    flags = _check_read_only_flags(_edge_gradients(torch.float64, "cpu", fault))
     assert bool(flags[torch.device("cpu")]) is (fault == "finite")
 
 
@@ -183,7 +234,7 @@ def test_two_rank_rejection_missing_and_placement_consensus(tmp_path):
 
 @pytest.mark.L0
 @pytest.mark.GPU
-@CUDA
+@QUALIFIED_CUDA
 @pytest.mark.parametrize("dtype", DTYPES)
 @pytest.mark.parametrize("fault", ("finite", "nan", "positive_inf", "negative_inf"))
 def test_cuda_foreach_edges_and_input_immutability(dtype, fault, monkeypatch):
@@ -202,7 +253,7 @@ def test_cuda_foreach_edges_and_input_immutability(dtype, fault, monkeypatch):
 
 @pytest.mark.L0
 @pytest.mark.GPU
-@CUDA
+@QUALIFIED_CUDA
 @pytest.mark.parametrize("dtype", DTYPES)
 def test_cuda_nonfinite_survives_warp_block_and_chunk_boundaries(dtype):
     # Exercise both sides of warp, 512-thread block and 65536-element foreach
@@ -219,7 +270,7 @@ def test_cuda_nonfinite_survives_warp_block_and_chunk_boundaries(dtype):
 
 @pytest.mark.L0
 @pytest.mark.GPU
-@CUDA
+@QUALIFIED_CUDA
 def test_cuda_mixed_groups_fallback_and_multiple_foreach_launches(monkeypatch):
     class TensorSubclass(torch.Tensor):
         pass
@@ -252,8 +303,24 @@ def test_cuda_mixed_groups_fallback_and_multiple_foreach_launches(monkeypatch):
 
 
 @pytest.mark.L0
+@pytest.mark.GPU
+@CUDA
+def test_cuda_unqualified_source_uses_unchanged_elementwise_predicate(monkeypatch):
+    monkeypatch.setattr(torch.version, "git_version", "unqualified-source")
+
+    def unexpected(*_args, **_kwargs):
+        pytest.fail("unqualified CUDA builds must retain the elementwise predicate")
+
+    monkeypatch.setattr(torch, "_foreach_norm", unexpected)
+    for fault in ("finite", "nan", "positive_inf", "negative_inf"):
+        flags = _check_read_only_flags(_edge_gradients(torch.float32, "cuda", fault))
+        assert bool(next(iter(flags.values()))) is (fault == "finite")
+
+
+@pytest.mark.L0
 @pytest.mark.parametrize(
-    "device", [pytest.param("cpu", marks=pytest.mark.CPU), pytest.param("cuda", marks=[pytest.mark.GPU, CUDA])]
+    "device",
+    [pytest.param("cpu", marks=pytest.mark.CPU), pytest.param("cuda", marks=[pytest.mark.GPU, QUALIFIED_CUDA])],
 )
 def test_native_multiupdate_and_recovery_equal_elementwise(device, tmp_path, monkeypatch):
     from cosmos_framework.posttrain.algorithm.primitives.objective import Objective, Reduction
@@ -263,6 +330,7 @@ def test_native_multiupdate_and_recovery_equal_elementwise(device, tmp_path, mon
     if device == "cpu":
         # CPU validates native lifecycle with real CPU foreach reductions; only
         # the separately marked CUDA case qualifies accelerator execution.
+        monkeypatch.setattr(torch.version, "git_version", QUALIFIED_TORCH_REVISIONS[0])
         monkeypatch.setattr(finite, "_foreach_finite_eligible", lambda _tensor: True)
 
     def run(grouped, resume):

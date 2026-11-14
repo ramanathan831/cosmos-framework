@@ -11,6 +11,15 @@ import torch
 
 from cosmos_framework.posttrain.utils.dist import collective_device
 
+# Source-reviewed and accelerator-qualified CUDA foreach LInf implementations.
+# A version label alone does not identify a custom or future kernel build.
+_QUALIFIED_FOREACH_TORCH_REVISIONS = frozenset(
+    {
+        "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",  # Torch 2.10.0
+        "70d99e998b4955e0049d13a98d77ae1b14db1f45",  # Torch 2.11.0
+    }
+)
+
 
 def _local_tensor(tensor: torch.Tensor) -> torch.Tensor:  # tensor: [*], returns [*local shard]
     """Return the local shard for a DTensor, or the tensor itself otherwise."""
@@ -118,7 +127,12 @@ def _gradient_finite_flags_by_device(gradients: Iterable[torch.Tensor]) -> dict[
     Empty, non-contiguous, complex, CPU and tensor-subclass gradients retain the
     existing elementwise path. This optimization is deliberately restricted to
     gradient checks; loss, model and optimizer-state checks remain unchanged.
+    Unqualified or missing PyTorch source revisions also use the original
+    elementwise predicate, without changing gradient precision or placement.
     """
+    if getattr(torch.version, "git_version", None) not in _QUALIFIED_FOREACH_TORCH_REVISIONS:
+        return _finite_flags_by_device(gradients)
+
     groups: dict[tuple[torch.device, torch.dtype], list[torch.Tensor]] = {}
     fallback: list[torch.Tensor] = []
     for gradient in gradients:
