@@ -318,6 +318,39 @@ def test_checkpoint_evaluation_restores_exact_state_without_training_or_resaving
     assert not (attempt["output"] / "windows.jsonl").exists()
     assert not (attempt["output"] / "checkpoints").exists()
     assert allocated[-1][1].state_dict() == allocated[-2][1].state_dict()
+    assert after["checkpoint_provenance"] == summary["checkpoint_provenance"]
+    assert after["checkpoint_provenance"] == allocated[-1][0].loaded_checkpoint_provenance()
+
+
+def test_checkpoint_evaluation_rejects_source_mutation_before_publishing_scores(local_run, monkeypatch):
+    from cosmos_framework.posttrain.control.validation.rollout import WindowEvaluator
+
+    config, attempt, _, allocated = local_run
+    config.rl.validation.enabled = True
+    config.rl.validation.save_checkpoint = False
+    original = gr00t_ppo.run(config)
+    step = original["optimizer_step"]
+    checkpoint = attempt["output"] / "checkpoints" / f"iter_{step:06d}"
+    attempt["resume"], attempt["output"] = str(checkpoint), checkpoint.parent.parent / "rejected-evaluation"
+    validation_seed = WindowEvaluator.policy_validation_seed
+    control = checkpoint / "trainer.pt"
+    original_bytes = control.read_bytes()
+
+    def mutate_after_restore(self):
+        # The learner is already restored. A later source generation cannot be
+        # named as the checkpoint that produced these scores.
+        control.write_bytes(original_bytes + b"changed during evaluation")
+        return validation_seed(self)
+
+    monkeypatch.setattr(WindowEvaluator, "policy_validation_seed", mutate_after_restore)
+    try:
+        with pytest.raises(RuntimeError, match="checkpoint generation changed"):
+            gr00t_ppo.run(config, evaluate_only=True)
+        assert not list(attempt["output"].glob("evaluation/*.json"))
+        assert not list(attempt["output"].glob("evaluation-summary-*.json"))
+        assert allocated[-1][0].optimizer_step == step
+    finally:
+        control.write_bytes(original_bytes)
 
 
 def test_checkpoint_evaluation_rejects_missing_resume_before_model_allocation(local_run):

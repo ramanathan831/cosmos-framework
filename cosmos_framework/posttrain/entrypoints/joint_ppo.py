@@ -374,9 +374,27 @@ def run(config: Any, opts: list[str] | None = None, *, evaluate_only: bool = Fal
             # Use the same restored learner, policy publication, native simulator
             # and fixed-case evaluator. No training/validation journal is advanced
             # and no checkpoint is rewritten by this fresh-process evaluation.
+            source = resolve_identical(
+                policy.loaded_checkpoint_provenance(), operation="evaluation restored checkpoint generation"
+            )
+            if not source:
+                raise RuntimeError("checkpoint evaluation lacks restored checkpoint provenance")
+
+            def checkpoint_guard():
+                if lifecycle.manager.checkpoint_provenance(resume) != source:
+                    raise RuntimeError("evaluation checkpoint generation changed before score publication")
+                return source
+
+            checkpoint_guard()
             weight_sync(rollout, policy, validation_step=version)
             evaluator = WindowEvaluator(
-                policy, collector, instantiate(config.environment), width, str(output), units.get("eval_sim")
+                policy,
+                collector,
+                instantiate(config.environment),
+                width,
+                str(output),
+                units.get("eval_sim"),
+                checkpoint_guard=checkpoint_guard,
             )
             report = evaluator(step, frozenset({ValidationTrigger.FINAL}))
             summary = {
@@ -387,6 +405,7 @@ def run(config: Any, opts: list[str] | None = None, *, evaluate_only: bool = Fal
                 "publication_version": version,
                 "output": str(output),
                 "metrics": report.metrics,
+                "checkpoint_provenance": checkpoint_guard(),
             }
             atomic_write_json(str(output / f"evaluation-summary-step-{step}.json"), summary)
             return summary
