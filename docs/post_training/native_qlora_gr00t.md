@@ -60,9 +60,11 @@ cosmos_framework/posttrain/configs/gr00t_n1d7_libero_official_head.py`, replace 
 `model.backbone_adaptation.*` overrides with `data.backbone_path=/staged/Cosmos-Reason2-2B-metadata`,
 and retain the dataset overrides. Native checkpoint/recovery and complete head-artifact reload
 use the same entrypoints; dense export is explicitly unavailable for this additional control.
-CPU optimizer/scheduler, augmentation, alias, frozen-base, trained recovery and portable-reload
-contracts are covered; full-model accelerator and task qualification remain required before
-claiming this control's measured quality or performance.
+CPU optimizer/scheduler, augmentation and alias contracts are covered. A100 job `38509993`
+also passed ten real updates, exact fresh checkpoint/portable scores, update-5-to-10 recovery,
+frozen-source and optimizer-membership checks, eight shared CUDA cases, and fresh reload of
+the earlier NF4 artifact. These checks establish lifecycle behavior; the separate 300-update
+practical comparison is still required for this control's task quality and performance.
 
 Use pinned Isaac-GR00T source `51d4c89f72fda44cbf77285c6a8114b52676b8a1`, Transformers 4.57.6,
 and bitsandbytes 0.49.2 for NF4. Construction verifies the upstream source digest and content-bound
@@ -201,9 +203,11 @@ recipe loads its original FP32 source directly. This path creates no adapter/che
 and refuses LoRA configurations or `--dense`. The rollout receipt distinguishes source from
 trained artifacts and records the complete immutable model/processor identity. Actual source
 rollout outcomes remain a separate required measurement.
-The training runtime does not itself contain the pinned simulator stack. Until an actual
-simulator campaign passes, this connection and its CPU convention tests do not establish rollout
-success, simulator compatibility or deployment latency. The artifact-output probe in
+The training runtime does not itself contain the pinned simulator stack. With the isolated
+pinned LIBERO/EGL runtime, job `38510600` completed both predeclared engineering episodes for
+each retained ten-update portable policy. Both precision arms had zero successes out of two.
+This verifies native policy/simulator execution only; it establishes neither task preservation
+nor deployment-latency improvement. The artifact-output probe in
 `model/gr00t/qualification.py` separately captures actual normalized and decoded actions, native
 flow loss and processed-input digests; its comparison requires explicit predeclared tolerances.
 
@@ -310,3 +314,16 @@ they do not recreate the missing earlier samples. The 1.62-billion-parameter FP3
 action head and its gradients/moments dominate memory. The approximately 1.1 GiB
 saving remains modest, so substantial GR00T memory savings and task-quality/time-to-target
 benefits remain open requirements.
+
+The source-policy calibration scored all 160 development rows before candidate training.
+Frozen BF16/NF4 normalized action MSE was 0.05506814/0.05565446, respectively; these are
+point estimates without a preservation claim. The unchanged target rule fixes the common
+threshold at **0.049561327725898344**. Calibration jobs `38509654`/`38509843`, target identity
+and exact metrics are retained in the family evidence. The seed-17 three-arm study uses that
+target; later outcomes cannot redefine it.
+
+The batched gradient-check candidate `3c96ce8` passed 22 real CUDA cases on each of the
+Torch 2.10 family and Torch 2.11 Qwen runtimes in job `38510926`, with no skips. Those tests
+cover finite/NaN/Inf detection, unmodified gradient bytes/RNG and tiny native updates/recovery.
+Full-model parity and unprofiled workflow benefit remain promotion gates; the selected
+family training comparison still uses `4cba88f`.

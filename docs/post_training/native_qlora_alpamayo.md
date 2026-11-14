@@ -233,3 +233,14 @@ complete process-tree peak is claimed for that run. Mean updates 3–10 took
 establish sustained speed or time-to-quality. Open-loop ADE on its two validation
 clips worsened in both arms. Process-loss recovery, full development, dense conversion
 and processed-shape profiling remain separate qualification checks.
+
+Frozen-source job `38509182` then scored all 256 development clips in both arms.
+BF16/NF4 ADE at 6.4 seconds was **1.95601/1.97252 m**, and FDE was
+**6.07471/6.10283 m**. These are calibration point estimates, not adaptation or
+noninferiority results. The prospective rule fixes the common ADE target at
+**1.8582104004141 m**; its digest and source metrics are retained in the same
+family evidence. Both external memory samplers completed successfully.
+Actual first/last development probes had 3,008 input tokens, 16 image-grid entries,
+packed pixels `[11520,1536]`, 16 history poses and `[1,64,2]` action targets/masks.
+These new observations do not recreate missing shape records from the earlier
+ten-update run or establish all possible input geometries.

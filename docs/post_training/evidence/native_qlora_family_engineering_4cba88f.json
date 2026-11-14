@@ -1113,6 +1113,371 @@
       },
       "decision": "Implement and test one shared read-only batched gradient-finiteness check. Unused vocabulary projection is too small to prioritize. CPU and GPU durations overlap and must not be added.",
       "memory_limitation": "Profile hooks/trace buffers affect host and device peaks; this is actual measured diagnostic memory, not unprofiled sustained-training qualification."
+    },
+    "38509182": {
+      "family": "alpamayo",
+      "slurm_state": "COMPLETED",
+      "allocation_gpu_seconds": 2203,
+      "scope": "Frozen source full-development scoring and prospective fixed target, not adaptation, independent confirmation or performance comparison",
+      "results": [
+        {
+          "mode": "bf16_frozen",
+          "result_sha256": "f7cf1d7dd430cb2aaa9438d6aacf4f6a2849c83610eda5c850f927b5d0d0a333",
+          "scored_rows": 256,
+          "metrics": {
+            "loss": 0.2666164163815665,
+            "open_loop_ade_1s_meters": 0.045508761263135966,
+            "open_loop_ade_3s_meters": 0.39572003935700195,
+            "open_loop_ade_6p4s_meters": 1.956010947804316,
+            "open_loop_fde_1s_meters": 0.11850085828859847,
+            "open_loop_fde_3s_meters": 1.1632316133618588,
+            "open_loop_fde_6p4s_meters": 6.074706420644361
+          },
+          "workflow_seconds": 1074.558591951616,
+          "target_sha256": "7296ca5692d68d4dd792cd66a3125109375d9200fb03b7010af0d3dfe58f558c",
+          "memory_scope": "External owned-process sampling and native phase records retained in receipt archive; sampled peaks are lower bounds."
+        },
+        {
+          "mode": "nf4_frozen",
+          "result_sha256": "468d1667e460154e1d00d69613d46f721c037b3f71f5824c49e3b55457631130",
+          "scored_rows": 256,
+          "metrics": {
+            "loss": 0.26709095919500214,
+            "open_loop_ade_1s_meters": 0.04602302479088394,
+            "open_loop_ade_3s_meters": 0.39951302091867547,
+            "open_loop_ade_6p4s_meters": 1.972519713366637,
+            "open_loop_fde_1s_meters": 0.11959648791435029,
+            "open_loop_fde_3s_meters": 1.1776479348218345,
+            "open_loop_fde_6p4s_meters": 6.102828524013603
+          },
+          "workflow_seconds": 1056.284893555101,
+          "target_sha256": null,
+          "memory_scope": "External owned-process sampling and native phase records retained in receipt archive; sampled peaks are lower bounds."
+        }
+      ],
+      "complete": true,
+      "acceptance_sha256": "f77d24c4e5b20ffc6e0f02087fcd955cd4554139e4f848f50cb0a23b5f071f5c",
+      "BF16_target_sha256": "7296ca5692d68d4dd792cd66a3125109375d9200fb03b7010af0d3dfe58f558c",
+      "memory_evidence": {
+        "bf16_frozen": {
+          "complete_host_samples": 830,
+          "device_uuid": "GPU-ac8756c3-1291-4040-ebfd-4f0c6a6a1e1c",
+          "positive_owned_gpu_observations": 794,
+          "samples": 830,
+          "scope": "sampled lower bounds; allocation-phase peaks retained separately"
+        },
+        "nf4_frozen": {
+          "complete_host_samples": 810,
+          "device_uuid": "GPU-ac8756c3-1291-4040-ebfd-4f0c6a6a1e1c",
+          "positive_owned_gpu_observations": 781,
+          "samples": 810,
+          "scope": "sampled lower bounds; allocation-phase peaks retained separately"
+        }
+      }
+    },
+    "38509654": {
+      "family": "gr00t",
+      "slurm_state": "COMPLETED",
+      "allocation_gpu_seconds": 205,
+      "scope": "Frozen source full-development scoring and prospective fixed target, not adaptation, independent confirmation or performance comparison",
+      "results": [
+        {
+          "mode": "bf16_frozen",
+          "result_sha256": "1f80906883884d66e924d019927f5fee1c662fd505bdfc5087063f565567bc9e",
+          "scored_rows": 160,
+          "metrics": {
+            "action_mae_environment_units": 0.04916228426215635,
+            "action_mae_gripper_environment_units": 0.1372063398733735,
+            "action_mae_pitch_environment_units": 0.016093830139640716,
+            "action_mae_roll_environment_units": 0.008225875696466987,
+            "action_mae_x_environment_units": 0.053972841933195764,
+            "action_mae_y_environment_units": 0.0449414604387712,
+            "action_mae_yaw_environment_units": 0.009601551121868425,
+            "action_mae_z_environment_units": 0.07409409063177787,
+            "loss": 0.128999243787257,
+            "normalized_action_mse": 0.05506814191766483
+          },
+          "workflow_seconds": 129.7239716160111,
+          "target_sha256": "eff946f62dbdc9c57f61ac96f03f13640baaf5bee4695d9fd1381830b95e4534",
+          "memory_scope": "External owned-process sampling and native phase records retained in receipt archive; sampled peaks are lower bounds."
+        }
+      ]
+    },
+    "38509843": {
+      "family": "gr00t",
+      "slurm_state": "COMPLETED",
+      "allocation_gpu_seconds": 195,
+      "scope": "Frozen source full-development scoring and prospective fixed target, not adaptation, independent confirmation or performance comparison",
+      "results": [
+        {
+          "mode": "nf4_frozen",
+          "result_sha256": "d6d4a679ad610a2a892821448bbf72709822ada7531c5046578fddb922816ad7",
+          "scored_rows": 160,
+          "metrics": {
+            "action_mae_environment_units": 0.04993531420917876,
+            "action_mae_gripper_environment_units": 0.1357787735760212,
+            "action_mae_pitch_environment_units": 0.01679471389145995,
+            "action_mae_roll_environment_units": 0.008380835461261412,
+            "action_mae_x_environment_units": 0.056422665883997095,
+            "action_mae_y_environment_units": 0.04715542558013691,
+            "action_mae_yaw_environment_units": 0.009905640157403974,
+            "action_mae_z_environment_units": 0.07510914491397083,
+            "loss": 0.1313539528971887,
+            "normalized_action_mse": 0.055654463751457765
+          },
+          "workflow_seconds": 138.3558280649595,
+          "target_sha256": null,
+          "memory_scope": "External owned-process sampling and native phase records retained in receipt archive; sampled peaks are lower bounds."
+        }
+      ]
+    },
+    "38509993": {
+      "family": "gr00t",
+      "implementation_revision": "699869a89a176e640d8c842921adf4eaafe66161",
+      "slurm_state": "COMPLETED",
+      "allocation_gpu_seconds": 739,
+      "acceptance_sha256": "40558746d3c35ff49b950d4b9aa9dd0b6512a2995d31baf67038caf345e40dbc",
+      "scope": "GR00T official head training lifecycle and shared current-build kernel/artifact regressions; not recipe-quality, superiority or simulator-success evidence",
+      "passed": true,
+      "fresh": [
+        {
+          "artifact": "checkpoint",
+          "exact_full_native_metrics_and_rows": true
+        },
+        {
+          "artifact": "portable",
+          "exact_full_native_metrics_and_rows": true
+        }
+      ],
+      "recovery": {
+        "atol": 0,
+        "controls_rng_and_data_exact": true,
+        "excluded_storage_identity_fields": [
+          "validation.publication.destination",
+          "validation.publication.id",
+          "validation.publication.manifest"
+        ],
+        "maximum_tensor_difference": {
+          "model": 0.0,
+          "optim": 0.0
+        },
+        "passed": true,
+        "rtol": 0
+      },
+      "current_build_cuda_cases_passed": 8,
+      "old_nf4_fresh_reload_exact": true,
+      "source_frozen_and_exact_optimizer_membership": "native codec validated at every save/load; full DCP audit in update-audit"
+    },
+    "38510600": {
+      "family": "gr00t",
+      "slurm_state": "COMPLETED",
+      "allocation_gpu_seconds": 341,
+      "acceptance_sha256": "717f846632e078b09af25ba5cf3ca8b0b7c9514b568e1a70b5959e2eb8427b0a",
+      "inference_latency_qualification": false,
+      "memory_sampling_health": {
+        "bf16_lora": {
+          "complete_host_samples": 176,
+          "device_uuid": "GPU-86d830c4-3c5c-9c8a-a299-1b4b62025e18",
+          "positive_owned_gpu_observations": 78,
+          "samples": 176,
+          "scope": "sampled lower bounds; allocation-phase peaks retained separately"
+        },
+        "nf4_lora": {
+          "complete_host_samples": 176,
+          "device_uuid": "GPU-86d830c4-3c5c-9c8a-a299-1b4b62025e18",
+          "positive_owned_gpu_observations": 77,
+          "samples": 176,
+          "scope": "sampled lower bounds; allocation-phase peaks retained separately"
+        }
+      },
+      "passed": true,
+      "quality_qualification": false,
+      "results": [
+        {
+          "all_cases_completed": true,
+          "claim": "Two-case portable-policy integration only; no general success-rate, preservation, speed or inference-acceleration claim.",
+          "episodes": 2,
+          "mode": "nf4_lora",
+          "result_sha256": "7ecf7dc2735557f9e84a4c166b2730a6a7d4f631eef420868e6558193b69f0c8",
+          "successes": 0
+        },
+        {
+          "all_cases_completed": true,
+          "claim": "Two-case portable-policy integration only; no general success-rate, preservation, speed or inference-acceleration claim.",
+          "episodes": 2,
+          "mode": "bf16_lora",
+          "result_sha256": "9378b7be5b07497b0fd5255db6fd5687a18b593758b22e60da6d728fa5632754",
+          "successes": 0
+        }
+      ],
+      "scope": "Two native retained-policy engineering episodes per precision arm"
+    },
+    "38510926": {
+      "family": "shared",
+      "implementation_revision": "3c96ce8503eef263b7feb3fd2a23cad28efa6ab7",
+      "wheel_sha256": "021e7713314bb484c0baa2a8d38a7210a1bb801a279abe6c05097ff8b3191a0b",
+      "slurm_state": "COMPLETED",
+      "allocation_gpu_seconds": 173,
+      "acceptance_sha256": "34a2a01fb07075e1526c99420947d1660142a1228d9923b550c5bc2e2c05827e",
+      "passed": true,
+      "scope": "read-only gradient predicate, actual CUDA kernels and tiny native lifecycle; not full-model runtime or quality evidence",
+      "runtimes": {
+        "family2.10": {
+          "completion_sha256": "90aad58ab2edecf7932ac21f416050468b06857060b8c80c8f4e49ee2f8fcaf3",
+          "pytest": {
+            "errors": 0,
+            "exit_code": 0,
+            "failures": 0,
+            "skipped": 0,
+            "tests": 22
+          },
+          "runtime": {
+            "git": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+            "torch": "2.10.0+cu128",
+            "transformers": "4.57.6"
+          },
+          "gpu": {
+            "bytes": 85174583296,
+            "name": "NVIDIA A100-SXM4-80GB",
+            "nvml_uuid_roundtrip": true,
+            "uuid": "GPU-7ca8e2dc-8e91-80c8-7876-7c42e5176e20"
+          },
+          "elapsed_test_seconds": 17.880411214195192
+        },
+        "qwen2.11": {
+          "completion_sha256": "78afd0ff396b9e3978d81b45f379fc96e88750c67b3af372d4232c1060103ea2",
+          "pytest": {
+            "errors": 0,
+            "exit_code": 0,
+            "failures": 0,
+            "skipped": 0,
+            "tests": 22
+          },
+          "runtime": {
+            "git": "70d99e998b4955e0049d13a98d77ae1b14db1f45",
+            "torch": "2.11.0+cu128",
+            "transformers": "5.8.1"
+          },
+          "gpu": {
+            "bytes": 85174583296,
+            "name": "NVIDIA A100-SXM4-80GB",
+            "nvml_uuid_roundtrip": true,
+            "uuid": "GPU-7ca8e2dc-8e91-80c8-7876-7c42e5176e20"
+          },
+          "elapsed_test_seconds": 42.63675762992352
+        }
+      },
+      "promotion": "Pending full-model arithmetic/recovery parity and prospective unprofiled timing; selected family training baseline remains 4cba88f."
+    }
+  },
+  "read_only_head_memory_diagnostic": {
+    "scope": "Pinned architecture and actual retained optimizer-state accounting only; no new GPU job, model transformation, memory-saving experiment or release claim.",
+    "source": {
+      "repository": "NVIDIA/Isaac-GR00T",
+      "revision": "51d4c89f72fda44cbf77285c6a8114b52676b8a1",
+      "file": "gr00t/model/modules/embodiment_conditioned_mlp.py",
+      "file_sha256": "d8c60775642016262e3df742e7ed10da38007d7a6bc6aa94fcb427f2ff9e1752",
+      "lines": [
+        59,
+        79
+      ],
+      "semantics": "CategorySpecificLinear owns W[categories,input_dim,output_dim] and b[categories,output_dim], then selects W[cat_ids] and b[cat_ids] before bmm. LIBERO maps to category2 of32."
+    },
+    "checkpoint_observations": {
+      "bf16_lora": {
+        "job_id": "38506697",
+        "completed_update": 10,
+        "optimizer_metadata_sha256": "7319bb7cff11b5391679fb27c2fd9ba7f9e1b1540987eee87ac626e8e539312a",
+        "category_parameters": 14,
+        "moment_records": 28,
+        "moment_types": [
+          "exp_avg",
+          "exp_avg_sq"
+        ],
+        "inactive_rows_all_zero": true,
+        "every_category_tensor_has_nonzero_active_row_moments": true,
+        "only_rows_with_nonzero_moments": [
+          2
+        ]
+      },
+      "nf4_lora": {
+        "job_id": "38507341",
+        "completed_update": 10,
+        "optimizer_metadata_sha256": "30a3212ad0138f03b029b835eace3b3d03cd54c9866e084af72870598a22d64b",
+        "category_parameters": 14,
+        "moment_records": 28,
+        "moment_types": [
+          "exp_avg",
+          "exp_avg_sq"
+        ],
+        "inactive_rows_all_zero": true,
+        "every_category_tensor_has_nonzero_active_row_moments": true,
+        "only_rows_with_nonzero_moments": [
+          2
+        ]
+      }
+    },
+    "parameter_accounting": {
+      "head_parameters": 1620515968,
+      "shared_dit_parameters": 1091722240,
+      "shared_vl_self_attention_parameters": 201433088,
+      "category_specific_parameters_all32_rows": 325783680,
+      "active_category_parameters": 10180740,
+      "inactive_category_parameters": 315602940,
+      "inactive_fp32_weight_bytes": 1262411760,
+      "inferred_dense_gradient_bytes_for_inactive_rows": 1262411760,
+      "measured_shape_zero_fp32_optimizer_moment_bytes": 2524823520,
+      "hypothetical_gradient_plus_moment_bytes_if_unused_rows_were_removed": 3787235280
+    },
+    "read_method": {
+      "tensor_records": 56,
+      "storage_bytes_read": 5212538880,
+      "elapsed_seconds": 30.18118034582585,
+      "peak_host_rss_bytes": 68612096,
+      "numpy": "2.2.6",
+      "torch_or_cuda_imported": false,
+      "maximum_read_buffer_bytes": 33554432,
+      "integrity": "Retained metadata SHA, restricted FloatStorage tensor descriptor, exact shape/stride/offset, zip CRC, finite rows, per-storage SHA and stable source file stat. One row buffered at a time."
+    },
+    "retained_local_artifacts": {
+      "gr00t-head-parameter-inventory.json": "0b27aebd13e06d249a7205f1e3764a1b8e5aa3f682840daa59441e705290a7b9",
+      "gr00t-embodiment-moment-read-plan.json": "8256aa2acb2fa1fa24e7a97e4835e82f92c9a0e62af89a86502a074bf7fb2ee0",
+      "gr00t-embodiment-moment-read.py": "d58591f970054f36237f000ffd86d9b69a61ed00224c85f1f861d937c63fd793",
+      "gr00t-embodiment-moment-read-result.json": "51bf5682678e0e5274cfa6ee3da3ac966846941dc4ce4dec5f2158c72efc6cbf"
+    },
+    "limitations": [
+      "Raw gradients are not saved in these checkpoints. Exact zero inactive moments were measured; the zero task-gradient structure follows the pinned indexed forward, not a reconstructed raw-gradient capture.",
+      "Most head parameters remain in the shared DiT and VL self-attention. Removing unused embodiment state would not remove that dominant shared footprint.",
+      "Parameter/storage accounting is not measured end-to-end savings. No slicing, pruning, optimizer precision change or second runtime intervention was implemented.",
+      "Unused category weights remain registered trainables under the native policy; any future change must preserve decoupled weight-decay semantics, complete deployment state, checkpoint identity and recovery."
+    ]
+  },
+  "additional_receipt_archives": [
+    {
+      "path": "cosmos-qlora-family-20261113/family-qualification-receipts-20261114-v1.tar.gz",
+      "sha256": "6b82298b0a52aabdfdfdbb19854d8cedcd866c548ccba94e4ac7af08b9c11eef",
+      "files": 198,
+      "bytes": 16735672
+    }
+  ],
+  "fixed_development_targets": {
+    "alpamayo": {
+      "metric": "open_loop_ade_6p4s_meters",
+      "threshold": 1.8582104004141,
+      "direction": "min",
+      "factor_of_frozen_BF16": 0.95,
+      "target_sha256": "7296ca5692d68d4dd792cd66a3125109375d9200fb03b7010af0d3dfe58f558c",
+      "scored_rows": 256,
+      "evaluation_seed": 123
+    },
+    "gr00t": {
+      "metric": "normalized_action_mse",
+      "threshold": 0.049561327725898344,
+      "direction": "min",
+      "factor_of_frozen_BF16": 0.9,
+      "target_sha256": "eff946f62dbdc9c57f61ac96f03f13640baaf5bee4695d9fd1381830b95e4534",
+      "scored_rows": 160,
+      "evaluation_seed": 123
     }
   }
 }
