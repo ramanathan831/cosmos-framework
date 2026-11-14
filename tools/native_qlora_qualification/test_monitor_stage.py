@@ -195,6 +195,7 @@ sys.path.insert(0,str(Path(monitor).parent))
 n=types.ModuleType('pynvml');n.NVMLError=RuntimeError
 n.nvmlInit=n.nvmlShutdown=lambda:None
 n.nvmlDeviceGetHandleByUUID=lambda value:0
+n.nvmlDeviceGetUUID=lambda _: 'GPU-12345678-1234-1234-1234-123456789abc'
 def memory(_):
  Path(entered).write_text('ready')
  deadline=time.monotonic()+4
@@ -208,7 +209,7 @@ n.NVML_CLOCK_SM=0;n.NVML_CLOCK_MEM=1;n.NVML_TEMPERATURE_GPU=0
 n.nvmlDeviceGetClockInfo=lambda *_:1;n.nvmlDeviceGetPowerUsage=lambda _:1
 def temperature(*_):signal.raise_signal(signal.SIGTERM);return 1
 n.nvmlDeviceGetTemperature=temperature
-sys.modules['pynvml']=n;os.environ['COSMOS_QLORA_GPU_UUID']='GPU-test-only'
+sys.modules['pynvml']=n;os.environ['COSMOS_QLORA_GPU_UUID']='GPU-12345678-1234-1234-1234-123456789abc'
 sys.argv=[monitor,root,out,marker];runpy.run_path(monitor,run_name='__main__')
 """
         monitor = start(code, root.pid, output, marker, entered, release, monitor_file)

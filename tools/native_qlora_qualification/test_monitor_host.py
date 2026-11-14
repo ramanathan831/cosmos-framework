@@ -1667,14 +1667,17 @@ def _vanished_before_pin(tmp_path, monkeypatch, *, method=host.METHOD, count=1):
     """A real parent reaps its child between discovery and the first pin read."""
     code = """import subprocess,sys
 p=subprocess.Popen([sys.executable,'-I','-S','-c','import time; time.sleep(60)']); children=[p]
-children.extend(subprocess.Popen([sys.executable,'-I','-S','-c','import time; time.sleep(60)']) for _ in range(int(sys.argv[1])-1))
+children.extend(
+ subprocess.Popen([sys.executable,'-I','-S','-c','import time; time.sleep(60)'])
+ for _ in range(int(sys.argv[1])-1))
 print(','.join(str(p.pid) for p in children),flush=True)
 try:
  sys.stdin.buffer.read(1)
  for p in children: p.terminate(); p.wait(timeout=5)
  print('reaped',flush=True)
  while sys.stdin.buffer.read(1)==b'n':
-  c=subprocess.Popen([sys.executable,'-I','-S','-c','import time; time.sleep(60)']); children.append(c); print(c.pid,flush=True)
+  c=subprocess.Popen([sys.executable,'-I','-S','-c','import time; time.sleep(60)'])
+  children.append(c); print(c.pid,flush=True)
 finally:
  for p in children:
   if p.poll() is None: p.kill(); p.wait(timeout=5)
@@ -1999,3 +2002,32 @@ def test_live_replacement_birth_closes_temporary_pidfd_and_remains_incomplete(tm
         with pytest.raises(OSError) as error:
             os.fstat(temporary[0])
         assert error.value.errno == errno.EBADF
+
+
+def test_v9_live_thread_still_measures_shared_mm_instead_of_inferring_exit(live_thread):
+    sampler, process, tid = live_thread
+    sampler.method = host.TEARDOWN_METHOD
+    sample = sampler.collect()
+    assert host.validate_sample(sample)["host_pss_complete"]
+    memory = sample["process_host_memory"][str(process.pid)]
+    assert memory["memory_tid"] == tid and memory["Pss_rollup"] >= 16 * 1024**2
+    assert "address_space_released" not in memory
+    receipt = sample["host_collection"]
+    proof = receipt["attempts"][0]["processes"][str(process.pid)]["thread_mm"]
+    assert proof["deadline_monotonic_seconds"] == receipt["attempts"][0]["begin_monotonic_seconds"] + 4.0
+
+
+def test_v9_thread_exit_requires_same_pidfd_release_then_new_observation(live_thread, monkeypatch):
+    sample, pid, waits = _delayed_thread_exit(live_thread, monkeypatch, method=host.TEARDOWN_METHOD)
+    assert len(waits) == 1 and 350 < waits[0] <= 3500
+    assert host.validate_sample(sample)["host_pss_complete"]
+    first, second = sample["host_collection"]["attempts"]
+    assert host._released(first["post_discovery_polls"][str(pid)]) is True
+    assert second["begin_monotonic_seconds"] >= first["post_discovery_polls"][str(pid)]["end_monotonic_seconds"]
+    first_only = copy.deepcopy(sample["host_collection"])
+    first_only["attempts"], first_only["final_attempt"] = [first], 0
+    assert not host.summarize_collection(first_only)["host_pss_complete"]
+    malformed = copy.deepcopy(sample["host_collection"])
+    malformed["attempts"][0]["post_discovery_polls"][str(pid)]["timeout_milliseconds"] = 3501
+    with pytest.raises(ValueError, match="in-budget"):
+        host.summarize_collection(malformed)
