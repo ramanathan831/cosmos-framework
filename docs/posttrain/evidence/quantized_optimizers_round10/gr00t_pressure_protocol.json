@@ -147,6 +147,15 @@
       "admitted_at_utc": "2026-11-14T12:45:05.495487+00:00",
       "predecessor": "38534388 terminal failed first resumed backward OOM; explicit afterany dependency enforces serial allocation",
       "policy": "Unchanged32 updates,55GiB,seed17,native16/32 validation/save. Independent pressure arm. Recovery/profile depend on actual result; no pressure sweep."
+    },
+    {
+      "job": "38535485",
+      "arm": "paged_adamw_8bit reservation55 read-only checkpoint16 reload",
+      "results": "gr00t-pressure-paged55-reload-v1",
+      "source": "677e7e039012b40033e4ea137587619808d12a01",
+      "admitted_at_utc": "2026-11-14T13:15:38.972043+00:00",
+      "predecessor": "38534833 terminal COMPLETED:32finite updates,checkpoint16/32 publication,300 evaluation episodes",
+      "policy": "No training or new checkpoint. Exact all-rank learner state and reconstructed managed owners required. Same32-update recipe identity and55GiB reservation; no evaluation-score selection."
     }
   ],
   "descriptor_cpu_admission": {
@@ -156,5 +165,22 @@
     "routing": "cpu_short",
     "wall_minutes": 15,
     "termination_grace_seconds": 60
+  },
+  "paged_pressure_reference_completion": {
+    "job": "38534833",
+    "status": "COMPLETED",
+    "summary": "native_pressure_summary.json:arms.paged55_v1",
+    "updates": 32,
+    "published_checkpoints": [
+      16,
+      32
+    ],
+    "evaluation_success_counts": [
+      99,
+      99,
+      96
+    ],
+    "migration_scope": "Managed allocation confirmed; no measured eviction/page-fault claim until conditional separate diagnostic.",
+    "dependent_recovery_job": "38535485"
   }
 }

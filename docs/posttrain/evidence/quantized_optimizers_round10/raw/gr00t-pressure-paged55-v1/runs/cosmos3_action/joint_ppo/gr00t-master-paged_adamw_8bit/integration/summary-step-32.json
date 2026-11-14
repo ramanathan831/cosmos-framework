@@ -1,0 +1,8 @@
+{
+    "windows": 32,
+    "restored_from": null,
+    "optimizer_step": 32,
+    "publication_version": 32,
+    "stop_reason": null,
+    "output": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-pressure-paged55-v1/runs/cosmos3_action/joint_ppo/gr00t-master-paged_adamw_8bit/integration"
+}

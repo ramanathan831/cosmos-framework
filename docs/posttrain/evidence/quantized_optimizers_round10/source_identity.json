@@ -1,14 +1,14 @@
 {
   "starting_commit": "2516e9f1e9aecb0b68d6a21e27dd835f456109ab",
-  "current_implementation_parent": "677e7e039012b40033e4ea137587619808d12a01",
+  "current_implementation_parent": "d3f7bf16eb5f07564e4965af4bd131b6d67c0c0d",
   "sealed": false,
   "updated_at_utc": "2026-11-14T11:44:36.194579+00:00",
   "tested_native_source": {
-    "revision": "ef9f69589595724c8d166bf699557a2223bb832c",
-    "archive_sha256": "58ff516e1c1853087b9ae5d95a06b5abe64c27904b65de41bdeb7fbdf1723cb0",
-    "archive_bytes": 7720677,
-    "archive": "optimizer-native-runtime-v39.tar.gz",
-    "scope": "tracked cosmos_framework/, tools/, pyproject.toml, .pytest.toml"
+    "revision": "677e7e039012b40033e4ea137587619808d12a01",
+    "archive_sha256": "3240fb4a24ea21594dea9f53b5a6c552348a2bc7b7615162a99e2a7f94cb575e",
+    "archive_bytes": 7722751,
+    "archive": "optimizer-native-runtime-v41.tar.gz",
+    "scope": "source-v41: pinned165 regressions, four-reader actual checkpoint verification, native pending16 publication and completed paged55 reference32. Mature80-update numerical/recovery evidence remains separately identified at source-v39."
   },
   "all_runtime_archives": "native_sources.json",
   "important_components": {
@@ -26,7 +26,8 @@
     "full_content_publication": "079bd0521359a8164875f2077c9e70d02ff7f022",
     "publication_symlink_guard": "ef9f69589595724c8d166bf699557a2223bb832c",
     "joint_checkpoint_memory_cleanup": "36610372f48f1a692f363996458bcefc637eb12c",
-    "descriptor_publication_verification": "677e7e039012b40033e4ea137587619808d12a01"
+    "descriptor_publication_verification": "677e7e039012b40033e4ea137587619808d12a01",
+    "early_rank_failure_reporting": "d3f7bf16eb5f07564e4965af4bd131b6d67c0c0d"
   },
   "current_file_sha256": {
     "cosmos_framework/posttrain/checkpoint/external_copy.py": "dc5a1f3dd873da5ed3a84cd160a61c2792695be85c5bb2db24bd3417df6312cb",
@@ -63,7 +64,9 @@
     "tools/quantized_optimizers/master_distributed.py": "dbbb03b75cbc900b1a1899df8f62c880470b25db4f30467a35c17d7ed3146d42",
     "tools/quantized_optimizers/master_distributed.sbatch": "ce6a8ce7cfa7886bcec6bb9a22d8832ce484098f089c9f7b0aa13fa16662abc6",
     "tools/quantized_optimizers/run_deployment.py": "ec668ef8ed50e546457787a6750c59c81d40b835e84d5040bfd4d75bb8201166",
-    "tools/quantized_optimizers/sim_runtime.sbatch": "7a3f5a4927f50319c1aa894f4a723125066f21d62e896f68f658e859d64f410e"
+    "tools/quantized_optimizers/sim_runtime.sbatch": "7a3f5a4927f50319c1aa894f4a723125066f21d62e896f68f658e859d64f410e",
+    "cosmos_framework/posttrain/utils/entry.py": "96bea696147c7042cd62a33d0134f4370202969df31df54c5297881167da1124",
+    "cosmos_framework/posttrain/tests/test_utils_entry.py": "914e713d2d1d90513e752cbeca7116d062b93b7c0f88a7b7f4202de9bda923c8"
   },
   "versions": {
     "torch": "2.11.0+cu128",
@@ -83,7 +86,13 @@
     "archive_sha256": "3240fb4a24ea21594dea9f53b5a6c552348a2bc7b7615162a99e2a7f94cb575e",
     "archive_bytes": 7722751,
     "archive": "optimizer-native-runtime-v41.tar.gz",
-    "scope": "tracked cosmos_framework/, tools/, pyproject.toml, .pytest.toml"
+    "scope": "source-v41: pinned165 regressions, four-reader actual checkpoint verification, native pending16 publication and completed paged55 reference32. Mature80-update numerical/recovery evidence remains separately identified at source-v39."
   },
-  "candidate_validation": "165 pinned tests and four-reader actual-checkpoint verification passed; native pending16-to32 pressure recovery38534388 admitted."
+  "candidate_validation": "165 pinned tests and four-reader actual-checkpoint verification passed; native pending16-to32 pressure recovery38534388 admitted.",
+  "reporting_only_after_native_archive": {
+    "source": "d3f7bf16",
+    "change": "Log first failed mesh cell before remaining cells settle, preserving drain and aggregate error semantics",
+    "tests": "17 local checks; one fail-before regression",
+    "native_archive": "Source-v41 accelerator executions exclude this reporting-only correction"
+  }
 }

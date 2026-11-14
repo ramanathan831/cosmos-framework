@@ -153,6 +153,147 @@
       "gpu_allocation_seconds": 4400,
       "scope": "Restore/publication correctness passed, pressure continuation failed. Not an uninterrupted32 run. OOM type and failed rank confirmed by read-only driver stack; exact allocation request unavailable. No reduced-pressure retry. Earlier resident40-to80 recovery remains applicable.",
       "raw": "raw/gr00t-pressure-eightbit55-recovery16-v1"
+    },
+    "paged55_v1": {
+      "job": "38534833",
+      "source": "677e7e039012b40033e4ea137587619808d12a01",
+      "status": "COMPLETED",
+      "completed_updates": 32,
+      "from_update": 0,
+      "to_update": 32,
+      "all_finite_actor_value_updates": true,
+      "behavior_logprob_and_version_checks": true,
+      "frozen_backbone_unchanged": true,
+      "post_save_model_and_staging_gradients_zero": true,
+      "storage": {
+        "trainable_elements": 1624843393,
+        "quantized_elements": 1624178688,
+        "fp32_elements": 664705,
+        "uninitialized_elements": 0,
+        "moment_bytes": 3253675016,
+        "metadata_bytes": 50763776,
+        "master_bytes": 6499373572,
+        "paged_moment_bytes": 3246784512
+      },
+      "native_attempt": {
+        "returncode": 0,
+        "native_seconds": 1684.9959834180772
+      },
+      "mean_window_seconds": 28.09639735034216,
+      "mean_phase_seconds": {
+        "collect_seconds": 14.824789554750168,
+        "targets_seconds": 1.9089931517191872,
+        "update_seconds": 4.782204203442234,
+        "publication_and_clear_seconds": 6.580410440430569
+      },
+      "evaluations": {
+        "step_000016": {
+          "val/episode_count": 100,
+          "val/episode_return": 0.94,
+          "val/episode_steps": 115.2,
+          "val/success_rate": 0.99,
+          "val/task_0/success_count": 10,
+          "val/task_0/success_rate": 1.0,
+          "val/task_1/success_count": 10,
+          "val/task_1/success_rate": 1.0,
+          "val/task_2/success_count": 10,
+          "val/task_2/success_rate": 1.0,
+          "val/task_3/success_count": 10,
+          "val/task_3/success_rate": 1.0,
+          "val/task_4/success_count": 9,
+          "val/task_4/success_rate": 0.9,
+          "val/task_5/success_count": 10,
+          "val/task_5/success_rate": 1.0,
+          "val/task_6/success_count": 10,
+          "val/task_6/success_rate": 1.0,
+          "val/task_7/success_count": 10,
+          "val/task_7/success_rate": 1.0,
+          "val/task_8/success_count": 10,
+          "val/task_8/success_rate": 1.0,
+          "val/task_9/success_count": 10,
+          "val/task_9/success_rate": 1.0
+        },
+        "step_000032": {
+          "val/episode_count": 100,
+          "val/episode_return": 0.84,
+          "val/episode_steps": 117.92,
+          "val/success_rate": 0.96,
+          "val/task_0/success_count": 10,
+          "val/task_0/success_rate": 1.0,
+          "val/task_1/success_count": 10,
+          "val/task_1/success_rate": 1.0,
+          "val/task_2/success_count": 10,
+          "val/task_2/success_rate": 1.0,
+          "val/task_3/success_count": 9,
+          "val/task_3/success_rate": 0.9,
+          "val/task_4/success_count": 10,
+          "val/task_4/success_rate": 1.0,
+          "val/task_5/success_count": 8,
+          "val/task_5/success_rate": 0.8,
+          "val/task_6/success_count": 10,
+          "val/task_6/success_rate": 1.0,
+          "val/task_7/success_count": 10,
+          "val/task_7/success_rate": 1.0,
+          "val/task_8/success_count": 10,
+          "val/task_8/success_rate": 1.0,
+          "val/task_9/success_count": 9,
+          "val/task_9/success_rate": 0.9
+        },
+        "step_000000": {
+          "val/episode_count": 100,
+          "val/episode_return": 0.91,
+          "val/episode_steps": 115.04,
+          "val/success_rate": 0.99,
+          "val/task_0/success_count": 10,
+          "val/task_0/success_rate": 1.0,
+          "val/task_1/success_count": 10,
+          "val/task_1/success_rate": 1.0,
+          "val/task_2/success_count": 10,
+          "val/task_2/success_rate": 1.0,
+          "val/task_3/success_count": 10,
+          "val/task_3/success_rate": 1.0,
+          "val/task_4/success_count": 10,
+          "val/task_4/success_rate": 1.0,
+          "val/task_5/success_count": 10,
+          "val/task_5/success_rate": 1.0,
+          "val/task_6/success_count": 10,
+          "val/task_6/success_rate": 1.0,
+          "val/task_7/success_count": 9,
+          "val/task_7/success_rate": 0.9,
+          "val/task_8/success_count": 10,
+          "val/task_8/success_rate": 1.0,
+          "val/task_9/success_count": 10,
+          "val/task_9/success_rate": 1.0
+        }
+      },
+      "native_checkpoint32_publication": true,
+      "memory_peaks": {
+        "memory-gpu0": {
+          "sampled_device_bytes_with_reservation": 85895020544,
+          "sampled_matched_process_gpu_bytes_with_reservation": 84353744896,
+          "sampled_process_gpu_bytes_excluding_reservation": 24784142336
+        },
+        "memory-gpu1": {
+          "sampled_device_bytes_with_reservation": 85895020544,
+          "sampled_matched_process_gpu_bytes_with_reservation": 84532002816,
+          "sampled_process_gpu_bytes_excluding_reservation": 24962400256
+        },
+        "memory-gpu2": {
+          "sampled_device_bytes_with_reservation": 85895020544,
+          "sampled_matched_process_gpu_bytes_with_reservation": 84559265792,
+          "sampled_process_gpu_bytes_excluding_reservation": 24989663232
+        },
+        "memory-gpu3": {
+          "sampled_device_bytes_with_reservation": 85894955008,
+          "sampled_matched_process_gpu_bytes_with_reservation": 84550877184,
+          "sampled_process_gpu_bytes_excluding_reservation": 24981274624
+        }
+      },
+      "full_launcher_peak_pss_bytes": 80665734144,
+      "allocation_seconds_including_teardown": 1851,
+      "gpu_allocation_seconds": 7404,
+      "scope": "One fixed-pressure native integration/capacity run. Not final task quality, an optimizer speed result, or proof of migration. Native simulator reset makes resumed future trajectories non-exact.",
+      "raw": "raw/gr00t-pressure-paged55-v1"
     }
   },
   "checkpoint_memory_intervention": {
