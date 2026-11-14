@@ -48,6 +48,39 @@ def read_model_files(output):
     write(output / "model-file-reads.json", {"seconds": time.monotonic() - started, "files": records})
 
 
+def process_tree_memory(root_pid):
+    """Include children spawned by non-main threads (native Omni/Ray workers)."""
+    todo, seen, measured, rss, pss = [root_pid], set(), set(), 0, 0
+    while todo:
+        pid = todo.pop()
+        if pid in seen:
+            continue
+        seen.add(pid)
+        try:
+            for task in Path(f"/proc/{pid}/task").iterdir():
+                try:
+                    todo.extend(map(int, (task / "children").read_text().split()))
+                except OSError:
+                    pass  # a thread can exit while sampling
+            values = {
+                line.split(":")[0]: int(line.split()[1]) * 1024
+                for line in Path(f"/proc/{pid}/smaps_rollup").read_text().splitlines()[1:]
+                if line.startswith(("Rss:", "Pss:"))
+            }
+            rss += values["Rss"]
+            pss += values["Pss"]
+            measured.add(pid)
+        except (OSError, KeyError):
+            pass
+    return {
+        "process_tree_scope": "all_thread_children_v1",
+        "process_tree_pids": sorted(seen),
+        "process_tree_measured_pids": sorted(measured),
+        "process_tree_rss": rss,
+        "process_tree_pss": pss,
+    }
+
+
 def monitor(handle, process, output, stop):
     """External samples; no torch/CUDA context, hooks or model synchronization."""
     with output.open("x") as stream:
@@ -64,25 +97,8 @@ def monitor(handle, process, output, stop):
                     power_mw=pynvml.nvmlDeviceGetPowerUsage(handle),
                     sm_mhz=pynvml.nvmlDeviceGetClockInfo(handle, pynvml.NVML_CLOCK_SM),
                 )
-                todo, seen, rss, pss = [process.pid], set(), 0, 0
-                while todo:
-                    pid = todo.pop()
-                    if pid in seen:
-                        continue
-                    seen.add(pid)
-                    try:
-                        todo.extend(map(int, Path(f"/proc/{pid}/task/{pid}/children").read_text().split()))
-                        values = {
-                            line.split(":")[0]: int(line.split()[1]) * 1024
-                            for line in Path(f"/proc/{pid}/smaps_rollup").read_text().splitlines()[1:]
-                            if line.startswith(("Rss:", "Pss:"))
-                        }
-                        rss += values["Rss"]
-                        pss += values["Pss"]
-                    except (OSError, KeyError):
-                        pass
-                row.update(process_tree_pids=sorted(seen), process_tree_rss=rss, process_tree_pss=pss)
-                matched = [p.usedGpuMemory for p in gpu_processes if p.pid in seen]
+                row.update(process_tree_memory(process.pid))
+                matched = [p.usedGpuMemory for p in gpu_processes if p.pid in row["process_tree_pids"]]
                 row["matched_process_gpu_bytes"] = sum(matched) if matched else None
             except Exception as error:
                 row["sample_error"] = str(error)
