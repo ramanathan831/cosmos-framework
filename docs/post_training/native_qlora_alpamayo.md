@@ -192,8 +192,42 @@ arithmetic. Use it instead of `--merged-backbone-dtype`, and load through
 inference artifact, not four-bit inference or a resumable training checkpoint.
 Its commit manifest, strict native loader and original training identity remain
 separate from merged export. Tiny native Alpamayo CPU flow tests preserve exact
-outputs after unmerged reload; full-model CUDA qualification remains pending.
-The failed BF16 merged-conversion result below remains unchanged.
+outputs after unmerged reload. Full-model CUDA qualification now also preserves
+the selected NF4 update-512 policy exactly on all 256 development rows and two
+controlled trajectory probes (`38530040`, export/inference build `64ea823`).
+The selected BF16 policy and current-build observation-only path require their
+own checks. The failed BF16 merged-conversion result below remains unchanged.
+
+On the qualified export build, use the original model/task settings, including
+adapter seed 17 for the selected policy (the recipe default is 42):
+
+```bash
+export COSMOS_TRAINING_CODE_REVISION=64ea823db4a7978c387d195bb464879b4f4733d0
+export COSMOS_TRAINING_WHEEL_SHA256=f1a3cc7332007881d41e6daef3379d3d08985bc883cebbe21cdc491d18acdaf7
+recipe=cosmos_framework/posttrain/configs/sft_alpamayo_qlora.py
+common=(
+  --override model.checkpoint_path=/staged/Alpamayo-R1-10B-dd4a24c
+  --override model.processor_path=/staged/Qwen3-VL-8B-processor-0c351dd
+  --override model.backbone_adaptation.mode=nf4_lora
+  --override model.backbone_adaptation.rank=32
+  --override model.backbone_adaptation.alpha=64
+  --override model.backbone_adaptation.seed=17
+  --override rl.seed=17 --override rl.evaluation_seed=123
+)
+torchrun --standalone --nproc-per-node=1 \
+  -m cosmos_framework.posttrain.checkpoint.tools.export_family_dense \
+  --config "$recipe" --checkpoint /durable/portable/iter_000512 \
+  --output /durable/new-unmerged-policy --unmerged \
+  --max-shard-size-bytes 536870912 "${common[@]}"
+torchrun --standalone --nproc-per-node=1 \
+  -m cosmos_framework.posttrain.entrypoints.action_eval \
+  --config "$recipe" --checkpoint /durable/new-unmerged-policy \
+  --output /durable/new-unmerged-evaluation --unmerged "${common[@]}" \
+  --override data.validation_path=/data/validation.jsonl
+```
+
+The inference loader uses the artifact's verified processor/config sidecars and
+effective weights; original source directories are needed for export only.
 
 For observation-only prediction, use
 `model.alpamayo.observation.prepare_observation(policy, sample)` with the loaded
@@ -490,8 +524,9 @@ with the later allocation-release proof separate from that archive.
 BF16 recovery's sampled owned-GPU peak was 76.543 GiB and host RSS was 43.740 GiB.
 One membership-transition sample leaves whole-run host PSS incomplete. These are
 recovery measurements, distinct from the original 512-update training peaks;
-they are not a new paired performance comparison. Standalone 512-update artifact
-qualification and final-build cache/observation checks remain separate work.
+they are not a new paired performance comparison. The selected NF4 standalone
+artifact result follows below; BF16 standalone and final-build cache/observation
+checks remain separate work.
 
 The earlier NF4 qualification (`38525895`) finished successfully, but Slurm
 retained its allocation after reporting completion. Only that allocation was
@@ -503,6 +538,34 @@ has those 42 receipts plus their inventory; the later cleanup receipt preserves
 the controller/accounting discrepancy. Sampled owned GPU memory and host RSS are
 valid lower bounds, while whole-run host PSS coverage is incomplete. This does
 not establish a complete-memory performance gate or a new quality result.
+
+The selected NF4 update-512 policy now passes standalone unmerged qualification
+(`38530040`, **3,143 GPU-seconds**, normal `COMPLETED` release). Fresh portable
+evaluation first reproduced every original resident-development row and metric;
+the standalone policy then reproduced all 256 rows exactly. Controlled rows 0/255
+also matched every processed input, flow output and 64-waypoint trajectory,
+all 494 LoRA factors, 409 trained expert/action tensors, 247 effective BF16 base
+matrices, and native rotary aliases. Reload ran in a fresh namespace without
+either original base/processor path spelling and with quantizer imports blocked.
+The installed runtime still contains bitsandbytes; this proves import independence,
+not installation without that package.
+
+The artifact has **51 weight shards**, 1,663 tensor records and 63 indexed files,
+totalling **27,070,952,449 bytes** excluding its commit manifest. Native export took
+332.12 seconds; separate fresh portable and standalone full-development scoring
+took 1,086.63 and 1,079.61 seconds. These qualification subprocess clocks include
+loading and integrity work and are not inference-latency benchmarks. Sampled
+owned GPU peaks were **21.879 GiB** for the combined export/portable-check phase
+and **26.939 GiB** for standalone reload/evaluation; sampled host RSS peaked at
+24.431/3.865 GiB. Both monitored phase scopes have complete sampled host PSS,
+but exclude container startup and scheduler release. These are artifact-workflow
+measurements, not training peaks. All 51 retained receipt files were hash-verified;
+the later controller-release proof is separate from their archive.
+
+This deployment representation preserves the existing checkpoint's ADE/FDE
+**2.10761/6.38240 m**, including its unmet fixed quality target. It does not repair
+that learning outcome, establish merged-export parity, qualify closed-loop driving
+or demonstrate inference acceleration.
 
 The paired diagnostic profile (`38523526`, native `4cba88f`, 1,284 GPU-seconds)
 completed 24 updates per arm and traced the last four updates plus the final

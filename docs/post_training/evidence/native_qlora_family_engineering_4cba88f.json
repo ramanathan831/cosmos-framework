@@ -13658,6 +13658,269 @@
       },
       "quality": "Exact trained trajectories cannot establish improved fixed-step learning; historical source-relative rollout failures and confidence-bound failures remain unchanged.",
       "candidate_nf4_training_memory_saved_bytes": 1180696576
+    },
+    "38530040": {
+      "family": "alpamayo",
+      "mode": "nf4_lora",
+      "seed": 17,
+      "slurm_state": "COMPLETED",
+      "native_qualification_passed": true,
+      "allocation_gpu_seconds": 3143,
+      "scope": "Selected original NF512 checkpoint standalone deployment fidelity, not merged export, four-bit serving, recipe quality or inference latency.",
+      "training_revision": "4cba88f4d84ce69037c194e58670e8491388a36d",
+      "export_inference_revision": "64ea823db4a7978c387d195bb464879b4f4733d0",
+      "export_inference_wheel_sha256": "f1a3cc7332007881d41e6daef3379d3d08985bc883cebbe21cdc491d18acdaf7",
+      "reference_job": "38513808",
+      "protocol": {
+        "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/alpamayo-unmerged-production-v1/protocol.json",
+        "sha256": "55269ee74105fc1c32e9a5e9bd0627111362a1be638953cf8e95f18c0174199b",
+        "payload_manifest_sha256": "a1c903ffcc5f1625ffc7a092c39374a9f5fd1f972f7489a039bb7ccc948214eb",
+        "controlled_indices": [
+          0,
+          255
+        ],
+        "scoring_rows": 256,
+        "evaluation_seed": 123,
+        "atol": 0,
+        "rtol": 0
+      },
+      "acceptance": {
+        "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38530040/nf4_lora/reload/acceptance.json",
+        "sha256": "27d12b27080ec5aa39e020cdf07473febdca1cb36412f3929de59797fa8158b6",
+        "artifact_bytes": 27070952449,
+        "artifact_files": 63,
+        "exact247_actual_BF16_effective_weights": true,
+        "exact_all409_heads_and494_factors": true,
+        "exact_controlled_full_outputs": true,
+        "exact_full256_rows_and_metrics": true,
+        "manifest_sha256": "3e5f64aeae091bdd39170468fc285ebfdaafa56a281eef39f748e5a31be79f77",
+        "mode": "nf4_lora",
+        "parameter_aliases": [],
+        "passed": true,
+        "scope": "selected checkpoint deployment fidelity only, not recipe quality, rollout success or inference speed",
+        "standalone_namespace": {
+          "original_source_paths_absent": [
+            "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-family-adapters-20261030/resources/models/alpamayo/dd4a24cacefc9a6477a6dfc7354de2443401409d",
+            "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-family-adapters-20261030/driving-resources/processor/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+            "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-family-adapters-20261030/resources/models/alpamayo/dd4a24cacefc9a6477a6dfc7354de2443401409d",
+            "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-family-adapters-20261030/driving-resources/processor/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+            "/original-source-unavailable/model",
+            "/original-source-unavailable/processor"
+          ],
+          "quantizer_imports_blocked": true
+        },
+        "weight_shards": 51
+      },
+      "artifact": {
+        "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38530040/nf4_lora/export/unmerged",
+        "manifest_sha256": "3e5f64aeae091bdd39170468fc285ebfdaafa56a281eef39f748e5a31be79f77",
+        "weight_shards": 51,
+        "indexed_files": 63,
+        "tensors": 1663,
+        "indexed_payload_and_sidecar_bytes": 27070952449,
+        "bytes_scope": "All manifest-indexed files, excluding the commit manifest itself.",
+        "max_shard_payload_bytes": 536870912,
+        "native_LoRA_factor_tensors": 494,
+        "native_expert_action_tensors": 409,
+        "BF16_effective_base_matrices": 247,
+        "trained_parameter_dtype": "float32",
+        "representation": "Actual dequantized BF16 base with separate exact native LoRA operations; complete trained FP32 auxiliary policy."
+      },
+      "portable_vs_resident": {
+        "acceptance_sha256": "82671441f8a5a3f536ca8573b51be1683a1f70d45fd529fd48883d9bebcc1abb",
+        "exact_resident_rows_and_metrics": true,
+        "passed": true,
+        "rows": 256,
+        "seed": 123
+      },
+      "controlled_capture_sha256": {
+        "portable": "51601dddb4aa2e67894081becc9247be2aa093b8ab3381096fa078753efdf17e",
+        "standalone": "d33bbc4cc8c3e5ba8e732079ae5a3b094c5a260df6813fbc01ef7551de17772b"
+      },
+      "full256_evaluation_sha256": {
+        "original_resident": "48eb0a1a29623ea2e3d9b5b5b3958a789a950d3d92181b8b860e1e85f6d6d48b",
+        "fresh_portable": "c463f42cf006a8691e081cf7bb7f28eab9bdfb7cb9ee460f56beddf5f8a71e84",
+        "fresh_standalone": "b2e7ffbcd02d3b8bb867e41784a0e5cebca2e834b58c4d8aa83b363c550cd266"
+      },
+      "metrics_unchanged": {
+        "loss": 0.2908061526500205,
+        "open_loop_ade_1s_meters": 0.05248630490098094,
+        "open_loop_ade_3s_meters": 0.4434622991711876,
+        "open_loop_ade_6p4s_meters": 2.107607095698768,
+        "open_loop_fde_1s_meters": 0.13557243854063472,
+        "open_loop_fde_3s_meters": 1.2937562002352934,
+        "open_loop_fde_6p4s_meters": 6.3824037908925675
+      },
+      "target_attainment_unchanged": false,
+      "runtime": {
+        "code": "64ea823db4a7978c387d195bb464879b4f4733d0",
+        "versions": {
+          "torch": "2.10.0+cu128",
+          "transformers": "4.57.6",
+          "bitsandbytes": "0.49.2",
+          "safetensors": "0.8.0",
+          "diffusers": "0.35.1",
+          "numpy": "1.26.4"
+        },
+        "gpu": {
+          "name": "NVIDIA A100-SXM4-80GB",
+          "bytes": 85174583296,
+          "uuid": "GPU-bec9744a-e995-576c-e030-11aecc0e04c3",
+          "nvml_uuid_roundtrip": true
+        },
+        "cpu_affinity": [
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          24,
+          25,
+          164,
+          165,
+          166,
+          167,
+          168,
+          169,
+          170,
+          171
+        ],
+        "slurm_job": "38530040",
+        "node": "batch-block4-1017",
+        "numa_nodes": [
+          "node1",
+          "node2"
+        ]
+      },
+      "runtime_sha256": "5184fe2adb0f5683df06c4c4a3aae4f3508622b5cb3c2024ad6a129a5419b13b",
+      "phases": {
+        "export": {
+          "workflow_path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38530040/nf4_lora/export/workflow.json",
+          "workflow_sha256": "53cf2240f191351071b0d58974192fed97626cd7b97817f4fa3108818f81d585",
+          "complete": true,
+          "monitor_alive_at_end": true,
+          "monitor_exit": 0,
+          "stage_seconds": {
+            "portable-capture": 194.94822217803448,
+            "portable-full256-evaluation": 1086.6347437119111,
+            "native-unmerged-export": 332.1154484837316
+          },
+          "sampled_memory": {
+            "device_peak_bytes": 24226496512,
+            "errors": [],
+            "gpu_memory_evidence_valid": true,
+            "host_pss_complete": true,
+            "host_pss_sum_peak_bytes": 25652563968,
+            "host_rss_sum_peak_bytes": 26232291328,
+            "nvml_capacity_bytes": 85899345920,
+            "observed_span_seconds": 1658.438532114029,
+            "owned_device_process_peak_bytes": 23492296704,
+            "peaks_are_sampled_lower_bounds": true,
+            "samples": 1282,
+            "sampling_gap_seconds": {
+              "count": 1281,
+              "maximum": 1.5255260467529297,
+              "mean": 1.2946436628524816,
+              "median": 1.2862942218780518,
+              "p95": 1.3564813137054443,
+              "sum": 1658.438532114029
+            }
+          },
+          "memory_summary_sha256": "dfdb11be048f5eba9cfda4728db9de9fa6bd3dbe719ce790b4101295420f1f23",
+          "allocator_peak_bytes_by_subprocess": {
+            "native-unmerged-export": {
+              "peak_allocated_bytes": 17205096448,
+              "peak_reserved_bytes": 17257463808,
+              "sha256": "67adabf5e7b493b2552f0d49ea1ca04100b8e501d8d6f238954adb5bb4ae688a"
+            },
+            "portable-capture": {
+              "peak_allocated_bytes": 22653660672,
+              "peak_reserved_bytes": 22758293504,
+              "sha256": "7a9dfe5c68f2842e0e008a96743553ab5448c9c038fe6c44214db83f11182079"
+            },
+            "portable-full256-evaluation": {
+              "peak_allocated_bytes": 22653659648,
+              "peak_reserved_bytes": 22758293504,
+              "sha256": "0871b54cd57542bf159d0892aaa9e21ff353f9b6af0afa41ebf57db0471aa3de"
+            }
+          }
+        },
+        "reload": {
+          "workflow_path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38530040/nf4_lora/reload/workflow.json",
+          "workflow_sha256": "f1590d806d51929a144aff8b521d660fc76481db061e762a36c3571731f9c708",
+          "complete": true,
+          "monitor_alive_at_end": true,
+          "monitor_exit": 0,
+          "stage_seconds": {
+            "unmerged-capture": 193.13914597267285,
+            "native-full256-evaluation": 1079.6072407462634
+          },
+          "sampled_memory": {
+            "device_peak_bytes": 29660217344,
+            "errors": [],
+            "gpu_memory_evidence_valid": true,
+            "host_pss_complete": true,
+            "host_pss_sum_peak_bytes": 3509444608,
+            "host_rss_sum_peak_bytes": 4150501376,
+            "nvml_capacity_bytes": 85899345920,
+            "observed_span_seconds": 1359.3199982643127,
+            "owned_device_process_peak_bytes": 28926017536,
+            "peaks_are_sampled_lower_bounds": true,
+            "samples": 1054,
+            "sampling_gap_seconds": {
+              "count": 1053,
+              "maximum": 1.5124573707580566,
+              "mean": 1.2909021825871916,
+              "median": 1.2875449657440186,
+              "p95": 1.345157766342163,
+              "sum": 1359.3199982643127
+            }
+          },
+          "memory_summary_sha256": "a0bd1a2ff3e2eb9c0e503c7f8d918398c51ca77efff9a1894de437455960c3b5",
+          "allocator_peak_bytes_by_subprocess": {
+            "native-full256-evaluation": {
+              "peak_allocated_bytes": 28135347200,
+              "peak_reserved_bytes": 28225568768,
+              "sha256": "50eb458853de18c65568b1f7b5cbb822e5b97abd635723a10d1f3c60e066d33e"
+            },
+            "unmerged-capture": {
+              "peak_allocated_bytes": 28135348224,
+              "peak_reserved_bytes": 28225568768,
+              "sha256": "3aa3ee40c24fe3a0107424f8edefe67c3b961fb3c27eff042557e0062357bf92"
+            }
+          }
+        }
+      },
+      "memory_scope": "Sampled lower bounds with complete hostPSS inside both monitored phase scopes; excludes container startup, some preflight and scheduler release. Per-subprocess allocator peaks are not training peaks. Raw host_peak_rss fields are cumulative process HWM, not per-phase allocations.",
+      "workflow_batch_seconds": 3136.8186860121787,
+      "allocation_sha256": "9ab61a3496fcd2af11f73d6683537349ae7cf758f28cc6f73ca5af4816bca732",
+      "raw_receipt_archive": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/alpamayo-38530040-unmerged-receipts-v1.tar.gz",
+        "sha256": "a7b368de8981f74138a1f296ebef4f27adbf5d5c27317421fcd7537138e61da1",
+        "hash_listed_files": 51,
+        "archive_entries_including_inventory": 52,
+        "snapshot": "Terminal scientific/accounting receipts before separate controller-release receipt."
+      },
+      "receipt_inventory": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/alpamayo-38530040-unmerged-receipts-v1/alpamayo-38530040-unmerged-receipts-v1.manifest.json",
+        "sha256": "8653dab335143e0e8929ae14e2765e0d8fcebe883e638bb745eb5900a9dc5665",
+        "all51_file_hashes_independently_verified": true
+      },
+      "allocation_release": {
+        "path": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38530040/allocation-release-v1.json",
+        "sha256": "3161903bae326385e65ac7dac04a5d2f5736724dd20842c49174b9c9d2d72411",
+        "proof": "All parent/steps COMPLETED0:0; successful full-user queue excludes owner; controller confirms COMPLETED.",
+        "cancelled": false
+      },
+      "remaining": [
+        "Selected BF512 standalone task verification",
+        "Final-build source/cache and full-model observation-only qualification",
+        "Original expert-only control and paired-seed development",
+        "Task-quality improvement and fixed-target attainment",
+        "Independent recording-family confirmation",
+        "Merged dense conversion remains separately failed/unqualified where recorded; no inference acceleration claim"
+      ]
     }
   },
   "read_only_head_memory_diagnostic": {
