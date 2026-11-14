@@ -616,6 +616,49 @@
         "changed_since_capture": 0,
         "scope": "Archive snapshot taken after launcher exit; all collected source text identities rechecked unchanged after Slurm terminal state. Teardown cost included separately."
       }
+    },
+    "paged55_profile_v1": {
+      "job": "38537185",
+      "source": "ff2572f266d9463c6cb820f883e514387aecd869",
+      "status": "FAILED incomplete native diagnostic despite scheduler/profiler exit0",
+      "scheduler_state": "COMPLETED",
+      "native_completion_receipt_present": false,
+      "updates_completed": [
+        1,
+        2,
+        3
+      ],
+      "requested_updates": 8,
+      "checkpoints_completed": [],
+      "initial_all4_learner_state_exact_vs_paged55_reference": true,
+      "initial_evaluation_successes": 99,
+      "behavior_logprob_max_delta_per_update": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "window_seconds_instrumented": [
+        41.691906571155414,
+        31.393154993886128,
+        31.113337855786085
+      ],
+      "failure": "All4 sampled learner threads remained in autograd backward; rank1 GPU utilization0, other3 100%, devices near80GiB. No sampled OOM traceback. Native driver terminated after fixed capture window expired; root cause not isolated.",
+      "pressure_gib_per_gpu": 55,
+      "instrumented_device_peak_bytes": 85894955008,
+      "instrumented_host_pss_peak_bytes_excluding_profiler": 63077732352,
+      "memory_scope": "Sampled native launcher descendants including reservations; profiler ancestors excluded, no complete instrumented-host peak claim.",
+      "migration_analysis": "raw/gr00t-pressure-paged55-profile-v1/migration-analysis.json",
+      "migration_finding": "Recorded learner rank1 has807 eight-bit and822 32-bit-state optimizer kernels,38763GPU page faults in2034events,2,382,266,368bytes of GPU-to-host eviction,1,623,392,256bytes of user-prefetch to GPU plus4,456,448fault/speculative bytes. Later40-70s and70-120s bins each prefetch811,696,128bytes before any checkpoint. This demonstrates repeated managed migration in captured training, not complete all-rank coverage or critical-path overhead.",
+      "coverage_limits": "Nsight warns events may be missing and an injected process timed out stopping recording. Only rank1 optimizer events exported. Partial trace cannot qualify sustained paging speed, eight-update success or recovery.",
+      "allocation_seconds": 1327,
+      "gpu_allocation_seconds": 5308,
+      "raw": {
+        "directory": "raw/gr00t-pressure-paged55-profile-v1",
+        "files": 56,
+        "bytes": 12137220,
+        "archive_sha256": "95d72a3223e779ad90e5b6410ca4b867146ae31e67f1055a9a6f1d6e567cda68"
+      },
+      "postdiagnostic_fix": "paging_profile.py now requires native attempt.json returncode0 as well as profiler0;7 focused CPU tests pass. Not rerun as an additional GPU trial."
     }
   },
   "checkpoint_memory_intervention": {

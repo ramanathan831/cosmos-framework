@@ -1,0 +1,396 @@
+{
+  "job": "38537185",
+  "source": "ff2572f266d9463c6cb820f883e514387aecd869",
+  "scope": "Partial instrumented pressure diagnostic;3 of8updates completed, no checkpoint4. Not throughput, recovery or task qualification.",
+  "status": "FAILED semantic completion despite profiler/scheduler exit0; native driver explicitly terminated after backward stall.",
+  "trace_origin": [
+    {
+      "utcEpochNs": 1794668056050914113,
+      "utcTime": "2026-11-14T14:54:16",
+      "localTime": "2026-11-14T06:54:16"
+    }
+  ],
+  "learner_pids": [
+    {
+      "globalPid": 293671844970496,
+      "pid": 726990
+    },
+    {
+      "globalPid": 293671811416064,
+      "pid": 726988
+    },
+    {
+      "globalPid": 293671878524928,
+      "pid": 726992
+    },
+    {
+      "globalPid": 293671794638848,
+      "pid": 726987
+    }
+  ],
+  "kernel_coverage": [
+    {
+      "globalPid": 293671761084416,
+      "events": 3291,
+      "first_start_ns": 19666723619,
+      "last_end_ns": 85981135504
+    },
+    {
+      "globalPid": 293671777861632,
+      "events": 3291,
+      "first_start_ns": 19666879919,
+      "last_end_ns": 85981253184
+    },
+    {
+      "globalPid": 293671794638848,
+      "events": 60781,
+      "first_start_ns": 9793280231,
+      "last_end_ns": 16763581973
+    },
+    {
+      "globalPid": 293671811416064,
+      "events": 439879,
+      "first_start_ns": 9793338494,
+      "last_end_ns": 110634912942
+    },
+    {
+      "globalPid": 293671828193280,
+      "events": 3291,
+      "first_start_ns": 19666660020,
+      "last_end_ns": 85981246859
+    },
+    {
+      "globalPid": 293671844970496,
+      "events": 60893,
+      "first_start_ns": 9793280286,
+      "last_end_ns": 16769822420
+    },
+    {
+      "globalPid": 293671861747712,
+      "events": 3291,
+      "first_start_ns": 19666660262,
+      "last_end_ns": 85981296898
+    },
+    {
+      "globalPid": 293671878524928,
+      "events": 60848,
+      "first_start_ns": 9793320192,
+      "last_end_ns": 16768069032
+    },
+    {
+      "globalPid": 293692128624640,
+      "events": 417795,
+      "first_start_ns": 1501203494,
+      "last_end_ns": 103865521945
+    },
+    {
+      "globalPid": 293692145401856,
+      "events": 417795,
+      "first_start_ns": 69957147,
+      "last_end_ns": 104104969729
+    },
+    {
+      "globalPid": 293692162179072,
+      "events": 417788,
+      "first_start_ns": 26360979,
+      "last_end_ns": 103235144484
+    },
+    {
+      "globalPid": 293692178956288,
+      "events": 424644,
+      "first_start_ns": 1308185766,
+      "last_end_ns": 104281629832
+    }
+  ],
+  "optimizer_kernel_coverage": [
+    {
+      "globalPid": 293671811416064,
+      "kernel": "void kOptimizerStatic8bit2StateBlockwise<float, (int)0, (int)256, (int)1>(T1 *, T1 *, unsigned char *, unsigned char *, float, float, float, float, float, int, float, float *, float *, float *, float *, float, float, bool, int)",
+      "events": 807,
+      "summed_event_ns": 49490338,
+      "first_start_ns": 18649594453,
+      "last_end_ns": 81926040825
+    },
+    {
+      "globalPid": 293671811416064,
+      "kernel": "void kOptimizer32bit2State<float, (int)0>(T1 *, T1 *, float *, float *, float *, float, float, float, float, float, float, float, float, int, float, float, bool, int)",
+      "events": 822,
+      "summed_event_ns": 4645629,
+      "first_start_ns": 18650085560,
+      "last_end_ns": 81926135961
+    }
+  ],
+  "gpu_page_faults": [
+    {
+      "globalPid": 293671811416064,
+      "deviceId": 0,
+      "events": 2034,
+      "faults": 38763,
+      "summed_event_ns": 314339574,
+      "first_start_ns": 18650414458,
+      "last_end_ns": 19206443208
+    }
+  ],
+  "unified_transfers": [
+    {
+      "globalPid": 293671811416064,
+      "copyKind": 11,
+      "migrationCause": 1,
+      "events": 1464,
+      "bytes": 1623392256,
+      "summed_event_ns": 130087409,
+      "first_start_ns": 50508712050,
+      "last_end_ns": 81925817688
+    },
+    {
+      "globalPid": 293671811416064,
+      "copyKind": 11,
+      "migrationCause": 2,
+      "events": 31,
+      "bytes": 1724416,
+      "summed_event_ns": 193700,
+      "first_start_ns": 19060505313,
+      "last_end_ns": 19206427687
+    },
+    {
+      "globalPid": 293671811416064,
+      "copyKind": 11,
+      "migrationCause": 3,
+      "events": 33,
+      "bytes": 2732032,
+      "summed_event_ns": 271438,
+      "first_start_ns": 19060476001,
+      "last_end_ns": 19206432616
+    },
+    {
+      "globalPid": 293671811416064,
+      "copyKind": 12,
+      "migrationCause": 4,
+      "events": 1530,
+      "bytes": 2382266368,
+      "summed_event_ns": 129651753,
+      "first_start_ns": 18723614286,
+      "last_end_ns": 82171353732
+    }
+  ],
+  "transfer_enums": [
+    {
+      "id": 0,
+      "name": "CUDA_MEMCPY_KIND_UNKNOWN",
+      "label": "Unknown"
+    },
+    {
+      "id": 1,
+      "name": "CUDA_MEMCPY_KIND_HTOD",
+      "label": "Host-to-Device"
+    },
+    {
+      "id": 2,
+      "name": "CUDA_MEMCPY_KIND_DTOH",
+      "label": "Device-to-Host"
+    },
+    {
+      "id": 3,
+      "name": "CUDA_MEMCPY_KIND_HTOA",
+      "label": "Host-to-Array"
+    },
+    {
+      "id": 4,
+      "name": "CUDA_MEMCPY_KIND_ATOH",
+      "label": "Array-to-Host"
+    },
+    {
+      "id": 5,
+      "name": "CUDA_MEMCPY_KIND_ATOA",
+      "label": "Array-to-Array"
+    },
+    {
+      "id": 6,
+      "name": "CUDA_MEMCPY_KIND_ATOD",
+      "label": "Array-to-Device"
+    },
+    {
+      "id": 7,
+      "name": "CUDA_MEMCPY_KIND_DTOA",
+      "label": "Device-to-Array"
+    },
+    {
+      "id": 8,
+      "name": "CUDA_MEMCPY_KIND_DTOD",
+      "label": "Device-to-Device"
+    },
+    {
+      "id": 9,
+      "name": "CUDA_MEMCPY_KIND_HTOH",
+      "label": "Host-to-Host"
+    },
+    {
+      "id": 10,
+      "name": "CUDA_MEMCPY_KIND_PTOP",
+      "label": "Peer-to-Peer"
+    },
+    {
+      "id": 11,
+      "name": "CUDA_MEMCPY_KIND_UVM_HTOD",
+      "label": "Unified Host-to-Device"
+    },
+    {
+      "id": 12,
+      "name": "CUDA_MEMCPY_KIND_UVM_DTOH",
+      "label": "Unified Device-to-Host"
+    },
+    {
+      "id": 13,
+      "name": "CUDA_MEMCPY_KIND_UVM_DTOD",
+      "label": "Unified Device-to-Device"
+    }
+  ],
+  "migration_enums": [
+    {
+      "id": 0,
+      "name": "CUDA_UNIFIED_MEMORY_MIGRATION_CAUSE_UNKNOWN",
+      "label": "Unknown"
+    },
+    {
+      "id": 1,
+      "name": "CUDA_UNIFIED_MEMORY_MIGRATION_CAUSE_USER",
+      "label": "User prefetch"
+    },
+    {
+      "id": 2,
+      "name": "CUDA_UNIFIED_MEMORY_MIGRATION_CAUSE_COHERENCE",
+      "label": "Page fault"
+    },
+    {
+      "id": 3,
+      "name": "CUDA_UNIFIED_MEMORY_MIGRATION_CAUSE_PREFETCH",
+      "label": "Speculative prefecth"
+    },
+    {
+      "id": 4,
+      "name": "CUDA_UNIFIED_MEMORY_MIGRATION_CAUSE_EVICTION",
+      "label": "Eviction"
+    },
+    {
+      "id": 5,
+      "name": "CUDA_UNIFIED_MEMORY_MIGRATION_CAUSE_ACCESS_COUNTERS",
+      "label": "Access counters"
+    }
+  ],
+  "warnings": [
+    {
+      "severity": 2,
+      "text": "CUDA profiling might have not been started correctly.",
+      "count": 22
+    },
+    {
+      "severity": 2,
+      "text": "No CUDA events collected. Does the process use CUDA?",
+      "count": 26
+    },
+    {
+      "severity": 2,
+      "text": "No NVTX events collected. Does the process use NVTX?",
+      "count": 30
+    },
+    {
+      "severity": 2,
+      "text": "Not all CUDA events might have been collected.",
+      "count": 16
+    },
+    {
+      "severity": 2,
+      "text": "Not all NVTX events might have been collected.",
+      "count": 38
+    },
+    {
+      "severity": 2,
+      "text": "Timeout while waiting for injected process to stop recording. Starting reading storage files regardlessly.",
+      "count": 1
+    }
+  ],
+  "later_transfers": {
+    "0_40_seconds_from_trace_origin": [
+      {
+        "globalPid": 293671811416064,
+        "copyKind": 11,
+        "migrationCause": 2,
+        "events": 31,
+        "bytes": 1724416,
+        "summed_event_ns": 193700
+      },
+      {
+        "globalPid": 293671811416064,
+        "copyKind": 11,
+        "migrationCause": 3,
+        "events": 33,
+        "bytes": 2732032,
+        "summed_event_ns": 271438
+      },
+      {
+        "globalPid": 293671811416064,
+        "copyKind": 12,
+        "migrationCause": 4,
+        "events": 461,
+        "bytes": 734265344,
+        "summed_event_ns": 40857626
+      }
+    ],
+    "40_70_seconds_from_trace_origin": [
+      {
+        "globalPid": 293671811416064,
+        "copyKind": 11,
+        "migrationCause": 1,
+        "events": 732,
+        "bytes": 811696128,
+        "summed_event_ns": 64615981
+      },
+      {
+        "globalPid": 293671811416064,
+        "copyKind": 12,
+        "migrationCause": 4,
+        "events": 535,
+        "bytes": 826834944,
+        "summed_event_ns": 44223455
+      }
+    ],
+    "70_120_seconds_from_trace_origin": [
+      {
+        "globalPid": 293671811416064,
+        "copyKind": 11,
+        "migrationCause": 1,
+        "events": 732,
+        "bytes": 811696128,
+        "summed_event_ns": 65471428
+      },
+      {
+        "globalPid": 293671811416064,
+        "copyKind": 12,
+        "migrationCause": 4,
+        "events": 534,
+        "bytes": 821166080,
+        "summed_event_ns": 44570672
+      }
+    ]
+  },
+  "limitations": [
+    "Optimizer kernels and unified transfers captured for learner rank1 only; other ranks have truncated GPU activity. Never infer zero migration on other ranks.",
+    "Summed event durations may overlap and exclude stall/driver overhead; they are not measured critical-path overhead.",
+    "All captured transfers precede first checkpoint; later time bins distinguish repeated training migration from only first touches, but do not isolate which individual state arrays moved.",
+    "Instrumentation coincides with stalled update4; no OOM traceback in sampled workers. Profiler versus pressure/collective cause unresolved. Uninstrumented paged32 and fresh16to32 passed.",
+    "No inference latency, sustained paging speed or total-memory saving inferred. Native memory sampler excludes profiler ancestors."
+  ],
+  "artifacts": {
+    "managed-memory.nsys-rep": {
+      "bytes": 140542716,
+      "sha256": "8664e338cbae29c4d378afcd09678191a1e11cfab7e21b1e0d77af5872f24c9b",
+      "location": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-pressure-paged55-profile-v1/managed-memory.nsys-rep"
+    },
+    "managed-memory.sqlite": {
+      "bytes": 336957440,
+      "sha256": "ac5191115eac4eeca044d8e38ed7f3705d12ace52b8736d8bd99d8a22cae945d",
+      "location": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-pressure-paged55-profile-v1/managed-memory.sqlite"
+    }
+  },
+  "analysis_seconds": 3.813242050819099
+}

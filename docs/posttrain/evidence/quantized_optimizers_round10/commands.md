@@ -8,9 +8,9 @@ not a completed final quality protocol.
 ## Source and shared accelerator checks
 
 ```bash
-git archive --format=tar.gz <tested-commit> cosmos_framework tools pyproject.toml .pytest.toml -o source.tar.gz
+git archive --format=tar.gz ff2572f266d9463c6cb820f883e514387aecd869 cosmos_framework tools pyproject.toml .pytest.toml -o source.tar.gz
 # On the configured cluster; R is the existing authorized per-user project root.
-export SOURCE_ARCHIVE="$R/cosmos-optimizer-native-20261113/source-v39.tar.gz"
+export SOURCE_ARCHIVE="$R/cosmos-optimizer-native-20261113/source-v42.tar.gz"
 export CONTAINER_IMAGE="$R/cosmos-automl-focused-20261012/image-conversion/cosmos-framework-focused.sqsh"
 export ASSETS="$R/cosmos-qlora-wts-20261028T234324Z"
 export RESULTS="$R/cosmos-optimizer-native-20261113/new-master-attempt"
@@ -347,3 +347,19 @@ records CUDA/NVTX and unified-memory faults during the fixed600–1200second
 window, exports SQLite, and continues required evaluation/publication afterward.
 The instrumented run is not a timing comparison; native memory sampling excludes
 profiler ancestors. No inherited credential variables are forwarded.
+
+The executed profile38537185 used the helper at496c291b (hash in
+`profile-context.json`). It failed native completion after three updates, although
+Nsight successfully exported. The current helper requires a native success receipt
+and fails closed if it is missing. No automatic follow-up pressure trial is admitted.
+Reproduce the stored trace aggregation without training or changing the trace:
+
+```bash
+python docs/posttrain/evidence/quantized_optimizers_round10/paging_trace_analysis.py \
+  "$R/cosmos-optimizer-native-20261113/gr00t-pressure-paged55-profile-v1"
+```
+
+The two full trace files remain at that directory with SHA256 identities in
+`raw/gr00t-pressure-paged55-profile-v1/migration-analysis.json`; only bounded text
+evidence is tracked in Git. Aggregated event times overlap and are not end-to-end
+overhead. The native memory sampler excludes profiler ancestors.

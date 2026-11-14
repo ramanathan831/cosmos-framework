@@ -1,0 +1,2 @@
+Command: PYTHONPATH="$PWD" CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest docs/posttrain/evidence/quantized_optimizers_round10/test_paging_profile.py --confcutdir=docs/posttrain/evidence/quantized_optimizers_round10 --override-ini=addopts= -p no:env -q --tb=short
+7 passed in0.02s; process wall0.319s. Ruff and git diff --check pass. CPU diagnostic-launcher receipt checks only; native training code unchanged.

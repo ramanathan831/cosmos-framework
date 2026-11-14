@@ -1414,8 +1414,11 @@ CUDA reservation per GPU. The latter scores 99/99/96 at updates 0/16/32, restore
 managed moments in a fresh process, and completes corrected16→32 continuation
 with exact restored learner/data state. All failures are retained. Capacity evidence
 does not establish sustained paging speed, unique capacity over nonpaged eight-bit,
-or a task-quality gain. Pressure continuation and migration diagnostics are
-reported separately, without replacing historical WTS endpoints.
+or a task-quality gain. A subsequent instrumented trace completes only three updates before a backward
+stall. Its captured rank1 events show repeated GPU-to-host eviction and prefetch
+before any checkpoint, with incomplete all-rank coverage and no reliable migration
+overhead estimate. The trace-export exit code is not counted as training success.
+These results remain separate from historical WTS endpoints.
 
 AlpaGym construction preserves epsilon `1e-6`, betas `(0.9, 0.999)`, weight decay
 `0.01`, native LR/warmup, clipping and clocks. Selection uses `--optimizer`,

@@ -244,7 +244,7 @@
       "grace_seconds": 60
     },
     "conditional_profile": {
-      "status": "admitted as38537185 after corrected paged pressure completion and terminal nonpaged attempt",
+      "status": "Terminal38537185;3of8updates, backward stall, native driver terminated, partial trace exported. Semantic failure despite scheduler0. No further pressure sweep admitted.",
       "native_source": "ff2572f266d9463c6cb820f883e514387aecd869",
       "updates": 8,
       "save_and_evaluate_every": 4,
@@ -266,7 +266,8 @@
         "job_state_before_amendment": "38537185 PENDING, no allocation/no measurements",
         "reason": "Preserve an explicit list of nonsecret allocator/CUDA/NCCL operational knobs when present; do not inadvertently change inherited runtime policy while sanitizing credentials. Unknown inherited variables remain excluded. Helper hash recorded at runtime.",
         "previous_helper_sha256": "29d4157c2366f8195a87e91a8c3f1a4199baac026a7a717721f518170cb337ab"
-      }
+      },
+      "result": "native_pressure_summary.json:arms.paged55_profile_v1"
     }
   }
 }

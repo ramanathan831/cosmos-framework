@@ -34,6 +34,32 @@ def environment(source):
     return {key: source[key] for key in KEYS if key in source}
 
 
+def completion(root, profiler_returncode):
+    """A successful trace export is not evidence of successful native training."""
+    native_returncode = None
+    reason = None
+    try:
+        native_returncode = json.loads((root / "attempt.json").read_text())["returncode"]
+        if type(native_returncode) is not int:
+            raise ValueError("native returncode must be an integer")
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        reason = f"No valid native completion receipt: {type(error).__name__}"
+    passed = profiler_returncode == 0 and type(native_returncode) is int and native_returncode == 0
+    (root / "profile-completion.json").write_text(
+        json.dumps(
+            {
+                "passed": passed,
+                "profiler_returncode": profiler_returncode,
+                "native_returncode": native_returncode,
+                "reason": reason or (None if passed else "Profiler or native training failed"),
+            },
+            indent=2,
+        )
+        + "\n"
+    )
+    return 0 if passed else 1
+
+
 if __name__ == "__main__":
     root = Path(os.environ["RESULTS"])
     nsys = "/opt/nvidia/nsight-compute/2025.1.1/host/target-linux-x64/nsys"
@@ -71,4 +97,4 @@ if __name__ == "__main__":
         sys.executable,
         *sys.argv[1:],
     ]
-    raise SystemExit(subprocess.call(command, env=environment(os.environ)))
+    raise SystemExit(completion(root, subprocess.call(command, env=environment(os.environ))))
