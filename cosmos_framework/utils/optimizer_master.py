@@ -270,7 +270,12 @@ class MasterWeightOptimizer(torch.optim.Optimizer):
                     for k, v in s.items()
                     if k in ("exp_avg", "exp_avg_sq")
                 ),
-                "metadata_bytes": 0,
+                "metadata_bytes": sum(
+                    value.numel() * value.element_size()
+                    for state in self.backend.state.values()
+                    for key, value in state.items()
+                    if key not in ("exp_avg", "exp_avg_sq") and isinstance(value, torch.Tensor)
+                ),
             }
         )
         return dict(

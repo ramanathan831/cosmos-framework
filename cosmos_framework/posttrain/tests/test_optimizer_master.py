@@ -301,3 +301,16 @@ def test_native_trainer_save_restore_master_transaction(tmp_path, format, monkey
     assert_equal(before_opt, restored.opt.state_dict())
     assert_equal(before_net, restored.model.net.state_dict())
     equal(before_control, restored._trainer_state())
+
+
+def test_fused_control_memory_counts_initialized_step_tensors():
+    net = model()
+    optimizer = make(net)
+    assert optimizer.state_report()["metadata_bytes"] == 0
+    net.weight.grad = torch.ones_like(net.weight)
+    optimizer.step()
+    counters = [state["step"] for state in optimizer.backend.state.values()]
+    assert len(counters) == 1  # The unused parameter must not invent a counter.
+    expected = sum(value.numel() * value.element_size() for value in counters)
+    assert expected > 0
+    assert optimizer.state_report()["metadata_bytes"] == expected
