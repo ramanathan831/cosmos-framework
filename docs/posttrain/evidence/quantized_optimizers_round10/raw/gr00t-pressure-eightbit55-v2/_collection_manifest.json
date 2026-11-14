@@ -1,0 +1,217 @@
+{
+  "source": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-pressure-eightbit55-v2",
+  "allocation_end": "2026-11-14T12:06:24Z",
+  "extra_native_root": null,
+  "reviewed_file_ceiling_bytes": 134217728,
+  "scope": "complete recognized textual evidence; model and optimizer binary payloads remain at source",
+  "files": {
+    "allocation-end.txt": {
+      "bytes": 21,
+      "sha256": "6f57f5f46bbadfc630501925d6b6e48b01c557585c5bbe7a29ecd5dc899187bf"
+    },
+    "allocation-start.txt": {
+      "bytes": 21,
+      "sha256": "7b825d4f249fdf1d0d08ce488049589dab1010bd65d7adaafe0861c6ac5d28de"
+    },
+    "attempt.json": {
+      "bytes": 55,
+      "sha256": "78edec829949c88d1152b3470309444a59dd5f8a5cda6640c1ea5ccd8cb59d8a"
+    },
+    "checkpoint-gradient-pinned.txt": {
+      "bytes": 1512,
+      "sha256": "88236bbbb42da25553a8186e9008a34b64ab9d22b7475ca9e438c81fa6229d94"
+    },
+    "command.json": {
+      "bytes": 806,
+      "sha256": "436d717b2586d4a53cde01b2672493162da524d91f83c89e1b4ad447ad666c78"
+    },
+    "dependency-check.json": {
+      "bytes": 260,
+      "sha256": "5d930b52663c25694fb84d7853eea00ac6937d286ed8afaf66afb67f23f7d843"
+    },
+    "devices.csv": {
+      "bytes": 479,
+      "sha256": "00446e07a2d515425aba6ef9319e7debb99d556cf40d886b6abab38ebb5f6114"
+    },
+    "egl.json": {
+      "bytes": 79,
+      "sha256": "902ce1a29e2e84fbf7b38168bf953ad42b689f2d46510fd07a54e4a18cb5ad1c"
+    },
+    "exit-code.txt": {
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    "host-placement.json": {
+      "bytes": 814,
+      "sha256": "76fc7cd32754d913cd017f2cdef30b7cb92923de106e0b3394324a649b3efb7e"
+    },
+    "job.txt": {
+      "bytes": 1916,
+      "sha256": "423ad3e9f76e4006133af523fb4516f00c84ed808d1b141ca48874a0b8d81e28"
+    },
+    "launcher-phases.jsonl": {
+      "bytes": 334,
+      "sha256": "6cf0440bc506d9bcb3c1c7b47194ae2b74264816ef5ec07b1e58cc1df8b79277"
+    },
+    "libero-config/config.yaml": {
+      "bytes": 734,
+      "sha256": "d2ddc17868812448637c1ea8b008a142a7590f8491364d7235d7f799c055a788"
+    },
+    "manifests/libero_spatial-eval.json": {
+      "bytes": 7901,
+      "sha256": "a26e3b53808ce3610bfc60816e28e5bd1da5f66479cb29f33977576c05f243f7"
+    },
+    "manifests/libero_spatial-train.json": {
+      "bytes": 31702,
+      "sha256": "31fe8461627694c6eef686f2e1dc132da316e0e3e60cd38630844b1693f2d696"
+    },
+    "memory-gpu0.jsonl": {
+      "bytes": 2557619,
+      "sha256": "cc946861e446a99aca88583ebc08c85a8f538ed30b20e6960e2fd0c2988e1794"
+    },
+    "memory-gpu1.jsonl": {
+      "bytes": 2554942,
+      "sha256": "52954532b529fb2156a7f1911f06a03ddc23383299e596a0a116046e1c8fc5a3"
+    },
+    "memory-gpu2.jsonl": {
+      "bytes": 2560238,
+      "sha256": "f71916edc8166383e0e02ea38ec534db0381a26f9038674cd1339ea1e59abb4b"
+    },
+    "memory-gpu3.jsonl": {
+      "bytes": 2556767,
+      "sha256": "0fd6c1631a84a9f6100664df2fb19cd15b4099ecbf14063bcd8f0041e0eb2e8d"
+    },
+    "memory-scope.json": {
+      "bytes": 93,
+      "sha256": "2bc8ebf5c51235f9199899fcb9bd50d04759ce19e7d2887bf3131aa6e6fe0921"
+    },
+    "model-preflight.json": {
+      "bytes": 449,
+      "sha256": "3489bc0c661638f54afbdf4ffa59ce70080bc78a43b24e86ddf068e5bb471ca1"
+    },
+    "native.log": {
+      "bytes": 18147,
+      "sha256": "800d3ecd024d88addfb888311a2d0aef5946601e0ac10321808a15169fceeb5c"
+    },
+    "nccl-batch-block5-01926-1669125.log": {
+      "bytes": 9852,
+      "sha256": "2c1ae1a6af1de0b0823a0b7e8883a4326b0390219acbd22daae87c3f211d200b"
+    },
+    "nccl-batch-block5-01926-1669128.log": {
+      "bytes": 17829,
+      "sha256": "ee0b6d727a8c58ec0ac93358bc650bf15cbbce6c9fd108d0485ea27ccf75e0fd"
+    },
+    "nccl-batch-block5-01926-1669129.log": {
+      "bytes": 9829,
+      "sha256": "2fb2548cb79cee657d9dc8027d86fcb07af062cd8311dc3eec9959b5435fae6d"
+    },
+    "nccl-batch-block5-01926-1669130.log": {
+      "bytes": 9830,
+      "sha256": "abe8b53a0428e9e27fb491aca9c7b643519f31c8f929dd5841ab1f7a15346c87"
+    },
+    "nccl-batch-block5-01926-1670482.log": {
+      "bytes": 9243,
+      "sha256": "ce6ca82f263fdb95860d0906e99a1b2b370710451284a8ea74e1bcf6024d98c0"
+    },
+    "nccl-batch-block5-01926-1670483.log": {
+      "bytes": 9246,
+      "sha256": "962a67ad2dfd92d8336ed71364ac0ae2281f5c2ac47d27fb6e14d40f3620cb92"
+    },
+    "nccl-batch-block5-01926-1670484.log": {
+      "bytes": 9245,
+      "sha256": "0242cc9ecbc5c062c22238b94b7d841c2dc9138a9340cf124a058db7a4ad5809"
+    },
+    "nccl-batch-block5-01926-1670485.log": {
+      "bytes": 9244,
+      "sha256": "de3055ceb6e940748c9dbc03fea843bf5702b157058b7baae659f10b19271aab"
+    },
+    "reservation-gpu0.json": {
+      "bytes": 245,
+      "sha256": "631bfb386cccd0a8b9de59ad514d0d03c5278bef8e1afbeeae9f531dfa48c74d"
+    },
+    "reservation-gpu0.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "reservation-gpu1.json": {
+      "bytes": 245,
+      "sha256": "ac1fd4a99f63eb81b679d5de8ed27151ab36accd808919c3b889c8c8fc7ce479"
+    },
+    "reservation-gpu1.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "reservation-gpu2.json": {
+      "bytes": 245,
+      "sha256": "c573aaccd820309f08bacfc8bb916cd89b15afc4f5722ce85cbc8136e96d8f64"
+    },
+    "reservation-gpu2.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "reservation-gpu3.json": {
+      "bytes": 245,
+      "sha256": "626fe2363e398fed393e6a65325535e196c1ebbd5622ddf563b414fbf4ac4a0a"
+    },
+    "reservation-gpu3.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "reservation-scope.json": {
+      "bytes": 235,
+      "sha256": "beb39ecf56a79fdb70f59f3f27f66e8718a63a3fcee62eedb1d03fa148fd5c98"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/checkpoints/latest_checkpoint.txt": {
+      "bytes": 12,
+      "sha256": "f8b73354ec1bb5572fe9e6617a5e0eab6bf8dead1af9993b63c6d7a4614c91c8"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/config_resolved.yaml": {
+      "bytes": 10537,
+      "sha256": "98c7aee35a3a8559af686abda5473975d7246ce545ea6ee2ba453d4b5a59452b"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/evaluation/step_000000.json": {
+      "bytes": 2439001,
+      "sha256": "db7aceecd656b1d3344f11e380692fa262bef446f7d41db29f76f21a6b60dda7"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/evaluation/step_000016.json": {
+      "bytes": 2604762,
+      "sha256": "c4b006a63e66b4df28d427f1b205157962d163feee18bbfdc7ffe7d2517f4615"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/model-config/policy-0/final_model_config.json": {
+      "bytes": 1513,
+      "sha256": "5927bbeb634c9efae2b4d7e1dd730c6d82a8c0a154b30528c70653db5d5cd903"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/model-config/rollout-0/final_model_config.json": {
+      "bytes": 1513,
+      "sha256": "5927bbeb634c9efae2b4d7e1dd730c6d82a8c0a154b30528c70653db5d5cd903"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/model-config/rollout-1/final_model_config.json": {
+      "bytes": 1513,
+      "sha256": "5927bbeb634c9efae2b4d7e1dd730c6d82a8c0a154b30528c70653db5d5cd903"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/model-config/rollout-2/final_model_config.json": {
+      "bytes": 1513,
+      "sha256": "5927bbeb634c9efae2b4d7e1dd730c6d82a8c0a154b30528c70653db5d5cd903"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/model-config/rollout-3/final_model_config.json": {
+      "bytes": 1513,
+      "sha256": "5927bbeb634c9efae2b4d7e1dd730c6d82a8c0a154b30528c70653db5d5cd903"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/native-setup.json": {
+      "bytes": 141,
+      "sha256": "624d2785253a298ff85016ba085f6a077eb6cb87295566d47c697dad3ad9328f"
+    },
+    "runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/windows.jsonl": {
+      "bytes": 368060,
+      "sha256": "06ff3b93743a9a3728d87b6f49044cf4edeb2168a5e025b3d1be3e57e69eccc4"
+    },
+    "sim-preflight.json": {
+      "bytes": 917,
+      "sha256": "0c51e68e3540760bcc1fa5cc1cfe8a2e0642bba319d82c3d809d7384b0389e3e"
+    },
+    "slurm-38533459.out": {
+      "bytes": 1933,
+      "sha256": "4f6e359c3d55eff13793f8182b70b05f7064a33714bf728c7ab36bd995e69de9"
+    }
+  }
+}

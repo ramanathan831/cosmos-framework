@@ -63,7 +63,7 @@ def _publish(rank, directory, divergent_recipe, stale_client_stat):
 
                     def stale(file, *args, **kwargs):
                         result = original(file, *args, **kwargs)
-                        if os.fspath(file) == target:
+                        if not isinstance(file, int) and os.fspath(file) == target:
                             return SimpleNamespace(
                                 st_size=result.st_size,
                                 st_mode=result.st_mode,
@@ -76,10 +76,14 @@ def _publish(rank, directory, divergent_recipe, stale_client_stat):
 
                     if stale_client_stat == "server":
                         provenance = importlib.import_module("cosmos_framework.posttrain.checkpoint.provenance")
+                        target_attributes = synchronized_stat(target)
 
                         def stale_server(file):
                             result = synchronized_stat(file)
-                            if os.fspath(file) == target:
+                            if (result.st_dev, result.st_ino) == (
+                                target_attributes.st_dev,
+                                target_attributes.st_ino,
+                            ):
                                 result.st_mtime_ns -= 1_000_000_000
                                 result.st_ctime_ns -= 1_000_000_000
                             return result

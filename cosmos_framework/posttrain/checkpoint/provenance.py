@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import errno
 import os
 import stat
 from collections.abc import Callable
@@ -20,6 +21,69 @@ from cosmos_framework.posttrain.checkpoint.synchronized_stat import synchronized
 
 EXTERNAL_COPY_PROVENANCE_FILE = ".external_copy_provenance.json"
 CheckpointProvenance = dict[str, int | str]
+_IDENTITY_FIELDS = ("st_mode", "st_dev", "st_ino", "st_size", "st_mtime_ns", "st_ctime_ns")
+
+
+def _publication_file(path: str):
+    """Hash the open regular file and verify its descriptor and namespace identity.
+
+    Opening comes before the initial attributes: a network filesystem may refresh
+    pathname attributes when the file is opened. Both mutation checks describe
+    the actual object read, rather than comparing a pre-open cache entry to it.
+    A second no-follow open catches replacement of the pathname during the read.
+    Every identity field is still checked; there is no retry or relaxed timestamp.
+    """
+
+    def nofollow(name, flags):
+        # A replaced FIFO must fail the regular-file check without blocking open.
+        return os.open(name, flags | os.O_NOFOLLOW | os.O_NONBLOCK)
+
+    def attributes(handle):
+        result = synchronized_stat(handle.fileno())
+        if not stat.S_ISREG(result.st_mode):
+            raise RuntimeError(f"checkpoint publication requires regular files: {path!r}")
+        return result
+
+    def unchanged(before, after, stage):
+        changed = {
+            field: (getattr(before, field), getattr(after, field))
+            for field in _IDENTITY_FIELDS
+            if getattr(before, field) != getattr(after, field)
+        }
+        if changed:
+            raise RuntimeError(f"checkpoint file changed while hashing: {path!r}; {stage}={changed}")
+
+    try:
+        with open(path, "rb", opener=nofollow) as handle:
+            before = attributes(handle)
+            content, size = sha256(), 0
+            while chunk := handle.read(1024 * 1024):
+                content.update(chunk)
+                size += len(chunk)
+            after = attributes(handle)
+            unchanged(before, after, "descriptor")
+            if size != before.st_size:
+                raise RuntimeError(
+                    f"checkpoint file changed while hashing: {path!r}; bytes_read={size}, expected={before.st_size}"
+                )
+            with open(path, "rb", opener=nofollow) as current:
+                unchanged(after, attributes(current), "namespace")
+                # Metadata can miss a same-size rewrite within the filesystem's
+                # timestamp resolution. Verify the complete content again through
+                # the current namespace, rather than accepting timestamps alone.
+                verified, verified_size = sha256(), 0
+                while chunk := current.read(1024 * 1024):
+                    verified.update(chunk)
+                    verified_size += len(chunk)
+                unchanged(before, attributes(current), "verification descriptor")
+                unchanged(before, attributes(handle), "original descriptor")
+                if verified_size != size or verified.digest() != content.digest():
+                    raise RuntimeError(f"checkpoint file changed while hashing: {path!r}; full content differs")
+        return before, content
+    except OSError as error:
+        if error.errno == errno.ELOOP:
+            raise RuntimeError(f"checkpoint publication requires regular files: {path!r}") from error
+        raise
 
 
 def _rank() -> int:
@@ -76,11 +140,17 @@ def checkpoint_inventory_signature(
             ):
                 continue
             path = normalized_overrides.get(relative.replace(os.sep, "/"), os.path.join(directory, filename))
+            if full_content:
+                attributes, content = _publication_file(path)
+                record = f"file\0{relative}\0{attributes.st_size}\0"
+                digest.update(record.encode("utf-8", errors="surrogateescape"))
+                digest.update(content.digest())
+                if inventory is not None:
+                    inventory.append({"record": record.replace("\0", "|"), "sha256": content.hexdigest()})
+                continue
             attributes = synchronized_stat(path)
             kind = "symlink" if stat.S_ISLNK(attributes.st_mode) else "file"
-            if full_content and not stat.S_ISREG(attributes.st_mode):
-                raise RuntimeError(f"checkpoint publication requires regular files: {path!r}")
-            if kind == "file" and (full_content or attributes.st_size <= 4 * 1024 * 1024):
+            if kind == "file" and attributes.st_size <= 4 * 1024 * 1024:
                 # Small files are content-bound below. Ignoring inode/timestamps makes an atomically
                 # renamed temp describe the same logical successor after promotion.
                 record = f"{kind}\0{relative}\0{attributes.st_size}\0"
@@ -95,24 +165,15 @@ def checkpoint_inventory_signature(
                 target = os.readlink(path)
                 digest.update(target.encode("utf-8", errors="surrogateescape"))
                 detail["symlink"] = target
-            elif full_content or attributes.st_size <= 4 * 1024 * 1024:
+            elif attributes.st_size <= 4 * 1024 * 1024:
                 content = sha256()
                 size = 0
                 with open(path, "rb") as handle:
                     while chunk := handle.read(1024 * 1024):
-                        if not full_content:
-                            digest.update(chunk)
+                        digest.update(chunk)
                         content.update(chunk)
                         size += len(chunk)
                 detail["sha256"] = content.hexdigest()
-                if full_content:
-                    digest.update(content.digest())
-                    after = synchronized_stat(path)
-                    fields = ("st_mode", "st_dev", "st_ino", "st_size", "st_mtime_ns", "st_ctime_ns")
-                    if size != attributes.st_size or any(
-                        getattr(attributes, field) != getattr(after, field) for field in fields
-                    ):
-                        raise RuntimeError(f"checkpoint file changed while hashing: {path!r}")
             if inventory is not None:
                 inventory.append(detail)
     return digest.hexdigest()

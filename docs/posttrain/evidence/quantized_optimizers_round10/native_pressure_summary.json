@@ -88,6 +88,28 @@
       "full_launcher_peak_pss_bytes": 66709259264,
       "complete_checkpoint_created": false,
       "raw": "raw/gr00t-pressure-eightbit55-v1"
+    },
+    "nonpaged55_v2": {
+      "job": "38533459",
+      "source": "36610372f48f1a692f363996458bcefc637eb12c",
+      "status": "FAILED publication mutation guard after successful checkpoint write and validation",
+      "completed_updates": 16,
+      "checkpoint16_written": true,
+      "checkpoint16_published": false,
+      "checkpoint16_native_success_count": 93,
+      "native_evaluation_state_unchanged": true,
+      "post_save_model_gradient_bytes": 0,
+      "post_save_master_gradient_staging_bytes": 0,
+      "nccl_warning_count": 0,
+      "failure": "rank0 reported model/__2_0.distcp changed while hashing; old error did not record differing fields. Do not assume a false positive or discard integrity checks.",
+      "checkpoint_memory_intervention": "DCP write completed under55GiB and transient buffers were absent after save. The earlier NCCL failure did not recur; different node placement prevents a sole-cause attribution.",
+      "attempt": {
+        "returncode": 1,
+        "native_seconds": 1044.5525270299986
+      },
+      "allocation_seconds_including_teardown": 1240,
+      "gpu_allocation_seconds": 4960,
+      "raw": "raw/gr00t-pressure-eightbit55-v2"
     }
   },
   "checkpoint_memory_intervention": {
@@ -98,5 +120,19 @@
     "falsification": "Any changed saved state/next update, discarded partial accumulation or recurrent checkpoint error. A recurrent NCCL error requires collected NCCL diagnostics; no automatic rerun or pressure-size reduction.",
     "validation": "Two fail-before cleanup regressions;33 affected local tests pass after, including a no-save next-update control and partial-boundary rejection. Native corrected pressure reference and paged recovery remain required.",
     "admission_plan": "One corrected nonpaged32 reference with pinned33-test preflight and NCCL diagnostic logs, followed only on classification by paged32 and its existing dependent reload/resume. Fused55 fails at update2 before this changed checkpoint path, so its failure remains applicable. All future arms share the cleanup. Prior resident32 source remains historical and needs a corrected-path paged recovery boundary."
+  },
+  "descriptor_publication_intervention": {
+    "recorded_at_utc": "2026-11-14T12:16:00.745360+00:00",
+    "failure": "Publication checks compared pathname attributes captured before opening with attributes after reading. A cache refresh during open is an unresolved possible mechanism; the failed native guard correctly prevented success.",
+    "change": "Open without following symlinks, then server-synchronized descriptor attributes; hash all bytes, compare every identity field before/after; reopen the namespace and verify identity and a second complete hash. No retries or ignored fields. Old v1 load/copy identity and v2 content signature remain compatible.",
+    "additional_verified_defect": "A same-size rewrite within timestamp resolution can evade metadata checks. Initial regression failed; the second full read now rejects it even with deliberately unchanged metadata.",
+    "falsification": "Any accepted mutation, replacement, symlink/incomplete corpus, changed signature for stable content, unequal native restored learner state, or another unclassified native publication failure.",
+    "validation_plan": [
+      "Affected local and pinned tests, including real Gloo publication and metadata/content failure injection",
+      "Four CPU readers of the actual saved native checkpoint16 must agree",
+      "Preserve original control/evaluation/window receipts, then native same-output-root pending16-to-32 continuation at55GiB with exact pre-update learner/data checks",
+      "Only after classification, finish independent paged reference/reload/resume and conditional migration diagnostic"
+    ],
+    "cost_scope": "Two complete reads add publication I/O. This is a correctness change, not a runtime gain."
   }
 }

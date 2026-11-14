@@ -1,0 +1,1607 @@
+{
+    "schema_version": 1,
+    "suite": "libero_spatial",
+    "split": "train",
+    "cases": [
+        {
+            "task_id": 0,
+            "init_state_id": 10
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 11
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 12
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 13
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 14
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 15
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 16
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 17
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 18
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 19
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 20
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 21
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 22
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 23
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 24
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 25
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 26
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 27
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 28
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 29
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 30
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 31
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 32
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 33
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 34
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 35
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 36
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 37
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 38
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 39
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 40
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 41
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 42
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 43
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 44
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 45
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 46
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 47
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 48
+        },
+        {
+            "task_id": 0,
+            "init_state_id": 49
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 10
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 11
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 12
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 13
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 14
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 15
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 16
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 17
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 18
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 19
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 20
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 21
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 22
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 23
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 24
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 25
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 26
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 27
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 28
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 29
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 30
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 31
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 32
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 33
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 34
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 35
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 36
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 37
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 38
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 39
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 40
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 41
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 42
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 43
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 44
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 45
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 46
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 47
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 48
+        },
+        {
+            "task_id": 1,
+            "init_state_id": 49
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 10
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 11
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 12
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 13
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 14
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 15
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 16
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 17
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 18
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 19
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 20
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 21
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 22
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 23
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 24
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 25
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 26
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 27
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 28
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 29
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 30
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 31
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 32
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 33
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 34
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 35
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 36
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 37
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 38
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 39
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 40
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 41
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 42
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 43
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 44
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 45
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 46
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 47
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 48
+        },
+        {
+            "task_id": 2,
+            "init_state_id": 49
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 10
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 11
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 12
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 13
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 14
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 15
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 16
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 17
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 18
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 19
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 20
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 21
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 22
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 23
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 24
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 25
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 26
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 27
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 28
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 29
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 30
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 31
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 32
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 33
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 34
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 35
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 36
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 37
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 38
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 39
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 40
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 41
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 42
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 43
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 44
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 45
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 46
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 47
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 48
+        },
+        {
+            "task_id": 3,
+            "init_state_id": 49
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 10
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 11
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 12
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 13
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 14
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 15
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 16
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 17
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 18
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 19
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 20
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 21
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 22
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 23
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 24
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 25
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 26
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 27
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 28
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 29
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 30
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 31
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 32
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 33
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 34
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 35
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 36
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 37
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 38
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 39
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 40
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 41
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 42
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 43
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 44
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 45
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 46
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 47
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 48
+        },
+        {
+            "task_id": 4,
+            "init_state_id": 49
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 10
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 11
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 12
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 13
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 14
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 15
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 16
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 17
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 18
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 19
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 20
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 21
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 22
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 23
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 24
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 25
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 26
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 27
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 28
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 29
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 30
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 31
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 32
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 33
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 34
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 35
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 36
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 37
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 38
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 39
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 40
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 41
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 42
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 43
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 44
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 45
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 46
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 47
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 48
+        },
+        {
+            "task_id": 5,
+            "init_state_id": 49
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 10
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 11
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 12
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 13
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 14
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 15
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 16
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 17
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 18
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 19
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 20
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 21
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 22
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 23
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 24
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 25
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 26
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 27
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 28
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 29
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 30
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 31
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 32
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 33
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 34
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 35
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 36
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 37
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 38
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 39
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 40
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 41
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 42
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 43
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 44
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 45
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 46
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 47
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 48
+        },
+        {
+            "task_id": 6,
+            "init_state_id": 49
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 10
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 11
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 12
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 13
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 14
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 15
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 16
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 17
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 18
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 19
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 20
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 21
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 22
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 23
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 24
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 25
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 26
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 27
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 28
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 29
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 30
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 31
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 32
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 33
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 34
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 35
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 36
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 37
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 38
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 39
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 40
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 41
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 42
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 43
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 44
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 45
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 46
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 47
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 48
+        },
+        {
+            "task_id": 7,
+            "init_state_id": 49
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 10
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 11
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 12
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 13
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 14
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 15
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 16
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 17
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 18
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 19
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 20
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 21
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 22
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 23
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 24
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 25
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 26
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 27
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 28
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 29
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 30
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 31
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 32
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 33
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 34
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 35
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 36
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 37
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 38
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 39
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 40
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 41
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 42
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 43
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 44
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 45
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 46
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 47
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 48
+        },
+        {
+            "task_id": 8,
+            "init_state_id": 49
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 10
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 11
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 12
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 13
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 14
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 15
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 16
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 17
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 18
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 19
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 20
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 21
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 22
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 23
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 24
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 25
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 26
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 27
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 28
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 29
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 30
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 31
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 32
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 33
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 34
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 35
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 36
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 37
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 38
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 39
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 40
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 41
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 42
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 43
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 44
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 45
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 46
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 47
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 48
+        },
+        {
+            "task_id": 9,
+            "init_state_id": 49
+        }
+    ]
+}

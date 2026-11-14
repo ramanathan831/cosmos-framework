@@ -103,7 +103,7 @@ def test_publication_identity_hashes_large_contents_despite_stale_server_attribu
 
     def stale(path):
         attributes = real(path)
-        if os.fspath(path) == str(tmp_path / "model.pt"):
+        if not isinstance(path, int) and os.fspath(path) == str(tmp_path / "model.pt"):
             attributes.st_mtime_ns -= 1_000_000_000
             attributes.st_ctime_ns -= 1_000_000_000
         return attributes
@@ -116,7 +116,11 @@ def test_publication_identity_hashes_large_contents_despite_stale_server_attribu
     monkeypatch.setattr(
         module,
         "synchronized_stat",
-        lambda path: frozen_attributes if os.fspath(path) == str(tmp_path / "model.pt") else real(path),
+        lambda path: (
+            frozen_attributes
+            if not isinstance(path, int) and os.fspath(path) == str(tmp_path / "model.pt")
+            else real(path)
+        ),
     )
     with (tmp_path / "model.pt").open("r+b") as handle:
         handle.write(b"b")
@@ -144,6 +148,9 @@ def test_publication_hash_rejects_mutation_during_file_read(tmp_path, monkeypatc
         def __exit__(self, *args):
             return self.handle.__exit__(*args)
 
+        def fileno(self):
+            return self.handle.fileno()
+
         def read(self, size):
             value = self.handle.read(size)
             if not value:
@@ -169,3 +176,117 @@ def test_full_content_identity_rejects_unread_symlink_payloads(tmp_path, directo
     (checkpoint / "model").symlink_to(source if directory else source / "weights", target_is_directory=directory)
     with pytest.raises(RuntimeError, match="requires (real directories|regular files)"):
         checkpoint_inventory_signature(str(checkpoint), full_content=True)
+
+
+def test_synchronized_stat_binds_an_open_descriptor(tmp_path):
+    payload = tmp_path / "payload"
+    payload.write_bytes(b"original")
+    with payload.open("rb") as handle:
+        before = synchronized_stat(handle.fileno())
+        old = os.fstat(handle.fileno())
+        for field in ("st_mode", "st_dev", "st_ino", "st_size", "st_mtime_ns", "st_ctime_ns"):
+            assert getattr(before, field) == getattr(old, field)
+        replacement = tmp_path / "replacement"
+        replacement.write_bytes(b"replacement")
+        os.replace(replacement, payload)
+        assert synchronized_stat(handle.fileno()).st_ino == before.st_ino
+        assert synchronized_stat(payload).st_ino != before.st_ino
+
+
+def test_publication_snapshots_attributes_after_open_refresh(tmp_path, monkeypatch):
+    import builtins
+    import importlib
+
+    module = importlib.import_module("cosmos_framework.posttrain.checkpoint.provenance")
+    payload = tmp_path / "model.pt"
+    payload.write_bytes(b"immutable")
+    expected = checkpoint_inventory_signature(str(tmp_path), full_content=True)
+    real_stat, real_open = module.synchronized_stat, builtins.open
+    opened = False
+
+    def cached_path(path):
+        value = real_stat(path)
+        if not isinstance(path, int) and os.fspath(path) == str(payload) and not opened:
+            value.st_mtime_ns -= 1_000_000_000
+            value.st_ctime_ns -= 1_000_000_000
+        return value
+
+    def refresh_on_open(path, *args, **kwargs):
+        nonlocal opened
+        if os.fspath(path) == str(payload):
+            opened = True
+        return real_open(path, *args, **kwargs)
+
+    monkeypatch.setattr(module, "synchronized_stat", cached_path)
+    monkeypatch.setattr(builtins, "open", refresh_on_open)
+    assert checkpoint_inventory_signature(str(tmp_path), full_content=True) == expected
+    assert opened
+
+
+@pytest.mark.parametrize("mutation", ["same_size", "replace", "truncate"])
+def test_descriptor_publication_rejects_payload_mutation(tmp_path, monkeypatch, mutation):
+    import builtins
+    import importlib
+
+    payload = tmp_path / "model.pt"
+    payload.write_bytes(b"immutable")
+    before = os.stat(payload)
+    real_open = builtins.open
+    mutated = False
+    if mutation == "same_size":
+        module = importlib.import_module("cosmos_framework.posttrain.checkpoint.provenance")
+        real_stat = module.synchronized_stat
+
+        def coarse_timestamps(path):
+            value = real_stat(path)
+            value.st_mtime_ns, value.st_ctime_ns = before.st_mtime_ns, before.st_ctime_ns
+            return value
+
+        # Even identical metadata must not hide the changed content. This also
+        # removes dependence on local filesystem timestamp resolution in the test.
+        monkeypatch.setattr(module, "synchronized_stat", coarse_timestamps)
+
+    class Reader:
+        def __init__(self, handle):
+            self.handle = handle
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return self.handle.__exit__(*args)
+
+        def fileno(self):
+            return self.handle.fileno()
+
+        def read(self, size):
+            nonlocal mutated
+            value = self.handle.read(size)
+            if not value and not mutated:
+                mutated = True
+                if mutation == "replace":
+                    replacement = tmp_path / "new"
+                    replacement.write_bytes(b"immutable")
+                    os.replace(replacement, payload)
+                elif mutation == "same_size":
+                    with real_open(payload, "r+b") as writer:
+                        writer.write(b"x")
+                    os.utime(payload, ns=(before.st_atime_ns, before.st_mtime_ns))
+                else:
+                    with real_open(payload, "r+b") as writer:
+                        writer.truncate(2)
+            return value
+
+    def wrap(path, *args, **kwargs):
+        handle = real_open(path, *args, **kwargs)
+        return Reader(handle) if os.fspath(path) == str(payload) and args == ("rb",) else handle
+
+    monkeypatch.setattr(builtins, "open", wrap)
+    with pytest.raises(RuntimeError, match="changed while hashing"):
+        checkpoint_inventory_signature(str(tmp_path), full_content=True)
+
+
+def test_publication_rejects_fifo_without_waiting_for_writer(tmp_path):
+    os.mkfifo(tmp_path / "model.pt")
+    with pytest.raises(RuntimeError, match="requires regular files"):
+        checkpoint_inventory_signature(str(tmp_path), full_content=True)

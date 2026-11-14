@@ -23,3 +23,5 @@ ruff 0.17.3; scope: all45 existing Python files changed from2516e9f1 under cosmo
 ruff check: All checks passed!
 ruff format --check:45 files already formatted.
 These are style checks, not additional training/recovery trials.
+
+Checkpoint-memory correction36610372: two added cleanup assertions fail before (3.28s); after adding no-save next-update parity and partial-gradient rejection,33 affected local checks pass (5.90s). Intermediate subsets:29pass/5.43s and6pass/3.75s; overlapping coverage is not independent. Ruff check/format pass for the two changedPythonfiles. Pinned33-test result is retained with job38533459 and charged inside that GPU allocation.

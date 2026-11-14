@@ -1,0 +1,197 @@
+EEEEEEEEEEEEEEEEEEEEEEEEE.................F............................. [ 43%]
+........................................................................ [ 87%]
+.....................                                                    [100%]
+==================================== ERRORS ====================================
+_ ERROR at setup of test_window_counter_is_per_process_and_preserves_durable_window_rows _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_training_cleanup_covers_early_and_late_failures[counter] _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_training_cleanup_covers_early_and_late_failures[loop] _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_training_cleanup_covers_early_and_late_failures[collector_close] _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_assessment_cleanup_and_complete_reentry_leave_training_untouched _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_formal_window_validation_runs_before_and_after_training_without_analysis _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_checkpoint_evaluation_restores_exact_state_without_training_or_resaving _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_training_resume_receipt_matches_live_state_before_next_update _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_resume_attestation_rejects_generation_change_without_receipt[collector] _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_resume_attestation_rejects_generation_change_without_receipt[during_attestation] _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_checkpoint_evaluation_rejects_source_mutation_before_publishing_scores _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_checkpoint_evaluation_rejects_missing_resume_before_model_allocation _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_pending_validation_resumes_to_new_directory_with_collector_provenance[False] _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_pending_validation_resumes_to_new_directory_with_collector_provenance[True] _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+___ ERROR at setup of test_online_reporting_failure_does_not_block_training ____
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_telemetry_startup_failure_closes_client_before_model_setup[__init__] _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_telemetry_startup_failure_closes_client_before_model_setup[on_app_start] _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_telemetry_ends_app_when_model_setup_fails_before_training _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_checkpoint_failure_preserves_error_without_telemetry_success _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_training_error_survives_telemetry_send_and_finish_failures _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_joint_failure_does_not_complete_telemetry_intervals[trainer] _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_joint_failure_does_not_complete_telemetry_intervals[publication] _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_joint_failure_does_not_complete_telemetry_intervals[validation] _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_checkpoint_location_is_captured_before_later_save_and_delayed_delivery _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_partial_initialization_error_survives_bounded_pending_sdk_finish _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+=================================== FAILURES ===================================
+_____ test_large_dcp_validation_publication_across_processes[False-server] _____
+cosmos_framework/posttrain/tests/test_distributed_validation_publication.py:106: in test_large_dcp_validation_publication_across_processes
+    torch.multiprocessing.spawn(
+../qlora-wts-qualification-20261030/unintended-local-uv-venv-94289a2/lib/python3.13/site-packages/torch/multiprocessing/spawn.py:340: in spawn
+    return start_processes(fn, args, nprocs, join, daemon, start_method="spawn")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../qlora-wts-qualification-20261030/unintended-local-uv-venv-94289a2/lib/python3.13/site-packages/torch/multiprocessing/spawn.py:296: in start_processes
+    while not context.join():
+              ^^^^^^^^^^^^^^
+../qlora-wts-qualification-20261030/unintended-local-uv-venv-94289a2/lib/python3.13/site-packages/torch/multiprocessing/spawn.py:211: in join
+    raise ProcessRaisedException(msg, error_index, failed_process.pid)
+E   torch.multiprocessing.spawn.ProcessRaisedException: 
+E   
+E   -- Process 0 terminated with the following error:
+E   Traceback (most recent call last):
+E     File "/localhome/local-rarunachalam/qlora-wts-qualification-20261030/unintended-local-uv-venv-94289a2/lib/python3.13/site-packages/torch/multiprocessing/spawn.py", line 87, in _wrap
+E       fn(i, *args)
+E       ~~^^^^^^^^^^
+E     File "/localhome/local-rarunachalam/cosmos-framework-quantized-optimizers/cosmos_framework/posttrain/tests/test_distributed_validation_publication.py", line 91, in _publish
+E       journal.publish(
+E       ~~~~~~~~~~~~~~~^
+E           path, manager=manager, publication_identity={}, trainer_state=control, on_checkpoint=lambda: None
+E           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       )
+E       ^
+E     File "/localhome/local-rarunachalam/cosmos-framework-quantized-optimizers/cosmos_framework/posttrain/roles/trainer/validation/publication.py", line 140, in publish
+E       storage_identity = run_rank_converged(
+E           lambda: manager.publication_identity(path), "validation publication storage identity"
+E       )
+E     File "/localhome/local-rarunachalam/cosmos-framework-quantized-optimizers/cosmos_framework/posttrain/utils/dist.py", line 206, in run_rank_converged
+E       (raise_errors or raise_if_any_rank_failed)(error, context)
+E       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+E     File "/localhome/local-rarunachalam/cosmos-framework-quantized-optimizers/cosmos_framework/posttrain/utils/dist.py", line 190, in raise_if_any_rank_failed
+E       raise RuntimeError(f"{context} failed on one or more ranks: {details}")
+E   RuntimeError: validation publication storage identity failed on one or more ranks: rank 1: TypeError: expected str, bytes or os.PathLike object, not int
+----------------------------- Captured stdout call -----------------------------
+[Gloo] Rank 0 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 1 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+----------------------------- Captured stderr call -----------------------------
+[posttrain|I|r0] 2026-11-14 12:14:24 host memory [checkpoint save /tmp/pytest-of-local-rarunachalam/pytest-1545/test_large_dcp_validation_publ3/iter_000004] rss=0.6GiB cgroup(v2)=69.7GiB/unlimited node_available=486.3/503.7GiB
+[posttrain|I|r0] 2026-11-14 12:14:24 host memory [checkpoint save /tmp/pytest-of-local-rarunachalam/pytest-1545/test_large_dcp_validation_publ3/iter_000004] rss=0.6GiB cgroup(v2)=69.7GiB/unlimited node_available=486.3/503.7GiB
+/localhome/local-rarunachalam/qlora-wts-qualification-20261030/unintended-local-uv-venv-94289a2/lib/python3.13/site-packages/torch/distributed/checkpoint/filesystem.py:133: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+  if tensor.storage().size() != tensor.numel():
+/localhome/local-rarunachalam/qlora-wts-qualification-20261030/unintended-local-uv-venv-94289a2/lib/python3.13/site-packages/torch/distributed/checkpoint/filesystem.py:133: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+  if tensor.storage().size() != tensor.numel():
+W1114 12:14:25.420000 630607 torch/multiprocessing/spawn.py:165] Terminating process 631487 via signal SIGTERM
+=============================== warnings summary ===============================
+cosmos_framework/posttrain/tests/test_checkpoint_manager.py: 5 warnings
+cosmos_framework/posttrain/tests/test_optimizer_master.py: 6 warnings
+cosmos_framework/posttrain/tests/test_algorithm_joint_ppo_boundaries.py: 2 warnings
+  /localhome/local-rarunachalam/qlora-wts-qualification-20261030/unintended-local-uv-venv-94289a2/lib/python3.13/site-packages/torch/distributed/checkpoint/utils.py:483: UserWarning: torch.distributed is disabled, unavailable or uninitialized, assuming the intent is to save in a single process.
+    return func(*args, **kwargs)
+
+cosmos_framework/posttrain/tests/test_checkpoint_manager.py::test_consolidated_save_writes_dcp_components_as_shards_beside_the_files
+  /localhome/local-rarunachalam/qlora-wts-qualification-20261030/unintended-local-uv-venv-94289a2/lib/python3.13/site-packages/torch/distributed/checkpoint/filesystem.py:133: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+    if tensor.storage().size() != tensor.numel():
+
+cosmos_framework/posttrain/tests/test_checkpoint_manager.py: 4 warnings
+cosmos_framework/posttrain/tests/test_optimizer_master.py: 6 warnings
+cosmos_framework/posttrain/tests/test_algorithm_joint_ppo_boundaries.py: 2 warnings
+  /localhome/local-rarunachalam/qlora-wts-qualification-20261030/unintended-local-uv-venv-94289a2/lib/python3.13/site-packages/torch/distributed/checkpoint/utils.py:483: UserWarning: torch.distributed is disabled, unavailable or uninitialized, assuming the intent is to load in a single process.
+    return func(*args, **kwargs)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED cosmos_framework/posttrain/tests/test_distributed_validation_publication.py::test_large_dcp_validation_publication_across_processes[False-server]
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_window_counter_is_per_process_and_preserves_durable_window_rows
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_training_cleanup_covers_early_and_late_failures[counter]
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_training_cleanup_covers_early_and_late_failures[loop]
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_training_cleanup_covers_early_and_late_failures[collector_close]
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_assessment_cleanup_and_complete_reentry_leave_training_untouched
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_formal_window_validation_runs_before_and_after_training_without_analysis
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_checkpoint_evaluation_restores_exact_state_without_training_or_resaving
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_training_resume_receipt_matches_live_state_before_next_update
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_resume_attestation_rejects_generation_change_without_receipt[collector]
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_resume_attestation_rejects_generation_change_without_receipt[during_attestation]
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_checkpoint_evaluation_rejects_source_mutation_before_publishing_scores
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_checkpoint_evaluation_rejects_missing_resume_before_model_allocation
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_pending_validation_resumes_to_new_directory_with_collector_provenance[False]
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_pending_validation_resumes_to_new_directory_with_collector_provenance[True]
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_online_reporting_failure_does_not_block_training
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_telemetry_startup_failure_closes_client_before_model_setup[__init__]
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_telemetry_startup_failure_closes_client_before_model_setup[on_app_start]
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_telemetry_ends_app_when_model_setup_fails_before_training
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_checkpoint_failure_preserves_error_without_telemetry_success
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_training_error_survives_telemetry_send_and_finish_failures
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_joint_failure_does_not_complete_telemetry_intervals[trainer]
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_joint_failure_does_not_complete_telemetry_intervals[publication]
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_joint_failure_does_not_complete_telemetry_intervals[validation]
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_checkpoint_location_is_captured_before_later_save_and_delayed_delivery
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_partial_initialization_error_survives_bounded_pending_sdk_finish
+1 failed, 139 passed, 26 warnings, 25 errors in 27.87s

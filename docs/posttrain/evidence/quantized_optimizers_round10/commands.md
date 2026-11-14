@@ -207,3 +207,25 @@ python docs/posttrain/evidence/quantized_optimizers_round10/native_development_p
 
 It has no confidence intervals: one training seed cannot establish the requested
 recipe-level quality or speed bounds. The failed fused publication remains labeled.
+
+The completed-gradient checkpoint correction is source-v40 (`36610372`). The
+corrected nonpaged pressure reference38533459 is admitted with the unchanged
+32-update/55GiB settings. Its diagnostic launcher, `checkpoint_memory_diagnostic.sbatch`,
+adds only the pinned33-test preflight and NCCL INFO files to the existing launcher.
+Do not use this instrumented run for a speed claim:
+
+```bash
+export SOURCE_ARCHIVE="$R/cosmos-optimizer-native-20261113/source-v40.tar.gz"
+export OPTIMIZER_NAME=adamw_bnb_8bit TRAINING_SEED=17 UPDATES=32
+export CHECKPOINT_EVERY=16 VALIDATION_EVERY=16 CO_RESIDENT_GIB=55
+export EVALUATE_ONLY=0 RESUME_CHECKPOINT= NATIVE_OUTPUT_ROOT=
+# A fresh RESULTS is required; retain the same configured model/simulator paths.
+sbatch docs/posttrain/evidence/quantized_optimizers_round10/checkpoint_memory_diagnostic.sbatch
+```
+
+The original nonpaged pressure attempt38532517 completed16updates but failed the
+model DCP write with a rank-consistent NCCL CUDA error. It produced no complete
+midpoint checkpoint. The correction releases consumed model/master gradients and
+unused CUDA cache only after the completed-boundary guard. Partial accumulation
+must still fail before any gradients are discarded. The earlier fused55 failure
+occurs at update2, before this checkpoint-only change can execute.
