@@ -202,6 +202,15 @@
     ],
     "prediction": "Retired masters released before resumed backward; lower allocated restore bytes without changed logical state.",
     "falsification": "Immediate weakrefs remain live, restored state differs, or pressure continuation still OOM. Diagnose rather than lower pressure or claim capacity pass.",
-    "counterfactuals": "Original reference32 math unchanged; retain as applicable. No new task quality or timing claim."
+    "counterfactuals": "Original reference32 math unchanged; retain as applicable. No new task quality or timing claim.",
+    "shared_gate": {
+      "job": "38536222",
+      "source": "ff2572f266d9463c6cb820f883e514387aecd869",
+      "archive_sha256": "748841d879ba76692462738e5c24130d218a9d4d1d5d0004c6a68162c87dded9",
+      "results": "gr00t-master-ownership-v1",
+      "gpus": 2,
+      "wall_minutes": 20,
+      "grace_seconds": 60
+    }
   }
 }

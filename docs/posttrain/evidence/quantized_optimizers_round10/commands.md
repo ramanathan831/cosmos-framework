@@ -267,3 +267,28 @@ was captured and the allocation terminated. No checkpoint32 or pressure recovery
 pass is inferred. The later reporting-only correction `d3f7bf16` logs a failed
 cell immediately while preserving the drain barrier;17 local checks pass.
 It is not present in source-v41 accelerator runs and does not alter their math.
+
+
+## Optimizer ownership correction
+
+Source-v42 is `ff2572f266d9463c6cb820f883e514387aecd869`, archive SHA256
+`748841d879ba76692462738e5c24130d218a9d4d1d5d0004c6a68162c87dded9`.
+It removes per-instance tensor closures from the backend class without changing
+numerical updates or checkpoint identities. The affected real-kernel gate uses
+the same pinned model interpreter as native GR00T:
+
+```bash
+export SOURCE_ARCHIVE="$R/cosmos-optimizer-native-20261113/source-v42.tar.gz"
+export MODEL_PYTHON="$R/cosmos-optimizer-native-20261113/action-runtime-v2/model/bin/python"
+export RESULTS="$R/cosmos-optimizer-native-20261113/new-ownership-gate"
+sbatch --partition=polar,polar3,polar4,grizzly \
+  docs/posttrain/evidence/quantized_optimizers_round10/ownership_gate.sbatch
+```
+
+After that gate, corrected pressure continuation retains `UPDATES=32`,
+`CHECKPOINT_EVERY=16`, `VALIDATION_EVERY=16`, `TRAINING_SEED=17`,
+`CO_RESIDENT_GIB=55`, `EVALUATE_ONLY=0`, and empty `NATIVE_OUTPUT_ROOT`.
+Use the matching fully published `iter_000016` from the original paged55 or
+nonpaged55 reference and a fresh `RESULTS`; submit the existing native launcher.
+This is recovery validation, not a new uninterrupted quality/timing comparison.
+The previous first-resumed-backward OOMs remain recorded.
