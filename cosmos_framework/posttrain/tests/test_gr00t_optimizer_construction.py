@@ -44,3 +44,9 @@ def test_legacy_joint_identity_does_not_gain_an_update_policy_field():
     assert recipe.identity()["optimizer"] == canonical_config_value(legacy)
     recipe.optimizer.update_policy = "fp32_master"
     assert recipe.identity()["optimizer"]["update_policy"] == "fp32_master"
+
+
+@pytest.mark.parametrize("name", ["adamw_bnb_8bit", "paged_adamw_8bit"])
+def test_joint_quantized_policy_rejected_before_model_construction(name):
+    with pytest.raises(ValueError, match="update_policy=fp32_master"):
+        JointPPOConfig(optimizer=OptimizerConfig(name=name))

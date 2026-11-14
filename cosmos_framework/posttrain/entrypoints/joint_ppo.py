@@ -60,8 +60,11 @@ def setup_policy(config: PosttrainJointPPOConfig, output: str, resume: str | Non
         if recipe.optimizer.update_policy != "fp32_master":
             raise ValueError("native Joint PPO quantized optimizers require optimizer.update_policy=fp32_master")
         from cosmos_framework.utils.quantized_optimizer import require_backend
+        from cosmos_framework.posttrain.utils.dist import run_rank_converged
 
-        require_backend(paged=recipe.optimizer.name == "paged_adamw_8bit")
+        run_rank_converged(
+            lambda: require_backend(paged=recipe.optimizer.name == "paged_adamw_8bit"), "Joint PPO optimizer preflight"
+        )
     model = instantiate(config.policy, output=output, parallel_dims=current_pdims())
     lifecycle = CheckpointLifecycle.from_config(config, recipe, run_out_dir=output, resume_checkpoint=resume)
     trainer = JointPPOTrainer(

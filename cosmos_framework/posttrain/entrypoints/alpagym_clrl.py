@@ -439,8 +439,11 @@ def _build_trainer(run_config: Any, updates_per_step: int, *, optimizer: Optimiz
         if optimizer_config.update_policy != "fp32_master":
             raise ValueError("native AlpaGym quantized optimizers require update_policy=fp32_master")
         from cosmos_framework.utils.quantized_optimizer import require_backend
+        from cosmos_framework.posttrain.utils.dist import run_rank_converged
 
-        require_backend(paged=optimizer_config.name == "paged_adamw_8bit")
+        run_rank_converged(
+            lambda: require_backend(paged=optimizer_config.name == "paged_adamw_8bit"), "AlpaGym optimizer preflight"
+        )
     model = AlpamayoTrainModel(str(run_config.policy.model.path), dtype=torch.bfloat16)
     # FSDP width comes from the RANK mesh, not the replica count. This policy is declared
     # (replicas=1, ranks=gpus): `replica_coords()` would report (0, 1) and silently skip the FSDP

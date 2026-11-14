@@ -3349,6 +3349,11 @@ class JointPPOConfig(PPOBaseConfig):
             raise ValueError("joint PPO requires synchronous dcp checkpoints and rl.grad_accum=1")
         if self.optimizer.train_keys or self.optimizer.decay_groups:
             raise ValueError("joint PPO owns the complete actor/value parameter partition")
+        if (
+            self.optimizer.name in ("adamw_bnb_8bit", "paged_adamw_8bit")
+            and self.optimizer.update_policy != "fp32_master"
+        ):
+            raise ValueError("native Joint PPO quantized optimizers require optimizer.update_policy=fp32_master")
 
     def identity(self) -> dict:
         from dataclasses import asdict
