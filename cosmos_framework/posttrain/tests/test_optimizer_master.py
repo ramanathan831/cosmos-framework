@@ -106,6 +106,28 @@ def test_nonfinite_does_not_advance_master_moments_or_model():
     assert_equal(weights, net.state_dict())
 
 
+def test_native_joint_evaluation_reports_actual_initialized_storage():
+    from cosmos_framework.posttrain.config.rl import JointPPOConfig
+    from cosmos_framework.posttrain.roles.trainer.joint_ppo import JointPPOTrainer
+    from cosmos_framework.posttrain.tests.helpers.ppo_continuous import GaussianPolicy
+
+    policy = GaussianPolicy()
+    recipe = JointPPOConfig()
+    recipe.optimizer = OptimizerConfig(update_policy="fp32_master")
+    learner = JointPPOTrainer(policy, recipe)
+    before = learner.evaluation_state()
+    assert before["optimizer_storage"]["moment_bytes"] == 0
+    for parameter in learner.opt.live:
+        parameter.grad = torch.ones_like(parameter)
+    learner.opt.step()
+    learner.opt.zero_grad()
+    state = learner.evaluation_state()
+    assert state["optimizer_storage"]["moment_bytes"] == 8 * sum(p.numel() for p in learner.opt.live)
+    assert state["optimizer_storage"]["master_bytes"] == 0  # FP32 fixture aliases live parameters.
+    assert state == learner.evaluation_state()
+    assert state["parameters"] != before["parameters"]
+
+
 def test_fp32_storage_is_already_the_master_and_rejects_rebinding():
     net = model().float()
     opt = make(net)

@@ -137,6 +137,9 @@ class JointPPOTrainer(PPOTrainableRole):
             }
             if getattr(self.opt, "cosmos_local_master_optimizer", False):
                 state["optimizer_masters"] = canonical_digest([digest(p.detach()) for p in self.opt.masters])
+                # Persist allocated state/precision accounting with the native
+                # evaluation receipt; actor log forwarding can omit INFO records.
+                state["optimizer_storage"] = self.opt.state_report()
             current = self.model.ppo_frozen_state()
 
             def check_frozen_model() -> None:
