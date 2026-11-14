@@ -13921,6 +13921,127 @@
         "Independent recording-family confirmation",
         "Merged dense conversion remains separately failed/unqualified where recorded; no inference acceleration claim"
       ]
+    },
+    "38531405": {
+      "family": "gr00t",
+      "slurm_state": "COMPLETED",
+      "exit_code": "0:0",
+      "allocation_gpu_seconds": 686,
+      "implementation_revision": "4cba88f4d84ce69037c194e58670e8491388a36d",
+      "scope": "Original200 DCP policies now have native portable publication, exact trained tensors and fresh full160 task parity. This is not new training/task-quality evidence, original time-to-target reconstruction, independent confirmation or standalone/merged export qualification.",
+      "acceptance_sha256": "31658f21f1d2aaed84303f9b163ea402200262e0d3ae44ca9f0c209ee44821df",
+      "workflow_sha256": "3f15736a48e98177bc1f6a6626ca8559cb860dc9b110f54a1a62a5fd0025f1e7",
+      "native_stages": 9,
+      "all_stages_exit0": true,
+      "workflow_seconds": 624.7924746290082,
+      "summary": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-target200-portable-38531405-summary.json",
+        "sha256": "794ee1451bd7d2476e5546914ff7cb34892efb9f64ee82b07b508a3556b55610"
+      },
+      "results": [
+        {
+          "mode": "nf4_lora",
+          "step": 200,
+          "fresh_rows": 160,
+          "all_trained_tensors_exact": true,
+          "original_controls_unchanged": true,
+          "adapter_tensors": 224,
+          "auxiliary_tensors": 537,
+          "parameter_elements": 1640438912,
+          "portable": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38531405/publication/nf4_lora/checkpoint_artifacts/iter_000200",
+          "portable_manifest_sha256": "2d2bfdeb966df8f2a52ca7bcdc5440c213a3ea7c0ad4568b77f66840f69d04b7",
+          "portable_metadata_sha256": "92e0723a46610dd2e3c646828a4854cf01c8a3fab6032774938b4c8260180a70",
+          "fresh_evaluation_sha256": "aa303edb7f7dc2898fe713138870c9e7e90ffd530ee9ad3bf46627ebeefc3896",
+          "normalized_action_mse": 0.043024753683712336
+        },
+        {
+          "mode": "bf16_lora",
+          "step": 200,
+          "fresh_rows": 160,
+          "all_trained_tensors_exact": true,
+          "original_controls_unchanged": true,
+          "adapter_tensors": 224,
+          "auxiliary_tensors": 537,
+          "parameter_elements": 1640438912,
+          "portable": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38531405/publication/bf16_lora/checkpoint_artifacts/iter_000200",
+          "portable_manifest_sha256": "a3faf7771725336bed85219e9d87258ddb98b282efa2bedaf573e367a0fa362c",
+          "portable_metadata_sha256": "d12af7495a3fcb2b917be13ddea208c4060d0c3bfc2b3a6b12b735a35d8b15b8",
+          "fresh_evaluation_sha256": "72f4ae0eb1bf155c3b6aa9ff4b3395f2ffaa1cdbcad190db4800cf8103f1da98",
+          "normalized_action_mse": 0.04435785325077762
+        },
+        {
+          "mode": "bf16_frozen",
+          "step": 200,
+          "fresh_rows": 160,
+          "all_trained_tensors_exact": true,
+          "original_controls_unchanged": true,
+          "adapter_tensors": 0,
+          "auxiliary_tensors": 537,
+          "parameter_elements": 1620515968,
+          "portable": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-qlora-family-20261113/jobs/38531405/publication/bf16_frozen/checkpoint_artifacts/iter_000200",
+          "portable_manifest_sha256": "f18f33ac637fcfb553ad394fa31f7cdc00ef3a0afd2a82b5e8c8143943983faa",
+          "portable_metadata_sha256": "4026db5221c1d5b82290c3f4dd08c8c36037e28018791c8132fb5372d10f9f51",
+          "fresh_evaluation_sha256": "fab2afeabecbeaa586266c41a204e2405b952e92f6638ecf9bfbb8b26dbd59b6",
+          "normalized_action_mse": 0.046439082241018434
+        }
+      ],
+      "memory": {
+        "allocator_limit": "Unchanged4c action_eval lacks native allocator phases. Whole-stage process/device/host sampled lower bounds are retained; no allocator peaks fabricated.",
+        "memory": {
+          "device_peak_bytes": 13889634304,
+          "errors": [],
+          "gpu_memory_evidence_valid": true,
+          "host_pss_complete": true,
+          "host_pss_sum_peak_bytes": 14435995648,
+          "host_rss_sum_peak_bytes": 14746804224,
+          "nvml_capacity_bytes": 85899345920,
+          "observed_span_seconds": 623.2354786396027,
+          "owned_device_process_peak_bytes": 13155434496,
+          "peaks_are_sampled_lower_bounds": true,
+          "samples": 489,
+          "sampling_gap_seconds": {
+            "count": 488,
+            "maximum": 1.5220410823822021,
+            "mean": 1.2771218824582022,
+            "median": 1.273368239402771,
+            "p95": 1.3111968159675598,
+            "sum": 623.2354786396027
+          }
+        },
+        "stage_health": {
+          "bf16_frozen": {
+            "complete_host_samples": 489,
+            "device_uuid": "GPU-0627f518-8b38-e550-e3b8-0486a92dd0d3",
+            "positive_owned_gpu_observations": 99,
+            "samples": 489,
+            "scope": "sampled lower bounds; allocation-phase peaks retained separately"
+          },
+          "bf16_lora": {
+            "complete_host_samples": 489,
+            "device_uuid": "GPU-0627f518-8b38-e550-e3b8-0486a92dd0d3",
+            "positive_owned_gpu_observations": 109,
+            "samples": 489,
+            "scope": "sampled lower bounds; allocation-phase peaks retained separately"
+          },
+          "nf4_lora": {
+            "complete_host_samples": 489,
+            "device_uuid": "GPU-0627f518-8b38-e550-e3b8-0486a92dd0d3",
+            "positive_owned_gpu_observations": 114,
+            "samples": 489,
+            "scope": "sampled lower bounds; allocation-phase peaks retained separately"
+          }
+        }
+      },
+      "missing": [
+        "Selected200 dequantized-unmerged standalone policies await separately bound64ea qualification; selected300 proof is not claimed for200",
+        "Historical2pp task-success uncertainty guards remain failed",
+        "Substantial GR00T training memory saving and NF4 superiority remain unestablished"
+      ],
+      "additional_metadata_receipt": {
+        "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-target200-portable-38531405-metadata-v1/inventory.json",
+        "sha256": "2811de0c3ae93afc6257183c1aa1e45546ce675805af3fdc40f1c039c2b53387",
+        "scope": "Two NF/BF portable model_metadata.pt files, matching the acceptance hashes, retained separately for native loader preflight; original55-file archive unchanged."
+      }
     }
   },
   "read_only_head_memory_diagnostic": {
@@ -14022,6 +14143,12 @@
       "sha256": "f0af6b8804acbf793e9a2ea5c9681f46a272e4a0b15f14445dc39ba5884119b6",
       "inventory_sha256": "82dbfe0bcedefd606b41d95233a49db08091847bb1cf0426254c2d7b3b876162",
       "scope": "187 actual completed finite17 case, native metadata/control/score, process/allocator and scheduler receipts; no trained weight payloads."
+    },
+    {
+      "path": "/localhome/local-rarunachalam/qlora-family-qualification-20261113/gr00t-target200-portable-38531405-receipts-v1.tar.gz",
+      "sha256": "acbbf4caf1e25d3327e17a7616d0773e95aaa1bcaf5d7cca4b51ef6a6992cf67",
+      "inventory_sha256": "020c6af2d29fb567ec3f8280c1875cb2f84d1c4e9f8c70ef9194bb913e3dd047",
+      "scope": "55 actual selected200 publication, fresh160 task parity, trained-component verification and memory receipts; no trained weights."
     }
   ],
   "fixed_development_targets": {

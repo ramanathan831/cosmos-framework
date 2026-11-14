@@ -639,3 +639,16 @@ including the actual Enroot UID map and controller responses, supplement the
 unchanged 61 import/measurement checks. Fresh 17/42 blocks under that measurement
 contract are required; no old/new timing blocks may be combined. Candidate-owned
 mature recovery and the remaining family gates are still separate requirements.
+
+The first-target update-200 policies subsequently passed native portable publication
+and fresh full-160-row scoring in job `38531405` (686 GPU-seconds). NF4 and BF16
+LoRA artifacts preserved all 224 adapter factors and 537 trained action-head tensors;
+the separate BF16 head-only artifact preserved its 537 trained tensors. Every value
+matched the original checkpoint, all original control files remained unchanged,
+and all three fresh task-score rows/metrics matched their retained update-200
+references. This closes selected-checkpoint portable coverage without creating new
+quality evidence or reconstructing the earlier target clock. The complete nine-stage
+workflow had valid owned-GPU sampling and 489 complete host samples; its sampled
+process/host peaks are lower bounds, since the original `4cba88f` evaluator does not
+emit allocator-phase peaks. Selected update-200 standalone unmerged export remains
+a separate pending qualification; the update-300 result is not substituted for it.
