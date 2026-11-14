@@ -83,6 +83,7 @@ def preserved_evaluation(policy, seed: int):
 def evaluate(policy, objective, source, config, callback=None):
     """Full finite evaluation; loss is weighted by the objective's native denominator."""
     from cosmos_framework.posttrain.algorithm.primitives.objective import OBJECTIVE_WEIGHT_SUM
+    from cosmos_framework.posttrain.utils.action_evaluation_inputs import evaluation_batch_scope
 
     limit = config.rl.evaluation_max_samples or len(source)
     count = min(limit, len(source))
@@ -91,14 +92,15 @@ def evaluate(policy, objective, source, config, callback=None):
     with preserved_evaluation(policy, config.rl.evaluation_seed):
         for start in range(0, count, config.rl.micro_batch_size):
             batch = [source[index] for index in range(start, min(start + config.rl.micro_batch_size, count))]
-            loss, metrics = objective(policy, batch)
-            weight = float(metrics.get(OBJECTIVE_WEIGHT_SUM, len(batch)))
-            values = {"loss": {"sum": float(loss.detach()) * weight, "count": weight}}
-            if callback is not None:
-                extra = callback(policy, batch, config)
-                if "loss" in extra:
-                    raise ValueError("task evaluation callback must not replace the native loss")
-                values.update(extra)
+            with evaluation_batch_scope(policy, batch):
+                loss, metrics = objective(policy, batch)
+                weight = float(metrics.get(OBJECTIVE_WEIGHT_SUM, len(batch)))
+                values = {"loss": {"sum": float(loss.detach()) * weight, "count": weight}}
+                if callback is not None:
+                    extra = callback(policy, batch, config)
+                    if "loss" in extra:
+                        raise ValueError("task evaluation callback must not replace the native loss")
+                    values.update(extra)
             for key, item in values.items():
                 if set(item) != {"sum", "count"}:
                     raise ValueError(f"evaluation metric {key} requires explicit sum and count")
@@ -157,6 +159,9 @@ def validate_config(config):
     for name in ("policy_factory", "data_factory", "objective_factory"):
         if not isinstance(getattr(config, name), str) or "." not in getattr(config, name):
             raise ValueError(f"action SFT requires {name}")
+    from cosmos_framework.posttrain.utils.action_evaluation_inputs import validate_evaluation_input_reuse
+
+    validate_evaluation_input_reuse(config, rl)
     return rl
 
 
@@ -189,6 +194,7 @@ def training_identity(config, rl, objective, validation):
     """Bind resolved native configuration, including OmegaConf container leaves."""
     import torch
 
+    from cosmos_framework.posttrain.utils.action_evaluation_inputs import reuse_identity
     from cosmos_framework.posttrain.utils.action_training_identity import action_training_source_identity
     from cosmos_framework.posttrain.utils.identity import canonical_config_value
 
@@ -214,6 +220,7 @@ def training_identity(config, rl, objective, validation):
             "evaluation_every": rl.evaluation_every,
             "evaluation_seed": rl.evaluation_seed,
             "evaluation_max_samples": rl.evaluation_max_samples,
+            "evaluation_input_reuse": reuse_identity(rl),
             "target": [rl.target_metric, rl.target_threshold, rl.target_direction, rl.stop_on_target],
         }
     )
@@ -229,6 +236,11 @@ def run(config, *, config_path: str, opts: list[str]):
     from cosmos_framework.posttrain.control.termination import TerminationWatch
     from cosmos_framework.posttrain.roles.env.cursor import IndexedCursor
     from cosmos_framework.posttrain.roles.trainer.llm import LLMTrainer
+    from cosmos_framework.posttrain.utils.action_evaluation_inputs import (
+        install_evaluation_input_reuse,
+        preparation_observations,
+        validate_evaluation_input_reuse,
+    )
     from cosmos_framework.posttrain.utils.action_training_identity import (
         action_training_source_identity,
         require_matching_training_source,
@@ -262,6 +274,7 @@ def run(config, *, config_path: str, opts: list[str]):
         )
     record_qlora_phase("data_preparation_begin", reset_peak=True)
     train, validation = prepare_sources(config)
+    validate_evaluation_input_reuse(config, rl, validation)
     record_qlora_phase("data_preparation_complete", reset_peak=True)
     misc.set_random_seed(seed=rl.seed, by_rank=False)
     record_qlora_phase("model_loading_begin", reset_peak=True)
@@ -271,6 +284,7 @@ def run(config, *, config_path: str, opts: list[str]):
         raise RuntimeError("action SFT family did not install the native checkpoint codec")
     record_qlora_phase("model_loading_complete", reset_peak=True)
     cursor = IndexedCursor(train, shuffle=True, seed=rl.seed, cursor_resume="strict", label="action SFT")
+    install_evaluation_input_reuse(policy, config, rl)
     objective = _factory(config.objective_factory)(policy, config)
     objective.identity = {
         **objective.identity,
@@ -355,6 +369,9 @@ def run(config, *, config_path: str, opts: list[str]):
         tick = time.monotonic()
         record_qlora_phase("evaluation_begin", reset_peak=True)
         metrics, rows = evaluate(policy, objective, validation, config, callback)
+        preparation = preparation_observations(policy)
+        if preparation is not None:
+            _json(output / "evaluation_preparation.json", preparation)
         record_qlora_phase("evaluation_complete", reset_peak=True)
         clocks["evaluation_seconds"] += time.monotonic() - tick
         history.append({"step": update, "metrics": metrics})

@@ -42,6 +42,7 @@ TRAINING_SOURCE_FILES = (
     "roles/trainer/base.py",  # update controls, pristine optimizer and RNG restoration
     "roles/trainer/finite.py",  # loss / gradient finite checks before mutation
     "roles/trainer/llm.py",  # backward, clip, optimizer, scheduler and state restore
+    "utils/action_evaluation_inputs.py",  # bounded deterministic evaluation preparation and cleanup
     "utils/action_training_identity.py",
     "utils/determinism.py",
     "utils/dist.py",  # count/metric normalization and converged failures

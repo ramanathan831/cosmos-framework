@@ -35,6 +35,11 @@ def run(
         evaluate,
         validate_config,
     )
+    from cosmos_framework.posttrain.utils.action_evaluation_inputs import (
+        install_evaluation_input_reuse,
+        preparation_observations,
+        validate_evaluation_input_reuse,
+    )
     from cosmos_framework.posttrain.utils.determinism import enable_determinism
     from cosmos_framework.posttrain.utils.qlora_metrics import record_qlora_phase
     from cosmos_framework.utils import misc
@@ -75,12 +80,17 @@ def run(
             load_adapter_weights(checkpoint, codec, manager=manager)
     record_qlora_phase("family_evaluation_loading_complete", reset_peak=True)
     source = _Source(_factory(config.data_factory)(config, "validation", policy))
+    validate_evaluation_input_reuse(config, rl, source)
+    install_evaluation_input_reuse(policy, config, rl)
     objective = _factory(config.objective_factory)(policy, config)
     callback = _factory(config.evaluation_callback) if config.evaluation_callback else None
     try:
         loaded = time.monotonic()
         record_qlora_phase("family_evaluation_begin", reset_peak=True)
         metrics, rows = evaluate(policy, objective, source, config, callback)
+        preparation = preparation_observations(policy)
+        if preparation is not None:
+            _json(destination / "evaluation_preparation.json", preparation)
         record_qlora_phase("family_evaluation_complete", reset_peak=True)
         if codec is not None:
             codec.validate_frozen_base()
