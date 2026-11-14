@@ -116,7 +116,22 @@ class JointPPOTrainer(PPOTrainableRole):
     def optimizer_memory(self) -> dict | None:
         """Current allocations, including transient gradients excluded from resume state."""
         if getattr(self.opt, "cosmos_local_master_optimizer", False):
-            return self.opt.state_report()
+            from cosmos_framework.utils.optimizer_master import local_tensor
+
+            report = self.opt.state_report()
+            report["model_gradient_bytes"] = sum(
+                local_tensor(p.grad).numel() * p.grad.element_size() for p in self.opt.live if p.grad is not None
+            )
+            device = local_tensor(self.opt.live[0]).device
+            if device.type == "cuda":
+                report["cuda_allocator"] = {
+                    "scope": "learner_context_since_creation; excludes managed allocations and other processes",
+                    "allocated_bytes": torch.cuda.memory_allocated(device),
+                    "reserved_bytes": torch.cuda.memory_reserved(device),
+                    "peak_allocated_bytes": torch.cuda.max_memory_allocated(device),
+                    "peak_reserved_bytes": torch.cuda.max_memory_reserved(device),
+                }
+            return report
         return None
 
     def evaluation_state(self) -> dict:
