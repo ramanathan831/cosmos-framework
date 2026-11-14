@@ -257,10 +257,16 @@
       "profiler_environment": "explicit nonsecret operational allowlist; only key names recorded",
       "memory_scope": "native launcher/process children; profiler ancestors excluded and disclosed",
       "helper_files": {
-        "paging_profile.py": "29d4157c2366f8195a87e91a8c3f1a4199baac026a7a717721f518170cb337ab",
+        "paging_profile.py": "03c6e1528c531028e28336aedd81a977a8e4cb0ebd95ba7c7005b408228f68f3",
         "paging_profile.sbatch": "6064e7b507938d52dd2376b81df0f6f786d355614f754d0aa185a33d6d15540e"
       },
-      "interpretation": "Instrumented diagnostic only. Initial managed touches, checkpoint transfers and steady training migrations must be distinguished. No optimizer or end-to-end speed claim; no follow-up pressure sweep."
+      "interpretation": "Instrumented diagnostic only. Initial managed touches, checkpoint transfers and steady training migrations must be distinguished. No optimizer or end-to-end speed claim; no follow-up pressure sweep.",
+      "environment_amendment": {
+        "at_utc": "2026-11-14T14:37:52.142570+00:00",
+        "job_state_before_amendment": "38537185 PENDING, no allocation/no measurements",
+        "reason": "Preserve an explicit list of nonsecret allocator/CUDA/NCCL operational knobs when present; do not inadvertently change inherited runtime policy while sanitizing credentials. Unknown inherited variables remain excluded. Helper hash recorded at runtime.",
+        "previous_helper_sha256": "29d4157c2366f8195a87e91a8c3f1a4199baac026a7a717721f518170cb337ab"
+      }
     }
   }
 }

@@ -205,14 +205,14 @@ For the compatible AlpaGym high-precision control, select `--optimizer adamw --o
 AlpaGym CLI selections are atomically recorded in `optimizer_config_resolved.json` beside its host resolved config before workers start. Worker logs separately report the constructed wrapper/backend classes and complete typed configuration. No external host config or environment secrets are copied into this artifact.
 
 
-The latest correction is source-v39 (`ef9f6958`): full-content local checkpoint
+The earlier source-v39 correction (`ef9f6958`) introduced full-content local checkpoint
 publication, retaining existing v1 load/copy provenance. Source-v37 fused38520212
 finished all80 updates but failed final publication. Its original97/91/95 scores
 remain recorded; no additional fused80 timing rerun is admitted after that
 adaptation failure. Pending80 recovery38526258 completed with identical restored
 learner/data, zero new updates and successful publication (fresh score97/100).
 
-Current dependency order is38526258 → resident-paged32 `38526671` → nonpaged80
+The completed source-v39 dependency order was38526258 → resident-paged32 `38526671` → nonpaged80
 `38526673` → fused fresh80 `38526676` → nonpaged fresh80 `38526677` → nonpaged40-to-80
 `38526679`. These source-v39 jobs supersede the canceled unallocated v37 chain.
 Use the same commands above with `SOURCE_ARCHIVE=.../source-v39.tar.gz`, a fresh

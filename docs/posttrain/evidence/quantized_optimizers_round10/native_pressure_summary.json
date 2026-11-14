@@ -610,7 +610,12 @@
       "allocation_seconds_including_teardown": 842,
       "gpu_allocation_seconds": 3368,
       "raw": "raw/gr00t-pressure-eightbit55-resume16-v2",
-      "scope": "Fixed-recipe pressure failure. The ownership correction passes first3resumed updates but does not establish complete nonpaged pressure recovery. No allocator-policy or reduced-pressure retry. Earlier resident40to80 recovery is separate applicable evidence."
+      "scope": "Fixed-recipe pressure failure. The ownership correction passes first3resumed updates but does not establish complete nonpaged pressure recovery. No allocator-policy or reduced-pressure retry. Earlier resident40to80 recovery is separate applicable evidence.",
+      "post_terminal_text_identity_check": {
+        "files": 49,
+        "changed_since_capture": 0,
+        "scope": "Archive snapshot taken after launcher exit; all collected source text identities rechecked unchanged after Slurm terminal state. Teardown cost included separately."
+      }
     }
   },
   "checkpoint_memory_intervention": {

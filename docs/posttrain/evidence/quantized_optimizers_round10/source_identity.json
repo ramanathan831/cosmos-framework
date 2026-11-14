@@ -8,7 +8,7 @@
     "archive_sha256": "748841d879ba76692462738e5c24130d218a9d4d1d5d0004c6a68162c87dded9",
     "archive_bytes": 7723961,
     "archive": "optimizer-native-runtime-v42.tar.gz",
-    "scope": "source-v42:72 pinned tests and12 shared two-rank reference/resume/failure receipts pass. Corrected native pressure continuation admitted separately; mature80 numerical/recovery remains at its recorded source."
+    "scope": "source-v42:72 pinned tests,12 shared two-rank reference/resume/failure receipts, and corrected native paged55 pressure16to32 recovery pass. Corrected nonpaged55 pressure continuation fails update20 after3new finite updates. Native migration trace is admitted separately; mature80 numerical/recovery remains at recorded sources."
   },
   "all_runtime_archives": "native_sources.json",
   "important_components": {
