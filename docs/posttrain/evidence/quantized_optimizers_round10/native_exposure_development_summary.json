@@ -319,9 +319,37 @@
         49
       ],
       "limits": "Counts of completed physical episodes, not independent training seeds or all partial trajectories. No omitted task hypothesis: all10 tasks appear."
+    },
+    "pending_final_recovery": {
+      "job": "38526258",
+      "source": "ef9f69589595724c8d166bf699557a2223bb832c",
+      "status": "COMPLETED",
+      "allocation_seconds_including_teardown": 611,
+      "gpu_allocation_seconds": 2444,
+      "attempt": {
+        "returncode": 0,
+        "native_seconds": 451.0456166189979
+      },
+      "restored_from_update": 80,
+      "final_update": 80,
+      "new_training_windows": 0,
+      "existing_all80_window_records_byte_identical": true,
+      "all_saved_learner_fields_exact_before_and_after_validation": true,
+      "all_saved_data_exact": true,
+      "collector_cursors": [
+        80,
+        80,
+        80,
+        80
+      ],
+      "checkpoint_publication_passed": true,
+      "success_before_restart": 0.95,
+      "success_after_restart": 0.97,
+      "interpretation": "Native completed-window learner/control restore and publication. Simulator resets; different100-case score is not a model/optimizer state mismatch. No timing or quality superiority claim.",
+      "raw": "raw/gr00t-fused-publication80-v1"
     }
   },
-  "nonpaged": "not yet executed: dependencies canceled on fused publication failure; correction gate pending",
+  "nonpaged": "admitted38526673 after source-v39 resident32 fresh-writer gate38526671; pending",
   "final_comparison": "not admitted: fused adaptation screen fails. Complete native eight-bit integration/continuation independently; no extra seeds to seek a favorable interval.",
   "diagnosis_limits": [
     "One training seed and exposed100-case pool; native physical evaluation varies even from exact restored states. A two-episode decline is the locked descriptive screen failure, not a population-level degradation estimate.",

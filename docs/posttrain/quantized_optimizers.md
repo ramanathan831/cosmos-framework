@@ -1379,11 +1379,17 @@ establishes useful adaptation or a cross-optimizer quality claim. Longer
 development qualification remains in progress. A subsequent fused run reached
 update40 but failed publication after scoring93/100, versus99/100 initially.
 The captured inventory differs only in one rank's older mtime/ctime for the same
-model shard. Linux provenance now requests server-synchronized `statx` attributes
-without weakening rank agreement. Affected local, project-filesystem and two-GPU
-recovery tests pass. Native pending40→80 continuation also passes, including
-exact pre-update learner/cursor restoration and a newly published checkpoint80.
-The failed midpoint remains negative evidence. See the
+model shard. Server-synchronized `statx` passed initial tests and native pending40→80
+recovery, but the later uninterrupted80 run still failed final publication: one
+rank saw a timestamp one second older. That run completed80 finite updates and
+scored97/91/95 successes at0/40/80, failing its adaptation screen. Local validation
+publication now hashes every regular payload on every rank, retains before/after
+mutation checks, and rejects symlink payloads/subtrees; existing load/copy provenance
+remains compatible.151 pinned checks pass. Four CPU readers agree on the actual
+checkpoint content in about24.28seconds each. Native pending80 recovery matches
+all saved learner/data fields and publishes with zero new updates; its fresh97/100
+score illustrates simulator variability. Newly written checkpoints and the remaining
+nonpaged/paging studies are tracked separately. Both failures remain recorded. See the
 [native nonpaged evidence](evidence/quantized_optimizers_round10/native_eightbit_development_summary.json).
 
 Resident paged GR00T also completed8updates and publications, with98/100/96

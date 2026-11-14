@@ -1,6 +1,6 @@
 {
   "sealed": false,
-  "updated_at_utc": "2026-11-14T08:31:52.969594+00:00",
+  "updated_at_utc": "2026-11-14T08:44:07.546629+00:00",
   "method": "Earliest allocation/step start through latest end including termination grace; pending unallocated cancellations cost zero. GPU-seconds = allocation wall x allocated GPUs; CPU-only wall excludes GPU jobs. Running entries are provisional observations, not final charges. No aggregate caps.",
   "allocations": [
     {
@@ -895,18 +895,72 @@
     },
     {
       "job": "38526258",
-      "state": "RUNNING",
-      "terminal": false,
-      "allocation_seconds": 4,
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 611,
       "gpus": 4,
       "cpus": 32,
       "node": "batch-block4-0052",
       "exit_code": "0:0"
+    },
+    {
+      "job": "38526671",
+      "state": "RUNNING",
+      "terminal": false,
+      "allocation_seconds": 38,
+      "gpus": 4,
+      "cpus": 32,
+      "node": "batch-block5-03442",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38526673",
+      "state": "PENDING",
+      "terminal": false,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38526676",
+      "state": "PENDING",
+      "terminal": false,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38526677",
+      "state": "PENDING",
+      "terminal": false,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38526679",
+      "state": "PENDING",
+      "terminal": false,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
     }
   ],
-  "terminal_gpu_allocation_seconds": 84490,
+  "terminal_gpu_allocation_seconds": 86934,
   "terminal_cpu_only_wall_seconds": 6292,
   "nonterminal_jobs": [
-    "38526258"
+    "38526671",
+    "38526673",
+    "38526676",
+    "38526677",
+    "38526679"
   ]
 }

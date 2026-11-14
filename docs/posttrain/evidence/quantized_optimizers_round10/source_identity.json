@@ -1,13 +1,13 @@
 {
   "starting_commit": "2516e9f1e9aecb0b68d6a21e27dd835f456109ab",
-  "current_implementation_parent": "859d07ae11346ce74a1838b1d7a2ef9680e7c5e2",
+  "current_implementation_parent": "ef9f69589595724c8d166bf699557a2223bb832c",
   "sealed": false,
-  "updated_at_utc": "2026-11-14T07:13:38.207491+00:00",
+  "updated_at_utc": "2026-11-14T08:57:52.250229+00:00",
   "tested_native_source": {
-    "revision": "94ecd8ba4e4b238feaaaceb8d5282ef0bcc40ded",
-    "archive_sha256": "de8c061cf1f306fcc8dca4ebf3bb3110a8d3a798cdf42ba60aacc3aabc1ea5a9",
-    "archive_bytes": 7717465,
-    "archive": "optimizer-native-runtime-v37.tar.gz",
+    "revision": "ef9f69589595724c8d166bf699557a2223bb832c",
+    "archive_sha256": "58ff516e1c1853087b9ae5d95a06b5abe64c27904b65de41bdeb7fbdf1723cb0",
+    "archive_bytes": 7720677,
+    "archive": "optimizer-native-runtime-v39.tar.gz",
     "scope": "tracked cosmos_framework/, tools/, pyproject.toml, .pytest.toml"
   },
   "all_runtime_archives": "native_sources.json",
@@ -22,13 +22,15 @@
     "server_synchronized_provenance": "94ecd8ba",
     "alpagym_explicit_fused_control": "4f22bc48",
     "alpagym_actual_fused_construction_test": "1bb028c7",
-    "alpagym_resolved_configuration": "859d07ae11346ce74a1838b1d7a2ef9680e7c5e2"
+    "alpagym_resolved_configuration": "859d07ae11346ce74a1838b1d7a2ef9680e7c5e2",
+    "full_content_publication": "079bd0521359a8164875f2077c9e70d02ff7f022",
+    "publication_symlink_guard": "ef9f69589595724c8d166bf699557a2223bb832c"
   },
   "current_file_sha256": {
     "cosmos_framework/posttrain/checkpoint/external_copy.py": "dc5a1f3dd873da5ed3a84cd160a61c2792695be85c5bb2db24bd3417df6312cb",
-    "cosmos_framework/posttrain/checkpoint/manager.py": "43c5c50021d96f8ed39a284c7acce92920d6c4e67846494761e54cf0e2fc9d4a",
+    "cosmos_framework/posttrain/checkpoint/manager.py": "75579633c2ea6282a23c50f005be4c9691e141b9fa2c3257718d18b2e60984d6",
     "cosmos_framework/posttrain/checkpoint/master_optimizer.py": "240a0b1f46312f5146bb8978c9b1a3ba24b48a109cfbadd593526df81ee50e07",
-    "cosmos_framework/posttrain/checkpoint/provenance.py": "0fd58d13bf0c5acd2a214a320fed245b536ac19947fe013bf4bc5d7e07c1b28a",
+    "cosmos_framework/posttrain/checkpoint/provenance.py": "eb6e8ef5b31119d6284044427a98d0bafdfe3fba52f719dd75efcec38fc0f587",
     "cosmos_framework/posttrain/checkpoint/synchronized_stat.py": "3e282b93c099d2daa8d22d226eb56a02dd4f99263495c2eb614cadbaf896389c",
     "cosmos_framework/posttrain/config/build.py": "fd56e7d1ad7d28f89afbfc565b4847e7ad96de445e96993a14db536513c33522",
     "cosmos_framework/posttrain/config/model.py": "cbbec9a7471ed4aa28ea604c9200cdf16d3647dd28d78f26b0533261989662a1",
@@ -72,6 +74,6 @@
     "vllm_omni_revision": "2d0b1d8a29ff686698dbf0a123ca15be20fb0a8f"
   },
   "model_revision": "2ea293aa20ba7cf5bbf3ba17a5fbcb1a01cbfe21",
-  "scope": "GR00T uses the native four-GPU action-policy pipeline; SFT retained evidence uses its separately recorded dependency/source pins. Alpa CLI/tests after v37 do not change GR00T runtime. No QLoRA branch merged or changed. Native current comparison remains in flight.",
+  "scope": "GR00T uses native four-GPU action-policy source-v39. Content publication passed pending80 recovery; newly written checkpoint and remaining paged/nonpaged gates are in flight. Retained SFT uses separately pinned source/dependencies. Alpa native runtime is unavailable. No QLoRA branch merged or changed.",
   "unchanged_wts_final_protocol_sha256": "aff3b3d9e32418a784f894de24e645bf72692fb18d2e5f9603c0a3d0d5faad65"
 }

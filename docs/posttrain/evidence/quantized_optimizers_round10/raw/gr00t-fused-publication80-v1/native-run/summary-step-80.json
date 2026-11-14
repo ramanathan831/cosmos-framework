@@ -1,0 +1,8 @@
+{
+    "windows": 0,
+    "restored_from": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-exposure-fused-seed17-v3/runs/cosmos3_action/joint_ppo/gr00t-master-adamw/integration/checkpoints/iter_000080",
+    "optimizer_step": 80,
+    "publication_version": 80,
+    "stop_reason": null,
+    "output": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-exposure-fused-seed17-v3/runs/cosmos3_action/joint_ppo/gr00t-master-adamw/integration"
+}

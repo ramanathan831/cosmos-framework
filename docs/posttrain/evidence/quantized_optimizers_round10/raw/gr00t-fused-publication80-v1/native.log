@@ -1,0 +1,10 @@
+2026-11-14 00:34:40.924 | DEBUG    | cosmos_framework.utils.config:_load_py_config:624 - get_config_module: took 0.19ms
+2026-11-14 00:34:41.017 | DEBUG    | cosmos_framework.utils.config:_load_py_config:642 - importlib.import_module: took 91.80ms
+2026-11-14 00:34:41.167 | DEBUG    | cosmos_framework.utils.config:_load_py_config:647 - override: took 150.01ms
+2026-11-14 00:34:41.167 | DEBUG    | cosmos_framework.utils.config:load_config:608 - total time to load config: 243.24ms
+Config is saved using omegaconf at /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-exposure-fused-seed17-v3/runs/cosmos3_action/joint_ppo/gr00t-master-adamw/integration/config_resolved.yaml.
+2026-11-14 00:34:56,579	INFO worker.py:2024 -- Started a local Ray instance.
+[posttrain|I|r0] 2026-11-14 00:36:06 setup progress group=joint_ppo_experience done=0/4 elapsed_s=60 waiting=r0k0@batch-block4-0052 r1k0@batch-block4-0052 r2k0@batch-block4-0052 r3k0@batch-block4-0052
+[posttrain|I|r0] 2026-11-14 00:37:42 setup progress group=joint_ppo_policy done=0/4 elapsed_s=60 waiting=r0k0@batch-block4-0052 r0k1@batch-block4-0052 r0k2@batch-block4-0052 r0k3@batch-block4-0052
+[posttrain|I|r0] 2026-11-14 00:41:47 persisted validation completion in /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-exposure-fused-seed17-v3/runs/cosmos3_action/joint_ppo/gr00t-master-adamw/integration/checkpoints/iter_000080
+[posttrain|I|r0] 2026-11-14 00:41:47 step   80/80  train/joint_loss +0.0411  train/episode_success_rate +0.5000  val/success_rate +0.9700
