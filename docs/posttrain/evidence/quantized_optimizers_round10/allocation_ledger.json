@@ -1,6 +1,6 @@
 {
   "sealed": false,
-  "updated_at_utc": "2026-11-14T14:28:19.071168+00:00",
+  "updated_at_utc": "2026-11-14T14:49:11.307868+00:00",
   "method": "Earliest allocation/step start through latest end including termination grace; pending unallocated cancellations cost zero. GPU-seconds = allocation wall x allocated GPUs; CPU-only wall excludes GPU jobs. Running entries are provisional observations, not final charges. No aggregate caps.",
   "allocations": [
     {
@@ -1062,9 +1062,21 @@
       "cpus": 32,
       "node": "batch-block7-01296",
       "exit_code": "0:15"
+    },
+    {
+      "job": "38537185",
+      "state": "RUNNING",
+      "terminal": false,
+      "allocation_seconds": 328,
+      "gpus": 4,
+      "cpus": 32,
+      "node": "batch-block7-00784",
+      "exit_code": "0:0"
     }
   ],
   "terminal_gpu_allocation_seconds": 157246,
   "terminal_cpu_only_wall_seconds": 6564,
-  "nonterminal_jobs": []
+  "nonterminal_jobs": [
+    "38537185"
+  ]
 }
