@@ -5,7 +5,7 @@ Current engineering matrix (campaign still running; empirical release gates are 
 | Native path | Live / update / moment precision | Strategy and owner | Nonpaged | Paged | Recovery / limit |
 |---|---|---|---|---|---|
 | SFT | FP32 / FP32 / uint8 with FP32 exceptions; compute separately configured | One CUDA device; existing quantized owner | Retained real training/state evidence | Retained capacity evidence only | Consolidated same identity;40→44 and partial-epoch87→174 exact continuation retained |
-| Shared master bridge | BF16 plus optional FP32 / FP32 local masters / FP32 or uint8 | Two CUDA ranks, full1D FSDP2 Shard(0); local backend tensors | Reference/resume and rank-failure gates pass | Same gates pass; managed owners reconstructed | Exact same-topology4→8 on every update; not model-task evidence |
+| Shared master bridge | BF16 plus optional FP32 / FP32 local masters / FP32 or uint8 | Two CUDA ranks, full1D FSDP2 Shard(0); local backend tensors | Reference/resume and rank-failure gates pass | Same gates pass; managed owners reconstructed | Latest source-v42:72 affected pinned checks and12 rank receipts pass; exact4→8 and immediate retired-master/page release without GC; not model-task evidence |
 | GR00T native Joint PPO / LIBERO | BF16 live/compute/reduction / FP32 local masters / FP32 or uint8 | Four CUDA GPUs; native actor/value groups, learner FSDP2, native rollout workers | 80 finite updates and checkpoint40/80 publication pass; earlier native reload and4→8 continuation pass | Resident32 updates and checkpoint16/32 publication pass; earlier native reload and4→8 continuation pass | Exact learner restore; completed-window cursor; simulator reset. Fused v3 pending40→80 passes. Full-content publication passes pending80 recovery with zero new updates and newly written paged checkpoints; fused and nonpaged v3 continuation40→80 pass; pressure remains in progress |
 | Alpamayo native AlpaGym | Intended BF16 live / explicit FP32 master / FP32 or uint8 | Shared construction after external model.setup; actual wrapper unavailable | Real construction-route unit tests only | Real construction-route unit tests only | External posttrain API, resolved driving config and simulator/scenarios missing; native RL recovery and accelerator qualification incomplete |
 
@@ -102,3 +102,14 @@ Native38520018 completed: exact saved learner/cursor state before update41,40fin
 Source-v37 uninterrupted fused38520212 made all80finite updates and evaluated97/91/95 successes at0/40/80, then failed final publication. Rank3 saw the same model shard one second older even with FORCE_SYNC. This falsifies statx as a complete solution. Local publication now reads and hashes every regular payload on every rank, checks each read for mutation, and rejects symlink payloads/subtrees. Existing load/external-copy provenance remains unchanged.126 affected local checks,11 focused checks and151 pinned checks pass with overlapping coverage; four CPU readers agree on the actual22.75GB checkpoint content in about24.28seconds. Native pending80 recovery is admitted separately. Because the fused adaptation screen failed, no final superiority study is admitted and no further full80 fused rerun is justified solely to obtain a favorable timing control. The paired eight-bit numerical/native study and required recovery remain authorized after correction.
 
 Full-content pending80 recovery38526258 completed at sourceef9f6958: every saved learner field on4ranks and complete collector data matched before validation; all80 prior window records remain byte-identical, no new update occurred, and publication passed. The repeated physical evaluation scored97/100 versus95/100 from the exact same learner state. This is recovery/evaluation variability, not a new adaptation or speed result. Source-v39 resident32 fresh-writer gate38526671 precedes the remaining80-update nonpaged and recovery chain.
+
+
+Backend lifetime correction (`ff2572f2`): native pressure resume revealed excess
+live allocation after an otherwise exact restore. The per-instance backend class
+captured parameter groups in method closures. A retained class kept retired master
+Parameters alive. The failing-then-passing weakref regression and updated real CUDA
+gate require immediate release without `gc.collect()`. Backend types now contain
+only shared methods; model-specific references remain on the instance. All72
+affected pinned tests and all12 two-rank receipts pass. This changes ownership,
+not quantization arithmetic, group identity or checkpoint format. Native pressure
+continuations remain a separate required result in `native_pressure_summary.json`.
