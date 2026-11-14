@@ -1,0 +1,32 @@
+JobId=38513011 JobName=optimizer-gr00t-native
+   UserId=rarunachalam(41852) GroupId=dip(30) MCS_label=N/A
+   Priority=91057 Nice=0 Account=edgeai_tao-ptm_image-foundation-model-clip QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:09 TimeLimit=01:30:00 TimeMin=N/A
+   SubmitTime=2026-11-13T19:41:07 EligibleTime=2026-11-13T19:41:07
+   AccrueTime=2026-11-13T19:41:07
+   StartTime=2026-11-13T19:41:13 EndTime=2026-11-13T21:11:13 Deadline=N/A
+   PreemptEligibleTime=2026-11-13T20:11:13 PreemptTime=None
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-11-13T19:41:13 Scheduler=Backfill
+   Partition=polar AllocNode:Sid=cs-oci-ord-login-02:104733
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=batch-block4-0045
+   BatchHost=batch-block4-0045
+   NumNodes=1 NumCPUs=32 NumTasks=1 CPUs/Task=32 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=32,mem=256G,node=1,billing=4,gres/gpu=4
+   AllocTRES=cpu=32,mem=256G,node=1,billing=4,gres/gpu=4
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=32 MinMemoryNode=256G MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-native-v25.sbatch
+   WorkDir=/home/rarunachalam
+   StdErr=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-fused-publication-v4-38513011.log
+   StdIn=/dev/null
+   StdOut=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-fused-publication-v4-38513011.log
+   Power=
+   MemPerTres=gpu:234842
+   TresPerNode=gres:gpu:4
+   
+

@@ -1,0 +1,12 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+______ test_stale_client_timestamp_does_not_change_checkpoint_generation _______
+cosmos_framework/posttrain/tests/test_checkpoint_synchronized_stat.py:39: in test_stale_client_timestamp_does_not_change_checkpoint_generation
+    assert checkpoint_inventory_signature(str(tmp_path)) == expected
+E   AssertionError: assert '3ddeaac5bff3...4c9dd43796204' == '41c10d465441...c258d29fdb00c'
+E     
+E     - 41c10d46544186456c388041a6d788f0ae8e2dd9cde5b21932dc258d29fdb00c
+E     + 3ddeaac5bff32f17559e15789ee850c9c5168a84c002db70f644c9dd43796204
+=========================== short test summary info ============================
+FAILED cosmos_framework/posttrain/tests/test_checkpoint_synchronized_stat.py::test_stale_client_timestamp_does_not_change_checkpoint_generation
+1 failed in 0.06s

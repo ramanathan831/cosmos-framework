@@ -51,7 +51,7 @@
   ],
   "development_screen": {
     "useful_adaptation": "At update80, each arm must exceed its own frozen success count; report fresh reload variability separately. A tie or decline is not useful adaptation. No best-of-40/80 selection.",
-    "cross_optimizer": "Eight-bit update80 success cannot be below fused by more than one question out of100; all episode steps cannot rise more than2%. These are descriptive development screens, not confidence passes.",
+    "cross_optimizer": "Eight-bit update80 success cannot be below fused by more than one evaluation episode out of100; all episode steps cannot rise more than2%. These are descriptive development screens, not confidence passes.",
     "next_replication": "Only after both adaptation and cross-optimizer screens pass, prospectively fix additional paired training seeds29/43 and final-quality procedure before new final scoring. No opportunistic extra seeds after an interval fails."
   },
   "fixed_development_target": {

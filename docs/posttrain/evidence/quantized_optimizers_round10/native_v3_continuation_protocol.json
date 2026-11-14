@@ -29,5 +29,15 @@
   ],
   "reproducibility": "Learner restoration exact; environment reset explicitly starts new physical trajectories. Deterministic continuation was independently tested on two-rank infrastructure, not inferred from reward similarity.",
   "resources": "Existing routing; fourA100/32CPU/256GiB,90min requests including10min grace; serialized after already admitted jobs. Actual terminal costs charged; no aggregate cap.",
-  "failure_policy": "On source, finite-update, restore or publication failure, retain results and diagnose before rerunning. No score selection."
+  "failure_policy": "On source, finite-update, restore or publication failure, retain results and diagnose before rerunning. No score selection.",
+  "amendment": {
+    "at_utc": "2026-11-14T06:45:17.717547+00:00",
+    "source": "94ecd8ba4e4b238feaaaceb8d5282ef0bcc40ded",
+    "reason": "Source-v35 fused publication failed at40 due older client timestamps on one rank; preserve and recover that pending checkpoint in the same output root after the metadata fix. This supplies fused40-to-80 native recovery without duplicating it later. The uninterrupted quality/timing control is rerun separately. Nonpaged published40-to-80 remains required after its fresh reference.",
+    "canceled_before_allocation": [
+      "38518227",
+      "38518229"
+    ],
+    "source_expected_state": "The original failed run evaluation/step_000040.json and saved data/trainer components are preserved outside the mutating source journal before continuation. Exact learner/cursor attestation precedes its next rollout."
+  }
 }

@@ -39,5 +39,22 @@
     "No repeated hashing until agreement",
     "No new final evaluation or empirical win from the failed allocation"
   ],
-  "locked_at_utc": "2026-11-14T06:40:24.623104+00:00"
+  "locked_at_utc": "2026-11-14T06:40:24.623104+00:00",
+  "cluster_test_result": {
+    "job": "38519701",
+    "passed": 146,
+    "failed": 1,
+    "failure": "Pending validation cross-directory promotion fixture used Lustre basetemp, which correctly rejects RENAME_NOREPLACE errno95. It is the previously documented unsupported filesystem operation, not a failed server-stat check.",
+    "corrective_check_job": "38519871 (only failed lifecycle fixture on normal local tmp plus retained native metadata probe)",
+    "affected_gpu_gate": "38519872; replaces unallocated canceled38519719",
+    "corrective_check_result": "38519871 completed: one previously failed lifecycle fixture passed on local temporary storage; all eight native retained DCP shards support synchronized stat and two fixed generation reads match."
+  },
+  "native_recovery": {
+    "job": "38520018",
+    "source": "94ecd8ba4e4b238feaaaceb8d5282ef0bcc40ded",
+    "source_checkpoint": "gr00t-exposure-fused-seed17-v2/.../iter_000040",
+    "output_policy": "same original native output root; existing checkpoint is pending validation and cross-directory atomic promotion is unsupported here",
+    "preserved_before_mutation": "gr00t-exposure-fused-v2-before-recovery:14 files with full SHA256 manifest; original failed logs/evaluations also retained in raw/gr00t-exposure-fused-seed17-v2",
+    "prerequisite": "38519872 affected two-GPU gate; CPU filesystem checks passed"
+  }
 }

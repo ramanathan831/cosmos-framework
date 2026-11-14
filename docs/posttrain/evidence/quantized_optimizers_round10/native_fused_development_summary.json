@@ -1,0 +1,387 @@
+{
+  "scope": "Four-GPU native fused FP32-master control; interrupted completed-window recovery, not a product timing comparison",
+  "source_initial": "d6c848171cc1b73bcd799fe8c6b401a4ef49a82b",
+  "source_resume": "73f04040",
+  "job_initial": "38509586",
+  "job_resume": "38512131",
+  "status": "8 real updates and evaluations complete; new-checkpoint validation publication failed storage-identity consensus",
+  "evaluations": {
+    "step_000004": {
+      "metrics": {
+        "val/episode_count": 100,
+        "val/episode_return": 0.93,
+        "val/episode_steps": 120.0,
+        "val/success_rate": 0.97,
+        "val/task_0/success_count": 10,
+        "val/task_0/success_rate": 1.0,
+        "val/task_1/success_count": 10,
+        "val/task_1/success_rate": 1.0,
+        "val/task_2/success_count": 10,
+        "val/task_2/success_rate": 1.0,
+        "val/task_3/success_count": 10,
+        "val/task_3/success_rate": 1.0,
+        "val/task_4/success_count": 8,
+        "val/task_4/success_rate": 0.8,
+        "val/task_5/success_count": 9,
+        "val/task_5/success_rate": 0.9,
+        "val/task_6/success_count": 10,
+        "val/task_6/success_rate": 1.0,
+        "val/task_7/success_count": 10,
+        "val/task_7/success_rate": 1.0,
+        "val/task_8/success_count": 10,
+        "val/task_8/success_rate": 1.0,
+        "val/task_9/success_count": 10,
+        "val/task_9/success_rate": 1.0
+      },
+      "training_state_unchanged": true
+    },
+    "step_000000": {
+      "metrics": {
+        "val/episode_count": 100,
+        "val/episode_return": 0.9,
+        "val/episode_steps": 119.36,
+        "val/success_rate": 0.97,
+        "val/task_0/success_count": 10,
+        "val/task_0/success_rate": 1.0,
+        "val/task_1/success_count": 10,
+        "val/task_1/success_rate": 1.0,
+        "val/task_2/success_count": 10,
+        "val/task_2/success_rate": 1.0,
+        "val/task_3/success_count": 10,
+        "val/task_3/success_rate": 1.0,
+        "val/task_4/success_count": 9,
+        "val/task_4/success_rate": 0.9,
+        "val/task_5/success_count": 9,
+        "val/task_5/success_rate": 0.9,
+        "val/task_6/success_count": 10,
+        "val/task_6/success_rate": 1.0,
+        "val/task_7/success_count": 10,
+        "val/task_7/success_rate": 1.0,
+        "val/task_8/success_count": 10,
+        "val/task_8/success_rate": 1.0,
+        "val/task_9/success_count": 9,
+        "val/task_9/success_rate": 0.9
+      },
+      "training_state_unchanged": true
+    },
+    "step_000008": {
+      "metrics": {
+        "val/episode_count": 100,
+        "val/episode_return": 0.88,
+        "val/episode_steps": 119.2,
+        "val/success_rate": 0.96,
+        "val/task_0/success_count": 10,
+        "val/task_0/success_rate": 1.0,
+        "val/task_1/success_count": 10,
+        "val/task_1/success_rate": 1.0,
+        "val/task_2/success_count": 10,
+        "val/task_2/success_rate": 1.0,
+        "val/task_3/success_count": 10,
+        "val/task_3/success_rate": 1.0,
+        "val/task_4/success_count": 8,
+        "val/task_4/success_rate": 0.8,
+        "val/task_5/success_count": 8,
+        "val/task_5/success_rate": 0.8,
+        "val/task_6/success_count": 10,
+        "val/task_6/success_rate": 1.0,
+        "val/task_7/success_count": 10,
+        "val/task_7/success_rate": 1.0,
+        "val/task_8/success_count": 10,
+        "val/task_8/success_rate": 1.0,
+        "val/task_9/success_count": 10,
+        "val/task_9/success_rate": 1.0
+      },
+      "training_state_unchanged": true
+    }
+  },
+  "recovery": {
+    "comparison": "fused original update4 vs fresh-process same-attempt resumed update4",
+    "learner_state_equal": false,
+    "episodes_equal": false,
+    "metrics_before": {
+      "val/episode_count": 100,
+      "val/episode_return": 0.92,
+      "val/episode_steps": 120.32,
+      "val/success_rate": 0.97,
+      "val/task_0/success_count": 10,
+      "val/task_0/success_rate": 1.0,
+      "val/task_1/success_count": 10,
+      "val/task_1/success_rate": 1.0,
+      "val/task_2/success_count": 10,
+      "val/task_2/success_rate": 1.0,
+      "val/task_3/success_count": 10,
+      "val/task_3/success_rate": 1.0,
+      "val/task_4/success_count": 8,
+      "val/task_4/success_rate": 0.8,
+      "val/task_5/success_count": 9,
+      "val/task_5/success_rate": 0.9,
+      "val/task_6/success_count": 10,
+      "val/task_6/success_rate": 1.0,
+      "val/task_7/success_count": 10,
+      "val/task_7/success_rate": 1.0,
+      "val/task_8/success_count": 10,
+      "val/task_8/success_rate": 1.0,
+      "val/task_9/success_count": 10,
+      "val/task_9/success_rate": 1.0
+    },
+    "metrics_after": {
+      "val/episode_count": 100,
+      "val/episode_return": 0.93,
+      "val/episode_steps": 120.0,
+      "val/success_rate": 0.97,
+      "val/task_0/success_count": 10,
+      "val/task_0/success_rate": 1.0,
+      "val/task_1/success_count": 10,
+      "val/task_1/success_rate": 1.0,
+      "val/task_2/success_count": 10,
+      "val/task_2/success_rate": 1.0,
+      "val/task_3/success_count": 10,
+      "val/task_3/success_rate": 1.0,
+      "val/task_4/success_count": 8,
+      "val/task_4/success_rate": 0.8,
+      "val/task_5/success_count": 9,
+      "val/task_5/success_rate": 0.9,
+      "val/task_6/success_count": 10,
+      "val/task_6/success_rate": 1.0,
+      "val/task_7/success_count": 10,
+      "val/task_7/success_rate": 1.0,
+      "val/task_8/success_count": 10,
+      "val/task_8/success_rate": 1.0,
+      "val/task_9/success_count": 10,
+      "val/task_9/success_rate": 1.0
+    },
+    "per_rank_differing_fields": [
+      [],
+      [],
+      [],
+      []
+    ],
+    "same_rank_count": true,
+    "added_receipt_fields": [
+      [
+        "optimizer_storage"
+      ],
+      [
+        "optimizer_storage"
+      ],
+      [
+        "optimizer_storage"
+      ],
+      [
+        "optimizer_storage"
+      ]
+    ],
+    "missing_fields": [
+      [],
+      [],
+      [],
+      []
+    ],
+    "all_saved_learner_fields_equal": true,
+    "note": "New optimizer_storage receipt added after original source; parameters, masters, moments, scheduler, RNG, frozen backbone and counters compare exactly on all four ranks. Simulator resets and is not bitwise deterministic.",
+    "normalized_episode_comparison": {
+      "same_case_inventory": true,
+      "opaque_episode_ids_excluded": [
+        "episode_id"
+      ],
+      "case_count": 100,
+      "changed_success_cases": 2,
+      "changed_semantic_episode_records": 76,
+      "changed_control_reward_sequences": 76,
+      "changed_step_counts": 14
+    }
+  },
+  "storage_bytes": {
+    "master_bytes": 6499373572,
+    "moment_bytes": 12998747144,
+    "metadata_bytes": 0,
+    "fp32_model_alias_bytes": 0
+  },
+  "native_decisions_per_update": 64,
+  "completed_decisions": 512,
+  "updates5_to8_seconds": [
+    39.17995861999225,
+    28.231510957004502,
+    28.38714930100832,
+    28.43334531702567
+  ],
+  "total_peak_bytes": {
+    "memory-gpu0": {
+      "whole_device_bytes": 31258443776,
+      "matched_process_gpu_bytes": 29385293824
+    },
+    "memory-gpu1": {
+      "whole_device_bytes": 30371348480,
+      "matched_process_gpu_bytes": 28498198528
+    },
+    "memory-gpu2": {
+      "whole_device_bytes": 30438457344,
+      "matched_process_gpu_bytes": 28565307392
+    },
+    "memory-gpu3": {
+      "whole_device_bytes": 30453071872,
+      "matched_process_gpu_bytes": 28579987456
+    }
+  },
+  "process_tree_peak_pss_bytes": 184220932096,
+  "process_tree_peak_rss_bytes": 188179279872,
+  "limitations": [
+    "Single development seed; no uncertainty estimate or task-preservation qualification",
+    "Simulator is reset on resume and episode trajectories are not bitwise deterministic",
+    "Initial success 97/100 and update8 96/100 do not demonstrate useful adaptation",
+    "Split across failed and resumed allocations; not uninterrupted elapsed time or optimizer speed evidence"
+  ],
+  "additional_publication_diagnostic": {
+    "job": "38513011",
+    "source": "9c629094",
+    "completed": true,
+    "updates": "8\u219212",
+    "update8_learner_state_exact": true,
+    "new_checkpoint12_publication": "passed",
+    "reproduced_prior_failure": false,
+    "update8_replay_success_rate": 0.95,
+    "update12_success_rate": 0.98,
+    "scope": "Extra publication diagnostic; not the eight-update endpoint, not final quality or paired timing"
+  },
+  "memory_scope": "All-thread descendants of the native entrypoint process; launcher and earlier preflight processes excluded. Source c58aea59 extends future sampling to the full launcher lifecycle; historical peaks are not retroactively relabeled.",
+  "fresh_uninterrupted_reference": {
+    "job": "38514689",
+    "source": "f4922a3f (full SHA in native_sources.json)",
+    "status": "COMPLETED",
+    "scope": "One uninterrupted native seed17 control, not a paired timing or final task qualification",
+    "native_attempt": {
+      "returncode": 0,
+      "native_seconds": 1157.6388066150248
+    },
+    "evaluations": {
+      "step_000004": {
+        "metrics": {
+          "val/episode_count": 100,
+          "val/episode_return": 0.9,
+          "val/episode_steps": 117.28,
+          "val/success_rate": 0.97,
+          "val/task_0/success_count": 10,
+          "val/task_0/success_rate": 1.0,
+          "val/task_1/success_count": 10,
+          "val/task_1/success_rate": 1.0,
+          "val/task_2/success_count": 10,
+          "val/task_2/success_rate": 1.0,
+          "val/task_3/success_count": 10,
+          "val/task_3/success_rate": 1.0,
+          "val/task_4/success_count": 8,
+          "val/task_4/success_rate": 0.8,
+          "val/task_5/success_count": 10,
+          "val/task_5/success_rate": 1.0,
+          "val/task_6/success_count": 10,
+          "val/task_6/success_rate": 1.0,
+          "val/task_7/success_count": 10,
+          "val/task_7/success_rate": 1.0,
+          "val/task_8/success_count": 10,
+          "val/task_8/success_rate": 1.0,
+          "val/task_9/success_count": 9,
+          "val/task_9/success_rate": 0.9
+        },
+        "training_state_unchanged": true
+      },
+      "step_000000": {
+        "metrics": {
+          "val/episode_count": 100,
+          "val/episode_return": 0.91,
+          "val/episode_steps": 120.48,
+          "val/success_rate": 0.96,
+          "val/task_0/success_count": 10,
+          "val/task_0/success_rate": 1.0,
+          "val/task_1/success_count": 10,
+          "val/task_1/success_rate": 1.0,
+          "val/task_2/success_count": 10,
+          "val/task_2/success_rate": 1.0,
+          "val/task_3/success_count": 10,
+          "val/task_3/success_rate": 1.0,
+          "val/task_4/success_count": 9,
+          "val/task_4/success_rate": 0.9,
+          "val/task_5/success_count": 9,
+          "val/task_5/success_rate": 0.9,
+          "val/task_6/success_count": 10,
+          "val/task_6/success_rate": 1.0,
+          "val/task_7/success_count": 10,
+          "val/task_7/success_rate": 1.0,
+          "val/task_8/success_count": 10,
+          "val/task_8/success_rate": 1.0,
+          "val/task_9/success_count": 8,
+          "val/task_9/success_rate": 0.8
+        },
+        "training_state_unchanged": true
+      },
+      "step_000008": {
+        "metrics": {
+          "val/episode_count": 100,
+          "val/episode_return": 0.87,
+          "val/episode_steps": 122.24,
+          "val/success_rate": 0.94,
+          "val/task_0/success_count": 10,
+          "val/task_0/success_rate": 1.0,
+          "val/task_1/success_count": 10,
+          "val/task_1/success_rate": 1.0,
+          "val/task_2/success_count": 10,
+          "val/task_2/success_rate": 1.0,
+          "val/task_3/success_count": 10,
+          "val/task_3/success_rate": 1.0,
+          "val/task_4/success_count": 7,
+          "val/task_4/success_rate": 0.7,
+          "val/task_5/success_count": 9,
+          "val/task_5/success_rate": 0.9,
+          "val/task_6/success_count": 9,
+          "val/task_6/success_rate": 0.9,
+          "val/task_7/success_count": 10,
+          "val/task_7/success_rate": 1.0,
+          "val/task_8/success_count": 10,
+          "val/task_8/success_rate": 1.0,
+          "val/task_9/success_count": 9,
+          "val/task_9/success_rate": 0.9
+        },
+        "training_state_unchanged": true
+      }
+    },
+    "initial_identity_vs_nonpaged": [
+      {
+        "parameters": true,
+        "optimizer_masters": true,
+        "rng": true
+      },
+      {
+        "parameters": true,
+        "optimizer_masters": true,
+        "rng": true
+      },
+      {
+        "parameters": true,
+        "optimizer_masters": true,
+        "rng": true
+      },
+      {
+        "parameters": true,
+        "optimizer_masters": true,
+        "rng": true
+      }
+    ],
+    "window_seconds": [
+      39.52516078855842,
+      29.72002754639834,
+      28.924319438636303,
+      26.8243972864002,
+      29.106759617105126,
+      29.437661110423505,
+      28.09854255337268,
+      28.992272376082838
+    ],
+    "whole_device_peak_bytes": {
+      "memory-gpu0": 31023562752,
+      "memory-gpu1": 30199382016,
+      "memory-gpu2": 30218256384,
+      "memory-gpu3": 30260199424
+    },
+    "native_descendant_peak_pss_bytes": 181734074368,
+    "memory_scope": "Native entrypoint and descendants; excludes earlier launcher preflights",
+    "publication": "Both checkpoints4/8 published. Previous disagreement not reproduced and remains unexplained."
+  }
+}

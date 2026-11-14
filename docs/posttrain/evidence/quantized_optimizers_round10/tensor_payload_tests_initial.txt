@@ -1,0 +1,129 @@
+........FF.                                                              [100%]
+=================================== FAILURES ===================================
+___________ test_native_trainer_save_restore_master_transaction[dcp] ___________
+cosmos_framework/posttrain/tests/test_optimizer_master.py:268: in test_native_trainer_save_restore_master_transaction
+    restored.load(path)
+cosmos_framework/posttrain/roles/trainer/llm.py:1459: in load
+    return restore(self, path)
+           ^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/checkpoint/master_optimizer.py:122: in restore
+    return _restore(trainer, path)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/checkpoint/master_optimizer.py:188: in _restore
+    (control, replacement, before_model, model), _ = manager.load_with_stable_provenance(
+cosmos_framework/posttrain/checkpoint/manager.py:657: in load_with_stable_provenance
+    return _load_with_stable_provenance(
+cosmos_framework/posttrain/checkpoint/provenance.py:117: in load_with_stable_provenance
+    value = load()
+            ^^^^^^
+cosmos_framework/posttrain/checkpoint/master_optimizer.py:189: in <lambda>
+    path, lambda: _stage_restore(trainer, path)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/checkpoint/master_optimizer.py:145: in _stage_restore
+    replacement = staged_optimizer(manager, path, optimizer)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/checkpoint/master_optimizer.py:114: in staged_optimizer
+    return run_rank_converged(stage, "master optimizer restore staging")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/utils/dist.py:206: in run_rank_converged
+    (raise_errors or raise_if_any_rank_failed)(error, context)
+cosmos_framework/posttrain/utils/dist.py:179: in raise_if_any_rank_failed
+    raise local_error
+cosmos_framework/posttrain/utils/dist.py:203: in run_rank_converged
+    result = action()
+             ^^^^^^^^
+cosmos_framework/posttrain/checkpoint/master_optimizer.py:111: in stage
+    saved = _deserialize_rank_state(target["ranks"][str(optimizer.identity["rank"])], target["format"])
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/checkpoint/master_optimizer.py:73: in _deserialize_rank_state
+    raise ValueError("invalid master optimizer byte tensor schema/length")
+E   ValueError: invalid master optimizer byte tensor schema/length
+
+During handling of the above exception, another exception occurred:
+cosmos_framework/posttrain/tests/test_optimizer_master.py:267: in test_native_trainer_save_restore_master_transaction
+    with pytest.raises(Exception, match="identity"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: Regex pattern did not match.
+E     Expected regex: 'identity'
+E     Actual message: 'invalid master optimizer byte tensor schema/length'
+----------------------------- Captured stderr call -----------------------------
+[posttrain|I|r0] 2026-11-14 05:18:16 Native master optimizer state: {'moment_bytes': 96, 'metadata_bytes': 4, 'master_identity': {'format': 'cosmos_local_master_v1', 'optimizer': 'adamw', 'torch_version': '2.10.0+cu130', 'implementation': '', 'update_policy': 'fp32_master', 'world_size': 1, 'rank': 0, 'parameters': [{'name': 'weight', 'shape': [3, 4], 'local_shape': [3, 4], 'dtype': 'torch.bfloat16'}, {'name': 'unused', 'shape': [3], 'local_shape': [3], 'dtype': 'torch.bfloat16'}], 'groups': [{'names': ['weight', 'unused'], 'name': None, 'initial_lr': 0.0001, 'betas': (0.9, 0.999), 'eps': 1e-08, 'weight_decay': 0}]}, 'master_bytes': 60, 'fp32_model_alias_bytes': 0, 'gradient_staging_bytes': 48, 'fp32_gradient_alias_bytes': 0}
+[posttrain|I|r0] 2026-11-14 05:18:16 host memory [checkpoint save /tmp/pytest-of-local-rarunachalam/pytest-1382/test_native_trainer_save_resto0/iter_000001] rss=0.8GiB cgroup(v2)=66.7GiB/unlimited node_available=488.2/503.7GiB
+[posttrain|I|r0] 2026-11-14 05:18:16 Native master optimizer state: {'moment_bytes': 96, 'metadata_bytes': 4, 'master_identity': {'format': 'cosmos_local_master_v1', 'optimizer': 'adamw', 'torch_version': '2.10.0+cu130', 'implementation': '', 'update_policy': 'fp32_master', 'world_size': 1, 'rank': 0, 'parameters': [{'name': 'weight', 'shape': [3, 4], 'local_shape': [3, 4], 'dtype': 'torch.bfloat16'}, {'name': 'unused', 'shape': [3], 'local_shape': [3], 'dtype': 'torch.bfloat16'}], 'groups': [{'names': ['weight', 'unused'], 'name': None, 'initial_lr': 0.0001, 'betas': (0.9, 0.999), 'eps': 1e-08, 'weight_decay': 0}]}, 'master_bytes': 60, 'fp32_model_alias_bytes': 0, 'gradient_staging_bytes': 48, 'fp32_gradient_alias_bytes': 0}
+______ test_native_trainer_save_restore_master_transaction[consolidated] _______
+cosmos_framework/posttrain/tests/test_optimizer_master.py:268: in test_native_trainer_save_restore_master_transaction
+    restored.load(path)
+cosmos_framework/posttrain/roles/trainer/llm.py:1459: in load
+    return restore(self, path)
+           ^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/checkpoint/master_optimizer.py:122: in restore
+    return _restore(trainer, path)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/checkpoint/master_optimizer.py:188: in _restore
+    (control, replacement, before_model, model), _ = manager.load_with_stable_provenance(
+cosmos_framework/posttrain/checkpoint/manager.py:657: in load_with_stable_provenance
+    return _load_with_stable_provenance(
+cosmos_framework/posttrain/checkpoint/provenance.py:117: in load_with_stable_provenance
+    value = load()
+            ^^^^^^
+cosmos_framework/posttrain/checkpoint/master_optimizer.py:189: in <lambda>
+    path, lambda: _stage_restore(trainer, path)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/checkpoint/master_optimizer.py:145: in _stage_restore
+    replacement = staged_optimizer(manager, path, optimizer)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/checkpoint/master_optimizer.py:114: in staged_optimizer
+    return run_rank_converged(stage, "master optimizer restore staging")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/utils/dist.py:206: in run_rank_converged
+    (raise_errors or raise_if_any_rank_failed)(error, context)
+cosmos_framework/posttrain/utils/dist.py:179: in raise_if_any_rank_failed
+    raise local_error
+cosmos_framework/posttrain/utils/dist.py:203: in run_rank_converged
+    result = action()
+             ^^^^^^^^
+cosmos_framework/posttrain/checkpoint/master_optimizer.py:111: in stage
+    saved = _deserialize_rank_state(target["ranks"][str(optimizer.identity["rank"])], target["format"])
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cosmos_framework/posttrain/checkpoint/master_optimizer.py:73: in _deserialize_rank_state
+    raise ValueError("invalid master optimizer byte tensor schema/length")
+E   ValueError: invalid master optimizer byte tensor schema/length
+
+During handling of the above exception, another exception occurred:
+cosmos_framework/posttrain/tests/test_optimizer_master.py:267: in test_native_trainer_save_restore_master_transaction
+    with pytest.raises(Exception, match="identity"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: Regex pattern did not match.
+E     Expected regex: 'identity'
+E     Actual message: 'invalid master optimizer byte tensor schema/length'
+----------------------------- Captured stderr call -----------------------------
+[posttrain|I|r0] 2026-11-14 05:18:16 Native master optimizer state: {'moment_bytes': 96, 'metadata_bytes': 4, 'master_identity': {'format': 'cosmos_local_master_v1', 'optimizer': 'adamw', 'torch_version': '2.10.0+cu130', 'implementation': '', 'update_policy': 'fp32_master', 'world_size': 1, 'rank': 0, 'parameters': [{'name': 'weight', 'shape': [3, 4], 'local_shape': [3, 4], 'dtype': 'torch.bfloat16'}, {'name': 'unused', 'shape': [3], 'local_shape': [3], 'dtype': 'torch.bfloat16'}], 'groups': [{'names': ['weight', 'unused'], 'name': None, 'initial_lr': 0.0001, 'betas': (0.9, 0.999), 'eps': 1e-08, 'weight_decay': 0}]}, 'master_bytes': 60, 'fp32_model_alias_bytes': 0, 'gradient_staging_bytes': 48, 'fp32_gradient_alias_bytes': 0}
+[posttrain|I|r0] 2026-11-14 05:18:16 host memory [checkpoint save: gathering the consolidated model on rank 0 (components=['model', 'optimizer', 'training_state'])] rss=0.8GiB cgroup(v2)=66.7GiB/unlimited node_available=488.2/503.7GiB
+[posttrain|I|r0] 2026-11-14 05:18:16 host memory [checkpoint save /tmp/pytest-of-local-rarunachalam/pytest-1382/test_native_trainer_save_resto1/iter_000001] rss=0.8GiB cgroup(v2)=66.7GiB/unlimited node_available=488.2/503.7GiB
+[posttrain|I|r0] 2026-11-14 05:18:16 Native master optimizer state: {'moment_bytes': 96, 'metadata_bytes': 4, 'master_identity': {'format': 'cosmos_local_master_v1', 'optimizer': 'adamw', 'torch_version': '2.10.0+cu130', 'implementation': '', 'update_policy': 'fp32_master', 'world_size': 1, 'rank': 0, 'parameters': [{'name': 'weight', 'shape': [3, 4], 'local_shape': [3, 4], 'dtype': 'torch.bfloat16'}, {'name': 'unused', 'shape': [3], 'local_shape': [3], 'dtype': 'torch.bfloat16'}], 'groups': [{'names': ['weight', 'unused'], 'name': None, 'initial_lr': 0.0001, 'betas': (0.9, 0.999), 'eps': 1e-08, 'weight_decay': 0}]}, 'master_bytes': 60, 'fp32_model_alias_bytes': 0, 'gradient_staging_bytes': 48, 'fp32_gradient_alias_bytes': 0}
+=============================== warnings summary ===============================
+cosmos_framework/posttrain/tests/test_optimizer_master.py::test_dcp_rank_payload_chunk_boundaries_and_legacy_read[cosmos_rank_master_v1]
+cosmos_framework/posttrain/tests/test_optimizer_master.py::test_dcp_rank_payload_chunk_boundaries_and_legacy_read[cosmos_rank_master_v2]
+cosmos_framework/posttrain/tests/test_optimizer_master.py::test_dcp_rank_payload_chunk_boundaries_and_legacy_read[cosmos_rank_master_v3]
+cosmos_framework/posttrain/tests/test_optimizer_master.py::test_native_trainer_save_restore_master_transaction[dcp]
+cosmos_framework/posttrain/tests/test_optimizer_master.py::test_native_trainer_save_restore_master_transaction[consolidated]
+  /localhome/local-rarunachalam/qlora-wts-qualification-20261030/unintended-local-uv-venv-94289a2/lib/python3.13/site-packages/torch/distributed/checkpoint/utils.py:483: UserWarning: torch.distributed is disabled, unavailable or uninitialized, assuming the intent is to save in a single process.
+    return func(*args, **kwargs)
+
+cosmos_framework/posttrain/tests/test_optimizer_master.py::test_dcp_rank_payload_chunk_boundaries_and_legacy_read[cosmos_rank_master_v1]
+cosmos_framework/posttrain/tests/test_optimizer_master.py::test_dcp_rank_payload_chunk_boundaries_and_legacy_read[cosmos_rank_master_v2]
+cosmos_framework/posttrain/tests/test_optimizer_master.py::test_dcp_rank_payload_chunk_boundaries_and_legacy_read[cosmos_rank_master_v3]
+cosmos_framework/posttrain/tests/test_optimizer_master.py::test_native_trainer_save_restore_master_transaction[dcp]
+cosmos_framework/posttrain/tests/test_optimizer_master.py::test_native_trainer_save_restore_master_transaction[consolidated]
+  /localhome/local-rarunachalam/qlora-wts-qualification-20261030/unintended-local-uv-venv-94289a2/lib/python3.13/site-packages/torch/distributed/checkpoint/utils.py:483: UserWarning: torch.distributed is disabled, unavailable or uninitialized, assuming the intent is to load in a single process.
+    return func(*args, **kwargs)
+
+cosmos_framework/posttrain/tests/test_optimizer_master.py::test_native_trainer_save_restore_master_transaction[dcp]
+  /localhome/local-rarunachalam/qlora-wts-qualification-20261030/unintended-local-uv-venv-94289a2/lib/python3.13/site-packages/torch/distributed/checkpoint/filesystem.py:133: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+    if tensor.storage().size() != tensor.numel():
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED cosmos_framework/posttrain/tests/test_optimizer_master.py::test_native_trainer_save_restore_master_transaction[dcp]
+FAILED cosmos_framework/posttrain/tests/test_optimizer_master.py::test_native_trainer_save_restore_master_transaction[consolidated]
+2 failed, 9 passed, 11 warnings in 4.15s

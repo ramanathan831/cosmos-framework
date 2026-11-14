@@ -1,0 +1,30 @@
+JobId=38515959 JobName=optimizer-action-tests
+   UserId=rarunachalam(41852) GroupId=dip(30) MCS_label=N/A
+   Priority=91281 Nice=0 Account=edgeai_tao-ptm_image-foundation-model-clip QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:01 TimeLimit=00:10:00 TimeMin=N/A
+   SubmitTime=2026-11-13T21:03:22 EligibleTime=2026-11-13T21:03:22
+   AccrueTime=2026-11-13T21:03:22
+   StartTime=2026-11-13T21:03:26 EndTime=2026-11-13T21:13:26 Deadline=N/A
+   PreemptEligibleTime=2026-11-13T21:33:26 PreemptTime=None
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-11-13T21:03:26 Scheduler=Main
+   Partition=cpu_short AllocNode:Sid=cs-oci-ord-login-02:1384775
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=cpu-00078
+   BatchHost=cpu-00078
+   NumNodes=1 NumCPUs=8 NumTasks=1 CPUs/Task=8 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=8,mem=64G,node=1
+   AllocTRES=cpu=8,mem=64G,node=1
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=8 MinMemoryNode=64G MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/action-tests-v11.sbatch
+   WorkDir=/home/rarunachalam
+   StdErr=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/action-tests-v11-38515959.log
+   StdIn=/dev/null
+   StdOut=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/action-tests-v11-38515959.log
+   Power=
+   
+

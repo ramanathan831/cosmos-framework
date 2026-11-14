@@ -25,8 +25,12 @@ The original QLoRA checkout remains untouched and PR #334 remains closed.
 The two canonical names are `adamw_bnb_8bit` and `paged_adamw_8bit`. Both use
 upstream blockwise eight-bit AdamW mathematics; only the latter requests CUDA
 managed memory. `adamw_8bit` is deliberately rejected rather than introducing
-another serialized identity. The primary release target is native posttrain SFT
-with the HF model builder on one CUDA device.
+another serialized identity. The original qualified training target is native posttrain SFT
+with the HF model builder on one CUDA device. The explicit `fp32_master` policy
+adds shared BF16/FSDP2 update ownership for native action-policy integration;
+its infrastructure evidence and model-specific limits are separated below.
+
+The existing `update_policy=parameter` contract remains:
 
 | Contract | Implemented behavior |
 |---|---|
@@ -42,10 +46,10 @@ with the HF model builder on one CUDA device.
 | Explicit refusals | Multi-rank DDP/FSDP2/HSDP, DTensor, BF16/FP16 trainables, DCP, optimizer offload, sparse gradients, empty/noncontiguous parameters, closures |
 | Other factories | Legacy TOML, generator and reasoner optimizer factories retain their existing choices |
 
-BF16 trainables are rejected because this backend has no FP32 master-weight
+With `update_policy=parameter`, BF16 trainables are rejected because the backend has no FP32 master-weight
 contract equivalent to Apex FusedAdam. Saving moments cannot justify losing small
-parameter updates. There is no `to_local()` conversion or advertised distributed
-support. Quantization blocks and checkpoint topology are fixed to the single-device
+parameter updates. The original ordinary-parameter route has no local-shard conversion. Its
+quantization blocks and checkpoint topology remain fixed to the single-device
 contract; no cross-world-size reproducibility claim is made.
 
 The factory uses final trainable parameter objects, deduplicates tied parameters
@@ -1309,6 +1313,107 @@ one failed diagnostic and two unallocated cancellations. Actual charges includin
 termination are **5,761 GPU allocation-seconds and 1,145 CPU-wall seconds**;
 local checks are separate. No aggregate caps apply. Nothing was pushed or published.
 
+## Native action-policy integration
+
+`rl.optimizer.update_policy=fp32_master` is an explicit update policy shared by
+`build_optimizer`, native GR00T Joint PPO and AlpaGym construction. It preserves
+live BF16/FP32 model objects and forward precision. BF16 local shards receive one
+FP32 update master; existing FP32 shards alias their live storage. Backend moments
+belong to ordinary local tensors. Native reduction and clipping precede gradient
+staging, and the rounded update is copied into the current owned model shard.
+Supported bridge layouts are ordinary single-process parameters and a complete
+one-dimensional FSDP2 learner mesh with `Shard(0)`. FSDP1, TP/HSDP, replicated DDP,
+FP16 and optimizer offload remain excluded. These are infrastructure contracts,
+not claims that every model workflow has completed qualification.
+
+Native DCP transactions carry rank-owned opaque optimizer payloads, preserving
+masters, uint8 moments, scales/maps, lazy states and logical groups. Version 3
+uses an opaque byte-tensor envelope with verified length/hash, avoiding DCP’s
+4-GiB Python-object serialization limit and pickle byte-string expansion.
+Versions 1 and 2 remain readable. Recovery
+requires the same topology and precision/backend identity. Metadata and model/master
+consistency are validated before commit; rank-local commit failure rolls back all
+ranks. Retaining a restore exception does not retain staged managed allocations.
+A warmup checkpoint defect was fixed by synchronizing scheduler-owned group LRs
+before snapshot capture.
+
+The two-A100 FSDP2 gate passes fused, nonpaged and paged eight-bit fresh-process
+continuation through updates 5–8 after saving update 4 during warmup. It covers
+mixed BF16/FP32 storage, empty/unused local shards, accumulation, global clipping,
+rank-consistent nonfinite rejection, corrupted payloads and failed-commit rollback.
+Its **74.3667% moment-plus-metadata reduction** becomes **59.4934%** when the
+additional masters are included. This small-model result is separate from the
+historical WTS memory result; it does not establish action-task quality or paging
+under memory pressure. See the [shared recovery evidence](evidence/quantized_optimizers_round10/shared_recovery_summary.json).
+
+GR00T's opt-in `gr00t_n1d7_libero_quantized_optimizer.py` uses the native four-GPU
+Joint PPO path, actor/value groups and completed-window checkpoint boundary.
+It enables frozen-backbone verification for both optimizer arms. The compatible
+control is `rl.optimizer.name=adamw rl.optimizer.impl=fused`, retaining the same
+FP32 master policy; it must not be confused with the legacy BF16 direct-update
+baseline. The optional `model.backbone_from_checkpoint=True` constructs the
+native SDPA graph from exact dependency metadata, then strictly restores the
+complete GR00T checkpoint. It has a distinct policy identity and never substitutes
+unrelated base weights. The first nonpaged native run completed eight PPO updates,
+published both checkpoints, and evaluated 100 fixed cases at updates 0/4/8
+(99/98/98 successes). Fresh-process update-four evaluation restored every learner
+state field exactly on all four ranks, with no training update. Its 97/100 score
+versus the original 98/100 illustrates physical evaluation variability; model and
+optimizer state equality does not imply deterministic simulator trajectories.
+The collector restarts physical environments at completed-window recovery.
+
+Initialized GR00T moments plus metadata occupy 3,304,438,792 bytes versus
+12,998,755,840 for the compatible fused control (including8,696 scalar-counter bytes
+verified from the retained checkpoint): **74.5788% less**. Both arms also
+own 6,499,373,572 bytes of FP32 masters; including those gives **49.7192% less**.
+The nonpaged reference sampled a 26.18-GiB busiest-device peak and 123.52-GiB
+native-process-tree host PSS peak (launcher/preflights excluded in that source).
+These are single-run measurements, not paired
+confidence bounds. They are not a memory comparison against legacy BF16 moments
+without masters. Nonpaged completed-window continuation4→8 also passed: each
+new update is finite, policy versions and behavior log probabilities are checked,
+and update8 is durably published. Its physical trajectories are new after reset.
+The fresh fused0→8 control completed with96/97/94 successes at0/4/8; its
+initial model/master/RNG hashes equal the nonpaged run. Neither curve
+establishes useful adaptation or a cross-optimizer quality claim. Longer
+development qualification remains in progress. A subsequent fused run reached
+update40 but failed publication after scoring93/100, versus99/100 initially.
+The captured inventory differs only in one rank's older mtime/ctime for the same
+model shard. Linux provenance now requests server-synchronized `statx` attributes
+without weakening rank agreement. Affected local, project-filesystem and two-GPU
+recovery tests pass; native pending-publication continuation is being checked.
+The failed midpoint remains negative evidence. See the
+[native nonpaged evidence](evidence/quantized_optimizers_round10/native_eightbit_development_summary.json).
+
+Resident paged GR00T also completed8updates and publications, with98/100/96
+successes. Fresh checkpoint4 reload matches every learner field on all4ranks
+and reconstructs3,246,784,512 bytes of managed moment allocations; its99/100
+score differs from the original100/100. Native continuation4→8 completed with
+finite updates, managed ownership preserved, a durable checkpoint and97/100
+successes after the explicit environment reset. The separate fixed-pressure
+study remains in progress. The complete-launcher peak host PSS was112.75GiB;
+this broader sampling scope differs from the earlier fused/nonpaged sources.
+
+A shared checkpoint encoding improvement writes `cosmos_rank_master_v3`:
+a uint8 tensor inside one opaque rank envelope avoids pickle2 byte-string
+expansion. Oldv1/v2 reads remain supported. Three counterbalanced CPU trials on
+an actual >4GiB native rank state reproduce all values exactly; roundtrip time is
+3.98× faster [3.50,4.45], with mean process peak PSS25.44→17.96GiB. This is a
+prepared-state CPU screen, not native end-to-end speed. The affected distributed
+gate passes; native continuation is tracked separately. See the
+[checkpoint screen](evidence/quantized_optimizers_round10/checkpoint_payload_summary.json).
+
+AlpaGym now constructs the shared optimizer after `AlpamayoTrainModel.setup`,
+preserving epsilon `1e-6`, betas `(0.9, 0.999)`, weight decay `0.01`, clipping,
+LR/warmup and collected-batch clocks. CLI selection uses `--optimizer` and
+`--optimizer-update-policy fp32_master`; `--optimizer-impl fused` selects the
+compatible AdamW control. Minimum quantized tensor size and exact FP32-state
+exceptions use the shared typed configuration. Legacy defaults remain unchanged.
+Its external AlpaGym/AlpaSim runtime,
+resolved scenario configuration and reference-policy lifecycle are not available
+in the inspected assets. Its actual strategy, closed-loop recovery and task
+qualification therefore remain open; shared FSDP2 tests are not Alpamayo evidence.
+
 ## Reproduction and source identities
 
 [Qualification commands](../../tools/quantized_optimizers/README.md) cover data
@@ -1316,7 +1421,7 @@ regeneration, immutable source archives, Slurm submission, collection and analys
 [First-campaign status](evidence/quantized_optimizers/qualification_summary.json)
 and [completed follow-up status](evidence/quantized_optimizers_round2/qualification_summary.json)
 link each result, gate and remaining requirement. The
-[current proposed PR](evidence/quantized_optimizers_round9/proposed_pr.md)
+[current proposed PR](evidence/quantized_optimizers_round10/proposed_pr.md)
 describes the combined implementation and measured limitations; it has not been published.
 [Additional campaign commands](evidence/quantized_optimizers_round4/commands.md),
 [source identities](evidence/quantized_optimizers_round4/source_identity.json) and

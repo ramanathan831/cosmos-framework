@@ -1,6 +1,6 @@
 {
   "locked_at_utc": "2026-11-14T05:35:09.006280+00:00",
-  "source": "655567de (source-v35; exact archive identity in native_sources.json)",
+  "source": "94ecd8ba4e4b238feaaaceb8d5282ef0bcc40ded (source-v37)",
   "purpose": "Bounded native four-GPU GR00T capacity and managed-allocation lifecycle screen, not paged speed or final task-quality qualification",
   "single_factor": "55GiB of ordinary CUDA storage in one explicit supervised co-resident process per GPU; zero reservation in the all-resident control. No hidden allocator cap or optimizer fallback.",
   "pressure_choice_evidence": {
@@ -46,5 +46,13 @@
     "profile_minutes": 90,
     "termination_grace_minutes": 10
   },
-  "cost_forecast": "Approximately25-40minutes per32-window native run and10-25minutes per dependent evaluation/resume, plus one bounded profile. Actual allocation charges and failures retained; no aggregate cap."
+  "cost_forecast": "Approximately25-40minutes per32-window native run and10-25minutes per dependent evaluation/resume, plus one bounded profile. Actual allocation charges and failures retained; no aggregate cap.",
+  "source_amendments": [
+    {
+      "at_utc": "2026-11-14T06:45:17.717275+00:00",
+      "previous_source": "655567de (source-v35; exact archive identity in native_sources.json)",
+      "source": "94ecd8ba4e4b238feaaaceb8d5282ef0bcc40ded",
+      "reason": "Before any32-update resident/pressure outcome: use the same server-synchronized checkpoint identity fix in all arms after affected CPU/CUDA/native gates. Canceled resident38517262 never allocated. Numerical recipes,55GiB reservation,counts,endpoints and failure policy unchanged."
+    }
+  ]
 }

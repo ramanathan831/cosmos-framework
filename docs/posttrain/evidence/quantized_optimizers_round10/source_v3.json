@@ -1,0 +1,5 @@
+{
+  "source": "d804ea94f62c596f67bdd4fad7e4e6439dcd9326",
+  "archive_sha256": "2c954e847b230c87261764a13277d5b5f5c349878edc74b465c0a123932dd3fb",
+  "purpose": "mixed-storage master ownership and distributed rejection tests; native model integration source"
+}

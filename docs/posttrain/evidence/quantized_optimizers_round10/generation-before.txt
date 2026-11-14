@@ -1,0 +1,55 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+___________ test_native_trainer_save_restore_master_transaction[dcp] ___________
+cosmos_framework/posttrain/tests/test_optimizer_master.py:299: in test_native_trainer_save_restore_master_transaction
+    assert_equal(before_opt, restored.opt.state_dict())
+cosmos_framework/posttrain/tests/test_optimizer_master.py:36: in assert_equal
+    assert_equal(a[k], b[k])
+cosmos_framework/posttrain/tests/test_optimizer_master.py:40: in assert_equal
+    assert_equal(x, y)
+cosmos_framework/posttrain/tests/test_optimizer_master.py:32: in assert_equal
+    assert torch.equal(a, b)
+E   assert False
+E    +  where False = <built-in method equal of type object at 0x787eaa92f9e0>(tensor([[0.9998, 0.9998, 0.9998, 0.9998],\n        [0.9998, 0.9998, 0.9998, 0.9998],\n        [0.9998, 0.9998, 0.9998, 0.9998]]), tensor([[1.0000, 1.0000, 1.0000, 1.0000],\n        [1.0000, 1.0000, 1.0000, 1.0000],\n        [1.0000, 1.0000, 1.0000, 1.0000]]))
+E    +    where <built-in method equal of type object at 0x787eaa92f9e0> = torch.equal
+----------------------------- Captured stderr call -----------------------------
+[posttrain|I|r0] 2026-11-14 02:51:04 Native master optimizer state: {'moment_bytes': 96, 'metadata_bytes': 0, 'master_identity': {'format': 'cosmos_local_master_v1', 'optimizer': 'adamw', 'torch_version': '2.10.0+cu130', 'implementation': '', 'update_policy': 'fp32_master', 'world_size': 1, 'rank': 0, 'parameters': [{'name': 'weight', 'shape': [3, 4], 'local_shape': [3, 4], 'dtype': 'torch.bfloat16'}, {'name': 'unused', 'shape': [3], 'local_shape': [3], 'dtype': 'torch.bfloat16'}], 'groups': [{'names': ['weight', 'unused'], 'name': None, 'initial_lr': 0.0001, 'betas': (0.9, 0.999), 'eps': 1e-08, 'weight_decay': 0}]}, 'master_bytes': 60, 'fp32_model_alias_bytes': 0, 'gradient_staging_bytes': 48, 'fp32_gradient_alias_bytes': 0}
+[posttrain|I|r0] 2026-11-14 02:51:04 host memory [checkpoint save /tmp/pytest-of-local-rarunachalam/pytest-1336/test_native_trainer_save_resto0/iter_000001] rss=0.7GiB cgroup(v2)=66.1GiB/unlimited node_available=488.2/503.7GiB
+[posttrain|I|r0] 2026-11-14 02:51:04 Native master optimizer state: {'moment_bytes': 96, 'metadata_bytes': 0, 'master_identity': {'format': 'cosmos_local_master_v1', 'optimizer': 'adamw', 'torch_version': '2.10.0+cu130', 'implementation': '', 'update_policy': 'fp32_master', 'world_size': 1, 'rank': 0, 'parameters': [{'name': 'weight', 'shape': [3, 4], 'local_shape': [3, 4], 'dtype': 'torch.bfloat16'}, {'name': 'unused', 'shape': [3], 'local_shape': [3], 'dtype': 'torch.bfloat16'}], 'groups': [{'names': ['weight', 'unused'], 'name': None, 'initial_lr': 0.0001, 'betas': (0.9, 0.999), 'eps': 1e-08, 'weight_decay': 0}]}, 'master_bytes': 60, 'fp32_model_alias_bytes': 0, 'gradient_staging_bytes': 48, 'fp32_gradient_alias_bytes': 0}
+______ test_native_trainer_save_restore_master_transaction[consolidated] _______
+cosmos_framework/posttrain/tests/test_optimizer_master.py:299: in test_native_trainer_save_restore_master_transaction
+    assert_equal(before_opt, restored.opt.state_dict())
+cosmos_framework/posttrain/tests/test_optimizer_master.py:36: in assert_equal
+    assert_equal(a[k], b[k])
+cosmos_framework/posttrain/tests/test_optimizer_master.py:40: in assert_equal
+    assert_equal(x, y)
+cosmos_framework/posttrain/tests/test_optimizer_master.py:32: in assert_equal
+    assert torch.equal(a, b)
+E   assert False
+E    +  where False = <built-in method equal of type object at 0x787eaa92f9e0>(tensor([[0.9998, 0.9998, 0.9998, 0.9998],\n        [0.9998, 0.9998, 0.9998, 0.9998],\n        [0.9998, 0.9998, 0.9998, 0.9998]]), tensor([[1.0000, 1.0000, 1.0000, 1.0000],\n        [1.0000, 1.0000, 1.0000, 1.0000],\n        [1.0000, 1.0000, 1.0000, 1.0000]]))
+E    +    where <built-in method equal of type object at 0x787eaa92f9e0> = torch.equal
+----------------------------- Captured stderr call -----------------------------
+[posttrain|I|r0] 2026-11-14 02:51:04 Native master optimizer state: {'moment_bytes': 96, 'metadata_bytes': 0, 'master_identity': {'format': 'cosmos_local_master_v1', 'optimizer': 'adamw', 'torch_version': '2.10.0+cu130', 'implementation': '', 'update_policy': 'fp32_master', 'world_size': 1, 'rank': 0, 'parameters': [{'name': 'weight', 'shape': [3, 4], 'local_shape': [3, 4], 'dtype': 'torch.bfloat16'}, {'name': 'unused', 'shape': [3], 'local_shape': [3], 'dtype': 'torch.bfloat16'}], 'groups': [{'names': ['weight', 'unused'], 'name': None, 'initial_lr': 0.0001, 'betas': (0.9, 0.999), 'eps': 1e-08, 'weight_decay': 0}]}, 'master_bytes': 60, 'fp32_model_alias_bytes': 0, 'gradient_staging_bytes': 48, 'fp32_gradient_alias_bytes': 0}
+[posttrain|I|r0] 2026-11-14 02:51:04 host memory [checkpoint save: gathering the consolidated model on rank 0 (components=['model', 'optimizer', 'training_state'])] rss=0.7GiB cgroup(v2)=66.1GiB/unlimited node_available=488.2/503.7GiB
+[posttrain|I|r0] 2026-11-14 02:51:04 host memory [checkpoint save /tmp/pytest-of-local-rarunachalam/pytest-1336/test_native_trainer_save_resto1/iter_000001] rss=0.7GiB cgroup(v2)=66.1GiB/unlimited node_available=488.2/503.7GiB
+[posttrain|I|r0] 2026-11-14 02:51:04 Native master optimizer state: {'moment_bytes': 96, 'metadata_bytes': 0, 'master_identity': {'format': 'cosmos_local_master_v1', 'optimizer': 'adamw', 'torch_version': '2.10.0+cu130', 'implementation': '', 'update_policy': 'fp32_master', 'world_size': 1, 'rank': 0, 'parameters': [{'name': 'weight', 'shape': [3, 4], 'local_shape': [3, 4], 'dtype': 'torch.bfloat16'}, {'name': 'unused', 'shape': [3], 'local_shape': [3], 'dtype': 'torch.bfloat16'}], 'groups': [{'names': ['weight', 'unused'], 'name': None, 'initial_lr': 0.0001, 'betas': (0.9, 0.999), 'eps': 1e-08, 'weight_decay': 0}]}, 'master_bytes': 60, 'fp32_model_alias_bytes': 0, 'gradient_staging_bytes': 48, 'fp32_gradient_alias_bytes': 0}
+=============================== warnings summary ===============================
+cosmos_framework/posttrain/tests/test_optimizer_master.py::test_native_trainer_save_restore_master_transaction[dcp]
+cosmos_framework/posttrain/tests/test_optimizer_master.py::test_native_trainer_save_restore_master_transaction[consolidated]
+  /localhome/local-rarunachalam/qlora-wts-qualification-20261030/unintended-local-uv-venv-94289a2/lib/python3.13/site-packages/torch/distributed/checkpoint/utils.py:483: UserWarning: torch.distributed is disabled, unavailable or uninitialized, assuming the intent is to save in a single process.
+    return func(*args, **kwargs)
+
+cosmos_framework/posttrain/tests/test_optimizer_master.py::test_native_trainer_save_restore_master_transaction[dcp]
+  /localhome/local-rarunachalam/qlora-wts-qualification-20261030/unintended-local-uv-venv-94289a2/lib/python3.13/site-packages/torch/distributed/checkpoint/filesystem.py:133: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+    if tensor.storage().size() != tensor.numel():
+
+cosmos_framework/posttrain/tests/test_optimizer_master.py::test_native_trainer_save_restore_master_transaction[dcp]
+cosmos_framework/posttrain/tests/test_optimizer_master.py::test_native_trainer_save_restore_master_transaction[consolidated]
+  /localhome/local-rarunachalam/qlora-wts-qualification-20261030/unintended-local-uv-venv-94289a2/lib/python3.13/site-packages/torch/distributed/checkpoint/utils.py:483: UserWarning: torch.distributed is disabled, unavailable or uninitialized, assuming the intent is to load in a single process.
+    return func(*args, **kwargs)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED cosmos_framework/posttrain/tests/test_optimizer_master.py::test_native_trainer_save_restore_master_transaction[dcp]
+FAILED cosmos_framework/posttrain/tests/test_optimizer_master.py::test_native_trainer_save_restore_master_transaction[consolidated]
+2 failed, 7 deselected, 5 warnings in 3.47s

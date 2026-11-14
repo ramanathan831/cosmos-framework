@@ -1,0 +1,39 @@
+{
+  "checked_at_utc": "2026-11-14T06:01:51.431789+00:00",
+  "affected_matrix_rows": "Alpamayo native AlpaGym closed-loop nonpaged/paged training, actual strategy, RL checkpoint/recovery, driving quality and end-to-end performance",
+  "implemented": "Native optimizer construction uses shared factory after model.setup; legacy hyperparameters, clipping, LR/warmup and clocks retained. Focused construction tests passed.",
+  "available": "Approved Alpamayo checkpoint dd4a24cacefc9a6477a6dfc7354de2443401409d exists under the established project resources. Weights alone do not supply runtime or driving scenarios.",
+  "inspected_external_source": {
+    "path": "/tmp/cosmos-alpagym-source",
+    "revision": "972d160eed0e23d388497851504a3a233fec5879",
+    "expected_posttrain_directory_exists": false,
+    "available_training_integration": "Public package declares cosmos-rl[rl,wfm]; it does not supply the posttrain API imported by this Cosmos native entrypoint."
+  },
+  "missing_native_interfaces": [
+    "alpagym_runtime.posttrain.model.AlpamayoTrainModel",
+    "alpagym_runtime.posttrain.objective.make_alpagym_objective",
+    "alpagym_runtime.posttrain.rollout"
+  ],
+  "installed_runtime_checks": {
+    "owned_action_runtime_v2": "alpagym_runtime package absent",
+    "inherited_qualification_environment": "alpagym_runtime package absent"
+  },
+  "other_unresolved_inputs": [
+    "Approved resolved_config.yaml binding native model/runtime to driving scenarios",
+    "AlpaSim executable/service and approved scenario assets",
+    "External reference-policy and replay lifecycle required for coherent recovery"
+  ],
+  "attempted_resolution": "Inspected available authorized project assets, native entry imports, installed qualification environments and the available public AlpaGym checkout. No restricted assets downloaded and no surrogate model/workflow substituted. One request for the approved missing native inputs is pending.",
+  "next_executable_step": "With the approved runtime/scenario paths, first resolve the exact model.setup wrapper and native source preflight, then exercise shared master construction on the actual strategy and implement completed-collection RL recovery before native baseline/nonpaged/paged comparisons. The current construction command is not a complete recovery recipe.",
+  "status": "External runtime/assets blocked; integration not complete; GR00T work proceeds independently.",
+  "state_options_cli": {
+    "source": "4f22bc4865ae7dbf64f6202315b7fb7c90e233f3",
+    "options": [
+      "--optimizer-bnb-min-8bit-size",
+      "--optimizer-bnb-fp32-state-name",
+      "--optimizer-impl"
+    ],
+    "local_checks": "14 passed; exact native factory/CLI routing and typed conflicts, with runtime/backend doubles. No real AlpaGym training claim.",
+    "defaults_unchanged": true
+  }
+}

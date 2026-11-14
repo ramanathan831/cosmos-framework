@@ -1,0 +1,92 @@
+[
+  {
+    "path": "windows.jsonl",
+    "bytes": 182481,
+    "sha256": "ed24664e5db2d6769f352e3e85b83501252bb4108a5732256980a4877872358e"
+  },
+  {
+    "path": "config_resolved.yaml",
+    "bytes": 10726,
+    "sha256": "b6a8a01aeb3910d99664dff10944f19723e8c770d8ca739a9e3556c4553835d1"
+  },
+  {
+    "path": "model-config/rollout-3/final_model_config.json",
+    "bytes": 1513,
+    "sha256": "5927bbeb634c9efae2b4d7e1dd730c6d82a8c0a154b30528c70653db5d5cd903"
+  },
+  {
+    "path": "model-config/rollout-1/final_model_config.json",
+    "bytes": 1513,
+    "sha256": "5927bbeb634c9efae2b4d7e1dd730c6d82a8c0a154b30528c70653db5d5cd903"
+  },
+  {
+    "path": "model-config/policy-0/final_model_config.json",
+    "bytes": 1513,
+    "sha256": "5927bbeb634c9efae2b4d7e1dd730c6d82a8c0a154b30528c70653db5d5cd903"
+  },
+  {
+    "path": "model-config/rollout-2/final_model_config.json",
+    "bytes": 1513,
+    "sha256": "5927bbeb634c9efae2b4d7e1dd730c6d82a8c0a154b30528c70653db5d5cd903"
+  },
+  {
+    "path": "model-config/rollout-0/final_model_config.json",
+    "bytes": 1513,
+    "sha256": "5927bbeb634c9efae2b4d7e1dd730c6d82a8c0a154b30528c70653db5d5cd903"
+  },
+  {
+    "path": "checkpoints/iter_000008/data.pt",
+    "bytes": 6171,
+    "sha256": "751b7c5c9e34e06c4ea6df6158fde2e65db7dd58b62bd4ad953ef3d0b6c074a6"
+  },
+  {
+    "path": "checkpoints/iter_000008/trainer.pt",
+    "bytes": 61389,
+    "sha256": "3323134bd2c131b26f7242e8fc2002943094742ceb177b51712107d66b5d7ae9"
+  },
+  {
+    "path": "checkpoints/iter_000008/model/.metadata",
+    "bytes": 491753,
+    "sha256": "ed838f3410a8daa943037346cc25a84ea3e81848753726519fc83f593bf7ed44"
+  },
+  {
+    "path": "checkpoints/iter_000008/optim/.metadata",
+    "bytes": 1294,
+    "sha256": "076741abfa6996a13efc5666588d7c250d3f99e0d9e9fe6e6709e4609219829b"
+  },
+  {
+    "path": "checkpoints/iter_000004/data.pt",
+    "bytes": 6171,
+    "sha256": "c15c3b545f527083f7f537c02acf09393bb55a671b0645a76db9287f912d060a"
+  },
+  {
+    "path": "checkpoints/iter_000004/trainer.pt",
+    "bytes": 60293,
+    "sha256": "0f357ca11b386afd721bbf403b80669d955de6d530b05bb830c5997b7704cfcb"
+  },
+  {
+    "path": "checkpoints/iter_000004/model/.metadata",
+    "bytes": 491753,
+    "sha256": "7db8336f60b917e33957ce25d15b651e5b9f08b5897ab7823b84c70e042065a2"
+  },
+  {
+    "path": "checkpoints/iter_000004/optim/.metadata",
+    "bytes": 1294,
+    "sha256": "ada5ad1dbe871c83aba7152348794eb88c9a0bb78225f6ebfc3a310c8d4d7e7b"
+  },
+  {
+    "path": "evaluation/step_000004.json",
+    "bytes": 1102839,
+    "sha256": "11b73f0a5921ea2f4664c36682258d61fbfca18f9759a180fb65bad48bc64652"
+  },
+  {
+    "path": "evaluation/step_000000.json",
+    "bytes": 67810,
+    "sha256": "f5202c299d90a8f624a9cfa1e0b200f68725f8aa99d5acd0874e0826568763a9"
+  },
+  {
+    "path": "evaluation/step_000008.json",
+    "bytes": 1102565,
+    "sha256": "26cf3d368257439c451157e269c8b81af4b7157c2828f9ee737850e81cbf9876"
+  }
+]

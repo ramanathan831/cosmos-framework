@@ -1,0 +1,22 @@
+....EEE........                                                          [100%]
+==================================== ERRORS ====================================
+__ ERROR at setup of test_the_documented_two_process_pair_actually_rendezvous __
+cosmos_framework/posttrain/tests/test_roles_env_gateway_two_process.py:77: in listening_simulator
+    pytest.fail(f"sim_server exited {proc.returncode} before binding:\n{proc.stdout.read()}")
+E   Failed: sim_server exited 1 before binding:
+E   /localhome/local-rarunachalam/cosmos-framework-quantized-optimizers/.venv/bin/python: Error while finding module specification for 'cosmos_framework.posttrain.roles.env.sim_server' (ModuleNotFoundError: No module named 'cosmos_framework')
+_____ ERROR at setup of test_the_framework_half_never_imports_the_backend ______
+cosmos_framework/posttrain/tests/test_roles_env_gateway_two_process.py:77: in listening_simulator
+    pytest.fail(f"sim_server exited {proc.returncode} before binding:\n{proc.stdout.read()}")
+E   Failed: sim_server exited 1 before binding:
+E   /localhome/local-rarunachalam/cosmos-framework-quantized-optimizers/.venv/bin/python: Error while finding module specification for 'cosmos_framework.posttrain.roles.env.sim_server' (ModuleNotFoundError: No module named 'cosmos_framework')
+_ ERROR at setup of test_an_unregistered_embodiment_is_refused_here_rather_than_guessed _
+cosmos_framework/posttrain/tests/test_roles_env_gateway_two_process.py:77: in listening_simulator
+    pytest.fail(f"sim_server exited {proc.returncode} before binding:\n{proc.stdout.read()}")
+E   Failed: sim_server exited 1 before binding:
+E   /localhome/local-rarunachalam/cosmos-framework-quantized-optimizers/.venv/bin/python: Error while finding module specification for 'cosmos_framework.posttrain.roles.env.sim_server' (ModuleNotFoundError: No module named 'cosmos_framework')
+=========================== short test summary info ============================
+ERROR cosmos_framework/posttrain/tests/test_roles_env_gateway_two_process.py::test_the_documented_two_process_pair_actually_rendezvous
+ERROR cosmos_framework/posttrain/tests/test_roles_env_gateway_two_process.py::test_the_framework_half_never_imports_the_backend
+ERROR cosmos_framework/posttrain/tests/test_roles_env_gateway_two_process.py::test_an_unregistered_embodiment_is_refused_here_rather_than_guessed
+12 passed, 3 errors in 1.19s

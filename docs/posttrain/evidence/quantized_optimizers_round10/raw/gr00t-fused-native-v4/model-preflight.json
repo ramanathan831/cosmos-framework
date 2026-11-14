@@ -1,0 +1,12 @@
+{
+    "torch": "2.11.0+cu128",
+    "cuda": "12.8",
+    "gpu_count": 4,
+    "gpu": "NVIDIA A100-SXM4-80GB",
+    "checkpoint": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-family-adapters-20261030/gr00t-public-assets-v1/model",
+    "sdpa_mode": "math",
+    "sdpa_effective": true,
+    "transformers": "4.57.6",
+    "vllm": "0.23.0+cu129",
+    "vllm-omni": "0.23.0rc2.dev62+g2d0b1d8a2"
+}

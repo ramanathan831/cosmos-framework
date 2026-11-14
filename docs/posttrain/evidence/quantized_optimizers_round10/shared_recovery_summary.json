@@ -1,0 +1,139 @@
+{
+  "source": {
+    "source": "71739734378e88fe45d679df4cc992ad196992e1",
+    "archive_sha256": "27a4fca6c43d71f36012169b4fde5c6c1f4934677fc180379dbc9b07b61760c0",
+    "scope": "native integration development; no empirical qualification claim"
+  },
+  "jobs": {
+    "mixed_storage": "38504422",
+    "warmup_recovery": "38505548",
+    "retained_error_ownership": "38506319",
+    "construction_consensus": "38507455",
+    "chunked_payload": "38509580",
+    "generation_mutation": "38511029",
+    "byte_tensor_payload": "38516568",
+    "server_synchronized_provenance": "38519872"
+  },
+  "scope": "two-rank FSDP2 infrastructure; not model/task qualification",
+  "passed": true,
+  "resumed_updates_per_rank": [
+    5,
+    6,
+    7,
+    8
+  ],
+  "warmup_steps": 6,
+  "checkpoint_update": 4,
+  "checks": [
+    "exact inputs, live parameters, masters, moments/maps/scales and native control on every resumed update",
+    "native global clipping and accumulation",
+    "frozen exclusion and lazy/empty shards",
+    "one-rank nonfinite skip without clocks/state advancement",
+    "one-rank missing master payload rejected without live mutation",
+    "paged moments restored into managed allocations",
+    "one-rank post-commit failure rolls model/master/controller state back on both ranks",
+    "retaining restore exceptions does not retain replacement backend or managed allocations",
+    "one-rank native factory failure converges on both ranks and retained errors release successful peer masters/backends",
+    "multiple opaque payload chunks through real DCP and fresh-process restore",
+    "checkpoint generation changed during rank-local reads is rejected before model/master/controller mutation on every rank, with retained exceptions releasing staged allocations"
+  ],
+  "summed_bytes": {
+    "adamw": {
+      "moment_bytes": 4202496,
+      "metadata_bytes": 0,
+      "master_bytes": 1050628,
+      "fp32_model_alias_bytes": 1050624
+    },
+    "adamw_bnb_8bit": {
+      "moment_bytes": 1056768,
+      "metadata_bytes": 20480,
+      "master_bytes": 1050628,
+      "fp32_model_alias_bytes": 1050624
+    },
+    "paged_adamw_8bit": {
+      "moment_bytes": 1056768,
+      "metadata_bytes": 20480,
+      "master_bytes": 1050628,
+      "fp32_model_alias_bytes": 1050624
+    }
+  },
+  "moment_and_metadata_saving_fraction": 0.7436647173489279,
+  "moments_metadata_and_additional_masters_saving_fraction": 0.5949313208673543,
+  "limits": [
+    "small mathematical model, not Alpamayo/GR00T",
+    "no sustained paging pressure or throughput/quality claim",
+    "no topology-changing restore",
+    "no FSDP1, TP/HSDP or replicated DDP support"
+  ],
+  "additional_source": {
+    "revision": "b67b61b6a75e5ca12014565c1b70d0e913639214",
+    "scope": "retained-error ownership gate; unchanged memory/trajectory protocol"
+  },
+  "construction_source": "32cc4796c3c006d6f4ae2dcb19687ae3a130ec90",
+  "raw_latest": "raw/master-v11",
+  "chunked_payload_source": "de53ca83",
+  "generation_mutation_source": "41822ccc",
+  "byte_tensor_payload_gate": {
+    "job": "38516568",
+    "source": "655567de02008a5e64364cc56266847600e510fe",
+    "format": "cosmos_rank_master_v3",
+    "passed": true,
+    "receipts": [
+      "adamw/reference-rank0.json",
+      "adamw/reference-rank1.json",
+      "adamw/resume-rank0.json",
+      "adamw/resume-rank1.json",
+      "adamw_bnb_8bit/reference-rank0.json",
+      "adamw_bnb_8bit/reference-rank1.json",
+      "adamw_bnb_8bit/resume-rank0.json",
+      "adamw_bnb_8bit/resume-rank1.json",
+      "paged_adamw_8bit/reference-rank0.json",
+      "paged_adamw_8bit/reference-rank1.json",
+      "paged_adamw_8bit/resume-rank0.json",
+      "paged_adamw_8bit/resume-rank1.json"
+    ],
+    "scope": "Same two-rank reference/resume and failure protocol; actual accelerator kernels; this format now avoids protocol2 byte expansion. Native action-model format continuation separately required.",
+    "corrected_state_totals": {
+      "adamw": {
+        "moment_bytes": 4202496,
+        "metadata_bytes": 32,
+        "master_bytes": 1050628,
+        "fp32_model_alias_bytes": 1050624
+      },
+      "adamw_bnb_8bit": {
+        "moment_bytes": 1056768,
+        "metadata_bytes": 20480,
+        "master_bytes": 1050628,
+        "fp32_model_alias_bytes": 1050624
+      },
+      "paged_adamw_8bit": {
+        "moment_bytes": 1056768,
+        "metadata_bytes": 20480,
+        "master_bytes": 1050628,
+        "fp32_model_alias_bytes": 1050624
+      }
+    },
+    "moment_metadata_saving": 0.7436666692048215,
+    "including_additional_masters_saving": 0.5949337883740746
+  },
+  "server_synchronized_provenance_gate": {
+    "job": "38519872",
+    "source": "94ecd8ba4e4b238feaaaceb8d5282ef0bcc40ded",
+    "passed": true,
+    "receipts": [
+      "adamw/reference-rank0.json",
+      "adamw/reference-rank1.json",
+      "adamw/resume-rank0.json",
+      "adamw/resume-rank1.json",
+      "adamw_bnb_8bit/reference-rank0.json",
+      "adamw_bnb_8bit/reference-rank1.json",
+      "adamw_bnb_8bit/resume-rank0.json",
+      "adamw_bnb_8bit/resume-rank1.json",
+      "paged_adamw_8bit/reference-rank0.json",
+      "paged_adamw_8bit/reference-rank1.json",
+      "paged_adamw_8bit/resume-rank0.json",
+      "paged_adamw_8bit/resume-rank1.json"
+    ],
+    "scope": "Same two-rank accelerator reference/resume and rank-consistent failure protocol after synchronized provenance metadata change. Native pending-publication continuation remains separate."
+  }
+}

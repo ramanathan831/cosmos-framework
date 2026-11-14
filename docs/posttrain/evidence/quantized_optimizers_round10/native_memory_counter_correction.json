@@ -1,0 +1,11 @@
+{
+  "actual_fused_counter_metadata_bytes": 8696,
+  "actual_fused_moment_bytes": 12998747144,
+  "actual_fused_moments_and_metadata_bytes": 12998755840,
+  "nonpaged_moments_and_metadata_bytes": 3304438792,
+  "master_bytes_each": 6499373572,
+  "moment_and_metadata_saving_fraction": 0.745788071360528,
+  "including_retained_masters_saving_fraction": 0.4971921584453991,
+  "evidence": "raw/counter-payload-screen/fused-state-accounting-v2/counter-accounting.json",
+  "scope": "Read-only actual retained native four-rank state, including lazy/empty-shard counter counts. Earlier zero-counter reports remain historical; update arithmetic is unchanged."
+}

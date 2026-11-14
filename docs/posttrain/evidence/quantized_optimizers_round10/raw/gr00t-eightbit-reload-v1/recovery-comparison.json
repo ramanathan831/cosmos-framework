@@ -1,0 +1,19 @@
+{
+  "learner_state_exact": true,
+  "per_rank_differing_fields": [
+    {},
+    {},
+    {},
+    {}
+  ],
+  "reference_success": 0.98,
+  "fresh_process_success": 0.97,
+  "training_state_unchanged": true,
+  "source_provenance": {
+    "signature": "427f1b61adf3beda6613d31284f10bd556d69ebaf08d37bbbdf9f06fceb7c1e7",
+    "source": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-eightbit-native-v2/runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/checkpoints/iter_000004",
+    "version": 1
+  },
+  "mode": "checkpoint_evaluation",
+  "windows": 0
+}

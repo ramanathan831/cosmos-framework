@@ -1,0 +1,898 @@
+{
+  "sealed": false,
+  "updated_at_utc": "2026-11-14T06:59:29.405854+00:00",
+  "method": "Earliest allocation/step start through latest end including termination grace; pending unallocated cancellations cost zero. GPU-seconds = allocation wall x allocated GPUs; CPU-only wall excludes GPU jobs. Running entries are provisional observations, not final charges. No aggregate caps.",
+  "allocations": [
+    {
+      "job": "38503599",
+      "state": "FAILED",
+      "terminal": true,
+      "allocation_seconds": 142,
+      "gpus": 2,
+      "cpus": 8,
+      "node": "batch-block4-0045",
+      "exit_code": "1:0"
+    },
+    {
+      "job": "38503857",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 211,
+      "gpus": 2,
+      "cpus": 8,
+      "node": "batch-block4-2042",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38503880",
+      "state": "FAILED",
+      "terminal": true,
+      "allocation_seconds": 245,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00049",
+      "exit_code": "1:0"
+    },
+    {
+      "job": "38504202",
+      "state": "FAILED",
+      "terminal": true,
+      "allocation_seconds": 33,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00057",
+      "exit_code": "1:0"
+    },
+    {
+      "job": "38504330",
+      "state": "FAILED",
+      "terminal": true,
+      "allocation_seconds": 289,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00084",
+      "exit_code": "1:0"
+    },
+    {
+      "job": "38504422",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 220,
+      "gpus": 2,
+      "cpus": 8,
+      "node": "batch-block4-1017",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38505527",
+      "state": "FAILED",
+      "terminal": true,
+      "allocation_seconds": 147,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00062",
+      "exit_code": "1:0"
+    },
+    {
+      "job": "38505548",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 208,
+      "gpus": 2,
+      "cpus": 8,
+      "node": "batch-block4-2042",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38505622",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 343,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00038",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38505789",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 156,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00086",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38505906",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 201,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00106",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38505939",
+      "state": "CANCELLED by 41852",
+      "terminal": true,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38506319",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 212,
+      "gpus": 2,
+      "cpus": 8,
+      "node": "batch-block5-04111",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38506509",
+      "state": "FAILED",
+      "terminal": true,
+      "allocation_seconds": 131,
+      "gpus": 4,
+      "cpus": 32,
+      "node": "batch-block4-1039",
+      "exit_code": "1:0"
+    },
+    {
+      "job": "38506530",
+      "state": "FAILED",
+      "terminal": true,
+      "allocation_seconds": 162,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00013",
+      "exit_code": "1:0"
+    },
+    {
+      "job": "38506956",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 182,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00057",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38506957",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 72,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00008",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38507082",
+      "state": "FAILED",
+      "terminal": true,
+      "allocation_seconds": 247,
+      "gpus": 4,
+      "cpus": 32,
+      "node": "batch-block7-03314",
+      "exit_code": "1:0"
+    },
+    {
+      "job": "38507168",
+      "state": "FAILED",
+      "terminal": true,
+      "allocation_seconds": 229,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00079",
+      "exit_code": "1:0"
+    },
+    {
+      "job": "38507276",
+      "state": "FAILED",
+      "terminal": true,
+      "allocation_seconds": 313,
+      "gpus": 4,
+      "cpus": 32,
+      "node": "batch-block7-03537",
+      "exit_code": "1:0"
+    },
+    {
+      "job": "38507338",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 135,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00104",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38507455",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 226,
+      "gpus": 2,
+      "cpus": 8,
+      "node": "batch-block4-2042",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38507763",
+      "state": "FAILED",
+      "terminal": true,
+      "allocation_seconds": 228,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00013",
+      "exit_code": "1:0"
+    },
+    {
+      "job": "38507846",
+      "state": "CANCELLED",
+      "terminal": true,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38507923",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 461,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00110",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38507929",
+      "state": "FAILED",
+      "terminal": true,
+      "allocation_seconds": 142,
+      "gpus": 4,
+      "cpus": 32,
+      "node": "batch-block7-01880",
+      "exit_code": "1:0"
+    },
+    {
+      "job": "38508341",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 65,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00106",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38508381",
+      "state": "FAILED",
+      "terminal": true,
+      "allocation_seconds": 318,
+      "gpus": 4,
+      "cpus": 32,
+      "node": "batch-block7-03557",
+      "exit_code": "1:0"
+    },
+    {
+      "job": "38508653",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 252,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00013",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38508700",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 98,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00013",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38508727",
+      "state": "FAILED",
+      "terminal": true,
+      "allocation_seconds": 779,
+      "gpus": 4,
+      "cpus": 32,
+      "node": "batch-block7-03620",
+      "exit_code": "1:0"
+    },
+    {
+      "job": "38509580",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 239,
+      "gpus": 2,
+      "cpus": 8,
+      "node": "batch-block5-01740",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38509586",
+      "state": "FAILED",
+      "terminal": true,
+      "allocation_seconds": 1033,
+      "gpus": 4,
+      "cpus": 32,
+      "node": "batch-block7-01746",
+      "exit_code": "1:0"
+    },
+    {
+      "job": "38510135",
+      "state": "FAILED",
+      "terminal": true,
+      "allocation_seconds": 188,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00115",
+      "exit_code": "1:0"
+    },
+    {
+      "job": "38510452",
+      "state": "FAILED",
+      "terminal": true,
+      "allocation_seconds": 145,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00111",
+      "exit_code": "1:0"
+    },
+    {
+      "job": "38510454",
+      "state": "CANCELLED",
+      "terminal": true,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38510930",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 168,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00029",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38510931",
+      "state": "FAILED",
+      "terminal": true,
+      "allocation_seconds": 488,
+      "gpus": 4,
+      "cpus": 32,
+      "node": "batch-block7-03517",
+      "exit_code": "1:0"
+    },
+    {
+      "job": "38511029",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 277,
+      "gpus": 2,
+      "cpus": 8,
+      "node": "batch-block7-03588",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38511327",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 157,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00062",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38511331",
+      "state": "FAILED",
+      "terminal": true,
+      "allocation_seconds": 540,
+      "gpus": 4,
+      "cpus": 32,
+      "node": "batch-block7-01950",
+      "exit_code": "1:0"
+    },
+    {
+      "job": "38511505",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 77,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00062",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38512131",
+      "state": "FAILED",
+      "terminal": true,
+      "allocation_seconds": 1086,
+      "gpus": 4,
+      "cpus": 32,
+      "node": "batch-block7-01959",
+      "exit_code": "1:0"
+    },
+    {
+      "job": "38512322",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 164,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00091",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38512606",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 165,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00049",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38512774",
+      "state": "CANCELLED",
+      "terminal": true,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38513011",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 974,
+      "gpus": 4,
+      "cpus": 32,
+      "node": "batch-block4-0045",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38513696",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 1278,
+      "gpus": 4,
+      "cpus": 32,
+      "node": "batch-block7-01974",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38514178",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 640,
+      "gpus": 4,
+      "cpus": 32,
+      "node": "batch-block7-01974",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38514179",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 723,
+      "gpus": 4,
+      "cpus": 32,
+      "node": "batch-block4-0045",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38514689",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 1343,
+      "gpus": 4,
+      "cpus": 32,
+      "node": "batch-block5-00495",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38515193",
+      "state": "CANCELLED by 41852",
+      "terminal": true,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38515197",
+      "state": "CANCELLED by 41852",
+      "terminal": true,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38515199",
+      "state": "CANCELLED by 41852",
+      "terminal": true,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38515594",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 170,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00117",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38515804",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 1367,
+      "gpus": 4,
+      "cpus": 32,
+      "node": "batch-block7-03404",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38515805",
+      "state": "CANCELLED by 41852",
+      "terminal": true,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38515806",
+      "state": "CANCELLED by 41852",
+      "terminal": true,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38515815",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 675,
+      "gpus": 4,
+      "cpus": 32,
+      "node": "batch-block7-00770",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38515818",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 722,
+      "gpus": 4,
+      "cpus": 32,
+      "node": "batch-block7-00770",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38515959",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 249,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00078",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38516138",
+      "state": "CANCELLED by 41852",
+      "terminal": true,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38516139",
+      "state": "CANCELLED by 41852",
+      "terminal": true,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38516141",
+      "state": "CANCELLED by 41852",
+      "terminal": true,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38516142",
+      "state": "CANCELLED by 41852",
+      "terminal": true,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38516324",
+      "state": "FAILED",
+      "terminal": true,
+      "allocation_seconds": 117,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00066",
+      "exit_code": "127:0"
+    },
+    {
+      "job": "38516454",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 274,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00084",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38516539",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 429,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00078",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38516568",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 228,
+      "gpus": 2,
+      "cpus": 8,
+      "node": "batch-block5-04076",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38516570",
+      "state": "FAILED",
+      "terminal": true,
+      "allocation_seconds": 1894,
+      "gpus": 4,
+      "cpus": 32,
+      "node": "batch-block5-04076",
+      "exit_code": "1:0"
+    },
+    {
+      "job": "38516571",
+      "state": "CANCELLED",
+      "terminal": true,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38516572",
+      "state": "CANCELLED",
+      "terminal": true,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38516575",
+      "state": "CANCELLED",
+      "terminal": true,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38517262",
+      "state": "CANCELLED",
+      "terminal": true,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38518080",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 143,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00041",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38518227",
+      "state": "CANCELLED",
+      "terminal": true,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38518229",
+      "state": "CANCELLED",
+      "terminal": true,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38519701",
+      "state": "FAILED",
+      "terminal": true,
+      "allocation_seconds": 228,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00102",
+      "exit_code": "1:0"
+    },
+    {
+      "job": "38519719",
+      "state": "CANCELLED",
+      "terminal": true,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38519871",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 68,
+      "gpus": 0,
+      "cpus": 8,
+      "node": "cpu-00102",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38519872",
+      "state": "COMPLETED",
+      "terminal": true,
+      "allocation_seconds": 270,
+      "gpus": 2,
+      "cpus": 8,
+      "node": "batch-block7-03638",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38520018",
+      "state": "RUNNING",
+      "terminal": false,
+      "allocation_seconds": 518,
+      "gpus": 4,
+      "cpus": 32,
+      "node": "batch-block7-02881",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38520212",
+      "state": "PENDING",
+      "terminal": false,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38520213",
+      "state": "PENDING",
+      "terminal": false,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38520214",
+      "state": "PENDING",
+      "terminal": false,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38520215",
+      "state": "PENDING",
+      "terminal": false,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38520216",
+      "state": "PENDING",
+      "terminal": false,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    },
+    {
+      "job": "38520219",
+      "state": "PENDING",
+      "terminal": false,
+      "allocation_seconds": 0,
+      "gpus": 0,
+      "cpus": 0,
+      "node": "None assigned",
+      "exit_code": "0:0"
+    }
+  ],
+  "terminal_gpu_allocation_seconds": 63238,
+  "terminal_cpu_only_wall_seconds": 6040,
+  "nonterminal_jobs": [
+    "38520018",
+    "38520212",
+    "38520213",
+    "38520214",
+    "38520215",
+    "38520216",
+    "38520219"
+  ]
+}

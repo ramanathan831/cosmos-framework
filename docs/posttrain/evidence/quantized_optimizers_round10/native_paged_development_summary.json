@@ -1,0 +1,360 @@
+{
+  "scope": "Native four-GPU FSDP2 GR00T, resident managed-state integration only; not pressure or final quality qualification",
+  "source": "59eccff3c924183d51cc96b190ab56c07d63617c",
+  "reference_job": "38515804",
+  "reference_status": "COMPLETED: 8 finite updates, checkpoints4/8 published, 300 native evaluated episodes",
+  "native_attempt": {
+    "returncode": 0,
+    "native_seconds": 1163.4404096743092
+  },
+  "evaluations": {
+    "step_000004": {
+      "metrics": {
+        "val/episode_count": 100,
+        "val/episode_return": 0.91,
+        "val/episode_steps": 114.24,
+        "val/success_rate": 1.0,
+        "val/task_0/success_count": 10,
+        "val/task_0/success_rate": 1.0,
+        "val/task_1/success_count": 10,
+        "val/task_1/success_rate": 1.0,
+        "val/task_2/success_count": 10,
+        "val/task_2/success_rate": 1.0,
+        "val/task_3/success_count": 10,
+        "val/task_3/success_rate": 1.0,
+        "val/task_4/success_count": 10,
+        "val/task_4/success_rate": 1.0,
+        "val/task_5/success_count": 10,
+        "val/task_5/success_rate": 1.0,
+        "val/task_6/success_count": 10,
+        "val/task_6/success_rate": 1.0,
+        "val/task_7/success_count": 10,
+        "val/task_7/success_rate": 1.0,
+        "val/task_8/success_count": 10,
+        "val/task_8/success_rate": 1.0,
+        "val/task_9/success_count": 10,
+        "val/task_9/success_rate": 1.0
+      },
+      "training_state_unchanged": true
+    },
+    "step_000000": {
+      "metrics": {
+        "val/episode_count": 100,
+        "val/episode_return": 0.92,
+        "val/episode_steps": 116.48,
+        "val/success_rate": 0.98,
+        "val/task_0/success_count": 10,
+        "val/task_0/success_rate": 1.0,
+        "val/task_1/success_count": 10,
+        "val/task_1/success_rate": 1.0,
+        "val/task_2/success_count": 10,
+        "val/task_2/success_rate": 1.0,
+        "val/task_3/success_count": 10,
+        "val/task_3/success_rate": 1.0,
+        "val/task_4/success_count": 9,
+        "val/task_4/success_rate": 0.9,
+        "val/task_5/success_count": 10,
+        "val/task_5/success_rate": 1.0,
+        "val/task_6/success_count": 10,
+        "val/task_6/success_rate": 1.0,
+        "val/task_7/success_count": 10,
+        "val/task_7/success_rate": 1.0,
+        "val/task_8/success_count": 10,
+        "val/task_8/success_rate": 1.0,
+        "val/task_9/success_count": 9,
+        "val/task_9/success_rate": 0.9
+      },
+      "training_state_unchanged": true
+    },
+    "step_000008": {
+      "metrics": {
+        "val/episode_count": 100,
+        "val/episode_return": 0.9,
+        "val/episode_steps": 122.56,
+        "val/success_rate": 0.96,
+        "val/task_0/success_count": 10,
+        "val/task_0/success_rate": 1.0,
+        "val/task_1/success_count": 10,
+        "val/task_1/success_rate": 1.0,
+        "val/task_2/success_count": 10,
+        "val/task_2/success_rate": 1.0,
+        "val/task_3/success_count": 10,
+        "val/task_3/success_rate": 1.0,
+        "val/task_4/success_count": 9,
+        "val/task_4/success_rate": 0.9,
+        "val/task_5/success_count": 8,
+        "val/task_5/success_rate": 0.8,
+        "val/task_6/success_count": 10,
+        "val/task_6/success_rate": 1.0,
+        "val/task_7/success_count": 10,
+        "val/task_7/success_rate": 1.0,
+        "val/task_8/success_count": 10,
+        "val/task_8/success_rate": 1.0,
+        "val/task_9/success_count": 9,
+        "val/task_9/success_rate": 0.9
+      },
+      "training_state_unchanged": true
+    }
+  },
+  "storage_bytes_and_elements": {
+    "trainable_elements": 1624843393,
+    "quantized_elements": 1624178688,
+    "fp32_elements": 664705,
+    "uninitialized_elements": 0,
+    "master_bytes": 6499373572,
+    "moment_bytes": 3253675016,
+    "metadata_bytes": 50763776,
+    "paged_moment_bytes": 3246784512,
+    "fp32_model_alias_bytes": 0
+  },
+  "memory_scope": {
+    "root_pid": 3665399,
+    "scope": "launcher_and_all_children_before_preflight_through_delivery"
+  },
+  "peak_whole_workflow_host_pss_bytes": 121067454464,
+  "gpu_peaks": {
+    "memory-gpu0": {
+      "whole_device_bytes": 28863496192,
+      "matched_process_gpu_bytes": 26055016448
+    },
+    "memory-gpu1": {
+      "whole_device_bytes": 28041412608,
+      "matched_process_gpu_bytes": 25232932864
+    },
+    "memory-gpu2": {
+      "whole_device_bytes": 27972206592,
+      "matched_process_gpu_bytes": 25163726848
+    },
+    "memory-gpu3": {
+      "whole_device_bytes": 28020375552,
+      "matched_process_gpu_bytes": 25211961344
+    }
+  },
+  "windows": [
+    {
+      "optimizer_step": 1,
+      "publication_version": 1,
+      "behavior_verified": true,
+      "parameter_update_l2": {
+        "actor": 0.07021149230343746,
+        "value": 0.16072933681670362
+      },
+      "seconds": 45.53574040252715
+    },
+    {
+      "optimizer_step": 2,
+      "publication_version": 2,
+      "behavior_verified": true,
+      "parameter_update_l2": {
+        "actor": 0.13219694033668974,
+        "value": 0.2778468851417576
+      },
+      "seconds": 30.082289925776422
+    },
+    {
+      "optimizer_step": 3,
+      "publication_version": 3,
+      "behavior_verified": true,
+      "parameter_update_l2": {
+        "actor": 0.07421428316451624,
+        "value": 0.3055836896722203
+      },
+      "seconds": 31.39349763840437
+    },
+    {
+      "optimizer_step": 4,
+      "publication_version": 4,
+      "behavior_verified": true,
+      "parameter_update_l2": {
+        "actor": 0.22608930837652577,
+        "value": 0.20455129781752676
+      },
+      "seconds": 32.409670918248594
+    },
+    {
+      "optimizer_step": 5,
+      "publication_version": 5,
+      "behavior_verified": true,
+      "parameter_update_l2": {
+        "actor": 0.1554866482396525,
+        "value": 0.1886807514997763
+      },
+      "seconds": 30.571416147984564
+    },
+    {
+      "optimizer_step": 6,
+      "publication_version": 6,
+      "behavior_verified": true,
+      "parameter_update_l2": {
+        "actor": 0.13290336049375714,
+        "value": 0.18562327853340324
+      },
+      "seconds": 31.46478121727705
+    },
+    {
+      "optimizer_step": 7,
+      "publication_version": 7,
+      "behavior_verified": true,
+      "parameter_update_l2": {
+        "actor": 0.17782116784487872,
+        "value": 0.17121517851963164
+      },
+      "seconds": 31.427162376232445
+    },
+    {
+      "optimizer_step": 8,
+      "publication_version": 8,
+      "behavior_verified": true,
+      "parameter_update_l2": {
+        "actor": 0.2295165160008611,
+        "value": 0.16434544580407875
+      },
+      "seconds": 33.07743561267853
+    }
+  ],
+  "reload_job": "38515815",
+  "resume_job": "38515818",
+  "recovery_status": "Passed native fresh-process read-only exact learner restore on four ranks and actual completed-window continuation4->8 with managed state; simulator reset prevents exact trajectory/final parameter equality.",
+  "limits": [
+    "One training seed and historically observed100-case pool",
+    "No benefit attributed to optimizer quantization from resident score differences",
+    "Physical simulator state resets on resume",
+    "Pressure plan is separate and remains unexecuted"
+  ],
+  "reload": {
+    "all_learner_fields_exact_by_rank": [
+      true,
+      true,
+      true,
+      true
+    ],
+    "managed_moment_bytes_by_rank": [
+      811696128,
+      811696128,
+      811696128,
+      811696128
+    ],
+    "training_state_unchanged": true,
+    "reference_success": 1.0,
+    "reload_success": 0.99,
+    "scope": "Read-only fresh-process exact learner restore; physical simulator episodes can vary",
+    "evaluation_summary": {
+      "checkpoint_provenance": {
+        "signature": "64baea9c3b5d22c3d680685957cf5fec4b8efdf99385c6f1acaf27eb6b4f5e8b",
+        "source": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-paged-native-v2/runs/cosmos3_action/joint_ppo/gr00t-master-paged_adamw_8bit/integration/checkpoints/iter_000004",
+        "version": 1
+      },
+      "metrics": {
+        "val/episode_count": 100,
+        "val/episode_return": 0.89,
+        "val/episode_steps": 117.44,
+        "val/success_rate": 0.99,
+        "val/task_0/success_count": 10,
+        "val/task_0/success_rate": 1.0,
+        "val/task_1/success_count": 10,
+        "val/task_1/success_rate": 1.0,
+        "val/task_2/success_count": 10,
+        "val/task_2/success_rate": 1.0,
+        "val/task_3/success_count": 10,
+        "val/task_3/success_rate": 1.0,
+        "val/task_4/success_count": 10,
+        "val/task_4/success_rate": 1.0,
+        "val/task_5/success_count": 10,
+        "val/task_5/success_rate": 1.0,
+        "val/task_6/success_count": 10,
+        "val/task_6/success_rate": 1.0,
+        "val/task_7/success_count": 10,
+        "val/task_7/success_rate": 1.0,
+        "val/task_8/success_count": 10,
+        "val/task_8/success_rate": 1.0,
+        "val/task_9/success_count": 9,
+        "val/task_9/success_rate": 0.9
+      },
+      "mode": "checkpoint_evaluation",
+      "optimizer_step": 4,
+      "output": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-paged-reload-v2/runs/cosmos3_action/joint_ppo/gr00t-master-paged_adamw_8bit/integration",
+      "publication_version": 4,
+      "restored_from": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-paged-native-v2/runs/cosmos3_action/joint_ppo/gr00t-master-paged_adamw_8bit/integration/checkpoints/iter_000004",
+      "windows": 0
+    },
+    "native_attempt": {
+      "returncode": 0,
+      "native_seconds": 463.51796475000447
+    }
+  },
+  "continuation": {
+    "job": "38515818",
+    "source": "59eccff3c924183d51cc96b190ab56c07d63617c",
+    "native_attempt": {
+      "returncode": 0,
+      "native_seconds": 602.9851980929961
+    },
+    "updates": [
+      5,
+      6,
+      7,
+      8
+    ],
+    "behavior_logprobs_verified": true,
+    "parameter_updates": [
+      {
+        "actor": 0.1541108287855087,
+        "value": 0.1984921775282958
+      },
+      {
+        "actor": 0.13239643791579225,
+        "value": 0.19560794529252715
+      },
+      {
+        "actor": 0.17512660968834262,
+        "value": 0.18015722089292766
+      },
+      {
+        "actor": 0.2266293734770408,
+        "value": 0.16847411315512523
+      }
+    ],
+    "final_metrics": {
+      "val/episode_count": 100,
+      "val/episode_return": 0.83,
+      "val/episode_steps": 120.48,
+      "val/success_rate": 0.97,
+      "val/task_0/success_count": 10,
+      "val/task_0/success_rate": 1.0,
+      "val/task_1/success_count": 10,
+      "val/task_1/success_rate": 1.0,
+      "val/task_2/success_count": 10,
+      "val/task_2/success_rate": 1.0,
+      "val/task_3/success_count": 10,
+      "val/task_3/success_rate": 1.0,
+      "val/task_4/success_count": 10,
+      "val/task_4/success_rate": 1.0,
+      "val/task_5/success_count": 8,
+      "val/task_5/success_rate": 0.8,
+      "val/task_6/success_count": 10,
+      "val/task_6/success_rate": 1.0,
+      "val/task_7/success_count": 10,
+      "val/task_7/success_rate": 1.0,
+      "val/task_8/success_count": 10,
+      "val/task_8/success_rate": 1.0,
+      "val/task_9/success_count": 9,
+      "val/task_9/success_rate": 0.9
+    },
+    "training_state_unchanged_by_evaluation": true,
+    "managed_moment_bytes_by_rank": [
+      811696128,
+      811696128,
+      811696128,
+      811696128
+    ],
+    "summary": {
+      "windows": 4,
+      "restored_from": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-paged-native-v2/runs/cosmos3_action/joint_ppo/gr00t-master-paged_adamw_8bit/integration/checkpoints/iter_000004",
+      "optimizer_step": 8,
+      "publication_version": 8,
+      "stop_reason": null,
+      "output": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-paged-resume-v2/runs/cosmos3_action/joint_ppo/gr00t-master-paged_adamw_8bit/integration"
+    },
+    "limitation": "This training process did not persist its pre-update learner hashes; exact restored learner identity was independently checked in the separate fresh read-only reload. A pre-update attestation has since been added and awaits native v3 recovery qualification."
+  }
+}

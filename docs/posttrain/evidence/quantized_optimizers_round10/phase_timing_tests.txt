@@ -1,0 +1,109 @@
+EEEEEEEEEEEEEEEEEEEEE                                                    [100%]
+==================================== ERRORS ====================================
+_ ERROR at setup of test_window_counter_is_per_process_and_preserves_durable_window_rows _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_training_cleanup_covers_early_and_late_failures[counter] _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_training_cleanup_covers_early_and_late_failures[loop] _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_training_cleanup_covers_early_and_late_failures[collector_close] _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_assessment_cleanup_and_complete_reentry_leave_training_untouched _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_formal_window_validation_runs_before_and_after_training_without_analysis _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_checkpoint_evaluation_restores_exact_state_without_training_or_resaving _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_checkpoint_evaluation_rejects_source_mutation_before_publishing_scores _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_checkpoint_evaluation_rejects_missing_resume_before_model_allocation _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_pending_validation_resumes_to_new_directory_with_collector_provenance _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+___ ERROR at setup of test_online_reporting_failure_does_not_block_training ____
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_telemetry_startup_failure_closes_client_before_model_setup[__init__] _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_telemetry_startup_failure_closes_client_before_model_setup[on_app_start] _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_telemetry_ends_app_when_model_setup_fails_before_training _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_checkpoint_failure_preserves_error_without_telemetry_success _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_training_error_survives_telemetry_send_and_finish_failures _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_joint_failure_does_not_complete_telemetry_intervals[trainer] _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_joint_failure_does_not_complete_telemetry_intervals[publication] _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_joint_failure_does_not_complete_telemetry_intervals[validation] _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_checkpoint_location_is_captured_before_later_save_and_delayed_delivery _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_ ERROR at setup of test_partial_initialization_error_survives_bounded_pending_sdk_finish _
+cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py:35: in local_run
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+=========================== short test summary info ============================
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_window_counter_is_per_process_and_preserves_durable_window_rows
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_training_cleanup_covers_early_and_late_failures[counter]
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_training_cleanup_covers_early_and_late_failures[loop]
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_training_cleanup_covers_early_and_late_failures[collector_close]
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_assessment_cleanup_and_complete_reentry_leave_training_untouched
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_formal_window_validation_runs_before_and_after_training_without_analysis
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_checkpoint_evaluation_restores_exact_state_without_training_or_resaving
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_checkpoint_evaluation_rejects_source_mutation_before_publishing_scores
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_checkpoint_evaluation_rejects_missing_resume_before_model_allocation
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_pending_validation_resumes_to_new_directory_with_collector_provenance
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_online_reporting_failure_does_not_block_training
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_telemetry_startup_failure_closes_client_before_model_setup[__init__]
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_telemetry_startup_failure_closes_client_before_model_setup[on_app_start]
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_telemetry_ends_app_when_model_setup_fails_before_training
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_checkpoint_failure_preserves_error_without_telemetry_success
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_training_error_survives_telemetry_send_and_finish_failures
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_joint_failure_does_not_complete_telemetry_intervals[trainer]
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_joint_failure_does_not_complete_telemetry_intervals[publication]
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_joint_failure_does_not_complete_telemetry_intervals[validation]
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_checkpoint_location_is_captured_before_later_save_and_delayed_delivery
+ERROR cosmos_framework/posttrain/tests/test_entrypoints_gr00t_lifecycle.py::test_partial_initialization_error_survives_bounded_pending_sdk_finish
+21 errors in 3.75s

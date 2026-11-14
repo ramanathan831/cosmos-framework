@@ -1,0 +1,15 @@
+{
+  "scope": "CPU native model/processor source load only; no training or GPU qualification",
+  "seconds": 70.61915355396923,
+  "source": {
+    "protocol": "gr00t-ppo-source-v1",
+    "sha256": "d70c0d3f6c8d6e793ba7b5ea6a10eb24fe9bb58df0493826c07eaead83921b39"
+  },
+  "parameter_elements": {
+    "frozen_torch.bfloat16": 1523500032,
+    "trainable_torch.bfloat16": 1620515968
+  },
+  "processor": "Gr00tN1d7Processor",
+  "exact_checkpoint_tensors": 1031,
+  "construction": "complete-checkpoint-sdpa-v1"
+}

@@ -1,0 +1,398 @@
+{
+  "scope": "Single-seed real four-GPU GR00T Joint PPO development/integration; not final quality or paired timing",
+  "source": "9c629094f8cb76a709331b29691cb1f24c26ca1e",
+  "job": "38513696",
+  "status": "COMPLETED: 8 updates, checkpoints4/8 published, 300 evaluated episodes",
+  "initial_identity_against_fused": [
+    {
+      "parameters": true,
+      "optimizer_masters": true,
+      "rng": true
+    },
+    {
+      "parameters": true,
+      "optimizer_masters": true,
+      "rng": true
+    },
+    {
+      "parameters": true,
+      "optimizer_masters": true,
+      "rng": true
+    },
+    {
+      "parameters": true,
+      "optimizer_masters": true,
+      "rng": true
+    }
+  ],
+  "evaluations": {
+    "step_000004": {
+      "metrics": {
+        "val/episode_count": 100,
+        "val/episode_return": 0.87,
+        "val/episode_steps": 116.16,
+        "val/success_rate": 0.98,
+        "val/task_0/success_count": 10,
+        "val/task_0/success_rate": 1.0,
+        "val/task_1/success_count": 10,
+        "val/task_1/success_rate": 1.0,
+        "val/task_2/success_count": 10,
+        "val/task_2/success_rate": 1.0,
+        "val/task_3/success_count": 10,
+        "val/task_3/success_rate": 1.0,
+        "val/task_4/success_count": 9,
+        "val/task_4/success_rate": 0.9,
+        "val/task_5/success_count": 10,
+        "val/task_5/success_rate": 1.0,
+        "val/task_6/success_count": 10,
+        "val/task_6/success_rate": 1.0,
+        "val/task_7/success_count": 10,
+        "val/task_7/success_rate": 1.0,
+        "val/task_8/success_count": 10,
+        "val/task_8/success_rate": 1.0,
+        "val/task_9/success_count": 9,
+        "val/task_9/success_rate": 0.9
+      },
+      "training_state_unchanged": true
+    },
+    "step_000000": {
+      "metrics": {
+        "val/episode_count": 100,
+        "val/episode_return": 0.9,
+        "val/episode_steps": 115.04,
+        "val/success_rate": 0.99,
+        "val/task_0/success_count": 10,
+        "val/task_0/success_rate": 1.0,
+        "val/task_1/success_count": 10,
+        "val/task_1/success_rate": 1.0,
+        "val/task_2/success_count": 10,
+        "val/task_2/success_rate": 1.0,
+        "val/task_3/success_count": 10,
+        "val/task_3/success_rate": 1.0,
+        "val/task_4/success_count": 9,
+        "val/task_4/success_rate": 0.9,
+        "val/task_5/success_count": 10,
+        "val/task_5/success_rate": 1.0,
+        "val/task_6/success_count": 10,
+        "val/task_6/success_rate": 1.0,
+        "val/task_7/success_count": 10,
+        "val/task_7/success_rate": 1.0,
+        "val/task_8/success_count": 10,
+        "val/task_8/success_rate": 1.0,
+        "val/task_9/success_count": 10,
+        "val/task_9/success_rate": 1.0
+      },
+      "training_state_unchanged": true
+    },
+    "step_000008": {
+      "metrics": {
+        "val/episode_count": 100,
+        "val/episode_return": 0.91,
+        "val/episode_steps": 117.12,
+        "val/success_rate": 0.98,
+        "val/task_0/success_count": 10,
+        "val/task_0/success_rate": 1.0,
+        "val/task_1/success_count": 10,
+        "val/task_1/success_rate": 1.0,
+        "val/task_2/success_count": 10,
+        "val/task_2/success_rate": 1.0,
+        "val/task_3/success_count": 9,
+        "val/task_3/success_rate": 0.9,
+        "val/task_4/success_count": 9,
+        "val/task_4/success_rate": 0.9,
+        "val/task_5/success_count": 10,
+        "val/task_5/success_rate": 1.0,
+        "val/task_6/success_count": 10,
+        "val/task_6/success_rate": 1.0,
+        "val/task_7/success_count": 10,
+        "val/task_7/success_rate": 1.0,
+        "val/task_8/success_count": 10,
+        "val/task_8/success_rate": 1.0,
+        "val/task_9/success_count": 10,
+        "val/task_9/success_rate": 1.0
+      },
+      "training_state_unchanged": true
+    }
+  },
+  "storage_bytes_and_elements": {
+    "trainable_elements": 1624843393,
+    "quantized_elements": 1624178688,
+    "fp32_elements": 664705,
+    "uninitialized_elements": 0,
+    "master_bytes": 6499373572,
+    "moment_bytes": 3253675016,
+    "metadata_bytes": 50763776,
+    "paged_moment_bytes": 0,
+    "fp32_model_alias_bytes": 0
+  },
+  "moment_and_metadata_saving_fraction": 0.7457879012959128,
+  "master_plus_moments_and_metadata_saving_fraction": 0.49719193419727514,
+  "whole_process_peak_pss_bytes": 132632373248,
+  "whole_process_peak_rss_bytes": 138893283328,
+  "gpu_peaks": {
+    "memory-gpu0": {
+      "whole_device_bytes": 28114747392,
+      "matched_process_gpu_bytes": 26241662976
+    },
+    "memory-gpu1": {
+      "whole_device_bytes": 27259174912,
+      "matched_process_gpu_bytes": 25386024960
+    },
+    "memory-gpu2": {
+      "whole_device_bytes": 27290632192,
+      "matched_process_gpu_bytes": 25417482240
+    },
+    "memory-gpu3": {
+      "whole_device_bytes": 27221426176,
+      "matched_process_gpu_bytes": 25348276224
+    }
+  },
+  "native_attempt": {
+    "returncode": 0,
+    "native_seconds": 1073.2156236940064
+  },
+  "windows": [
+    {
+      "optimizer_step": 1,
+      "publication_version": 1,
+      "decisions": 64,
+      "behavior_verified": true,
+      "max_logprob_delta": 0.0,
+      "learning_rates": {
+        "actor": 5e-06,
+        "value": 0.0001
+      },
+      "parameter_update_l2": {
+        "actor": 0.07029068266203038,
+        "value": 0.160100944756455
+      },
+      "seconds": 38.451146823121235
+    },
+    {
+      "optimizer_step": 2,
+      "publication_version": 2,
+      "decisions": 64,
+      "behavior_verified": true,
+      "max_logprob_delta": 0.0,
+      "learning_rates": {
+        "actor": 5e-06,
+        "value": 0.0001
+      },
+      "parameter_update_l2": {
+        "actor": 0.13105118883476236,
+        "value": 0.2698623266191202
+      },
+      "seconds": 29.09634202788584
+    },
+    {
+      "optimizer_step": 3,
+      "publication_version": 3,
+      "decisions": 64,
+      "behavior_verified": true,
+      "max_logprob_delta": 0.0,
+      "learning_rates": {
+        "actor": 5e-06,
+        "value": 0.0001
+      },
+      "parameter_update_l2": {
+        "actor": 0.07485745592487215,
+        "value": 0.3023394411355706
+      },
+      "seconds": 28.44417897798121
+    },
+    {
+      "optimizer_step": 4,
+      "publication_version": 4,
+      "decisions": 64,
+      "behavior_verified": true,
+      "max_logprob_delta": 0.0,
+      "learning_rates": {
+        "actor": 5e-06,
+        "value": 0.0001
+      },
+      "parameter_update_l2": {
+        "actor": 0.2201283402592342,
+        "value": 0.1937065606462171
+      },
+      "seconds": 28.884825609857216
+    },
+    {
+      "optimizer_step": 5,
+      "publication_version": 5,
+      "decisions": 64,
+      "behavior_verified": true,
+      "max_logprob_delta": 0.0,
+      "learning_rates": {
+        "actor": 5e-06,
+        "value": 0.0001
+      },
+      "parameter_update_l2": {
+        "actor": 0.1535902974647415,
+        "value": 0.18888322160700657
+      },
+      "seconds": 28.233883786015213
+    },
+    {
+      "optimizer_step": 6,
+      "publication_version": 6,
+      "decisions": 64,
+      "behavior_verified": true,
+      "max_logprob_delta": 0.0,
+      "learning_rates": {
+        "actor": 5e-06,
+        "value": 0.0001
+      },
+      "parameter_update_l2": {
+        "actor": 0.13203601408743787,
+        "value": 0.18605343928434998
+      },
+      "seconds": 26.934937858954072
+    },
+    {
+      "optimizer_step": 7,
+      "publication_version": 7,
+      "decisions": 64,
+      "behavior_verified": true,
+      "max_logprob_delta": 0.0,
+      "learning_rates": {
+        "actor": 5e-06,
+        "value": 0.0001
+      },
+      "parameter_update_l2": {
+        "actor": 0.17533698350023408,
+        "value": 0.1814666077516436
+      },
+      "seconds": 29.427679759915918
+    },
+    {
+      "optimizer_step": 8,
+      "publication_version": 8,
+      "decisions": 64,
+      "behavior_verified": true,
+      "max_logprob_delta": 0.0,
+      "learning_rates": {
+        "actor": 5e-06,
+        "value": 0.0001
+      },
+      "parameter_update_l2": {
+        "actor": 0.22834999027897496,
+        "value": 0.17264277453929114
+      },
+      "seconds": 28.616838853107765
+    }
+  ],
+  "limitations": [
+    "One training seed; no preservation/improvement confidence gate",
+    "Initial model/master/RNG match fused but physical evaluation outcomes vary",
+    "Optimizer-call timing is not isolated by whole decision-window times",
+    "Intermittent earlier checkpoint-publication disagreement not reproduced or explained by this successful run"
+  ],
+  "fresh_process_reload": {
+    "job": "38514178",
+    "source": "f4922a3f",
+    "result": {
+      "learner_state_exact": true,
+      "per_rank_differing_fields": [
+        {},
+        {},
+        {},
+        {}
+      ],
+      "reference_success": 0.98,
+      "fresh_process_success": 0.97,
+      "training_state_unchanged": true,
+      "source_provenance": {
+        "signature": "427f1b61adf3beda6613d31284f10bd556d69ebaf08d37bbbdf9f06fceb7c1e7",
+        "source": "/lustre/fs11/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-eightbit-native-v2/runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/checkpoints/iter_000004",
+        "version": 1
+      },
+      "mode": "checkpoint_evaluation",
+      "windows": 0
+    },
+    "native_attempt": {
+      "returncode": 0,
+      "native_seconds": 450.5890689191874
+    }
+  },
+  "memory_scope": "All-thread descendants of the native entrypoint process; launcher and earlier preflight processes excluded. Source c58aea59 extends future sampling to the full launcher lifecycle; historical peaks are not retroactively relabeled.",
+  "completed_window_continuation": {
+    "job": "38514179",
+    "source": "f4922a3f",
+    "native_attempt": {
+      "returncode": 0,
+      "native_seconds": 552.144144483027
+    },
+    "updates": [
+      5,
+      6,
+      7,
+      8
+    ],
+    "policy_versions": [
+      4,
+      5,
+      6,
+      7
+    ],
+    "behavior_logprobs_verified": true,
+    "parameter_updates": [
+      {
+        "actor": 0.15362178889592296,
+        "value": 0.18512509972262942
+      },
+      {
+        "actor": 0.1330270910438081,
+        "value": 0.1889924751862238
+      },
+      {
+        "actor": 0.17578298755106675,
+        "value": 0.1881787796472489
+      },
+      {
+        "actor": 0.2278342391287828,
+        "value": 0.17472898914862134
+      }
+    ],
+    "final_metrics": {
+      "val/episode_count": 100,
+      "val/episode_return": 0.87,
+      "val/episode_steps": 115.36,
+      "val/success_rate": 0.99,
+      "val/task_0/success_count": 10,
+      "val/task_0/success_rate": 1.0,
+      "val/task_1/success_count": 10,
+      "val/task_1/success_rate": 1.0,
+      "val/task_2/success_count": 10,
+      "val/task_2/success_rate": 1.0,
+      "val/task_3/success_count": 10,
+      "val/task_3/success_rate": 1.0,
+      "val/task_4/success_count": 10,
+      "val/task_4/success_rate": 1.0,
+      "val/task_5/success_count": 9,
+      "val/task_5/success_rate": 0.9,
+      "val/task_6/success_count": 10,
+      "val/task_6/success_rate": 1.0,
+      "val/task_7/success_count": 10,
+      "val/task_7/success_rate": 1.0,
+      "val/task_8/success_count": 10,
+      "val/task_8/success_rate": 1.0,
+      "val/task_9/success_count": 10,
+      "val/task_9/success_rate": 1.0
+    },
+    "training_state_unchanged_by_evaluation": true,
+    "checkpoint8_published": true,
+    "boundary": "completed decision window; physical environments reset, no exact trajectory/final-parameter equality claim"
+  },
+  "gradient_staging_bytes_after_update8": 6499373572,
+  "scalar_counter_accounting_correction": {
+    "actual_fused_counter_metadata_bytes": 8696,
+    "actual_fused_moment_bytes": 12998747144,
+    "actual_fused_moments_and_metadata_bytes": 12998755840,
+    "nonpaged_moments_and_metadata_bytes": 3304438792,
+    "master_bytes_each": 6499373572,
+    "moment_and_metadata_saving_fraction": 0.745788071360528,
+    "including_retained_masters_saving_fraction": 0.4971921584453991,
+    "evidence": "raw/counter-payload-screen/fused-state-accounting-v2/counter-accounting.json",
+    "scope": "Read-only actual retained native four-rank state, including lazy/empty-shard counter counts. Earlier zero-counter reports remain historical; update arithmetic is unchanged."
+  }
+}
