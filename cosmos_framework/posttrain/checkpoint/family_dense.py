@@ -5,6 +5,9 @@
 Merge against the effective frozen base, never the untouched source weights.
 Only merged language matrices use the requested output dtype; all other native
 parameters and buffers retain their dtypes, including trained FP32 action heads.
+Frozen non-target aliases retain both standard weight keys on disk and share one
+Parameter again after native reload; quantized targets and trainable auxiliaries
+must remain unaliased.
 The artifact requires its family-owned constructor/processor, not a generic HF
 language-model loader. It is deliberately not a training-resume checkpoint.
 """
@@ -130,6 +133,30 @@ def _validate_source_inventory(manifest: Mapping[str, Any]) -> None:
         raise ValueError("family dense parameter inventory differs from the source family")
     if {name for name, record in tensors.items() if record["kind"] == "buffer"} != set(identity["base_buffers"]):
         raise ValueError("family dense buffer inventory differs from the source family")
+    aliases = manifest["parameter_aliases"]
+    if (
+        not isinstance(aliases, list)
+        or any(
+            not isinstance(group, list)
+            or len(group) < 2
+            or any(not isinstance(name, str) for name in group)
+            or group != sorted(set(group))
+            for group in aliases
+        )
+        or aliases != sorted(aliases)
+    ):
+        raise ValueError("family dense parameter aliases require canonical distinct name groups")
+    alias_names = [name for group in aliases for name in group]
+    if len(alias_names) != len(set(alias_names)) or not set(alias_names) <= set(identity["frozen_tensors"]) - targets:
+        raise ValueError("family dense aliases may contain only distinct frozen non-target parameters")
+    for group in aliases:
+        first = {key: tensors[group[0]][key] for key in ("shape", "dtype", "sha256")}
+        if any(
+            tensors[name]["kind"] != "parameter"
+            or {key: tensors[name][key] for key in ("shape", "dtype", "sha256")} != first
+            for name in group
+        ):
+            raise ValueError("family dense aliased parameters differ in shape, dtype or value")
     for name, record in tensors.items():
         digest = {key: record[key] for key in ("shape", "dtype", "sha256")}
         expected = (
@@ -158,6 +185,13 @@ def _buffers(net: nn.Module) -> dict[str, tuple[nn.Module, str, torch.Tensor, bo
         for leaf, value in owner._buffers.items()
         if value is not None
     }
+
+
+def _parameter_aliases(parameters: Mapping[str, nn.Parameter]) -> list[list[str]]:
+    owners: dict[int, list[str]] = {}
+    for name, parameter in parameters.items():
+        owners.setdefault(id(parameter), []).append(name)
+    return sorted(sorted(names) for names in owners.values() if len(names) > 1)
 
 
 def _mixed_shard_plan(inventory: Mapping[str, Mapping[str, Any]], max_bytes: int) -> dict[str, str]:
@@ -191,8 +225,12 @@ def _mixed_shard_plan(inventory: Mapping[str, Mapping[str, Any]], max_bytes: int
 def _inventory(net: nn.Module, identity: Mapping[str, Any], dtype: str):
     parameters = dict(net.named_parameters(remove_duplicate=False))
     buffers = _buffers(net)
-    if len({id(value) for value in parameters.values()}) != len(parameters):
-        raise ValueError("family dense export does not support shared/tied parameter aliases")
+    alias_names = {name for group in _parameter_aliases(parameters) for name in group}
+    allowed_aliases = set(identity["frozen_tensors"]) - {f"{name}.weight" for name in identity["targets"]}
+    if not alias_names <= allowed_aliases or any(parameters[name].requires_grad for name in alias_names):
+        raise ValueError(
+            "family dense export aliases must be frozen non-target parameters; adapter/auxiliary aliases are unsupported"
+        )
     if set(parameters) & set(buffers):
         raise ValueError("family dense parameter and buffer names overlap")
     modules = {name: net.get_submodule(name) for name in identity["targets"]}
@@ -308,7 +346,8 @@ def export_family_dense(
         raise ValueError("family dense export requires the constructed native adapter policy")
     load_adapter_weights(checkpoint, codec, manager=CheckpointManager(checkpoint_format="dcp"))
     trained = {name: tensor_digest(value) for name, value in codec.parameters.items()}
-    inventory, _, _, _ = _inventory(net, identity, merged_backbone_dtype)
+    inventory, parameters, _, _ = _inventory(net, identity, merged_backbone_dtype)
+    aliases = _parameter_aliases(parameters)
     weight_map = _mixed_shard_plan(inventory, max_shard_size_bytes)
     root.mkdir(parents=False, exist_ok=False)
     fsync_directory(str(root.parent))
@@ -341,6 +380,7 @@ def export_family_dense(
         "source_metadata": metadata,
         "source_metadata_sha256": _digest_json(metadata),
         "trained_tensors": trained,
+        "parameter_aliases": aliases,
         "numerical_contract": {
             "base": "dequantize(Q(W))" if identity["quantization"] else "W_bf16",
             "merge": "effective_base + (alpha/rank) * B @ A"
@@ -400,6 +440,7 @@ def read_family_dense(
         "source_metadata",
         "source_metadata_sha256",
         "trained_tensors",
+        "parameter_aliases",
         "numerical_contract",
         "resumable_training_checkpoint",
         "native_loader_required",
@@ -535,7 +576,9 @@ def load_family_dense(
     The family constructor owns non-tensor state and must repair any unregistered
     buffer aliases and preferred layouts after this call. Serialized tensors use
     canonical contiguous values; arbitrary original strides are not an export
-    parity promise. This does not create a resumable trainer.
+    parity promise. Recorded frozen non-target parameter aliases are restored as
+    the same Parameter, and the constructor must already declare the same alias
+    groups. This does not create a resumable trainer.
     """
     from safetensors import safe_open
 
@@ -550,8 +593,8 @@ def load_family_dense(
         raise ValueError("family dense loading requires a fresh unadapted native architecture")
     parameters = dict(net.named_parameters(remove_duplicate=False))
     buffers = _buffers(net)
-    if len({id(value) for value in parameters.values()}) != len(parameters):
-        raise ValueError("family dense loading does not support shared/tied parameter aliases")
+    if _parameter_aliases(parameters) != verified["parameter_aliases"]:
+        raise ValueError("native family parameter alias ownership differs from dense artifact")
     inventory = verified["tensors"]
     expected_parameters = {name for name, record in inventory.items() if record["kind"] == "parameter"}
     expected_buffers = set(inventory) - expected_parameters
@@ -569,18 +612,26 @@ def load_family_dense(
             raise ValueError(f"native dense buffer shape/persistence differs: {name}")
     root = Path(path)
     signatures = _tree_signatures(root)
+    canonical = {name: group[0] for group in verified["parameter_aliases"] for name in group}
+    restored_aliases: dict[str, nn.Parameter] = {}
     for name, record in sorted(inventory.items()):
         with safe_open(str(root / record["file"]), framework="pt", device="cpu") as reader:
             value = reader.get_tensor(name)
         if tensor_digest(value) != {key: record[key] for key in ("shape", "dtype", "sha256")}:
             raise ValueError(f"family dense tensor changed during load: {name}")
-        value = value.to(device=device, copy=True)
         if name in parameters:
+            owner_name = canonical.get(name, name)
+            if owner_name in restored_aliases:
+                parameter = restored_aliases[owner_name]
+            else:
+                parameter = nn.Parameter(value.to(device=device, copy=True), requires_grad=False)
+                if name in canonical:
+                    restored_aliases[owner_name] = parameter
             parent, _, leaf = name.rpartition(".")
-            setattr(net.get_submodule(parent), leaf, nn.Parameter(value, requires_grad=False))
+            setattr(net.get_submodule(parent), leaf, parameter)
         else:
             owner, leaf, _, _ = buffers[name]
-            setattr(owner, leaf, value)
+            setattr(owner, leaf, value.to(device=device, copy=True))
     if _tree_signatures(root) != signatures:
         raise RuntimeError("family dense artifact changed during native load")
     net.eval()

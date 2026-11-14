@@ -46,8 +46,22 @@ class TaskNet(nn.Module):
         return self.head(self.backbone(x.to(self.backbone.weight.dtype)).float()) * self.action_scale
 
 
-def _prepared(tmp_path, *, mode="bf16_lora"):
-    net = TaskNet()
+class AliasedTaskNet(TaskNet):
+    def __init__(self, device="cpu", *, tied=True):
+        super().__init__(device)
+        with torch.random.fork_rng(devices=[]):
+            torch.manual_seed(53)
+            self.embedding = nn.Embedding(5, 3, device=device, dtype=torch.bfloat16)
+            self.output = nn.Linear(3, 5, bias=False, device=device, dtype=torch.bfloat16)
+        if tied:
+            self.output.weight = self.embedding.weight
+
+    def forward(self, x):
+        return super().forward(x + self.embedding(torch.zeros(x.shape[0], dtype=torch.int64, device=x.device)))
+
+
+def _prepared(tmp_path, *, mode="bf16_lora", net=None):
+    net = TaskNet() if net is None else net
     state = install_family_backbone(
         net,
         config=FamilyBackboneConfig(mode=mode, rank=2, alpha=4, seed=7),
@@ -314,3 +328,122 @@ def test_export_proves_unchanged_base_and_preserved_task_parameters(tmp_path):
     )
     assert before == {name: tensor_digest(value) for name, value in net.named_parameters()}
     state.validate_frozen_base()
+
+
+@pytest.mark.parametrize("mode", ["bf16_lora", "bf16_frozen"])
+def test_frozen_embedding_output_alias_exports_both_keys_and_restores_one_parameter(tmp_path, mode):
+    net, state, source, data = _prepared(tmp_path, mode=mode, net=AliasedTaskNet())
+    output = tmp_path / "dense"
+    manifest = export_family_dense(
+        net,
+        checkpoint=source,
+        output=str(output),
+        merged_backbone_dtype="bfloat16",
+        exporter_build=BUILD,
+        max_shard_size_bytes=64,
+    )
+    assert manifest["parameter_aliases"] == [["embedding.weight", "output.weight"]]
+    assert manifest["tensors"]["embedding.weight"]["file"] != manifest["tensors"]["output.weight"]["file"]
+    for key in ("shape", "dtype", "sha256"):
+        assert manifest["tensors"]["embedding.weight"][key] == manifest["tensors"]["output.weight"][key]
+    restored = AliasedTaskNet(device="meta")
+    load_family_dense(restored, output, device="cpu", expected_identity=state.identity)
+    assert restored.embedding.weight is restored.output.weight
+    assert not restored.embedding.weight.requires_grad
+    torch.testing.assert_close(restored.embedding.weight, net.embedding.weight, atol=0, rtol=0)
+    torch.testing.assert_close(restored(data), net(data), atol=3e-4, rtol=0.02)
+    assert net.embedding.weight is net.output.weight
+    state.validate_frozen_base()
+
+
+def test_alias_ownership_is_required_on_both_exported_and_native_architecture_sides(tmp_path):
+    net, state, source, _ = _prepared(tmp_path, net=AliasedTaskNet())
+    output = tmp_path / "dense"
+    export_family_dense(
+        net, checkpoint=source, output=str(output), merged_backbone_dtype="float32", exporter_build=BUILD
+    )
+    untied = AliasedTaskNet(device="meta", tied=False)
+    with pytest.raises(ValueError, match="alias ownership"):
+        load_family_dense(untied, output, device="cpu", expected_identity=state.identity)
+    assert all(parameter.is_meta for parameter in untied.parameters())
+    marker = output / FAMILY_DENSE_MANIFEST
+    manifest = json.loads(marker.read_text())
+    manifest["parameter_aliases"] = []
+    marker.write_text(json.dumps(manifest))
+    tied = AliasedTaskNet(device="meta")
+    with pytest.raises(ValueError, match="alias ownership"):
+        load_family_dense(tied, output, device="cpu", expected_identity=state.identity)
+    assert all(parameter.is_meta for parameter in tied.parameters())
+
+
+@pytest.mark.parametrize(
+    "groups",
+    [
+        [["output.weight", "embedding.weight"]],
+        [["embedding.weight"]],
+        [["embedding.weight", "output.weight"], ["embedding.weight", "output.weight"]],
+        [["head.bias", "head.weight"]],
+        [["backbone.weight", "embedding.weight"]],
+        [["action_scale", "embedding.weight"]],
+        [["embedding.weight", "missing.weight"]],
+    ],
+)
+def test_malformed_target_or_auxiliary_alias_metadata_is_rejected(tmp_path, groups):
+    _, _, _, _, output, manifest = _export(tmp_path)
+    manifest["parameter_aliases"] = groups
+    (output / FAMILY_DENSE_MANIFEST).write_text(json.dumps(manifest))
+    with pytest.raises(ValueError, match="alias"):
+        read_family_dense(output)
+
+
+def test_aliased_tensor_cannot_have_different_values_even_with_self_consistent_shard_hashes(tmp_path):
+    from safetensors import safe_open
+    from safetensors.torch import save_file
+
+    net, _, source, _ = _prepared(tmp_path, net=AliasedTaskNet())
+    output = tmp_path / "dense"
+    manifest = export_family_dense(
+        net,
+        checkpoint=source,
+        output=str(output),
+        merged_backbone_dtype="bfloat16",
+        exporter_build=BUILD,
+        max_shard_size_bytes=8,
+    )
+    name = "output.weight"
+    record = manifest["tensors"][name]
+    path = output / record["file"]
+    with safe_open(str(path), framework="pt", device="cpu") as handle:
+        value = handle.get_tensor(name).clone()
+    value.add_(1)
+    save_file({name: value}, str(path), metadata={"format": "pt"})
+    record.update(tensor_digest(value))
+    payload = path.read_bytes()
+    manifest["files"][path.name] = {"sha256": sha256(payload).hexdigest(), "size": len(payload)}
+    (output / FAMILY_DENSE_MANIFEST).write_text(json.dumps(manifest))
+    with pytest.raises(ValueError, match="aliased parameters differ"):
+        read_family_dense(output)
+
+
+def test_aliased_native_dense_policy_reloads_in_fresh_process(tmp_path):
+    net, _, source, data = _prepared(tmp_path, net=AliasedTaskNet())
+    output = tmp_path / "dense"
+    export_family_dense(
+        net, checkpoint=source, output=str(output), merged_backbone_dtype="float32", exporter_build=BUILD
+    )
+    inputs, result = tmp_path / "input.pt", tmp_path / "result.pt"
+    torch.save(data, inputs)
+    script = """
+import sys,torch
+from cosmos_framework.posttrain.tests.test_checkpoint_family_dense import AliasedTaskNet
+from cosmos_framework.posttrain.checkpoint.family_dense import read_family_dense,load_family_dense
+manifest=read_family_dense(sys.argv[1]); net=AliasedTaskNet(device='meta')
+load_family_dense(net,sys.argv[1],device='cpu',expected_identity={'base':manifest['source_metadata']['identity']['base']})
+assert net.embedding.weight is net.output.weight
+torch.save(net(torch.load(sys.argv[2],weights_only=True)),sys.argv[3])
+"""
+    process = subprocess.run(
+        [sys.executable, "-c", script, str(output), str(inputs), str(result)], capture_output=True, text=True
+    )
+    assert process.returncode == 0, process.stderr
+    torch.testing.assert_close(torch.load(result, weights_only=True), net(data), atol=3e-4, rtol=0.02)
