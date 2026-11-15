@@ -63,7 +63,7 @@ def _normalize_checkpoint_components(
 OPTIMIZER_IMPLS: tuple[str, ...] = ("fused", "foreach", "for-loop")
 """torch kernel choices for `OptimizerConfig.impl` — cosmos-rl's `optm_impl` values verbatim."""
 
-OPTIMIZER_NAMES: tuple[str, ...] = ("adamw", "fusedadam", "muon")
+OPTIMIZER_NAMES: tuple[str, ...] = ("adamw", "fusedadam", "muon", "adamw_bnb_8bit")
 """Optimizer CLASSES `OptimizerConfig.name` selects (its docstring describes each); `build_optimizer` dispatches on them."""
 
 FIXED_NORMALISER_OPTIMIZER_EPS_CEILING: float = 1e-7
@@ -286,8 +286,40 @@ class OptimizerConfig:
     muon_momentum: float = 0.95
     muon_ns_steps: int = 5
     muon_rms_match: float = 0.2
+    # Explicit native-action integration of the independently maintained backend.
+    # Parameter updates remain the default; eight-bit state requires the tracked
+    # owner and parameter-only DCP path, never generic optimizer state conversion.
+    update_policy: str = "parameter"
+    bnb_min_8bit_size: int = 4096
+    bnb_fp32_state_names: list[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
+        if self.update_policy not in ("parameter", "fp32_master"):
+            raise ValueError("optimizer.update_policy must be parameter or fp32_master")
+        if self.update_policy == "fp32_master" and self.name not in ("adamw", "adamw_bnb_8bit"):
+            raise ValueError("native action fp32_master supports AdamW and nonpaged eight-bit AdamW only")
+        if self.name == "adamw_bnb_8bit" and self.update_policy != "fp32_master":
+            raise ValueError("native action eight-bit AdamW requires update_policy=fp32_master")
+        if type(self.bnb_min_8bit_size) is not int or self.bnb_min_8bit_size < 1:
+            raise ValueError("bnb_min_8bit_size must be a positive integer")
+        if any(not isinstance(n, str) or not n for n in self.bnb_fp32_state_names):
+            raise ValueError("bnb_fp32_state_names must contain exact nonempty parameter names")
+        if len(set(self.bnb_fp32_state_names)) != len(self.bnb_fp32_state_names):
+            raise ValueError("duplicate bnb_fp32_state_names")
+        if self.name != "adamw_bnb_8bit" and (self.bnb_min_8bit_size != 4096 or self.bnb_fp32_state_names):
+            raise ValueError("bnb state options require a bitsandbytes optimizer")
+        if self.name == "adamw_bnb_8bit":
+            if not self.force_finite_grads:
+                raise ValueError("bitsandbytes optimizers require force_finite_grads=True")
+            for key in ("lr", "eps", "weight_decay"):
+                value = getattr(self, key)
+                if isinstance(value, bool) or not isinstance(value, Real) or not math.isfinite(value) or value < 0:
+                    raise ValueError(f"OptimizerConfig.{key} must be finite and nonnegative for bitsandbytes")
+            if len(self.betas) != 2 or any(
+                isinstance(beta, bool) or not isinstance(beta, Real) or not math.isfinite(beta) or not 0 <= beta < 1
+                for beta in self.betas
+            ):
+                raise ValueError("bitsandbytes betas must contain two finite values in [0, 1)")
         if self.name not in OPTIMIZER_NAMES:
             raise ValueError(f"OptimizerConfig.name={self.name!r} must be one of {OPTIMIZER_NAMES}")
         if self.name == "muon":

@@ -14,6 +14,48 @@ from cosmos_framework.posttrain.config.config import PosttrainConfig
 from cosmos_framework.posttrain.config.rl import OptimizerConfig, RunConfig
 from cosmos_framework.posttrain.config.sft import SFTLRScheduleConfig
 
+ACTION_MASTER_OPTIMIZER_PROFILE = "native_action_fp32_master_all_v1"
+
+
+def validate_action_master_optimizer(config):
+    if (
+        config.update_policy != "fp32_master"
+        or config.name not in ("adamw", "adamw_bnb_8bit")
+        or config.impl != ("fused" if config.name == "adamw" else "")
+        or config.train_keys
+        or config.decay_groups
+        or config.lr_multipliers
+        or not config.force_finite_grads
+    ):
+        raise ValueError(
+            "native action master profile requires fp32_master, exact all-parameter membership, "
+            "finite gradients and either fused AdamW or nonpaged adamw_bnb_8bit with impl=''"
+        )
+
+
+def validate_action_master_scope(config):
+    """Keep this integration on the explicitly selected GR00T flow-BC policy."""
+    model = config.model
+    adaptation = getattr(model, "backbone_adaptation", None)
+    if (
+        config.policy_factory != "cosmos_framework.posttrain.model.gr00t.action_sft.build_policy"
+        or config.objective_factory != "cosmos_framework.posttrain.model.gr00t.action_sft.build_objective"
+        or adaptation is None
+        or adaptation.mode not in ("bf16_lora", "nf4_lora")
+        or adaptation.profile != "gr00t_n1d7_reason2_2b_layer16_v1"
+        or not adaptation.train_action_head
+        or adaptation.action_head_adapter_profile is not None
+        or (adaptation.rank, adaptation.alpha, adaptation.dropout) != (32, 64.0, 0.0)
+        or model.embodiment_tag != "libero_sim"
+        or (model.model_action_horizon, model.training_prefix, model.execution_horizon, model.action_dim)
+        != (40, 10, 8, 7)
+        or model.denoising_steps != 4
+    ):
+        raise ValueError(
+            "native action eight-bit integration supports only N1.7 LIBERO BF16/NF4 rank32/alpha64 LoRA "
+            "with the complete FP32 action head, native 40/10/8 horizons and four denoising steps"
+        )
+
 
 @dataclass
 class ActionSFTConfig(RunConfig):
@@ -47,7 +89,11 @@ class ActionSFTConfig(RunConfig):
             validate_official_head_optimizer,
         )
 
-        if self.optimizer_profile == OFFICIAL_HEAD_PROFILE:
+        if self.optimizer_profile == ACTION_MASTER_OPTIMIZER_PROFILE:
+            validate_action_master_optimizer(self.optimizer)
+        elif self.optimizer.update_policy != "parameter":
+            raise ValueError("fp32_master requires the explicit native action master optimizer profile")
+        elif self.optimizer_profile == OFFICIAL_HEAD_PROFILE:
             validate_official_head_optimizer(self.optimizer)
         elif self.optimizer_profile == NATIVE_ADAPTER_OPTIMIZER_PROFILE:
             if self.optimizer.name != "adamw" or self.optimizer.impl != "fused" or self.optimizer.decay_groups != "":

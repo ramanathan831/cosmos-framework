@@ -104,6 +104,18 @@ class AdapterCheckpointCodec:
     def optimizer_identity(self, optimizer: torch.optim.Optimizer) -> dict[str, Any]:
         """Record ordered membership and static options, excluding scheduler-controlled learning rates."""
         self.assert_live(optimizer=optimizer)
+        if getattr(optimizer, "cosmos_local_master_optimizer", False):
+            from cosmos_framework.utils.optimizer_master import MasterWeightOptimizer
+
+            if type(optimizer) is not MasterWeightOptimizer:
+                raise ValueError("adapter master optimizer must use the explicit native owner")
+            return _json_copy(
+                {
+                    "class": "cosmos_framework.utils.optimizer_master.MasterWeightOptimizer",
+                    "identity": optimizer.identity,
+                    "backend": getattr(optimizer.backend, "identity", {"class": "torch.optim.AdamW"}),
+                }
+            )
         if type(optimizer) is not torch.optim.AdamW:
             raise ValueError("adapter checkpoint v1 supports torch.optim.AdamW only")
         names = {id(parameter): name for name, parameter in self.parameters.items()}

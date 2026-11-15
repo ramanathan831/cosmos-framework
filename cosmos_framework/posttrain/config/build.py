@@ -629,6 +629,15 @@ def build_optimizer(
             },
         ]
     name = getattr(opt_cfg, "name", "adamw")
+    if opt_cfg.update_policy == "fp32_master":
+        if adapter_parameters is None:
+            raise ValueError("this integration requires the native action parameter-only checkpoint codec")
+        named = dict(net.named_parameters())
+        if any(named.get(key) is not value for key, value in adapter_parameters.items()):
+            raise ValueError("native action master optimizer requires canonical model parameter names")
+        from cosmos_framework.utils.optimizer_master import MasterWeightOptimizer
+
+        return MasterWeightOptimizer(net, params, opt_cfg)
     if name == "fusedadam":
         # fp32 master weights + fp32 moments (bf16-net correctness — see OptimizerConfig
         # docstring). cosmos-rl reference construction: capturable=True, master_weights=True.
@@ -712,6 +721,22 @@ def _validate_native_adapter_optimizer(opt_cfg: OptimizerConfig, *, net: Any = N
         OFFICIAL_HEAD_PROFILE,
         validate_official_head_optimizer,
     )
+
+    if opt_cfg.update_policy == "fp32_master":
+        from cosmos_framework.posttrain.config.action_sft import (
+            ACTION_MASTER_OPTIMIZER_PROFILE,
+            validate_action_master_optimizer,
+        )
+
+        if (
+            getattr(net, "_cosmos_action_optimizer_profile", None) != ACTION_MASTER_OPTIMIZER_PROFILE
+            or getattr(net, "_cosmos_adapter_metadata", {}).get("format") != "cosmos.family-backbone.v1"
+            or getattr(net, "_cosmos_adapter_metadata", {}).get("task_contract", {}).get("family") != "gr00t_n1d7"
+            or getattr(net, "_cosmos_adapter_checkpoint_codec", None) is None
+        ):
+            raise ValueError("fp32_master requires the explicit native family action optimizer profile and codec")
+        validate_action_master_optimizer(opt_cfg)
+        return
 
     profile = getattr(net, "_cosmos_adapter_optimizer_profile", None)
     if profile is not None:

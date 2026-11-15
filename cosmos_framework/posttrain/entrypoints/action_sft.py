@@ -150,6 +150,10 @@ def validate_config(config):
 
     rl = instantiate(config.rl)
     rl.__post_init__()
+    if rl.optimizer.update_policy == "fp32_master":
+        from cosmos_framework.posttrain.config.action_sft import validate_action_master_scope
+
+        validate_action_master_scope(config)
     if config.grid.backend != "local" or config.grid.grouping != "single":
         raise ValueError("action SFT requires the native local single-process torchrun path")
     if int(os.environ.get("WORLD_SIZE", "1")) != 1:
@@ -226,6 +230,11 @@ def training_identity(config, rl, objective, validation):
     from cosmos_framework.posttrain.utils.gr00t_evaluation_backbone import reuse_identity as backbone_reuse_identity
     from cosmos_framework.posttrain.utils.identity import canonical_config_value
 
+    optimizer_identity = asdict(rl.optimizer)
+    if rl.optimizer.update_policy == "parameter":
+        # Keep the established direct AdamW training options unchanged.
+        for key in ("update_policy", "bnb_min_8bit_size", "bnb_fp32_state_names"):
+            optimizer_identity.pop(key)
     return canonical_config_value(
         {
             "format": "cosmos-native-action-sft-v1",
@@ -241,9 +250,11 @@ def training_identity(config, rl, objective, validation):
                 "matmul_allow_tf32": torch.backends.cuda.matmul.allow_tf32,
                 "cudnn_allow_tf32": torch.backends.cudnn.allow_tf32,
                 "cublas_workspace_config": os.environ.get("CUBLAS_WORKSPACE_CONFIG"),
-                "optimizer_state_dtype": "float32",
+                "optimizer_state_dtype": "uint8_blockwise_with_fp32_exceptions"
+                if rl.optimizer.name == "adamw_bnb_8bit"
+                else "float32",
             },
-            "optimizer": asdict(rl.optimizer),
+            "optimizer": optimizer_identity,
             "lr_schedule": asdict(rl.lr_schedule),
             "evaluation_every": rl.evaluation_every,
             "evaluation_seed": rl.evaluation_seed,
@@ -253,6 +264,63 @@ def training_identity(config, rl, objective, validation):
             "target": [rl.target_metric, rl.target_threshold, rl.target_direction, rl.stop_on_target],
         }
     )
+
+
+def validate_resume_data(source, rl, data_state, trainer_state):
+    """Validate on a separate native cursor before touching the live learner.
+
+    _Source has no mutable dataset cursor hooks. This probe validates the exact
+    content identity and shuffle position without reading or consuming a sample.
+    """
+    from cosmos_framework.posttrain.roles.env.cursor import IndexedCursor
+    from cosmos_framework.posttrain.utils.rank_state import state_for_current_rank
+
+    state = state_for_current_rank(data_state)
+    if not isinstance(state, dict) or set(state) != {"format", "cursor", "evaluation"}:
+        raise ValueError("action SFT resume requires complete data/evaluation state")
+    if state["format"] != "action-sft-state-v1":
+        raise ValueError("unsupported action SFT data state")
+    probe = IndexedCursor(source, shuffle=True, seed=rl.seed, cursor_resume="strict", label="action SFT")
+    probe.load_state_dict(state["cursor"])
+    step = trainer_state["optimizer_step"]
+    if probe.consumed != step * rl.micro_batch_size:
+        raise ValueError("action SFT resumed cursor and optimizer clock disagree")
+    previous = -1
+    history = state["evaluation"]
+    if not isinstance(history, list):
+        raise ValueError("action SFT evaluation history must be a list")
+    for item in history:
+        if (
+            not isinstance(item, dict)
+            or set(item) != {"step", "metrics"}
+            or type(item["step"]) is not int
+            or not previous < item["step"] <= step
+            or not isinstance(item["metrics"], dict)
+            or not item["metrics"]
+            or any(
+                not isinstance(name, str)
+                or isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not math.isfinite(value)
+                for name, value in item["metrics"].items()
+            )
+        ):
+            raise ValueError("invalid action SFT evaluation history")
+        previous = item["step"]
+    find_target(history, rl)
+
+
+def _preflight_optimizer_runtime(rl):
+    if rl.optimizer.name == "adamw_bnb_8bit":
+        from cosmos_framework.utils.quantized_optimizer import require_backend
+
+        try:
+            require_backend(paged=False)
+        except ImportError as error:
+            raise ImportError(
+                "Native action eight-bit AdamW requires bitsandbytes==0.49.2 in the pinned native-action runtime; "
+                "see docker/posttrain/native_action/README.md. No optimizer fallback is permitted."
+            ) from error
 
 
 def run(config, *, config_path: str, opts: list[str]):
@@ -303,6 +371,7 @@ def run(config, *, config_path: str, opts: list[str]):
             metadata["identity"].get("training_contract"), action_training_source_identity()
         )
     _preflight_backbone_runtime(config, device)
+    _preflight_optimizer_runtime(rl)
     record_qlora_phase("data_preparation_begin", reset_peak=True)
     train, validation = prepare_sources(config)
     validate_evaluation_input_reuse(config, rl, validation)
@@ -326,6 +395,8 @@ def run(config, *, config_path: str, opts: list[str]):
     callback = _factory(config.evaluation_callback) if config.evaluation_callback else None
     training_contract = training_identity(config, rl, objective, validation)
     codec.bind_training_identity(training_contract)
+    if rl.optimizer.update_policy == "fp32_master":
+        policy.net._cosmos_action_optimizer_profile = rl.optimizer_profile
     optimizer = build_optimizer(policy.net, rl.optimizer)
     codec.assert_live(optimizer=optimizer)
     trainer = LLMTrainer(
@@ -340,6 +411,8 @@ def run(config, *, config_path: str, opts: list[str]):
         nonfinite_update="fail_stop",
         checkpoint_manager=lifecycle.manager,
     )
+    if rl.optimizer.update_policy == "fp32_master":
+        trainer._adapter_resume_data_validator = lambda data, control: validate_resume_data(train, rl, data, control)
     history: list[dict[str, Any]] = []
     step = 0
     if attempt.resume_checkpoint:

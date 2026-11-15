@@ -10,6 +10,61 @@ Native commands: [training and recovery](#native-training-and-recovery),
 [standalone artifacts](#standalone-artifacts), and [LIBERO rollout](#libero-rollout).
 The source-build and qualification limits in each section remain applicable.
 
+### Separately attributable eight-bit optimizer integration
+
+The `integration/native-action-qlora-bnb8` branch adds
+[`gr00t_n1d7_libero_qlora_bnb8.py`](../../cosmos_framework/posttrain/configs/gr00t_n1d7_libero_qlora_bnb8.py).
+Its initial capability guard accepts only the N1.7 LIBERO-spatial policy below,
+single-device BF16/NF4 rank-32/alpha-64 LoRA with the complete FP32 action head,
+native 40/10/8 horizons and four flow-sampling steps. The established recipe
+continues to use direct fused AdamW with FP32 state. Paged state, offload,
+distributed layouts, head-only/head-adapter policies and other families are not
+included in this integration's scope.
+
+The integration reuses the separately maintained optimizer implementation from
+`feat/quantized-optimizers`, tested-source revision
+`ff2572f266d9463c6cb820f883e514387aecd869` and evidence head
+`84ff3143ca34f30696095fbf0257530fb8cd2069`. The backend and master-owner modules
+are unchanged copies, not a second eight-bit algorithm. Its rank-owned DCP codec
+is adapted to the existing parameter-only family view and atomic transaction.
+It verifies model/optimizer identity, cursor/evaluation state, RNG and scheduler
+before mutation; failed commits roll back the live learner. Serialization keeps
+uint8 moments and FP32 scales opaque rather than casting them through model dtypes.
+The pinned family runtime remains Torch 2.10.0, Transformers 4.57.6 and
+bitsandbytes 0.49.2; startup exercises the actual CUDA optimizer kernel before
+model/data loading and never falls back to another optimizer.
+
+The native command uses the ordinary entrypoint and the same model/data overrides
+as the selected family recipe:
+
+```bash
+torchrun --standalone --nproc-per-node=1 -m cosmos_framework.posttrain.entrypoints.action_sft \
+  --config cosmos_framework/posttrain/configs/gr00t_n1d7_libero_qlora_bnb8.py -- \
+  model.checkpoint_path=/absolute/GR00T-N1.7-LIBERO/libero_spatial \
+  model.backbone_adaptation.backbone_path=/absolute/Cosmos-Reason2-2B-metadata \
+  data.train_path=/absolute/train.jsonl data.validation_path=/absolute/validation.jsonl
+```
+
+Use `model.backbone_adaptation.mode=bf16_lora` for the independent base-precision
+factor. Recovery uses the unchanged native `rl.resume` contract; use a checkpoint
+from this exact source build/profile. Portable policy and dense-artifact loading
+do not require bitsandbytes solely because it trained optimizer state. NF4 base
+reconstruction still requires its quantizer.
+
+On 2026-11-15, **29 new CPU tests and 145 existing regressions passed** on
+Torch **2.10.0+cu128** / Transformers **4.57.6**, with imports verified from
+this isolated integration checkout. They cover real fused-master DCP recovery, pristine
+and unused parameters, next-update equality, malformed state rejection,
+post-commit rollback, replacement lifetime without forced garbage collection,
+and fresh-process checkpoint/portable reload with bitsandbytes unavailable.
+These are lifecycle tests, not eight-bit kernel, memory, quality or performance
+qualification. Those claims require a dedicated paired base-precision ×
+optimizer-precision accelerator comparison against the unchanged fused baseline.
+The two FP32 model/master storages alias on-device, but serialized masters
+duplicate the trainable model payload in resumable checkpoints. Measure that
+host-memory/checkpoint cost; do not attribute optimizer-state savings to NF4
+backbone quantization.
+
 The initial architecture is `nvidia/GR00T-N1.7-LIBERO` at
 `2ea293aa20ba7cf5bbf3ba17a5fbcb1a01cbfe21`, LIBERO-spatial policy, with the checkpoint's
 16 retained Cosmos-Reason2-2B language layers, 2048 hidden width and 40 × 132 action head.

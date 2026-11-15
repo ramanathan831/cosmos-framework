@@ -27,6 +27,7 @@ TRAINING_SOURCE_FILES = (
     "checkpoint/adapter.py",  # strict adapter restore / optimizer inventory
     "checkpoint/io.py",  # native control and DCP component loading
     "checkpoint/manager.py",  # model/optimizer/data restoration dispatch
+    "checkpoint/master_optimizer.py",  # opaque optimizer state and parameter-only atomic restore
     "checkpoint/provenance.py",  # stable generation across joint state restoration
     "checkpoint/rng.py",  # Python, NumPy, Torch and CUDA RNG capture/restore
     "checkpoint/store.py",  # selected local durable checkpoint store
@@ -51,6 +52,8 @@ TRAINING_SOURCE_FILES = (
     "utils/identity.py",  # exact identity canonicalization/comparison
     "utils/rank_state.py",  # rank-owned RNG/data state selection
     "utils/scheduler.py",  # scheduler construction identity
+    "../utils/optimizer_master.py",  # existing FP32 owner / backend staging, outside posttrain
+    "../utils/quantized_optimizer.py",  # pinned independent eight-bit optimizer implementation
 )
 
 

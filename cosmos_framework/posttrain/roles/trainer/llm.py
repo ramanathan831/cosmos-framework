@@ -1587,9 +1587,14 @@ class LLMTrainer(BaseTrainer):
             return
         optimizer_state = None
         if plan.is_full:
-            with self._preserved_pristine_optimizer() as guard:
-                optimizer_state = get_optimizer_state_dict(codec.view, self.opt)
-            optimizer_state = guard.sanitized(optimizer_state)
+            if getattr(self.opt, "cosmos_local_master_optimizer", False):
+                from cosmos_framework.posttrain.checkpoint.master_optimizer import optimizer_payload
+
+                optimizer_state = optimizer_payload(self.opt)
+            else:
+                with self._preserved_pristine_optimizer() as guard:
+                    optimizer_state = get_optimizer_state_dict(codec.view, self.opt)
+                optimizer_state = guard.sanitized(optimizer_state)
         controls = {MODEL_METADATA_COMPONENT: codec.metadata(self.opt if plan.is_full else None)}
         if plan.is_full:
             # The trainer component is the local completion marker: write metadata and data first.
@@ -1714,14 +1719,9 @@ class LLMTrainer(BaseTrainer):
         self._resumed_from_checkpoint = True
         return resumed
 
-    def _load_adapter_checkpoint(self, path: str) -> int:
-        """Validate the full identity before restoring adapters, optimizer, RNG, and clocks."""
-        from torch.distributed.checkpoint.state_dict import get_model_state_dict, set_model_state_dict
-
-        from cosmos_framework.posttrain.checkpoint.adapter import (
-            read_adapter_metadata,
-            validate_dcp_target_inventory,
-        )
+    def _validate_adapter_resume_state(self, path: str):
+        """Validate the complete native identity and controls without modifying the learner."""
+        from cosmos_framework.posttrain.checkpoint.adapter import read_adapter_metadata
         from cosmos_framework.posttrain.utils.rank_state import select_rank_state, state_for_current_rank
 
         self._validate_adapter_checkpoint_policy()
@@ -1764,6 +1764,67 @@ class LLMTrainer(BaseTrainer):
             or trainer_state.get("lr_scheduler_clock") != self._scheduler_clock_name()
         ):
             raise RuntimeError("adapter checkpoint is missing compatible scheduler state")
+        if getattr(self.opt, "cosmos_local_master_optimizer", False):
+            # Private generators validate saved streams without changing process RNG.
+            import random
+
+            import numpy as np
+
+            random.Random(0).setstate(rng["python"])
+            np.random.RandomState(0).set_state(rng["numpy"])
+            for name in ("torch", "cuda"):
+                if name not in rng:
+                    continue
+                value = rng[name]
+                if (
+                    not isinstance(value, torch.Tensor)
+                    or value.dtype != torch.uint8
+                    or value.device.type != "cpu"
+                    or value.ndim != 1
+                ):
+                    raise ValueError("adapter optimizer resume has malformed RNG state")
+                device = next(iter(codec.parameters.values())).device if name == "cuda" else "cpu"
+                torch.Generator(device=device).set_state(value)
+            validate_data = getattr(self, "_adapter_resume_data_validator", None)
+            if not callable(validate_data):
+                raise ValueError("native action master resume requires its pre-commit data validator")
+            validate_data(data_state, trainer_state)
+            if self.lr_scheduler is not None:
+                saved = trainer_state["lr_scheduler"]
+                live = self.lr_scheduler.state_dict()
+                changing = {"last_epoch", "_step_count", "_last_lr"}
+                if (
+                    not isinstance(saved, dict)
+                    or set(saved) != set(live)
+                    or any(saved[key] != live[key] for key in live if key not in changing)
+                    or type(saved.get("last_epoch")) is not int
+                    or saved["last_epoch"] != trainer_state["optimizer_step"]
+                    or type(saved.get("_step_count")) is not int
+                    or saved["_step_count"] != saved["last_epoch"] + 1
+                    or not isinstance(saved.get("_last_lr"), list)
+                    or len(saved["_last_lr"]) != len(self.opt.param_groups)
+                    or any(
+                        isinstance(value, bool)
+                        or not isinstance(value, (int, float))
+                        or not math.isfinite(value)
+                        or value < 0
+                        for value in saved["_last_lr"]
+                    )
+                ):
+                    raise ValueError("adapter optimizer resume has incompatible scheduler state")
+        return codec, trainer_state
+
+    def _load_adapter_checkpoint(self, path: str) -> int:
+        """Restore through the parameter-only view and the selected optimizer's schema."""
+        from torch.distributed.checkpoint.state_dict import get_model_state_dict, set_model_state_dict
+
+        from cosmos_framework.posttrain.checkpoint.adapter import validate_dcp_target_inventory
+
+        codec, trainer_state = self._validate_adapter_resume_state(path)
+        if getattr(self.opt, "cosmos_local_master_optimizer", False):
+            from cosmos_framework.posttrain.checkpoint.master_optimizer import restore
+
+            return restore(self, path)
         # Validate optimizer tensor names/shapes/dtypes before the first model tensor can be copied.
         # This extraction is confined to the adapter view and rolls back its pristine probe state.
         from torch.distributed.checkpoint.state_dict import get_optimizer_state_dict
