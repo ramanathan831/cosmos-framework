@@ -59,7 +59,7 @@ class TinyAction(nn.Module):
         return self.head(self.base(x) + self.lora_B(self.lora_A(x)))
 
 
-def make_trainer(seed=17):
+def make_trainer(seed=17, evaluation_every=10):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -75,7 +75,13 @@ def make_trainer(seed=17):
     trainer = LLMTrainer(
         net, Objective(objective, reduction=Reduction.MEAN), optimizer, checkpoint_format="dcp", lr_scheduler=scheduler
     )
-    rl = ActionSFTConfig(optimizer=opt, optimizer_profile=ACTION_MASTER_OPTIMIZER_PROFILE, seed=seed)
+    rl = ActionSFTConfig(
+        optimizer=opt,
+        optimizer_profile=ACTION_MASTER_OPTIMIZER_PROFILE,
+        seed=seed,
+        evaluation_every=evaluation_every,
+        max_steps=300,
+    )
     source = _Source(Dataset())
     cursor = IndexedCursor(source, shuffle=True, seed=seed, cursor_resume="strict", label="action SFT")
     trainer._adapter_resume_data_validator = lambda data, state: validate_resume_data(source, rl, data, state)
@@ -87,12 +93,16 @@ def step(trainer, cursor):
     trainer.train([None])
 
 
-def save(trainer, cursor, root):
+def save(trainer, cursor, root, history=None):
     path = root / "checkpoints" / f"iter_{trainer._iter:06d}"
     trainer.save(
         str(path),
         data_state=collect_rank_state(
-            {"format": "action-sft-state-v1", "cursor": cursor.state_dict(), "evaluation": []}
+            {
+                "format": "action-sft-state-v1",
+                "cursor": cursor.state_dict(),
+                "evaluation": [{"step": 0, "metrics": {"loss": 0.25}}] if history is None else history,
+            }
         ),
     )
     return path
@@ -233,6 +243,37 @@ def test_precommit_rejections_do_not_mutate_live_state(tmp_path, monkeypatch, co
     monkeypatch.setattr(live.checkpoint_manager, "load_component", load)
     with pytest.raises((ValueError, RuntimeError)):
         live.load(str(checkpoint))
+    assert_state_equal(snapshot(live), before)
+
+
+@pytest.mark.parametrize("history_steps", [[], [2, 4], [0, 4], [0, 2]])
+def test_missing_initial_or_scheduled_evaluation_refuses_resume_before_mutation(tmp_path, history_steps):
+    source, cursor = make_trainer(evaluation_every=2)
+    for _ in range(4):
+        step(source, cursor)
+    history = [{"step": update, "metrics": {"loss": 0.25}} for update in history_steps]
+    checkpoint = save(source, cursor, tmp_path, history)
+    live, cursor = make_trainer(evaluation_every=2)
+    step(live, cursor)
+    before = snapshot(live)
+    with pytest.raises(ValueError, match="evaluation history is missing required steps"):
+        live.load(str(checkpoint))
+    assert_state_equal(snapshot(live), before)
+
+
+@pytest.mark.parametrize(
+    "completed,cadence,history_steps",
+    [(0, 10, [0]), (3, 2, [0, 2]), (3, 2, [0, 1, 2, 3]), (100, 128, [0]), (100, 128, [0, 33, 100])],
+)
+def test_history_admits_initial_save_between_scores_and_extra_boundaries(tmp_path, completed, cadence, history_steps):
+    source, cursor = make_trainer(evaluation_every=cadence)
+    for _ in range(completed):
+        step(source, cursor)
+    history = [{"step": update, "metrics": {"loss": 0.25}} for update in history_steps]
+    checkpoint = save(source, cursor, tmp_path, history)
+    before = snapshot(source)
+    live, _ = make_trainer(evaluation_every=cadence)
+    assert live.load(str(checkpoint)) == completed
     assert_state_equal(snapshot(live), before)
 
 

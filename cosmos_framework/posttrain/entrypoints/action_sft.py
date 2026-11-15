@@ -307,6 +307,14 @@ def validate_resume_data(source, rl, data_state, trainer_state):
         ):
             raise ValueError("invalid action SFT evaluation history")
         previous = item["step"]
+    recorded = {item["step"] for item in history}
+    required = set(range(0, step + 1, rl.evaluation_every))
+    missing = required - recorded
+    if missing:
+        raise ValueError(f"action SFT evaluation history is missing required steps: {sorted(missing)}")
+    # Extra entries are legitimate: pause, termination and final boundaries are
+    # evaluated even between scheduled multiples. A plain save_every checkpoint
+    # between evaluations need not contain a score for its current update.
     find_target(history, rl)
 
 
