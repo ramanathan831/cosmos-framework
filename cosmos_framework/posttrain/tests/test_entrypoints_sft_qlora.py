@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 from dataclasses import asdict
 from pathlib import Path
@@ -104,6 +105,46 @@ def test_adapter_contract_is_finite_json_and_binds_processor_separately() -> Non
     assert training["code_revision"] == "a" * 40
     assert training["wheel_sha256"] == "b" * 64
     assert "processor_kwargs" not in training
+
+
+@pytest.mark.parametrize("quantized", [False, True])
+def test_default_optimizer_preserves_complete_pre_integration_contract(monkeypatch, quantized):
+    from cosmos_framework.posttrain.configs.sft_qwen3_vl_8b_lora import build_config
+
+    monkeypatch.setenv("SFT_DATA_ROOT", ".ene/scratch/wts-sft")
+    config = build_config(quantized=quantized)
+    original_optimizer = asdict(config.rl.optimizer)
+    contract = sft._adapter_run_contract(config, _packer(config), _objective_identity(config))
+    # Recorded from the actual 24bea121/e64 contract with the existing processor
+    # fixture and fixed a/b build receipts. Cover the entire typed identity,
+    # including optimizer membership fields, rather than only three omissions.
+    serialized = json.dumps(contract, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
+    assert hashlib.sha256(serialized).hexdigest() == "ffc08a1573ac2070bebad5a7d4e553ab566932f9e4d327cf7a19f72f26366719"
+    assert asdict(config.rl.optimizer) == original_optimizer
+
+
+@pytest.mark.parametrize(
+    "options",
+    [
+        {"update_policy": "fp32_master", "impl": "fused"},
+        {
+            "name": "adamw_bnb_8bit",
+            "update_policy": "fp32_master",
+            "bnb_min_8bit_size": 8192,
+            "bnb_fp32_state_names": ["layer.lora_A.weight"],
+        },
+    ],
+)
+def test_explicit_optimizer_policy_remains_in_serialized_contract(options):
+    from cosmos_framework.posttrain.config.rl import OptimizerConfig
+    from cosmos_framework.posttrain.utils.identity import canonical_config_value
+
+    config = make_config()
+    config.rl.optimizer = OptimizerConfig(**options)
+    _, training = sft._adapter_run_contract(config, _packer(config), _objective_identity(config))
+    # Serialization must not erase an explicit policy; this does not admit that
+    # policy for Qwen training or bypass the separate native capability guard.
+    assert training["optimizer"] == canonical_config_value(config.rl.optimizer)
 
 
 def test_adapter_contract_forwards_verified_source_and_preserves_helper_result(

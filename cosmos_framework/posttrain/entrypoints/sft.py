@@ -218,10 +218,21 @@ def _adapter_run_contract(
     validation_contract = canonical_config_value(rl.validation)
     if not rl.validation.wts.enabled:
         validation_contract["fields"].pop("wts", None)
+    optimizer_contract = canonical_config_value(rl.optimizer)
+    if (
+        rl.optimizer.update_policy == "parameter"
+        and rl.optimizer.bnb_min_8bit_size == 4096
+        and not rl.optimizer.bnb_fp32_state_names
+    ):
+        # These default-only additions do not change the established direct
+        # optimizer contract. Explicit master/state policies remain identified.
+        fields = optimizer_contract.get("fields", optimizer_contract)
+        for name in ("update_policy", "bnb_min_8bit_size", "bnb_fp32_state_names"):
+            fields.pop(name, None)
     training = normalize_json_dict(
         {
             "objective": objective_identity,
-            "optimizer": canonical_config_value(rl.optimizer),
+            "optimizer": optimizer_contract,
             "schedule": canonical_config_value(rl.lr_schedule),
             "max_steps": rl.max_steps,
             "seed": rl.seed,
