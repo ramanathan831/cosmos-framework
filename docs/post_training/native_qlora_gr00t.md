@@ -57,6 +57,13 @@ this isolated integration checkout. They cover real fused-master DCP recovery, p
 and unused parameters, next-update equality, malformed state rejection,
 post-commit rollback, replacement lifetime without forced garbage collection,
 and fresh-process checkpoint/portable reload with bitsandbytes unavailable.
+Review followups require the initial and all scheduled evaluations in resumed
+history while allowing saves between evaluations and extra pause/termination
+scores (**104 affected tests passed**). They also reject checksum-valid opaque
+payloads with nonfinite floating moments/scales or invalid per-parameter clocks
+before backend allocation (**79 affected tests passed**). Lazy/unused state and
+clocks below the global update remain valid. The latter checks use bounded host
+tensor slices and leave the separately maintained backend/master sources unchanged.
 These are lifecycle tests, not eight-bit kernel, memory, quality or performance
 qualification. Those claims require a dedicated paired base-precision ×
 optimizer-precision accelerator comparison against the unchanged fused baseline.

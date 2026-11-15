@@ -19,7 +19,11 @@ from torch import nn
 
 from cosmos_framework.posttrain.algorithm.primitives.objective import Objective, Reduction
 from cosmos_framework.posttrain.checkpoint.adapter import publish_adapter_artifact, read_adapter_metadata
-from cosmos_framework.posttrain.checkpoint.master_optimizer import _deserialize_rank_state, _serialize_tensor_rank_state
+from cosmos_framework.posttrain.checkpoint.master_optimizer import (
+    _deserialize_rank_state,
+    _serialize_tensor_rank_state,
+    _validate_update_controls,
+)
 from cosmos_framework.posttrain.config.action_sft import ACTION_MASTER_OPTIMIZER_PROFILE, ActionSFTConfig
 from cosmos_framework.posttrain.config.build import build_optimizer
 from cosmos_framework.posttrain.config.rl import OptimizerConfig
@@ -172,7 +176,19 @@ def test_fused_master_ownership_preserves_direct_adamw_updates_and_default_ident
         master.opt.zero_grad()
 
 
-@pytest.mark.parametrize("damage", ["identity", "moment_dtype", "checksum", "model_master"])
+@pytest.mark.parametrize(
+    "damage",
+    [
+        "identity",
+        "moment_dtype",
+        "checksum",
+        "model_master",
+        "future_step",
+        "negative_step",
+        "fractional_step",
+        "nan_moment",
+    ],
+)
 def test_opaque_optimizer_corruption_is_rejected_before_model_mutation(tmp_path, monkeypatch, damage):
     source, cursor = make_trainer()
     step(source, cursor)
@@ -195,6 +211,12 @@ def test_opaque_optimizer_corruption_is_rejected_before_model_mutation(tmp_path,
                 elif damage == "moment_dtype":
                     item = next(iter(state["backend"]["state"].values()))
                     item["exp_avg"] = item["exp_avg"].bfloat16()
+                elif damage in ("future_step", "negative_step", "fractional_step", "nan_moment"):
+                    item = next(iter(state["backend"]["state"].values()))
+                    if damage == "nan_moment":
+                        item["exp_avg"].fill_(float("nan"))
+                    else:
+                        item["step"].fill_({"future_step": 999, "negative_step": -1, "fractional_step": 0.5}[damage])
                 else:
                     state["masters"][0].add_(1)
                 target["ranks"]["0"] = _serialize_tensor_rank_state(state)
@@ -204,6 +226,36 @@ def test_opaque_optimizer_corruption_is_rejected_before_model_mutation(tmp_path,
     with pytest.raises(ValueError):
         live.load(str(checkpoint))
     assert_state_equal(snapshot(live), before)
+
+
+@pytest.mark.parametrize("clock", [0, 1, 3])
+def test_opaque_controls_accept_lazy_and_late_parameter_updates(clock):
+    # A codec schema test, not a bitsandbytes kernel test. Native dtype/mapping
+    # checks still run in the real backend after this control admission.
+    state = {
+        "backend": {
+            "state": {
+                0: {},
+                1: {"step": clock, "state1": torch.arange(8, dtype=torch.uint8), "absmax1": torch.ones(2)},
+                2: {"step": torch.tensor(float(clock)), "exp_avg": torch.zeros(4)},
+            }
+        }
+    }
+    _validate_update_controls(state, optimizer_step=3)
+    _validate_update_controls({"backend": {"state": {}}}, optimizer_step=0)
+
+
+@pytest.mark.parametrize("clock", [True, -1, 4, 0.5, torch.tensor(float("nan")), torch.tensor(float("inf"))])
+def test_opaque_controls_reject_invalid_adam_or_bnb_clocks(clock):
+    with pytest.raises(ValueError, match="clock"):
+        _validate_update_controls({"backend": {"state": {0: {"step": clock}}}}, optimizer_step=3)
+
+
+@pytest.mark.parametrize("name", ["absmax1", "absmax2", "state1", "state2", "qmap1"])
+def test_opaque_controls_reject_nonfinite_floating_moments_and_scales(name):
+    state = {"backend": {"state": {0: {"step": 1, name: torch.tensor([0.0, float("inf")])}}}}
+    with pytest.raises(ValueError, match="nonfinite"):
+        _validate_update_controls(state, optimizer_step=3)
 
 
 @pytest.mark.parametrize("corruption", ["cursor", "history", "rng", "scheduler", "lr", "metadata"])

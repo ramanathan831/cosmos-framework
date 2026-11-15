@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import hashlib
 import io
+import math
 from copy import deepcopy
 from traceback import clear_frames
 
@@ -99,7 +100,45 @@ def optimizer_payload(optimizer):
     }
 
 
-def staged_optimizer(manager, path, optimizer):
+def _validate_update_controls(saved, optimizer_step):
+    """Bound each lazy parameter clock and reject nonfinite serialized moments.
+
+    State can be absent for unused parameters, and a parameter first used late
+    has fewer updates than the learner. Neither condition permits a clock ahead
+    of the committed learner. Check host tensors in bounded slices before any
+    replacement backend allocation or live mutation.
+    """
+    if type(optimizer_step) is not int or optimizer_step < 0:
+        raise ValueError("master optimizer requires a nonnegative committed update clock")
+    backend = saved.get("backend") if isinstance(saved, dict) else None
+    states = backend.get("state") if isinstance(backend, dict) else None
+    if not isinstance(states, dict):
+        raise ValueError("master optimizer is missing its backend state mapping")
+    for state in states.values():
+        if not isinstance(state, dict):
+            raise ValueError("master optimizer parameter state must be a dictionary")
+        if not state:
+            continue
+        clock = state.get("step")
+        if isinstance(clock, torch.Tensor):
+            if clock.device.type != "cpu" or clock.dtype != torch.float32 or clock.ndim != 0:
+                raise ValueError("master optimizer has an invalid scalar update clock")
+            clock = float(clock.item())
+        elif type(clock) is not int:
+            raise ValueError("master optimizer has an invalid integer update clock")
+        if clock < 0 or clock > optimizer_step or not math.isfinite(clock) or int(clock) != clock:
+            raise ValueError("master optimizer parameter clock is outside the committed update range")
+        for name, tensor in state.items():
+            if not isinstance(tensor, torch.Tensor) or not tensor.is_floating_point():
+                continue
+            if tensor.device.type != "cpu" or not tensor.is_contiguous():
+                raise ValueError(f"master optimizer {name} must be a contiguous host snapshot")
+            for chunk in tensor.view(-1).split(1024 * 1024):
+                if not torch.isfinite(chunk).all():
+                    raise ValueError(f"master optimizer {name} contains nonfinite values")
+
+
+def staged_optimizer(manager, path, optimizer, *, optimizer_step):
     target = {"format": "", "world_size": 0, "ranks": {str(optimizer.identity["rank"]): b""}}
     try:
         if optimizer.identity["world_size"] == 1:
@@ -115,6 +154,7 @@ def staged_optimizer(manager, path, optimizer):
             if target["world_size"] != optimizer.identity["world_size"]:
                 raise ValueError("master optimizer checkpoint format/topology mismatch")
             saved = _deserialize_rank_state(target["ranks"][str(optimizer.identity["rank"])], target["format"])
+            _validate_update_controls(saved, optimizer_step)
             return optimizer.stage_state_dict(saved)
 
         return run_rank_converged(stage, "master optimizer restore staging")
@@ -154,7 +194,7 @@ def _stage_restore(trainer, path):
         if control is None:
             raise ValueError("master optimizer resume requires trainer control state")
         run_rank_converged(lambda: trainer._validate_objective_identity(control), "master restore objective")
-        replacement = staged_optimizer(manager, path, optimizer)
+        replacement = staged_optimizer(manager, path, optimizer, optimizer_step=control["optimizer_step"])
         if codec is not None and trainer.lr_scheduler is not None:
             if control["lr_scheduler"]["_last_lr"] != [g["lr"] for g in replacement[1].param_groups]:
                 raise ValueError("checkpoint scheduler and optimizer learning rates disagree")
