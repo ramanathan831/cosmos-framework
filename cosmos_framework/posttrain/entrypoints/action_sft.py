@@ -280,9 +280,11 @@ def validate_resume_data(source, rl, data_state, trainer_state):
         raise ValueError("action SFT resume requires complete data/evaluation state")
     if state["format"] != "action-sft-state-v1":
         raise ValueError("unsupported action SFT data state")
+    step = trainer_state.get("optimizer_step")
+    if type(step) is not int or not 0 <= step <= rl.max_steps:
+        raise ValueError("action SFT resume update is outside the declared training horizon")
     probe = IndexedCursor(source, shuffle=True, seed=rl.seed, cursor_resume="strict", label="action SFT")
     probe.load_state_dict(state["cursor"])
-    step = trainer_state["optimizer_step"]
     if probe.consumed != step * rl.micro_batch_size:
         raise ValueError("action SFT resumed cursor and optimizer clock disagree")
     previous = -1

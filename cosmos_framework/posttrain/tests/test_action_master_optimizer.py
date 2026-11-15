@@ -329,6 +329,32 @@ def test_history_admits_initial_save_between_scores_and_extra_boundaries(tmp_pat
     assert_state_equal(snapshot(live), before)
 
 
+@pytest.mark.parametrize("step", [-1, 301, 10**30, True])
+def test_resume_horizon_refusal_precedes_cursor_and_history_expansion(step):
+    source = _Source(Dataset())
+    rl = ActionSFTConfig(max_steps=300)
+    state = collect_rank_state({"format": "action-sft-state-v1", "cursor": None, "evaluation": []})
+    with pytest.raises(ValueError, match="outside the declared training horizon"):
+        validate_resume_data(source, rl, state, {"optimizer_step": step})
+
+
+@pytest.mark.parametrize("step", [0, 300])
+def test_resume_horizon_includes_initial_and_final_completed_updates(step):
+    source = _Source(Dataset())
+    rl = ActionSFTConfig(max_steps=300, evaluation_every=100)
+    cursor = IndexedCursor(source, shuffle=True, seed=rl.seed, cursor_resume="strict", label="action SFT")
+    for _ in range(step):
+        cursor.next_index()
+    state = collect_rank_state(
+        {
+            "format": "action-sft-state-v1",
+            "cursor": cursor.state_dict(),
+            "evaluation": [{"step": update, "metrics": {"loss": 0.25}} for update in range(0, step + 1, 100)],
+        }
+    )
+    validate_resume_data(source, rl, state, {"optimizer_step": step})
+
+
 def test_commit_failure_rolls_back_and_releases_replacement_without_gc(tmp_path, monkeypatch):
     source, cursor = make_trainer()
     for _ in range(3):
