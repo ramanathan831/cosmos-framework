@@ -138,7 +138,9 @@ def test_eight_bit_reaches_backend_with_identical_groups(name):
 
 
 @CUDA
-def test_dcp_exact_resume_and_transactional_rejection(tmp_path):
+def test_dcp_exact_resume_and_transactional_rejection(tmp_path, monkeypatch):
+    # Memory reporting runs on the first step and must not alter resume identity.
+    monkeypatch.setenv("COSMOS_OPTIMIZER_STATE_REPORT", "1")
     model = _Model("cuda")
     container = build_optimizer(model, "adamw_bnb_8bit", **deepcopy(KWARGS))
     scheduler = _scheduler(container)

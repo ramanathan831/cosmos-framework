@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: OpenMDW-1.1
 
 import collections
+import json
+import os
 import copy
 import math
 import re
@@ -666,6 +668,11 @@ class OptimizersContainer(Stateful):
         # the Muon/Dion2 step paths, which is deliberately not supported.
         for optimizer in self.optimizers:
             optimizer.step()
+        if not getattr(self, "_state_reported", False) and os.environ.get("COSMOS_OPTIMIZER_STATE_REPORT"):
+            # Opt-in, once: initialized optimizer-owned bytes per rank for memory accounting.
+            self._state_reported = True
+            rank = torch.distributed.get_rank() if torch.distributed.is_initialized() else 0
+            log.info(f"optimizer_state_report rank={rank} {json.dumps(self.state_report(), default=str)}", rank0_only=False)
 
     def zero_grad(self, set_to_none: bool = True) -> None:
         # Default matches ``torch.optim.Optimizer.zero_grad`` (set_to_none=True
@@ -677,7 +684,8 @@ class OptimizersContainer(Stateful):
     def state_report(self) -> dict[str, Any]:
         """Initialized optimizer-owned tensor bytes on this rank (moments, scales, masters)."""
         if self.rank_local_checkpoint:
-            report = self.optimizers[0].state_report()
+            # The backend report embeds live identity dicts; never mutate them.
+            report = copy.deepcopy(self.optimizers[0].state_report())
             report.pop("master_identity", None)
             report.get("backend", {}).pop("groups", None)
             return report
