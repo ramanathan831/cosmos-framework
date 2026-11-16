@@ -141,3 +141,5 @@ class JointUpdateReceipt(TypedDict):
     optimizer_metrics: list[dict[str, float]]
     learning_rates: dict[str, float]
     parameter_update_l2: dict[str, float]
+    # Rank-ordered CUDA caching-allocator receipts; None off-device.
+    cuda_allocator: list[dict[str, Any]] | None

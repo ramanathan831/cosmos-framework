@@ -176,6 +176,13 @@ class MasterWeightOptimizer(torch.optim.Optimizer):
         result = self.backend.step()
         for p, m in zip(self.live, self.masters):
             local_tensor(p).copy_(m)
+            if p.dtype != torch.float32:
+                # FP32 staging is consumed by this step and is not recovery state.
+                # Holding it until the next window's zero_grad keeps a full FP32
+                # gradient copy (2x the BF16 trainables) alive through weight sync,
+                # rollout and target preparation. FP32 parameters alias their own
+                # gradient, which the trainer still owns, so only true copies go.
+                m.grad = None
         self._refresh_state()
         if len(self.state) != self._reported_states:
             import logging

@@ -163,8 +163,14 @@ class JointPPOTrainer(PPOTrainableRole):
                     "scope": "learner_context_since_creation; excludes managed allocations and other processes",
                     "allocated_bytes": torch.cuda.memory_allocated(device),
                     "reserved_bytes": torch.cuda.memory_reserved(device),
-                    "peak_allocated_bytes": torch.cuda.max_memory_allocated(device),
-                    "peak_reserved_bytes": torch.cuda.max_memory_reserved(device),
+                    "peak_allocated_bytes": max(
+                        torch.cuda.max_memory_allocated(device),
+                        getattr(self, "_allocator_lifetime_peaks", {}).get("allocated_bytes.all.peak", 0),
+                    ),
+                    "peak_reserved_bytes": max(
+                        torch.cuda.max_memory_reserved(device),
+                        getattr(self, "_allocator_lifetime_peaks", {}).get("reserved_bytes.all.peak", 0),
+                    ),
                 }
             return report
         return None
@@ -424,6 +430,13 @@ class JointPPOTrainer(PPOTrainableRole):
             optimizer_metrics.append(dict(metrics))
             return metrics
 
+        pre_update_allocator = _cuda_allocator_window(self.model.net, reset=True)
+        if pre_update_allocator is not None:
+            # Peaks restart per update; keep the since-creation maxima optimizer_memory reports.
+            self._allocator_lifetime_peaks = {
+                key: max(pre_update_allocator[key], getattr(self, "_allocator_lifetime_peaks", {}).get(key, 0))
+                for key in ("allocated_bytes.all.peak", "reserved_bytes.all.peak")
+            }
         with self._parameter_state(clone=True) as before:
             result = run_ppo_batch_update(
                 role="policy",
@@ -442,7 +455,10 @@ class JointPPOTrainer(PPOTrainableRole):
                 changes = torch.zeros(2, device=next(self.model.net.parameters()).device, dtype=torch.float64)
                 for name in before:
                     group = int(name in self.model.ppo_parameters.value)
-                    changes[group] += (after[name].float() - before[name].float()).square().double().sum()
+                    # The snapshot is host-resident; bring one tensor back at a time.
+                    previous = before[name].to(after[name].device, non_blocking=False)
+                    changes[group] += (after[name].float() - previous.float()).square().double().sum()
+                    del previous
                 if dist.is_initialized():
                     dist.all_reduce(changes)
                 if not bool(torch.isfinite(changes).all()) or not bool((changes > 0).all()):
@@ -455,14 +471,21 @@ class JointPPOTrainer(PPOTrainableRole):
                     "optimizer_metrics": optimizer_metrics,
                     "learning_rates": {group["name"]: float(group["lr"]) for group in self.opt.param_groups},
                     "parameter_update_l2": dict(zip(("actor", "value"), changes.sqrt().tolist(), strict=True)),
+                    "cuda_allocator": _gather_allocator_receipt(
+                        pre_update_allocator, _cuda_allocator_window(self.model.net, reset=False)
+                    ),
                 }
 
     @contextmanager
     def _parameter_state(self, *, clone: bool = False) -> Iterator[dict[str, torch.Tensor]]:
         """Read public local shards at an update boundary, never forward-time FSDP parameters.
 
-        Only a cloned pre-update state may span later forwards. Both raw state-dict
-        bindings and detached views are released on exit, even with a retained traceback.
+        Only a cloned pre-update state may span later forwards. That clone is a
+        diagnostic (it proves both groups changed), so it lives in host memory: keeping
+        a full copy of every local shard on the device through forward/backward costs
+        the same order of memory as the optimizer moments themselves. Both raw
+        state-dict bindings and detached views are released on exit, even with a
+        retained traceback.
         Failed readers release completed traceback locals while retaining the exception chain.
         """
         from traceback import clear_frames
@@ -477,7 +500,7 @@ class JointPPOTrainer(PPOTrainableRole):
             state = get_model_state_dict(self.model.net)
             for name, value in state.items():
                 value = (value.to_local() if isinstance(value, DTensor) else value).detach()
-                local[name] = value.clone() if clone else value
+                local[name] = value.to("cpu", copy=True) if clone else value
             # The cloned branch must not carry borrowed bindings through the update.
             value = None
             state.clear()
@@ -507,3 +530,48 @@ class JointPPOTrainer(PPOTrainableRole):
         self.abort_update_window()
         self._ppo_cache.abort(batch_id)
         self._global_ids, self.model.ppo_padding = (), None
+
+
+_ALLOCATOR_FIELDS = (
+    "allocated_bytes.all.current",
+    "reserved_bytes.all.current",
+    "allocated_bytes.all.peak",
+    "reserved_bytes.all.peak",
+    "inactive_split_bytes.all.current",
+    "inactive_split_bytes.all.peak",
+    "num_alloc_retries",
+    "num_ooms",
+)
+
+
+def _cuda_allocator_window(net: torch.nn.Module, *, reset: bool) -> dict[str, int] | None:
+    """This rank's caching-allocator counters; optionally start a new peak window.
+
+    ``inactive_split_bytes`` is cached memory inside partially used segments, i.e. the
+    fragmentation that a later large request cannot use. Managed (paged) optimizer
+    state is outside the caching allocator and therefore excluded.
+    """
+    parameter = next(net.parameters(), None)
+    if parameter is None or not parameter.is_cuda:
+        return None
+    device = parameter.device
+    stats = torch.cuda.memory_stats(device)
+    receipt = {key: int(stats.get(key, 0)) for key in _ALLOCATOR_FIELDS}
+    receipt["device_free_bytes"], receipt["device_total_bytes"] = (int(v) for v in torch.cuda.mem_get_info(device))
+    if reset:
+        torch.cuda.reset_peak_memory_stats(device)
+    return receipt
+
+
+def _gather_allocator_receipt(before: dict | None, after: dict | None) -> list[dict] | None:
+    """Rank-ordered allocator receipts, identical on every rank so update results still agree.
+
+    ``before`` peaks cover the phases since the previous update (collection, weight sync,
+    target preparation); ``after`` peaks cover only this update's forward/backward/step.
+    """
+    local = None if after is None else {"before_update": before, "after_update": after}
+    if not dist.is_initialized() or dist.get_world_size() == 1:
+        return None if local is None else [local]
+    gathered = gather_rank_states(local, context="joint PPO allocator receipt")
+    values = [gathered[rank] for rank in sorted(gathered)]
+    return None if all(value is None for value in values) else values
