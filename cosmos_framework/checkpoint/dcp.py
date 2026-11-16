@@ -964,6 +964,20 @@ class DistributedCheckpointer(AbstractCheckpointer):
                             f"Unexpected keys (found in checkpoint but not in model): {results.unexpected_keys}"
                         )
 
+                elif key == "optim" and getattr(optimizer, "rank_local_checkpoint", False):
+                    # Rank-owned opaque payloads (eight-bit moments, scales, masters): each rank
+                    # reads only its own key. The dedup planner would elect one reader and
+                    # broadcast, which is wrong for rank-unique state; partial load is refused.
+                    log.info("- Loading the rank-local optimizer...")
+                    _state_dict = optimizer.checkpoint_load_template()
+                    dcp.load(
+                        _state_dict,
+                        storage_reader=storage_reader,
+                        planner=dcp.DefaultLoadPlanner(allow_partial_load=False),
+                        no_dist=True,
+                    )
+                    optimizer.load_state_dict(_state_dict)
+
                 elif key == "optim":
                     log.info("- Loading the optimizer...")
                     _state_dict = optimizer.state_dict()
@@ -1287,6 +1301,8 @@ class DistributedCheckpointer(AbstractCheckpointer):
             iteration (int): Current iteration number.
         """
         if self.async_mode == AsyncMode.ASYNC_WITH_PINNED_MEM:
+            if getattr(optimizer, "rank_local_checkpoint", False):
+                raise ValueError("rank-local quantized optimizer checkpoints require synchronous DCP saves")
             self._wait_for_previous_async_checkpoint()
 
         if self.callbacks is not None:
