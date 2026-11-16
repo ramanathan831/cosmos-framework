@@ -22,6 +22,7 @@ export EVALUATE_ONLY="${EVALUATE_ONLY:-0}"
 export TRAINING_SEED="${TRAINING_SEED:-17}" CHECKPOINT_EVERY="${CHECKPOINT_EVERY:-4}" VALIDATION_EVERY="${VALIDATION_EVERY:-4}"
 export CO_RESIDENT_GIB="${CO_RESIDENT_GIB:-0}"
 export SUITE="${SUITE:-libero_spatial}" EVAL_PROFILE="${EVAL_PROFILE:-legacy_100}" GR00T_MODEL_DIR="${GR00T_MODEL_DIR:-}"
+export RECIPE_PROFILE="${RECIPE_PROFILE:-public_4gpu}" NODE_GPUS="${SLURM_GPUS_ON_NODE:-4}"
 export NATIVE_OUTPUT_ROOT="${NATIVE_OUTPUT_ROOT:-}"
 if [ -n "$NATIVE_OUTPUT_ROOT" ] && { [ -z "$RESUME_CHECKPOINT" ] || [ "$EVALUATE_ONLY" = 1 ]; }; then
  echo 'NATIVE_OUTPUT_ROOT is only for explicit same-attempt training resume' >&2
@@ -38,7 +39,7 @@ for lib in libEGL.so.1 libGLdispatch.so.0 libOpenGL.so.0; do
 done
 export NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics,display
 srun --kill-on-bad-exit=1 --container-image="$CONTAINER_IMAGE" --container-mounts="$mounts" \
- --container-env=SOURCE_ARCHIVE,RESULTS,RESOURCE_ROOT,MODEL_PYTHON,SIM_PYTHON,NVIDIA_DRIVER_CAPABILITIES,SLURM_LOG_DIR,OPTIMIZER_NAME,RESUME_CHECKPOINT,UPDATES,EVALUATE_ONLY,NATIVE_OUTPUT_ROOT,TRAINING_SEED,CHECKPOINT_EVERY,VALIDATION_EVERY,CO_RESIDENT_GIB,SUITE,EVAL_PROFILE,GR00T_MODEL_DIR \
+ --container-env=SOURCE_ARCHIVE,RESULTS,RESOURCE_ROOT,MODEL_PYTHON,SIM_PYTHON,NVIDIA_DRIVER_CAPABILITIES,SLURM_LOG_DIR,OPTIMIZER_NAME,RESUME_CHECKPOINT,UPDATES,EVALUATE_ONLY,NATIVE_OUTPUT_ROOT,TRAINING_SEED,CHECKPOINT_EVERY,VALIDATION_EVERY,CO_RESIDENT_GIB,SUITE,EVAL_PROFILE,GR00T_MODEL_DIR,RECIPE_PROFILE,NODE_GPUS \
  --container-workdir=/tmp --container-writable bash -c '
 set -euo pipefail
 source_dir=$(mktemp -d /tmp/optimizer-gr00t.XXXXXX)
@@ -53,7 +54,7 @@ export POSTTRAIN_SIM_PYTHONPATH="$source_dir"
 export HF_HOME="$RESULTS/hf" HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 WANDB_MODE=disabled
 export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NO_ALBUMENTATIONS_UPDATE=1 TOKENIZERS_PARALLELISM=false
 export MUJOCO_GL=egl PYOPENGL_PLATFORM=egl GR00T_DIT_SDPA_MODE=math CUBLAS_WORKSPACE_CONFIG=:4096:8
-export GPUS_PER_NODE=4
+export GPUS_PER_NODE="$NODE_GPUS"
 export LIBERO_MANIFEST_ROOT="$RESULTS/manifests" LIBERO_CONFIG_PATH="$RESULTS/libero-config"
 export POSTTRAIN_SIM_PYTHON="$SIM_PYTHON"
 export RAY_TMPDIR=/tmp/optim-ray B1K_SIM_IPC_DIR=/tmp/optim-sim B1K_SHM_DIR=/tmp/optim-shm
@@ -64,7 +65,7 @@ cd "$source_dir"
 nvidia-smi --query-gpu=name,memory.total,uuid,pci.bus_id,driver_version --format=csv > "$RESULTS/devices.csv"
 extra=()
 if [ "$EVALUATE_ONLY" = 1 ]; then extra+=(--evaluate-only); fi
-if [ "$SUITE" != libero_spatial ]; then extra+=(--suite "$SUITE" --eval-profile "$EVAL_PROFILE" --model-dir "$GR00T_MODEL_DIR"); fi
+if [ "$SUITE" != libero_spatial ]; then extra+=(--suite "$SUITE" --eval-profile "$EVAL_PROFILE" --model-dir "$GR00T_MODEL_DIR" --recipe-profile "$RECIPE_PROFILE"); fi
 python -m tools.quantized_optimizers.gr00t_native --optimizer "$OPTIMIZER_NAME" --resume "$RESUME_CHECKPOINT" --updates "$UPDATES" \
  --seed "$TRAINING_SEED" --checkpoint-every "$CHECKPOINT_EVERY" --validation-every "$VALIDATION_EVERY" \
  --co-resident-gib "$CO_RESIDENT_GIB" "${extra[@]}"

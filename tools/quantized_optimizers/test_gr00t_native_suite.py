@@ -106,3 +106,14 @@ def test_libero10_requires_pinned_snapshot_directory(tmp_path):
     )
     with pytest.raises(ValueError, match="40x132"):
         model_directory(_args(suite="libero_10", model_dir=str(directory)), tmp_path)
+
+
+def test_libero10_native_profile_selects_native_recipe(tmp_path):
+    from tools.quantized_optimizers.gr00t_native import LIBERO10_NATIVE_CONFIG
+
+    directory = _libero10(tmp_path)
+    args = _args(suite="libero_10", model_dir=str(directory), optimizer="adamw", recipe_profile="native")
+    command, _ = native_command(args, model_directory(args, tmp_path), tmp_path / "manifests")
+    assert command[-1] == LIBERO10_NATIVE_CONFIG
+    command, _ = native_command(_args(recipe_profile="public_4gpu"), tmp_path / "assets/model", tmp_path)
+    assert command[-1] == SUITE_CONFIGS["libero_spatial"]

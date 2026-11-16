@@ -72,6 +72,8 @@ SUITE_CONFIGS = {
     "libero_spatial": "cosmos_framework/posttrain/configs/gr00t_n1d7_libero_quantized_optimizer.py",
     "libero_10": "cosmos_framework/posttrain/configs/gr00t_n1d7_libero10_quantized_optimizer.py",
 }
+# LIBERO-10 on its unchanged native Joint PPO profile (8 envs, 4 updates per 128-decision window).
+LIBERO10_NATIVE_CONFIG = "cosmos_framework/posttrain/configs/gr00t_n1d7_libero10_quantized_optimizer_native.py"
 
 
 def model_directory(args, assets):
@@ -173,6 +175,7 @@ def main():
     parser.add_argument("--suite", choices=tuple(SUITE_CONFIGS), default="libero_spatial")
     parser.add_argument("--eval-profile", default="legacy_100")
     parser.add_argument("--model-dir", default="", help="LIBERO-10 only: pinned snapshot libero_10 directory")
+    parser.add_argument("--recipe-profile", choices=("public_4gpu", "native"), default="public_4gpu")
     args = parser.parse_args()
     if min(args.updates, args.checkpoint_every, args.validation_every) < 1:
         parser.error("updates and checkpoint/validation intervals must be positive")
@@ -180,7 +183,9 @@ def main():
         parser.error("co-resident GiB must be nonnegative")
     if args.evaluate_only and not args.resume:
         parser.error("--evaluate-only requires --resume")
-    if args.suite == "libero_spatial" and (args.eval_profile != "legacy_100" or args.model_dir):
+    if args.suite == "libero_spatial" and (
+        args.eval_profile != "legacy_100" or args.model_dir or args.recipe_profile != "public_4gpu"
+    ):
         parser.error("LIBERO-Spatial keeps its legacy_100 profile and approved model copy")
     root, output = Path(os.environ["RESOURCE_ROOT"]), Path(os.environ["RESULTS"])
     if args.source_only:
@@ -198,7 +203,7 @@ def native_command(args, model, manifests):
         "-m",
         "cosmos_framework.posttrain.entrypoints.joint_ppo",
         "--config",
-        SUITE_CONFIGS[suite],
+        LIBERO10_NATIVE_CONFIG if getattr(args, "recipe_profile", "public_4gpu") == "native" else SUITE_CONFIGS[suite],
     ]
     if args.evaluate_only:
         command.append("--evaluate-only")

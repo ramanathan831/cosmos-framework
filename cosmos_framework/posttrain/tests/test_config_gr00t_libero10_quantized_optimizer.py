@@ -112,3 +112,24 @@ def test_spatial_quantized_recipe_is_unchanged():
     assert config.environment.config.eval_profile == "legacy_100"
     assert config.model.execution_horizon == 16
     assert config.job.name == "gr00t_n1d7_libero_quantized_optimizer"
+
+
+def test_libero10_native_profile_keeps_native_window_minibatch_and_hyperparameters(tmp_path):
+    from cosmos_framework.posttrain.config.rl import JointPPOConfig
+    from cosmos_framework.utils.lazy_config import instantiate
+
+    native = "cosmos_framework/posttrain/configs/gr00t_n1d7_libero10_quantized_optimizer_native.py"
+    config = _load(native, tmp_path, "aligned_200", "rl.optimizer.name=adamw", "rl.optimizer.impl=fused")
+    validate_joint_ppo_config(config, 8)
+    recipe, default = instantiate(config.rl), JointPPOConfig()
+    assert (recipe.num_envs, recipe.window_decisions, recipe.global_minibatch, recipe.microbatch) == (
+        default.num_envs,
+        default.window_decisions,
+        default.global_minibatch,
+        default.microbatch,
+    ) == (8, 16, 32, 2)
+    assert recipe.decisions // recipe.global_minibatch == 4
+    assert recipe.optimizer.update_policy == "fp32_master" and recipe.optimizer.impl == "fused"
+    for name in ("lr", "betas", "eps", "weight_decay", "grad_clip_norm"):
+        assert getattr(recipe.optimizer, name) == getattr(default.optimizer, name)
+    assert recipe.value_lr == default.value_lr
