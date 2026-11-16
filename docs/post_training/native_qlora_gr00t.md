@@ -141,6 +141,40 @@ own-200-to-300 recovery before promotion. Cache-enabled eight-bit operation,
 eight-bit-trained dense exports and broader task/seed claims need their own
 qualification. The main family recipe and its optimizer remain unchanged.
 
+The predefined cache-OFF **300-update factorial screen then passed its screen
+thresholds** (job `38653218`, one A100 80GB, **3,584 GPU-seconds**, native
+`1af7d04`, seed 17, all 160 development rows every 100 updates). Every cell
+reached the fixed 0.04956 normalized-action-MSE target at update 200, and all
+artifact audits and fresh portable reloads passed.
+
+| Base | Optimizer | MSE @0 / 100 / 200 / 300 | Owned GPU peak (GiB) | Training / workflow (s) | Time to target (s) |
+|---|---|---|---:|---:|---:|
+| BF16 | fused FP32 AdamW | 0.05507 / 0.05546 / 0.04436 / 0.04244 | 31.516 | 134.8 / 566.9 | 417.5 |
+| NF4 | fused FP32 AdamW | 0.05565 / 0.05087 / 0.04302 / 0.04154 | 30.412 | 147.4 / 606.6 | 450.1 |
+| BF16 | nonpaged 8-bit AdamW | 0.05507 / 0.05542 / 0.04500 / 0.04393 | 22.291 | 186.0 / 651.0 | 477.2 |
+| NF4 | nonpaged 8-bit AdamW | 0.05565 / 0.05104 / 0.04237 / 0.04262 | 21.184 | 194.6 / 721.1 | 505.9 |
+
+Within each base, eight-bit AdamW lowered the sampled owned-GPU workflow peak by
+29.3% (BF16) and 30.3% (NF4), above the prospective 20% floor. Its final
+task/episode-balanced MSE was 1.035× (BF16) and 1.026× (NF4) of the direct
+optimizer, within the prospective 1.05× bound. Against the configuration users
+run today (BF16 base, FP32 AdamW), NF4 with eight-bit AdamW used **32.8% less
+GPU memory (21.18 vs 31.52 GiB)** at a 0.42% higher update-300 MSE.
+
+The optimizer is not free: eight-bit AdamW lengthened the training stage by 38%
+(BF16) and 32% (NF4), and the complete workflow by 14.8% and 18.9%. NF4 with
+eight-bit AdamW took 27.2% longer end to end than BF16 with FP32 AdamW, and
+reached the target 88 seconds later. Profiling that update cost is the next
+performance step.
+
+This is one exposed development seed with no confidence interval, rollout, or
+independent-data result. `recipe_promoted` remains false: promotion still needs
+the declared own-200-to-300 recovery for the selected eight-bit recipe and
+paired-seed quality evidence under the existing 5% offline-MSE and 2-point
+rollout guards. Receipts: `gr00t-optimizer-development-38653218-receipts-v1`
+(SHA-256 `75fc7532c1a866b73c167141e41c620203c52eb5a640f116a4c5594cc67175c3`,
+258 files).
+
 The initial architecture is `nvidia/GR00T-N1.7-LIBERO` at
 `2ea293aa20ba7cf5bbf3ba17a5fbcb1a01cbfe21`, LIBERO-spatial policy, with the checkpoint's
 16 retained Cosmos-Reason2-2B language layers, 2048 hidden width and 40 × 132 action head.
