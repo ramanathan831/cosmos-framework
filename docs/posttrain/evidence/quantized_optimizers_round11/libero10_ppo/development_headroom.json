@@ -27,6 +27,10 @@
     "fused_baseline_learning": "FAIL: fused AdamW collapses to 45.0% at update 80 (-91 of 200 episodes); episode length +69%",
     "consequence": "No protocol lock, 8-bit run or optimizer comparison admitted on this recipe; an 8-bit arm cannot show equal-resource improvement over a baseline that degrades the policy."
   },
-  "recipe_note": "This 4-GPU profile copies the LIBERO-Spatial public 4-GPU window/minibatch (4 envs, 1 update per window). The native LIBERO-10 recipe defaults to num_envs=8, global_minibatch=32 (4 updates per 128-decision window); the collapse may be specific to this reduced profile. The update-160 evaluation from the same allocation was pending when this was written.",
-  "gpu_hours": "one 4-GPU allocation, 240 min requested; charge from sacct at completion"
+  "recipe_note": "This 4-GPU profile copies the LIBERO-Spatial public 4-GPU window/minibatch (4 envs, 1 update per window). The native LIBERO-10 recipe defaults to num_envs=8, global_minibatch=32 (4 updates per 128-decision window); the collapse may be specific to this reduced profile.",
+  "status": "CANCELLED at coordinator direction after the update-80 collapse (before update 160); retained as a failed development run",
+  "gpu_hours": {
+    "sacct": "38654936 CANCELLED, cluster-local 2026-11-16T12:11:34 to 13:36:33, elapsed 01:24:59, 4 GPUs",
+    "gpu_allocation_hours": 5.666
+  }
 }
