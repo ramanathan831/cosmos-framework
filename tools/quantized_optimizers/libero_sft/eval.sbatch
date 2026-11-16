@@ -13,7 +13,7 @@
 #SBATCH --time=235
 #SBATCH --no-requeue
 set -euo pipefail
-: "${SOURCE_ARCHIVE:?}" "${RESULTS:?}" "${CONTAINER_IMAGE:?}" "${RESOURCE_ROOT:?}" "${SIM_PYTHON:?}" "${SIM_OVERLAY:?}"
+: "${HF_HOME_SHARED:?}" "${SOURCE_ARCHIVE:?}" "${RESULTS:?}" "${CONTAINER_IMAGE:?}" "${RESOURCE_ROOT:?}" "${SIM_PYTHON:?}" "${SIM_OVERLAY:?}"
 : "${CHECKPOINT:?}" "${WAN_VAE_PATH:?}"
 export TRIALS="${TRIALS:-50}" EVAL_SEED="${EVAL_SEED:-0}" TASKS_PER_GPU="${TASKS_PER_GPU:-2}"
 mkdir -p "$RESULTS"
@@ -31,11 +31,11 @@ for lib in libEGL.so.1 libGLdispatch.so.0 libOpenGL.so.0; do
 done
 export NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics,display
 srun --kill-on-bad-exit=1 --container-image="$CONTAINER_IMAGE" --container-mounts="$mounts" \
- --container-env=SOURCE_ARCHIVE,RESULTS,SIM_PYTHON,SIM_OVERLAY,CHECKPOINT,WAN_VAE_PATH,TRIALS,EVAL_SEED,TASKS_PER_GPU,NVIDIA_DRIVER_CAPABILITIES \
+ --container-env=HF_HOME_SHARED,SOURCE_ARCHIVE,RESULTS,SIM_PYTHON,SIM_OVERLAY,CHECKPOINT,WAN_VAE_PATH,TRIALS,EVAL_SEED,TASKS_PER_GPU,NVIDIA_DRIVER_CAPABILITIES \
  --container-workdir=/tmp --container-writable bash -c '
 set -euo pipefail
 src=$(mktemp -d /tmp/l10sft-src.XXXXXX); tar -xzf "$SOURCE_ARCHIVE" -C "$src"; cd "$src"
-export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 HF_HOME="$RESULTS/hf" PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 LD_LIBRARY_PATH=""
+export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 HF_HOME="$HF_HOME_SHARED" PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 LD_LIBRARY_PATH=""
 export MUJOCO_GL=egl PYOPENGL_PLATFORM=egl __EGL_VENDOR_LIBRARY_FILENAMES="$RESULTS/egl.json"
 export OMP_NUM_THREADS=2 NUMBA_CACHE_DIR=/tmp/numba XDG_CACHE_HOME=/tmp/xdg LIBERO_CONFIG_PATH=/tmp/libero-config
 echo "{\"file_format_version\": \"1.0.0\", \"ICD\": {\"library_path\": \"libEGL_nvidia.so.0\"}}" > "$RESULTS/egl.json"

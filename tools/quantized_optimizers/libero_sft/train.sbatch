@@ -13,7 +13,7 @@
 #SBATCH --time=235
 #SBATCH --no-requeue
 set -euo pipefail
-: "${SOURCE_ARCHIVE:?}" "${RESULTS:?}" "${CONTAINER_IMAGE:?}" "${PYDEPS:?}" "${OPTIMIZER:?}" "${SEED:?}"
+: "${HF_HOME_SHARED:?}" "${SOURCE_ARCHIVE:?}" "${RESULTS:?}" "${CONTAINER_IMAGE:?}" "${PYDEPS:?}" "${OPTIMIZER:?}" "${SEED:?}"
 : "${RUN_NAME:?}" "${OUTPUT_ROOT:?}" "${LIBERO_ROOT:?}" "${BASE_CHECKPOINT_PATH:?}" "${WAN_VAE_PATH:?}"
 export MAX_ITER="${MAX_ITER:-2000}" SAVE_ITER="${SAVE_ITER:-250}" EXTRA_OVERRIDES="${EXTRA_OVERRIDES:-}"
 mkdir -p "$RESULTS"
@@ -21,11 +21,11 @@ date -u +%FT%TZ > "$RESULTS/allocation-start.txt"
 scontrol show job "$SLURM_JOB_ID" > "$RESULTS/job.txt"
 trap 'status=$?; echo "$status" > "$RESULTS/exit-code.txt"; date -u +%FT%TZ > "$RESULTS/allocation-end.txt"' EXIT
 srun --kill-on-bad-exit=1 --container-image="$CONTAINER_IMAGE" --container-mounts=/lustre:/lustre \
- --container-env=SOURCE_ARCHIVE,RESULTS,PYDEPS,OPTIMIZER,SEED,RUN_NAME,OUTPUT_ROOT,LIBERO_ROOT,BASE_CHECKPOINT_PATH,WAN_VAE_PATH,MAX_ITER,SAVE_ITER,EXTRA_OVERRIDES \
+ --container-env=HF_HOME_SHARED,SOURCE_ARCHIVE,RESULTS,PYDEPS,OPTIMIZER,SEED,RUN_NAME,OUTPUT_ROOT,LIBERO_ROOT,BASE_CHECKPOINT_PATH,WAN_VAE_PATH,MAX_ITER,SAVE_ITER,EXTRA_OVERRIDES \
  --container-writable bash -c '
 set -euo pipefail
 src=$(mktemp -d /tmp/l10sft-src.XXXXXX); tar -xzf "$SOURCE_ARCHIVE" -C "$src"; cd "$src"
-export PYTHONPATH="$src:$PYDEPS" HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 HF_HOME="$RESULTS/hf" WANDB_MODE=disabled
+export PYTHONPATH="$src:$PYDEPS" HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 HF_HOME="$HF_HOME_SHARED" WANDB_MODE=disabled
 export PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 IMAGINAIRE_OUTPUT_ROOT="$OUTPUT_ROOT" COSMOS_OPTIMIZER_STATE_REPORT=1
 export LD_LIBRARY_PATH="" TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 nvidia-smi --query-gpu=name,memory.total,uuid --format=csv > "$RESULTS/devices.csv"

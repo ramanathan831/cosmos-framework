@@ -11,3 +11,4 @@ export WAN_VAE_PATH=$H/wan22_vae/Wan2.2_VAE.pth
 export RESOURCE_ROOT=$R
 export SIM_PYTHON=$R/cosmos-optimizer-native-20261113/sim-runtime-v1/environment/bin/python
 export SIM_OVERLAY=$W/sim-overlay              # requests/loguru/pynvml for the eval client only
+export HF_HOME_SHARED=$W/hf-home               # offline hub cache: refs/main -> approved local snapshot

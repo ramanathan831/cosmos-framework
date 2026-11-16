@@ -11,17 +11,17 @@
 #SBATCH --time=60
 #SBATCH --no-requeue
 set -euo pipefail
-: "${SOURCE_ARCHIVE:?}" "${RESULTS:?}" "${CONTAINER_IMAGE:?}" "${SNAPSHOT:?}" "${OUTPUT:?}"
+: "${HF_HOME_SHARED:?}" "${SOURCE_ARCHIVE:?}" "${RESULTS:?}" "${CONTAINER_IMAGE:?}" "${SNAPSHOT:?}" "${OUTPUT:?}"
 mkdir -p "$RESULTS"
 date -u +%FT%TZ > "$RESULTS/allocation-start.txt"
 scontrol show job "$SLURM_JOB_ID" > "$RESULTS/job.txt"
 trap 'status=$?; echo "$status" > "$RESULTS/exit-code.txt"; date -u +%FT%TZ > "$RESULTS/allocation-end.txt"' EXIT
 test ! -e "$OUTPUT" || { echo "refusing to overwrite $OUTPUT" >&2; exit 2; }
 srun --kill-on-bad-exit=1 --container-image="$CONTAINER_IMAGE" --container-mounts=/lustre:/lustre \
- --container-env=SOURCE_ARCHIVE,RESULTS,SNAPSHOT,OUTPUT --container-writable bash -c '
+ --container-env=HF_HOME_SHARED,SOURCE_ARCHIVE,RESULTS,SNAPSHOT,OUTPUT --container-writable bash -c '
 set -euo pipefail
 src=$(mktemp -d /tmp/l10sft-src.XXXXXX); tar -xzf "$SOURCE_ARCHIVE" -C "$src"; cd "$src"
-export PYTHONPATH="$src" HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 HF_HOME="$RESULTS/hf" PYTHONDONTWRITEBYTECODE=1
+export PYTHONPATH="$src" HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 HF_HOME="$HF_HOME_SHARED" PYTHONDONTWRITEBYTECODE=1
 python -m cosmos_framework.scripts.convert_model_to_dcp -o "$OUTPUT.partial" --checkpoint-path "$SNAPSHOT" 2>&1 | tee "$RESULTS/convert.log"
 mv "$OUTPUT.partial" "$OUTPUT"
 '
