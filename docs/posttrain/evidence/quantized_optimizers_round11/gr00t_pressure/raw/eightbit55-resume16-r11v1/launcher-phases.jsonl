@@ -1,0 +1,3 @@
+{"phase": "model_preflight", "start_ns": 1794861532308219026, "seconds": 63.800877951000075, "passed": true}
+{"phase": "simulator_preflight", "start_ns": 1794861596110131126, "seconds": 39.38441268400129, "passed": true}
+{"phase": "manifest_validation", "start_ns": 1794861635496498256, "seconds": 16.594384075999187, "passed": true}

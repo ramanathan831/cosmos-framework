@@ -1,0 +1,77 @@
+[
+ {
+  "run": "paged55-resume16-r11v1",
+  "native_returncode": 1,
+  "native_seconds": 999.169500538148,
+  "completed_updates": [
+   17
+  ],
+  "final_summary": null,
+  "mean_update_seconds_excl_first": null,
+  "mean_window_seconds_excl_first": null,
+  "mean_backend_step_ms_excl_first": null,
+  "max_peak_allocated_gib": 10.502827644348145,
+  "max_peak_reserved_gib": 12.96875,
+  "max_peak_inactive_split_gib": 1.806884765625,
+  "sampled_learner_process_peak_mib": {
+   "memory-gpu0": 15446.0,
+   "memory-gpu1": 14882.0,
+   "memory-gpu2": 14882.0,
+   "memory-gpu3": 14862.0
+  },
+  "updates": [
+   {
+    "optimizer_step": 17,
+    "phase_seconds": {
+     "collect_seconds": 30.648066732101142,
+     "targets_seconds": 2.4777249097824097,
+     "update_seconds": 7.652211860055104,
+     "publication_and_clear_seconds": 7.091582590946928
+    },
+    "window_seconds": 47.869586092885584,
+    "peak_allocated_gib": [
+     10.502827644348145,
+     10.496983051300049,
+     10.497086524963379,
+     10.497819900512695
+    ],
+    "peak_reserved_gib": [
+     12.783203125,
+     12.96875,
+     12.96875,
+     12.94921875
+    ],
+    "pre_update_peak_reserved_gib": [
+     8.431640625,
+     8.431640625,
+     8.431640625,
+     8.43359375
+    ],
+    "peak_inactive_split_gib": [
+     1.806884765625,
+     1.2758302688598633,
+     1.2771868705749512,
+     1.2763066291809082
+    ],
+    "cumulative_alloc_retries": [
+     1,
+     0,
+     0,
+     0
+    ],
+    "cumulative_ooms": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "backend_step_ms": [
+     219.02645874023438,
+     180.64659118652344,
+     166.89654541015625,
+     149.33116149902344
+    ]
+   }
+  ]
+ }
+]
