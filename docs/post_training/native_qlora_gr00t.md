@@ -72,6 +72,75 @@ duplicate the trainable model payload in resumable checkpoints. Measure that
 host-memory/checkpoint cost; do not attribute optimizer-state savings to NF4
 backbone quantization.
 
+The subsequent **one-A100-80GB canary passed** on native implementation
+`1af7d04ec42937d06dfafb8ac6ded46f20aa483f` (job `38612140`, 3,533 GPU-seconds).
+All four base-precision × optimizer combinations completed ten native updates,
+own-update-5-to-10 recovery, exact five-update continuation and fresh portable
+reload. Both eight-bit arms also passed deliberate loss of the process during
+update 6 without publishing a partial checkpoint. All 761 intended trainables
+were checked: 112 A factors, 112 B factors and 537 head tensors. Zero first-update
+A gradients were expected; all groups subsequently had nonzero gradients and
+changed parameters. Frozen base/quantization state, optimizer membership,
+RNG/data/control state and the identical processed inputs were verified.
+Fresh task-output parity covers two rows per artifact; native scheduled
+evaluations cover all 160 development rows. This is reliability evidence, not
+recipe-quality qualification.
+
+The canary used seed 17, rank 32/alpha 64, LR `1e-5`, a fixed 300-update schedule
+paused at update 10, evaluation/save cadence 5, and **both evaluation caches OFF**.
+For that short-run native configuration, append these overrides to the training
+command above, using the admitted 1,280/160-row train/development manifests:
+
+```text
+model.backbone_adaptation.rank=32 model.backbone_adaptation.alpha=64 model.backbone_adaptation.seed=17
+rl.max_steps=300 rl.pause_after_step=10 rl.evaluation_every=5 rl.save_every=5
+rl.seed=17 rl.evaluation_seed=123 rl.evaluation_max_samples=0 rl.micro_batch_size=1 rl.grad_accum=1
+rl.optimizer.lr=1e-5 rl.optimizer.warmup_steps=0 rl.lr_schedule.kind=constant
+rl.keep_model_last=0 rl.keep_optim_last=0
+rl.reuse_evaluation_inputs=false rl.reuse_gr00t_evaluation_backbone=false
+```
+
+Actual processed inputs had 151–156 tokens, two camera grids, pixel tensors
+`[512, 1536]` and native action tensors `[1, 40, 132]`. The full-training-stage
+peaks include preparation, loading, training, validation, checkpoints and portable
+publication:
+
+| Frozen language base | Optimizer | CUDA allocated/reserved peak (GiB) | Sampled owned GPU peak (GiB) |
+|---|---|---:|---:|
+| BF16 | fused FP32 AdamW | 29.839 / 30.516 | 31.516 |
+| BF16 | nonpaged 8-bit AdamW | 20.740 / 21.289 | 22.289 |
+| NF4 | fused FP32 AdamW | 28.726 / 29.410 | 30.412 |
+| NF4 | nonpaged 8-bit AdamW | 19.631 / 20.182 | 21.184 |
+
+Within each fixed base, optimizer compression reduced the sampled full-stage GPU
+peak by **29.28% (BF16)** and **30.34% (NF4)**. Including the separate recovery,
+interruption and fresh-load stages, respective maxima were 32.174/22.314 GiB
+for BF16 direct/eight-bit and 31.086/21.201 GiB for NF4 direct/eight-bit.
+These are sampled lower bounds on the tested A100; they do not qualify smaller
+GPUs. The 527 large parameter tensors use uint8 moments; 234 small tensors retain
+FP32 moments. Moment payloads fell from 12.222 to 3.058 GiB, with additional
+quantization metadata. Live FP32 owners/gradients alias model storage, but the
+opaque resumable snapshot additionally serializes 6.111 GiB of masters.
+
+All 2,515 host observations passed the strict coverage checks. The complete
+diagnostic process tree reached 70.383 GiB RSS / 69.835 GiB PSS; this includes
+the retained controller and sequential tensor audits, so per-arm host totals
+are not an isolated worker-host comparison. The observer starts after controller
+admission. Tiny phases can lack samples, and abrupt-interruption allocator
+records cover only completed phases. The
+[raw evidence and limitations](evidence/native_qlora_family_engineering_4cba88f.json)
+retain phase records, the single-seed diagnostic losses/timings, and the prior
+70-GPU-second packaging failure (`38611005`). That failure occurred before model
+loading; its replacement added the pinned storage helper and corrected its
+context without changing native code or the scientific protocol.
+
+No quality, training-throughput, time-to-quality, rollout or serving improvement
+is established by this ten-update canary. The predefined cache-OFF 300-update
+factorial screen remains unadmitted, and a selected recipe additionally requires
+own-200-to-300 recovery before promotion. Cache-enabled eight-bit operation,
+eight-bit-trained dense exports and broader task/seed claims need their own
+qualification. The main family recipe and its optimizer remain unchanged.
+
 The initial architecture is `nvidia/GR00T-N1.7-LIBERO` at
 `2ea293aa20ba7cf5bbf3ba17a5fbcb1a01cbfe21`, LIBERO-spatial policy, with the checkpoint's
 16 retained Cosmos-Reason2-2B language layers, 2048 hidden width and 40 × 132 action head.

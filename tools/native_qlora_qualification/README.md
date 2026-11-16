@@ -2,6 +2,15 @@
 
 These tools orchestrate the native Cosmos SFT entrypoint and inspect its artifacts. They do not contain another training loop, submit scheduler jobs, or declare release support. Use the sealed runtime and pinned model described in [the native QLoRA guide](../../docs/post_training/native_qlora.md). Run accelerator commands inside a one-GPU A100 80GB allocation. Keep the tested wheel overlay first on `PYTHONPATH`, the workflow source root second, and the working directory outside the source checkout.
 
+The separate native GR00T nonpaged-eight-bit optimizer integration and its
+14-stage A100 canary are recorded in the
+[GR00T guide](../../docs/post_training/native_qlora_gr00t.md#separately-attributable-eight-bit-optimizer-integration).
+Use the normal `action_sft` entrypoint and dedicated `gr00t_n1d7_libero_qlora_bnb8.py`
+config. The canary qualifies cache-OFF short-run optimizer/recovery behavior and
+measured memory only; its diagnostic timing is not a performance benchmark.
+The prepared 300-update factorial screen remains unadmitted, and the established
+fused-AdamW family baseline is unchanged.
+
 ## Data and selection
 
 `split.py` checks the prepared WTS conversion hashes, joins related recording families and identical video content, and records earlier evaluation exposure. Supply every previous score file and a JSON list of additional probe IDs. It excludes all validation-linked and selected development groups from new training. Development groups may have been used by historical training; every new model must start from the pinned base.

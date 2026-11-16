@@ -29915,5 +29915,606 @@
       "Old checkpoint compatibility",
       "New standalone/merged export or inference-speed qualification"
     ]
+  },
+  "separate_gr00t_bnb8_canary_1af7d04": {
+    "scope": "Separate integration branch; 14-stage cache-OFF correctness/memory canary only. No quality, time-to-quality, throughput, cache-ON, rollout, dense-export or deployment qualification from this canary.",
+    "branch": "integration/native-action-qlora-bnb8",
+    "native_revision": "1af7d04ec42937d06dfafb8ac6ded46f20aa483f",
+    "native_manifest_sha256": "f55dd7adb817f5e62d13d0b93f19313d352fc9e47e22428a3c4e20c1b0a19a68",
+    "native_archive_sha256": "e6b4085384278e67d0bf1748c842e403d078ca5f2d54016909020b3c71e1fb1a",
+    "native_wheel_sha256": "f387554513767e7ce45e1d7453c774c108026c6cb8cd00ad0923f64fdc317275",
+    "protocol_sha256": "78c433a40fcef01297fd56f45f03215b182f8f72fe3ca3ec9bc61ed25ef70bd2",
+    "payload_manifest_sha256": "b504e75f618e60cca58fc83c0bad2f9a2ae3d3603a0e55950f2aec9ad1d3cf17",
+    "qualification_archive_sha256": "3438159fc90faefb65a24a65422e6fb8a55900d349abe44ffae59e68d1eb7200",
+    "receipt_archive": "cosmos-qlora-family-20261113/gr00t-optimizer-canary-attempt2-38612140-receipts-v1.tar.gz",
+    "receipt_archive_sha256": "06d49ca789d1d8b37d11373b3b6a40e9b29a43cedca6f810d1c5416c8d84727e",
+    "inventory_sha256": "f65f85c4510ba27c94026977ab1d05f63150cbb2f018595a32d0dcb73b56fd7b",
+    "receipt_files_including_inventory": 306,
+    "release_sha256": "f759a47629f1a8cdbfea4eb6b013409893b873bb70e25371cc470a39205b1ac5",
+    "acceptance_sha256": "7a202364e140305ef4c5c788c609754671f3cbf1c70771f82ce9315a79d3f299",
+    "job": "38612140",
+    "state": "COMPLETED",
+    "exit_code": "0:0",
+    "allocation_gpu_seconds": 3533,
+    "model_stages": [
+      "bf16_direct-full",
+      "bf16_direct-resumed",
+      "bf16_direct-portable",
+      "nf4_bnb8-full",
+      "nf4_bnb8-interrupted",
+      "nf4_bnb8-resumed",
+      "nf4_bnb8-portable",
+      "nf4_direct-full",
+      "nf4_direct-resumed",
+      "nf4_direct-portable",
+      "bf16_bnb8-full",
+      "bf16_bnb8-interrupted",
+      "bf16_bnb8-resumed",
+      "bf16_bnb8-portable"
+    ],
+    "runtime": {
+      "family": "gr00t",
+      "code": "1af7d04ec42937d06dfafb8ac6ded46f20aa483f",
+      "versions": {
+        "torch": "2.10.0+cu128",
+        "transformers": "4.57.6",
+        "bitsandbytes": "0.49.2",
+        "safetensors": "0.8.0",
+        "diffusers": "0.35.1",
+        "numpy": "1.26.4"
+      },
+      "gpu": {
+        "name": "NVIDIA A100-SXM4-80GB",
+        "bytes": 85174583296,
+        "uuid": "GPU-65ba88c5-f062-7d64-7fbe-feb0ef3e4253",
+        "nvml_uuid_roundtrip": true
+      },
+      "cpu_affinity": [
+        24,
+        25,
+        26,
+        27,
+        34,
+        35,
+        36,
+        37,
+        136,
+        137,
+        138,
+        139,
+        160,
+        161,
+        162,
+        163
+      ],
+      "slurm_job": "38612140",
+      "node": "batch-block4-1017",
+      "allocator": null,
+      "numa_nodes": [
+        "node0",
+        "node1",
+        "node2"
+      ]
+    },
+    "workflow_seconds": 3439.370577230118,
+    "pre_observer_admission_seconds": 0.4787888862192631,
+    "contract": {
+      "base_modes": [
+        "bf16_lora",
+        "nf4_lora"
+      ],
+      "optimizer_modes": [
+        "direct_fused_adamw_fp32",
+        "nonpaged_bnb_adamw8bit_fp32_owner"
+      ],
+      "rank": 32,
+      "alpha": 64,
+      "seed": 17,
+      "learning_rate": 1e-05,
+      "horizon": 300,
+      "pause_after_update": 10,
+      "evaluation_and_save_every": 5,
+      "full_development_rows": 160,
+      "train_manifest_rows": 1280,
+      "evaluation_reuse": false,
+      "backbone_evaluation_reuse": false,
+      "native_40_10_8_horizons": true,
+      "flow_sampling_steps": 4,
+      "frozen_language_matrices": 112,
+      "trainable_factors": 224,
+      "trainable_head_tensors": 537,
+      "trainable_elements": 1640438912,
+      "processed_token_range": [
+        151,
+        156
+      ],
+      "processed_pixels_shape": [
+        512,
+        1536
+      ],
+      "two_camera_grid_shape": [
+        2,
+        3
+      ],
+      "model_action_shape": [
+        1,
+        40,
+        132
+      ],
+      "training_observations_per_full_arm": 10,
+      "evaluation_pack_observations_per_full_arm": 960
+    },
+    "correctness": {
+      "same_base_pristine_parameters_rng_identity_and_full160_scores_equal": true,
+      "four_arm_processed_input_logs_byte_identical": true,
+      "exact_optimizer_membership_count": 761,
+      "first_A_gradients_zero_as_expected": true,
+      "final_A_B_head_nonzero_gradient_counts": [
+        112,
+        112,
+        537
+      ],
+      "each_own5_to10_and_next5updates_exact": true,
+      "all761_portable_tensors_exact": true,
+      "fresh_portable_rows_per_arm": 2,
+      "fresh_rows_are_not_full160_quality_evidence": true,
+      "all_parameters_A_B_head_changed_5_to10": [
+        112,
+        112,
+        537
+      ],
+      "frozen_base_and_quantization_state_unchanged": true,
+      "both_bnb8_partial_update6_exit86_no_checkpoint": true,
+      "torchrun_expected_interruption_exit": 1,
+      "metadata_only_incomplete_publication_rejected": true
+    },
+    "memory": {
+      "device_peak_bytes": 35322527744,
+      "errors": [],
+      "gpu_memory_evidence_valid": true,
+      "host_pss_complete": true,
+      "host_pss_sum_peak_bytes": 74984236032,
+      "host_rss_sum_peak_bytes": 75573035008,
+      "nvml_capacity_bytes": 85899345920,
+      "observed_span_seconds": 3437.316279888153,
+      "owned_device_process_peak_bytes": 34546384896,
+      "peaks_are_sampled_lower_bounds": true,
+      "samples": 2515,
+      "sampling_gap_seconds": {
+        "count": 2514,
+        "maximum": 5.275331735610962,
+        "mean": 1.3672698010692732,
+        "median": 1.336467981338501,
+        "p95": 1.493190276622772,
+        "sum": 3437.316279888153
+      }
+    },
+    "memory_limits": [
+      "Sampled peaks are lower bounds, not total weight-size estimates.",
+      "Observer starts after controller imports/storage/cohort admission; worker preparation/loading/training/evaluation/checkpoint/export are observed.",
+      "Total-host values include the retained controller and sequential diagnostic tensor audits; differences are not clean isolated worker-host effects.",
+      "Tiny phase intervals may contain no NVML/host sample. Abrupt-interruption allocator summaries cover only completed phase records, not an unobserved ending peak.",
+      "No smaller-GPU support or cache-enabled optimizer combination is established."
+    ],
+    "optimizer_storage": {
+      "bf16_bnb8": {
+        "blocks": 6406289,
+        "fp32_parameters": 234,
+        "metadata_bytes": 52329608,
+        "moment_bytes": 3283452160,
+        "quantized_parameters": 527,
+        "serialized_master_bytes": 6561755648
+      },
+      "bf16_direct": {
+        "blocks": 0,
+        "fp32_parameters": 761,
+        "metadata_bytes": 3044,
+        "moment_bytes": 13123511296,
+        "quantized_parameters": 0,
+        "serialized_master_bytes": 0
+      },
+      "nf4_bnb8": {
+        "blocks": 6406289,
+        "fp32_parameters": 234,
+        "metadata_bytes": 52329608,
+        "moment_bytes": 3283452160,
+        "quantized_parameters": 527,
+        "serialized_master_bytes": 6561755648
+      },
+      "nf4_direct": {
+        "blocks": 0,
+        "fp32_parameters": 761,
+        "metadata_bytes": 3044,
+        "moment_bytes": 13123511296,
+        "quantized_parameters": 0,
+        "serialized_master_bytes": 0
+      }
+    },
+    "cells": {
+      "bf16_bnb8": {
+        "recovery_flags": {
+          "all761_model_optimizer_controls_exact": true,
+          "next5updates_exact": true,
+          "passed": true,
+          "portable_all761_exact": true
+        },
+        "full_stage_peaks": {
+          "allocator_peak_allocated_bytes": 22269736960,
+          "allocator_peak_reserved_bytes": 22858956800
+        },
+        "full_stage_sampled": {
+          "device_peak_bytes": 24687869952,
+          "errors": [],
+          "gpu_memory_evidence_valid": true,
+          "host_pss_complete": true,
+          "host_pss_sum_peak_bytes": 74692519936,
+          "host_rss_sum_peak_bytes": 75281113088,
+          "nvml_capacity_bytes": 85899345920,
+          "observed_span_seconds": 394.09800815582275,
+          "owned_device_process_peak_bytes": 23932698624,
+          "peaks_are_sampled_lower_bounds": true,
+          "samples": 282,
+          "sampling_gap_seconds": {
+            "count": 281,
+            "maximum": 3.281594753265381,
+            "mean": 1.4024840147894049,
+            "median": 1.3441567420959473,
+            "p95": 1.5354032516479492,
+            "sum": 394.09800815582275
+          }
+        },
+        "maximum_sampled_owned_gpu_bytes_across_model_stages": 23959961600,
+        "native_clocks_seconds": {
+          "checkpoint_seconds": 76.5596252111718,
+          "evaluation_seconds": 226.71887547895312,
+          "portable_export_seconds": 16.50177717069164,
+          "startup_seconds": 40.150101848412305,
+          "training_seconds": 14.984196537174284
+        },
+        "native_history_diagnostic_only": [
+          {
+            "metrics": {
+              "action_mae_environment_units": 0.04916228426215635,
+              "action_mae_gripper_environment_units": 0.1372063398733735,
+              "action_mae_pitch_environment_units": 0.016093830139640716,
+              "action_mae_roll_environment_units": 0.008225875696466987,
+              "action_mae_x_environment_units": 0.053972841933195764,
+              "action_mae_y_environment_units": 0.0449414604387712,
+              "action_mae_yaw_environment_units": 0.009601551121868425,
+              "action_mae_z_environment_units": 0.07409409063177787,
+              "loss": 0.128999243787257,
+              "normalized_action_mse": 0.05506814191766483
+            },
+            "step": 0
+          },
+          {
+            "metrics": {
+              "action_mae_environment_units": 0.04975606145089204,
+              "action_mae_gripper_environment_units": 0.1341430275514722,
+              "action_mae_pitch_environment_units": 0.016733823512405904,
+              "action_mae_roll_environment_units": 0.008280218211661914,
+              "action_mae_x_environment_units": 0.05753905725607708,
+              "action_mae_y_environment_units": 0.0457025794083178,
+              "action_mae_yaw_environment_units": 0.009895496387377613,
+              "action_mae_z_environment_units": 0.07599822782893156,
+              "loss": 0.1291441645447776,
+              "normalized_action_mse": 0.05609874143996941
+            },
+            "step": 5
+          },
+          {
+            "metrics": {
+              "action_mae_environment_units": 0.050668019726296885,
+              "action_mae_gripper_environment_units": 0.13538929779082537,
+              "action_mae_pitch_environment_units": 0.016735197746145368,
+              "action_mae_roll_environment_units": 0.008388601687683264,
+              "action_mae_x_environment_units": 0.060663991228178664,
+              "action_mae_y_environment_units": 0.04551616471971224,
+              "action_mae_yaw_environment_units": 0.010311781222444727,
+              "action_mae_z_environment_units": 0.07767110368908846,
+              "loss": 0.13169430216003092,
+              "normalized_action_mse": 0.057522541906551594
+            },
+            "step": 10
+          }
+        ],
+        "metadata_only_incomplete_rejected": true
+      },
+      "bf16_direct": {
+        "recovery_flags": {
+          "all761_model_optimizer_controls_exact": true,
+          "next5updates_exact": true,
+          "passed": true,
+          "portable_all761_exact": true
+        },
+        "full_stage_peaks": {
+          "allocator_peak_allocated_bytes": 32039697920,
+          "allocator_peak_reserved_bytes": 32765902848
+        },
+        "full_stage_sampled": {
+          "device_peak_bytes": 34615787520,
+          "errors": [],
+          "gpu_memory_evidence_valid": true,
+          "host_pss_complete": true,
+          "host_pss_sum_peak_bytes": 31527566336,
+          "host_rss_sum_peak_bytes": 32092266496,
+          "nvml_capacity_bytes": 85899345920,
+          "observed_span_seconds": 380.05286049842834,
+          "owned_device_process_peak_bytes": 33839644672,
+          "peaks_are_sampled_lower_bounds": true,
+          "samples": 283,
+          "sampling_gap_seconds": {
+            "count": 282,
+            "maximum": 3.741438865661621,
+            "mean": 1.347705179072441,
+            "median": 1.3200081586837769,
+            "p95": 1.4221471548080444,
+            "sum": 380.05286049842834
+          }
+        },
+        "maximum_sampled_owned_gpu_bytes_across_model_stages": 34546384896,
+        "native_clocks_seconds": {
+          "checkpoint_seconds": 52.897805967368186,
+          "evaluation_seconds": 233.13187632104382,
+          "portable_export_seconds": 16.82887395704165,
+          "startup_seconds": 43.429452443961054,
+          "training_seconds": 13.458873783238232
+        },
+        "native_history_diagnostic_only": [
+          {
+            "metrics": {
+              "action_mae_environment_units": 0.04916228426215635,
+              "action_mae_gripper_environment_units": 0.1372063398733735,
+              "action_mae_pitch_environment_units": 0.016093830139640716,
+              "action_mae_roll_environment_units": 0.008225875696466987,
+              "action_mae_x_environment_units": 0.053972841933195764,
+              "action_mae_y_environment_units": 0.0449414604387712,
+              "action_mae_yaw_environment_units": 0.009601551121868425,
+              "action_mae_z_environment_units": 0.07409409063177787,
+              "loss": 0.128999243787257,
+              "normalized_action_mse": 0.05506814191766483
+            },
+            "step": 0
+          },
+          {
+            "metrics": {
+              "action_mae_environment_units": 0.04975520896012164,
+              "action_mae_gripper_environment_units": 0.1340033170580864,
+              "action_mae_pitch_environment_units": 0.016757522802360106,
+              "action_mae_roll_environment_units": 0.008303719873318146,
+              "action_mae_x_environment_units": 0.05763775740178655,
+              "action_mae_y_environment_units": 0.045616557559828755,
+              "action_mae_yaw_environment_units": 0.009901324412415894,
+              "action_mae_z_environment_units": 0.07606626361305571,
+              "loss": 0.12950254126408253,
+              "normalized_action_mse": 0.056018823489347204
+            },
+            "step": 5
+          },
+          {
+            "metrics": {
+              "action_mae_environment_units": 0.05066202323411535,
+              "action_mae_gripper_environment_units": 0.13562553450465203,
+              "action_mae_pitch_environment_units": 0.016791991030547283,
+              "action_mae_roll_environment_units": 0.008402200702320667,
+              "action_mae_x_environment_units": 0.060303396909375924,
+              "action_mae_y_environment_units": 0.0456826996414209,
+              "action_mae_yaw_environment_units": 0.01032515073873855,
+              "action_mae_z_environment_units": 0.07750318911175222,
+              "loss": 0.13177235450239094,
+              "normalized_action_mse": 0.05755871783077185
+            },
+            "step": 10
+          }
+        ],
+        "metadata_only_incomplete_rejected": true
+      },
+      "nf4_bnb8": {
+        "recovery_flags": {
+          "all761_model_optimizer_controls_exact": true,
+          "next5updates_exact": true,
+          "passed": true,
+          "portable_all761_exact": true
+        },
+        "full_stage_peaks": {
+          "allocator_peak_allocated_bytes": 21078981632,
+          "allocator_peak_reserved_bytes": 21669871616
+        },
+        "full_stage_sampled": {
+          "device_peak_bytes": 23500881920,
+          "errors": [],
+          "gpu_memory_evidence_valid": true,
+          "host_pss_complete": true,
+          "host_pss_sum_peak_bytes": 59238024192,
+          "host_rss_sum_peak_bytes": 59826503680,
+          "nvml_capacity_bytes": 85899345920,
+          "observed_span_seconds": 430.7193455696106,
+          "owned_device_process_peak_bytes": 22745710592,
+          "peaks_are_sampled_lower_bounds": true,
+          "samples": 314,
+          "sampling_gap_seconds": {
+            "count": 313,
+            "maximum": 2.734048366546631,
+            "mean": 1.3761001455898103,
+            "median": 1.3458261489868164,
+            "p95": 1.4801634788513183,
+            "sum": 430.7193455696106
+          }
+        },
+        "maximum_sampled_owned_gpu_bytes_across_model_stages": 22764584960,
+        "native_clocks_seconds": {
+          "checkpoint_seconds": 77.47812463343143,
+          "evaluation_seconds": 255.1422174242325,
+          "portable_export_seconds": 18.183432118967175,
+          "startup_seconds": 46.664638753049076,
+          "training_seconds": 15.027732349932194
+        },
+        "native_history_diagnostic_only": [
+          {
+            "metrics": {
+              "action_mae_environment_units": 0.04993531420917876,
+              "action_mae_gripper_environment_units": 0.1357787735760212,
+              "action_mae_pitch_environment_units": 0.01679471389145995,
+              "action_mae_roll_environment_units": 0.008380835461261412,
+              "action_mae_x_environment_units": 0.056422665883997095,
+              "action_mae_y_environment_units": 0.04715542558013691,
+              "action_mae_yaw_environment_units": 0.009905640157403974,
+              "action_mae_z_environment_units": 0.07510914491397083,
+              "loss": 0.1313539528971887,
+              "normalized_action_mse": 0.055654463751457765
+            },
+            "step": 0
+          },
+          {
+            "metrics": {
+              "action_mae_environment_units": 0.05079751468583708,
+              "action_mae_gripper_environment_units": 0.13399428367614746,
+              "action_mae_pitch_environment_units": 0.01735949567029889,
+              "action_mae_roll_environment_units": 0.008516856455021475,
+              "action_mae_x_environment_units": 0.06012246790288793,
+              "action_mae_y_environment_units": 0.04803208137533191,
+              "action_mae_yaw_environment_units": 0.01014440733679931,
+              "action_mae_z_environment_units": 0.0774130103843725,
+              "loss": 0.13297500024636974,
+              "normalized_action_mse": 0.057682384437814885
+            },
+            "step": 5
+          },
+          {
+            "metrics": {
+              "action_mae_environment_units": 0.051583439631564,
+              "action_mae_gripper_environment_units": 0.13677932914346458,
+              "action_mae_pitch_environment_units": 0.01728110150629998,
+              "action_mae_roll_environment_units": 0.008771991840597878,
+              "action_mae_x_environment_units": 0.0606829107126037,
+              "action_mae_y_environment_units": 0.047956911184508295,
+              "action_mae_yaw_environment_units": 0.01035457442255333,
+              "action_mae_z_environment_units": 0.07925725861092035,
+              "loss": 0.13468495201304903,
+              "normalized_action_mse": 0.05908707222269316
+            },
+            "step": 10
+          }
+        ],
+        "metadata_only_incomplete_rejected": true
+      },
+      "nf4_direct": {
+        "recovery_flags": {
+          "all761_model_optimizer_controls_exact": true,
+          "next5updates_exact": true,
+          "passed": true,
+          "portable_all761_exact": true
+        },
+        "full_stage_peaks": {
+          "allocator_peak_allocated_bytes": 30844224000,
+          "allocator_peak_reserved_bytes": 31578914816
+        },
+        "full_stage_sampled": {
+          "device_peak_bytes": 33430896640,
+          "errors": [],
+          "gpu_memory_evidence_valid": true,
+          "host_pss_complete": true,
+          "host_pss_sum_peak_bytes": 54837720064,
+          "host_rss_sum_peak_bytes": 55422177280,
+          "nvml_capacity_bytes": 85899345920,
+          "observed_span_seconds": 411.46598768234253,
+          "owned_device_process_peak_bytes": 32654753792,
+          "peaks_are_sampled_lower_bounds": true,
+          "samples": 300,
+          "sampling_gap_seconds": {
+            "count": 299,
+            "maximum": 3.1753623485565186,
+            "mean": 1.3761404270312458,
+            "median": 1.3432040214538574,
+            "p95": 1.4435566186904907,
+            "sum": 411.46598768234253
+          }
+        },
+        "maximum_sampled_owned_gpu_bytes_across_model_stages": 33378271232,
+        "native_clocks_seconds": {
+          "checkpoint_seconds": 52.94906360749155,
+          "evaluation_seconds": 260.87800682662055,
+          "portable_export_seconds": 22.463998931925744,
+          "startup_seconds": 43.73658663034439,
+          "training_seconds": 12.729026258923113
+        },
+        "native_history_diagnostic_only": [
+          {
+            "metrics": {
+              "action_mae_environment_units": 0.04993531420917876,
+              "action_mae_gripper_environment_units": 0.1357787735760212,
+              "action_mae_pitch_environment_units": 0.01679471389145995,
+              "action_mae_roll_environment_units": 0.008380835461261412,
+              "action_mae_x_environment_units": 0.056422665883997095,
+              "action_mae_y_environment_units": 0.04715542558013691,
+              "action_mae_yaw_environment_units": 0.009905640157403974,
+              "action_mae_z_environment_units": 0.07510914491397083,
+              "loss": 0.1313539528971887,
+              "normalized_action_mse": 0.055654463751457765
+            },
+            "step": 0
+          },
+          {
+            "metrics": {
+              "action_mae_environment_units": 0.05082538498213499,
+              "action_mae_gripper_environment_units": 0.1338068827241659,
+              "action_mae_pitch_environment_units": 0.017401140915809948,
+              "action_mae_roll_environment_units": 0.008533465898977908,
+              "action_mae_x_environment_units": 0.060162471201202584,
+              "action_mae_y_environment_units": 0.04809464270579678,
+              "action_mae_yaw_environment_units": 0.010164622817378382,
+              "action_mae_z_environment_units": 0.07761446861161324,
+              "loss": 0.1330855922831688,
+              "normalized_action_mse": 0.05770684918538401
+            },
+            "step": 5
+          },
+          {
+            "metrics": {
+              "action_mae_environment_units": 0.051679034520115845,
+              "action_mae_gripper_environment_units": 0.13731114398688077,
+              "action_mae_pitch_environment_units": 0.017293929657108586,
+              "action_mae_roll_environment_units": 0.008791606383604208,
+              "action_mae_x_environment_units": 0.06064227958179938,
+              "action_mae_y_environment_units": 0.048017074562361234,
+              "action_mae_yaw_environment_units": 0.010369489747779546,
+              "action_mae_z_environment_units": 0.07932771772127735,
+              "loss": 0.13479226873314473,
+              "normalized_action_mse": 0.05913376406101244
+            },
+            "step": 10
+          }
+        ],
+        "metadata_only_incomplete_rejected": true
+      }
+    },
+    "retained_failed_attempt": {
+      "job": "38611005",
+      "state": "FAILED",
+      "exit_code": "1:0",
+      "allocation_gpu_seconds": 70,
+      "payload_manifest_sha256": "f6f34b4f2c32e786811f2e506cd54a59e73abbf6990dcf85650b849898bc165a",
+      "receipt_archive_sha256": "62794cc7b8b14a661bb7d7a6c3b81f68b5e63db69fdcf0e4521f0654144f3df8",
+      "release_sha256": "7a8e7398b12244e12d4120a7ccbea052afd475f3e978f536967ab948265d5484",
+      "failure": "Qualification packet omitted the pinned storage module before any model load. A second invalid context argument was corrected to compute before retry. Native implementation and scientific protocol unchanged.",
+      "focused_real_import_and_storage_cpu_cases": 5,
+      "stage_reuse_cpu_cases": 10,
+      "actual_import_statements_verified": 118
+    },
+    "next_gates": [
+      "Conditional fixed300 cache-OFF factorial development screen, unchanged quality/memory/600s rules; not yet admitted.",
+      "Own current1af200-to300 recovery before any selected-recipe promotion.",
+      "Paired-seed quality, independent task confirmation, rollout/serving and combined cache-enabled operation remain separately unqualified."
+    ],
+    "independent_raw_replay": {
+      "passed": true,
+      "log": "gr00t-optimizer-canary-38612140-shared-peer.log",
+      "log_sha256": "dd696b33adede33cf9c4133659470e7e807f9e587e5c8f069a71198c2050c584",
+      "scope": "Canonical inventory/release/runtime and actual v11 whole/stage/phase reductions; 36 small metadata/trainer/data controls; own5-to10 numerical updates/history/160 rows/input/fresh2/source and same-base initial state. Full model/moment/frozen tensor equality remains the bound on-node attestation.",
+      "raw_samples": 2515,
+      "native_model_stages": 14,
+      "tiny_intervals_without_samples": 52,
+      "prior_peer_script_schema_corrections_preserved": true
+    }
   }
 }
