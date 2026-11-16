@@ -19,5 +19,11 @@
     {"name": "paged55-profile-cudaonly-r11v1", "arm": "paged_adamw_8bit", "mode": "profile, 8 updates, same capture window as round 10", "hypothesis_B": "The round-10 instrumented stall is caused by CUPTI unified-memory fault tracing; with PROFILE_VARIANT=cuda_only the instrumented run completes all 8 updates.", "falsified_if": "The cuda_only run also stalls in backward; then the stall is not attributable to UM fault tracing and remains open."}
   ],
   "conditional": "fused55 fresh control only if A passes (to test whether the same changes move fused past its round-10 update-2 OOM); it is not required for A or B.",
+  "amendment_1": {
+    "at_utc": "2026-11-16T21:30:00Z",
+    "observed": "paged55-resume16-r11v1 (job 38656801, node batch-block7-03584): exact restore, update17 completed, then rank0 cudaErrorIllegalAddress surfaced inside the update18 optimizer_step stage (rank-converged staging); PartialUpdateError poisoned the trainer; peers' workers died. No OOM. Retained as a failed run.",
+    "analysis": "bitsandbytes 0.49.2 Optimizer8bit.step calls torch.cuda.synchronize() after every parameter update and again at the end of a paged step, so the released FP32 staging could not be in use by an optimizer kernel; the faulting kernel ran after update17's final synchronize (update18 forward/backward/clip/staging). Cause unresolved.",
+    "decision_rule_locked_before_rerun": "Exactly one identical rerun (paged55-resume16-r11v2, same source/settings). If it passes, report the first failure as an unexplained nondeterministic illegal access (one of two). If it fails with an illegal access again, run the identical resume with the round-10 source (source-v42, which passed this exact resume) to test whether the round-11 change is implicated; no further retries."
+  },
   "measurement_scope": "Paging overhead is reported as matched-pressure paged minus nonpaged backend-step device time and update-phase seconds on one seed and one node each; it is a single-run observation, not a sustained-speed or end-to-end time-to-quality claim. If nonpaged fails A, no matched pressure comparison exists and only the paged numbers are reported."
 }
