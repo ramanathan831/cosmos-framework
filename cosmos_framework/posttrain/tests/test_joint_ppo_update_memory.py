@@ -130,3 +130,31 @@ def test_master_step_returns_fp32_staging_to_the_device_allocator():
     receipt = joint_ppo._cuda_allocator_window(net, reset=True)
     assert receipt is not None
     assert {"inactive_split_bytes.all.current", "reserved_bytes.all.peak", "device_free_bytes"} <= set(receipt)
+
+
+@pytest.mark.L0
+@pytest.mark.GPU
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="needs CUDA")
+def test_backend_step_device_time_is_recorded_without_changing_arithmetic():
+    device = torch.device("cuda")
+    nets = [_bf16_net(device, width=512) for _ in range(2)]
+    nets[1].load_state_dict(nets[0].state_dict())
+    opts = [build_optimizer(net, OptimizerConfig(lr=1e-3, weight_decay=0, update_policy="fp32_master")) for net in nets]
+    for net, opt in zip(nets, opts):
+        for parameter in net.parameters():
+            parameter.grad = torch.full_like(parameter, 0.5)
+        opt.step()
+    assert joint_ppo._backend_step_milliseconds(opts[0]) > 0
+    for left, right in zip(nets[0].parameters(), nets[1].parameters()):
+        assert torch.equal(left, right)
+
+
+@pytest.mark.L0
+@pytest.mark.CPU
+def test_backend_step_time_is_absent_on_cpu():
+    net = _bf16_net()
+    opt = build_optimizer(net, OptimizerConfig(lr=1e-3, weight_decay=0, update_policy="fp32_master"))
+    for parameter in net.parameters():
+        parameter.grad = torch.ones_like(parameter)
+    opt.step()
+    assert joint_ppo._backend_step_milliseconds(opt) is None

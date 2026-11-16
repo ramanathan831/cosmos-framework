@@ -472,7 +472,9 @@ class JointPPOTrainer(PPOTrainableRole):
                     "learning_rates": {group["name"]: float(group["lr"]) for group in self.opt.param_groups},
                     "parameter_update_l2": dict(zip(("actor", "value"), changes.sqrt().tolist(), strict=True)),
                     "cuda_allocator": _gather_allocator_receipt(
-                        pre_update_allocator, _cuda_allocator_window(self.model.net, reset=False)
+                        pre_update_allocator,
+                        _cuda_allocator_window(self.model.net, reset=False),
+                        {"optimizer_backend_step_ms": _backend_step_milliseconds(self.opt)},
                     ),
                 }
 
@@ -563,13 +565,24 @@ def _cuda_allocator_window(net: torch.nn.Module, *, reset: bool) -> dict[str, in
     return receipt
 
 
-def _gather_allocator_receipt(before: dict | None, after: dict | None) -> list[dict] | None:
+def _backend_step_milliseconds(optimizer: Any) -> float | None:
+    """CUDA-event time of the last FP32-master backend step on this rank, if recorded."""
+    events = getattr(optimizer, "last_backend_step_events", None)
+    if events is None:
+        return None
+    events[1].synchronize()
+    return float(events[0].elapsed_time(events[1]))
+
+
+def _gather_allocator_receipt(
+    before: dict | None, after: dict | None, extra: dict | None = None
+) -> list[dict] | None:
     """Rank-ordered allocator receipts, identical on every rank so update results still agree.
 
     ``before`` peaks cover the phases since the previous update (collection, weight sync,
     target preparation); ``after`` peaks cover only this update's forward/backward/step.
     """
-    local = None if after is None else {"before_update": before, "after_update": after}
+    local = None if after is None else {"before_update": before, "after_update": after, **(extra or {})}
     if not dist.is_initialized() or dist.get_world_size() == 1:
         return None if local is None else [local]
     gathered = gather_rank_states(local, context="joint PPO allocator receipt")

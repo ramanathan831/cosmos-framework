@@ -173,7 +173,17 @@ class MasterWeightOptimizer(torch.optim.Optimizer):
         for master, grad in zip(self.masters, gradients):
             master.grad = grad
         self.sync_groups()
+        timing = None
+        if self.masters and self.masters[0].is_cuda:
+            # Device-time of the backend call only (moment/master arithmetic plus any
+            # managed-memory prefetch or fault service it triggers). No synchronization
+            # here; the events are read at the next update receipt.
+            timing = (torch.cuda.Event(enable_timing=True), torch.cuda.Event(enable_timing=True))
+            timing[0].record()
         result = self.backend.step()
+        if timing is not None:
+            timing[1].record()
+        self.last_backend_step_events = timing
         for p, m in zip(self.live, self.masters):
             local_tensor(p).copy_(m)
             if p.dtype != torch.float32:
