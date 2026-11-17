@@ -117,3 +117,15 @@ def test_libero10_native_profile_selects_native_recipe(tmp_path):
     assert command[-1] == LIBERO10_NATIVE_CONFIG
     command, _ = native_command(_args(recipe_profile="public_4gpu"), tmp_path / "assets/model", tmp_path)
     assert command[-1] == SUITE_CONFIGS["libero_spatial"]
+
+
+def test_libero10_overrides_are_appended_and_restricted(tmp_path):
+    directory = _libero10(tmp_path)
+    args = _args(suite="libero_10", model_dir=str(directory), recipe_profile="native", override=["rl.optimizer.lr=1e-6"])
+    _, overrides = native_command(args, model_directory(args, tmp_path), tmp_path / "m")
+    assert overrides[-1] == "rl.optimizer.lr=1e-6"
+    for bad in (["model.checkpoint_path=x"], ["rl.resume=x"], ["rl.optimizer.lr"]):
+        with pytest.raises(ValueError, match="unsupported recipe override"):
+            native_command(_args(suite="libero_10", recipe_profile="native", override=bad), directory, tmp_path)
+    with pytest.raises(ValueError, match="only for LIBERO-10"):
+        native_command(_args(override=["rl.optimizer.lr=1e-6"]), tmp_path / "assets/model", tmp_path)

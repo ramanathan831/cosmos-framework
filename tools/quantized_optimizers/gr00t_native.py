@@ -176,6 +176,9 @@ def main():
     parser.add_argument("--eval-profile", default="legacy_100")
     parser.add_argument("--model-dir", default="", help="LIBERO-10 only: pinned snapshot libero_10 directory")
     parser.add_argument("--recipe-profile", choices=("public_4gpu", "native"), default="public_4gpu")
+    parser.add_argument(
+        "--override", action="append", default=[], help="LIBERO-10 only: predeclared recipe override, e.g. rl.optimizer.lr=1e-6"
+    )
     args = parser.parse_args()
     if min(args.updates, args.checkpoint_every, args.validation_every) < 1:
         parser.error("updates and checkpoint/validation intervals must be positive")
@@ -226,6 +229,14 @@ def native_command(args, model, manifests):
             f"environment.config.train_manifest={manifests / f'{suite}-train.json'}",
             f"environment.config.eval_manifest={manifests / f'{suite}-eval.json'}",
         ]
+    extra = list(getattr(args, "override", []) or [])
+    if extra and suite == "libero_spatial":
+        raise ValueError("--override is only for LIBERO-10 development trials")
+    for item in extra:
+        key = item.split("=", 1)[0]
+        if "=" not in item or not key.startswith(("rl.", "environment.config.")) or key.startswith("rl.resume"):
+            raise ValueError(f"unsupported recipe override {item!r}")
+    overrides += extra
     if args.resume:
         overrides.append(f"rl.resume={args.resume}")
     return command, overrides
