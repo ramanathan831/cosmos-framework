@@ -142,11 +142,14 @@ class Gr00tPPOHeads(Gr00tHeads):
     The original head remains at ``action_head.*`` for checkpoint and weight publication.
     """
 
-    def __init__(self, action_head: nn.Module, *, score_horizon: int = 16) -> None:
+    def __init__(self, action_head: nn.Module, *, score_horizon: int = 16, value_feature_gradient: bool = True) -> None:
         super().__init__(action_head)
         if type(score_horizon) is not int or score_horizon not in (8, 16):
             raise ValueError("GR00T PPO score_horizon must be 8 or 16")
+        if type(value_feature_gradient) is not bool:
+            raise ValueError("GR00T PPO value_feature_gradient must be a boolean")
         self.score_horizon = score_horizon
+        self.value_feature_gradient = value_feature_gradient
         config = action_head.config
         if (config.action_horizon, config.max_action_dim, action_head.num_inference_timesteps) != (40, 132, 4):
             raise ValueError("GR00T PPO requires native horizon 40, latent width 132 and four denoising steps")
@@ -192,6 +195,9 @@ class Gr00tPPOHeads(Gr00tHeads):
         return head.action_decoder(output[:, -head.action_horizon :], condition.embodiment_id)
 
     def _values(self, vl: torch.Tensor, state: torch.Tensor) -> torch.Tensor:
+        if not getattr(self, "value_feature_gradient", True):
+            # Same forward values; value regression no longer moves the shared actor features.
+            vl, state = vl.detach(), state.detach()
         inputs = torch.cat((vl.mean(dim=1), state.reshape(state.shape[0], -1)), dim=1)
         return self.action_head.value_head(inputs)[:, 0].float()
 

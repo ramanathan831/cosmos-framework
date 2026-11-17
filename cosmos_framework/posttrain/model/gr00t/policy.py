@@ -283,6 +283,7 @@ class Gr00tN1d7TrainPolicy:
             self.net = Gr00tPPOHeads(
                 self.gr00t.action_head,
                 score_horizon=config.execution_horizon,
+                value_feature_gradient=config.value_feature_gradient,
             )
             prepare_deterministic_ppo_update(self.net)
             self.ppo_parameters = PPOParameterPartition(

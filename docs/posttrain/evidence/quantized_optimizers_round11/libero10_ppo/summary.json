@@ -1,0 +1,23 @@
+{
+  "scope": "GR00T-N1.7 Joint PPO on LIBERO-10 (native AlpaSim-free LIBERO simulator), fused AdamW fp32_master baseline development before any fused-vs-8-bit comparison",
+  "branch": "feat/quantized-optimizers-libero10-ppo (from 84ff3143)",
+  "integration": {
+    "commits": ["e434e39d launcher --suite/--eval-profile/--model-dir + 4-GPU LIBERO-10 config", "8b8e187e native LIBERO-10 profile + allocation-sized GPU count", "cc14188a restricted --override flag", "bd553944 opt-in model.value_feature_gradient"],
+    "spatial_unchanged": "golden test pins the LIBERO-Spatial launcher command",
+    "local_tests": "36 affected CPU tests pass; remaining GR00T test failures locally are missing ray/vllm_omni/gr00t modules"
+  },
+  "headroom": {"frozen_aligned_200_success": [0.905, 0.895, 0.905, 0.9, 0.915], "note": "step-0 evaluations of the same frozen checkpoint across five allocations: 0.895-0.915, i.e. +/-1 point closed-loop variability; weakest tasks 8 (12-15/20) and 9 (15-16/20)"},
+  "runs": [
+    {"name": "4-GPU profile, lr 5e-6", "job": "38654936", "success": {"0": 0.905, "80": 0.45}, "verdict": "FAIL (collapse)", "gpu_hours": 5.666},
+    {"name": "trial 1 native profile, lr 5e-6", "job": "38658418", "success": {"0": 0.895, "80": 0.27}, "verdict": "FAIL (collapse)", "gpu_hours": 5.616},
+    {"name": "trial 2 native, lr 1e-6", "job": "38682338", "success": {"0": 0.905, "80": 0.915, "160": 0.89, "240": 0.86}, "verdict": "FAIL at 240 (slow drift)", "gpu_hours": 9.596},
+    {"name": "diagnostic legacy BF16 parameter policy, lr 5e-6", "job": "38682384", "success": {"0": 0.9, "80": 0.89, "160": 0.895}, "verdict": "prediction holds: near-no-op (actor update 0.072x trial 1), stable, no improvement", "gpu_hours": 7.147},
+    {"name": "trial 3 native, lr 1e-6, value-feature isolation", "job": "38685537", "success": {"0": 0.915, "80": 0.92, "160": 0.86}, "verdict": "FAIL at 160; mechanism prediction failed", "gpu_hours": 7.118}
+  ],
+  "total_gpu_allocation_hours": 35.143,
+  "conclusion": "No fp32_master fused AdamW recipe tried keeps LIBERO-10 success within frozen-2 points through 320 updates; drift rate scales with effective update size, and the only stable route (legacy BF16 parameter policy) is a near-no-op that does not improve. Per the predeclared limit of three single-factor trials, no protocol was locked and no 8-bit run, paired comparison, equal-resource or time-to-target result exists for LIBERO-10.",
+  "open": [
+    "Actor policy_grad_norm ~40-50 against clip 1.0 on every update in all fp32_master and legacy runs; PPO ratio clipping ~0.3%. The large gradient comes from the flow-SDE transition log-prob objective, not shared value features. A stable improving recipe likely needs a change to the policy objective scale or trust-region control (e.g. KL penalty/early stop, per-decision log-prob normalization), which is outside the admitted trial budget.",
+    "Rebase onto 637d1326 (workstream 3 Joint PPO memory fix) is required before any paired run; not done because no paired run was admitted."
+  ]
+}

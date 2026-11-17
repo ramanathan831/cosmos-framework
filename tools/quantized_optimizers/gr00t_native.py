@@ -68,7 +68,30 @@ def checked_phase(command, output, phase, **kwargs):
             )
 
 
-def source_probe(assets, output):
+SUITE_CONFIGS = {
+    "libero_spatial": "cosmos_framework/posttrain/configs/gr00t_n1d7_libero_quantized_optimizer.py",
+    "libero_10": "cosmos_framework/posttrain/configs/gr00t_n1d7_libero10_quantized_optimizer.py",
+}
+# LIBERO-10 on its unchanged native Joint PPO profile (8 envs, 4 updates per 128-decision window).
+LIBERO10_NATIVE_CONFIG = "cosmos_framework/posttrain/configs/gr00t_n1d7_libero10_quantized_optimizer_native.py"
+
+
+def model_directory(args, assets):
+    """Spatial keeps its curated approved copy; LIBERO-10 must name the pinned snapshot subfolder."""
+    if args.suite == "libero_spatial":
+        if args.model_dir:
+            raise ValueError("--model-dir is only for LIBERO-10; Spatial uses its approved curated copy")
+        return assets / "model"
+    if not args.model_dir:
+        raise ValueError("LIBERO-10 requires --model-dir <snapshot>/<revision>/libero_10")
+    from cosmos_framework.posttrain.model.gr00t.build import _validate_libero10_checkpoint
+
+    directory = Path(args.model_dir)
+    _validate_libero10_checkpoint(str(directory))
+    return directory
+
+
+def source_probe(assets, output, model=None):
     """Load the real native model on CPU before admitting expensive GPU setup."""
     from collections import Counter
 
@@ -93,7 +116,8 @@ def source_probe(assets, output):
         return model, processor
 
     before = time.monotonic()
-    config = make_model_config(str(assets / "model"))
+    model_dir = assets / "model" if model is None else model
+    config = make_model_config(str(model_dir), 8 if model is not None else 16)
     config.backbone_from_checkpoint = True
     (model, processor), identity = load_ppo_source(config, load)
     # Every persisted tensor must come from the approved full checkpoint. This
@@ -102,10 +126,10 @@ def source_probe(assets, output):
     from safetensors import safe_open
 
     state = model.state_dict()
-    weight_map = json.loads((assets / "model/model.safetensors.index.json").read_text())["weight_map"]
+    weight_map = json.loads((model_dir / "model.safetensors.index.json").read_text())["weight_map"]
     checked = set()
     for filename in sorted(set(weight_map.values())):
-        with safe_open(assets / "model" / filename, framework="pt", device="cpu") as shard:
+        with safe_open(model_dir / filename, framework="pt", device="cpu") as shard:
             for name in shard.keys():
                 expected = shard.get_tensor(name)
                 actual = state[name]
@@ -148,6 +172,13 @@ def main():
     parser.add_argument("--co-resident-gib", type=int, default=0, help="Synthetic paging stress only; GiB per GPU")
     parser.add_argument("--source-only", action="store_true")
     parser.add_argument("--evaluate-only", action="store_true")
+    parser.add_argument("--suite", choices=tuple(SUITE_CONFIGS), default="libero_spatial")
+    parser.add_argument("--eval-profile", default="legacy_100")
+    parser.add_argument("--model-dir", default="", help="LIBERO-10 only: pinned snapshot libero_10 directory")
+    parser.add_argument("--recipe-profile", choices=("public_4gpu", "native"), default="public_4gpu")
+    parser.add_argument(
+        "--override", action="append", default=[], help="LIBERO-10 only: predeclared recipe override, e.g. rl.optimizer.lr=1e-6"
+    )
     args = parser.parse_args()
     if min(args.updates, args.checkpoint_every, args.validation_every) < 1:
         parser.error("updates and checkpoint/validation intervals must be positive")
@@ -155,12 +186,61 @@ def main():
         parser.error("co-resident GiB must be nonnegative")
     if args.evaluate_only and not args.resume:
         parser.error("--evaluate-only requires --resume")
+    if args.suite == "libero_spatial" and (
+        args.eval_profile != "legacy_100" or args.model_dir or args.recipe_profile != "public_4gpu"
+    ):
+        parser.error("LIBERO-Spatial keeps its legacy_100 profile and approved model copy")
     root, output = Path(os.environ["RESOURCE_ROOT"]), Path(os.environ["RESULTS"])
     if args.source_only:
         run(args, root, output)
     else:
         with workflow_memory(output):
             run(args, root, output)
+
+
+def native_command(args, model, manifests):
+    """Native Joint PPO command and overrides; Spatial output is pinned by a golden test."""
+    suite = args.suite
+    command = [
+        sys.executable,
+        "-m",
+        "cosmos_framework.posttrain.entrypoints.joint_ppo",
+        "--config",
+        LIBERO10_NATIVE_CONFIG if getattr(args, "recipe_profile", "public_4gpu") == "native" else SUITE_CONFIGS[suite],
+    ]
+    if args.evaluate_only:
+        command.append("--evaluate-only")
+    overrides = [
+        f"model.checkpoint_path={model}",
+        f"rl.max_steps={args.updates}",
+        f"rl.save_every={args.checkpoint_every}",
+        "rl.keep_optim_last=0",
+        "rl.keep_model_last=0",
+        f"rl.validation.every_steps={args.validation_every}",
+        f"rl.seed={args.seed}",
+        "rl.run_ts=integration",
+        f"rl.optimizer.name={args.optimizer}",
+        f"rl.optimizer.impl={'fused' if args.optimizer == 'adamw' else ''}",
+        f"job.name={'gr00t' if suite == 'libero_spatial' else 'gr00t-libero10'}-master-{args.optimizer}",
+    ]
+    if suite != "libero_spatial":
+        overrides += [
+            f"environment.config.eval_profile={args.eval_profile}",
+            f"environment.config.train_manifest={manifests / f'{suite}-train.json'}",
+            f"environment.config.eval_manifest={manifests / f'{suite}-eval.json'}",
+        ]
+    extra = list(getattr(args, "override", []) or [])
+    if extra and suite == "libero_spatial":
+        raise ValueError("--override is only for LIBERO-10 development trials")
+    for item in extra:
+        key = item.split("=", 1)[0]
+        allowed = key.startswith(("rl.", "environment.config.")) or key == "model.value_feature_gradient"
+        if "=" not in item or not allowed or key.startswith("rl.resume"):
+            raise ValueError(f"unsupported recipe override {item!r}")
+    overrides += extra
+    if args.resume:
+        overrides.append(f"rl.resume={args.resume}")
+    return command, overrides
 
 
 def run(args, root, output):
@@ -202,8 +282,9 @@ def run(args, root, output):
     (cache / "refs").mkdir()
     (cache / "snapshots" / revision).symlink_to(assets / "backbone", target_is_directory=True)
     (cache / "refs/main").write_text(revision)
+    model = model_directory(args, assets)
     if args.source_only:
-        source_probe(assets, output)
+        source_probe(assets, output, None if args.suite == "libero_spatial" else model)
         return
     config = Path(os.environ["LIBERO_CONFIG_PATH"])
     config.mkdir()
@@ -220,15 +301,18 @@ def run(args, root, output):
 
     manifests = Path(os.environ["LIBERO_MANIFEST_ROOT"])
     manifests.mkdir()
+    suite = args.suite
     for split in ("train", "eval"):
-        fixed_manifest(split, "libero_spatial", "legacy_100").write(manifests / f"libero_spatial-{split}.json")
+        # Native training partitions are profile-independent except for the evaluation split.
+        profile = args.eval_profile if split == "eval" else "legacy_100"
+        fixed_manifest(split, suite, profile).write(manifests / f"{suite}-{split}.json")
     checked_phase(
         [
             sys.executable,
             "-m",
             "cosmos_framework.posttrain.model.gr00t.preflight",
             "--checkpoint",
-            str(assets / "model"),
+            str(model),
             "--output",
             str(output / "model-preflight.json"),
         ],
@@ -241,9 +325,9 @@ def run(args, root, output):
             "-m",
             "cosmos_framework.posttrain.embodied.sims.libero.preflight",
             "--train-manifest",
-            str(manifests / "libero_spatial-train.json"),
+            str(manifests / f"{suite}-train.json"),
             "--eval-manifest",
-            str(manifests / "libero_spatial-eval.json"),
+            str(manifests / f"{suite}-eval.json"),
             "--output",
             str(output / "sim-preflight.json"),
         ],
@@ -251,30 +335,7 @@ def run(args, root, output):
         "simulator_preflight",
         env={**os.environ, "PYTHONPATH": os.environ["POSTTRAIN_SIM_PYTHONPATH"]},
     )
-    command = [
-        sys.executable,
-        "-m",
-        "cosmos_framework.posttrain.entrypoints.joint_ppo",
-        "--config",
-        "cosmos_framework/posttrain/configs/gr00t_n1d7_libero_quantized_optimizer.py",
-    ]
-    if args.evaluate_only:
-        command.append("--evaluate-only")
-    overrides = [
-        f"model.checkpoint_path={assets / 'model'}",
-        f"rl.max_steps={args.updates}",
-        f"rl.save_every={args.checkpoint_every}",
-        "rl.keep_optim_last=0",
-        "rl.keep_model_last=0",
-        f"rl.validation.every_steps={args.validation_every}",
-        f"rl.seed={args.seed}",
-        "rl.run_ts=integration",
-        f"rl.optimizer.name={args.optimizer}",
-        f"rl.optimizer.impl={'fused' if args.optimizer == 'adamw' else ''}",
-        f"job.name=gr00t-master-{args.optimizer}",
-    ]
-    if args.resume:
-        overrides.append(f"rl.resume={args.resume}")
+    command, overrides = native_command(args, model, manifests)
     (output / "command.json").write_text(json.dumps(command + ["--", *overrides], indent=2))
     checked_phase(command + ["--validate-manifest", "--", *overrides], output, "manifest_validation")
     from tools.quantized_optimizers.device_reservation import ResidentDeviceMemory
