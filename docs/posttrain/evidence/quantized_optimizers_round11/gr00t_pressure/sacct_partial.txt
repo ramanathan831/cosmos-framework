@@ -1,0 +1,9 @@
+JobID|JobName|Partition|State|Start|End|ElapsedRaw|AllocTRES
+38653802|optimizer-native-master|polar|COMPLETED|2026-11-16T12:11:34|2026-11-16T12:20:39|545|billing=2,cpu=8,gres/gpu=2,mem=128G,node=1
+38655842|optimizer-gr00t-native|polar|COMPLETED|2026-11-16T12:37:24|2026-11-16T12:56:08|1124|billing=4,cpu=32,gres/gpu=4,mem=256G,node=1
+38656801|optimizer-gr00t-native|polar3|FAILED|2026-11-16T12:57:56|2026-11-16T13:18:51|1255|billing=4,cpu=32,gres/gpu=4,mem=256G,node=1
+38657817|optimizer-gr00t-native|polar|COMPLETED|2026-11-16T14:34:48|2026-11-16T14:54:07|1159|billing=4,cpu=32,gres/gpu=4,mem=256G,node=1
+38660245|optimizer-gr00t-native|polar3|FAILED|2026-11-16T14:57:37|2026-11-16T15:22:53|1516|billing=4,cpu=32,gres/gpu=4,mem=256G,node=1
+38661439|optimizer-trace-tail|cpu_short|COMPLETED|2026-11-16T15:24:35|2026-11-16T15:25:14|39|cpu=4,mem=32G,node=1
+89540efc08361cacef4db1ccb36f1a67c591c5cb3a75e9876b14f98906ae293d  /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/r11-pressure/paged55-profile-cudaonly-r11v1/managed-memory.nsys-rep
+d28e031bcd0ab5f299f7178e2bc64b0fc764f6a3a1d58134bc6d9b2b5c76d74c  /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/r11-pressure/paged55-profile-cudaonly-r11v1/managed-memory.sqlite

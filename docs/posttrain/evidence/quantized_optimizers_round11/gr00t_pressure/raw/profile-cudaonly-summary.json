@@ -1,0 +1,342 @@
+[
+ {
+  "run": "paged55-profile-cudaonly-r11v1",
+  "native_returncode": null,
+  "native_seconds": null,
+  "completed_updates": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6
+  ],
+  "final_summary": null,
+  "mean_update_seconds_excl_first": 6.3438666864181865,
+  "mean_window_seconds_excl_first": 31.373160365980585,
+  "mean_backend_step_ms_excl_first": 124.06165237426758,
+  "max_peak_allocated_gib": 10.517604351043701,
+  "max_peak_reserved_gib": 12.955078125,
+  "max_peak_inactive_split_gib": 1.7024469375610352,
+  "sampled_learner_process_peak_mib": {
+   "memory-gpu0": 14518.0,
+   "memory-gpu1": 14894.0,
+   "memory-gpu2": 14924.0,
+   "memory-gpu3": 14894.0
+  },
+  "updates": [
+   {
+    "optimizer_step": 1,
+    "phase_seconds": {
+     "collect_seconds": 24.940190403023735,
+     "targets_seconds": 2.6743700609658845,
+     "update_seconds": 7.82409747998463,
+     "publication_and_clear_seconds": 6.924661922035739
+    },
+    "window_seconds": 42.36331986600999,
+    "peak_allocated_gib": [
+     10.500216960906982,
+     10.503207206726074,
+     10.502888679504395,
+     10.500822067260742
+    ],
+    "peak_reserved_gib": [
+     12.916015625,
+     12.935546875,
+     12.916015625,
+     12.916015625
+    ],
+    "pre_update_peak_reserved_gib": [
+     7.748046875,
+     7.748046875,
+     7.748046875,
+     7.748046875
+    ],
+    "peak_inactive_split_gib": [
+     0.9674148559570312,
+     0.967933177947998,
+     0.9674162864685059,
+     0.9674162864685059
+    ],
+    "cumulative_alloc_retries": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "cumulative_ooms": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "backend_step_ms": [
+     385.0651550292969,
+     439.2370300292969,
+     351.2118225097656,
+     370.85626220703125
+    ]
+   },
+   {
+    "optimizer_step": 2,
+    "phase_seconds": {
+     "collect_seconds": 16.55647463700734,
+     "targets_seconds": 2.0981956519535743,
+     "update_seconds": 5.961643314047251,
+     "publication_and_clear_seconds": 6.819130384945311
+    },
+    "window_seconds": 31.435443987953477,
+    "peak_allocated_gib": [
+     10.516884326934814,
+     10.51600694656372,
+     10.51688003540039,
+     10.516597270965576
+    ],
+    "peak_reserved_gib": [
+     12.9296875,
+     12.94921875,
+     12.9296875,
+     12.9296875
+    ],
+    "pre_update_peak_reserved_gib": [
+     12.916015625,
+     12.935546875,
+     12.916015625,
+     12.916015625
+    ],
+    "peak_inactive_split_gib": [
+     0.9676551818847656,
+     0.9681763648986816,
+     0.9676594734191895,
+     0.9676594734191895
+    ],
+    "cumulative_alloc_retries": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "cumulative_ooms": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "backend_step_ms": [
+     73.77286529541016,
+     73.74179077148438,
+     73.96166229248047,
+     76.2041244506836
+    ]
+   },
+   {
+    "optimizer_step": 3,
+    "phase_seconds": {
+     "collect_seconds": 15.901180580025539,
+     "targets_seconds": 2.0763298489619046,
+     "update_seconds": 6.128787488036323,
+     "publication_and_clear_seconds": 6.796084305969998
+    },
+    "window_seconds": 30.902382222993765,
+    "peak_allocated_gib": [
+     10.514255046844482,
+     10.512902736663818,
+     10.513126373291016,
+     10.516317367553711
+    ],
+    "peak_reserved_gib": [
+     12.9296875,
+     12.94921875,
+     12.9296875,
+     12.9296875
+    ],
+    "pre_update_peak_reserved_gib": [
+     12.9296875,
+     12.94921875,
+     12.9296875,
+     12.9296875
+    ],
+    "peak_inactive_split_gib": [
+     0.9671893119812012,
+     0.9681763648986816,
+     0.9676594734191895,
+     0.9681763648986816
+    ],
+    "cumulative_alloc_retries": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "cumulative_ooms": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "backend_step_ms": [
+     75.97679901123047,
+     71.12153625488281,
+     71.31129455566406,
+     75.380126953125
+    ]
+   },
+   {
+    "optimizer_step": 4,
+    "phase_seconds": {
+     "collect_seconds": 16.236715297971386,
+     "targets_seconds": 2.1020621429779567,
+     "update_seconds": 6.134502432018053,
+     "publication_and_clear_seconds": 6.7991905200178735
+    },
+    "window_seconds": 31.27247039298527,
+    "peak_allocated_gib": [
+     10.513648509979248,
+     10.512902736663818,
+     10.51359224319458,
+     10.51645803451538
+    ],
+    "peak_reserved_gib": [
+     12.9296875,
+     12.94921875,
+     12.9296875,
+     12.9296875
+    ],
+    "pre_update_peak_reserved_gib": [
+     12.9296875,
+     12.94921875,
+     12.9296875,
+     12.9296875
+    ],
+    "peak_inactive_split_gib": [
+     0.9676551818847656,
+     0.9681763648986816,
+     0.9676594734191895,
+     0.9681763648986816
+    ],
+    "cumulative_alloc_retries": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "cumulative_ooms": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "backend_step_ms": [
+     79.18038177490234,
+     75.88246154785156,
+     75.84649658203125,
+     73.13814544677734
+    ]
+   },
+   {
+    "optimizer_step": 5,
+    "phase_seconds": {
+     "collect_seconds": 15.709220297983848,
+     "targets_seconds": 2.0747001669951715,
+     "update_seconds": 7.159462717012502,
+     "publication_and_clear_seconds": 6.861343288968783
+    },
+    "window_seconds": 31.804726470960304,
+    "peak_allocated_gib": [
+     10.517604351043701,
+     10.513888359069824,
+     10.513391017913818,
+     10.51712417602539
+    ],
+    "peak_reserved_gib": [
+     12.576171875,
+     12.92578125,
+     12.955078125,
+     12.92578125
+    ],
+    "pre_update_peak_reserved_gib": [
+     12.9296875,
+     12.94921875,
+     12.9296875,
+     12.9296875
+    ],
+    "peak_inactive_split_gib": [
+     1.7024469375610352,
+     0.9681763648986816,
+     0.9681763648986816,
+     0.9676594734191895
+    ],
+    "cumulative_alloc_retries": [
+     3,
+     0,
+     0,
+     0
+    ],
+    "cumulative_ooms": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "backend_step_ms": [
+     172.44607543945312,
+     181.5161895751953,
+     180.529541015625,
+     187.0262451171875
+    ]
+   },
+   {
+    "optimizer_step": 6,
+    "phase_seconds": {
+     "collect_seconds": 15.975113598979078,
+     "targets_seconds": 2.1033457050216384,
+     "update_seconds": 6.334937480976805,
+     "publication_and_clear_seconds": 7.037381970032584
+    },
+    "window_seconds": 31.450778755010106,
+    "peak_allocated_gib": [
+     10.509603500366211,
+     10.51712417602539,
+     10.513856887817383,
+     10.51712417602539
+    ],
+    "peak_reserved_gib": [
+     11.8125,
+     12.92578125,
+     12.955078125,
+     12.92578125
+    ],
+    "pre_update_peak_reserved_gib": [
+     12.576171875,
+     12.92578125,
+     12.955078125,
+     12.92578125
+    ],
+    "peak_inactive_split_gib": [
+     1.472836971282959,
+     0.9676594734191895,
+     0.9681763648986816,
+     0.967193603515625
+    ],
+    "cumulative_alloc_retries": [
+     3,
+     0,
+     0,
+     0
+    ],
+    "cumulative_ooms": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "backend_step_ms": [
+     213.74441528320312,
+     214.67811584472656,
+     217.7085418701172,
+     218.0662384033203
+    ]
+   }
+  ]
+ }
+]

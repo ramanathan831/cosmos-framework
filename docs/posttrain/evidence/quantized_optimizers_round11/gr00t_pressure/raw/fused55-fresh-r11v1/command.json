@@ -1,0 +1,19 @@
+[
+  "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/action-runtime-v2/model/bin/python",
+  "-m",
+  "cosmos_framework.posttrain.entrypoints.joint_ppo",
+  "--config",
+  "cosmos_framework/posttrain/configs/gr00t_n1d7_libero_quantized_optimizer.py",
+  "--",
+  "model.checkpoint_path=/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-family-adapters-20261030/gr00t-public-assets-v1/model",
+  "rl.max_steps=32",
+  "rl.save_every=16",
+  "rl.keep_optim_last=0",
+  "rl.keep_model_last=0",
+  "rl.validation.every_steps=16",
+  "rl.seed=17",
+  "rl.run_ts=integration",
+  "rl.optimizer.name=adamw",
+  "rl.optimizer.impl=fused",
+  "job.name=gr00t-master-adamw"
+]

@@ -1,0 +1,495 @@
+{
+ "tables_present": [
+  "CUPTI_ACTIVITY_KIND_CUDA_EVENT",
+  "CUPTI_ACTIVITY_KIND_KERNEL",
+  "CUPTI_ACTIVITY_KIND_MEMCPY",
+  "CUPTI_ACTIVITY_KIND_MEMSET",
+  "CUPTI_ACTIVITY_KIND_RUNTIME",
+  "CUPTI_ACTIVITY_KIND_SYNCHRONIZATION",
+  "TARGET_INFO_CUDA_CONTEXT_INFO",
+  "TARGET_INFO_CUDA_STREAM",
+  "TARGET_INFO_GPU",
+  "TARGET_INFO_NIC_INFO",
+  "TARGET_INFO_SESSION_START_TIME",
+  "TARGET_INFO_SYSTEM_ENV"
+ ],
+ "per_process_device": {
+  "pid3365677-dev0": {
+   "kernels": 6582,
+   "first_s": 25.690454175,
+   "last_s": 407.294898741,
+   "last_kernels": [
+    [
+     "CatArrayBatchedCopy_contig",
+     407.294887797,
+     0.010944
+    ],
+    [
+     "reduce_kernel",
+     407.294826677,
+     0.003616
+    ],
+    [
+     "vectorized_elementwise_kernel",
+     407.294814101,
+     0.002336
+    ],
+    [
+     "reduce_kernel",
+     407.294796757,
+     0.003648
+    ],
+    [
+     "vectorized_elementwise_kernel",
+     407.294793589,
+     0.00224
+    ]
+   ],
+   "optimizer_kernels": {
+    "count": 0,
+    "mean_ms": 0.0,
+    "total_s": 0.0
+   }
+  },
+  "pid3365678-dev0": {
+   "kernels": 778251,
+   "first_s": 15.310815686,
+   "last_s": 431.118585223,
+   "last_kernels": [
+    [
+     "multi_tensor_apply_kernel",
+     431.118545735,
+     0.039488
+    ],
+    [
+     "multi_tensor_apply_kernel",
+     431.114831273,
+     0.028352
+    ],
+    [
+     "vectorized_elementwise_kernel",
+     431.114296585,
+     0.002368
+    ],
+    [
+     "splitKreduce_kernel",
+     431.114271337,
+     0.004096
+    ],
+    [
+     "ampere_bf16_s16816gemm_bf16_128x64_ldg8_f2f_stages_64x4_tn",
+     431.114251209,
+     0.01904
+    ]
+   ],
+   "optimizer_kernels": {
+    "count": 3258,
+    "mean_ms": 0.03355025414364641,
+    "total_s": 0.109306728
+   }
+  },
+  "pid3365679-dev0": {
+   "kernels": 778251,
+   "first_s": 15.310722306,
+   "last_s": 431.12035304,
+   "last_kernels": [
+    [
+     "multi_tensor_apply_kernel",
+     431.120315024,
+     0.038016
+    ],
+    [
+     "multi_tensor_apply_kernel",
+     431.116424241,
+     0.028352
+    ],
+    [
+     "vectorized_elementwise_kernel",
+     431.115879345,
+     0.0024
+    ],
+    [
+     "splitKreduce_kernel",
+     431.115851953,
+     0.003904
+    ],
+    [
+     "ampere_bf16_s16816gemm_bf16_128x64_ldg8_f2f_stages_64x4_tn",
+     431.115832145,
+     0.018784
+    ]
+   ],
+   "optimizer_kernels": {
+    "count": 3258,
+    "mean_ms": 0.03361178852056476,
+    "total_s": 0.109507207
+   }
+  },
+  "pid3365680-dev0": {
+   "kernels": 778407,
+   "first_s": 15.310723746,
+   "last_s": 431.120705216,
+   "last_kernels": [
+    [
+     "multi_tensor_apply_kernel",
+     431.120668032,
+     0.037184
+    ],
+    [
+     "multi_tensor_apply_kernel",
+     431.116937687,
+     0.028832
+    ],
+    [
+     "vectorized_elementwise_kernel",
+     431.116401013,
+     0.002368
+    ],
+    [
+     "splitKreduce_kernel",
+     431.116372117,
+     0.003776
+    ],
+    [
+     "ampere_bf16_s16816gemm_bf16_128x64_ldg8_f2f_stages_64x4_tn",
+     431.116351829,
+     0.019072
+    ]
+   ],
+   "optimizer_kernels": {
+    "count": 3258,
+    "mean_ms": 0.03366623419275629,
+    "total_s": 0.109684591
+   }
+  },
+  "pid3365681-dev0": {
+   "kernels": 6582,
+   "first_s": 25.690302775,
+   "last_s": 407.295142607,
+   "last_kernels": [
+    [
+     "CatArrayBatchedCopy_contig",
+     407.295132111,
+     0.010496
+    ],
+    [
+     "reduce_kernel",
+     407.295062255,
+     0.003424
+    ],
+    [
+     "vectorized_elementwise_kernel",
+     407.295047055,
+     0.00224
+    ],
+    [
+     "reduce_kernel",
+     407.295028431,
+     0.003392
+    ],
+    [
+     "vectorized_elementwise_kernel",
+     407.295015343,
+     0.002208
+    ]
+   ],
+   "optimizer_kernels": {
+    "count": 0,
+    "mean_ms": 0.0,
+    "total_s": 0.0
+   }
+  },
+  "pid3365682-dev0": {
+   "kernels": 6582,
+   "first_s": 25.690424372,
+   "last_s": 407.295538202,
+   "last_kernels": [
+    [
+     "CatArrayBatchedCopy_contig",
+     407.295527578,
+     0.010624
+    ],
+    [
+     "reduce_kernel",
+     407.29549193,
+     0.003392
+    ],
+    [
+     "vectorized_elementwise_kernel",
+     407.295488506,
+     0.002304
+    ],
+    [
+     "reduce_kernel",
+     407.295483514,
+     0.003744
+    ],
+    [
+     "vectorized_elementwise_kernel",
+     407.295479802,
+     0.002496
+    ]
+   ],
+   "optimizer_kernels": {
+    "count": 0,
+    "mean_ms": 0.0,
+    "total_s": 0.0
+   }
+  },
+  "pid3365683-dev0": {
+   "kernels": 6582,
+   "first_s": 25.690452706,
+   "last_s": 407.295648609,
+   "last_kernels": [
+    [
+     "CatArrayBatchedCopy_contig",
+     407.295637953,
+     0.010656
+    ],
+    [
+     "reduce_kernel",
+     407.295553377,
+     0.003456
+    ],
+    [
+     "vectorized_elementwise_kernel",
+     407.295549057,
+     0.00224
+    ],
+    [
+     "reduce_kernel",
+     407.295532993,
+     0.01488
+    ],
+    [
+     "vectorized_elementwise_kernel",
+     407.295506177,
+     0.013728
+    ]
+   ],
+   "optimizer_kernels": {
+    "count": 0,
+    "mean_ms": 0.0,
+    "total_s": 0.0
+   }
+  },
+  "pid3365684-dev0": {
+   "kernels": 778977,
+   "first_s": 15.310748979,
+   "last_s": 431.113439792,
+   "last_kernels": [
+    [
+     "ncclDevKernel_AllGather_RING_LL",
+     431.112339474,
+     1.100318
+    ],
+    [
+     "multi_tensor_apply_kernel",
+     431.112083091,
+     0.029056
+    ],
+    [
+     "vectorized_elementwise_kernel",
+     431.111719316,
+     0.002496
+    ],
+    [
+     "splitKreduce_kernel",
+     431.111692276,
+     0.003872
+    ],
+    [
+     "ampere_bf16_s16816gemm_bf16_128x64_ldg8_f2f_stages_64x4_tn",
+     431.111673364,
+     0.017856
+    ]
+   ],
+   "optimizer_kernels": {
+    "count": 3270,
+    "mean_ms": 0.03353731620795107,
+    "total_s": 0.109667024
+   }
+  },
+  "pid3367136-dev0": {
+   "kernels": 2009548,
+   "first_s": 0.09398669,
+   "last_s": 423.538273246,
+   "last_kernels": [
+    [
+     "unrolled_elementwise_kernel",
+     423.538268734,
+     0.004512
+    ],
+    [
+     "vectorized_elementwise_kernel",
+     423.538217118,
+     0.001856
+    ],
+    [
+     "distribution_elementwise_grid_stride_kernel",
+     423.538198846,
+     0.002592
+    ],
+    [
+     "vectorized_elementwise_kernel",
+     423.538167486,
+     0.001952
+    ],
+    [
+     "vectorized_elementwise_kernel",
+     423.538156766,
+     0.002112
+    ]
+   ],
+   "optimizer_kernels": {
+    "count": 0,
+    "mean_ms": 0.0,
+    "total_s": 0.0
+   }
+  },
+  "pid3367143-dev0": {
+   "kernels": 2030095,
+   "first_s": 0.117008704,
+   "last_s": 425.018814366,
+   "last_kernels": [
+    [
+     "unrolled_elementwise_kernel",
+     425.018809855,
+     0.004511
+    ],
+    [
+     "vectorized_elementwise_kernel",
+     425.018763519,
+     0.001888
+    ],
+    [
+     "distribution_elementwise_grid_stride_kernel",
+     425.018745279,
+     0.002624
+    ],
+    [
+     "reduce_kernel",
+     425.018707359,
+     0.00416
+    ],
+    [
+     "elementwise_kernel",
+     425.018678559,
+     0.00352
+    ]
+   ],
+   "optimizer_kernels": {
+    "count": 0,
+    "mean_ms": 0.0,
+    "total_s": 0.0
+   }
+  },
+  "pid3367153-dev0": {
+   "kernels": 2050459,
+   "first_s": 0.0,
+   "last_s": 424.747896291,
+   "last_kernels": [
+    [
+     "unrolled_elementwise_kernel",
+     424.747891811,
+     0.00448
+    ],
+    [
+     "vectorized_elementwise_kernel",
+     424.747826883,
+     0.001984
+    ],
+    [
+     "distribution_elementwise_grid_stride_kernel",
+     424.747808323,
+     0.00272
+    ],
+    [
+     "reduce_kernel",
+     424.747764258,
+     0.004097
+    ],
+    [
+     "elementwise_kernel",
+     424.747730242,
+     0.003488
+    ]
+   ],
+   "optimizer_kernels": {
+    "count": 0,
+    "mean_ms": 0.0,
+    "total_s": 0.0
+   }
+  },
+  "pid3367163-dev0": {
+   "kernels": 2104702,
+   "first_s": 0.393334948,
+   "last_s": 425.390228124,
+   "last_kernels": [
+    [
+     "unrolled_elementwise_kernel",
+     425.390223676,
+     0.004448
+    ],
+    [
+     "vectorized_elementwise_kernel",
+     425.39017078,
+     0.002016
+    ],
+    [
+     "distribution_elementwise_grid_stride_kernel",
+     425.390151548,
+     0.00272
+    ],
+    [
+     "reduce_kernel",
+     425.39011238,
+     0.004128
+    ],
+    [
+     "elementwise_kernel",
+     425.39008038,
+     0.00352
+    ]
+   ],
+   "optimizer_kernels": {
+    "count": 0,
+    "mean_ms": 0.0,
+    "total_s": 0.0
+   }
+  }
+ },
+ "memcpy_by_kind": [
+  {
+   "copyKind": 1,
+   "count": 95949,
+   "bytes": 23743576751,
+   "seconds": 2.078966507
+  },
+  {
+   "copyKind": 2,
+   "count": 270421,
+   "bytes": 232872878510,
+   "seconds": 40.695060283
+  },
+  {
+   "copyKind": 8,
+   "count": 63585,
+   "bytes": 237938132819,
+   "seconds": 0.399515779
+  },
+  {
+   "copyKind": 11,
+   "count": 5872,
+   "bytes": 6503038976,
+   "seconds": 0.483493558
+  },
+  {
+   "copyKind": 12,
+   "count": 24927,
+   "bytes": 7811006464,
+   "seconds": 0.439994515
+  }
+ ],
+ "session_span_s": 431.120705216
+}
