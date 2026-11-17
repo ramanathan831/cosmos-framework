@@ -12,7 +12,12 @@ from typing import Any
 import torch
 import torch.distributed as dist
 
-from cosmos_framework.posttrain.algorithm.joint_ppo.objective import WEIGHT_KEY, WEIGHTED, make_joint_objective
+from cosmos_framework.posttrain.algorithm.joint_ppo.objective import (
+    REFERENCE_KL,
+    WEIGHT_KEY,
+    WEIGHTED,
+    make_joint_objective,
+)
 from cosmos_framework.posttrain.algorithm.joint_ppo.records import (
     STATS_KEY,
     TARGET_KEY,
@@ -424,7 +429,8 @@ class JointPPOTrainer(PPOTrainableRole):
                 role="policy",
                 requested_coefficients={},
                 bound_coefficients={},
-                weighted=WEIGHTED,
+                # The anchored-model KL is window-weighted like the other objective metrics.
+                weighted=WEIGHTED | ({REFERENCE_KL} if getattr(self.model, "ppo_reference", None) is not None else set()),
                 weight_key=WEIGHT_KEY,
             )
             optimizer_metrics.append(dict(metrics))

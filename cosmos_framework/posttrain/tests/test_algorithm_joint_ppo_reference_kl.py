@@ -135,3 +135,23 @@ def test_transition_only_requires_trace():
     heads = Gr00tPPOHeads(_head(), score_horizon=8)
     with pytest.raises(ValueError, match="requires a trace"):
         heads(SimpleNamespace(), None, transition_only=True)
+
+
+def test_trainer_window_reports_reference_kl_only_for_anchored_models():
+    recipe = batch_recipe()
+    for model, expected in ((FixedEpisodePolicy(), False), (_AnchoredPolicy(beta=0.5), True)):
+        learner = JointPPOTrainer(model, recipe)
+        receipt = learner.prepare_ppo_targets(collect_fixed(model, recipe))
+        update = learner.train_batch(receipt["batch_id"])
+        assert all(("reference_kl" in item) is expected for item in update["optimizer_metrics"])
+        assert ("reference_kl" in update["metrics"]) is expected
+        if expected:
+            # First minibatch: policy equals the frozen copy, so KL is exactly zero.
+            assert update["optimizer_metrics"][0]["reference_kl"] == 0.0
+        learner.clear_batch(receipt["batch_id"])
+        if expected:
+            # After an applied step the policy has moved away from its frozen copy.
+            receipt = learner.prepare_ppo_targets(collect_fixed(model, recipe))
+            moved = learner.train_batch(receipt["batch_id"])
+            assert moved["optimizer_metrics"][0]["reference_kl"] > 0
+            learner.clear_batch(receipt["batch_id"])
