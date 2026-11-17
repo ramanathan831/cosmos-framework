@@ -11,5 +11,18 @@
   "success_criterion": "PASS iff every completed aligned_200 evaluation at update >= 80 (80, 160, 240, 320) has success >= 0.885 (>= 177/200) AND mean episode_steps <= 339.10. Failing any completed evaluation FAILS the trial (cancel). The update-80 evaluation must complete or the trial is censored.",
   "mechanism_prediction": "Median actor policy_grad_norm over windows 1-20 falls below 1/3 of trial 2's (~44 -> < 14.7). If the grad norm does not fall that much, value gradients were not the dominant actor signal, regardless of quality outcome.",
   "falsification": "Hypothesis 'shared-feature value gradients drive the drift' is falsified if the quality criterion fails or the grad-norm prediction fails.",
-  "after": "No further recipe trials are admitted. If it passes, the paired fused-vs-8-bit protocol uses this recipe for both arms (rebased onto 637d1326). If it fails, report the baseline as unstable and stop."
+  "after": "No further recipe trials are admitted. If it passes, the paired fused-vs-8-bit protocol uses this recipe for both arms (rebased onto 637d1326). If it fails, report the baseline as unstable and stop.",
+  "result": {
+    "job": "38685537",
+    "evaluations": {
+      "0": {"success_rate": 0.915, "episode_steps": 303.96, "task_success_counts_of_20": [19, 20, 20, 19, 17, 20, 19, 19, 15, 15]},
+      "80": {"success_rate": 0.92, "episode_steps": 299.68, "task_success_counts_of_20": [20, 19, 20, 20, 18, 20, 19, 19, 14, 15]},
+      "160": {"success_rate": 0.86, "episode_steps": 325.795, "task_success_counts_of_20": [18, 19, 19, 20, 17, 19, 17, 19, 11, 13]}
+    },
+    "actor_policy_grad_norm_median_windows_1_20": 41.375,
+    "actor_parameter_update_l2_median_windows_1_20": 0.0589,
+    "verdict": "FAIL: update-160 success 0.860 < 0.885 (steps 325.8 within bound). Mechanism prediction also FAILED (grad norm 41.4, not < 14.7): shared-feature value gradients are not the dominant actor signal; value isolation did not change the drift (trial 2 also 0.860, at update 240).",
+    "status": "CANCELLED after the failing update-160 evaluation",
+    "gpu_hours": {"sacct": "38685537 CANCELLED, cluster-local 2026-11-17T03:43:16 to 04:36:39, elapsed 00:53:23, 8 GPUs", "gpu_allocation_hours": 7.118}
+  }
 }
