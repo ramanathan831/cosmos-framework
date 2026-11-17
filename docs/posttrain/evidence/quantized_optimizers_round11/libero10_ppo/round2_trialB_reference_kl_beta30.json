@@ -1,0 +1,13 @@
+{
+  "kind": "Predeclared single-factor fused-baseline development trial, round 2 trial B (development only)",
+  "declared_before_submission": true,
+  "factor": "model.ppo_reference_kl_beta 10 -> 30 (single factor relative to trial A)",
+  "selected_from_data": "Trial A: early gain (0.945 at update 80, tasks 8+9 = 33) followed by slow decline as reference KL kept rising (0.0016 -> 0.0038). The anchor's balance offset scales as 1/beta (KL ~ 1/beta^2), so tripling beta should hold the policy near the early-improvement region (trial-A windows 1-20 KL ~0.0016) instead of drifting past it. Target-KL early stop (b) remains inapplicable (per-window drift tiny), and log-prob rescaling (c) is invariant under AdamW + global-norm clipping.",
+  "unchanged": "lr 1e-6, value_lr 1e-4, native LIBERO-10 profile, value_feature_gradient default, fused AdamW fp32_master, clip 1.0, checkpoint, aligned_200, seed 17",
+  "source": "42be1d6b (same numerics as trial A's a89c4509; adds reference_kl to window metrics)",
+  "schedule": {"updates": 320, "validation_updates": [0, 80, 160, 240, 320], "checkpoint_every": 80},
+  "quality_bar": "PASS iff every completed aligned_200 evaluation at update >= 80 has success >= 0.885 AND mean episode_steps <= 339.10; update 320 must complete.",
+  "gain_criterion": "Real gain iff update-320 success - own update-0 success >= 0.02 OR tasks 8+9 combined rise >= 4 of 40 versus own update 0.",
+  "mechanism_prediction": "Mean reference_kl (now logged directly) over windows 61-80 <= 0.0015 (below 40% of trial A's 0.0038) and no more than 1.5x its windows 21-40 mean.",
+  "falsification": "Stronger anchoring hypothesis falsified if the quality bar fails, if the gain criterion fails while KL is held (anchoring then prevents improvement as well as drift), or if the KL prediction fails."
+}
