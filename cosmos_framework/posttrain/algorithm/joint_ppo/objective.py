@@ -24,6 +24,8 @@ WEIGHT_KEY = "train/valid_decisions"
 WEIGHTED = frozenset(
     f"train/{name}" for name in ("policy_loss", "value_loss", "joint_loss", "clip_fraction", "ratio_mean")
 )
+# Reported only for models that carry a frozen reference policy (opt-in KL anchor).
+REFERENCE_KL = "train/reference_kl"
 
 
 def make_joint_objective(
@@ -39,7 +41,15 @@ def make_joint_objective(
     fixed_episode = loss_reduction == "fixed_episode_mean"
     names = {
         f"ppo_{key}": key
-        for key in ("policy_loss", "value_loss", "joint_loss", "clip_fraction", "ratio_mean", "valid_decisions")
+        for key in (
+            "policy_loss",
+            "value_loss",
+            "joint_loss",
+            "clip_fraction",
+            "ratio_mean",
+            "reference_kl",
+            "valid_decisions",
+        )
     }
     if fixed_episode:
         names["ppo_decisions"] = "decisions"
@@ -49,7 +59,7 @@ def make_joint_objective(
         phases=frozenset({"train"}),
         weighted_by={
             f"ppo_{key}": ("ppo_decisions" if fixed_episode and key.endswith("loss") else "ppo_valid_decisions")
-            for key in ("policy_loss", "value_loss", "joint_loss", "clip_fraction", "ratio_mean")
+            for key in ("policy_loss", "value_loss", "joint_loss", "clip_fraction", "ratio_mean", "reference_kl")
         },
     )
 
@@ -79,7 +89,8 @@ def make_joint_objective(
         # genuine cached sample as its padding template before opening the window.
         padding = model.ppo_padding
         loss = torch.zeros((), device=device)
-        totals = {key: torch.zeros((), device=device) for key in WEIGHTED}
+        anchored = getattr(model, "ppo_reference", None) is not None
+        totals = {key: torch.zeros((), device=device) for key in WEIGHTED | ({REFERENCE_KL} if anchored else set())}
 
         def terms(index: int, step: Transition, scores: PPODecisionScores) -> tuple[torch.Tensor, dict]:
             if index >= len(steps) or not step.algo_extra[TARGET_KEY].loss_mask:
@@ -100,12 +111,19 @@ def make_joint_objective(
             actor = actor * targets.loss_weight
             value = value * targets.loss_weight
             joint = actor + value
+            reference_kl = None
+            if scores.reference_kl is not None:
+                # Anchor to the frozen initial policy: beta * KL(pi_theta || pi_ref) of the scored
+                # transition, weighted like the surrogate; policy_loss stays the pure PPO term.
+                reference_kl = scores.reference_kl.sum()
+                joint = joint + scores.reference_kl_beta * reference_kl * targets.loss_weight
             return joint, {
                 "train/policy_loss": actor.detach(),
                 "train/value_loss": value.detach(),
                 "train/joint_loss": joint.detach(),
                 "train/clip_fraction": metrics["clip_fraction"],
                 "train/ratio_mean": metrics["ratio_mean"],
+                **({REFERENCE_KL: reference_kl.detach()} if reference_kl is not None else {}),
             }
 
         if batched:

@@ -286,6 +286,21 @@ class Gr00tN1d7TrainPolicy:
                 value_feature_gradient=config.value_feature_gradient,
             )
             prepare_deterministic_ppo_update(self.net)
+            # Opt-in frozen initial policy for the KL anchor. Copied from the source weights here,
+            # before any trainer restore, and kept outside `self.net`, so it is never optimized,
+            # checkpointed, published to rollouts or part of the backbone frozen-state digest.
+            self.ppo_reference = None
+            if config.ppo_reference_kl_beta > 0:
+                import copy
+
+                from cosmos_framework.posttrain.model.ppo import prepare_deterministic_ppo_forward
+
+                reference = Gr00tPPOHeads(
+                    copy.deepcopy(self.gr00t.action_head), score_horizon=config.execution_horizon
+                )
+                reference.requires_grad_(False)
+                prepare_deterministic_ppo_forward(reference, enable_gradient_checkpointing=False)
+                self.ppo_reference = reference
             self.ppo_parameters = PPOParameterPartition(
                 actor=tuple(
                     name
@@ -306,6 +321,9 @@ class Gr00tN1d7TrainPolicy:
             # PPO enters the action/value container's public forward; all trainable transforms
             # and the newly bound value head belong to that FSDP root.
             parallelize(self.net, gr00t_shard_plan(self.precision), parallel_dims)
+            if self.ppo_reference is not None:
+                self.ppo_reference.to(device)
+                parallelize(self.ppo_reference, gr00t_shard_plan(self.precision), parallel_dims)
         else:
             # Wrap `action_head`, not the container: FSDP2 all-gathers in the wrapped module's
             # pre-forward hook, and the official flow-BC forward calls `action_head(...)` directly.
@@ -394,15 +412,27 @@ class Gr00tN1d7TrainPolicy:
         from cosmos_framework.posttrain.model.gr00t.ppo import CONDITION_KEY, TRACE_KEY, to_device
 
         device = next(self.net.parameters()).device
-        scores = self.ppo_score(
-            to_device(step.obs.representations[CONDITION_KEY], device),
-            to_device(step.policy_info[TRACE_KEY], device),
-        )
+        condition = to_device(step.obs.representations[CONDITION_KEY], device)
+        trace = to_device(step.policy_info[TRACE_KEY], device)
+        scores = self.ppo_score(condition, trace)
         row = step.policy_info["sample_index"]
+        reference_kl = None
+        reference = getattr(self, "ppo_reference", None)
+        if reference is not None:
+            from cosmos_framework.posttrain.model.gr00t.ppo import selected_transition_kl
+
+            # Every rank enters the reference's own FSDP forward for every scored decision.
+            with torch.no_grad(), self.compute_ctx:
+                reference_mean, _ = reference(condition, trace, transition_only=True)
+            reference_kl = selected_transition_kl(
+                scores.mean, reference_mean.detach(), scores.std, score_horizon=self.config.execution_horizon
+            )[row : row + 1]
         return PPODecisionScores(
             scores.logprobs[row : row + 1],
             scores.values[row : row + 1],
             (scores.logprobs.sum() + scores.values.sum()) * 0,
+            reference_kl,
+            self.config.ppo_reference_kl_beta,
         )
 
     def ppo_sample(self, condition: Gr00tPPOCondition, *, seed: int) -> Gr00tPPOSample:

@@ -49,6 +49,10 @@ class PPODecisionScores:
     logprobs: torch.Tensor  # [B], B=1 for score_ppo_decision
     values: torch.Tensor  # [B]
     zero_loss: torch.Tensor  # scalar, retains all replayed parameter dependencies
+    # Optional per-decision KL to a frozen reference policy [B]; None when the model has none.
+    reference_kl: torch.Tensor | None = None
+    # Weight the objective applies to reference_kl in the actor loss (0 = report only).
+    reference_kl_beta: float = 0.0
 
 
 @dataclass(frozen=True)
