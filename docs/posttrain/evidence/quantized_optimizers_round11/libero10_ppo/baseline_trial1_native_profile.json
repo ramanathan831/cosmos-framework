@@ -11,5 +11,17 @@
   "success_criterion": "PASS iff every completed aligned_200 evaluation at update >= 80 has success >= 0.885 (>= 177/200; frozen 90.5% minus 2 points) AND all-episode mean episode_steps <= 339.10 (frozen 308.27 + 10%). Any completed evaluation at update >= 80 violating either bound FAILS the trial. At least the update-80 evaluation must complete; otherwise the trial is censored, not passed.",
   "falsification": "The hypothesis 'the collapse was caused by the reduced 4-GPU profile' is falsified if this trial fails the criterion.",
   "next_if_fail": "At most two further single-factor trials, in order: (2) actor lr 5e-6 -> 1e-6 on the native profile; (3) value-warmup period. Each predeclared before submission.",
-  "no_selection": "No checkpoint selection by inspected quality; results reported for all evaluations."
+  "no_selection": "No checkpoint selection by inspected quality; results reported for all evaluations.",
+  "result": {
+    "job": "38658418",
+    "evaluations": {
+      "0": {"success_rate": 0.895, "episode_steps": 311.05, "task_success_counts_of_20": [19, 20, 19, 19, 17, 20, 19, 19, 12, 15]},
+      "80": {"success_rate": 0.27, "episode_steps": 608.265, "task_success_counts_of_20": [1, 10, 10, 11, 8, 0, 3, 1, 1, 9]}
+    },
+    "policy_grad_norm_samples": [39.7, 41.4, 45.4],
+    "verdict": "FAIL: update-80 success 0.270 < 0.885 and episode_steps 608.3 > 339.1. Hypothesis falsified: the collapse is not caused by the reduced 4-GPU profile (it is faster here: 80 updates = 20 windows).",
+    "status": "CANCELLED after the failing update-80 evaluation",
+    "gpu_hours": {"sacct": "38658418 CANCELLED, cluster-local 2026-11-17T00:44:49 to 01:26:56, elapsed 00:42:07, 8 GPUs", "gpu_allocation_hours": 5.616}
+  },
+  "mechanism_note": "The legacy native Joint PPO route (update_policy=parameter, adamw) updates BF16 parameters directly; per cosmos_framework/posttrain/config/rl.py OptimizerConfig docs, at lr ~5e-6 the relative BF16 update mostly rounds away. The native lr 5e-6 was therefore never exercised with fully effective updates; fp32_master applies them. This motivates trial 2 (actor lr 5e-6 -> 1e-6)."
 }

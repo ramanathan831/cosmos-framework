@@ -1,0 +1,14 @@
+{
+  "kind": "Predeclared single-factor fused-baseline development trial (development only; not an optimizer comparison)",
+  "declared_before_submission": true,
+  "trial": 2,
+  "factor": "actor lr 5e-6 -> 1e-6 (rl.optimizer.lr), on the trial-1 native LIBERO-10 profile",
+  "unchanged": "native profile (8 envs on 8 GPUs, 16-decision windows, global_minibatch 32, 4 updates per window), value_lr 1e-4, betas/eps/decay/clip 1.0, fused AdamW fp32_master, checkpoint, aligned_200, seed 17, BF16 compute, frozen backbone",
+  "source": "8b8e187e (override only; no code change)",
+  "schedule": {"updates": 320, "windows": 80, "decisions": 10240, "validation_updates": [0, 80, 160, 240, 320], "checkpoint_every": 80},
+  "reference_frozen": {"success_rate": 0.905, "success_count": 181, "episode_steps": 308.27},
+  "success_criterion": "PASS iff every completed aligned_200 evaluation at update >= 80 has success >= 0.885 (>= 177/200) AND mean episode_steps <= 339.10. Any completed evaluation at update >= 80 violating either bound FAILS the trial and the job is cancelled. The update-80 evaluation must complete or the trial is censored.",
+  "falsification": "The hypothesis 'effective (FP32-master) updates at the native actor lr 5e-6 are too large for this policy; 1e-6 keeps the policy stable' is falsified if this trial fails.",
+  "next_if_fail": "One remaining trial (3): value-warmup period, predeclared before submission.",
+  "mechanism": "See baseline_trial1_native_profile.json mechanism_note."
+}
