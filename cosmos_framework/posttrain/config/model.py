@@ -240,6 +240,11 @@ class Gr00tN1d7ModelConfig:
     # Complete GR00T checkpoints own the nested backbone weights. Opt in to
     # metadata-only SDPA construction, with strict full-checkpoint restoration.
     backbone_from_checkpoint: bool = False
+    # PPO only. True (native) lets value-regression gradients reach the shared actor
+    # features (vlln, vl_self_attention, state_encoder) that feed the value head; False
+    # detaches those value inputs so only action_head.value_head learns from the value loss.
+    # Forward values are identical either way; only gradient routing changes.
+    value_feature_gradient: bool = True
 
     # Observation adaptation: GR00T MODALITY KEY -> env observation key. The left side is fixed by the
     # checkpoint's `processor_config.json` and is verified against the loaded checkpoint at startup;
@@ -313,6 +318,8 @@ class Gr00tN1d7ModelConfig:
             result.pop("backbone_buffer_dtype")
         if not self.backbone_from_checkpoint:
             result.pop("backbone_from_checkpoint")
+        if self.value_feature_gradient:
+            result.pop("value_feature_gradient")
         return result
 
     def identity_hash(self) -> str:

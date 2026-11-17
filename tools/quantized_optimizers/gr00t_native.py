@@ -234,7 +234,8 @@ def native_command(args, model, manifests):
         raise ValueError("--override is only for LIBERO-10 development trials")
     for item in extra:
         key = item.split("=", 1)[0]
-        if "=" not in item or not key.startswith(("rl.", "environment.config.")) or key.startswith("rl.resume"):
+        allowed = key.startswith(("rl.", "environment.config.")) or key == "model.value_feature_gradient"
+        if "=" not in item or not allowed or key.startswith("rl.resume"):
             raise ValueError(f"unsupported recipe override {item!r}")
     overrides += extra
     if args.resume:

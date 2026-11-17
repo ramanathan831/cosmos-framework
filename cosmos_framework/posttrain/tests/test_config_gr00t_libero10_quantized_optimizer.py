@@ -133,3 +133,10 @@ def test_libero10_native_profile_keeps_native_window_minibatch_and_hyperparamete
     for name in ("lr", "betas", "eps", "weight_decay", "grad_clip_norm"):
         assert getattr(recipe.optimizer, name) == getattr(default.optimizer, name)
     assert recipe.value_lr == default.value_lr
+
+
+def test_libero10_native_value_feature_isolation_override(tmp_path):
+    native = "cosmos_framework/posttrain/configs/gr00t_n1d7_libero10_quantized_optimizer_native.py"
+    config = _load(native, tmp_path, "aligned_200", "model.value_feature_gradient=false")
+    validate_joint_ppo_config(config, 8)
+    assert config.model.value_feature_gradient is False

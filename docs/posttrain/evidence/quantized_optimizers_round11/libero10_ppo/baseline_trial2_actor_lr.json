@@ -10,5 +10,25 @@
   "success_criterion": "PASS iff every completed aligned_200 evaluation at update >= 80 has success >= 0.885 (>= 177/200) AND mean episode_steps <= 339.10. Any completed evaluation at update >= 80 violating either bound FAILS the trial and the job is cancelled. The update-80 evaluation must complete or the trial is censored.",
   "falsification": "The hypothesis 'effective (FP32-master) updates at the native actor lr 5e-6 are too large for this policy; 1e-6 keeps the policy stable' is falsified if this trial fails.",
   "next_if_fail": "One remaining trial (3): value-warmup period, predeclared before submission.",
-  "mechanism": "See baseline_trial1_native_profile.json mechanism_note."
+  "mechanism": "See baseline_trial1_native_profile.json mechanism_note.",
+  "result": {
+    "job": "38682338",
+    "evaluations": {
+      "0": {"success_rate": 0.905, "episode_steps": 304.31, "task_success_counts_of_20": [19, 20, 20, 19, 17, 20, 19, 19, 13, 15]},
+      "80": {"success_rate": 0.915, "episode_steps": 302.68, "task_success_counts_of_20": [19, 20, 20, 19, 18, 19, 19, 20, 12, 17]},
+      "160": {"success_rate": 0.89, "episode_steps": 314.985, "task_success_counts_of_20": [20, 20, 18, 20, 17, 20, 18, 19, 9, 17]},
+      "240": {"success_rate": 0.86, "episode_steps": 326.595, "task_success_counts_of_20": [19, 20, 17, 19, 18, 17, 20, 17, 9, 16]}
+    },
+    "window_diagnostics_per_10_windows": {
+      "clip_fraction": [0.0031, 0.0039, 0.0039, 0.0023, 0.0016, 0.0031],
+      "policy_grad_norm_mean": [46.0, 42.1, 44.9, 41.4, 44.3, 43.4],
+      "policy_loss_mean_abs_order": 0.001,
+      "value_loss_mean": [0.0401, 0.0175, 0.0177, 0.0177, 0.0131, 0.0103],
+      "actor_parameter_update_l2_median": [0.048, 0.0664, 0.0812, 0.0915, 0.1039, 0.1102]
+    },
+    "verdict": "FAIL at update 240: success 0.860 < 0.885 (episode_steps 326.6 within 339.1). Updates 80 and 160 passed. Slower monotone version of the trial-1 collapse; hypothesis 'lr 1e-6 keeps the policy stable' falsified over 320 updates.",
+    "status": "CANCELLED after the failing update-240 evaluation",
+    "gpu_hours": {"sacct": "38682338 CANCELLED, cluster-local 2026-11-17T02:03:21 to 03:15:19, elapsed 01:11:58, 8 GPUs", "gpu_allocation_hours": 9.596}
+  },
+  "post_result_analysis": "Actor grad norm stays ~44 (always clipped to 1.0) while the PPO surrogate is ~1e-3 and PPO clipping is almost inactive. In cosmos_framework/posttrain/model/gr00t/ppo.py:_features/_values the value head consumes vl_self_attention(vlln(...)) and state_encoder(...), which belong to the actor parameter partition (policy.py PPOParameterPartition: every trainable not under action_head.value_head). Value-regression gradients therefore update the shared actor trunk at the actor lr, consistent with reward-independent policy drift."
 }
