@@ -1,0 +1,57 @@
+{
+  "kind": "Round-3 predeclared engineering checks on LIBERO-10 (round3_protocol.json); not quality or speed tests",
+  "source": "fdc9afb2; recipe identical to round 3 (fp32_master, lr 1e-6, KL beta 10, native 8-GPU profile, shared_500, seed 17, checkpoints at 40/80)",
+  "nonpaged_adamw_bnb_8bit": {
+    "reload_80": {
+      "job": "38702472",
+      "source_checkpoint": "r3-eightbit-seed17 iter_000080",
+      "learner_state_equal_all_8_ranks": true,
+      "fields": "backbone, optimizer, optimizer_masters, optimizer_step, optimizer_storage, parameters, publication_version, rng, scheduler",
+      "training_state_unchanged": true,
+      "moment_plus_metadata_bytes": 3304446984,
+      "reload_success_rate": 0.896,
+      "original_success_rate": 0.890,
+      "result": "PASS"
+    },
+    "resume_40_to_80": {
+      "job": "38702480",
+      "source_checkpoint": "r3-eightbit-seed17 iter_000040 (fresh process, fresh output root)",
+      "resume_receipt_equals_original_update40_learner_state_all_8_ranks": true,
+      "new_updates": "optimizer_step 44..80 over 10 windows, publications 11..20, all finite",
+      "checkpoint_80_published": true,
+      "final_success_rate": 0.894,
+      "result": "PASS"
+    }
+  },
+  "paged_adamw_8bit": {
+    "reference_run": {
+      "job": "38702481",
+      "success": {"0": 0.902, "40": 0.916, "80": 0.922},
+      "tasks_8_9_of_100": {"0": 74, "40": 81, "80": 83},
+      "bar": "PASS (relative bar of round3_protocol.json)",
+      "finite_windows": 20,
+      "moment_plus_metadata_bytes": 3304446984,
+      "paged_moment_bytes_rank0": 405716992,
+      "uninitialized_elements": 0,
+      "note": "single-seed engineering run; not part of the round-3 statistical comparison"
+    },
+    "reload_80": {
+      "job": "38702486",
+      "learner_state_equal_all_8_ranks": true,
+      "training_state_unchanged": true,
+      "reload_success_rate": 0.912,
+      "original_success_rate": 0.922,
+      "result": "PASS"
+    },
+    "resume_40_to_80": {
+      "job": "38702487",
+      "resume_receipt_equals_original_update40_learner_state_all_8_ranks": true,
+      "new_updates": "optimizer_step 44..80, publications 11..20, all finite",
+      "checkpoint_80_published": true,
+      "final_success_rate": 0.896,
+      "result": "PASS"
+    }
+  },
+  "boundary_contract": "Exact learner/optimizer/scheduler/RNG/counter restore at the declared completed-window boundary; environments reset on resume, so resumed trajectories and evaluation scores are not expected to equal the uninterrupted run.",
+  "gpu_hours": {"jobs": {"38702472": 3.913, "38702480": 4.644, "38702481": 11.033, "38702486": 3.884, "38702487": 4.811}, "total": 28.285}
+}
