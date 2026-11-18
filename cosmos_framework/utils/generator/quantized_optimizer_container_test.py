@@ -68,6 +68,19 @@ def test_legacy_route_and_defaults_are_unchanged():
     assert {g["lr"] for g in container.optimizers[0].param_groups} == {5e-5, 2.5e-4}
 
 
+def test_legacy_state_report_tolerates_fused_adam_master_placeholders():
+    """FusedAdam keeps ``param_groups_master`` None (pre-step) or None-filled (no master needed)."""
+    from types import SimpleNamespace
+
+    container = build_optimizer(_Model(), "adamw", **deepcopy(KWARGS))
+    master = torch.zeros(3)
+    for groups in (None, [{"params": [None, master]}]):
+        fake = SimpleNamespace(state={}, param_groups=[], param_groups_master=groups)
+        container.optimizers = [fake]
+        expected = master.numel() * master.element_size() if groups else 0
+        assert container.state_report() == {"moment_bytes": 0, "metadata_bytes": 0, "master_bytes": expected}
+
+
 @pytest.mark.parametrize("option", [{"amsgrad": True}, {"master_weights": True}, {"capturable": True}])
 def test_unsupported_options_fail_before_backend_construction(option, monkeypatch):
     import cosmos_framework.utils.quantized_optimizer as backend

@@ -702,8 +702,10 @@ class OptimizersContainer(Stateful):
                             moment += size
                         else:
                             metadata += size
-            for group in getattr(optimizer, "param_groups_master", []):
+            for group in getattr(optimizer, "param_groups_master", None) or []:
                 for value in group["params"]:
+                    if value is None:  # FusedAdam keeps None where no master is needed
+                        continue
                     local = value.to_local() if hasattr(value, "to_local") else value
                     master += local.numel() * local.element_size()
         return {"moment_bytes": moment, "metadata_bytes": metadata, "master_bytes": master}
