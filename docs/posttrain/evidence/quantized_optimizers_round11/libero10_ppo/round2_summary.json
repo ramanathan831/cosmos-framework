@@ -1,0 +1,26 @@
+{
+  "scope": "LIBERO-10 GR00T Joint PPO round 2: up to three single-factor fused AdamW (fp32_master, lr 1e-6, native profile) trials against policy log-prob drift",
+  "base": "feat/quantized-optimizers @ 94f532c8 (includes the Joint PPO memory fix)",
+  "code": {
+    "a89c4509": "opt-in model.ppo_reference_kl_beta: frozen FSDP2 copy of the source action head outside .net; exact Gaussian KL of the scored selected transition added to the joint loss; default 0 keeps native behaviour, metrics and identity",
+    "42be1d6b": "trainer reports reference_kl in window metrics for anchored models",
+    "tests": "test_algorithm_joint_ppo_reference_kl.py (6) plus affected joint PPO / GR00T suites: 50+ passing locally"
+  },
+  "trials": [
+    {"name": "A: reference KL beta 10", "job": "38688433", "success": {"0": 0.91, "80": 0.945, "160": 0.915, "240": 0.905, "320": 0.895}, "bar": "PASS", "gain": "FAIL (-0.015; tasks 8+9 30->27)", "mechanism": "holds (KL ratio 1.61) but KL still rising", "gpu_hours": 12.767},
+    {"name": "B: reference KL beta 30", "job": "38690100", "success": {"0": 0.905, "80": 0.935, "160": 0.89, "240": 0.93, "320": 0.88}, "bar": "FAIL at 320 (0.880)", "gain": "FAIL", "mechanism": "FAIL (KL 0.00257 > 0.0015)", "gpu_hours": 12.653}
+  ],
+  "not_run": {
+    "C_target_kl": "Per-window policy change is tiny (ratio_mean ~1.0008, PPO clip fraction ~0.3%); an approx-KL early stop would rarely fire and cannot bound the cumulative drift seen in every run. Predicted no effect.",
+    "C_logprob_scale": "The log-prob sums 8x7 = 56 cells of one denoising transition, but AdamW plus global-norm clipping (which binds on every update) are invariant to a constant loss scale; per-dimension normalization predicts no change in update magnitude, and normalizing inside the ratio would only loosen PPO clipping further. Predicted no effect.",
+    "decision": "Third admitted trial not spent: both remaining candidates have predeclared no-effect mechanisms."
+  },
+  "round_gpu_hours": 25.42,
+  "workstream_total_gpu_hours": 60.563,
+  "conclusion": "No fused AdamW recipe on LIBERO-10 met the stop condition (bar through 320 AND a real gain). The KL anchor converts collapse into a stable-but-non-improving baseline (trial A); its early gains (+3 to +3.5 points at update 80 in both anchored runs) are not retained. Protocol not locked; no fused-vs-8-bit, equal-resource, time-to-target or paged/nonpaged LIBERO-10 recovery runs were admitted.",
+  "observations_for_next_round": [
+    "Both anchored runs peak at update 80 (0.945, 0.935; tasks 8+9 33, 32). A fixed-exposure recipe that stops at 80 updates is a candidate, but the target must be chosen from development data and validated on several seeds.",
+    "Trained-policy evaluation noise on the 200 aligned cases is ~4-5 points within a run, far above the +/-1 point frozen-checkpoint estimate; the final protocol needs >=3 seeds, paired cluster bootstrap and possibly the larger shared_500 profile to resolve gains of a few points.",
+    "Actor grad norm (~40-65) is clipped to 1.0 on every update; the update direction is dominated by high-variance log-prob gradients, and Adam normalization limits what a loss-space anchor can restrain."
+  ]
+}
