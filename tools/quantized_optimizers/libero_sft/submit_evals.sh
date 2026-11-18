@@ -3,6 +3,9 @@
 # not been evaluated (or queued) yet. Idempotent: safe to re-run as checkpoints appear.
 # Usage: submit_evals.sh EVAL_SOURCE_VERSION RUN_NAME...
 set -euo pipefail
+# GPU partitions come only from SLURM_PARTITION (read from ~/config.env by the caller).
+: "${SLURM_PARTITION:?set SLURM_PARTITION from ~/config.env; no default partition is used}"
+[[ "$SLURM_PARTITION" =~ ^[A-Za-z0-9_,]+$ ]] || { echo "invalid SLURM_PARTITION" >&2; exit 2; }
 version=$1; shift
 here=$(cd "$(dirname "$0")" && pwd)
 . "$here/env.sh"
@@ -21,7 +24,7 @@ for run in "$@"; do
     [ -e "$out" ] && continue   # evaluated, running, or queued: never resubmit silently
     mkdir -p "$out"
     export RESULTS=$out CHECKPOINT=$ckpts/$iter
-    id=$(sbatch --parsable --time=120 --job-name="optimizer-l10sft-eval-$run" \
+    id=$(sbatch --parsable --partition="$SLURM_PARTITION" --time=120 --job-name="optimizer-l10sft-eval-$run" \
          --output="$W/eval/$run/$iter-%j.log" "$here/eval.sbatch")
     echo "$run $iter job $id"
   done
