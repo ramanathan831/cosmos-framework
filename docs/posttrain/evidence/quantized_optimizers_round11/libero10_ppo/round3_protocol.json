@@ -1,0 +1,52 @@
+{
+  "kind": "Round-3 LIBERO-10 confirmation protocol, locked before any round-3 submission",
+  "declared_before_submission": true,
+  "base": "feat/quantized-optimizers @ 45a539d4",
+  "source": "fdc9afb2 (shared_500 manifests in the launcher; analysis script); every run uses this exact source archive",
+  "honesty_statement": "The 80-update exposure was chosen AFTER seeing round-2 development peaks (trial A 0.945 and trial B 0.935 at update 80 on aligned_200, both on seed 17). This round is the confirmation test of that choice, not a discovery. Seed 17 was used in development; seeds 29 and 43 are new. aligned_200's 200 cases are a subset of shared_500's 500 cases, and the native LIBERO-10 train partition covers all 50 init states, so this is training-pool evaluation, as all native LIBERO-10 profiles are.",
+  "recipe": {
+    "config": "cosmos_framework/posttrain/configs/gr00t_n1d7_libero10_quantized_optimizer_native.py",
+    "checkpoint": "nvidia/GR00T-N1.7-LIBERO@2ea293aa20ba7cf5bbf3ba17a5fbcb1a01cbfe21/libero_10",
+    "profile": "native LIBERO-10 Joint PPO: 8 envs on one 8-GPU node, 16-decision windows, global_minibatch 32 (4 updates per window), microbatch 2",
+    "optimizer": "update_policy fp32_master, actor lr 1e-6, value_lr 1e-4, betas [0.9, 0.95], eps 1e-8, weight_decay 0.01, grad clip 1.0",
+    "anchor": "model.ppo_reference_kl_beta = 10",
+    "value_feature_gradient": "default (true)",
+    "updates": 80,
+    "evaluation": "shared_500 (10 tasks x 50 init states; train and eval manifests both shared_500 as the native config requires) at updates 0, 40, 80",
+    "checkpoint_every": 40
+  },
+  "arms": {
+    "fused": "rl.optimizer.name=adamw rl.optimizer.impl=fused",
+    "eightbit": "rl.optimizer.name=adamw_bnb_8bit (bitsandbytes 0.49.2), otherwise identical"
+  },
+  "seeds": [17, 29, 43],
+  "submission": "All six runs (2 arms x 3 seeds) submitted together; no run is added, repeated or dropped based on any result. A run failing for infrastructure reasons before its update-80 evaluation is rerun once with the same seed and recorded; a second failure censors that seed for every test that needs it.",
+  "analysis": "tools/quantized_optimizers/libero10_round3_analysis.py (committed with this protocol; tests in test_libero10_round3_analysis.py). Bootstrap B=10000, RNG seed 0; clusters are LIBERO cases (task_id, init_state_id), resampled with all seeds' paired outcomes for that case; seeds are fixed (3 seeds are too few to resample).",
+  "primary_fused_gain": {
+    "statistic": "pooled over seeds: mean over cases of [mean over seeds of success_80 - success_0] for the fused arm",
+    "pass": "one-sided 95% lower bound (5th percentile of the case-cluster bootstrap) > 0 AND the bar holds in every fused seed"
+  },
+  "bar": {
+    "definition": "per run: success_80 >= own success_0 - 0.02 AND mean episode_steps_80 <= 1.10 x own episode_steps_0. (Relative form of the round-2 bar, frozen minus 2 points and +10% steps, because shared_500 has no prior frozen value.)",
+    "kill_condition": "any fused seed below the bar at update 80 fails the fused gain test; the remaining runs still complete and are reported."
+  },
+  "eightbit_vs_fused": {
+    "noninferiority": "pooled over seeds, per-case mean of fused_80 - eightbit_80; PASS iff its one-sided 95% upper bound <= 0.03 (3 points). Margin rationale (before data): with 1,500 paired episodes per arm at p~0.9 the bootstrap upper bound sits ~1.8 points above the observed difference, so a 2-point margin would fail a truly equivalent arm about half the time; 3 points gives ~85% power. The 2-point result is reported as a secondary, non-qualifying result.",
+    "protected_secondary": "eightbit mean episode_steps_80 <= 1.05 x fused, per seed (descriptive) and pooled (must hold for a non-inferiority claim)",
+    "equal_resource_quality_gain": "per-case mean of eightbit_80 - fused_80; PASS iff one-sided 95% lower bound > 0. Not expected; reported as is.",
+    "if_fused_gain_fails": "The 8-bit arm is still reported as preservation / non-inferiority evidence against the fused arm at equal exposure. It is not reinterpreted as a quality-improvement result."
+  },
+  "time_to_target": {
+    "target": "pooled mean of the six update-0 shared_500 success rates + 0.02 (fixed from frozen-policy evaluations only, before any trained evaluation is read)",
+    "clock": "seconds from Slurm allocation start (allocation-start.txt) to the publication time (file mtime) of the first evaluation at update 40 or 80 whose success_rate >= target; includes setup, preflights, update-0 evaluation, rollout, policy sync, updates, checkpoints and evaluations",
+    "censoring": "a run that never reaches the target is censored at its last evaluation time; any censored 8-bit seed fails the speed claim",
+    "pass": "geometric-mean fused/eightbit time ratio over seeds with one-sided 95% lower bound (seed bootstrap, B=10000) > 1.05",
+    "expectation": "No speed gain is expected: both arms run identical rollout/evaluation work and the optimizer step is a small fraction of wall time. Reported as is."
+  },
+  "memory": {
+    "measure": "sum over the 8 ranks of moment_bytes + metadata_bytes from the update-80 evaluation's optimizer_memory receipt, and the same plus master_bytes",
+    "pass": "moment+metadata reduction >= 60% vs fused; the with-masters reduction and CUDA allocator peaks are reported separately"
+  },
+  "engineering_checks_after_primary": "Not part of the quality/speed tests. After the six runs: (1) nonpaged 8-bit seed 17: fresh-process evaluate-only reload of the update-80 checkpoint, and a fresh-process resume from the update-40 checkpoint to 80 with exact restored-state receipts; (2) paged_adamw_8bit seed 17: the same 80-update recipe, plus the same reload and resume checks. Each is predeclared here and run once.",
+  "not_changed": "No criterion above is relaxed after data; failures and censored runs are retained."
+}
