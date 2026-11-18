@@ -1,0 +1,14 @@
+{
+  "kind": "Round-3 infrastructure failures (retained; charged)",
+  "failures": [
+    {
+      "run": "fused seed 29, attempt 1",
+      "job": "38695484",
+      "sacct": "FAILED 1:0, 2026-11-18T04:22:08 to 04:27:08 cluster-local, elapsed 00:05:00, node batch-block7-02922; .batch and .extern steps CANCELLED at 00:05:24",
+      "evidence": "No Slurm output file and no RESULTS directory were created: the batch script never executed its first command (mkdir -p RESULTS). Node reported 'mix' with no drain reason afterwards.",
+      "classification": "infrastructure (node/job launch), not optimizer or recipe",
+      "action": "Rerun once under the locked protocol (predeclared allowance): job 38696228, identical source fdc9afb2, recipe, seed and RESULTS path, with --exclude=batch-block7-02922 as the only change.",
+      "gpu_allocation_hours": 0.667
+    }
+  ]
+}
