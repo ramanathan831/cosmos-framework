@@ -132,6 +132,21 @@ def _reference_worker(rank, rendezvous, root, name):
         dist.destroy_process_group()
 
 
+def _legacy_report_worker(rank, rendezvous):
+    _setup(rank, rendezvous)
+    try:
+        model = _model()
+        container, scheduler = _build(model, "adamw")
+        _train_step(model, container, scheduler, 1)
+        expected = sum(
+            2 * p.to_local().numel() * 4 for g in container.optimizers[0].param_groups for p in g["params"]
+        )
+        # DTensor moments must be counted per local shard, not deduplicated by wrapper.
+        assert container.state_report()["moment_bytes"] == expected
+    finally:
+        dist.destroy_process_group()
+
+
 def _resume_worker(rank, rendezvous, root, name):
     _setup(rank, rendezvous)
     try:
@@ -179,3 +194,7 @@ def test_hsdp_two_dimensional_mesh_is_rejected_before_state(tmp_path):
     torch.multiprocessing.spawn(
         _hsdp_worker, args=((tmp_path / "r").as_uri(), "adamw_bnb_8bit"), nprocs=2, join=True
     )
+
+
+def test_legacy_report_counts_local_dtensor_moments(tmp_path):
+    torch.multiprocessing.spawn(_legacy_report_worker, args=((tmp_path / "r").as_uri(),), nprocs=2, join=True)

@@ -694,14 +694,18 @@ class OptimizersContainer(Stateful):
         for optimizer in self.optimizers:
             for state in optimizer.state.values():
                 for key, value in state.items():
-                    if isinstance(value, torch.Tensor) and value.data_ptr() not in seen:
-                        seen.add(value.data_ptr())
-                        local = value.to_local() if hasattr(value, "to_local") else value
-                        size = local.numel() * local.element_size()
-                        if key in ("exp_avg", "exp_avg_sq"):
-                            moment += size
-                        else:
-                            metadata += size
+                    if not isinstance(value, torch.Tensor):
+                        continue
+                    # Dedup on the local shard: a DTensor wrapper has no storage of its own.
+                    local = value.to_local() if hasattr(value, "to_local") else value
+                    if local.data_ptr() in seen:
+                        continue
+                    seen.add(local.data_ptr())
+                    size = local.numel() * local.element_size()
+                    if key in ("exp_avg", "exp_avg_sq"):
+                        moment += size
+                    else:
+                        metadata += size
             for group in getattr(optimizer, "param_groups_master", None) or []:
                 for value in group["params"]:
                     if value is None:  # FusedAdam keeps None where no master is needed
