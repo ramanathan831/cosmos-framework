@@ -1,0 +1,110 @@
+{
+  "seeds": [
+    17,
+    29,
+    43
+  ],
+  "bars": {
+    "fused:17": {
+      "pass": false,
+      "success_0": 0.912,
+      "success": 0.89,
+      "steps_0": 305.276,
+      "steps": 315.352
+    },
+    "fused:29": {
+      "pass": true,
+      "success_0": 0.906,
+      "success": 0.904,
+      "steps_0": 304.902,
+      "steps": 302.446
+    },
+    "fused:43": {
+      "pass": true,
+      "success_0": 0.9,
+      "success": 0.916,
+      "steps_0": 306.676,
+      "steps": 303.526
+    },
+    "eightbit:17": {
+      "pass": false,
+      "success_0": 0.922,
+      "success": 0.89,
+      "steps_0": 300.798,
+      "steps": 311.602
+    },
+    "eightbit:29": {
+      "pass": true,
+      "success_0": 0.918,
+      "success": 0.924,
+      "steps_0": 301.348,
+      "steps": 299.44
+    },
+    "eightbit:43": {
+      "pass": true,
+      "success_0": 0.9,
+      "success": 0.916,
+      "steps_0": 309.11,
+      "steps": 307.908
+    }
+  },
+  "fused_gain": {
+    "mean": -0.0026666666666666575,
+    "lower95": -0.020000000000000025,
+    "bar_all_seeds": false,
+    "pass": false
+  },
+  "noninferiority": {
+    "fused_minus_eightbit": -0.0066666666666666706,
+    "upper95": 0.007333333333333343,
+    "margin": 0.03,
+    "pass": true,
+    "secondary_margin": 0.02,
+    "secondary_pass": true
+  },
+  "eightbit_equal_resource_gain": {
+    "eightbit_minus_fused": 0.0066666666666666706,
+    "lower95": -0.007333333333333343,
+    "pass": false
+  },
+  "time_to_target": {
+    "target": 0.9296666666666668,
+    "per_seed": {
+      "17": {
+        "fused_seconds": 4919.0,
+        "fused_censored": true,
+        "eightbit_seconds": 5002.0,
+        "eightbit_censored": true
+      },
+      "29": {
+        "fused_seconds": 4809.0,
+        "fused_censored": true,
+        "eightbit_seconds": 4891.0,
+        "eightbit_censored": true
+      },
+      "43": {
+        "fused_seconds": 4942.0,
+        "fused_censored": true,
+        "eightbit_seconds": 4987.0,
+        "eightbit_censored": true
+      }
+    },
+    "geometric_mean_ratio": 0.985865965775521,
+    "lower95": 0.9832918840137643,
+    "eightbit_censored": true,
+    "pass": false
+  },
+  "memory": {
+    "fused": {
+      "moments_metadata": 12998764528,
+      "with_masters": 19498138100
+    },
+    "eightbit": {
+      "moments_metadata": 3304446984,
+      "with_masters": 9803820556
+    },
+    "moment_reduction": 0.7457876110547235,
+    "with_masters_reduction": 0.49719196234434304,
+    "pass": true
+  }
+}

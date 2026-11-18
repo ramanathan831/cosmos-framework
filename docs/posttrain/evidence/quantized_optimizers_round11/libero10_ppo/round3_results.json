@@ -1,0 +1,36 @@
+{
+  "protocol": "round3_protocol.json, locked at 98aaf92b before submission; analysis = tools/quantized_optimizers/libero10_round3_analysis.py from source fdc9afb2 (byte-identical copy verified on the cluster); raw output round3_analysis_output.json",
+  "runs": {
+    "fused:17":    {"job": "38695482", "success": {"0": 0.912, "40": 0.898, "80": 0.890}, "steps": {"0": 305.3, "80": 315.4}, "tasks_8_9_of_100": {"0": 78, "80": 74}, "bar": "FAIL (0.890 < 0.892)"},
+    "fused:29":    {"job": "38696228 (rerun; attempt 38695484 failed at launch, see round3_infrastructure_failures.json)", "success": {"0": 0.906, "40": 0.914, "80": 0.904}, "steps": {"0": 304.9, "80": 302.4}, "tasks_8_9_of_100": {"0": 75, "80": 79}, "bar": "PASS"},
+    "fused:43":    {"job": "38695486", "success": {"0": 0.900, "40": 0.918, "80": 0.916}, "steps": {"0": 306.7, "80": 303.5}, "tasks_8_9_of_100": {"0": 71, "80": 81}, "bar": "PASS"},
+    "eightbit:17": {"job": "38695483", "success": {"0": 0.922, "40": 0.894, "80": 0.890}, "steps": {"0": 300.8, "80": 311.6}, "tasks_8_9_of_100": {"0": 82, "80": 74}, "bar": "FAIL (0.890 < 0.902)"},
+    "eightbit:29": {"job": "38695485", "success": {"0": 0.918, "40": 0.898, "80": 0.924}, "steps": {"0": 301.3, "80": 299.4}, "tasks_8_9_of_100": {"0": 79, "80": 82}, "bar": "PASS"},
+    "eightbit:43": {"job": "38695487", "success": {"0": 0.900, "40": 0.898, "80": 0.916}, "steps": {"0": 309.1, "80": 307.9}, "tasks_8_9_of_100": {"0": 73, "80": 82}, "bar": "PASS"}
+  },
+  "primary_fused_gain": {"mean_delta": -0.0027, "lower95": -0.0200, "bar_all_seeds": false, "result": "FAIL (kill condition: fused seed 17 below bar; lower bound also not > 0)"},
+  "eightbit_noninferiority": {
+    "fused_minus_eightbit_at_80": -0.0067,
+    "upper95": 0.0073,
+    "primary_margin_3_points": "PASS (0.0073 <= 0.03)",
+    "secondary_margin_2_points": "PASS (0.0073 <= 0.02)",
+    "scope": "Preservation / non-inferiority of 8-bit vs fused at equal 80-update exposure under this recipe. Because the fused gain test failed, this is NOT evidence of a quality improvement from training."
+  },
+  "steps_guard": {"pooled_eightbit_over_fused": 0.997, "per_seed": {"17": 0.988, "29": 0.990, "43": 1.014}, "limit": 1.05, "result": "PASS (computed from the same update-80 receipts; not emitted by the analysis script)"},
+  "eightbit_equal_resource_gain": {"eightbit_minus_fused": 0.0067, "lower95": -0.0073, "result": "FAIL (not > 0)"},
+  "time_to_target": {
+    "target": 0.9297,
+    "result": "FAIL: every run in both arms censored (no update-40/80 evaluation reached the target); geometric-mean fused/8-bit wall-time ratio to censoring 0.986, lower95 0.983",
+    "note": "8-bit allocations took ~1.4% longer end to end at equal work; no speed benefit observed"
+  },
+  "memory": {
+    "fused_moments_metadata_bytes": 12998764528,
+    "eightbit_moments_metadata_bytes": 3304446984,
+    "moment_reduction": 0.7458,
+    "with_fp32_masters": {"fused": 19498138100, "eightbit": 9803820556, "reduction": 0.4972},
+    "result": "PASS (moments+metadata >= 60%); with masters 49.7%",
+    "scope": "sum over 8 ranks from update-80 optimizer_memory receipts; not total device memory"
+  },
+  "gpu_hours": {"completed_runs": 66.54, "failed_launch": 0.667, "round3_total": 67.21},
+  "conclusion": "Confirmation FAILED: the 80-update KL-anchored recipe does not reproduce the round-2 peak on fresh seeds (pooled delta -0.3 points; one seed per arm below the bar). The 8-bit optimizer is non-inferior to fused AdamW at both the 3-point primary and 2-point secondary margins with 74.6% optimizer-state reduction, but shows no equal-resource quality gain and no time-to-target gain."
+}
