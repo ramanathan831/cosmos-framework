@@ -1496,6 +1496,22 @@ def _finalize_data_batch(data_batch: dict[str, Any], batch_size: int, model: Omn
     return data_batch
 
 
+
+def set_runtime_config_attr(config: Any, name: str, value: Any) -> None:
+    """Attach a runtime-only attribute to a model config.
+
+    Experiment-loaded configs (e.g. the action-policy server's ``--experiment`` path)
+    are struct-mode OmegaConf nodes that reject unknown keys; exported-checkpoint
+    configs are plain objects. The attribute never reaches a saved checkpoint.
+    """
+    from omegaconf import DictConfig, open_dict
+
+    if isinstance(config, DictConfig):
+        with open_dict(config):
+            setattr(config, name, value)
+    else:
+        setattr(config, name, value)
+
 class SampleDataset(Dataset):
     """PyTorch map-style dataset over inference sample args.
 
@@ -1839,7 +1855,7 @@ class OmniInference(Inference):
         # Runtime-only policy: preserve immutable published checkpoint files and the shared
         # argument-builder signature. CLI, Ray and Python callers all use pipe.model_config.
         checkpoint_hf = setup_args.checkpoint_hf
-        setattr(
+        set_runtime_config_attr(
             model.config,
             "_auto_camera_fps",
             auto_camera_fps(
