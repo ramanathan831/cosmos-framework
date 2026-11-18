@@ -48,16 +48,31 @@ for g in 0 1 2 3 4; do
     --experiment action_policy_libero_nano --experiment-overrides "model.config.tokenizer.vae_path=$WAN_VAE_PATH" \
     --checkpoint-path "$CHECKPOINT" --action-normalization quantile_rot --action-stats-path "$stats" \
     --raw-action-dim 10 --fps 20 --seed "$EVAL_SEED" --port $((8100 + g)) --output-dir "/tmp/server-$g" \
-    > "$RESULTS/server-$g.log" 2>&1 &
+    --no-guardrails > "$RESULTS/server-$g.log" 2>&1 &
   pids+=($!)
 done
+# Fail fast: every server must answer its health route; any exited server aborts the job.
+ready=0
+for _ in $(seq 1 180); do
+  for g in 0 1 2 3 4; do
+    kill -0 "${pids[$g]}" 2>/dev/null || { echo "policy server $g exited during startup" >&2; kill "${pids[@]}" 2>/dev/null; exit 3; }
+  done
+  ready=0
+  for g in 0 1 2 3 4; do
+    python -c "import urllib.request,sys; urllib.request.urlopen(\"http://localhost:$((8100 + g))/\", timeout=5)" 2>/dev/null && ready=$((ready + 1))
+  done
+  [ "$ready" = 5 ] && break
+  sleep 10
+done
+[ "$ready" = 5 ] || { echo "policy servers not healthy after 30 min" >&2; kill "${pids[@]}" 2>/dev/null; exit 4; }
+echo "servers ready after $(( $(date +%s) - $(date -d "$(cat "$RESULTS/allocation-start.txt")" +%s) )) s" > "$RESULTS/server-ready.txt"
 start=$(date +%s)
 clients=()
 for g in 0 1 2 3 4; do
   tasks=$(python -c "print(\",\".join(str(t) for t in range($g * $TASKS_PER_GPU, min(10, ($g + 1) * $TASKS_PER_GPU))))")
   [ -n "$tasks" ] || continue
   PYTHONPATH="$src:$SIM_OVERLAY" "$SIM_PYTHON" cosmos_framework/simulation/libero/closed_loop_eval.py \
-    --server_url http://localhost:$((8100 + g)) --wait_timeout 1800 --timeout 600 \
+    --server_url http://localhost:$((8100 + g)) --wait_timeout 120 --timeout 600 \
     --task_suite libero_10 --num_trials_per_task "$TRIALS" --task_ids "$tasks" --num_envs 8 \
     --camera agentview,wrist --image_size 256 --action_space frame_wise_relative --rotation_space 6d \
     --action_dim 10 --seed "$EVAL_SEED" --output_dir "$RESULTS/client-$g" > "$RESULTS/client-$g.log" 2>&1 &
