@@ -303,8 +303,8 @@ def run(args, root, output):
     manifests.mkdir()
     suite = args.suite
     for split in ("train", "eval"):
-        # Native training partitions are profile-independent except for the evaluation split.
-        profile = args.eval_profile if split == "eval" else "legacy_100"
+        # Training partitions are profile-independent except shared_500, which binds both splits.
+        profile = args.eval_profile if split == "eval" or args.eval_profile == "shared_500" else "legacy_100"
         fixed_manifest(split, suite, profile).write(manifests / f"{suite}-{split}.json")
     checked_phase(
         [

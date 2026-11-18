@@ -37,7 +37,7 @@ def _load(path, tmp_path, profile, *extra, checkpoint=None):
     from cosmos_framework.utils.config import load_config
 
     for split in ("train", "eval"):
-        fixed_manifest(split, "libero_10", profile if split == "eval" else "legacy_100").write(
+        fixed_manifest(split, "libero_10", profile if split == "eval" or profile == "shared_500" else "legacy_100").write(
             tmp_path / f"{split}.json"
         )
     return load_config(
@@ -54,7 +54,7 @@ def _load(path, tmp_path, profile, *extra, checkpoint=None):
     )
 
 
-@pytest.mark.parametrize("profile", ["legacy_100", "aligned_200"])
+@pytest.mark.parametrize("profile", ["legacy_100", "aligned_200", "shared_500"])
 def test_libero10_quantized_recipe_binds_suite_profile_and_optimizer_policy(tmp_path, profile):
     from cosmos_framework.utils.lazy_config import instantiate
 
