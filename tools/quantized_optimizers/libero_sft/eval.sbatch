@@ -10,7 +10,7 @@
 #SBATCH --gpus-per-node=5
 #SBATCH --cpus-per-task=120
 #SBATCH --mem=1000G
-#SBATCH --time=235
+#SBATCH --time=238
 #SBATCH --no-requeue
 set -euo pipefail
 : "${HF_HOME_SHARED:?}" "${SOURCE_ARCHIVE:?}" "${RESULTS:?}" "${CONTAINER_IMAGE:?}" "${RESOURCE_ROOT:?}" "${SIM_PYTHON:?}" "${SIM_OVERLAY:?}"

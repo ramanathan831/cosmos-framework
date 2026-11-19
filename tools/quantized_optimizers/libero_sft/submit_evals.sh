@@ -24,7 +24,7 @@ for run in "$@"; do
     [ -e "$out" ] && continue   # evaluated, running, or queued: never resubmit silently
     mkdir -p "$out"
     export RESULTS=$out CHECKPOINT=$ckpts/$iter
-    id=$(sbatch --parsable --partition="$SLURM_PARTITION" --time=200 --job-name="optimizer-l10sft-eval-$run" \
+    id=$(sbatch --parsable --partition="$SLURM_PARTITION" --time=238 --job-name="optimizer-l10sft-eval-$run" \
          --output="$W/eval/$run/$iter-%j.log" "$here/eval.sbatch")
     echo "$run $iter job $id"
   done
