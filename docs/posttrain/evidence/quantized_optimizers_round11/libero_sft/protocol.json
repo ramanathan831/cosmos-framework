@@ -26,7 +26,11 @@
     "microbatch": "dataloader_train.max_samples_per_batch=64, trainer.grad_accum_iter=4 (64 x 8 x 4 = 2048)",
     "justification": "Native HSDP 2x8 needs 16 GPUs and a two-dimensional mesh the shared eight-bit optimizer does not support. On A100-80GB the native per-rank 128-sample microbatch trains with FusedAdam but fails its first checkpoint save (smoke 38695636, peak 81.2 GiB, NCCL unhandled CUDA error), so the control cannot run it with checkpoints. 64 x grad_accum 4 is the repo-documented lower-memory setting, keeps the global batch, measured 45.6 s/iter (fused) vs 46.1 s/iter (eight-bit), and is identical for both arms."
   },
-  "training_seeds": [1, 2, 3],
+  "training_seeds": [
+    1,
+    2,
+    3
+  ],
   "development_seed": 0,
   "seed_semantics": "trainer.seed and the dataset episode_shuffle_seed are both set to the seed; arms are paired on seed.",
   "development_run": {
@@ -61,8 +65,10 @@
   },
   "fixed_target": {
     "rule": "P = mean development-run success at iterations 1500, 1750 and 2000; T = floor(0.95 * P, 0.01). If P < 0.20 the protocol is declared uninformative and no time-to-target claim is made.",
-    "success_rate": null,
-    "computed_at_utc": null
+    "success_rate": 0.92,
+    "computed_at_utc": "2026-11-19T00:00:00Z",
+    "development_plateau_P": 0.972,
+    "source": "development_curve.json"
   },
   "speed": {
     "lower_bound": 1.05,
