@@ -502,6 +502,12 @@ class ActionServerArgs(pydantic.BaseModel):
     """If set, return HTTP 400 on inference errors. Default is HTTP 200 with an
     empty action list, matching the legacy simulator client expectations."""
 
+    # ----- safety ---------------------------------------------------------------
+    guardrails: bool = True
+    """Build the text/video guardrail runners (default). Closed-loop benchmark
+    evaluation with fixed task prompts may disable them (``--no-guardrails``);
+    they never change generated actions."""
+
     # ----- developer utilities ------------------------------------------------
     run_validation: bool = False
     """If set, run a one-shot validation/training batch through the model on
@@ -522,6 +528,7 @@ class ActionServerArgs(pydantic.BaseModel):
         base = OmniSetupOverrides.model_validate(self.checkpoint.model_dump())
         base.output_dir = output_dir
         base.sampler = self.sampler
+        base.guardrails = self.guardrails
         return base
 
 
