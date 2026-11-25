@@ -172,20 +172,40 @@ def build_trainer(config: Any, rl: SFTConfig, data: Any, validation: Any | None,
         ),
         "SFT tokenizer/processor setup",
     )
+    prepared = None
+    if rl.prepared_corpus:
+        from cosmos_framework.posttrain.data.packer.prepared_sft import attach_prepared_corpus
+
+        prepared = run_rank_converged(
+            lambda: attach_prepared_corpus(
+                packer, rl.prepared_corpus, [source.dataset for source in (data, validation) if source is not None]
+            ),
+            "SFT prepared corpus verification",
+        )
     objective = make_objective(
         packer,
         ce_exponent=rl.ce_exponent,
+        label_smoothing=rl.label_smoothing,
         moe_lbl_coeff=rl.moe_lbl_coeff,
         moe_lbl_method=rl.moe_lbl_method,
         serve_contract=rl.serve_contract,
     )
+    ordering_identity = getattr(data, "ordering_identity", lambda: None)()
     objective.identity = {
         **objective.identity,
         "training_source": data.source_fingerprint,
+        **({"training_order": ordering_identity} if ordering_identity is not None else {}),
         "micro_batch_size": rl.micro_batch_size,
         "grad_accum": rl.grad_accum,
         "dp_world": world_size_or_1(),
         "precision": asdict(resolve_precision(config)),
+        **({"prepared_corpus": prepared.identity} if prepared is not None else {}),
+        **({"strict_determinism": True} if rl.strict_determinism else {}),
+        **(
+            {"gradient_checkpoint_modules": list(config.model_hf.grad_ckpt_modules)}
+            if getattr(getattr(config, "model_hf", None), "grad_ckpt_modules", ())
+            else {}
+        ),
     }
     misc.set_random_seed(seed=rl.seed, by_rank=False)
     # The one CUDA probe of an opt-in eight-bit backend, before the model is allocated.
@@ -279,7 +299,10 @@ def make_setup(config_path: str, opts: list[str]) -> Any:
         if rl.deterministic:
             from cosmos_framework.posttrain.utils.determinism import enable_determinism
 
-            enable_determinism()
+            if getattr(rl, "strict_determinism", False):
+                enable_determinism(strict=True)
+            else:
+                enable_determinism()
         checkpoint = CheckpointLifecycle.from_config(config, rl)
         coordinates = {"rank": rank_or_0(), "world_size": world_size_or_1()}
         data = run_rank_converged(lambda: build_sft_env(rl.data, rl.seed, **coordinates), "SFT training source")
@@ -338,6 +361,10 @@ def evaluate(
     from cosmos_framework.posttrain.roles.rollout.validation import distributed_validation_rng, seed_validation_rng
     from cosmos_framework.posttrain.utils.dist import run_rank_converged
 
+    # Completed training gradients are dead; retaining them can make validation
+    # OOM even when both the model and optimizer fit. The evaluator below still
+    # preserves all state it receives, including gradients in direct API calls.
+    resolve(units["policy"].release_completed_gradients())
     source = units["validation"]
     state = run_rank_converged(lambda: resolve(source.state_dict()), "SFT validation source snapshot")
     with distributed_validation_rng("SFT validation"):

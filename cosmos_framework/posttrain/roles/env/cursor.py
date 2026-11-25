@@ -182,6 +182,20 @@ class IndexedCursor:
         self._consumed += 1
         return i
 
+    def next_batch_indices(self, count: int, *, stop_at_epoch: bool = False) -> list[int]:
+        """Draw at most ``count`` indices, optionally retaining a real epoch tail.
+
+        No padding, dropping, extra RNG or new cursor state: the existing epoch
+        and position completely determine the next partial batch after restore.
+        """
+        if type(count) is not int or count < 1:
+            raise ValueError("cursor batch count must be a positive integer")
+        if stop_at_epoch:
+            if self._pos >= len(self._order):
+                self._rebuild_order()
+            count = min(count, len(self._order) - self._pos)
+        return [self.next_index() for _ in range(count)]
+
     def advance(self, count: int) -> None:
         """Skip the first `count` draws so the next `next_index()` is draw `count + 1` of this seed's sequence.
 

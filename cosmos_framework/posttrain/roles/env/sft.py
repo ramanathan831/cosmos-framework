@@ -23,6 +23,9 @@ class SFTDatasetEnv:
         shuffle: bool = True,
         seed: int = 0,
         training: bool = True,
+        interleave_id_prefix: str = "",
+        interleave_window: int = 0,
+        epoch_boundary: str = "wrap",
     ) -> None:
         if type(world_size) is not int or world_size < 1 or type(rank) is not int or not 0 <= rank < world_size:
             raise ValueError("invalid SFT data-parallel coordinates")
@@ -34,8 +37,21 @@ class SFTDatasetEnv:
         self.rank: int = rank
         self.world_size: int = world_size
         self.training: bool = training
+        if epoch_boundary not in ("wrap", "partial"):
+            raise ValueError("SFT epoch_boundary must be 'wrap' or 'partial'")
+        if epoch_boundary == "partial" and (not training or world_size != 1):
+            raise ValueError("partial epoch batches currently require single-rank SFT training")
+        self.epoch_boundary = epoch_boundary
         self.source_fingerprint: str = dataset.cursor_fingerprint()
-        self.cursor: IndexedCursor = IndexedCursor(
+        cursor_type, cursor_options = IndexedCursor, {}
+        if interleave_id_prefix or interleave_window:
+            if not training:
+                raise ValueError("SFT interleaving applies to training only; validation order is fixed")
+            from cosmos_framework.posttrain.roles.env.interleaved_cursor import InterleavedCursor
+
+            cursor_type = InterleavedCursor
+            cursor_options = {"id_prefix": interleave_id_prefix, "window": interleave_window}
+        self.cursor: IndexedCursor = cursor_type(
             dataset,
             shard_index=rank,
             shard_count=world_size,
@@ -43,6 +59,7 @@ class SFTDatasetEnv:
             seed=seed,
             cursor_resume="strict",
             label="SFT source",
+            **cursor_options,
         )
         self._loaded_checkpoint_provenance: dict[str, int | str] | None = None
 
@@ -73,7 +90,11 @@ class SFTDatasetEnv:
         from cosmos_framework.posttrain.utils.dist import run_rank_converged
 
         return run_rank_converged(
-            lambda: [self._trajectory(self.cursor.next_index()) for _ in range(count)], "SFT training batch"
+            lambda: [
+                self._trajectory(index)
+                for index in self.cursor.next_batch_indices(count, stop_at_epoch=self.epoch_boundary == "partial")
+            ],
+            "SFT training batch",
         )
 
     def validation_batch_count(self, batch_size: int, max_samples: int | None = None) -> int:
@@ -104,6 +125,13 @@ class SFTDatasetEnv:
 
     def source_identity(self) -> str:
         return self.source_fingerprint
+
+    def ordering_identity(self) -> dict[str, Any] | None:
+        identity = getattr(self.cursor, "ordering_identity", None)
+        order = identity() if identity is not None else None
+        if self.epoch_boundary == "partial":
+            return {"epoch_boundary": "partial_v1", "order": order}
+        return order
 
     def state_dict(self) -> dict[str, Any]:
         """Collect rank cursors: the LLM engine persists control-owned data components verbatim."""
@@ -141,4 +169,7 @@ def build_sft_env(
         shuffle=config.shuffle,
         seed=seed,
         training=training,
+        interleave_id_prefix=config.interleave_id_prefix,
+        interleave_window=config.interleave_window,
+        epoch_boundary=config.epoch_boundary,
     )

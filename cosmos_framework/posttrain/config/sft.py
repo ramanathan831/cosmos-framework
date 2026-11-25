@@ -53,6 +53,13 @@ class SFTDatasetConfig:
     factory_kwargs: dict[str, Any] = field(default_factory=dict)
     media_root: str = ""
     shuffle: bool = True
+    # Optional binary interleaving within fixed windows of the seeded order.
+    # Prefix matches form one group, other IDs the second. Exposure is unchanged.
+    interleave_id_prefix: str = ""
+    interleave_window: int = 0
+    # "partial" ends each training batch at the epoch boundary without padding.
+    epoch_boundary: str = "wrap"
+    media_hash_workers: int = 1
     credentials: str = "credentials/<credential>.secret"
 
     def __post_init__(self) -> None:
@@ -62,6 +69,18 @@ class SFTDatasetConfig:
             raise ValueError("SFT factory_kwargs requires factory")
         if not isinstance(self.shuffle, bool):
             raise TypeError("SFT data.shuffle must be bool")
+        if self.epoch_boundary not in ("wrap", "partial"):
+            raise ValueError("SFT data.epoch_boundary must be 'wrap' or 'partial'")
+        if type(self.media_hash_workers) is not int or not 1 <= self.media_hash_workers <= 4:
+            raise ValueError("SFT data.media_hash_workers must be an integer in [1, 4]")
+        if self.factory and self.media_hash_workers != 1:
+            raise ValueError("SFT media_hash_workers applies to JSONL sources, not dataset factories")
+        if not isinstance(self.interleave_id_prefix, str):
+            raise TypeError("SFT data.interleave_id_prefix must be a string")
+        if type(self.interleave_window) is not int or self.interleave_window < 0:
+            raise ValueError("SFT data.interleave_window must be a nonnegative integer")
+        if bool(self.interleave_id_prefix) != bool(self.interleave_window) or self.interleave_window == 1:
+            raise ValueError("SFT interleaving requires both a nonempty ID prefix and a window >=2")
         self.factory_kwargs = _normalize_factory_kwargs(self.factory_kwargs)
         json.dumps(self.factory_kwargs, allow_nan=False)
 
@@ -121,7 +140,6 @@ SFT_MOE_LBL_METHODS = ("local", "global")
 class SFTConfig(HFRunConfig):
     """One step is one optimizer update; batch size is per rank and microbatch."""
 
-    # LLMTrainer saves/restores both opt-in optimizer schemas (see RunConfig).
     supports_quantized_optimizer = True
     supports_fp32_master_optimizer = True
 
@@ -140,6 +158,9 @@ class SFTConfig(HFRunConfig):
     # (``weighted_ce_exponent=0.5``, ``cosmos3/algorithm/loss/cross_entropy.py::weighted_cross_entropy_loss``): a row
     # weighs ``sqrt(n)``. ``1.0`` = every row weighs the same.
     ce_exponent: float = 0.0
+    # Uniform-vocabulary smoothing in training only. Reported/evaluation CE
+    # remains the original hard-target loss, with unchanged labels and masks.
+    label_smoothing: float = 0.0
     # Unsupervise the ``<think>`` token that opens an assistant turn, and only that token.
     # Keep ``False``: on the lab's serving path of record Codex ``--thinking high`` sends
     # ``reasoning.effort`` AND a tools array on every call, and with tools present vLLM 0.24 prefills no opener -- the
@@ -176,21 +197,39 @@ class SFTConfig(HFRunConfig):
     # before the shares are formed; ``local`` balances each rank's own batch).
     moe_lbl_coeff: float = 0.0
     moe_lbl_method: str = "global"
+    # An immutable corpus built with the same native CPU packer; empty keeps raw processing.
+    prepared_corpus: str = ""
+    # Opt-in strict kernels for tested exact continuation; existing runs keep warning-only mode.
+    strict_determinism: bool = False
 
     def __post_init__(self) -> None:
         super().__post_init__()
+        if self.data.epoch_boundary == "partial" and self.grad_accum != 1:
+            raise ValueError("SFT partial epoch batches currently require grad_accum=1")
         for name in ("micro_batch_size", "max_length"):
             value = getattr(self, name)
             minimum = 2 if name == "max_length" else 1
             if type(value) is not int or value < minimum:
                 raise ValueError(f"SFT {name} must be an integer >= {minimum}")
         self.lr_schedule.__post_init__()
+        if not isinstance(self.prepared_corpus, str):
+            raise TypeError("SFT prepared_corpus must be a path string")
+        if type(self.strict_determinism) is not bool:
+            raise TypeError("SFT strict_determinism must be bool")
+        if self.strict_determinism and not self.deterministic:
+            raise ValueError("SFT strict_determinism requires deterministic=True")
         if (
             isinstance(self.ce_exponent, bool)
             or not isinstance(self.ce_exponent, (int, float))
             or not 0.0 <= float(self.ce_exponent) <= 1.0
         ):
             raise ValueError(f"SFT ce_exponent={self.ce_exponent!r} must be a real in [0, 1]")
+        if (
+            isinstance(self.label_smoothing, bool)
+            or not isinstance(self.label_smoothing, (int, float))
+            or not 0.0 <= float(self.label_smoothing) < 1.0
+        ):
+            raise ValueError(f"SFT label_smoothing={self.label_smoothing!r} must be a real in [0, 1)")
         if not isinstance(self.mask_think_opener, bool):
             raise TypeError("SFT mask_think_opener must be bool")
         if self.serve_contract not in SFT_SERVE_CONTRACTS:

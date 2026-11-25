@@ -9,6 +9,7 @@ import hashlib
 import io
 import json
 from collections.abc import Callable, Iterator, Mapping
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import closing, contextmanager
 from pathlib import Path
 from typing import Any, TextIO
@@ -47,6 +48,12 @@ def sha256_file(path: str) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def stamp(path: str | Path) -> tuple[int, ...]:
+    """Cheap change detector for one file (device, inode, size, mtime, ctime); not a content identity."""
+    stat = Path(path).stat()
+    return stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns
 
 
 def normalize_row(row: Any, media_root: Path | None, *, label: str) -> dict[str, Any]:
@@ -150,7 +157,16 @@ class JSONLSFTDataset:
     Large corpora should use a map-style factory exposing its own immutable dataset identity.
     """
 
-    def __init__(self, path: str, media_root: str = "", credentials: str = "credentials/<credential>.secret") -> None:
+    def __init__(
+        self,
+        path: str,
+        media_root: str = "",
+        credentials: str = "credentials/<credential>.secret",
+        *,
+        media_hash_workers: int = 1,
+    ) -> None:
+        if type(media_hash_workers) is not int or not 1 <= media_hash_workers <= 4:
+            raise ValueError("SFT media_hash_workers must be an integer in [1, 4]")
         remote = path.startswith("s3://")
         source = path if remote else str(Path(path).expanduser().resolve())
         root = Path(media_root).expanduser().resolve() if media_root else (None if remote else Path(source).parent)
@@ -159,6 +175,10 @@ class JSONLSFTDataset:
         # below and the media side of ``row_identity``.
         self.media_hashes: dict[str, str] = {}
         media_hashes = self.media_hashes
+        # The stamp taken just before each file was hashed, so a later consumer (the prepared
+        # corpus) can reuse these digests while still detecting a change since hashing.
+        self.media_stamps: dict[str, tuple[int, ...]] = {}
+        pending_media: dict[str, None] = {}
         with _open_jsonl(source, credentials) as stream:
             for line_number, line in enumerate(stream, 1):
                 if not line.strip():
@@ -177,9 +197,30 @@ class JSONLSFTDataset:
                     for part in content:
                         kind = part.get("type")
                         if kind in {"image", "video"} and part[kind] not in media_hashes:
-                            media_hashes[part[kind]] = sha256_file(part[kind])
+                            if media_hash_workers == 1:
+                                self.media_stamps[part[kind]] = stamp(part[kind])
+                                media_hashes[part[kind]] = sha256_file(part[kind])
+                            else:
+                                pending_media[part[kind]] = None
         if not self.rows:
             raise ValueError(f"{source}: no SFT conversations")
+        if pending_media:
+            before = {name: stamp(name) for name in pending_media}
+
+            def read(name: str) -> str:
+                # Each unique file is fully hashed. Never use a stat-only cache.
+                result = sha256_file(name)
+                if stamp(name) != before[name]:
+                    raise ValueError("SFT source media changed during parallel identity construction")
+                return result
+
+            # map yields in first-occurrence order even when reads finish out of
+            # order. No partial source fingerprint escapes on worker failure.
+            with ThreadPoolExecutor(max_workers=min(media_hash_workers, len(pending_media))) as pool:
+                media_hashes.update(zip(pending_media, pool.map(read, pending_media), strict=True))
+            if any(stamp(name) != previous for name, previous in before.items()):
+                raise ValueError("SFT source media changed during parallel identity construction")
+            self.media_stamps.update(before)
         self._fingerprint: str = canonical_json_sha256(
             {"rows": self.rows, "media": media_hashes}, context="SFT JSONL source"
         )
@@ -372,5 +413,7 @@ def require_disjoint_datasets(training: Any, validation: Any) -> dict[str, Any]:
 def build_sft_dataset(config: SFTDatasetConfig) -> JSONLSFTDataset | FactorySFTDataset:
     config.require_source()
     if config.path:
-        return JSONLSFTDataset(config.path, config.media_root, config.credentials)
+        return JSONLSFTDataset(
+            config.path, config.media_root, config.credentials, media_hash_workers=config.media_hash_workers
+        )
     return FactorySFTDataset(config)
