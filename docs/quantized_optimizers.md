@@ -118,12 +118,28 @@ torchrun --standalone --nproc-per-node=1 \
   `rl.optimizer.name=adamw rl.optimizer.impl=fused rl.optimizer.bnb_min_8bit_size=4096`.
   The last override clears the 8-bit-only option.
 
-The GR00T recipe is `configs/gr00t_n1d7_libero_quantized_optimizer.py`.
+The GR00T recipes are `configs/gr00t_n1d7_libero_quantized_optimizer.py` and
+`configs/gr00t_n1d7_libero10_quantized_optimizer.py`.
+
+On a network filesystem where ranks can see different cached timestamps for one finished
+checkpoint (seen on Lustre in multi-GPU GR00T runs), set
+`COSMOS_CHECKPOINT_SHARED_FS_IDENTITY=1`. Checkpoint provenance then uses server-synchronized
+attributes, and validation publication identifies a checkpoint by its full content. Each byte is
+read once across the ranks. Keep the setting the same for the whole run, including resumes.
+
+## GR00T PPO options
+
+These are off by default; at their defaults, native behaviour and checkpoint identity are
+unchanged.
+
+| Option                         | Default | Meaning                                                                                                   |
+| ------------------------------ | ------- | --------------------------------------------------------------------------------------------------------- |
+| `model.ppo_reference_kl_beta`  | `0.0`   | Adds `beta · KL(π_θ ‖ π_init)` to the actor loss, against a frozen copy of the initial action head        |
+| `model.value_feature_gradient` | `true`  | `false` detaches the shared features feeding the value head, so the value loss trains only the value head |
 
 ## Measured results
 
-These numbers come from the qualification campaign on 8×A100-80GB, with protocols locked
-before each comparison. Its LIBERO-10 recipes and evidence are not part of this change.
+The tests used 8×A100-80GB, with protocols locked before each comparison.
 
 |                                              | GR00T-N1.7 LIBERO-10 PPO | Cosmos3-Nano LIBERO-10 SFT                                   |
 | -------------------------------------------- | ------------------------ | ------------------------------------------------------------ |
