@@ -257,3 +257,17 @@ def test_warm_start_after_optimizer_construction_keeps_loaded_bf16_weights():
         assert (parameter.float() - loaded[name].float()).abs().max() < 1e-2, name
     for master, live in zip(optimizer.masters, optimizer.live):
         assert torch.equal(master.to(live.dtype), live.detach())
+
+
+@CUDA
+@pytest.mark.parametrize("name", ["adamw_bnb_8bit", "paged_adamw_8bit"])
+def test_documented_selection_without_weight_decay_uses_adamw_default(name):
+    """The guide selects these by optimizer_type alone; decay falls back to AdamW's 0.01."""
+    model = _Model("cuda")
+    kwargs = {key: value for key, value in deepcopy(KWARGS).items() if key != "weight_decay"}
+    container = build_optimizer(model, name, **kwargs)
+    legacy = build_optimizer(_Model("cuda"), "adamw", **deepcopy(kwargs))
+    assert {g["weight_decay"] for g in container.optimizers[0].param_groups} == {
+        g["weight_decay"] for g in legacy.optimizers[0].param_groups
+    }
+    assert 0.01 in {g["weight_decay"] for g in container.optimizers[0].param_groups}

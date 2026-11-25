@@ -46,6 +46,9 @@ _DEFAULT_WEIGHT_DECAY_BY_OPTIMIZER = {
     "fusedadam": 0.0,
     "muonwithauxadamw": 0.1,
     "dion2withauxadamw": 0.1,
+    # Shared eight-bit AdamW (bitsandbytes AdamW8bit) keeps torch AdamW's default decay.
+    "adamw_bnb_8bit": 0.01,
+    "paged_adamw_8bit": 0.01,
 }
 
 
@@ -463,7 +466,10 @@ def _build_quantized_optimizer(
         lr=float(optimizer_kwargs["lr"]),
         betas=tuple(float(b) for b in optimizer_kwargs.get("betas", (0.9, 0.999))),
         eps=float(optimizer_kwargs.get("eps", 1e-8)),
-        weight_decay=float(optimizer_kwargs.get("weight_decay", _DEFAULT_WEIGHT_DECAY_BY_OPTIMIZER["adamw"])),
+        # Every group carries its resolved decay (configured, or the registered default).
+        weight_decay=float(
+            optimizer_kwargs.get("weight_decay", _DEFAULT_WEIGHT_DECAY_BY_OPTIMIZER[optimizer_type.lower()])
+        ),
         bnb_min_8bit_size=int(optimizer_kwargs.get("bnb_min_8bit_size", 4096)),
         bnb_fp32_state_names=list(optimizer_kwargs.get("bnb_fp32_state_names", ())),
         warmup_steps=0,
