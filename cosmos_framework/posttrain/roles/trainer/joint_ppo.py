@@ -430,7 +430,8 @@ class JointPPOTrainer(PPOTrainableRole):
                 requested_coefficients={},
                 bound_coefficients={},
                 # The anchored-model KL is window-weighted like the other objective metrics.
-                weighted=WEIGHTED | ({REFERENCE_KL} if getattr(self.model, "ppo_reference", None) is not None else set()),
+                weighted=WEIGHTED
+                | ({REFERENCE_KL} if getattr(self.model, "ppo_reference", None) is not None else set()),
                 weight_key=WEIGHT_KEY,
             )
             optimizer_metrics.append(dict(metrics))
@@ -580,9 +581,7 @@ def _backend_step_milliseconds(optimizer: Any) -> float | None:
     return float(events[0].elapsed_time(events[1]))
 
 
-def _gather_allocator_receipt(
-    before: dict | None, after: dict | None, extra: dict | None = None
-) -> list[dict] | None:
+def _gather_allocator_receipt(before: dict | None, after: dict | None, extra: dict | None = None) -> list[dict] | None:
     """Rank-ordered allocator receipts, identical on every rank so update results still agree.
 
     ``before`` peaks cover the phases since the previous update (collection, weight sync,

@@ -295,9 +295,7 @@ class Gr00tN1d7TrainPolicy:
 
                 from cosmos_framework.posttrain.model.ppo import prepare_deterministic_ppo_forward
 
-                reference = Gr00tPPOHeads(
-                    copy.deepcopy(self.gr00t.action_head), score_horizon=config.execution_horizon
-                )
+                reference = Gr00tPPOHeads(copy.deepcopy(self.gr00t.action_head), score_horizon=config.execution_horizon)
                 reference.requires_grad_(False)
                 prepare_deterministic_ppo_forward(reference, enable_gradient_checkpointing=False)
                 self.ppo_reference = reference

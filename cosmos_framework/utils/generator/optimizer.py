@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: OpenMDW-1.1
 
 import collections
-import json
-import os
 import copy
+import json
 import math
+import os
 import re
 from typing import Any, Iterator, NamedTuple
 
@@ -16,6 +16,7 @@ from torch.distributed.checkpoint.state_dict import StateDictOptions, get_optimi
 from torch.distributed.checkpoint.stateful import Stateful
 from torch.optim.lr_scheduler import LambdaLR, LRScheduler
 
+from cosmos_framework.utils import log
 from cosmos_framework.utils.functional.lr_scheduler import (
     ConstantScheduler,
     LambdaLinearScheduler,
@@ -23,7 +24,6 @@ from cosmos_framework.utils.functional.lr_scheduler import (
     WSDScheduler,
     WSFDScheduler,
 )
-from cosmos_framework.utils import log
 
 # Hybrid orthogonalizing optimizers (Muon / Dion2) that own their parameter
 # categorization and run their own collective communication. They must be built
@@ -587,7 +587,9 @@ class OptimizersContainer(Stateful):
 
         self.rank_local_checkpoint = optimizer_type.lower() in _QUANTIZED_OPTIMIZERS
         if self.rank_local_checkpoint:
-            self.optimizers.append(_build_quantized_optimizer(model, params_with_metadata, optimizer_type, optimizer_kwargs))
+            self.optimizers.append(
+                _build_quantized_optimizer(model, params_with_metadata, optimizer_type, optimizer_kwargs)
+            )
         elif optimizer_type.lower() in _AUX_ADAMW_OPTIMIZERS:
             # Muon / Dion2 categorize parameters into an orthogonalized-matrix group
             # and an auxiliary AdamW group internally, and run their own collective
@@ -672,7 +674,9 @@ class OptimizersContainer(Stateful):
             # Opt-in, once: initialized optimizer-owned bytes per rank for memory accounting.
             self._state_reported = True
             rank = torch.distributed.get_rank() if torch.distributed.is_initialized() else 0
-            log.info(f"optimizer_state_report rank={rank} {json.dumps(self.state_report(), default=str)}", rank0_only=False)
+            log.info(
+                f"optimizer_state_report rank={rank} {json.dumps(self.state_report(), default=str)}", rank0_only=False
+            )
 
     def zero_grad(self, set_to_none: bool = True) -> None:
         # Default matches ``torch.optim.Optimizer.zero_grad`` (set_to_none=True

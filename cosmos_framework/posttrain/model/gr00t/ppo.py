@@ -71,9 +71,7 @@ def selected_transition_kl(
     """
     deterministic = std == 0
     safe_std = torch.where(deterministic, torch.ones_like(std), std)
-    cells = torch.where(
-        deterministic, torch.zeros_like(mean), 0.5 * torch.pow((mean - reference_mean) / safe_std, 2)
-    )
+    cells = torch.where(deterministic, torch.zeros_like(mean), 0.5 * torch.pow((mean - reference_mean) / safe_std, 2))
     return cells[:, :score_horizon, :7].float().sum(dim=(1, 2))
 
 

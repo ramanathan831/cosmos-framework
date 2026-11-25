@@ -124,7 +124,9 @@ def test_objective_adds_weighted_reference_kl_to_joint_loss_only():
 
 def _head():
     head = nn.Linear(2, 2)
-    head.config = SimpleNamespace(action_horizon=40, max_action_dim=132, backbone_embedding_dim=2, input_embedding_dim=2)
+    head.config = SimpleNamespace(
+        action_horizon=40, max_action_dim=132, backbone_embedding_dim=2, input_embedding_dim=2
+    )
     head.num_inference_timesteps = 4
     return head
 

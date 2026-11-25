@@ -87,8 +87,8 @@ from cosmos_framework.scripts.action_policy_server_utils import (
     maybe_init_distributed,
 )
 from cosmos_framework.utils import log
-from cosmos_framework.utils.lazy_config import instantiate
 from cosmos_framework.utils.generator.data_utils import get_vision_data_resolution
+from cosmos_framework.utils.lazy_config import instantiate
 
 _DEFAULT_ACTION_CHUNK_SIZE = 16
 ActionNormalization = Literal["auto", "meanstd", "minmax", "quantile", "quantile_rot"]

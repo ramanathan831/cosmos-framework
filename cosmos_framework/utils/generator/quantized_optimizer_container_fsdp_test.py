@@ -19,13 +19,15 @@ import torch.distributed as dist
 # Spawned ranks pick their own devices; conftest pins unmarked tests to one GPU.
 DEVICES = os.environ.get("COSMOS_TEST_DEVICES", "0,1")
 pytestmark = pytest.mark.skipif(
-    len(DEVICES.split(",")) < 2 or not torch.cuda.is_available(), reason="FSDP2 eight-bit gate requires two CUDA devices"
+    len(DEVICES.split(",")) < 2 or not torch.cuda.is_available(),
+    reason="FSDP2 eight-bit gate requires two CUDA devices",
 )
 
 
 @pytest.fixture(autouse=True)
 def _two_devices(monkeypatch):
     monkeypatch.setenv("CUDA_VISIBLE_DEVICES", DEVICES)
+
 
 KWARGS = dict(
     lr=5e-4,
@@ -41,7 +43,9 @@ SAVE_AT, TOTAL = 3, 6
 
 def _setup(rank, rendezvous):
     torch.cuda.set_device(rank)
-    dist.init_process_group("nccl", init_method=rendezvous, rank=rank, world_size=2, device_id=torch.device("cuda", rank))
+    dist.init_process_group(
+        "nccl", init_method=rendezvous, rank=rank, world_size=2, device_id=torch.device("cuda", rank)
+    )
 
 
 def _model(mesh_shape=(2,), names=("dp_shard",)):
@@ -109,7 +113,9 @@ def _reference_worker(rank, rendezvous, root, name):
         model = _model()
         container, scheduler = _build(model, name)
         optimizer = container.optimizers[0]
-        assert optimizer.identity["world_size"] == 2 and optimizer.identity["parameters"][0]["placements"] == ["Shard(0)"]
+        assert optimizer.identity["world_size"] == 2 and optimizer.identity["parameters"][0]["placements"] == [
+            "Shard(0)"
+        ]
         assert all(m.data_ptr() == p.to_local().data_ptr() for m, p in zip(optimizer.masters, optimizer.live))
         frozen = model.net.frozen.weight.detach().clone()
         initial = _full(model)
@@ -138,9 +144,7 @@ def _legacy_report_worker(rank, rendezvous):
         model = _model()
         container, scheduler = _build(model, "adamw")
         _train_step(model, container, scheduler, 1)
-        expected = sum(
-            2 * p.to_local().numel() * 4 for g in container.optimizers[0].param_groups for p in g["params"]
-        )
+        expected = sum(2 * p.to_local().numel() * 4 for g in container.optimizers[0].param_groups for p in g["params"])
         # DTensor moments must be counted per local shard, not deduplicated by wrapper.
         assert container.state_report()["moment_bytes"] == expected
     finally:
@@ -191,9 +195,7 @@ def test_fsdp2_fresh_process_exact_resume(tmp_path, name):
 
 
 def test_hsdp_two_dimensional_mesh_is_rejected_before_state(tmp_path):
-    torch.multiprocessing.spawn(
-        _hsdp_worker, args=((tmp_path / "r").as_uri(), "adamw_bnb_8bit"), nprocs=2, join=True
-    )
+    torch.multiprocessing.spawn(_hsdp_worker, args=((tmp_path / "r").as_uri(), "adamw_bnb_8bit"), nprocs=2, join=True)
 
 
 def test_legacy_report_counts_local_dtensor_moments(tmp_path):

@@ -67,7 +67,9 @@ def test_pre_update_snapshot_is_host_resident_independent_copy():
         with torch.no_grad():
             for parameter in net.parameters():
                 parameter.add_(1)
-        assert all(not torch.equal(value, parameter.detach()) for value, parameter in zip(before.values(), net.parameters()))
+        assert all(
+            not torch.equal(value, parameter.detach()) for value, parameter in zip(before.values(), net.parameters())
+        )
 
 
 @pytest.mark.L0

@@ -37,9 +37,9 @@ def _load(path, tmp_path, profile, *extra, checkpoint=None):
     from cosmos_framework.utils.config import load_config
 
     for split in ("train", "eval"):
-        fixed_manifest(split, "libero_10", profile if split == "eval" or profile == "shared_500" else "legacy_100").write(
-            tmp_path / f"{split}.json"
-        )
+        fixed_manifest(
+            split, "libero_10", profile if split == "eval" or profile == "shared_500" else "legacy_100"
+        ).write(tmp_path / f"{split}.json")
     return load_config(
         path,
         [
@@ -122,12 +122,16 @@ def test_libero10_native_profile_keeps_native_window_minibatch_and_hyperparamete
     config = _load(native, tmp_path, "aligned_200", "rl.optimizer.name=adamw", "rl.optimizer.impl=fused")
     validate_joint_ppo_config(config, 8)
     recipe, default = instantiate(config.rl), JointPPOConfig()
-    assert (recipe.num_envs, recipe.window_decisions, recipe.global_minibatch, recipe.microbatch) == (
-        default.num_envs,
-        default.window_decisions,
-        default.global_minibatch,
-        default.microbatch,
-    ) == (8, 16, 32, 2)
+    assert (
+        (recipe.num_envs, recipe.window_decisions, recipe.global_minibatch, recipe.microbatch)
+        == (
+            default.num_envs,
+            default.window_decisions,
+            default.global_minibatch,
+            default.microbatch,
+        )
+        == (8, 16, 32, 2)
+    )
     assert recipe.decisions // recipe.global_minibatch == 4
     assert recipe.optimizer.update_policy == "fp32_master" and recipe.optimizer.impl == "fused"
     for name in ("lr", "betas", "eps", "weight_decay", "grad_clip_norm"):
