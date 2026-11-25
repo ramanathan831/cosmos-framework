@@ -3298,6 +3298,9 @@ class PPOBaseConfig(RunConfig):
 class JointPPOConfig(PPOBaseConfig):
     """Synchronous decision windows with one jointly optimized actor/value model."""
 
+    supports_quantized_optimizer: ClassVar[bool] = True
+    supports_fp32_master_optimizer: ClassVar[bool] = True
+
     num_envs: int = 8
     window_decisions: int = 16
     global_minibatch: int = 32
@@ -3366,6 +3369,8 @@ class JointPPOConfig(PPOBaseConfig):
             raise ValueError("joint PPO requires synchronous dcp checkpoints and rl.grad_accum=1")
         if self.optimizer.train_keys or self.optimizer.decay_groups:
             raise ValueError("joint PPO owns the complete actor/value parameter partition")
+        if self.optimizer.name in QUANTIZED_OPTIMIZER_NAMES and self.optimizer.update_policy != "fp32_master":
+            raise ValueError("native Joint PPO quantized optimizers require optimizer.update_policy=fp32_master")
 
     def identity(self) -> dict:
         from dataclasses import asdict

@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from dataclasses import asdict, replace
 from typing import Any
@@ -35,6 +35,7 @@ from cosmos_framework.posttrain.roles.trainer.ppo_runtime import (
     run_ppo_batch_update,
 )
 from cosmos_framework.posttrain.schema import FINAL_REWARD_KEY, Trajectory
+from cosmos_framework.posttrain.schema.checkpoint import CheckpointComponentPlan
 from cosmos_framework.posttrain.utils.dist import rank_max_count, run_rank_converged
 from cosmos_framework.posttrain.utils.identity import normalize_json_dict
 from cosmos_framework.posttrain.utils.rank_state import gather_rank_states
@@ -110,6 +111,35 @@ class JointPPOTrainer(PPOTrainableRole):
     def progress(self) -> dict:
         return {"optimizer_step": self.optimizer_step, "publication_version": self.publication_version()}
 
+    def save(
+        self,
+        path: str,
+        publish: bool = True,
+        update_latest: bool = True,
+        components: Iterable[str] | CheckpointComponentPlan | None = None,
+        data_state: dict[str, Any] | None = None,
+    ) -> None:
+        if not getattr(self.opt, "cosmos_local_master_optimizer", False):
+            super().save(path, publish, update_latest, components, data_state)
+            return
+        # FP32-master runs: these gradients belong to a completed update and are not recovery
+        # state. Keeping both BF16 model gradients and FP32 master staging alive can strand
+        # multiple GiB per rank while DCP/NCCL needs temporary device allocations.
+        # The existing boundary guard rejects partial accumulation before mutation.
+        self.release_completed_gradients()
+
+        def release_device_cache() -> None:
+            devices = {parameter.device for parameter in self.model.net.parameters() if parameter.is_cuda}
+            for device in sorted(devices, key=str):
+                # NCCL allocates outside PyTorch's caching allocator. Make the dead
+                # blocks available to it, only at this infrequent checkpoint phase.
+                with torch.cuda.device(device):
+                    torch.cuda.synchronize(device)
+                    torch.cuda.empty_cache()
+
+        run_rank_converged(release_device_cache, "joint PPO checkpoint device memory preparation")
+        super().save(path, publish, update_latest, components, data_state)
+
     def ppo_identity(self) -> dict:
         return self.model.ppo_identity()
 
@@ -135,6 +165,15 @@ class JointPPOTrainer(PPOTrainableRole):
                 "rng": digest(collect_rng_state()),
                 "scheduler": digest(self.lr_scheduler.state_dict() if self.lr_scheduler is not None else {}),
             }
+            if getattr(self.opt, "cosmos_local_master_optimizer", False):
+                state["optimizer_masters"] = canonical_digest([digest(p.detach()) for p in self.opt.masters])
+                # Persist allocated state/precision accounting with the native
+                # evaluation receipt; actor log forwarding can omit INFO records.
+                state["optimizer_storage"] = {
+                    key: value
+                    for key, value in self.opt.state_report().items()
+                    if key not in ("gradient_staging_bytes", "fp32_gradient_alias_bytes")
+                }
             current = self.model.ppo_frozen_state()
 
             def check_frozen_model() -> None:
@@ -359,7 +398,16 @@ class JointPPOTrainer(PPOTrainableRole):
             optimizer_metrics.append(dict(metrics))
             return metrics
 
-        with self._parameter_state(clone=True) as before:
+        # Allocator receipts are diagnostics of the opt-in FP32-master/eight-bit memory work. Default
+        # runs neither reset the process-wide CUDA peak counters nor gather receipts across ranks.
+        diagnostics = bool(getattr(self.opt, "cosmos_local_master_optimizer", False))
+        pre_update_allocator = _cuda_allocator_window(self.model.net, reset=True) if diagnostics else None
+        # The pre-update snapshot only proves both groups changed and reports their update norms.
+        # The default path keeps the historical device clone. The opt-in FP32-master path already
+        # holds masters and moments next to the model, and a device clone spanning forward/backward
+        # OOMed there, so it stages the snapshot in pinned host memory asynchronously instead.
+        host = bool(getattr(self.opt, "cosmos_local_master_optimizer", False))
+        with self._parameter_state(clone=True, host=host) as before:
             result = run_ppo_batch_update(
                 role="policy",
                 batch_id=batch_id,
@@ -377,27 +425,42 @@ class JointPPOTrainer(PPOTrainableRole):
                 changes = torch.zeros(2, device=next(self.model.net.parameters()).device, dtype=torch.float64)
                 for name in before:
                     group = int(name in self.model.ppo_parameters.value)
-                    changes[group] += (after[name].float() - before[name].float()).square().double().sum()
+                    # A host snapshot comes back one tensor at a time (pinned, stream-ordered, no
+                    # host sync); the reduction stays on device until the single decision below.
+                    previous = before[name].to(after[name].device, non_blocking=True)
+                    changes[group] += (after[name].float() - previous.float()).square().double().sum()
+                    del previous
                 if dist.is_initialized():
                     dist.all_reduce(changes)
                 if not bool(torch.isfinite(changes).all()) or not bool((changes > 0).all()):
                     raise RuntimeError(
                         f"joint PPO did not update both parameter groups: squared changes={changes.tolist()}"
                     )
-                return {
+                receipt = {
                     "optimizer_step": self.optimizer_step,
                     "metrics": result.metrics,
                     "optimizer_metrics": optimizer_metrics,
                     "learning_rates": {group["name"]: float(group["lr"]) for group in self.opt.param_groups},
                     "parameter_update_l2": dict(zip(("actor", "value"), changes.sqrt().tolist(), strict=True)),
                 }
+                if diagnostics:
+                    receipt["cuda_allocator"] = _gather_allocator_receipt(
+                        pre_update_allocator,
+                        _cuda_allocator_window(self.model.net, reset=False),
+                        {"optimizer_backend_step_ms": _backend_step_milliseconds(self.opt)},
+                    )
+                return receipt
 
     @contextmanager
-    def _parameter_state(self, *, clone: bool = False) -> Iterator[dict[str, torch.Tensor]]:
+    def _parameter_state(self, *, clone: bool = False, host: bool = False) -> Iterator[dict[str, torch.Tensor]]:
         """Read public local shards at an update boundary, never forward-time FSDP parameters.
 
-        Only a cloned pre-update state may span later forwards. Both raw state-dict
-        bindings and detached views are released on exit, even with a retained traceback.
+        Only a cloned pre-update state may span later forwards. ``host=True`` stages that
+        clone in pinned host memory with stream-ordered asynchronous copies, for runs whose
+        device cannot also hold a full copy of every local shard through forward/backward;
+        the copy is enqueued before any later kernel that changes the parameters, so it needs
+        no host synchronization. Both raw state-dict bindings and detached views are released
+        on exit, even with a retained traceback.
         Failed readers release completed traceback locals while retaining the exception chain.
         """
         from traceback import clear_frames
@@ -412,7 +475,16 @@ class JointPPOTrainer(PPOTrainableRole):
             state = get_model_state_dict(self.model.net)
             for name, value in state.items():
                 value = (value.to_local() if isinstance(value, DTensor) else value).detach()
-                local[name] = value.clone() if clone else value
+                if not clone:
+                    local[name] = value
+                elif host and value.is_cuda:
+                    staged = torch.empty(value.shape, dtype=value.dtype, device="cpu", pin_memory=True)
+                    local[name] = staged.copy_(value, non_blocking=True)
+                    staged = None
+                elif host:
+                    local[name] = value.to("cpu", copy=True)
+                else:
+                    local[name] = value.clone()
             # The cloned branch must not carry borrowed bindings through the update.
             value = None
             state.clear()
@@ -442,3 +514,57 @@ class JointPPOTrainer(PPOTrainableRole):
         self.abort_update_window()
         self._ppo_cache.abort(batch_id)
         self._global_ids, self.model.ppo_padding = (), None
+
+
+_ALLOCATOR_FIELDS = (
+    "allocated_bytes.all.current",
+    "reserved_bytes.all.current",
+    "allocated_bytes.all.peak",
+    "reserved_bytes.all.peak",
+    "inactive_split_bytes.all.current",
+    "inactive_split_bytes.all.peak",
+    "num_alloc_retries",
+    "num_ooms",
+)
+
+
+def _cuda_allocator_window(net: torch.nn.Module, *, reset: bool) -> dict[str, int] | None:
+    """This rank's caching-allocator counters; optionally start a new peak window.
+
+    ``inactive_split_bytes`` is cached memory inside partially used segments, i.e. the
+    fragmentation that a later large request cannot use. Managed (paged) optimizer
+    state is outside the caching allocator and therefore excluded.
+    """
+    parameter = next(net.parameters(), None)
+    if parameter is None or not parameter.is_cuda:
+        return None
+    device = parameter.device
+    stats = torch.cuda.memory_stats(device)
+    receipt = {key: int(stats.get(key, 0)) for key in _ALLOCATOR_FIELDS}
+    receipt["device_free_bytes"], receipt["device_total_bytes"] = (int(v) for v in torch.cuda.mem_get_info(device))
+    if reset:
+        torch.cuda.reset_peak_memory_stats(device)
+    return receipt
+
+
+def _backend_step_milliseconds(optimizer: Any) -> float | None:
+    """CUDA-event time of the last FP32-master backend step on this rank, if recorded."""
+    events = getattr(optimizer, "last_backend_step_events", None)
+    if events is None:
+        return None
+    events[1].synchronize()
+    return float(events[0].elapsed_time(events[1]))
+
+
+def _gather_allocator_receipt(before: dict | None, after: dict | None, extra: dict | None = None) -> list[dict] | None:
+    """Rank-ordered allocator receipts, identical on every rank so update results still agree.
+
+    ``before`` peaks cover the phases since the previous update (collection, weight sync,
+    target preparation); ``after`` peaks cover only this update's forward/backward/step.
+    """
+    local = None if after is None else {"before_update": before, "after_update": after, **(extra or {})}
+    if not dist.is_initialized() or dist.get_world_size() == 1:
+        return None if local is None else [local]
+    gathered = gather_rank_states(local, context="joint PPO allocator receipt")
+    values = [gathered[rank] for rank in sorted(gathered)]
+    return None if all(value is None for value in values) else values
