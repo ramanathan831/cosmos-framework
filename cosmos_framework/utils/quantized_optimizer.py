@@ -128,15 +128,29 @@ def _snapshot(value):
     return deepcopy(value)
 
 
-def build_quantized_optimizer(net, params, config, *, _local_owner=None):
-    """Build from the final trainable objects and existing stable LR/decay partition."""
+def named_parameter_groups(net, params, *, context):
+    """Normalize optimizer groups over the final model's trainables, shared by both owners.
+
+    Returns ``(groups, selected, names)``: each group gains ``param_names`` (the canonical
+    trainable name of every member), ``selected`` is the flat member list and ``names`` maps
+    ``id(parameter)`` to its name. Empty or duplicated (including tied-alias) members fail.
+    """
     groups = params if params and isinstance(params[0], dict) else [{"params": params}]
     names = {id(p): n for n, p in net.named_parameters() if p.requires_grad}
     selected = [p for g in groups for p in g["params"]]
     if not selected or len({id(p) for p in selected}) != len(selected):
-        raise ValueError("quantized optimizer requires nonempty, identity-unique trainables")
+        raise ValueError(f"{context} requires nonempty, identity-unique trainables")
+    if any(id(p) not in names for p in selected):
+        raise ValueError(f"{context} parameter is not a trainable owned by the final model")
+    groups = [dict(g, param_names=[names[id(p)] for p in g["params"]]) for g in groups]
+    return groups, selected, names
+
+
+def build_quantized_optimizer(net, params, config, *, _local_owner=None):
+    """Build from the final trainable objects and existing stable LR/decay partition."""
+    groups, selected, names = named_parameter_groups(net, params, context="quantized optimizer")
     for p in selected:
-        if type(p) is not torch.nn.Parameter or not p.requires_grad or id(p) not in names:
+        if type(p) is not torch.nn.Parameter or not p.requires_grad:
             raise ValueError(
                 "quantized optimizer requires ordinary trainable Parameters, not DTensor/quantized weights"
             )
@@ -157,7 +171,6 @@ def build_quantized_optimizer(net, params, config, *, _local_owner=None):
     missing = exceptions - {names[id(p)] for p in selected}
     if missing:
         raise ValueError(f"unmatched FP32-state parameter names (use canonical tied name): {sorted(missing)}")
-    groups = [dict(g, param_names=[names[id(p)] for p in g["params"]]) for g in groups]
     for g in groups:
         invalid = set(g) & {"fused", "foreach", "capturable", "amsgrad", "master_weights", "percentile_clipping"}
         if invalid:
@@ -226,6 +239,9 @@ class _QuantizedOptimizerMethods:
             ],
         }
         self._reported_states = -1
+        # The local-master owner rejects nonfinite gradients across all ranks before it
+        # stages them; a second full scan here would only repeat that host decision.
+        self._owner_checks_finite = _local_owner is not None
         if _local_owner is not None:
             self.identity["topology"] = deepcopy(_local_owner)
 
@@ -238,7 +254,11 @@ class _QuantizedOptimizerMethods:
         if any(g.is_sparse for g in grads):
             raise ValueError("quantized optimizer does not support sparse gradients")
         # A single host decision and no full-size boolean intermediates.
-        if grads and not torch.isfinite(torch.stack(torch._foreach_norm(grads, float("inf")))).all():
+        if (
+            grads
+            and not self._owner_checks_finite
+            and not torch.isfinite(torch.stack(torch._foreach_norm(grads, float("inf")))).all()
+        ):
             raise FloatingPointError("nonfinite gradients: quantized update refused without mutation")
         result = super().step()
         count = sum(bool(s) for s in self.state.values())

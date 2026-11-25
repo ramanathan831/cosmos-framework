@@ -17,7 +17,12 @@ import torch
 import torch.distributed as dist
 from torch.distributed.tensor import DTensor, Shard
 
-from cosmos_framework.utils.quantized_optimizer import NAMES, _snapshot, build_quantized_optimizer
+from cosmos_framework.utils.quantized_optimizer import (
+    NAMES,
+    _snapshot,
+    build_quantized_optimizer,
+    named_parameter_groups,
+)
 
 
 def local_tensor(parameter):
@@ -58,13 +63,7 @@ class MasterWeightOptimizer(torch.optim.Optimizer):
 
     def __init__(self, net, params, config):
         self.config = deepcopy(config)
-        groups = params if params and isinstance(params[0], dict) else [{"params": params}]
-        names = {id(p): n for n, p in net.named_parameters() if p.requires_grad}
-        selected = [p for g in groups for p in g["params"]]
-        if not selected or len({id(p) for p in selected}) != len(selected):
-            raise ValueError("master optimizer needs nonempty, unique trainables")
-        if any(id(p) not in names for p in selected):
-            raise ValueError("master optimizer parameter is not owned by the final model")
+        groups, selected, names = named_parameter_groups(net, params, context="master optimizer")
         layouts = [parameter_layout(p) for p in selected]
         if len({local_tensor(p).device for p in selected}) != 1:
             raise ValueError("master optimizer requires one local device")
@@ -75,7 +74,6 @@ class MasterWeightOptimizer(torch.optim.Optimizer):
         self.live = tuple(selected)
         self.names = tuple(names[id(p)] for p in selected)
         defaults = dict(lr=config.lr, betas=tuple(config.betas), eps=config.eps, weight_decay=config.weight_decay)
-        groups = [dict(g, param_names=[names[id(p)] for p in g["params"]]) for g in groups]
         super().__init__(groups, defaults)
         self.identity = {
             "format": "cosmos_local_master_v1",
@@ -150,7 +148,7 @@ class MasterWeightOptimizer(torch.optim.Optimizer):
         from cosmos_framework.posttrain.utils.dist import run_rank_converged
 
         def stage():
-            staged = []
+            local = []
             for p, master, expected in zip(self.live, self.masters, self.identity["parameters"]):
                 if parameter_layout(p) != {k: v for k, v in expected.items() if k != "name"}:
                     raise ValueError("live master parameter layout changed after construction")
@@ -163,11 +161,16 @@ class MasterWeightOptimizer(torch.optim.Optimizer):
                     ):
                         raise ValueError("gradient ownership does not match model shard")
                     grad = local_tensor(grad)
-                    if grad.is_sparse or not torch.isfinite(grad).all():
-                        raise ValueError("sparse/nonfinite master gradient rejected before update")
-                    grad = grad.float().contiguous() if grad.numel() else None
-                staged.append(grad)
-            return staged
+                    if grad.is_sparse:
+                        raise ValueError("sparse master gradient rejected before update")
+                    grad = grad if grad.numel() else None
+                local.append(grad)
+            present = [grad for grad in local if grad is not None]
+            # One fused max-norm scan and a single host decision for the whole update; the
+            # backend skips its own scan because this owner has already checked every rank.
+            if present and not bool(torch.isfinite(torch.stack(torch._foreach_norm(present, float("inf")))).all()):
+                raise ValueError("nonfinite master gradient rejected before update")
+            return [None if grad is None else grad.float().contiguous() for grad in local]
 
         gradients = run_rank_converged(stage, "master optimizer gradient staging")
         for master, grad in zip(self.masters, gradients):
@@ -207,10 +210,13 @@ class MasterWeightOptimizer(torch.optim.Optimizer):
 
     def state_dict(self):
         self.sync_groups()
+        backend = self.backend.state_dict()
         return {
             "identity": deepcopy(self.identity),
             "masters": _snapshot(self.masters),
-            "backend": _snapshot(self.backend.state_dict()),
+            # The eight-bit backend's state_dict is already an independent CPU snapshot;
+            # only torch AdamW returns live references that need one here.
+            "backend": backend if self.config.name in NAMES else _snapshot(backend),
         }
 
     def stage_state_dict(self, saved):

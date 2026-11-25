@@ -21,61 +21,33 @@ from torch.utils._pytree import tree_map
 from cosmos_framework.posttrain.utils.dist import run_rank_converged
 from cosmos_framework.utils.optimizer_master import local_tensor
 
-_CHUNK_BYTES = 64 * 1024 * 1024
-
-
-def _serialize_rank_state(state):
-    # DCP serializes non-tensor leaves with pickle protocol 2. A single bytes
-    # object can exceed its 4-GiB string limit on real action-model shards. A
-    # tuple of bounded bytes remains one opaque leaf, without that size limit.
-    with io.BytesIO() as buffer:
-        torch.save(state, buffer)
-        size = buffer.tell()
-        buffer.seek(0)
-        chunks, digest = [], hashlib.sha256()
-        while chunk := buffer.read(_CHUNK_BYTES):
-            chunks.append(chunk)
-            digest.update(chunk)
-    return size, digest.hexdigest(), tuple(chunks)
+_FORMAT = "cosmos_rank_master_v3"
 
 
 def _deserialize_rank_state(payload, format):
-    if format == "cosmos_rank_master_v1":
-        if not isinstance(payload, bytes):
-            raise ValueError("invalid legacy master optimizer payload")
-        content = payload
-    elif format == "cosmos_rank_master_v2":
-        if not isinstance(payload, tuple) or len(payload) != 3:
-            raise ValueError("invalid chunked master optimizer payload")
-        size, expected, chunks = payload
-        if not isinstance(chunks, tuple) or not chunks or any(not isinstance(c, bytes) or not c for c in chunks):
-            raise ValueError("invalid master optimizer chunks")
-        digest = hashlib.sha256()
-        for chunk in chunks:
-            digest.update(chunk)
-        if sum(map(len, chunks)) != size or digest.hexdigest() != expected:
-            raise ValueError("master optimizer payload checksum/length mismatch")
-        content = b"".join(chunks)
-    elif format == "cosmos_rank_master_v3":
-        if not isinstance(payload, tuple) or len(payload) != 3:
-            raise ValueError("invalid tensor master optimizer payload")
-        size, expected, tensor = payload
-        if (
-            type(size) is not int
-            or size <= 0
-            or not isinstance(tensor, torch.Tensor)
-            or tensor.device.type != "cpu"
-            or tensor.dtype != torch.uint8
-            or tensor.ndim != 1
-            or not tensor.is_contiguous()
-            or tensor.numel() != size
-        ):
-            raise ValueError("invalid master optimizer byte tensor schema/length")
-        content = memoryview(tensor.numpy())
-        if hashlib.sha256(content).hexdigest() != expected:
-            raise ValueError("master optimizer payload checksum/length mismatch")
-    else:
+    """Decode the one rank-local payload format this module writes (``_serialize_tensor_rank_state``)."""
+    if format != _FORMAT:
         raise ValueError("master optimizer checkpoint format mismatch")
+    if not isinstance(payload, tuple) or len(payload) != 3:
+        raise ValueError("invalid tensor master optimizer payload")
+    size, expected, tensor = payload
+    if (
+        type(size) is not int
+        or size <= 0
+        or not isinstance(tensor, torch.Tensor)
+        or tensor.device.type != "cpu"
+        or tensor.dtype != torch.uint8
+        or tensor.ndim != 1
+        or not tensor.is_contiguous()
+        or tensor.numel() != size
+    ):
+        raise ValueError("invalid master optimizer byte tensor schema/length")
+    content = memoryview(tensor.numpy())
+    if hashlib.sha256(content).hexdigest() != expected:
+        raise ValueError("master optimizer payload checksum/length mismatch")
+    # v3 itself needs full unpickling: optimizer group options can be NumPy scalars (the generator
+    # container's per-group lr/decay), which weights_only rejects. The bytes are the checksummed
+    # payload this module wrote inside the run's own checkpoint transaction.
     return torch.load(io.BytesIO(content), map_location="cpu", weights_only=False)
 
 
@@ -93,7 +65,7 @@ def _serialize_tensor_rank_state(state):
 
 def optimizer_payload(optimizer):
     return {
-        "format": "cosmos_rank_master_v3",
+        "format": _FORMAT,
         "world_size": optimizer.identity["world_size"],
         "ranks": {str(optimizer.identity["rank"]): _serialize_tensor_rank_state(optimizer.state_dict())},
     }
