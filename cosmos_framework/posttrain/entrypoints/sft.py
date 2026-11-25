@@ -58,7 +58,7 @@ def sft_policy_source(config: Any) -> tuple[str, bool]:
     """Resolve the one model/tokenizer artifact the SFT packer and the backbone share.
 
     ``model_backend='hf'``: ``model_hf.name_or_path`` (Qwen text models and dense Qwen3.5/3.8 through
-    the HF backend). ``model_backend='i4'``: ``config.model`` must be a ``NativePolicyBuildSpec`` whose
+    the HF backend). ``model_backend='native'``: ``config.model`` must be a ``NativePolicyBuildSpec`` whose
     builder's model family has registered an SFT source (``model/sft_source.py``; the Qwen3-VL family
     checks ``model_type`` ``qwen3_vl`` / ``qwen3_vl_moe`` there); an undeclared builder is refused by
     name. No model or processor is constructed.
@@ -77,8 +77,8 @@ def sft_policy_source(config: Any) -> tuple[str, bool]:
     spec = selection.native_spec
     if spec is None:
         raise ValueError(
-            "SFT with model_backend='i4' requires config.model=NativePolicyBuildSpec for the Qwen3-VL native "
-            "seat; legacy i4 model trees are not supported"
+            "SFT with model_backend='native' requires config.model=NativePolicyBuildSpec for the Qwen3-VL native "
+            "seat; legacy native model trees are not supported"
         )
     return resolve_native_sft_source(spec)
 

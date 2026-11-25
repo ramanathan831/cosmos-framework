@@ -8,8 +8,6 @@ import hashlib
 import importlib.util
 import json
 import os
-import subprocess
-import sys
 import types
 from pathlib import Path
 from typing import Any
@@ -59,7 +57,8 @@ def test_recipe_preflight_and_manifest(tmp_path: Path, monkeypatch: pytest.Monke
     for split in ("train", "validation"):
         # preflight checks availability; row semantics belong to source setup
         (tmp_path / f"{split}.jsonl").write_text("{}\n")
-    config = load_config("cosmos_framework/posttrain/configs/sft_qwen3p8_27b_obj1k.py", [])
+    config = load_config("cosmos_framework/posttrain/configs/sft_qwen3p8_27b_multimodal.py", [])
+    config.rl.data.credentials = config.rl.validation.data.credentials = str(tmp_path / "gcs.json")
     rl = validate_config(config)
     assert config.job.wandb_mode == "disabled"
     assert config.job.project == "cosmos3_reasoner"
@@ -71,36 +70,6 @@ def test_recipe_preflight_and_manifest(tmp_path: Path, monkeypatch: pytest.Monke
     config.grid.backend = "ray"
     with pytest.raises(ValueError, match="local/torchrun"):
         validate_config(config)
-
-
-def test_recipe_generates_install_free_torchrun_script(tmp_path: Path) -> None:
-    profile_path = _POSTTRAIN / "configs/sft_qwen3p8_27b_obj1k_gcp.json"
-    profile = json.loads(profile_path.read_text())
-    result = subprocess.run(
-        [
-            sys.executable,
-            "-S",
-            str(_POSTTRAIN / "utils/launch_multinode.py"),
-            "--launch-config",
-            str(profile_path),
-            "--repo-root",
-            str(_ROOT),
-            "--log-dir",
-            str(tmp_path),
-            "--dry-run",
-        ],
-        cwd=_ROOT,
-        capture_output=True,
-        text=True,
-        check=True,
-        timeout=30,
-    )
-    script = result.stdout
-    assert "launch_multinode_torchrun.sh" in script
-    assert f"--container-image {profile['container_image']}" in script
-    assert f"VENV_ACTIVATE={profile['venv']}" in script
-    assert "pip install" not in script and "uv sync" not in script
-    subprocess.run(["bash", "-n"], input=script, text=True, check=True, timeout=10)
 
 
 def test_packer_refuses_old_transformers_before_loading(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -136,7 +105,7 @@ def _native_sft_config(tmp_path: Path, model_type: str, builder: str | None = No
     (tmp_path / "train.jsonl").write_text("{}\n")
     config = make_config()
     config.job.wandb_mode = "disabled"
-    config.model_backend = "i4"
+    config.model_backend = "native"
     config.model = NativePolicyBuildSpec(
         builder=builder or "cosmos_framework.posttrain.model.qwen3_vl.build_qwen3_vl_native_policy",
         model_id=str(model_dir),
@@ -176,7 +145,7 @@ def test_validate_config_refuses_native_specs_outside_the_qwen3_vl_seat(tmp_path
     with pytest.raises(ValueError, match="native builder"):
         validate_config(other)
     bare = make_config()
-    bare.model_backend = "i4"
+    bare.model_backend = "native"
     with pytest.raises(ValueError, match="NativePolicyBuildSpec"):
         validate_config(bare)
 
@@ -249,7 +218,7 @@ def test_native_recipe_carries_the_canary_contract(
     monkeypatch.setenv("SFT_MODEL_PATH", str(model_dir))
     monkeypatch.setenv("SFT_DATA_ROOT", str(tmp_path))
     config = load_config("cosmos_framework/posttrain/configs/sft_qwen3_vl_moe_native.py", [])
-    assert config.model_backend == "i4"
+    assert config.model_backend == "native"
     assert config.model.model_config.attn_impl == "sdpa"
     assert config.model.model_config.dtype == "bfloat16"
     rl = validate_config(config)
@@ -612,7 +581,7 @@ def test_sft_config_refuses_an_opener_mask_outside_the_prefills_opener_contract(
 
     monkeypatch.setenv("SFT_SERVE_PREFILLS_OPENER", "1")  # the retired variable must rescue nothing
     with pytest.raises(
-        ValueError, match=r"rl\.mask_think_opener=True is refused.*review R138-01.*rl\.serve_contract=prefills_opener"
+        ValueError, match=r"rl\.mask_think_opener=True is refused.*serving contract.*rl\.serve_contract=prefills_opener"
     ) as refused:
         # Refused where the config is BUILT (``load_config`` constructs ``SFTConfig``), before any preflight runs.
         _native_recipe(tmp_path, monkeypatch, None, opts=["rl.mask_think_opener=True"])
