@@ -108,7 +108,9 @@ class MasterWeightOptimizer(torch.optim.Optimizer):
         self.cosmos_quantized_optimizer = config.name in NAMES
         self._reported_states = -1
         # Cheap per-step invariants; the full layout was validated once above.
-        self._local_signature = tuple((tuple(local_tensor(p).shape), p.dtype, isinstance(p, DTensor)) for p in self.live)
+        self._local_signature = tuple(
+            (tuple(local_tensor(p).shape), p.dtype, isinstance(p, DTensor)) for p in self.live
+        )
         # Trainers may load model weights after building the optimizer (warm start, model-only
         # or EMA loads). The first step after binding verifies masters against the live model.
         self._verify_masters = True

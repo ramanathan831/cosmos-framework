@@ -106,9 +106,7 @@ def _publish(rank, directory, divergent_recipe, stale_client_stat):
 @pytest.mark.parametrize(
     "divergent_recipe,stale_client_stat", [(False, False), (True, False), (False, True), (False, "server")]
 )
-def test_large_dcp_validation_publication_across_processes(
-    tmp_path, monkeypatch, divergent_recipe, stale_client_stat
-):
+def test_large_dcp_validation_publication_across_processes(tmp_path, monkeypatch, divergent_recipe, stale_client_stat):
     if stale_client_stat:
         # Ranks disagreeing about cached attributes need the opt-in shared-filesystem identity.
         monkeypatch.setenv("COSMOS_CHECKPOINT_SHARED_FS_IDENTITY", "1")
