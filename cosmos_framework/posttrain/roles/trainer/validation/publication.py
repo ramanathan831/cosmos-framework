@@ -137,8 +137,10 @@ class PublicationJournal:
 
         # Converge the inputs separately so a disagreement identifies the store
         # generation or validation recipe, rather than only an opaque final hash.
+        content_digests = _distributed_content_digests(manager, path)
         storage_identity = run_rank_converged(
-            lambda: manager.publication_identity(path), "validation publication storage identity"
+            lambda: manager.publication_identity(path, content_digests=content_digests),
+            "validation publication storage identity",
         )
         storage_identity = rank_identical(storage_identity, "validation publication storage identity")
         validation_digest = run_rank_converged(
@@ -214,3 +216,29 @@ class PublicationJournal:
         self.pending_step = None
         self.record = None
         run_rank_converged(on_checkpoint, "validation completion checkpoint callback")
+
+
+def _distributed_content_digests(manager: "CheckpointManager", path: str) -> dict[str, tuple[int, str]] | None:
+    """Hash a local checkpoint's payloads once across the job: each rank reads a disjoint share.
+
+    Returns None outside a multi-rank job or for object stores (whose identity is not content
+    hashed here); ``publication_identity`` then hashes locally. Each phase converges failures
+    before the next collective, so one rank's error cannot strand its peers.
+    """
+    import torch.distributed as dist
+
+    from cosmos_framework.posttrain.utils.rank_state import gather_rank_states
+
+    if manager.store.is_object_store or not dist.is_initialized() or dist.get_world_size() == 1:
+        return None
+    rank, world = dist.get_rank(), dist.get_world_size()
+    shard = run_rank_converged(
+        lambda: manager.publication_content_shard(path, rank, world), "validation publication content hashing"
+    )
+    gathered = gather_rank_states(shard, context="validation publication content hashes")
+    merged: dict[str, tuple[int, str]] = {}
+    for part in (gathered[index] for index in sorted(gathered)):
+        if set(part) & set(merged):
+            raise RuntimeError("validation publication content shards overlap across ranks")
+        merged.update(part)
+    return merged

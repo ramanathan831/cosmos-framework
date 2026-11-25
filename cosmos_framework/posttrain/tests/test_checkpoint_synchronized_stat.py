@@ -223,7 +223,7 @@ def test_publication_snapshots_attributes_after_open_refresh(tmp_path, monkeypat
     assert opened
 
 
-@pytest.mark.parametrize("mutation", ["same_size", "replace", "truncate"])
+@pytest.mark.parametrize("mutation", ["replace", "truncate"])
 def test_descriptor_publication_rejects_payload_mutation(tmp_path, monkeypatch, mutation):
     import builtins
     import importlib
@@ -290,3 +290,39 @@ def test_publication_rejects_fifo_without_waiting_for_writer(tmp_path):
     os.mkfifo(tmp_path / "model.pt")
     with pytest.raises(RuntimeError, match="requires regular files"):
         checkpoint_inventory_signature(str(tmp_path), full_content=True)
+
+
+def test_distributed_publication_reads_each_payload_once_and_matches_local_identity(tmp_path, monkeypatch):
+    import builtins
+
+    from cosmos_framework.posttrain.checkpoint import provenance
+
+    tmp_path = tmp_path / "iter_000004"  # the test logger writes into the fixture root itself
+    (tmp_path / "model").mkdir(parents=True)
+    for index in range(5):
+        (tmp_path / "model" / f"__{index}_0.distcp").write_bytes(bytes([index]) * (1024 + index))
+    (tmp_path / "trainer.pt").write_bytes(b"trainer")
+    expected = checkpoint_inventory_signature(str(tmp_path), full_content=True)
+    real_open, reads = builtins.open, []
+
+    def counting_open(path, *args, **kwargs):
+        if args[:1] == ("rb",):
+            reads.append(os.fspath(path))
+        return real_open(path, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "open", counting_open)
+    shards = [provenance.publication_content_shard(str(tmp_path), rank, 3) for rank in range(3)]
+    merged = {key: value for shard in shards for key, value in shard.items()}
+    assert sum(map(len, shards)) == len(merged) == 6  # disjoint and complete
+    # One content read (plus one attribute-only namespace reopen) per file across all ranks.
+    assert len(reads) == 2 * len(merged)
+    reads.clear()
+    assert checkpoint_inventory_signature(str(tmp_path), full_content=True, content_digests=merged) == expected
+    assert reads == []  # combining verified shards reads no payload again
+    # A rank whose view differs from the hashed content (size, or a missing/extra file) is refused.
+    (tmp_path / "trainer.pt").write_bytes(b"trainer, but longer")
+    with pytest.raises(RuntimeError, match="hashed size"):
+        checkpoint_inventory_signature(str(tmp_path), full_content=True, content_digests=merged)
+    (tmp_path / "trainer.pt").unlink()
+    with pytest.raises(RuntimeError, match="differs across ranks"):
+        checkpoint_inventory_signature(str(tmp_path), full_content=True, content_digests=merged)

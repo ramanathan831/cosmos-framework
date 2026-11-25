@@ -117,6 +117,8 @@ def test_large_dcp_validation_publication_across_processes(tmp_path, divergent_r
 def test_inventory_diagnostics_preserve_signature_and_identify_changed_entry(tmp_path):
     from cosmos_framework.posttrain.checkpoint.provenance import checkpoint_inventory_signature
 
+    tmp_path = tmp_path / "iter_000001"  # the test logger writes console/debug logs into the fixture root
+    tmp_path.mkdir()
     small, large = tmp_path / "control", tmp_path / "payload"
     small.write_bytes(b"small control")
     with large.open("wb") as handle:

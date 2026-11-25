@@ -686,17 +686,31 @@ class CheckpointManager:
             return
         self.store.replace_component(iter_dir, name, state)
 
-    def publication_identity(self, iter_dir: str) -> dict[str, Any]:
-        """Return the non-secret checkpoint generation and publication destination."""
+    def publication_content_shard(self, iter_dir: str, rank: int, world_size: int) -> dict[str, tuple[int, str]]:
+        """This rank's share of the content hashes behind ``publication_identity`` (local stores only)."""
+        from cosmos_framework.posttrain.checkpoint.provenance import publication_content_shard
+
+        return publication_content_shard(iter_dir, rank, world_size)
+
+    def publication_identity(
+        self, iter_dir: str, *, content_digests: dict[str, tuple[int, str]] | None = None
+    ) -> dict[str, Any]:
+        """Return the non-secret checkpoint generation and publication destination.
+
+        ``content_digests`` are the gathered ``publication_content_shard`` results of every
+        rank. With them, each payload byte is read once across the job; without them this
+        rank reads every payload once itself.
+        """
         if self.store.is_object_store:
             return dict(self.store.publication_identity(iter_dir))
         from cosmos_framework.posttrain.checkpoint.provenance import checkpoint_provenance
 
         inventory: list[dict[str, Any]] = []
-        # Every rank verifies every payload. Client/server timestamp disagreement
-        # must not replace content identity at a completed publication boundary.
+        # Content, not client/server timestamps, identifies a completed publication boundary.
         # Keep legacy load/external-copy provenance unchanged for existing artifacts.
-        provenance = checkpoint_provenance(iter_dir, inventory=inventory, full_content=True)
+        provenance = checkpoint_provenance(
+            iter_dir, inventory=inventory, full_content=True, content_digests=content_digests
+        )
         if self.upload:
             from cosmos_framework.posttrain.utils.object_store import upload_destination_identity
 
