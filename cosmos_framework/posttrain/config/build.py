@@ -744,7 +744,7 @@ def refuse_rounding_or_unavailable_optimizer(config: Any, opt_cfg: OptimizerConf
             else getattr(selection.native_spec, "parallelism", None)
         )
         if parallelism is not None:
-            if master and parallelism.dp_replicate not in (1, -1):
+            if master and _effective_dp_replicate(parallelism) != 1:
                 raise ValueError("update_policy=fp32_master supports one-dimensional FSDP2 only; HSDP is unsupported")
             if not master and (parallelism.dp_replicate not in (1, -1) or parallelism.dp_shard not in (1, -1)):
                 raise ValueError(
@@ -780,6 +780,23 @@ def refuse_rounding_or_unavailable_optimizer(config: Any, opt_cfg: OptimizerConf
             "this runtime has no 'apex' module; use a runtime that carries apex (the RL image's /opt/venv/cosmos_rl does) "
             "or store parameters in float32 and use OptimizerConfig(name='adamw')"
         )
+
+
+def _effective_dp_replicate(parallelism: Any) -> int | None:
+    """The replicate degree the mesh will use, or None when it cannot be 1 for certain.
+
+    ``dp_replicate=-1`` is inferred later as ``ranks // dp_shard``. Under torchrun ``WORLD_SIZE`` is
+    known, so resolve exactly; otherwise only ``dp_shard=-1`` (all ranks sharded) is certainly 1.
+    """
+    replicate, shard = parallelism.dp_replicate, parallelism.dp_shard
+    world = os.environ.get("WORLD_SIZE", "")
+    if world.isdigit() and int(world) >= 1:
+        return _resolve_data_parallelism(
+            replicate, shard, int(world), field_name="parallelism", ranks_field_name="WORLD_SIZE"
+        )[0]
+    if replicate == 1 or (replicate == -1 and shard == -1):
+        return 1
+    return None
 
 
 def preflight_quantized_optimizer(opt_cfg: Any, context: str, *, require_fp32_master: bool = False) -> None:

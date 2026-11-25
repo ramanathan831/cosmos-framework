@@ -549,9 +549,35 @@ def test_sft_preflight_is_pure_and_policy_aware(tmp_path, monkeypatch):
             "rl.master_dtype=bfloat16",
             "model_hf.parallelism.dp_shard=2",
         )
-    # ... but not HSDP, which the master owner rejects at construction.
+    # ... but not HSDP, which the master owner rejects at construction, including an inferred
+    # replicate degree (-1 resolves to WORLD_SIZE // dp_shard).
     with pytest.raises(ValueError, match="HSDP"):
         check("rl.optimizer.update_policy=fp32_master", "model_hf.parallelism.dp_replicate=2")
+    monkeypatch.setenv("WORLD_SIZE", "4")
+    with pytest.raises(ValueError, match="HSDP"):
+        check(
+            "rl.optimizer.update_policy=fp32_master",
+            "model_hf.parallelism.dp_replicate=-1",
+            "model_hf.parallelism.dp_shard=2",
+        )
+    check(
+        "rl.optimizer.update_policy=fp32_master",
+        "model_hf.parallelism.dp_replicate=-1",
+        "model_hf.parallelism.dp_shard=4",
+    )
+    monkeypatch.delenv("WORLD_SIZE")  # outside torchrun only an all-shard mesh is certainly 1-D
+    with pytest.raises(ValueError, match="HSDP"):
+        check(
+            "rl.optimizer.update_policy=fp32_master",
+            "model_hf.parallelism.dp_replicate=-1",
+            "model_hf.parallelism.dp_shard=2",
+        )
+    check(
+        "rl.optimizer.update_policy=fp32_master",
+        "model_hf.parallelism.dp_replicate=-1",
+        "model_hf.parallelism.dp_shard=-1",
+    )
+    monkeypatch.setenv("WORLD_SIZE", "2")
     # The default parameter policy keeps its single-device FP32 consolidated contract.
     with pytest.raises(ValueError, match="single CUDA device"):
         check()
