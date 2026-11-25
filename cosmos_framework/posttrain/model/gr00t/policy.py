@@ -223,7 +223,13 @@ class Gr00tN1d7TrainPolicy:
         save_cfg_dir: Any,
         precision: Precision | None = None,
         ppo: bool = False,
+        ppo_reference: bool = True,
     ) -> None:
+        """``ppo_reference=False`` skips the frozen KL-anchor copy (``ppo_reference_kl_beta > 0``).
+
+        Only the learner computes the PPO loss; rollout workers that rebuild this policy to
+        sample actions pass ``False`` so they do not hold a second action head on the GPU.
+        """
         self.config = config
         self._ppo_enabled = ppo
         self.precision = precision or (BF16_PRECISION if ppo else OFFICIAL_PRECISION)
@@ -290,7 +296,7 @@ class Gr00tN1d7TrainPolicy:
             # before any trainer restore, and kept outside `self.net`, so it is never optimized,
             # checkpointed, published to rollouts or part of the backbone frozen-state digest.
             self.ppo_reference = None
-            if config.ppo_reference_kl_beta > 0:
+            if ppo_reference and config.ppo_reference_kl_beta > 0:
                 import copy
 
                 from cosmos_framework.posttrain.model.ppo import prepare_deterministic_ppo_forward

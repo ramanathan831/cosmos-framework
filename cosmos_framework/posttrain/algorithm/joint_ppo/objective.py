@@ -134,13 +134,19 @@ def make_joint_objective(
                 batch_loss = scores.zero_loss
                 batch_totals = dict(totals)
                 for index, step in enumerate(steps):
+                    # Carry every per-decision field, including an optional KL anchor, so a
+                    # batched policy is scored by the same terms as the per-decision path.
                     selected = PPODecisionScores(
-                        scores.logprobs[index : index + 1], scores.values[index : index + 1], scores.zero_loss
+                        scores.logprobs[index : index + 1],
+                        scores.values[index : index + 1],
+                        scores.zero_loss,
+                        None if scores.reference_kl is None else scores.reference_kl[index : index + 1],
+                        scores.reference_kl_beta,
                     )
                     value, metrics = terms(index, step, selected)
                     batch_loss = batch_loss + value / mean_count
                     for key, value in metrics.items():
-                        batch_totals[key] = batch_totals[key] + value
+                        batch_totals[key] = batch_totals.get(key, scores.zero_loss.detach() * 0) + value
                 return batch_loss, batch_totals
 
             loss, totals = run_rank_converged(batch_terms, "joint PPO objective terms")
@@ -152,7 +158,7 @@ def make_joint_objective(
                 value, metrics = run_rank_converged(lambda: terms(index, step, scores), "joint PPO objective terms")
                 loss = loss + value / mean_count
                 for key, value in metrics.items():
-                    totals[key] = totals[key] + value
+                    totals[key] = totals.get(key, torch.zeros((), device=device)) + value
         return loss, {
             **{
                 f"ppo_{key.removeprefix('train/')}": value

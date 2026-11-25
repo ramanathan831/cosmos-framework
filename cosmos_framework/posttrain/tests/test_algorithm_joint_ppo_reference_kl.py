@@ -157,3 +157,79 @@ def test_trainer_window_reports_reference_kl_only_for_anchored_models():
             moved = learner.train_batch(receipt["batch_id"])
             assert moved["optimizer_metrics"][0]["reference_kl"] > 0
             learner.clear_batch(receipt["batch_id"])
+
+
+def test_batched_scoring_keeps_the_reference_kl_anchor():
+    """A BatchedDecisionPPOPolicy's per-decision KL and beta reach the loss like the per-decision path."""
+    from cosmos_framework.posttrain.tests.helpers.batched_joint_ppo import BatchedFixedEpisodePolicy
+
+    class BatchedAnchored(BatchedFixedEpisodePolicy):
+        def __init__(self, beta):
+            super().__init__()
+            self.beta = beta
+            self.ppo_reference = object()
+
+        def score_ppo_decisions(self, steps):
+            scores = super().score_ppo_decisions(steps)
+            kl = sum(((p - q) ** 2).sum() for p, q in zip(self.net.parameters(), self.initial, strict=True))
+            # One (here identical) KL per scored decision, [B], as the protocol declares.
+            return replace(scores, reference_kl=kl.expand(len(steps)), reference_kl_beta=self.beta)
+
+    recipe = batch_recipe()
+    plain = FixedEpisodePolicy()
+    learner = JointPPOTrainer(plain, recipe)
+    receipt = learner.prepare_ppo_targets(collect_fixed(plain, recipe))
+    samples = list(learner._ppo_cache.select(receipt["batch_id"], learner._ppo_cache.episode_ids(receipt["batch_id"])))
+    valid = [s for s in samples if s.transitions[0].algo_extra[TARGET_KEY].loss_mask][: recipe.microbatch]
+    assert len(valid) == recipe.microbatch  # fills the batch: no padding template needed
+    objective = _objective(recipe)
+
+    per_decision = _AnchoredPolicy(beta=0.5)
+    per_decision.net.load_state_dict(plain.net.state_dict())
+    per_decision.initial = [p.detach().clone() for p in per_decision.net.parameters()]
+    with torch.no_grad():
+        for parameter in per_decision.net.parameters():
+            parameter.add_(0.1)
+    batched = BatchedAnchored(beta=0.5)
+    batched.net.load_state_dict(per_decision.net.state_dict())
+    batched.initial = per_decision.initial
+    expected_loss, expected_metrics = objective(per_decision, valid)
+    loss, metrics = objective(batched, valid)
+    assert batched.scored_batches  # the batched path ran
+    assert float(metrics["ppo_reference_kl"]) > 0
+    assert float(metrics["ppo_reference_kl"]) == pytest.approx(float(expected_metrics["ppo_reference_kl"]), rel=1e-5)
+    torch.testing.assert_close(loss, expected_loss, rtol=1e-5, atol=1e-6)
+    learner.clear_batch(receipt["batch_id"])
+
+
+@pytest.mark.parametrize("ppo_reference", [True, False])
+def test_frozen_reference_is_built_only_where_the_loss_is_computed(monkeypatch, tmp_path, ppo_reference):
+    """The learner builds the KL anchor; rollout rebuilds (ppo_reference=False) hold no second head."""
+    from cosmos_framework.posttrain.configs.gr00t_n1d7_libero_ppo import make_model_config
+    from cosmos_framework.posttrain.model.gr00t import policy as policy_module
+    from cosmos_framework.posttrain.model.gr00t import source as source_module
+
+    class Gr00t(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.action_head = _head()
+            self.backbone = nn.Identity()
+
+    monkeypatch.setenv("GR00T_DIT_SDPA_MODE", "math")
+    monkeypatch.setattr(
+        source_module, "load_ppo_source", lambda config, load, publish=None: ((Gr00t(), object()), {"source": "x"})
+    )
+    monkeypatch.setattr(policy_module, "parallelize", lambda *args, **kwargs: None)
+    monkeypatch.setattr(policy_module, "gr00t_shard_plan", lambda precision: None)
+    monkeypatch.setattr("cosmos_framework.posttrain.model.ppo.prepare_deterministic_ppo_update", lambda net: None)
+    monkeypatch.setattr(
+        "cosmos_framework.posttrain.model.ppo.prepare_deterministic_ppo_forward", lambda net, **kwargs: None
+    )
+    config = replace(make_model_config("checkpoint"), ppo_reference_kl_beta=0.1)
+    policy = policy_module.Gr00tN1d7TrainPolicy(
+        config, device="cpu", save_cfg_dir=tmp_path, ppo=True, ppo_reference=ppo_reference
+    )
+    assert (policy.ppo_reference is not None) is ppo_reference
+    if ppo_reference:
+        assert policy.ppo_reference.action_head is not policy.gr00t.action_head
+        assert not any(p.requires_grad for p in policy.ppo_reference.parameters())

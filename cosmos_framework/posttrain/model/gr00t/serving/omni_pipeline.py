@@ -118,7 +118,10 @@ class Gr00tN1d7RLPipeline(Gr00tN1d7Pipeline):
             config = replace(config, checkpoint_path=self.model_path, revision="")
             directory = Path(od_config.model_config["ppo_save_cfg_dir"])
             directory.mkdir(parents=True, exist_ok=True)
-            self.ppo_model = Gr00tN1d7TrainPolicy(config, device="cuda", save_cfg_dir=directory, ppo=True)
+            # Rollout samples actions only; the frozen KL reference belongs to the learner's loss.
+            self.ppo_model = Gr00tN1d7TrainPolicy(
+                config, device="cuda", save_cfg_dir=directory, ppo=True, ppo_reference=False
+            )
             self.policy = Gr00tObservationProcessor(
                 self.ppo_model.processor, config.embodiment_tag, self.ppo_model.gr00t
             )
