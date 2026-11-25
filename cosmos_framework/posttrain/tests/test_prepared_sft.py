@@ -141,21 +141,40 @@ def test_prepared_path_typed_and_default_preserved():
         SFTConfig(prepared_corpus=True)
 
 
-@pytest.mark.parametrize("change", ["media", "payload"])
-def test_same_size_changes_rejected_when_filesystem_stamps_are_coarse(corpus, monkeypatch, change):
+def test_same_size_payload_change_rejected_when_filesystem_stamps_are_coarse(corpus, monkeypatch):
     from cosmos_framework.posttrain.data.packer import prepared_sft
 
-    packer, data, root, media = corpus
+    packer, data, root, _ = corpus
     monkeypatch.setattr(prepared_sft, "stamp", lambda path: (1, 2, 3, 4, 5))
     bound = PreparedSFTCorpus(packer, root, [data])
     target = target_from_row(data[0])
     bound.process(target)
-    path = media if change == "media" else root / f"{target_key(target)}.pt"
+    path = root / f"{target_key(target)}.pt"
     value = bytearray(path.read_bytes())
     value[-1] ^= 1
     path.write_bytes(value)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="digest mismatch"):
         bound.process(target)
+
+
+def test_sample_access_reads_the_entry_once_and_never_rehashes_media(corpus, monkeypatch):
+    """Media are hashed once at attach; each access reads its entry once and loads those bytes."""
+    from pathlib import Path
+
+    from cosmos_framework.posttrain.data.packer import prepared_sft
+
+    packer, data, root, _ = corpus
+    bound = PreparedSFTCorpus(packer, root, [data])
+    target = target_from_row(data[0])
+    reads = []
+    real_read, real_load = Path.read_bytes, torch.load
+    monkeypatch.setattr(prepared_sft, "sha256_file", lambda *args: pytest.fail("per-access file re-hash"))
+    monkeypatch.setattr(Path, "read_bytes", lambda self: reads.append(self) or real_read(self))
+    monkeypatch.setattr(torch, "load", lambda source, **kwargs: (reads.append(source), real_load(source, **kwargs))[1])
+    expected = packer.sft_process_sample(target)
+    sample = bound.process(target)
+    assert sample.input_ids == expected.input_ids
+    assert [type(item) for item in reads] == [type(root), prepared_sft.io.BytesIO]  # one read, one in-memory load
 
 
 @pytest.mark.parametrize("workers", [1, 4])

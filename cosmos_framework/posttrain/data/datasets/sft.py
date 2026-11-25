@@ -50,6 +50,12 @@ def sha256_file(path: str) -> str:
     return digest.hexdigest()
 
 
+def stamp(path: str | Path) -> tuple[int, ...]:
+    """Cheap change detector for one file (device, inode, size, mtime, ctime); not a content identity."""
+    stat = Path(path).stat()
+    return stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns
+
+
 def normalize_row(row: Any, media_root: Path | None, *, label: str) -> dict[str, Any]:
     """Validate message structure and resolve media without decoding it or changing the source."""
     if not isinstance(row, dict) or not isinstance(row.get("messages"), list) or not row["messages"]:
@@ -195,11 +201,6 @@ class JSONLSFTDataset:
         if not self.rows:
             raise ValueError(f"{source}: no SFT conversations")
         if pending_media:
-
-            def stamp(name: str) -> tuple[int, ...]:
-                stat = Path(name).stat()
-                return stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns
-
             before = {name: stamp(name) for name in pending_media}
 
             def read(name: str) -> str:

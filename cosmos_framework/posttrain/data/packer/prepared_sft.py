@@ -22,7 +22,7 @@ from typing import Any
 import numpy as np
 import torch
 
-from cosmos_framework.posttrain.data.datasets.sft import sha256_file
+from cosmos_framework.posttrain.data.datasets.sft import sha256_file, stamp
 from cosmos_framework.posttrain.data.packer.sft import SFTPolicyInput
 from cosmos_framework.posttrain.schema import SFTTarget
 from cosmos_framework.posttrain.utils.identity import canonical_json_sha256
@@ -36,11 +36,6 @@ def target_key(target: SFTTarget) -> str:
 
 def target_from_row(row: dict[str, Any]) -> SFTTarget:
     return SFTTarget(**{k: row[k] for k in ("messages", "tools", "supervise", "opener") if k in row})
-
-
-def stamp(path: Path) -> tuple[int, ...]:
-    stat = path.stat()
-    return stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns
 
 
 def _settings(packer: Any) -> str:
@@ -201,11 +196,9 @@ class PreparedSFTCorpus:
             for part in content if isinstance(content, list) else ():
                 if isinstance(part, dict) and part.get("type") in ("image", "video"):
                     name = part[part["type"]]
-                    if (
-                        name not in self.media_stamps
-                        or stamp(Path(name)) != self.media_stamps[name]
-                        or sha256_file(name) != self.manifest["media"][name]
-                    ):
+                    # Source media bytes were fully hashed once at attach. The sample comes from
+                    # the prepared entry, not the media, so a per-access re-hash adds only I/O.
+                    if name not in self.media_stamps or stamp(Path(name)) != self.media_stamps[name]:
                         raise ValueError("prepared SFT media changed or was not bound")
         key = target_key(target)
         entry = self.manifest["entries"].get(key)
@@ -214,12 +207,13 @@ class PreparedSFTCorpus:
         path = self.root / f"{key}.pt"
         if stamp(path) != self.entry_stamps[key]:
             raise ValueError("prepared SFT entry changed")
-        # Container/remote filesystems can retain the same stat timestamps for
-        # same-size rewrites. A stat-only fast path cannot establish immutability.
-        if sha256_file(str(path)) != entry["sha256"] or stamp(path) != self.entry_stamps[key]:
+        # Read the entry once, verify THOSE bytes (stat timestamps cannot exclude a same-size
+        # rewrite on coarse filesystems), and deserialize the verified bytes. Loading from a
+        # private buffer also keeps consumers from mutating future hits.
+        value = path.read_bytes()
+        if hashlib.sha256(value).hexdigest() != entry["sha256"] or stamp(path) != self.entry_stamps[key]:
             raise ValueError("prepared SFT entry digest mismatch")
-        # Each load has private mmap storage. Consumers cannot mutate future hits.
-        sample = SFTPolicyInput(**torch.load(path, map_location="cpu", weights_only=True, mmap=True))
+        sample = SFTPolicyInput(**torch.load(io.BytesIO(value), map_location="cpu", weights_only=True))
         if len(sample.input_ids) != entry["sequence_length"] or len(sample.labels) != len(sample.input_ids):
             raise ValueError("prepared SFT sample shape mismatch")
         self.hits += 1
