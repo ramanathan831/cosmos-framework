@@ -168,6 +168,7 @@ class WindowSimulatorSpec:
     embodiment: str
     python: str
     options: dict[str, Any]
+    pythonpath: str | None = None
 
 
 class WindowEnvironment(Protocol):

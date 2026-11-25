@@ -380,6 +380,17 @@ def resolve_all(x: Any) -> list:
         for coordinate, value in as_completed():
             if isinstance(value, Exception):
                 failures.append((coordinate, value))
+                # A failed rank can strand peers in an in-flight collective. Keep
+                # the drain barrier, but do not hide its already-known cause until
+                # those peers settle (or the allocation is externally terminated).
+                from cosmos_framework.posttrain.utils.log import logger
+
+                logger.error(
+                    "mesh cell %s failed while draining remaining cells: %s: %s",
+                    coordinate,
+                    type(value).__name__,
+                    value,
+                )
             else:
                 values[coordinate] = value
         if failures:

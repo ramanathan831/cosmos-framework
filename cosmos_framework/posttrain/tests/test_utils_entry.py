@@ -15,6 +15,33 @@ import pytest
 from cosmos_framework.posttrain.utils.entry import pin_run_attempt
 
 
+@pytest.mark.L0
+@pytest.mark.CPU
+def test_resolve_all_reports_failure_before_draining_lagging_cells(monkeypatch: pytest.MonkeyPatch) -> None:
+    from cosmos_framework.posttrain.utils.entry import resolve_all
+    from cosmos_framework.posttrain.utils.log import logger
+
+    reported: list[str] = []
+    settled: list[int] = []
+    error = RuntimeError("CUDA out of memory in backward")
+    monkeypatch.setattr(logger, "error", lambda message, *args: reported.append(message % args))
+
+    class Result:
+        def as_completed(self):
+            yield (0, 0), error
+            # A failed rank may strand its peers inside a collective. Surface its
+            # cause now, while still draining every submitted mutation as before.
+            assert len(reported) == 1 and "CUDA out of memory" in reported[0]
+            assert "(0, 0)" in reported[0]
+            settled.append(1)
+            yield (1, 0), "late result"
+
+    with pytest.raises(RuntimeError, match="mesh operation failed on 1 cell") as caught:
+        resolve_all(Result())
+    assert caught.value.__cause__ is error
+    assert settled == [1]
+
+
 def _pin_run_attempt_asymmetry_worker(
     rank: int,
     world_size: int,

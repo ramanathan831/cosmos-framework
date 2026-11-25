@@ -43,6 +43,7 @@ class LiberoEnvironment:
             name="libero",
             embodiment="libero_sim",
             python=self.config.sim_python,
+            pythonpath=self.config.sim_pythonpath,
             options={
                 **self.config.simulator_options,
                 "seed": seed if self.config.suite == "libero_10" else 0,

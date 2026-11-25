@@ -157,8 +157,20 @@ def load_weights(
                 target = model_sd[key]
                 is_dtensor = hasattr(target, "to_local")
                 local_view = target.to_local() if is_dtensor else target
-                full = f.get_tensor(ckpt_key).to(local_view.dtype)
-                shard = _local_shard(full, target)
+                full = f.get_tensor(ckpt_key)
+                if (
+                    not is_dtensor
+                    and local_view.device.type == "cuda"
+                    and local_view.dtype == torch.float32
+                    and full.dtype in (torch.bfloat16, torch.float16)
+                ):
+                    # Exact widening on CUDA avoids an expensive CPU conversion
+                    # of memory-mapped checkpoint pages and halves transfer bytes.
+                    # Keep sharding and other conversion contracts unchanged.
+                    shard = full.contiguous().to(local_view.device)
+                else:
+                    full = full.to(local_view.dtype)
+                    shard = _local_shard(full, target)
                 if shard.device != local_view.device:
                     shard = shard.to(local_view.device)
                 if shard.shape != local_view.shape:

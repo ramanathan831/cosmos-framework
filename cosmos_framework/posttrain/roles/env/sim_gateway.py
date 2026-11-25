@@ -145,6 +145,7 @@ class SimGatewayBody:
         force_render: bool = True,
         render_every: int = 1,
         sim_python: str | None = None,
+        sim_pythonpath: str | None = None,
         sim_gpu: str | None = None,
         sim_ld_library_path: str | None = None,
         sim_ipc_dir: str | None = None,
@@ -174,6 +175,7 @@ class SimGatewayBody:
         # asserts it is executable (:357), and the launcher already consumes it. B1K_SIM_PYTHON
         # was invented here and set nowhere -- `git grep` finds this line and nothing else.
         self._sim_python = sim_python or os.environ.get("SIM_PY", "")
+        self._sim_pythonpath = sim_pythonpath
         # No SIM_GPUS default: that name holds the pod's whole device LIST, where this needs
         # ONE CELL's single device. Reading it would hand every cell on the pod the same list.
         self._sim_gpu = sim_gpu
@@ -333,6 +335,11 @@ class SimGatewayBody:
         to come from a separate ``ray start`` invocation has to be re-established here.
         """
         env = dict(os.environ)
+        # The model and simulator may need incompatible installed packages. An
+        # explicit simulator path replaces the model path, preserving the legacy
+        # inherited behavior when unspecified. Never mutate the parent process.
+        if self._sim_pythonpath is not None:
+            env["PYTHONPATH"] = self._sim_pythonpath
         if self._sim_gpu is not None:
             env["CUDA_VISIBLE_DEVICES"] = self._sim_gpu
         if self._sim_ld:
