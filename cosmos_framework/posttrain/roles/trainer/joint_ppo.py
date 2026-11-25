@@ -444,7 +444,12 @@ class JointPPOTrainer(PPOTrainableRole):
                 key: max(pre_update_allocator[key], getattr(self, "_allocator_lifetime_peaks", {}).get(key, 0))
                 for key in ("allocated_bytes.all.peak", "reserved_bytes.all.peak")
             }
-        with self._parameter_state(clone=True) as before:
+        # The pre-update snapshot only proves both groups changed and reports their update norms.
+        # The default path keeps the historical device clone. The opt-in FP32-master path already
+        # holds masters and moments next to the model, and a device clone spanning forward/backward
+        # OOMed there, so it stages the snapshot in pinned host memory asynchronously instead.
+        host = bool(getattr(self.opt, "cosmos_local_master_optimizer", False))
+        with self._parameter_state(clone=True, host=host) as before:
             result = run_ppo_batch_update(
                 role="policy",
                 batch_id=batch_id,
@@ -462,8 +467,9 @@ class JointPPOTrainer(PPOTrainableRole):
                 changes = torch.zeros(2, device=next(self.model.net.parameters()).device, dtype=torch.float64)
                 for name in before:
                     group = int(name in self.model.ppo_parameters.value)
-                    # The snapshot is host-resident; bring one tensor back at a time.
-                    previous = before[name].to(after[name].device, non_blocking=False)
+                    # A host snapshot comes back one tensor at a time (pinned, stream-ordered, no
+                    # host sync); the reduction stays on device until the single decision below.
+                    previous = before[name].to(after[name].device, non_blocking=True)
                     changes[group] += (after[name].float() - previous.float()).square().double().sum()
                     del previous
                 if dist.is_initialized():
@@ -486,15 +492,15 @@ class JointPPOTrainer(PPOTrainableRole):
                 }
 
     @contextmanager
-    def _parameter_state(self, *, clone: bool = False) -> Iterator[dict[str, torch.Tensor]]:
+    def _parameter_state(self, *, clone: bool = False, host: bool = False) -> Iterator[dict[str, torch.Tensor]]:
         """Read public local shards at an update boundary, never forward-time FSDP parameters.
 
-        Only a cloned pre-update state may span later forwards. That clone is a
-        diagnostic (it proves both groups changed), so it lives in host memory: keeping
-        a full copy of every local shard on the device through forward/backward costs
-        the same order of memory as the optimizer moments themselves. Both raw
-        state-dict bindings and detached views are released on exit, even with a
-        retained traceback.
+        Only a cloned pre-update state may span later forwards. ``host=True`` stages that
+        clone in pinned host memory with stream-ordered asynchronous copies, for runs whose
+        device cannot also hold a full copy of every local shard through forward/backward;
+        the copy is enqueued before any later kernel that changes the parameters, so it needs
+        no host synchronization. Both raw state-dict bindings and detached views are released
+        on exit, even with a retained traceback.
         Failed readers release completed traceback locals while retaining the exception chain.
         """
         from traceback import clear_frames
@@ -509,7 +515,16 @@ class JointPPOTrainer(PPOTrainableRole):
             state = get_model_state_dict(self.model.net)
             for name, value in state.items():
                 value = (value.to_local() if isinstance(value, DTensor) else value).detach()
-                local[name] = value.to("cpu", copy=True) if clone else value
+                if not clone:
+                    local[name] = value
+                elif host and value.is_cuda:
+                    staged = torch.empty(value.shape, dtype=value.dtype, device="cpu", pin_memory=True)
+                    local[name] = staged.copy_(value, non_blocking=True)
+                    staged = None
+                elif host:
+                    local[name] = value.to("cpu", copy=True)
+                else:
+                    local[name] = value.clone()
             # The cloned branch must not carry borrowed bindings through the update.
             value = None
             state.clear()

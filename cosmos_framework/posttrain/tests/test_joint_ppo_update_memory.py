@@ -57,10 +57,11 @@ def test_fp32_alias_gradient_is_not_released_by_master_step():
 
 @pytest.mark.L0
 @pytest.mark.CPU
-def test_pre_update_snapshot_is_host_resident_independent_copy():
+@pytest.mark.parametrize("host", [False, True])
+def test_pre_update_snapshot_is_an_independent_copy(host):
     net = _bf16_net()
     owner = SimpleNamespace(model=SimpleNamespace(net=net))
-    with JointPPOTrainer._parameter_state(owner, clone=True) as before:
+    with JointPPOTrainer._parameter_state(owner, clone=True, host=host) as before:
         assert before and all(value.device.type == "cpu" for value in before.values())
         live = {p.data_ptr() for p in net.parameters()}
         assert not live & {value.data_ptr() for value in before.values()}
@@ -103,12 +104,21 @@ def test_pre_update_snapshot_occupies_no_device_memory_during_the_update():
     parameter_bytes = sum(p.numel() * p.element_size() for p in net.parameters())
     torch.cuda.synchronize(device)
     baseline = torch.cuda.memory_allocated(device)
-    with JointPPOTrainer._parameter_state(owner, clone=True) as before:
-        torch.cuda.synchronize(device)
-        held = torch.cuda.memory_allocated(device) - baseline
-        assert all(value.device.type == "cpu" for value in before.values())
+    original = [p.detach().clone() for p in net.parameters()]
+    with JointPPOTrainer._parameter_state(owner, clone=True, host=True) as before:
+        held = torch.cuda.memory_allocated(device) - baseline - parameter_bytes  # minus `original`
+        assert all(value.device.type == "cpu" and value.is_pinned() for value in before.values())
+        # The asynchronous copies are stream-ordered before later in-place updates.
+        with torch.no_grad():
+            for parameter in net.parameters():
+                parameter.add_(1)
+        restored = [value.to(device, non_blocking=True) for value in before.values()]
+        assert all(torch.equal(a, b) for a, b in zip(restored, original))
     # Before the fix `held` equalled every local shard (the clone was device-resident).
     assert held < parameter_bytes // 4
+    # The default (non-master) path keeps the historical device-resident clone.
+    with JointPPOTrainer._parameter_state(owner, clone=True) as before:
+        assert all(value.is_cuda for value in before.values())
 
 
 @pytest.mark.L0
