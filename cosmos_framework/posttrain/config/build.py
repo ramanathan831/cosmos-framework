@@ -530,6 +530,28 @@ def _group_by_decay_and_lr(net: Any, params: list, opt_cfg: OptimizerConfig) -> 
 def build_optimizer(
     model: Any, opt_cfg: OptimizerConfig, *, parameter_groups: tuple[OptimizerParameterGroup, ...] | None = None
 ) -> Any:
+    """Build on final model parameters; converge local-master failures before later collectives."""
+    if opt_cfg.update_policy != "fp32_master":
+        return _build_optimizer_local(model, opt_cfg, parameter_groups=parameter_groups)
+    from traceback import clear_frames
+
+    from cosmos_framework.posttrain.utils.dist import run_rank_converged
+
+    try:
+        return run_rank_converged(
+            lambda: _build_optimizer_local(model, opt_cfg, parameter_groups=parameter_groups),
+            "native master optimizer construction",
+        )
+    except BaseException as error:
+        # A successful peer may have allocated masters before another rank
+        # rejected its groups. Retaining the converged error must release them.
+        clear_frames(error.__traceback__)
+        raise
+
+
+def _build_optimizer_local(
+    model: Any, opt_cfg: OptimizerConfig, *, parameter_groups: tuple[OptimizerParameterGroup, ...] | None = None
+) -> Any:
     """RL owns the optimizer: freeze everything except params whose name contains a
     `train_keys` substring, then the optimizer `opt_cfg.name` selects (`OPTIMIZER_NAMES`) over the
     trainable subset. `train_keys=[]` ⇒ train all `requires_grad` params. Operates on `model.net` (native policy) or the module itself (hf).
@@ -545,11 +567,11 @@ def build_optimizer(
     # An explicit partition is complete by construction; the train-key and decay-group paths
     # below see already-populated groups (and validated-empty knobs) and leave them alone.
     params: list = [] if parameter_groups is None else _explicit_parameter_groups(net, opt_cfg, parameter_groups)
-    # The opt-in eight-bit backend accepts only live trainables, so a key-matched parameter that
-    # is already frozen stays out of its groups. Every other optimizer keeps the historical
-    # membership (matched parameters join even when frozen), so group sizes and the resume layout
-    # of existing checkpoints are unchanged.
-    trainables_only = opt_cfg.name in QUANTIZED_OPTIMIZER_NAMES
+    # The opt-in eight-bit and fp32_master owners accept only live trainables, so a key-matched
+    # parameter that is already frozen stays out of their groups. Every other optimizer keeps the
+    # historical membership (matched parameters join even when frozen), so group sizes and the
+    # resume layout of existing checkpoints are unchanged.
+    trainables_only = opt_cfg.name in QUANTIZED_OPTIMIZER_NAMES or opt_cfg.update_policy == "fp32_master"
     if opt_cfg.train_keys:
         keys = tuple(opt_cfg.train_keys)
         for name, p in net.named_parameters():
@@ -594,6 +616,10 @@ def build_optimizer(
             },
         ]
     name = getattr(opt_cfg, "name", "adamw")
+    if opt_cfg.update_policy == "fp32_master":
+        from cosmos_framework.utils.optimizer_master import MasterWeightOptimizer
+
+        return MasterWeightOptimizer(net, params, opt_cfg)
     if name in QUANTIZED_OPTIMIZER_NAMES:
         from cosmos_framework.utils.quantized_optimizer import build_quantized_optimizer
 
@@ -680,37 +706,51 @@ def refuse_rounding_or_unavailable_optimizer(config: Any, opt_cfg: OptimizerConf
     keeps fp32 master weights and moments inside the optimizer but imports apex only when the trainer
     builds it, so a runtime without apex is refused here, before any model is built.
 
-    The opt-in eight-bit names update ordinary FP32 trainables on a single device and write the
-    consolidated transaction. This check is pure: it reads the installed package metadata but never
-    imports bitsandbytes or touches CUDA.
+    The opt-in eight-bit names and ``update_policy="fp32_master"`` are checked per policy: ``parameter``
+    keeps the single-device FP32-storage consolidated path; ``fp32_master`` owns FP32 masters (so BF16
+    storage is fine) over one-dimensional FSDP2 with either checkpoint format. This check is pure: it
+    reads the installed package metadata but never imports bitsandbytes or touches CUDA.
     """
     import importlib.util
 
     quantized = opt_cfg.name in QUANTIZED_OPTIMIZER_NAMES
+    master = getattr(opt_cfg, "update_policy", "parameter") == "fp32_master"
     if quantized:
         # Package presence/version only: no bitsandbytes import and no CUDA work. The CUDA
         # kernel/allocation probe runs once where the run starts (`preflight_quantized_optimizer`).
         from cosmos_framework.utils.quantized_optimizer import require_installed
 
         require_installed()
-    if quantized and getattr(config.rl, "colocated_offload", False):
-        raise ValueError(f"{opt_cfg.name} does not support optimizer offload")
-    if quantized:
-        # The backend updates ordinary single-device FP32 trainables and writes the consolidated
-        # transaction.
+    if (quantized or master) and getattr(config.rl, "colocated_offload", False):
+        raise ValueError(
+            f"{opt_cfg.name} with update_policy={opt_cfg.update_policy} does not support optimizer offload"
+        )
+    if quantized and not master:
+        # The default `parameter` policy updates ordinary single-device FP32 trainables and writes
+        # the consolidated transaction. `fp32_master` owns local masters and its own rank-local
+        # checkpoint schema, so it takes FSDP2 shards, BF16 storage and either checkpoint format.
         if int(os.environ.get("WORLD_SIZE", "1")) != 1:
-            raise ValueError("bitsandbytes optimizers require a single CUDA device")
+            raise ValueError(
+                "bitsandbytes optimizers with update_policy=parameter require a single CUDA device; "
+                "use update_policy=fp32_master for FSDP2"
+            )
         if config.rl.checkpoint_format != "consolidated":
-            raise ValueError("bitsandbytes optimizers require consolidated checkpoints")
+            raise ValueError("bitsandbytes optimizers with update_policy=parameter require consolidated checkpoints")
     selection = select_policy_backend(config)
-    if quantized:
+    if quantized or master:
         parallelism = (
             getattr(config.model_hf, "parallelism", None)
             if selection.backend == "hf"
             else getattr(selection.native_spec, "parallelism", None)
         )
-        if parallelism is not None and (parallelism.dp_replicate not in (1, -1) or parallelism.dp_shard not in (1, -1)):
-            raise ValueError("bitsandbytes optimizers require single-device parallelism")
+        if parallelism is not None:
+            if master and _effective_dp_replicate(parallelism) != 1:
+                raise ValueError("update_policy=fp32_master supports one-dimensional FSDP2 only; HSDP is unsupported")
+            if not master and (parallelism.dp_replicate not in (1, -1) or parallelism.dp_shard not in (1, -1)):
+                raise ValueError(
+                    "bitsandbytes optimizers with update_policy=parameter require single-device parallelism; "
+                    "use update_policy=fp32_master for FSDP2"
+                )
     if selection.backend == "hf":
         storage = str(resolve_precision(config).master)
         seat = "the HF seat (rl.master_dtype, else rl.param_dtype, else model_hf.dtype)"
@@ -720,8 +760,14 @@ def refuse_rounding_or_unavailable_optimizer(config: Any, opt_cfg: OptimizerConf
     else:
         return
     name = getattr(opt_cfg, "name", "adamw")
+    if master:
+        # The optimizer owns an FP32 master per local shard, so BF16 storage does not round updates away.
+        return
     if quantized and storage != "float32":
-        raise ValueError(f"{name} requires FP32 trainable storage on {seat}; bitsandbytes has no FP32 master weights")
+        raise ValueError(
+            f"{name} requires FP32 trainable storage on {seat}; bitsandbytes has no FP32 master weights "
+            "(use update_policy=fp32_master for BF16 storage)"
+        )
     if name == "adamw" and storage != "float32":
         raise ValueError(
             f"OptimizerConfig(name='adamw') with parameter storage in {storage} on {seat} keeps its moments and "
@@ -736,7 +782,24 @@ def refuse_rounding_or_unavailable_optimizer(config: Any, opt_cfg: OptimizerConf
         )
 
 
-def preflight_quantized_optimizer(opt_cfg: Any, context: str) -> None:
+def _effective_dp_replicate(parallelism: Any) -> int | None:
+    """The replicate degree the mesh will use, or None when it cannot be 1 for certain.
+
+    ``dp_replicate=-1`` is inferred later as ``ranks // dp_shard``. Under torchrun ``WORLD_SIZE`` is
+    known, so resolve exactly; otherwise only ``dp_shard=-1`` (all ranks sharded) is certainly 1.
+    """
+    replicate, shard = parallelism.dp_replicate, parallelism.dp_shard
+    world = os.environ.get("WORLD_SIZE", "")
+    if world.isdigit() and int(world) >= 1:
+        return _resolve_data_parallelism(
+            replicate, shard, int(world), field_name="parallelism", ranks_field_name="WORLD_SIZE"
+        )[0]
+    if replicate == 1 or (replicate == -1 and shard == -1):
+        return 1
+    return None
+
+
+def preflight_quantized_optimizer(opt_cfg: Any, context: str, *, require_fp32_master: bool = False) -> None:
     """Probe the bitsandbytes CUDA kernels once on every rank before the model is allocated.
 
     No-op for other optimizers. Config validation stays GPU-free (it checks the installed
@@ -745,6 +808,8 @@ def preflight_quantized_optimizer(opt_cfg: Any, context: str) -> None:
     """
     if opt_cfg.name not in QUANTIZED_OPTIMIZER_NAMES:
         return
+    if require_fp32_master and opt_cfg.update_policy != "fp32_master":
+        raise ValueError(f"{context}: quantized optimizers require optimizer.update_policy=fp32_master")
     from cosmos_framework.posttrain.utils.dist import run_rank_converged
     from cosmos_framework.utils.quantized_optimizer import require_backend
 
