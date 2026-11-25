@@ -1,0 +1,389 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+"""Ordinary CUDA FP32 parameters with pinned, optionally paged eight-bit moments.
+
+Imported only by the selected factory branch. Quantization mathematics is upstream.
+No DTensor views, implicit parameter conversion, or global override registration.
+
+Under ``update_policy="fp32_master"`` the backend sees each rank's local FSDP2 shard.
+Eligibility for eight-bit moments (``bnb_min_8bit_size``) is decided from the logical
+parameter, so it is the same on every rank and at every world size. The blockwise
+quantization boundaries (256-element blocks and their scales), however, are laid over
+each LOCAL shard: exact eight-bit numerics are not world-size invariant. That matches
+the same-topology exact-resume rule; changing the world size is a weights-only restart.
+"""
+
+from __future__ import annotations
+
+import importlib.metadata
+import logging
+import math
+from collections import defaultdict
+from copy import deepcopy
+from functools import cache
+from types import MethodType, SimpleNamespace
+
+import torch
+
+from cosmos_framework.utils.quantized_optimizer_names import QUANTIZED_OPTIMIZER_NAMES as NAMES
+
+VERSION = "0.49.2"
+
+
+def _owned_state_buffer(optimizer, parameter, dtype=torch.float32):
+    """Upstream managed layout, with a deleter owned by the exported buffer.
+
+    bnb 0.49.2 functional.get_paged creates a numpy view of cudaMallocManaged
+    memory without a free callback. The ndarray here owns that callback; PyTorch
+    frombuffer retains it until the LAST storage alias dies, including detach().
+    """
+    if not optimizer.is_paged or parameter.numel() < 100000:
+        return torch.zeros_like(parameter, dtype=dtype, device=parameter.device)
+    import ctypes
+    import weakref
+
+    import numpy as np
+    from bitsandbytes import functional as functional
+    from bitsandbytes.cextension import lib
+
+    free = lib._lib.cudaFree  # pinned native ABI; fail rather than leak on missing symbol
+    free.argtypes = [ctypes.c_void_p]
+    free.restype = ctypes.c_int
+    device = parameter.device
+    size = parameter.numel() * dtype.itemsize
+    with torch.cuda.device(device):
+        pointer = lib.cget_managed_ptr(ctypes.c_size_t(size))
+    if not pointer:
+        raise MemoryError("bitsandbytes managed allocation returned null")
+    array = np.ctypeslib.as_array(ctypes.cast(pointer, ctypes.POINTER(ctypes.c_uint8)), shape=(size,))
+
+    def release():
+        with torch.cuda.device(device):
+            error = free(ctypes.c_void_p(pointer))
+        if error:
+            import warnings
+
+            warnings.warn(f"cudaFree of managed optimizer state failed: {error}", ResourceWarning)
+
+    owner = weakref.finalize(array, release)
+    owner.atexit = False  # CUDA context teardown owns process-exit cleanup
+    buffer = torch.frombuffer(array, dtype=dtype, count=parameter.numel()).view(parameter.shape)
+    buffer.is_paged = True
+    buffer.page_deviceid = parameter.device.index
+    buffer._cosmos_managed_owner = weakref.ref(array)
+    functional.fill(buffer, 0)
+    optimizer.page_mng.paged_tensors.append(buffer)
+    return buffer
+
+
+def require_installed():
+    """Pure preflight: the pinned bitsandbytes distribution is installed. No import, no CUDA."""
+    try:
+        version = importlib.metadata.version("bitsandbytes")
+    except importlib.metadata.PackageNotFoundError as exc:
+        raise ImportError("Install cosmos-framework[quantized-optimizers] for bitsandbytes optimizers") from exc
+    if version != VERSION:
+        raise RuntimeError(f"bitsandbytes=={VERSION} required; found {version}")
+
+
+# (CUDA device index, paged) pairs whose kernel/allocation probe already passed in this process.
+_PROBED: set[tuple[int, bool]] = set()
+
+
+def require_backend(*, paged=False):
+    """Import bitsandbytes and probe its CUDA kernels on the current device, once per process."""
+    require_installed()
+    if not torch.cuda.is_available():
+        raise ValueError("bitsandbytes optimizers require CUDA")
+    import bitsandbytes as bnb
+    from bitsandbytes.cextension import lib
+
+    if not getattr(lib, "compiled_with_cuda", False):
+        raise RuntimeError("bitsandbytes CUDA kernels are unavailable")
+    key = (torch.cuda.current_device(), bool(paged))
+    if key in _PROBED:
+        return bnb
+    # Exercise the selected CUDA allocation/update path before model construction.
+    # No RNG use and no model update: this scratch tensor is discarded immediately.
+    probe = torch.nn.Parameter(torch.ones(131072 if paged else 4096, device="cuda"))
+    probe.grad = torch.zeros_like(probe)
+    optimizer = bnb.optim.AdamW8bit([probe], is_paged=paged)
+    optimizer.mng = SimpleNamespace(index2config={}, module_weight_config_triple=[])
+    optimizer.page_mng = SimpleNamespace(paged_tensors=[])
+    optimizer.get_state_buffer = MethodType(_owned_state_buffer, optimizer)
+    try:
+        optimizer.step()
+        torch.cuda.synchronize()
+    except Exception as exc:
+        raise RuntimeError("bitsandbytes CUDA optimizer kernel/allocation preflight failed") from exc
+    finally:
+        del optimizer.get_state_buffer  # avoid a bound-method/self cycle retaining the probe
+    _PROBED.add(key)
+    return bnb
+
+
+def _snapshot(value):
+    if isinstance(value, torch.Tensor):
+        # Do not deepcopy paged tensors: Python attributes include managed pointers.
+        out = torch.empty(value.shape, dtype=value.dtype, device="cpu")
+        out.copy_(value.detach())
+        return out
+    if isinstance(value, dict):
+        return {k: _snapshot(v) for k, v in value.items()}
+    if isinstance(value, (tuple, list)):
+        return type(value)(_snapshot(v) for v in value)
+    return deepcopy(value)
+
+
+def named_parameter_groups(net, params, *, context):
+    """Normalize optimizer groups over the final model's trainables, shared by both owners.
+
+    Returns ``(groups, selected, names)``: each group gains ``param_names`` (the canonical
+    trainable name of every member), ``selected`` is the flat member list and ``names`` maps
+    ``id(parameter)`` to its name. Empty or duplicated (including tied-alias) members fail.
+    """
+    groups = params if params and isinstance(params[0], dict) else [{"params": params}]
+    names = {id(p): n for n, p in net.named_parameters() if p.requires_grad}
+    selected = [p for g in groups for p in g["params"]]
+    if not selected or len({id(p) for p in selected}) != len(selected):
+        raise ValueError(f"{context} requires nonempty, identity-unique trainables")
+    if any(id(p) not in names for p in selected):
+        raise ValueError(f"{context} parameter is not a trainable owned by the final model")
+    groups = [dict(g, param_names=[names[id(p)] for p in g["params"]]) for g in groups]
+    return groups, selected, names
+
+
+def build_quantized_optimizer(net, params, config, *, _local_owner=None):
+    """Build from the final trainable objects and existing stable LR/decay partition."""
+    groups, selected, names = named_parameter_groups(net, params, context="quantized optimizer")
+    for p in selected:
+        if type(p) is not torch.nn.Parameter or not p.requires_grad:
+            raise ValueError(
+                "quantized optimizer requires ordinary trainable Parameters, not DTensor/quantized weights"
+            )
+        if (
+            p.device.type != "cuda"
+            or p.dtype != torch.float32
+            or not p.is_contiguous()
+            or (not p.numel() and _local_owner is None)
+        ):
+            raise ValueError(
+                "quantized optimizer requires nonempty contiguous CUDA FP32 trainables; no implicit masters"
+            )
+    if len({p.device for p in selected}) != 1:
+        raise ValueError("quantized optimizer requires one CUDA device")
+    if _local_owner is None and torch.distributed.is_initialized() and torch.distributed.get_world_size() != 1:
+        raise ValueError("quantized optimizer distributed strategies are not supported")
+    exceptions = set(config.bnb_fp32_state_names)
+    missing = exceptions - {names[id(p)] for p in selected}
+    if missing:
+        raise ValueError(f"unmatched FP32-state parameter names (use canonical tied name): {sorted(missing)}")
+    for g in groups:
+        invalid = set(g) & {"fused", "foreach", "capturable", "amsgrad", "master_weights", "percentile_clipping"}
+        if invalid:
+            raise ValueError(f"unsupported bitsandbytes group options: {sorted(invalid)}")
+    with torch.cuda.device(selected[0].device):
+        bnb = require_backend(paged=config.name == NAMES[1])
+
+    # The class may outlive an instance (Python cycles, tracing/type caches).
+    # Keep every parameter reference on the instance, never in class closures.
+    return _optimizer_type(bnb.optim.AdamW8bit)(groups, selected, names, config, exceptions, _local_owner)
+
+
+@cache
+def _optimizer_type(base):
+    return type("CosmosAdamW8bit", (_QuantizedOptimizerMethods, base), {"__module__": __name__})
+
+
+class _QuantizedOptimizerMethods:
+    cosmos_quantized_optimizer = True
+    get_state_buffer = _owned_state_buffer
+
+    def __init__(self, groups, selected, names, config, exceptions, _local_owner):
+        self._selected = tuple(selected)
+        self._names = dict(names)
+        self._exceptions = frozenset(exceptions)
+        super().__init__(
+            groups,
+            lr=config.lr,
+            betas=tuple(config.betas),
+            eps=config.eps,
+            weight_decay=config.weight_decay,
+            min_8bit_size=config.bnb_min_8bit_size,
+            percentile_clipping=100,
+            block_wise=True,
+            is_paged=config.name == NAMES[1],
+        )
+        # Upstream stores managers globally. Own both registries per optimizer so
+        # another trial's index overrides cannot change this model's numerics.
+        self.mng = SimpleNamespace(index2config={}, module_weight_config_triple=[])
+        self.page_mng = SimpleNamespace(paged_tensors=[])
+        logical = (
+            {entry["name"]: math.prod(entry["shape"]) for entry in _local_owner["parameters"]}
+            if _local_owner is not None
+            else {}
+        )
+        for gi, group in enumerate(self.param_groups):
+            for pi, name in enumerate(group["param_names"]):
+                if name in exceptions:
+                    self.mng.index2config[(gi, pi)] = {"optim_bits": 32}
+                elif name in logical:
+                    # bitsandbytes compares ``min_8bit_size`` with the tensor it sees, i.e. the
+                    # local FSDP shard. Decide from the LOGICAL parameter instead, so every rank
+                    # and every world size gives one parameter the same moment precision.
+                    eligible = logical[name] >= config.bnb_min_8bit_size
+                    self.mng.index2config[(gi, pi)] = {"min_8bit_size": 1} if eligible else {"optim_bits": 32}
+        self.identity = {
+            "format": "cosmos_bnb_v1",
+            "backend": "bitsandbytes",
+            "version": VERSION,
+            "name": config.name,
+            "storage": "float32",
+            "topology": "single_cuda",
+            "min_8bit_size": config.bnb_min_8bit_size,
+            "warmup_steps": config.warmup_steps,
+            "fp32_state_names": sorted(exceptions),
+            "groups": [
+                {
+                    "names": g["param_names"],
+                    "shapes": [list(p.shape) for p in g["params"]],
+                    "name": g.get("name"),
+                    "initial_lr": g["lr"],
+                    "betas": tuple(g["betas"]),
+                    "eps": g["eps"],
+                    "weight_decay": g["weight_decay"],
+                }
+                for g in self.param_groups
+            ],
+        }
+        self._reported_states = -1
+        # The local-master owner rejects nonfinite gradients across all ranks before it
+        # stages them; a second full scan here would only repeat that host decision.
+        self._owner_checks_finite = _local_owner is not None
+        if _local_owner is not None:
+            self.identity["topology"] = deepcopy(_local_owner)
+            if any(entry["shape"] != entry["local_shape"] for entry in _local_owner["parameters"]):
+                # Sharded layouts decide 8-bit eligibility from logical sizes (see above). Checkpoints
+                # written before that rule may hold FP32 moments for small shards of large tensors;
+                # name the rule so such a checkpoint is refused by identity, never by a dtype error.
+                self.identity["min_8bit_size_basis"] = "logical_parameter"
+
+    @torch.no_grad()
+    def step(self, closure=None):
+        if closure is not None:
+            raise ValueError("quantized optimizer closures are unsupported")
+        # Precheck the WHOLE update, before moments or clocks can change.
+        grads = [p.grad for g in self.param_groups for p in g["params"] if p.grad is not None]
+        if any(g.is_sparse for g in grads):
+            raise ValueError("quantized optimizer does not support sparse gradients")
+        # A single host decision and no full-size boolean intermediates.
+        if (
+            grads
+            and not self._owner_checks_finite
+            and not torch.isfinite(torch.stack(torch._foreach_norm(grads, float("inf")))).all()
+        ):
+            raise FloatingPointError("nonfinite gradients: quantized update refused without mutation")
+        result = super().step()
+        count = sum(bool(s) for s in self.state.values())
+        if count != self._reported_states:
+            logging.getLogger("posttrain").info("Quantized optimizer state: %s", self.state_report())
+            self._reported_states = count
+        return result
+
+    def state_report(self):
+        report = {
+            "backend": self.identity,
+            "trainable_elements": sum(p.numel() for p in self._selected),
+            "quantized_elements": 0,
+            "fp32_elements": 0,
+            "moment_bytes": 0,
+            "metadata_bytes": 0,
+            "paged_moment_bytes": 0,
+            "uninitialized_elements": 0,
+            "exceptions": {},
+        }
+        seen = set()
+        for p in self._selected:
+            state = self.state.get(p, {})
+            if not state:
+                report["uninitialized_elements"] += p.numel()
+                continue
+            quantized = state["state1"].dtype == torch.uint8
+            report["quantized_elements" if quantized else "fp32_elements"] += p.numel()
+            if not quantized:
+                report["exceptions"][self._names[id(p)]] = (
+                    "explicit" if self._names[id(p)] in self._exceptions else "small_tensor"
+                )
+            for key, value in state.items():
+                if not isinstance(value, torch.Tensor) or value.data_ptr() in seen:
+                    continue
+                seen.add(value.data_ptr())
+                size = value.numel() * value.element_size()
+                report["moment_bytes" if key in ("state1", "state2") else "metadata_bytes"] += size
+                if key in ("state1", "state2") and getattr(value, "is_paged", False):
+                    report["paged_moment_bytes"] += size
+        return report
+
+    def state_dict(self):
+        torch.cuda.synchronize(self._selected[0].device)
+        # Bypass upstream FSDP wrapping: this format explicitly refuses sharding.
+        result = _snapshot(torch.optim.Optimizer.state_dict(self))
+        result["cosmos_quantized_optimizer"] = deepcopy(self.identity)
+        return result
+
+    def load_state_dict(self, saved):
+        if saved.get("cosmos_quantized_optimizer") != self.identity:
+            raise ValueError("quantized optimizer exact-resume identity mismatch; use an explicit weights-only restart")
+        live_groups = self.param_groups
+        if len(saved["param_groups"]) != len(live_groups):
+            raise ValueError("quantized optimizer group count mismatch")
+        # Validate mapping and schema before changing live state. Allocation is
+        # transactional: failures restore the previous state and page ownership.
+        ids = [i for g in saved["param_groups"] for i in g["params"]]
+        if len(ids) != len(self._selected) or len(set(ids)) != len(ids) or set(saved["state"]) - set(ids):
+            raise ValueError("invalid quantized optimizer parameter mapping")
+        for old, new in zip(saved["param_groups"], live_groups):
+            if old["param_names"] != new["param_names"] or len(old["params"]) != len(new["params"]):
+                raise ValueError("quantized optimizer parameter order mismatch")
+            for key in ("betas", "eps", "weight_decay"):
+                if old[key] != new[key]:
+                    raise ValueError(f"quantized optimizer {key} mismatch")
+        # Stage group metadata before replacing any live state. A failed
+        # host allocation/copy must not leave new moments with old groups.
+        restored_groups = [
+            dict(_snapshot(old), params=new["params"]) for old, new in zip(saved["param_groups"], live_groups)
+        ]
+        previous, pages = self.state, self.page_mng.paged_tensors
+        self.state, self.page_mng.paged_tensors = defaultdict(dict), []
+        try:
+            for gi, (old, group) in enumerate(zip(saved["param_groups"], live_groups)):
+                for pi, (idx, p) in enumerate(zip(old["params"], group["params"])):
+                    source = saved["state"].get(idx, {})
+                    if not source:
+                        continue
+                    self.init_state(group, p, gi, pi)  # allocation only, never step()
+                    target = self.state[p]
+                    if set(source) != set(target) or type(source["step"]) is not int or source["step"] < 0:
+                        raise ValueError("invalid quantized optimizer state schema/counter")
+                    for key, value in source.items():
+                        if isinstance(target[key], torch.Tensor):
+                            if (
+                                not isinstance(value, torch.Tensor)
+                                or value.shape != target[key].shape
+                                or value.dtype != target[key].dtype
+                            ):
+                                raise ValueError(f"invalid quantized optimizer state {key} shape/dtype")
+                            # qmaps can be shared; check equality instead of overwriting
+                            # live/shared lookup tables from an unvalidated checkpoint.
+                            if key.startswith("qmap") and not torch.equal(value.cpu(), target[key].cpu()):
+                                raise ValueError("quantized optimizer quantization map mismatch")
+                            target[key].copy_(value)
+                        else:
+                            target[key] = value
+            torch.cuda.synchronize(self._selected[0].device)
+        except Exception:
+            self.state, self.page_mng.paged_tensors = previous, pages
+            raise
+        self.param_groups = restored_groups
+        self.initialized = True
+        self._reported_states = -1
