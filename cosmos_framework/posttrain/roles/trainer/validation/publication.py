@@ -81,8 +81,10 @@ class PublicationJournal:
         *,
         manager: "CheckpointManager",
         publication_identity: Mapping[str, Any],
+        storage_identity: Mapping[str, Any] | None = None,
     ) -> dict[str, Any]:
-        storage_identity = manager.publication_identity(path)
+        if storage_identity is None:
+            storage_identity = manager.publication_identity(path)
         destination = storage_identity.get("destination")
         checkpoint_generation = storage_identity.get("checkpoint_generation")
         if not isinstance(destination, dict) or any(
@@ -133,12 +135,28 @@ class PublicationJournal:
         if publication_step is None:
             raise RuntimeError("cannot persist validation completion when no publication is pending")
 
+        # Converge the inputs separately so a disagreement identifies the store
+        # generation or validation recipe, rather than only an opaque final hash.
+        content_digests = _distributed_content_digests(manager, path)
+        storage_identity = run_rank_converged(
+            lambda: manager.publication_identity(path, content_digests=content_digests),
+            "validation publication storage identity",
+        )
+        storage_identity = rank_identical(storage_identity, "validation publication storage identity")
+        validation_digest = run_rank_converged(
+            lambda: hashlib.sha256(
+                json.dumps(self.state.identity, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
+            ).hexdigest(),
+            "validation publication recipe identity",
+        )
+        rank_identical(validation_digest, "validation publication recipe identity")
         expected_record = run_rank_converged(
             lambda: self._build_record(
                 path,
                 publication_step,
                 manager=manager,
                 publication_identity=publication_identity,
+                storage_identity=storage_identity,
             ),
             "validation publication record preparation",
         )
@@ -198,3 +216,35 @@ class PublicationJournal:
         self.pending_step = None
         self.record = None
         run_rank_converged(on_checkpoint, "validation completion checkpoint callback")
+
+
+def _distributed_content_digests(manager: "CheckpointManager", path: str) -> dict[str, tuple[int, str]] | None:
+    """Under the shared-FS identity opt-in, hash payloads once across the job (disjoint shares).
+
+    Returns None without the opt-in, outside a multi-rank job or for object stores (whose identity is not content
+    hashed here); ``publication_identity`` then hashes locally. Each phase converges failures
+    before the next collective, so one rank's error cannot strand its peers.
+    """
+    import torch.distributed as dist
+
+    from cosmos_framework.posttrain.checkpoint.synchronized_stat import shared_fs_identity
+    from cosmos_framework.posttrain.utils.rank_state import gather_rank_states
+
+    if (
+        not shared_fs_identity()  # default: upstream metadata identity, no content hashing at all
+        or manager.store.is_object_store
+        or not dist.is_initialized()
+        or dist.get_world_size() == 1
+    ):
+        return None
+    rank, world = dist.get_rank(), dist.get_world_size()
+    shard = run_rank_converged(
+        lambda: manager.publication_content_shard(path, rank, world), "validation publication content hashing"
+    )
+    gathered = gather_rank_states(shard, context="validation publication content hashes")
+    merged: dict[str, tuple[int, str]] = {}
+    for part in (gathered[index] for index in sorted(gathered)):
+        if set(part) & set(merged):
+            raise RuntimeError("validation publication content shards overlap across ranks")
+        merged.update(part)
+    return merged

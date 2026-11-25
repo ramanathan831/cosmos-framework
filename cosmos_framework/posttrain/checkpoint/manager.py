@@ -686,18 +686,53 @@ class CheckpointManager:
             return
         self.store.replace_component(iter_dir, name, state)
 
-    def publication_identity(self, iter_dir: str) -> dict[str, Any]:
-        """Return the non-secret checkpoint generation and publication destination."""
+    def publication_content_shard(self, iter_dir: str, rank: int, world_size: int) -> dict[str, tuple[int, str]]:
+        """This rank's share of the content hashes behind ``publication_identity`` (local stores only)."""
+        from cosmos_framework.posttrain.checkpoint.provenance import publication_content_shard
+
+        return publication_content_shard(iter_dir, rank, world_size)
+
+    def publication_identity(
+        self, iter_dir: str, *, content_digests: dict[str, tuple[int, str]] | None = None
+    ) -> dict[str, Any]:
+        """Return the non-secret checkpoint generation and publication destination.
+
+        By default this is the metadata + small-file checkpoint signature. Under the opt-in
+        ``COSMOS_CHECKPOINT_SHARED_FS_IDENTITY`` (ranks of a network filesystem that disagree
+        about cached attributes) it binds full payload content instead; ``content_digests`` are
+        then the gathered ``publication_content_shard`` results, so each byte is read once in
+        total across the job.
+        """
         if self.store.is_object_store:
             return dict(self.store.publication_identity(iter_dir))
-        provenance = self.checkpoint_provenance(iter_dir)
+        from cosmos_framework.posttrain.checkpoint.synchronized_stat import shared_fs_identity
+
         if self.upload:
             from cosmos_framework.posttrain.utils.object_store import upload_destination_identity
 
             destination = upload_destination_identity(self.upload, os.path.basename(os.path.abspath(iter_dir)))
         else:
             destination = {"kind": "local"}
-        return {"destination": destination, "checkpoint_generation": provenance["signature"]}
+        if not shared_fs_identity():
+            if content_digests is not None:
+                raise ValueError("publication content digests require the shared-filesystem identity opt-in")
+            return {
+                "destination": destination,
+                "checkpoint_generation": self.checkpoint_provenance(iter_dir)["signature"],
+            }
+        from cosmos_framework.posttrain.checkpoint.provenance import checkpoint_provenance
+
+        inventory: list[dict[str, Any]] = []
+        provenance = checkpoint_provenance(
+            iter_dir, inventory=inventory, full_content=True, content_digests=content_digests
+        )
+        return {
+            "destination": destination,
+            "checkpoint_generation": provenance["signature"],
+            # Capture the exact inputs to the signature once, so rank disagreement
+            # can identify a changed file/stat rather than only opaque digests.
+            "inventory": inventory,
+        }
 
     def rebind_copied_publication_record(
         self,

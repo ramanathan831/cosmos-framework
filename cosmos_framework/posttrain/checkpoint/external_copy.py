@@ -28,6 +28,30 @@ def _rank() -> int:
     return dist.get_rank() if dist.is_initialized() else 0
 
 
+def require_atomic_directory_promotion(parent: str) -> None:
+    """Probe the destination mount before allocating a large external snapshot."""
+    import tempfile
+
+    os.makedirs(parent, exist_ok=True)
+    source = tempfile.mkdtemp(prefix=".checkpoint-rename-probe-", dir=parent)
+    target, promoted = source + ".target", False
+    try:
+        _rename_directory_noreplace(source, target)
+        promoted = True
+    except OSError as error:
+        raise OSError(
+            error.errno,
+            "pending-validation resume into a different directory requires atomic no-replace promotion; "
+            "use the original run output directory or a filesystem supporting RENAME_NOREPLACE",
+            parent,
+        ) from error
+    finally:
+        if promoted:
+            os.rmdir(target)
+        else:
+            os.rmdir(source)
+
+
 @dataclass(frozen=True)
 class ExternalCheckpointCopyPlan:
     """Immutable source, destination, staging path, and source identity."""

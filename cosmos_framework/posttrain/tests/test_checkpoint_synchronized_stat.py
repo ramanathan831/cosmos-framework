@@ -1,0 +1,373 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+"""Checkpoint identity must not depend on stale client-side network attributes."""
+
+import ctypes
+import errno
+import os
+import stat
+import struct
+import sys
+from types import SimpleNamespace
+
+import pytest
+
+from cosmos_framework.posttrain.checkpoint.provenance import checkpoint_inventory_signature
+from cosmos_framework.posttrain.checkpoint.synchronized_stat import synchronized_stat
+
+pytestmark = [
+    pytest.mark.L0,
+    pytest.mark.CPU,
+    pytest.mark.skipif(sys.platform != "linux", reason="Linux server-synchronized statx qualification"),
+]
+
+
+@pytest.fixture(autouse=True)
+def _shared_fs_identity(request, monkeypatch):
+    """These checks qualify the opt-in shared-filesystem identity; defaults are tested separately."""
+    if "default_identity" not in request.node.name:
+        monkeypatch.setenv("COSMOS_CHECKPOINT_SHARED_FS_IDENTITY", "1")
+
+
+def test_default_identity_uses_plain_stat_and_the_upstream_publication_signature(tmp_path, monkeypatch):
+    import importlib
+
+    from cosmos_framework.posttrain.checkpoint import CheckpointManager
+
+    module = importlib.import_module("cosmos_framework.posttrain.checkpoint.synchronized_stat")
+    monkeypatch.delenv("COSMOS_CHECKPOINT_SHARED_FS_IDENTITY", raising=False)
+    monkeypatch.setattr(module, "_statx", lambda: pytest.fail("default runs must not force-sync statx"))
+    root = tmp_path / "iter_000001"
+    root.mkdir()
+    for name in ("model.pt", "optim.pt", "trainer.pt"):
+        (root / name).write_bytes(name.encode() * (1024 * 1024 if name == "model.pt" else 1))
+    identity = CheckpointManager().publication_identity(str(root))
+    # Upstream shape and value: the metadata + small-file signature, no content hashing/inventory.
+    assert set(identity) == {"destination", "checkpoint_generation"}
+    assert identity["checkpoint_generation"] == checkpoint_inventory_signature(str(root))
+
+
+def test_statx_unavailable_falls_back_to_plain_stat(tmp_path, monkeypatch):
+    import importlib
+
+    module = importlib.import_module("cosmos_framework.posttrain.checkpoint.synchronized_stat")
+    payload = tmp_path / "payload"
+    payload.write_bytes(b"value")
+
+    def missing():
+        raise RuntimeError("libc has no statx")
+
+    def enosys(*args):
+        ctypes.set_errno(errno.ENOSYS)
+        return -1
+
+    for statx in (missing, lambda: enosys):
+        monkeypatch.setattr(module, "_statx", statx)
+        attributes = synchronized_stat(payload)
+        assert (attributes.st_ino, attributes.st_size) == (os.stat(payload).st_ino, 5)
+
+
+def test_stale_client_timestamp_does_not_change_checkpoint_generation(tmp_path, monkeypatch):
+    payload = tmp_path / "model.distcp"
+    payload.write_bytes(b"a" * (5 * 1024 * 1024))
+    expected = checkpoint_inventory_signature(str(tmp_path))
+    original = os.stat
+
+    def stale(path, *args, **kwargs):
+        result = original(path, *args, **kwargs)
+        if os.fspath(path) == str(payload):
+            return SimpleNamespace(
+                st_size=result.st_size,
+                st_dev=result.st_dev,
+                st_ino=result.st_ino,
+                st_mode=result.st_mode,
+                st_mtime_ns=result.st_mtime_ns - 2_000_000_000,
+                st_ctime_ns=result.st_ctime_ns - 2_000_000_000,
+            )
+        return result
+
+    # Observed native failure: same inode and size, one rank's normal stat
+    # reports mtime/ctime two seconds behind its peers. Never drop these fields
+    # or retry until signatures happen to agree.
+    with monkeypatch.context() as patch:
+        patch.setattr(os, "stat", stale)
+        assert checkpoint_inventory_signature(str(tmp_path)) == expected
+    os.utime(payload, ns=(original(payload).st_atime_ns, original(payload).st_mtime_ns + 2_000_000_000))
+    assert checkpoint_inventory_signature(str(tmp_path)) != expected
+
+
+def test_synchronized_fields_match_lstat_and_preserve_symlink_identity(tmp_path):
+    payload = tmp_path / "unicode-\u00e9 space"
+    payload.write_bytes(b"checkpoint")
+    link = tmp_path / "link"
+    link.symlink_to(payload.name)
+    for path in (payload, link):
+        expected, actual = os.lstat(path), synchronized_stat(path)
+        for field in ("st_mode", "st_dev", "st_ino", "st_size", "st_mtime_ns", "st_ctime_ns"):
+            assert getattr(actual, field) == getattr(expected, field)
+    assert stat.S_ISLNK(synchronized_stat(link).st_mode)
+    with pytest.raises(FileNotFoundError):
+        synchronized_stat(tmp_path / "missing")
+    with pytest.raises(ValueError, match="null byte"):
+        synchronized_stat("a\0b")
+
+
+@pytest.mark.parametrize("failure", ["error", "missing_fields"])
+def test_statx_failure_does_not_fall_back_to_cached_metadata(tmp_path, monkeypatch, failure):
+    import importlib
+
+    module = importlib.import_module("cosmos_framework.posttrain.checkpoint.synchronized_stat")
+    payload = tmp_path / "payload"
+    payload.write_bytes(b"value")
+
+    def statx(dirfd, path, flags, mask, buffer):
+        assert flags == 0x2100 and mask == 0x7FF and dirfd == -100
+        if failure == "error":
+            ctypes.set_errno(errno.EIO)
+            return -1
+        struct.pack_into("=I", buffer, 0, 0)
+        return 0
+
+    monkeypatch.setattr(module, "_statx", lambda: statx)
+    with pytest.raises(OSError if failure == "error" else RuntimeError):
+        synchronized_stat(payload)
+
+
+def test_publication_identity_hashes_large_contents_despite_stale_server_attributes(tmp_path, monkeypatch):
+    import importlib
+
+    from cosmos_framework.posttrain.checkpoint import CheckpointManager
+
+    module = importlib.import_module("cosmos_framework.posttrain.checkpoint.provenance")
+    (tmp_path / "model.pt").write_bytes(b"a" * (5 * 1024 * 1024))
+    (tmp_path / "optim.pt").write_bytes(b"optimizer")
+    (tmp_path / "trainer.pt").write_bytes(b"trainer")
+    manager = CheckpointManager()
+    expected = manager.publication_identity(str(tmp_path))
+    real = module.synchronized_stat
+
+    def stale(path):
+        attributes = real(path)
+        if not isinstance(path, int) and os.fspath(path) == str(tmp_path / "model.pt"):
+            attributes.st_mtime_ns -= 1_000_000_000
+            attributes.st_ctime_ns -= 1_000_000_000
+        return attributes
+
+    # Captured native failure persisted even with FORCE_SYNC. Both ranks see
+    # the same bytes; publication must compare those bytes, not cached times.
+    monkeypatch.setattr(module, "synchronized_stat", stale)
+    assert manager.publication_identity(str(tmp_path)) == expected
+    frozen_attributes = stale(tmp_path / "model.pt")
+    monkeypatch.setattr(
+        module,
+        "synchronized_stat",
+        lambda path: (
+            frozen_attributes
+            if not isinstance(path, int) and os.fspath(path) == str(tmp_path / "model.pt")
+            else real(path)
+        ),
+    )
+    with (tmp_path / "model.pt").open("r+b") as handle:
+        handle.write(b"b")
+    assert manager.publication_identity(str(tmp_path)) != expected
+
+
+def test_publication_hash_rejects_mutation_during_file_read(tmp_path, monkeypatch):
+    import builtins
+
+    from cosmos_framework.posttrain.checkpoint import CheckpointManager
+
+    payload = tmp_path / "model.pt"
+    payload.write_bytes(b"a" * (5 * 1024 * 1024))
+    (tmp_path / "optim.pt").write_bytes(b"optimizer")
+    (tmp_path / "trainer.pt").write_bytes(b"trainer")
+    original_open = builtins.open
+
+    class MutatingReader:
+        def __init__(self, handle):
+            self.handle = handle
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return self.handle.__exit__(*args)
+
+        def fileno(self):
+            return self.handle.fileno()
+
+        def read(self, size):
+            value = self.handle.read(size)
+            if not value:
+                with original_open(payload, "ab") as writer:
+                    writer.write(b"changed")
+            return value
+
+    def hooked_open(path, *args, **kwargs):
+        handle = original_open(path, *args, **kwargs)
+        return MutatingReader(handle) if os.fspath(path) == str(payload) and args == ("rb",) else handle
+
+    monkeypatch.setattr(builtins, "open", hooked_open)
+    with pytest.raises(RuntimeError, match="changed while hashing"):
+        CheckpointManager().publication_identity(str(tmp_path))
+
+
+@pytest.mark.parametrize("directory", [False, True])
+def test_full_content_identity_rejects_unread_symlink_payloads(tmp_path, directory):
+    source, checkpoint = tmp_path / "source", tmp_path / "checkpoint"
+    source.mkdir()
+    checkpoint.mkdir()
+    (source / "weights").write_bytes(b"payload")
+    (checkpoint / "model").symlink_to(source if directory else source / "weights", target_is_directory=directory)
+    with pytest.raises(RuntimeError, match="requires (real directories|regular files)"):
+        checkpoint_inventory_signature(str(checkpoint), full_content=True)
+
+
+def test_synchronized_stat_binds_an_open_descriptor(tmp_path):
+    payload = tmp_path / "payload"
+    payload.write_bytes(b"original")
+    with payload.open("rb") as handle:
+        before = synchronized_stat(handle.fileno())
+        old = os.fstat(handle.fileno())
+        for field in ("st_mode", "st_dev", "st_ino", "st_size", "st_mtime_ns", "st_ctime_ns"):
+            assert getattr(before, field) == getattr(old, field)
+        replacement = tmp_path / "replacement"
+        replacement.write_bytes(b"replacement")
+        os.replace(replacement, payload)
+        assert synchronized_stat(handle.fileno()).st_ino == before.st_ino
+        assert synchronized_stat(payload).st_ino != before.st_ino
+
+
+def test_publication_snapshots_attributes_after_open_refresh(tmp_path, monkeypatch):
+    import builtins
+    import importlib
+
+    module = importlib.import_module("cosmos_framework.posttrain.checkpoint.provenance")
+    payload = tmp_path / "model.pt"
+    payload.write_bytes(b"immutable")
+    expected = checkpoint_inventory_signature(str(tmp_path), full_content=True)
+    real_stat, real_open = module.synchronized_stat, builtins.open
+    opened = False
+
+    def cached_path(path):
+        value = real_stat(path)
+        if not isinstance(path, int) and os.fspath(path) == str(payload) and not opened:
+            value.st_mtime_ns -= 1_000_000_000
+            value.st_ctime_ns -= 1_000_000_000
+        return value
+
+    def refresh_on_open(path, *args, **kwargs):
+        nonlocal opened
+        if os.fspath(path) == str(payload):
+            opened = True
+        return real_open(path, *args, **kwargs)
+
+    monkeypatch.setattr(module, "synchronized_stat", cached_path)
+    monkeypatch.setattr(builtins, "open", refresh_on_open)
+    assert checkpoint_inventory_signature(str(tmp_path), full_content=True) == expected
+    assert opened
+
+
+@pytest.mark.parametrize("mutation", ["replace", "truncate"])
+def test_descriptor_publication_rejects_payload_mutation(tmp_path, monkeypatch, mutation):
+    import builtins
+    import importlib
+
+    payload = tmp_path / "model.pt"
+    payload.write_bytes(b"immutable")
+    before = os.stat(payload)
+    real_open = builtins.open
+    mutated = False
+    if mutation == "same_size":
+        module = importlib.import_module("cosmos_framework.posttrain.checkpoint.provenance")
+        real_stat = module.synchronized_stat
+
+        def coarse_timestamps(path):
+            value = real_stat(path)
+            value.st_mtime_ns, value.st_ctime_ns = before.st_mtime_ns, before.st_ctime_ns
+            return value
+
+        # Even identical metadata must not hide the changed content. This also
+        # removes dependence on local filesystem timestamp resolution in the test.
+        monkeypatch.setattr(module, "synchronized_stat", coarse_timestamps)
+
+    class Reader:
+        def __init__(self, handle):
+            self.handle = handle
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return self.handle.__exit__(*args)
+
+        def fileno(self):
+            return self.handle.fileno()
+
+        def read(self, size):
+            nonlocal mutated
+            value = self.handle.read(size)
+            if not value and not mutated:
+                mutated = True
+                if mutation == "replace":
+                    replacement = tmp_path / "new"
+                    replacement.write_bytes(b"immutable")
+                    os.replace(replacement, payload)
+                elif mutation == "same_size":
+                    with real_open(payload, "r+b") as writer:
+                        writer.write(b"x")
+                    os.utime(payload, ns=(before.st_atime_ns, before.st_mtime_ns))
+                else:
+                    with real_open(payload, "r+b") as writer:
+                        writer.truncate(2)
+            return value
+
+    def wrap(path, *args, **kwargs):
+        handle = real_open(path, *args, **kwargs)
+        return Reader(handle) if os.fspath(path) == str(payload) and args == ("rb",) else handle
+
+    monkeypatch.setattr(builtins, "open", wrap)
+    with pytest.raises(RuntimeError, match="changed while hashing"):
+        checkpoint_inventory_signature(str(tmp_path), full_content=True)
+
+
+def test_publication_rejects_fifo_without_waiting_for_writer(tmp_path):
+    os.mkfifo(tmp_path / "model.pt")
+    with pytest.raises(RuntimeError, match="requires regular files"):
+        checkpoint_inventory_signature(str(tmp_path), full_content=True)
+
+
+def test_distributed_publication_reads_each_payload_once_and_matches_local_identity(tmp_path, monkeypatch):
+    import builtins
+
+    from cosmos_framework.posttrain.checkpoint import provenance
+
+    tmp_path = tmp_path / "iter_000004"  # the test logger writes into the fixture root itself
+    (tmp_path / "model").mkdir(parents=True)
+    for index in range(5):
+        (tmp_path / "model" / f"__{index}_0.distcp").write_bytes(bytes([index]) * (1024 + index))
+    (tmp_path / "trainer.pt").write_bytes(b"trainer")
+    expected = checkpoint_inventory_signature(str(tmp_path), full_content=True)
+    real_open, reads = builtins.open, []
+
+    def counting_open(path, *args, **kwargs):
+        if args[:1] == ("rb",):
+            reads.append(os.fspath(path))
+        return real_open(path, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "open", counting_open)
+    shards = [provenance.publication_content_shard(str(tmp_path), rank, 3) for rank in range(3)]
+    merged = {key: value for shard in shards for key, value in shard.items()}
+    assert sum(map(len, shards)) == len(merged) == 6  # disjoint and complete
+    # One content read (plus one attribute-only namespace reopen) per file across all ranks.
+    assert len(reads) == 2 * len(merged)
+    reads.clear()
+    assert checkpoint_inventory_signature(str(tmp_path), full_content=True, content_digests=merged) == expected
+    assert reads == []  # combining verified shards reads no payload again
+    # A rank whose view differs from the hashed content (size, or a missing/extra file) is refused.
+    (tmp_path / "trainer.pt").write_bytes(b"trainer, but longer")
+    with pytest.raises(RuntimeError, match="hashed size"):
+        checkpoint_inventory_signature(str(tmp_path), full_content=True, content_digests=merged)
+    (tmp_path / "trainer.pt").unlink()
+    with pytest.raises(RuntimeError, match="differs across ranks"):
+        checkpoint_inventory_signature(str(tmp_path), full_content=True, content_digests=merged)
