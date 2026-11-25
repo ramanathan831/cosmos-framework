@@ -1,4 +1,0 @@
-JobIDRaw|State|ElapsedRaw|TimelimitRaw|NodeList|ExitCode
-38278834|COMPLETED|730|18|batch-block4-1051|0:0
-38279161|TIMEOUT|428|7|cpu-00008|0:0
-38279658|COMPLETED|362|9|cpu-00008|0:0

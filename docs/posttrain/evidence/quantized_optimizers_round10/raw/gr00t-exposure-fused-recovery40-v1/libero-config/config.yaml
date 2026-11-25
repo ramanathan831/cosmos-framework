@@ -1,5 +1,0 @@
-benchmark_root: /localhome/local-rarunachalam/cosmos-adapter-all-family-2node-20261111/runtime-libero-renderer-31377dd-v2/lib/python3.12/site-packages/libero/libero
-bddl_files: /localhome/local-rarunachalam/cosmos-adapter-all-family-2node-20261111/runtime-libero-renderer-31377dd-v2/lib/python3.12/site-packages/libero/libero/bddl_files
-init_states: /localhome/local-rarunachalam/cosmos-adapter-all-family-2node-20261111/runtime-libero-renderer-31377dd-v2/lib/python3.12/site-packages/libero/libero/init_files
-assets: /localhome/local-rarunachalam/cosmos-adapter-all-family-2node-20261111/inputs/libero-simulator-assets-v1/snapshot
-datasets: /localhome/local-rarunachalam/cosmos-adapter-all-family-2node-20261111/data-prepared/libero

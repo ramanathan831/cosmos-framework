@@ -1,8 +1,0 @@
-{
-    "windows": 16,
-    "restored_from": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-pressure-paged55-v1/runs/cosmos3_action/joint_ppo/gr00t-master-paged_adamw_8bit/integration/checkpoints/iter_000016",
-    "optimizer_step": 32,
-    "publication_version": 32,
-    "stop_reason": null,
-    "output": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-pressure-paged55-resume16-v2/runs/cosmos3_action/joint_ppo/gr00t-master-paged_adamw_8bit/integration"
-}

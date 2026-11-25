@@ -1,1 +1,0 @@
-Pre-fix committed collector accepted next_window=-1; failing invariant reproduced without modifying files.

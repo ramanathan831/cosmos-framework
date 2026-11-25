@@ -1,8 +1,0 @@
-Using CPython 3.12.13 interpreter at: /localhome/local-rarunachalam/cosmos-adapter-all-family-2node-20261111/runtime-libero-renderer-31377dd-v2/bin/python
-Creating virtual environment at: /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/sim-runtime-v1/environment
-Activate with: source /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/sim-runtime-v1/environment/bin/activate
-Using Python 3.12.13 environment at: /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/sim-runtime-v1/environment
-Resolved 1 package in 749ms
-Prepared 1 package in 707ms
-Installed 1 package in 604ms
- + contourpy==1.4.0

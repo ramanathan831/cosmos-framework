@@ -1,9 +1,0 @@
-{
-  "pid": 824404,
-  "device": 2,
-  "bytes": 59055800320,
-  "ordinary_cuda_allocated_bytes": 59055800320,
-  "ordinary_cuda_reserved_bytes": 59055800320,
-  "device_free_bytes_after_reservation": 25595543552,
-  "device_total_bytes": 85174583296
-}

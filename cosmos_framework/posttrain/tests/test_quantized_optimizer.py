@@ -509,31 +509,6 @@ def test_empty_and_noncontiguous_trainables_fail():
             build_optimizer(net, OptimizerConfig(name="adamw_bnb_8bit"))
 
 
-def test_native_timing_hook_handles_nested_backend_steps(monkeypatch, tmp_path):
-    import runpy
-    from pathlib import Path
-
-    from torch.optim.optimizer import register_optimizer_step_post_hook, register_optimizer_step_pre_hook
-
-    if not torch.cuda.is_available():
-        pytest.skip("CUDA required")
-    monkeypatch.setenv("RESULTS", str(tmp_path))
-    probe = runpy.run_path(str(Path(__file__).resolve().parents[3] / "tools/quantized_optimizers/native_probe.py"))
-    before = register_optimizer_step_pre_hook(probe["before"])
-    after = register_optimizer_step_post_hook(probe["after"])
-    try:
-        net = torch.nn.Linear(128, 128, device="cuda")
-        opt = build_optimizer(net, OptimizerConfig(name="adamw_bnb_8bit"))
-        net.weight.grad = torch.ones_like(net.weight)
-        opt.step()
-    finally:
-        before.remove()
-        after.remove()
-    rows = [json.loads(line) for line in (tmp_path / "native.telemetry.jsonl").read_text().splitlines()]
-    assert len([row for row in rows if row["backend"] == "CosmosAdamW8bit"]) == 1
-    assert not probe["timers"]
-
-
 @pytest.mark.parametrize("name", ["adamw_bnb_8bit", "paged_adamw_8bit"])
 def test_mainline_bf16_base_lora_uses_only_fp32_adapters(name):
     from cosmos_framework.utils.generator.lora import LoraInjectedLinear

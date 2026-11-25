@@ -1,4 +1,0 @@
-38357148|COMPLETED|1453|0:0|batch-block4-1051|billing=1,cpu=8,gres/gpu=1,mem=128G,node=1|
-38357148.batch|COMPLETED|1453|0:0|batch-block4-1051|cpu=8,gres/gpu=1,mem=128G,node=1|5552K
-38357148.extern|COMPLETED|1453|0:0|batch-block4-1051|billing=1,cpu=8,gres/gpu=1,mem=128G,node=1|0
-38357148.0|COMPLETED|1442|0:0|batch-block4-1051|cpu=8,gres/gpu=1,mem=128G,node=1|2526004K

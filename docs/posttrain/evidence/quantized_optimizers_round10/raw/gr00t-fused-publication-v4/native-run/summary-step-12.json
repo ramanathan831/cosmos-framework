@@ -1,8 +1,0 @@
-{
-    "windows": 4,
-    "restored_from": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-fused-native-v9/runs/cosmos3_action/joint_ppo/gr00t-master-adamw/integration/checkpoints/iter_000008",
-    "optimizer_step": 12,
-    "publication_version": 12,
-    "stop_reason": null,
-    "output": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-fused-native-v9/runs/cosmos3_action/joint_ppo/gr00t-master-adamw/integration"
-}

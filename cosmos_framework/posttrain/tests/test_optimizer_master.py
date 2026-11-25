@@ -4,6 +4,7 @@
 
 from copy import deepcopy
 
+import numpy as np
 import pytest
 import torch
 
@@ -38,6 +39,8 @@ def assert_equal(a, b):
         assert len(a) == len(b)
         for x, y in zip(a, b):
             assert_equal(x, y)
+    elif isinstance(a, np.ndarray):  # NumPy RNG state needs array equality.
+        assert np.array_equal(a, b)
     else:
         assert a == b
 
@@ -303,10 +306,7 @@ def test_native_trainer_save_restore_master_transaction(tmp_path, format, monkey
     assert staged_backends and all(reference() is None for reference in staged_backends)
     assert_equal(before_opt, restored.opt.state_dict())
     assert_equal(before_net, restored.model.net.state_dict())
-    # NumPy RNG arrays require their own equality helper.
-    from tools.quantized_optimizers.master_distributed import equal
-
-    equal(before_control, restored._trainer_state())
+    assert_equal(before_control, restored._trainer_state())
 
     # A valid-but-replaced generation during reads must be rejected before the
     # staged model, optimizer and clocks become live, including direct load().
@@ -325,7 +325,7 @@ def test_native_trainer_save_restore_master_transaction(tmp_path, format, monkey
             restored.checkpoint_manager.load_checkpoint(path, lambda: restored.load(path))
     assert_equal(before_opt, restored.opt.state_dict())
     assert_equal(before_net, restored.model.net.state_dict())
-    equal(before_control, restored._trainer_state())
+    assert_equal(before_control, restored._trainer_state())
 
 
 def test_fused_control_memory_counts_initialized_step_tensors():

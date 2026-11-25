@@ -1,8 +1,0 @@
-{
-  "at_utc": "2026-11-14T15:04:55.368912+00:00",
-  "job": "38537185",
-  "action": "SIGTERM verified native joint_ppo driver; preserve primary launcher/profiler cleanup",
-  "pid": 725073,
-  "reason": "No completed update after3 for over8min; all4 sampled learners in backward, no sampled worker OOM traceback; capture window expired. Root cause unresolved.",
-  "completion_status": "Failed instrumented8-update diagnostic; uninstrumented paged32 and16to32 evidence unchanged."
-}

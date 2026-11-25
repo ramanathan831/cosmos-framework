@@ -1,8 +1,0 @@
-{
-  "recorded_utc": "2026-11-09T20:24:25.984791+00:00",
-  "change": "Account for BatchFeature/UserDict/VideoMetadata owned Python dictionaries as well as visible tensor payload. Retained tensor bytes, cache keys, samples, grouping and worker policy unchanged.",
-  "earlier_count_scope": "Initial/timed screen retained_peak_bytes counts tensor storage and visible payload values, but omitted wrapper dictionary containers. These values are historical measured accounting values, not total process memory.",
-  "current_count_scope": "Accounted CPU tensor/array storage and Python payload containers, including wrapper dictionaries; excludes allocator overhead and unrelated process state. PSS/RSS is measured separately during native main preparation.",
-  "tests": "cache_accounting_tests.txt:18passed; includes ownership and wrapper accounting without duplicate tensor storage.",
-  "qualification_policy": "Preserve ongoing timed screen fromff3b2ed1; do not use additional timing repetitions to alter its verdict. The corrected accounting path requires a real exact slice check, and any conditional full replications use the corrected source. Timing claims retain exact source identities."
-}

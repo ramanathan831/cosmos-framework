@@ -1,8 +1,0 @@
-{
-    "windows": 80,
-    "restored_from": null,
-    "optimizer_step": 80,
-    "publication_version": 80,
-    "stop_reason": null,
-    "output": "/lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-exposure-eightbit-seed17-v4/runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration"
-}

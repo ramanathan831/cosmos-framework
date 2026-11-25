@@ -1,4 +1,0 @@
-    @pytest.mark.serial
-
--- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-89 passed, 1 warning in 39.48s

@@ -1,8 +1,0 @@
-2026-11-14 02:28:15.112 | DEBUG    | cosmos_framework.utils.config:_load_py_config:624 - get_config_module: took 0.21ms
-2026-11-14 02:28:15.346 | DEBUG    | cosmos_framework.utils.config:_load_py_config:642 - importlib.import_module: took 232.27ms
-2026-11-14 02:28:15.516 | DEBUG    | cosmos_framework.utils.config:_load_py_config:647 - override: took 170.28ms
-2026-11-14 02:28:15.516 | DEBUG    | cosmos_framework.utils.config:load_config:608 - total time to load config: 404.83ms
-Config is saved using omegaconf at /lustre/fsw/portfolios/edgeai/projects/edgeai_tao-ptm_image-foundation-model-clip/users/rarunachalam/cosmos-optimizer-native-20261113/gr00t-exposure-eightbit-reload80-v4/runs/cosmos3_action/joint_ppo/gr00t-master-adamw_bnb_8bit/integration/config_resolved.yaml.
-2026-11-14 02:28:33,661	INFO worker.py:2024 -- Started a local Ray instance.
-[posttrain|I|r0] 2026-11-14 02:29:44 setup progress group=joint_ppo_experience done=0/4 elapsed_s=60 waiting=r0k0@batch-block7-03342 r1k0@batch-block7-03342 r2k0@batch-block7-03342 r3k0@batch-block7-03342
-[posttrain|I|r0] 2026-11-14 02:31:31 setup progress group=joint_ppo_policy done=0/4 elapsed_s=60 waiting=r0k0@batch-block7-03342 r0k1@batch-block7-03342 r0k2@batch-block7-03342 r0k3@batch-block7-03342

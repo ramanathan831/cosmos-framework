@@ -1,9 +1,0 @@
-{
-  "python": "3.8.10 (default, May 26 2023, 14:05:08) \n[GCC 9.4.0]",
-  "full_exact": true,
-  "subset_exact": true,
-  "same_size_corruption_rejected": true,
-  "wall_seconds": 0.26007959712296724,
-  "source_sha256": "9950402c6268128565a8fe409fea610f8b86681738a9c01ba44a173db47a96fe",
-  "scope": "Tiny host-Python compatibility fixture; not runtime or full-corpus evidence"
-}

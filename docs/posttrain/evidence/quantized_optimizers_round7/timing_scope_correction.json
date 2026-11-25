@@ -1,8 +1,0 @@
-{
-  "recorded_utc": "2026-11-09T20:11:28.032797+00:00",
-  "defect": "The native main timer excludes heavy Python imports and process shutdown. Initial paired allocation has no external per-process timer, so its partial timing scope cannot establish the prospectively requested whole-process screen.",
-  "correction": "Wrap the unchanged native preparation command with a standard-library monotonic subprocess timer inside the existing Slurm launcher. Record exit status even on failure. Container startup remains a separately charged shared cost.",
-  "initial_allocation": "38282639; finish all six admitted cases and retain exact outputs, cache counts, inner phase costs and allocation charge. No whole-process gate decision from these cases.",
-  "repeat_policy": "One corrected three-pair screen with identical source math, fixed slice, order, workers, memory, hashes and threshold. No extra repetitions selected from the resulting interval. Full runs remain conditional on the corrected whole-process lower bound>1 and exact correctness.",
-  "candidate_changed": false
-}

@@ -1,6 +1,0 @@
-{
-  "passed": false,
-  "profiler_returncode": 0,
-  "native_returncode": null,
-  "reason": "No valid native completion receipt: FileNotFoundError"
-}
