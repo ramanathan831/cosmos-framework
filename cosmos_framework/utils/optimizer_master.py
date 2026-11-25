@@ -107,6 +107,11 @@ class MasterWeightOptimizer(torch.optim.Optimizer):
         self.backend = self._backend(self.masters)
         self.cosmos_quantized_optimizer = config.name in NAMES
         self._reported_states = -1
+        # Cheap per-step invariants; the full layout was validated once above.
+        self._local_signature = tuple((tuple(local_tensor(p).shape), p.dtype, isinstance(p, DTensor)) for p in self.live)
+        # Trainers may load model weights after building the optimizer (warm start, model-only
+        # or EMA loads). The first step after binding verifies masters against the live model.
+        self._verify_masters = True
         self._refresh_state()
 
     def _backend(self, masters):
@@ -149,8 +154,8 @@ class MasterWeightOptimizer(torch.optim.Optimizer):
 
         def stage():
             local = []
-            for p, master, expected in zip(self.live, self.masters, self.identity["parameters"]):
-                if parameter_layout(p) != {k: v for k, v in expected.items() if k != "name"}:
+            for p, master, expected in zip(self.live, self.masters, self._local_signature):
+                if (tuple(local_tensor(p).shape), p.dtype, isinstance(p, DTensor)) != expected:
                     raise ValueError("live master parameter layout changed after construction")
                 if p.dtype == torch.float32 and local_tensor(p).data_ptr() != master.data_ptr():
                     raise ValueError("FP32 model shard storage changed after optimizer binding")
@@ -170,9 +175,20 @@ class MasterWeightOptimizer(torch.optim.Optimizer):
             # backend skips its own scan because this owner has already checked every rank.
             if present and not bool(torch.isfinite(torch.stack(torch._foreach_norm(present, float("inf")))).all()):
                 raise ValueError("nonfinite master gradient rejected before update")
-            return [None if grad is None else grad.float().contiguous() for grad in local]
+            resync = self._verify_masters and self._masters_stale()
+            if resync and self.backend.state:
+                raise ValueError(
+                    "model weights changed under an initialized FP32-master optimizer; its masters would "
+                    "overwrite them. Load optimizer state with the model, or rebuild the optimizer."
+                )
+            return [None if grad is None else grad.float().contiguous() for grad in local], resync
 
-        gradients = run_rank_converged(stage, "master optimizer gradient staging")
+        gradients, resync = run_rank_converged(stage, "master optimizer gradient staging")
+        if resync:
+            # No moments exist yet, so the live model (e.g. a warm-start load after construction)
+            # is the only state: adopt it rather than writing stale masters back over it.
+            self.resync_masters_from_model()
+        self._verify_masters = False
         for master, grad in zip(self.masters, gradients):
             master.grad = grad
         self.sync_groups()
@@ -203,6 +219,23 @@ class MasterWeightOptimizer(torch.optim.Optimizer):
             logging.getLogger("posttrain").info("Native master optimizer state: %s", self.state_report())
             self._reported_states = len(self.state)
         return result
+
+    def _masters_stale(self) -> bool:
+        """Whether any BF16-stored shard differs from its master (FP32 shards alias theirs)."""
+        stale = [
+            (local_tensor(p) != m.to(p.dtype)).any()
+            for p, m in zip(self.live, self.masters)
+            if p.dtype != torch.float32 and m.numel()
+        ]
+        return bool(torch.stack(stale).any()) if stale else False
+
+    @torch.no_grad()
+    def resync_masters_from_model(self) -> None:
+        """Re-seed masters from the live model after a model-only load; moments are untouched."""
+        for p, m in zip(self.live, self.masters):
+            if p.dtype != torch.float32:
+                m.copy_(local_tensor(p))
+        self._verify_masters = False
 
     def zero_grad(self, set_to_none=True):
         super().zero_grad(set_to_none=set_to_none)
@@ -273,6 +306,7 @@ class MasterWeightOptimizer(torch.optim.Optimizer):
                     if p.dtype == torch.float32:
                         m.copy_(value)
         self.masters, self.backend = masters, backend
+        self._verify_masters = True
         for live, restored in zip(self.param_groups, self.backend.param_groups):
             live.update({k: v for k, v in restored.items() if k != "params"})
         self._refresh_state()

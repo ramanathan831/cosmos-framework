@@ -321,3 +321,37 @@ def test_fused_control_memory_counts_initialized_step_tensors():
     expected = sum(value.numel() * value.element_size() for value in counters)
     assert expected > 0
     assert optimizer.state_report()["metadata_bytes"] == expected
+
+
+def test_warm_start_load_after_construction_reseeds_masters_before_the_first_step():
+    """Trainers may build the optimizer before a model-only (warm-start/EMA) load."""
+    net = model()
+    opt = make(net)
+    loaded = torch.full_like(net.weight, 0.25)
+    net.load_state_dict({**net.state_dict(), "weight": loaded})  # model-only load, optimizer untouched
+    reference = torch.nn.Parameter(loaded.float().clone())
+    control = torch.optim.AdamW([reference], lr=1e-4, weight_decay=0)
+    for _ in range(3):
+        net.weight.grad = torch.ones_like(net.weight)
+        reference.grad = torch.ones_like(reference)
+        opt.step()
+        control.step()
+        # The update starts from the loaded weights, never from the stale construction-time copy.
+        assert torch.equal(opt.masters[0], reference)
+        assert torch.equal(net.weight, reference.to(net.weight.dtype))
+
+
+def test_model_only_load_under_initialized_moments_is_refused_without_mutation():
+    net = model()
+    opt = make(net)
+    net.weight.grad = torch.ones_like(net.weight)
+    opt.step()
+    before = deepcopy(opt.state_dict())
+    with torch.no_grad():
+        net.weight.fill_(3)
+    opt._verify_masters = True  # as after any re-binding; a later load must not be silently overwritten
+    net.weight.grad = torch.ones_like(net.weight)
+    with pytest.raises(Exception, match="model weights changed under an initialized"):
+        opt.step()
+    assert_equal(before, opt.state_dict())
+    assert torch.equal(net.weight, torch.full_like(net.weight, 3))

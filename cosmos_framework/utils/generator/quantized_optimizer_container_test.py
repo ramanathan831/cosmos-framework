@@ -234,3 +234,26 @@ def test_async_pinned_checkpointer_refuses_rank_local_optimizer_before_training(
     checkpointer._require_sync_for_rank_local_optimizer(SimpleNamespace())
     checkpointer.async_mode = AsyncMode.DISABLED
     checkpointer._require_sync_for_rank_local_optimizer(rank_local)
+
+
+@CUDA
+def test_warm_start_after_optimizer_construction_keeps_loaded_bf16_weights():
+    """The generator trainer builds the optimizer before checkpointer.load; a model-only
+    (warm-start/EMA) load must not be overwritten by construction-time BF16 masters."""
+    model = _Model("cuda")
+    model.net.to(torch.bfloat16)
+    container = build_optimizer(model, "adamw_bnb_8bit", **deepcopy(KWARGS))
+    optimizer = container.optimizers[0]
+    torch.manual_seed(123)
+    loaded = {name: torch.randn_like(value) for name, value in model.net.state_dict().items()}
+    model.net.load_state_dict(loaded)  # what a model-only checkpoint load does after construction
+    scheduler = _scheduler(container)
+    torch.manual_seed(1)
+    model.net(torch.randn(4, 256, device="cuda", dtype=torch.bfloat16)).float().square().mean().backward()
+    container.step()
+    scheduler.step()
+    for name, parameter in model.net.named_parameters():
+        # One warmup-scaled update moves weights by far less than the gap to the stale copy.
+        assert (parameter.float() - loaded[name].float()).abs().max() < 1e-2, name
+    for master, live in zip(optimizer.masters, optimizer.live):
+        assert torch.equal(master.to(live.dtype), live.detach())
