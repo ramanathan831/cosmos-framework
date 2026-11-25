@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import hashlib
 import io
+import pickle
 from copy import deepcopy
 from traceback import clear_frames
 
@@ -45,10 +46,15 @@ def _deserialize_rank_state(payload, format):
     content = memoryview(tensor.numpy())
     if hashlib.sha256(content).hexdigest() != expected:
         raise ValueError("master optimizer payload checksum/length mismatch")
-    # v3 itself needs full unpickling: optimizer group options can be NumPy scalars (the generator
-    # container's per-group lr/decay), which weights_only rejects. The bytes are the checksummed
-    # payload this module wrote inside the run's own checkpoint transaction.
-    return torch.load(io.BytesIO(content), map_location="cpu", weights_only=False)
+    # No arbitrary unpickling on resume: tensors, Python containers/scalars, plus the minimal NumPy
+    # types safe_dcp allows for checkpoint values (generator group lr/decay can be NumPy scalars).
+    from cosmos_framework.checkpoint.safe_dcp import _BYTES_SAFE_GLOBALS
+
+    try:
+        with torch.serialization.safe_globals(_BYTES_SAFE_GLOBALS):
+            return torch.load(io.BytesIO(content), map_location="cpu", weights_only=True)
+    except pickle.UnpicklingError as error:
+        raise ValueError(f"refusing to load master optimizer payload: {error}") from error
 
 
 def _serialize_tensor_rank_state(state):

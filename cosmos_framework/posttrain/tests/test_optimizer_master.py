@@ -355,3 +355,19 @@ def test_model_only_load_under_initialized_moments_is_refused_without_mutation()
         opt.step()
     assert_equal(before, opt.state_dict())
     assert torch.equal(net.weight, torch.full_like(net.weight, 3))
+
+
+def test_rank_payload_decoding_refuses_arbitrary_objects_but_keeps_numpy_group_scalars():
+    from cosmos_framework.posttrain.checkpoint import master_optimizer as checkpoint
+
+    class Exploit:
+        def __reduce__(self):
+            return (print, ("arbitrary code ran on resume",))
+
+    numpy_groups = {"param_groups": [{"lr": np.float64(1e-4), "weight_decay": np.float32(0.05)}]}
+    size, digest, tensor = checkpoint._serialize_tensor_rank_state(numpy_groups)
+    restored = checkpoint._deserialize_rank_state((size, digest, tensor), "cosmos_rank_master_v3")
+    assert restored["param_groups"][0]["lr"] == np.float64(1e-4)
+    payload = checkpoint._serialize_tensor_rank_state({"value": Exploit()})
+    with pytest.raises(ValueError, match="refusing to load"):
+        checkpoint._deserialize_rank_state(payload, "cosmos_rank_master_v3")

@@ -987,7 +987,8 @@ class DistributedCheckpointer(AbstractCheckpointer):
                     dcp.load(
                         _state_dict,
                         storage_reader=storage_reader,
-                        planner=dcp.DefaultLoadPlanner(allow_partial_load=False),
+                        # Non-tensor leaves (the opaque payload tuple) unpickle with weights_only=True.
+                        planner=SafeLoadPlanner(allow_partial_load=False),
                         no_dist=True,
                     )
                     optimizer.load_state_dict(_state_dict)
