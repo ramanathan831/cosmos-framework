@@ -57,6 +57,30 @@ def test_invalid_backend_hyperparameters_fail_in_config(name, invalid):
 
 
 @pytest.mark.parametrize("name", ["adamw_bnb_8bit", "paged_adamw_8bit"])
+def test_native_recipe_overrides_and_resolved_identity(name, tmp_path, monkeypatch):
+    from hydra.errors import ConfigCompositionException
+
+    from cosmos_framework.posttrain.entrypoints.sft import validate_config_structure
+    from cosmos_framework.utils.config import load_config
+
+    monkeypatch.setenv("SFT_MODEL_PATH", str(tmp_path / "unallocated-model"))
+    monkeypatch.setenv("SFT_DATA_ROOT", str(tmp_path / "unopened-data"))
+    recipe = "cosmos_framework/posttrain/configs/sft_quantized_optimizer.py"
+    overrides = ["--", f"rl.optimizer.name={name}", "rl.optimizer.bnb_fp32_state_names=[some.weight]"]
+    resolved = asdict(validate_config_structure(load_config(recipe, overrides)).optimizer)
+    assert resolved["name"] == name
+    assert resolved["bnb_min_8bit_size"] == 16384
+    assert resolved["bnb_fp32_state_names"] == ["some.weight"]
+    # Exercise the actual CLI override/typed reconstruction path, without any
+    # model or data files and without loading optional CUDA backend kernels.
+    for invalid in ("rl.optimizer.lr=-1", "rl.optimizer.impl=fused", "rl.optimizer.name=adamw_8bit"):
+        with pytest.raises(ValueError):
+            load_config(recipe, overrides + [invalid])
+    with pytest.raises(ConfigCompositionException, match="foreach"):
+        load_config(recipe, overrides + ["rl.optimizer.foreach=true"])
+
+
+@pytest.mark.parametrize("name", ["adamw_bnb_8bit", "paged_adamw_8bit"])
 def test_gpu_resume_and_membership(name, tmp_path):
     if not torch.cuda.is_available():
         pytest.skip("CUDA kernel gate")
@@ -169,6 +193,87 @@ def test_cuda_paging_preserves_updates_with_large_fp32_exception():
     assert report["quantized_elements"] == report["fp32_elements"] == count
     assert report["paged_moment_bytes"] == count * (2 + 8)
     assert report["exceptions"] == {"exception": "explicit"}
+
+
+@pytest.mark.parametrize("name", ["adamw_bnb_8bit", "paged_adamw_8bit"])
+def test_native_sft_transaction(name, tmp_path):
+    from types import SimpleNamespace
+
+    from cosmos_framework.posttrain.algorithm.sft import make_objective
+    from cosmos_framework.posttrain.roles.trainer.llm import LLMTrainer
+    from cosmos_framework.posttrain.tests.helpers.sft_objective import MemoryPacker, Policy
+
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA required")
+
+    class Net(torch.nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.embedding = torch.nn.Embedding(512, 256, device="cuda")
+            self.head = torch.nn.Linear(256, 512, device="cuda")
+
+        def forward(self, input_ids, attention_mask):
+            return SimpleNamespace(logits=self.head(self.embedding(input_ids)))
+
+    packer = MemoryPacker()
+    batches = [
+        [packer.add(list(range(offset, offset + 64)), [-100] * 8 + list(range(offset + 8, offset + 64)))]
+        for offset in range(7)
+    ]
+    cfg = OptimizerConfig(name=name, lr=0.001, warmup_steps=3)
+
+    def build():
+        policy = Policy(Net())
+        opt = build_optimizer(policy, cfg)
+        return LLMTrainer(
+            policy,
+            make_objective(packer),
+            opt,
+            grad_accum=2,
+            lr_scheduler=build_lr_scheduler(opt, cfg),
+            max_grad_norm=1.0,
+        )
+
+    trainer = build()
+    for index in range(4):
+        trainer.train(batches[index])
+    before_state = trainer.opt.state_dict()
+    before_scheduler = copy.deepcopy(trainer.lr_scheduler.state_dict())
+    before_weights = [p.detach().clone() for p in trainer.model.parameters()]
+    before_step = trainer._trainer_state()["optimizer_step"]
+    assert trainer.train(batches[4])["optim/update_outcome"] == "accumulating"
+    hook = next(trainer.model.parameters()).register_hook(lambda grad: grad * float("nan"))
+    try:
+        refused = trainer.train(batches[5])
+    finally:
+        hook.remove()
+    assert refused["optim/skip_reason"] == "nonfinite_gradient"
+    assert trainer._trainer_state()["optimizer_step"] == before_step
+    assert trainer.lr_scheduler.state_dict() == before_scheduler
+    assert all(torch.equal(a, b) for a, b in zip(before_weights, trainer.model.parameters()))
+    after_state = trainer.opt.state_dict()
+    for index, state in before_state["state"].items():
+        for key, value in state.items():
+            actual = after_state["state"][index][key]
+            assert torch.equal(value, actual) if isinstance(value, torch.Tensor) else value == actual
+    path = str(tmp_path / "iter_000002")
+    trainer.save(path, data_state={"cursor": 6})
+    expected_rng = torch.cuda.get_rng_state()
+    expected_cpu_rng = torch.get_rng_state()
+    restored = build()
+    restored.load(path)
+    assert torch.equal(torch.cuda.get_rng_state(), expected_rng)
+    assert torch.equal(torch.get_rng_state(), expected_cpu_rng)
+    resumed_cursor = restored.checkpoint_manager.load_component(path, "data")["cursor"]
+    assert resumed_cursor == 6
+    assert restored.iteration() == trainer.iteration()
+    for index in range(6, 10):
+        trainer.train(batches[index % len(batches)])
+        restored.train(batches[resumed_cursor % len(batches)])
+        resumed_cursor += 1
+    for a, b in zip(trainer.model.parameters(), restored.model.parameters()):
+        assert torch.equal(a, b)
+    assert trainer.lr_scheduler.state_dict() == restored.lr_scheduler.state_dict()
 
 
 def test_missing_dependency(monkeypatch):
@@ -367,6 +472,118 @@ def test_paged_buffer_lifetime_follows_storage_aliases(monkeypatch):
     assert owner() is None
     assert len(results) >= 4  # scratch preflight + two live moments
     assert results == [0] * len(results)  # real cudaFree succeeded for every allocation
+
+
+def test_only_supported_workflows_advertise_quantized_and_master_optimizers():
+    from cosmos_framework.posttrain.config.rl import GRPOConfig, NFTConfig, RunConfig
+    from cosmos_framework.posttrain.config.sft import SFTConfig
+
+    config = OptimizerConfig(name="adamw_bnb_8bit")
+    SFTConfig(optimizer=config)
+    with pytest.raises(ValueError, match="quantized optimizers are not supported by RunConfig"):
+        RunConfig(optimizer=config)
+    # fp32_master's rank-local schema is understood only by LLMTrainer save/load (SFT, Joint PPO);
+    # diffusion/NFT checkpoints and colocated GRPO offload would fail later, so refuse at config time.
+    master = OptimizerConfig(update_policy="fp32_master")
+    SFTConfig(optimizer=master)
+    for config_type in (RunConfig, NFTConfig, GRPOConfig):
+        with pytest.raises(ValueError, match="fp32_master is not supported by"):
+            config_type(optimizer=master)
+    with pytest.raises(ValueError, match="force_finite_grads"):
+        OptimizerConfig(name="adamw_bnb_8bit", force_finite_grads=False)
+
+
+def test_strategy_and_checkpoint_refusal_precedes_backend_allocation(monkeypatch):
+    from types import SimpleNamespace
+
+    from cosmos_framework.posttrain.config.build import refuse_rounding_or_unavailable_optimizer
+    from cosmos_framework.posttrain.config.sft import SFTConfig
+    from cosmos_framework.utils import quantized_optimizer
+
+    def unexpected_backend(**kwargs):
+        raise AssertionError("unsupported runtime must fail before backend allocation")
+
+    monkeypatch.setattr(quantized_optimizer, "require_backend", unexpected_backend)
+    config = SimpleNamespace(
+        rl=SFTConfig(optimizer=OptimizerConfig(name="adamw_bnb_8bit"), checkpoint_format="consolidated")
+    )
+    monkeypatch.setenv("WORLD_SIZE", "2")
+    with pytest.raises(ValueError, match="single CUDA"):
+        refuse_rounding_or_unavailable_optimizer(config, config.rl.optimizer)
+    monkeypatch.setenv("WORLD_SIZE", "1")
+    config.rl.checkpoint_format = "dcp"
+    with pytest.raises(ValueError, match="consolidated"):
+        refuse_rounding_or_unavailable_optimizer(config, config.rl.optimizer)
+
+
+def test_sft_preflight_is_pure_and_policy_aware(tmp_path, monkeypatch):
+    """validate_config never probes CUDA; fp32_master admits what its owner supports end to end."""
+    from cosmos_framework.posttrain.config.build import refuse_rounding_or_unavailable_optimizer
+    from cosmos_framework.posttrain.entrypoints.sft import validate_config_structure
+    from cosmos_framework.utils import quantized_optimizer
+    from cosmos_framework.utils.config import load_config
+
+    def unexpected_backend(**kwargs):
+        raise AssertionError("configuration validation must not import bitsandbytes or touch CUDA")
+
+    monkeypatch.setattr(quantized_optimizer, "require_backend", unexpected_backend)
+    monkeypatch.setenv("SFT_MODEL_PATH", str(tmp_path / "unallocated-model"))
+    monkeypatch.setenv("SFT_DATA_ROOT", str(tmp_path / "unopened-data"))
+    recipe = "cosmos_framework/posttrain/configs/sft_quantized_optimizer.py"
+
+    def check(*overrides):
+        config = load_config(recipe, ["--", *overrides])
+        refuse_rounding_or_unavailable_optimizer(config, validate_config_structure(config).optimizer)
+
+    # LLMTrainer saves/restores the rank-local master schema in both formats, over 1-D FSDP2,
+    # with BF16 storage: SFT accepts exactly that with fp32_master ...
+    monkeypatch.setenv("WORLD_SIZE", "2")
+    for name in ("adamw", "adamw_bnb_8bit", "paged_adamw_8bit"):
+        # The recipe's 8-bit-only option must be cleared for the AdamW control.
+        size = ["rl.optimizer.bnb_min_8bit_size=4096"] if name == "adamw" else []
+        check(
+            f"rl.optimizer.name={name}",
+            *size,
+            "rl.optimizer.update_policy=fp32_master",
+            "rl.checkpoint_format=dcp",
+            "rl.master_dtype=bfloat16",
+            "model_hf.parallelism.dp_shard=2",
+        )
+    # ... but not HSDP, which the master owner rejects at construction, including an inferred
+    # replicate degree (-1 resolves to WORLD_SIZE // dp_shard).
+    with pytest.raises(ValueError, match="HSDP"):
+        check("rl.optimizer.update_policy=fp32_master", "model_hf.parallelism.dp_replicate=2")
+    monkeypatch.setenv("WORLD_SIZE", "4")
+    with pytest.raises(ValueError, match="HSDP"):
+        check(
+            "rl.optimizer.update_policy=fp32_master",
+            "model_hf.parallelism.dp_replicate=-1",
+            "model_hf.parallelism.dp_shard=2",
+        )
+    check(
+        "rl.optimizer.update_policy=fp32_master",
+        "model_hf.parallelism.dp_replicate=-1",
+        "model_hf.parallelism.dp_shard=4",
+    )
+    monkeypatch.delenv("WORLD_SIZE")  # outside torchrun only an all-shard mesh is certainly 1-D
+    with pytest.raises(ValueError, match="HSDP"):
+        check(
+            "rl.optimizer.update_policy=fp32_master",
+            "model_hf.parallelism.dp_replicate=-1",
+            "model_hf.parallelism.dp_shard=2",
+        )
+    check(
+        "rl.optimizer.update_policy=fp32_master",
+        "model_hf.parallelism.dp_replicate=-1",
+        "model_hf.parallelism.dp_shard=-1",
+    )
+    monkeypatch.setenv("WORLD_SIZE", "2")
+    # The default parameter policy keeps its single-device FP32 consolidated contract.
+    with pytest.raises(ValueError, match="single CUDA device"):
+        check()
+    monkeypatch.setenv("WORLD_SIZE", "1")
+    with pytest.raises(ValueError, match="FP32 trainable storage"):
+        check("rl.master_dtype=bfloat16")
 
 
 def test_backend_probe_runs_once_per_device(monkeypatch):
