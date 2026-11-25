@@ -75,7 +75,7 @@ def test_pre_update_snapshot_is_an_independent_copy(host):
 
 @pytest.mark.L0
 @pytest.mark.CPU
-def test_allocator_receipt_is_absent_off_device_and_update_still_reports_it():
+def test_allocator_receipt_is_absent_off_device_and_update_still_reports_it(monkeypatch):
     from cosmos_framework.posttrain.tests.helpers.ppo_continuous import (
         GaussianPolicy,
         LocalWindowGateway,
@@ -84,14 +84,27 @@ def test_allocator_receipt_is_absent_off_device_and_update_still_reports_it():
     )
 
     assert joint_ppo._cuda_allocator_window(_bf16_net(), reset=True) is None
-    recipe = JointPPOConfig(num_envs=2, window_decisions=2, global_minibatch=2, microbatch=1)
-    model = GaussianPolicy()
-    collector = make_collector(model, LocalWindowGateway(), recipe, 0, 2)
-    learner = JointPPOTrainer(model, recipe)
-    receipt = learner.prepare_ppo_targets(collect_scored(collector, 0))
-    result = learner.train_batch(receipt["batch_id"])
-    assert "cuda_allocator" in result and result["cuda_allocator"] is None
-    assert result["parameter_update_l2"]["actor"] > 0 and result["parameter_update_l2"]["value"] > 0
+    windows = []
+    real_window = joint_ppo._cuda_allocator_window
+    monkeypatch.setattr(
+        joint_ppo, "_cuda_allocator_window", lambda net, reset: windows.append(reset) or real_window(net, reset=reset)
+    )
+    for update_policy in ("parameter", "fp32_master"):
+        windows.clear()
+        recipe = JointPPOConfig(num_envs=2, window_decisions=2, global_minibatch=2, microbatch=1)
+        recipe.optimizer.update_policy = update_policy
+        model = GaussianPolicy()
+        collector = make_collector(model, LocalWindowGateway(), recipe, 0, 2)
+        learner = JointPPOTrainer(model, recipe)
+        receipt = learner.prepare_ppo_targets(collect_scored(collector, 0))
+        result = learner.train_batch(receipt["batch_id"])
+        # Default runs keep the upstream receipt: no allocator reset, gather or key.
+        assert ("cuda_allocator" in result) is (update_policy == "fp32_master")
+        assert result.get("cuda_allocator") is None
+        # Default runs never touch (or reset) the process-wide CUDA peak counters.
+        assert windows == ([] if update_policy == "parameter" else [True, False])
+        assert result["parameter_update_l2"]["actor"] > 0 and result["parameter_update_l2"]["value"] > 0
+        collector.close()
 
 
 @pytest.mark.L0

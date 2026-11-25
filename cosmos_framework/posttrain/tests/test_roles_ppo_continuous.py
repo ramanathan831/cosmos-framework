@@ -221,8 +221,6 @@ def test_refactor_preserves_frozen_reference_records_targets_and_update() -> Non
     # The frozen receipt predates the explicit behavior-verification field.
     expected["receipt"]["behavior_verified"] = True
     actual = capture(recipe)
-    # The frozen update predates the allocator receipt, which is absent off-device.
-    assert actual["update"].pop("cuda_allocator") is None
     metrics = actual["update"].pop("metrics")
     compare(actual, expected)
     # Opposite minibatch policy losses nearly cancel in the window mean. Compare the

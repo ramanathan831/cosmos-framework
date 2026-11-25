@@ -437,7 +437,10 @@ class JointPPOTrainer(PPOTrainableRole):
             optimizer_metrics.append(dict(metrics))
             return metrics
 
-        pre_update_allocator = _cuda_allocator_window(self.model.net, reset=True)
+        # Allocator receipts are diagnostics of the opt-in FP32-master/eight-bit memory work. Default
+        # runs neither reset the process-wide CUDA peak counters nor gather receipts across ranks.
+        diagnostics = bool(getattr(self.opt, "cosmos_local_master_optimizer", False))
+        pre_update_allocator = _cuda_allocator_window(self.model.net, reset=True) if diagnostics else None
         if pre_update_allocator is not None:
             # Peaks restart per update; keep the since-creation maxima optimizer_memory reports.
             self._allocator_lifetime_peaks = {
@@ -478,18 +481,20 @@ class JointPPOTrainer(PPOTrainableRole):
                     raise RuntimeError(
                         f"joint PPO did not update both parameter groups: squared changes={changes.tolist()}"
                     )
-                return {
+                receipt = {
                     "optimizer_step": self.optimizer_step,
                     "metrics": result.metrics,
                     "optimizer_metrics": optimizer_metrics,
                     "learning_rates": {group["name"]: float(group["lr"]) for group in self.opt.param_groups},
                     "parameter_update_l2": dict(zip(("actor", "value"), changes.sqrt().tolist(), strict=True)),
-                    "cuda_allocator": _gather_allocator_receipt(
+                }
+                if diagnostics:
+                    receipt["cuda_allocator"] = _gather_allocator_receipt(
                         pre_update_allocator,
                         _cuda_allocator_window(self.model.net, reset=False),
                         {"optimizer_backend_step_ms": _backend_step_milliseconds(self.opt)},
-                    ),
-                }
+                    )
+                return receipt
 
     @contextmanager
     def _parameter_state(self, *, clone: bool = False, host: bool = False) -> Iterator[dict[str, torch.Tensor]]:
