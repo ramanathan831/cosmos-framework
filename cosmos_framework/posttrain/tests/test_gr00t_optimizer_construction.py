@@ -35,10 +35,11 @@ def test_joint_ppo_real_actor_value_factory_preserves_ownership(name, backend_ca
         assert backend_capture[0][2].name == name
 
 
-def test_legacy_joint_identity_does_not_gain_an_update_policy_field():
+def test_legacy_joint_identity_does_not_gain_opt_in_optimizer_fields():
     recipe = JointPPOConfig()
     legacy = asdict(recipe.optimizer)
-    legacy.pop("update_policy")
+    for field in ("update_policy", "bnb_min_8bit_size", "bnb_fp32_state_names"):
+        legacy.pop(field)
     from cosmos_framework.posttrain.utils.identity import canonical_config_value
 
     assert recipe.identity()["optimizer"] == canonical_config_value(legacy)

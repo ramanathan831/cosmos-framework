@@ -1306,7 +1306,8 @@ class DistributedCheckpointer(AbstractCheckpointer):
 
     def _require_sync_for_rank_local_optimizer(self, optimizer: Any) -> None:
         """Rank-local opaque optimizer payloads are not staged through the pinned-memory async path."""
-        if self.async_mode == AsyncMode.ASYNC_WITH_PINNED_MEM and getattr(optimizer, "rank_local_checkpoint", False):
+        async_mode = getattr(self, "async_mode", AsyncMode.DISABLED)  # subclasses/tests may skip __init__
+        if async_mode == AsyncMode.ASYNC_WITH_PINNED_MEM and getattr(optimizer, "rank_local_checkpoint", False):
             raise ValueError(
                 "rank-local quantized optimizer checkpoints require synchronous DCP saves; "
                 "set checkpoint.dcp_async_mode_enabled=false"
