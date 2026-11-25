@@ -123,3 +123,14 @@ def test_pending_publication_mount_preflight_is_fail_closed_and_skips_same_run(t
     assert failure.value.errno == errno.ENOTSUP and len(calls) == 1
     assert list((tmp_path / "new/checkpoints").iterdir()) == []
     assert (checkpoint / "trainer.pt").read_bytes() == before
+
+
+def test_one_budget_rule_for_resume_preflight_and_restored_counters():
+    from types import SimpleNamespace
+
+    from cosmos_framework.posttrain.entrypoints.joint_ppo import is_budget_boundary
+
+    recipe = SimpleNamespace(decisions=128, global_minibatch=32, max_steps=8)  # four updates per window
+    assert is_budget_boundary(recipe, 0, 0) and is_budget_boundary(recipe, 8, 2)
+    for step, version in ((4, 2), (12, 3), (-4, -1), (True, 0), (4.0, 1)):
+        assert not is_budget_boundary(recipe, step, version)

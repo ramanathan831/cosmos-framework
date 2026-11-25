@@ -315,7 +315,9 @@ def test_checkpoint_evaluation_restores_exact_state_without_training_or_resaving
     attempt["resume"] = str(source / "checkpoints" / f"iter_{step:06d}")
     attempt["output"] = source.parent / "evaluation-only"
     summary = gr00t_ppo.run(config, evaluate_only=True)
-    after = json.loads((attempt["output"] / "evaluation" / f"step_{step:06d}.json").read_text())
+    artifacts = attempt["output"] / "checkpoint-evaluation" / f"iter_{step:06d}"
+    assert summary["output"] == str(artifacts)
+    after = json.loads((artifacts / "evaluation" / f"step_{step:06d}.json").read_text())
     assert summary["mode"] == "checkpoint_evaluation" and summary["windows"] == 0
     assert summary["optimizer_step"] == step
     assert before["learner_state"] == after["learner_state"]
@@ -325,6 +327,9 @@ def test_checkpoint_evaluation_restores_exact_state_without_training_or_resaving
     assert allocated[-1][1].state_dict() == allocated[-2][1].state_dict()
     assert after["checkpoint_provenance"] == summary["checkpoint_provenance"]
     assert after["checkpoint_provenance"] == allocated[-1][0].loaded_checkpoint_provenance()
+    # A second evaluation of the same checkpoint into the same output never overwrites the first.
+    with pytest.raises(FileExistsError, match="refusing to overwrite"):
+        gr00t_ppo.run(config, evaluate_only=True)
 
 
 def test_training_resume_receipt_matches_live_state_before_next_update(local_run, monkeypatch):
@@ -416,8 +421,8 @@ def test_checkpoint_evaluation_rejects_source_mutation_before_publishing_scores(
     try:
         with pytest.raises(RuntimeError, match="checkpoint generation changed"):
             gr00t_ppo.run(config, evaluate_only=True)
-        assert not list(attempt["output"].glob("evaluation/*.json"))
-        assert not list(attempt["output"].glob("evaluation-summary-*.json"))
+        assert not list(attempt["output"].rglob("evaluation/*.json"))
+        assert not list(attempt["output"].rglob("evaluation-summary-*.json"))
         assert allocated[-1][0].optimizer_step == step
     finally:
         control.write_bytes(original_bytes)

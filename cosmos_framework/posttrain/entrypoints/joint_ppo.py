@@ -146,6 +146,17 @@ class CollectorCheckpointState:
         return self.collector.loaded_checkpoint_provenance()
 
 
+def is_budget_boundary(recipe, step, version) -> bool:
+    """Whether (optimizer_step, publication_version) is a completed window inside the budget."""
+    return (
+        type(version) is int
+        and version >= 0
+        and type(step) is int
+        and step == version * (recipe.decisions // recipe.global_minibatch)
+        and step <= recipe.max_steps
+    )
+
+
 def validate_resume_boundary(manager, path, recipe, environment, width):
     """Reject inconsistent RL cursors before workers allocate or restore models."""
     from cosmos_framework.posttrain.roles.env.ppo_window import PPOWindowCollector
@@ -155,14 +166,7 @@ def validate_resume_boundary(manager, path, recipe, environment, width):
     if not isinstance(control, dict) or not isinstance(data, dict):
         raise ValueError("joint PPO resume requires trainer and collection state")
     version, step = control.get("publication_version"), control.get("optimizer_step")
-    if (
-        type(version) is not int
-        or version < 0
-        or type(step) is not int
-        or step != version * (recipe.decisions // recipe.global_minibatch)
-        or step > recipe.max_steps
-        or control.get("accum") != 0
-    ):
+    if not is_budget_boundary(recipe, step, version) or control.get("accum") != 0:
         raise ValueError("joint PPO checkpoint is not a completed update/publication boundary")
     states = data.get("collectors")
     if not isinstance(states, dict) or set(states) != {str(rank) for rank in range(width)}:
@@ -350,10 +354,18 @@ def run(config: Any, opts: list[str] | None = None, *, evaluate_only: bool = Fal
     recipe = instantiate(config.rl)
     output = Path(attempt.out_dir)
     output.mkdir(parents=True, exist_ok=True)
-    dump_resolved(config, str(output))
     resume = attempt.resume_checkpoint
     if evaluate_only and (resume is None or not recipe.validation.enabled):
         raise ValueError("checkpoint evaluation requires an explicit resumable checkpoint and enabled validation")
+    # A checkpoint evaluation writes its own artifacts (resolved config, setup timing, scores,
+    # summary) under a per-checkpoint directory, never over the training run's files.
+    artifacts = output
+    if evaluate_only:
+        artifacts = output / "checkpoint-evaluation" / Path(str(resume).rstrip("/")).name
+        if artifacts.exists():
+            raise FileExistsError(f"checkpoint evaluation artifacts already exist: {artifacts}; refusing to overwrite")
+        artifacts.mkdir(parents=True)
+    dump_resolved(config, str(artifacts))
     lifecycle = CheckpointLifecycle.from_config(config, recipe, run_out_dir=str(output), resume_checkpoint=resume)
     if resume:
 
@@ -375,7 +387,7 @@ def run(config: Any, opts: list[str] | None = None, *, evaluate_only: bool = Fal
         observers.on_app_start()
         units = assemble(config, recipe, output, resume, width)
         setup_seconds = time.monotonic() - run_started
-        (output / "native-setup.json").write_text(
+        (artifacts / "native-setup.json").write_text(
             json.dumps(
                 {
                     "seconds": setup_seconds,
@@ -396,7 +408,7 @@ def run(config: Any, opts: list[str] | None = None, *, evaluate_only: bool = Fal
         progress = resolve_identical(policy.progress(), operation="Joint PPO restored counters")
         version, step = progress["publication_version"], progress["optimizer_step"]
         updates = recipe.decisions // recipe.global_minibatch
-        if step != version * updates or step > recipe.max_steps:
+        if not is_budget_boundary(recipe, step, version):
             raise ValueError("restored optimizer/publication counters differ from the configured training budget")
         if evaluate_only:
             from cosmos_framework.posttrain.checkpoint.io import atomic_write_json
@@ -423,7 +435,7 @@ def run(config: Any, opts: list[str] | None = None, *, evaluate_only: bool = Fal
                 collector,
                 instantiate(config.environment),
                 width,
-                str(output),
+                str(artifacts),
                 units.get("eval_sim"),
                 checkpoint_guard=checkpoint_guard,
             )
@@ -434,11 +446,11 @@ def run(config: Any, opts: list[str] | None = None, *, evaluate_only: bool = Fal
                 "restored_from": resume,
                 "optimizer_step": step,
                 "publication_version": version,
-                "output": str(output),
+                "output": str(artifacts),
                 "metrics": report.metrics,
                 "checkpoint_provenance": checkpoint_guard(),
             }
-            atomic_write_json(str(output / f"evaluation-summary-step-{step}.json"), summary)
+            atomic_write_json(str(artifacts / f"evaluation-summary-step-{step}.json"), summary)
             return summary
         if resume:
             record_restored_boundary(lifecycle.manager, resume, output, policy, collector)
