@@ -16,7 +16,6 @@ from torch.distributed.checkpoint.state_dict import StateDictOptions, get_optimi
 from torch.distributed.checkpoint.stateful import Stateful
 from torch.optim.lr_scheduler import LambdaLR, LRScheduler
 
-from cosmos_framework.posttrain.config.rl import QUANTIZED_OPTIMIZER_NAMES
 from cosmos_framework.utils import log
 from cosmos_framework.utils.functional.lr_scheduler import (
     ConstantScheduler,
@@ -25,6 +24,7 @@ from cosmos_framework.utils.functional.lr_scheduler import (
     WSDScheduler,
     WSFDScheduler,
 )
+from cosmos_framework.utils.quantized_optimizer_names import QUANTIZED_OPTIMIZER_NAMES
 
 # Hybrid orthogonalizing optimizers (Muon / Dion2) that own their parameter
 # categorization and run their own collective communication. They must be built

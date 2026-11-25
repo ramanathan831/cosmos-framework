@@ -25,8 +25,7 @@ from types import MethodType, SimpleNamespace
 
 import torch
 
-# The single torch-free definition lives with the posttrain optimizer config.
-from cosmos_framework.posttrain.config.rl import QUANTIZED_OPTIMIZER_NAMES as NAMES
+from cosmos_framework.utils.quantized_optimizer_names import QUANTIZED_OPTIMIZER_NAMES as NAMES
 
 VERSION = "0.49.2"
 

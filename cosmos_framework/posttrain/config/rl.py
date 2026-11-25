@@ -46,6 +46,7 @@ from cosmos_framework.posttrain.schema.checkpoint import (
     FULL_CHECKPOINT_COMPONENTS,
     CheckpointComponentPlan,
 )
+from cosmos_framework.utils.quantized_optimizer_names import QUANTIZED_OPTIMIZER_NAMES
 
 
 def _normalize_checkpoint_components(
@@ -63,8 +64,6 @@ def _normalize_checkpoint_components(
 OPTIMIZER_IMPLS: tuple[str, ...] = ("fused", "foreach", "for-loop")
 """torch kernel choices for `OptimizerConfig.impl` — cosmos-rl's `optm_impl` values verbatim."""
 
-QUANTIZED_OPTIMIZER_NAMES: tuple[str, ...] = ("adamw_bnb_8bit", "paged_adamw_8bit")
-"""bitsandbytes eight-bit AdamW names (non-paged, paged). The single definition; importing it pulls no torch."""
 
 OPTIMIZER_NAMES: tuple[str, ...] = ("adamw", "fusedadam", "muon", *QUANTIZED_OPTIMIZER_NAMES)
 """Optimizer CLASSES `OptimizerConfig.name` selects (its docstring describes each); `build_optimizer` dispatches on them."""
