@@ -125,11 +125,24 @@ def _stage_restore(trainer, path):
         before_model = run_rank_converged(
             lambda: get_model_state_dict(net, options=options), "master restore model snapshot"
         )
-        # CPU tensors may already alias a CPU model in tests; clone every tensor.
+        # cpu_offload already returned independent host copies of device state. Only a CPU model's
+        # state aliases live storage; clone just those, so the rollback snapshot is independent.
+        live = {
+            local_tensor(v).untyped_storage().data_ptr()
+            for v in net.state_dict().values()
+            if isinstance(v, torch.Tensor)
+        }
         before_model = tree_map(
-            lambda v: v.detach().clone() if isinstance(v, torch.Tensor) else deepcopy(v), before_model
+            lambda v: (
+                v.detach().clone()
+                if isinstance(v, torch.Tensor) and local_tensor(v).untyped_storage().data_ptr() in live
+                else v
+            ),
+            before_model,
         )
-        model = tree_map(lambda v: v.detach().clone() if isinstance(v, torch.Tensor) else deepcopy(v), before_model)
+        # The load target is fully overwritten (strict DCP load / consolidated fill), so it needs
+        # matching allocations, not a value copy of the snapshot.
+        model = tree_map(lambda v: torch.empty_like(v) if isinstance(v, torch.Tensor) else deepcopy(v), before_model)
         if manager.has_dcp_component(path, "model"):
             if not manager.load_dcp_component(path, "model", model):
                 raise FileNotFoundError("master optimizer resume requires model state")
