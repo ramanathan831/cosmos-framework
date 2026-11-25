@@ -286,3 +286,15 @@ def test_save_emits_exact_distillation_components(async_mode: AsyncMode) -> None
     assert any(key.startswith("net.") for key in model_state)
     assert any(key.startswith("net_fake_score.") for key in model_state)
     assert not any(key.startswith("net_teacher.") for key in model_state)
+
+
+@pytest.mark.L0
+@pytest.mark.CPU
+def test_distillation_checkpointer_refuses_rank_local_optimizers_before_training() -> None:
+    checkpointer = object.__new__(DistributedCheckpointer)
+    checkpointer.callbacks = None
+    rank_local = {"net": SimpleNamespace(rank_local_checkpoint=True)}
+    with pytest.raises(ValueError, match="rank-local"):
+        checkpointer.load(None, optimizer=rank_local)
+    with pytest.raises(ValueError, match="rank-local"):
+        checkpointer.save(None, rank_local, None, None, iteration=1)

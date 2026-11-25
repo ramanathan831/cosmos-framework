@@ -27,9 +27,6 @@ from torch.distributed.checkpoint.state_dict import (
 from torch.distributed.checkpoint.stateful import Stateful
 from torch.nn.modules.module import _IncompatibleKeys
 
-from cosmos_framework.model._base import ImaginaireModel
-from cosmos_framework.utils import log, misc
-from cosmos_framework.utils.easy_io import easy_io
 from cosmos_framework.checkpoint.dcp import (
     AsyncMode,
     CustomLoadPlanner,
@@ -40,7 +37,10 @@ from cosmos_framework.checkpoint.dcp import (
     DistributedCheckpointer as _DistributedCheckpointer,
 )
 from cosmos_framework.checkpoint.dcp import ModelWrapper as VFMModelWrapper
+from cosmos_framework.model._base import ImaginaireModel
 from cosmos_framework.model.generator.distillation.optimizer import OptimizerContainerLike, is_optimizer_container
+from cosmos_framework.utils import log, misc
+from cosmos_framework.utils.easy_io import easy_io
 from cosmos_framework.utils.generator.rand_state import get_rand_state_dict
 
 __all__: tuple[str, ...] = (
@@ -166,6 +166,17 @@ class ModelWrapper(VFMModelWrapper):
         return results
 
 
+def _refuse_rank_local_optimizers(optimizer: Any) -> None:
+    """Distillation saves per-phase optimizers through torch's generic DCP state; the eight-bit
+    container's rank-local payload is not supported here (sync or async), so fail before training."""
+    for key, optim in (optimizer or {}).items():
+        if getattr(optim, "rank_local_checkpoint", False):
+            raise ValueError(
+                f"distillation checkpointing does not support rank-local (eight-bit) optimizers ({key!r}); "
+                "use a standard optimizer for distillation"
+            )
+
+
 class DistributedCheckpointer(_DistributedCheckpointer):
     @misc.timer("checkpoint loading")
     def load(
@@ -175,6 +186,7 @@ class DistributedCheckpointer(_DistributedCheckpointer):
         scheduler: Any = None,
         grad_scaler: torch.amp.GradScaler | None = None,
     ) -> int:
+        _refuse_rank_local_optimizers(optimizer)
         if self.callbacks is not None:
             self.callbacks.on_load_checkpoint_start(model)
 
@@ -346,6 +358,7 @@ class DistributedCheckpointer(_DistributedCheckpointer):
         iteration: int = 0,
         epoch: int | None = None,
     ) -> None:
+        _refuse_rank_local_optimizers(optimizer)
         if self.async_mode == AsyncMode.ASYNC_WITH_PINNED_MEM:
             self._wait_for_previous_async_checkpoint()
 

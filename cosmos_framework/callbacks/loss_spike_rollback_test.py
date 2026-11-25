@@ -420,3 +420,29 @@ def test_recovery_resumes_once_gradients_return_to_normal():
     for _ in range(80):  # genuinely healthy steps
         _step(model, optimizer, scheduler, callback, 0.01)
     assert callback._lr_scale > suppressed, "rate never recovered despite a healthy run"
+
+
+def test_rollback_restores_fp32_masters_so_the_next_step_keeps_it():
+    """The FP32-master owner writes masters into the model each step; they must rewind too."""
+    from cosmos_framework.posttrain.config.build import build_optimizer
+    from cosmos_framework.posttrain.config.rl import OptimizerConfig
+
+    torch.manual_seed(0)
+    model = nn.Linear(8, 8).to(torch.bfloat16)
+    optimizer = build_optimizer(model, OptimizerConfig(lr=0.01, weight_decay=0.0, update_policy="fp32_master"))
+    scheduler = LambdaLR(optimizer, lr_lambda=lambda step: 1.0)
+    callback = LossSpikeRollback(enabled=True, window=10, min_observations=5, rollback_depth=2, grad_norm_factor=10.0)
+    for _ in range(20):
+        _step(model, optimizer, scheduler, callback, 0.01)
+    expected_masters = [master.clone() for master in callback._ring[0]["masters"][0]]
+    _step(model, optimizer, scheduler, callback, 10.0)
+    assert callback.rollbacks == 1
+    for master, expected in zip(optimizer.masters, expected_masters):
+        torch.testing.assert_close(master, expected, rtol=0, atol=0)
+    # The model and its masters agree, so the next update continues from the rewound point.
+    for parameter, master in zip(optimizer.live, optimizer.masters):
+        assert torch.equal(parameter.detach(), master.to(parameter.dtype))
+    rewound = {name: p.detach().clone() for name, p in model.named_parameters()}
+    _step(model, optimizer, scheduler, callback, 0.01)
+    for name, parameter in model.named_parameters():
+        assert (parameter.detach().float() - rewound[name].float()).abs().max() < 0.05

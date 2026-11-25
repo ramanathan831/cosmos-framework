@@ -220,7 +220,12 @@ class LossSpikeRollback(Callback):
     def _capture(self, model: "ImaginaireModel", optimizer: torch.optim.Optimizer) -> None:
         params = {name: p.detach().clone() for name, p in model.named_parameters() if p.requires_grad}
         moments: dict[tuple[int, int], dict[str, torch.Tensor]] = {}
+        masters: dict[int, list[torch.Tensor]] = {}
         for opt_index, opt in enumerate(_real_optimizers(optimizer)):
+            if getattr(opt, "cosmos_local_master_optimizer", False):
+                # The FP32-master owner writes its masters back into the model on every step, so
+                # a rewind that skipped them would be undone by the next update.
+                masters[opt_index] = [master.detach().clone() for master in opt.masters]
             for index, parameter in enumerate(p for group in opt.param_groups for p in group["params"]):
                 state = opt.state.get(parameter)
                 if not state:
@@ -228,7 +233,7 @@ class LossSpikeRollback(Callback):
                 moments[(opt_index, index)] = {
                     key: value.detach().clone() for key, value in state.items() if isinstance(value, torch.Tensor)
                 }
-        self._ring.append({"params": params, "moments": moments})
+        self._ring.append({"params": params, "moments": moments, "masters": masters})
 
     @torch.no_grad()
     def _restore(self, model: "ImaginaireModel", optimizer: torch.optim.Optimizer) -> bool:
@@ -251,6 +256,9 @@ class LossSpikeRollback(Callback):
             for key, saved in saved_state.items():
                 if key in state and isinstance(state[key], torch.Tensor):
                     state[key].copy_(saved)
+        for opt_index, saved_masters in snapshot.get("masters", {}).items():
+            for master, saved in zip(opts[opt_index].masters, saved_masters, strict=True):
+                master.copy_(saved)
         # Everything newer than the restored point came after the poisoned step, so it is
         # not a safe place to rewind to a second time. The gradient-norm history is NOT
         # cleared alongside it: those samples were all taken before the spike (the spiking
