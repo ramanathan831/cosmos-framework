@@ -226,3 +226,49 @@ def test_checkpoint_memory_cleanup_never_discards_partial_gradients(tmp_path, up
         for parameter, gradient in gradients
     )
     assert not (tmp_path / "unsafe").exists()
+
+
+# The OptimizerConfig fields present before the opt-in eight-bit/master work. A default
+# Joint PPO identity must contain exactly these, so pre-existing checkpoints resume exactly.
+_PRE_QUANTIZED_OPTIMIZER_IDENTITY_KEYS = {
+    "name",
+    "impl",
+    "lr",
+    "weight_decay",
+    "betas",
+    "eps",
+    "train_keys",
+    "grad_clip_norm",
+    "force_finite_grads",
+    "warmup_steps",
+    "decay_groups",
+    "lr_multipliers",
+    "muon_momentum",
+    "muon_ns_steps",
+    "muon_rms_match",
+}
+
+
+def test_default_identity_keeps_the_pre_existing_optimizer_key_set():
+    from dataclasses import replace
+
+    recipe = JointPPOConfig()
+    assert set(recipe.identity()["optimizer"]) == _PRE_QUANTIZED_OPTIMIZER_IDENTITY_KEYS
+    # Each opt-in field joins the identity only when it is actually selected.
+    master = replace(recipe, optimizer=replace(recipe.optimizer, update_policy="fp32_master"))
+    assert set(master.identity()["optimizer"]) == _PRE_QUANTIZED_OPTIMIZER_IDENTITY_KEYS | {"update_policy"}
+    eightbit = replace(
+        recipe,
+        optimizer=replace(
+            recipe.optimizer,
+            name="adamw_bnb_8bit",
+            update_policy="fp32_master",
+            bnb_min_8bit_size=16384,
+            bnb_fp32_state_names=["head.bias"],
+        ),
+    )
+    assert set(eightbit.identity()["optimizer"]) == _PRE_QUANTIZED_OPTIMIZER_IDENTITY_KEYS | {
+        "update_policy",
+        "bnb_min_8bit_size",
+        "bnb_fp32_state_names",
+    }

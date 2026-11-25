@@ -31,7 +31,21 @@ uv sync --extra quantized-optimizers
 | Generator (VFM) SFT, e.g. action policy | `optimizer.optimizer_type=adamw_bnb_8bit`                                 | `fp32_master` behaviour, always        |
 | AlpaGym CLRL                            | `--optimizer adamw_bnb_8bit --optimizer-update-policy fp32_master`        | `fp32_master`                          |
 
-Other workflows reject both names at config validation, before a model is built.
+Other workflows reject both names, and `update_policy=fp32_master`, at config validation, before
+a model is built: only the SFT and Joint PPO trainers save and restore the master checkpoint
+schema.
+
+- **Native SFT, `parameter`:** one CUDA device, FP32 trainable storage and
+  `rl.checkpoint_format=consolidated`.
+- **Native SFT, `fp32_master`:** BF16 or FP32 storage, one process or one-dimensional FSDP2,
+  and either checkpoint format.
+- **Generator (VFM) SFT:** set `checkpoint.dcp_async_mode_enabled=false`. The rank-local
+  optimizer payload isn't staged through the pinned-memory async save, so the run refuses it
+  when it starts.
+
+Config validation (`--validate-manifest`) checks only that the pinned bitsandbytes package is
+installed; it doesn't use a GPU. The CUDA kernels are probed once, on every rank, before the
+model is built.
 
 ## Update policies
 

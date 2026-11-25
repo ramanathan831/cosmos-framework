@@ -141,6 +141,7 @@ class SFTConfig(HFRunConfig):
     """One step is one optimizer update; batch size is per rank and microbatch."""
 
     supports_quantized_optimizer = True
+    supports_fp32_master_optimizer = True
 
     data: SFTDatasetConfig = field(default_factory=SFTDatasetConfig)
     validation: SFTValidationConfig = field(default_factory=SFTValidationConfig)

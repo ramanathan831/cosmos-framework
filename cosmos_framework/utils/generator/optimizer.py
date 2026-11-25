@@ -16,6 +16,7 @@ from torch.distributed.checkpoint.state_dict import StateDictOptions, get_optimi
 from torch.distributed.checkpoint.stateful import Stateful
 from torch.optim.lr_scheduler import LambdaLR, LRScheduler
 
+from cosmos_framework.posttrain.config.rl import QUANTIZED_OPTIMIZER_NAMES
 from cosmos_framework.utils import log
 from cosmos_framework.utils.functional.lr_scheduler import (
     ConstantScheduler,
@@ -420,7 +421,7 @@ def _build_optimizer_internal(
 
 # Shared eight-bit AdamW (``cosmos_framework.utils.quantized_optimizer``) behind the
 # shared FP32 update owner. Selected only by name; the legacy optimizers are unchanged.
-_QUANTIZED_OPTIMIZERS = ("adamw_bnb_8bit", "paged_adamw_8bit")
+_QUANTIZED_OPTIMIZERS = QUANTIZED_OPTIMIZER_NAMES
 # Constructor options the eight-bit backend can honor exactly. Anything else (e.g. amsgrad,
 # master_weights, foreach) is rejected rather than silently dropped.
 _QUANTIZED_OPTIMIZER_KWARGS = frozenset(

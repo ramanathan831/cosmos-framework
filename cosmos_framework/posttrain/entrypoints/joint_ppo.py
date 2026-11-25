@@ -47,6 +47,7 @@ def setup_policy(config: PosttrainJointPPOConfig, output: str, resume: str | Non
     import numpy as np
     import torch
 
+    from cosmos_framework.posttrain.config.build import preflight_quantized_optimizer
     from cosmos_framework.posttrain.control.checkpointing import CheckpointLifecycle
     from cosmos_framework.posttrain.roles.trainer.joint_ppo import JointPPOTrainer
     from cosmos_framework.posttrain.workers.ray import current_pdims
@@ -56,15 +57,8 @@ def setup_policy(config: PosttrainJointPPOConfig, output: str, resume: str | Non
     random.seed(recipe.seed)
     np.random.seed(recipe.seed)
     torch.manual_seed(recipe.seed)
-    if recipe.optimizer.name in ("adamw_bnb_8bit", "paged_adamw_8bit"):
-        if recipe.optimizer.update_policy != "fp32_master":
-            raise ValueError("native Joint PPO quantized optimizers require optimizer.update_policy=fp32_master")
-        from cosmos_framework.posttrain.utils.dist import run_rank_converged
-        from cosmos_framework.utils.quantized_optimizer import require_backend
-
-        run_rank_converged(
-            lambda: require_backend(paged=recipe.optimizer.name == "paged_adamw_8bit"), "Joint PPO optimizer preflight"
-        )
+    # JointPPOConfig already requires fp32_master for the eight-bit names; probe the kernels once here.
+    preflight_quantized_optimizer(recipe.optimizer, "Joint PPO optimizer preflight")
     model = instantiate(config.policy, output=output, parallel_dims=current_pdims())
     lifecycle = CheckpointLifecycle.from_config(config, recipe, run_out_dir=output, resume_checkpoint=resume)
     trainer = JointPPOTrainer(

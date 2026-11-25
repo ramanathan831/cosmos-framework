@@ -420,10 +420,17 @@ def test_failed_restore_keeps_live_values_and_next_update(name, failure, monkeyp
         assert torch.equal(value, actual) if isinstance(value, torch.Tensor) else value == actual
 
 
-def test_frozen_selection_stays_out():
+def test_frozen_selection_stays_out_only_for_trainable_owners():
+    # Existing optimizers keep the historical membership: a key-matched frozen parameter
+    # joins the group, so pre-existing checkpoints keep their group sizes.
     net = torch.nn.Linear(2, 2)
     net.weight.requires_grad_(False)
     opt = build_optimizer(net, OptimizerConfig(train_keys=["weight", "bias"]))
+    assert opt.param_groups[0]["params"] == [net.weight, net.bias]
+    # The opt-in local-master owner (and the eight-bit backend) accept live trainables only.
+    net = torch.nn.Linear(2, 2)
+    net.weight.requires_grad_(False)
+    opt = build_optimizer(net, OptimizerConfig(train_keys=["weight", "bias"], update_policy="fp32_master"))
     assert opt.param_groups[0]["params"] == [net.bias]
 
 
@@ -434,6 +441,9 @@ def test_paged_buffer_lifetime_follows_storage_aliases(monkeypatch):
         pytest.skip("CUDA required")
     from bitsandbytes.cextension import lib
 
+    from cosmos_framework.utils import quantized_optimizer as backend
+
+    monkeypatch.setattr(backend, "_PROBED", set())  # exercise the (normally cached) scratch probe too
     actual_free = lib._lib.cudaFree
     results = []
 
@@ -464,14 +474,21 @@ def test_paged_buffer_lifetime_follows_storage_aliases(monkeypatch):
     assert results == [0] * len(results)  # real cudaFree succeeded for every allocation
 
 
-def test_only_native_sft_advertises_quantized_optimizers():
-    from cosmos_framework.posttrain.config.rl import RunConfig
+def test_only_supported_workflows_advertise_quantized_and_master_optimizers():
+    from cosmos_framework.posttrain.config.rl import GRPOConfig, NFTConfig, RunConfig
     from cosmos_framework.posttrain.config.sft import SFTConfig
 
     config = OptimizerConfig(name="adamw_bnb_8bit")
     SFTConfig(optimizer=config)
-    with pytest.raises(ValueError, match="only by native SFT"):
+    with pytest.raises(ValueError, match="quantized optimizers are not supported by RunConfig"):
         RunConfig(optimizer=config)
+    # fp32_master's rank-local schema is understood only by LLMTrainer save/load (SFT, Joint PPO);
+    # diffusion/NFT checkpoints and colocated GRPO offload would fail later, so refuse at config time.
+    master = OptimizerConfig(update_policy="fp32_master")
+    SFTConfig(optimizer=master)
+    for config_type in (RunConfig, NFTConfig, GRPOConfig):
+        with pytest.raises(ValueError, match="fp32_master is not supported by"):
+            config_type(optimizer=master)
     with pytest.raises(ValueError, match="force_finite_grads"):
         OptimizerConfig(name="adamw_bnb_8bit", force_finite_grads=False)
 
@@ -497,6 +514,65 @@ def test_strategy_and_checkpoint_refusal_precedes_backend_allocation(monkeypatch
     config.rl.checkpoint_format = "dcp"
     with pytest.raises(ValueError, match="consolidated"):
         refuse_rounding_or_unavailable_optimizer(config, config.rl.optimizer)
+
+
+def test_sft_preflight_is_pure_and_policy_aware(tmp_path, monkeypatch):
+    """validate_config never probes CUDA; fp32_master admits what its owner supports end to end."""
+    from cosmos_framework.posttrain.config.build import refuse_rounding_or_unavailable_optimizer
+    from cosmos_framework.posttrain.entrypoints.sft import validate_config_structure
+    from cosmos_framework.utils import quantized_optimizer
+    from cosmos_framework.utils.config import load_config
+
+    def unexpected_backend(**kwargs):
+        raise AssertionError("configuration validation must not import bitsandbytes or touch CUDA")
+
+    monkeypatch.setattr(quantized_optimizer, "require_backend", unexpected_backend)
+    monkeypatch.setenv("SFT_MODEL_PATH", str(tmp_path / "unallocated-model"))
+    monkeypatch.setenv("SFT_DATA_ROOT", str(tmp_path / "unopened-data"))
+    recipe = "cosmos_framework/posttrain/configs/sft_quantized_optimizer.py"
+
+    def check(*overrides):
+        config = load_config(recipe, ["--", *overrides])
+        refuse_rounding_or_unavailable_optimizer(config, validate_config_structure(config).optimizer)
+
+    # LLMTrainer saves/restores the rank-local master schema in both formats, over 1-D FSDP2,
+    # with BF16 storage: SFT accepts exactly that with fp32_master ...
+    monkeypatch.setenv("WORLD_SIZE", "2")
+    for name in ("adamw", "adamw_bnb_8bit", "paged_adamw_8bit"):
+        # The recipe's 8-bit-only option must be cleared for the AdamW control.
+        size = ["rl.optimizer.bnb_min_8bit_size=4096"] if name == "adamw" else []
+        check(
+            f"rl.optimizer.name={name}",
+            *size,
+            "rl.optimizer.update_policy=fp32_master",
+            "rl.checkpoint_format=dcp",
+            "rl.master_dtype=bfloat16",
+            "model_hf.parallelism.dp_shard=2",
+        )
+    # ... but not HSDP, which the master owner rejects at construction.
+    with pytest.raises(ValueError, match="HSDP"):
+        check("rl.optimizer.update_policy=fp32_master", "model_hf.parallelism.dp_replicate=2")
+    # The default parameter policy keeps its single-device FP32 consolidated contract.
+    with pytest.raises(ValueError, match="single CUDA device"):
+        check()
+    monkeypatch.setenv("WORLD_SIZE", "1")
+    with pytest.raises(ValueError, match="FP32 trainable storage"):
+        check("rl.master_dtype=bfloat16")
+
+
+def test_backend_probe_runs_once_per_device(monkeypatch):
+    """Entry preflight and optimizer construction share one cached CUDA probe per device/mode."""
+    from cosmos_framework.utils import quantized_optimizer as backend
+
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA required")
+    backend._PROBED.clear()
+    backend.require_backend()
+    probes = []
+    original = backend._owned_state_buffer
+    monkeypatch.setattr(backend, "_owned_state_buffer", lambda *a, **k: probes.append(1) or original(*a, **k))
+    backend.require_backend()
+    assert probes == []
 
 
 def test_empty_and_noncontiguous_trainables_fail():

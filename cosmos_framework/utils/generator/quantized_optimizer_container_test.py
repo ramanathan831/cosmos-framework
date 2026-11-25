@@ -214,3 +214,23 @@ def test_dcp_exact_resume_and_transactional_rejection(tmp_path, monkeypatch):
             checkpoint_id=tmp_path / "legacy",
             planner=dcp.DefaultLoadPlanner(allow_partial_load=False),
         )
+
+
+def test_async_pinned_checkpointer_refuses_rank_local_optimizer_before_training():
+    """dcp_async_mode_enabled defaults to true in generator experiments; fail at the start-of-run load."""
+    from types import SimpleNamespace
+
+    from cosmos_framework.checkpoint.dcp import AsyncMode, DistributedCheckpointer
+
+    checkpointer = object.__new__(DistributedCheckpointer)  # no background process / process group
+    checkpointer.async_mode = AsyncMode.ASYNC_WITH_PINNED_MEM
+    checkpointer.callbacks = None
+    rank_local = SimpleNamespace(rank_local_checkpoint=True)
+    with pytest.raises(ValueError, match="dcp_async_mode_enabled=false"):
+        checkpointer.load(model=None, optimizer=rank_local)
+    with pytest.raises(ValueError, match="synchronous DCP saves"):
+        checkpointer.save(None, rank_local, None, None, iteration=1)
+    # Ordinary optimizers and synchronous checkpointers are unaffected by the check.
+    checkpointer._require_sync_for_rank_local_optimizer(SimpleNamespace())
+    checkpointer.async_mode = AsyncMode.DISABLED
+    checkpointer._require_sync_for_rank_local_optimizer(rank_local)

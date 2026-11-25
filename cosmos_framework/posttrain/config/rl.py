@@ -63,8 +63,14 @@ def _normalize_checkpoint_components(
 OPTIMIZER_IMPLS: tuple[str, ...] = ("fused", "foreach", "for-loop")
 """torch kernel choices for `OptimizerConfig.impl` — cosmos-rl's `optm_impl` values verbatim."""
 
-OPTIMIZER_NAMES: tuple[str, ...] = ("adamw", "fusedadam", "muon", "adamw_bnb_8bit", "paged_adamw_8bit")
+QUANTIZED_OPTIMIZER_NAMES: tuple[str, ...] = ("adamw_bnb_8bit", "paged_adamw_8bit")
+"""bitsandbytes eight-bit AdamW names (non-paged, paged). The single definition; importing it pulls no torch."""
+
+OPTIMIZER_NAMES: tuple[str, ...] = ("adamw", "fusedadam", "muon", *QUANTIZED_OPTIMIZER_NAMES)
 """Optimizer CLASSES `OptimizerConfig.name` selects (its docstring describes each); `build_optimizer` dispatches on them."""
+
+OPTIMIZER_IDENTITY_OPT_IN_FIELDS: tuple[str, ...] = ("bnb_min_8bit_size", "bnb_fp32_state_names", "update_policy")
+"""`OptimizerConfig` fields omitted from run identities while at their defaults (pre-existing identities unchanged)."""
 
 FIXED_NORMALISER_OPTIMIZER_EPS_CEILING: float = 1e-7
 """Largest `OptimizerConfig.eps` that `GRPOConfig` accepts silently under
@@ -305,7 +311,7 @@ class OptimizerConfig:
     def __post_init__(self) -> None:
         if self.update_policy not in ("parameter", "fp32_master"):
             raise ValueError("optimizer.update_policy must be parameter or fp32_master")
-        if self.update_policy == "fp32_master" and self.name not in ("adamw", "adamw_bnb_8bit", "paged_adamw_8bit"):
+        if self.update_policy == "fp32_master" and self.name not in ("adamw", *QUANTIZED_OPTIMIZER_NAMES):
             raise ValueError("fp32_master supports AdamW and bitsandbytes AdamW only")
         if type(self.bnb_min_8bit_size) is not int or self.bnb_min_8bit_size < 1:
             raise ValueError("bnb_min_8bit_size must be a positive integer")
@@ -313,13 +319,13 @@ class OptimizerConfig:
             raise ValueError("bnb_fp32_state_names must contain exact nonempty parameter names")
         if len(set(self.bnb_fp32_state_names)) != len(self.bnb_fp32_state_names):
             raise ValueError("duplicate bnb_fp32_state_names")
-        if self.name not in ("adamw_bnb_8bit", "paged_adamw_8bit") and (
+        if self.name not in QUANTIZED_OPTIMIZER_NAMES and (
             self.bnb_min_8bit_size != 4096 or self.bnb_fp32_state_names
         ):
             raise ValueError("bnb state options require a bitsandbytes optimizer")
-        if self.name in ("adamw_bnb_8bit", "paged_adamw_8bit") and not self.force_finite_grads:
+        if self.name in QUANTIZED_OPTIMIZER_NAMES and not self.force_finite_grads:
             raise ValueError("bitsandbytes optimizers require force_finite_grads=True")
-        if self.name in ("adamw_bnb_8bit", "paged_adamw_8bit"):
+        if self.name in QUANTIZED_OPTIMIZER_NAMES:
             # Refuse invalid backend options before allocating a large model.
             for key in ("lr", "eps", "weight_decay"):
                 value = getattr(self, key)
@@ -1346,15 +1352,28 @@ class RunConfig:
     # into the shared default.
     optimizer: OptimizerConfig = field(default_factory=OptimizerConfig)
 
+    # Opt-in capabilities. Only workflows whose trainer save/load understands the
+    # backend's checkpoint schema enable these; every other RunConfig rejects them here.
     supports_quantized_optimizer: ClassVar[bool] = False
+    # ``update_policy="fp32_master"`` checkpoints use MasterWeightOptimizer's rank-local
+    # schema, which only LLMTrainer's save/load (SFT, Joint PPO) understands.
+    supports_fp32_master_optimizer: ClassVar[bool] = False
 
     def __post_init__(self) -> None:
         for optimizer in (self.optimizer, getattr(self, "critic_optimizer", None)):
+            if getattr(optimizer, "name", None) in QUANTIZED_OPTIMIZER_NAMES and not self.supports_quantized_optimizer:
+                raise ValueError(
+                    f"quantized optimizers are not supported by {type(self).__name__}; "
+                    "supported: native SFT and GR00T Joint PPO"
+                )
             if (
-                getattr(optimizer, "name", None) in ("adamw_bnb_8bit", "paged_adamw_8bit")
-                and not self.supports_quantized_optimizer
+                getattr(optimizer, "update_policy", "parameter") == "fp32_master"
+                and not self.supports_fp32_master_optimizer
             ):
-                raise ValueError("quantized optimizers are currently supported only by native SFT")
+                raise ValueError(
+                    f"optimizer.update_policy=fp32_master is not supported by {type(self).__name__}; "
+                    "its trainer cannot save/restore the rank-local master schema (supported: native SFT, Joint PPO)"
+                )
         if isinstance(self.max_steps, bool) or not isinstance(self.max_steps, int) or self.max_steps < 0:
             raise ValueError(f"max_steps must be a non-negative integer, got {self.max_steps!r}")
         if isinstance(self.save_every, bool) or not isinstance(self.save_every, int) or self.save_every < 0:
@@ -3283,6 +3302,7 @@ class JointPPOConfig(PPOBaseConfig):
     """Synchronous decision windows with one jointly optimized actor/value model."""
 
     supports_quantized_optimizer: ClassVar[bool] = True
+    supports_fp32_master_optimizer: ClassVar[bool] = True
 
     num_envs: int = 8
     window_decisions: int = 16
@@ -3352,10 +3372,7 @@ class JointPPOConfig(PPOBaseConfig):
             raise ValueError("joint PPO requires synchronous dcp checkpoints and rl.grad_accum=1")
         if self.optimizer.train_keys or self.optimizer.decay_groups:
             raise ValueError("joint PPO owns the complete actor/value parameter partition")
-        if (
-            self.optimizer.name in ("adamw_bnb_8bit", "paged_adamw_8bit")
-            and self.optimizer.update_policy != "fp32_master"
-        ):
+        if self.optimizer.name in QUANTIZED_OPTIMIZER_NAMES and self.optimizer.update_policy != "fp32_master":
             raise ValueError("native Joint PPO quantized optimizers require optimizer.update_policy=fp32_master")
 
     def identity(self) -> dict:
@@ -3364,9 +3381,12 @@ class JointPPOConfig(PPOBaseConfig):
         from cosmos_framework.posttrain.utils.identity import canonical_config_value
 
         optimizer_identity = asdict(self.optimizer)
-        if self.optimizer.update_policy == "parameter":
-            # Keep existing exact-resume identities stable for unchanged defaults.
-            optimizer_identity.pop("update_policy")
+        # Fields added by the opt-in eight-bit/master work appear only when set, so every
+        # existing run (all defaults) keeps its pre-existing identity and exact resume.
+        defaults = OptimizerConfig()
+        for name in OPTIMIZER_IDENTITY_OPT_IN_FIELDS:
+            if optimizer_identity[name] == getattr(defaults, name):
+                optimizer_identity.pop(name)
         return {
             "algorithm": "joint-ppo-v3",
             # Version 3 already requires verification; only the explicit opt-out

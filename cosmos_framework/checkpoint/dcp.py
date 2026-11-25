@@ -897,6 +897,9 @@ class DistributedCheckpointer(AbstractCheckpointer):
         scheduler: torch.optim.lr_scheduler.LRScheduler | None = None,
         grad_scaler: torch.amp.GradScaler | None = None,
     ) -> int:
+        # The trainer loads (or finds nothing to load) before its first save, so refuse here
+        # rather than after `save_iter` iterations of training.
+        self._require_sync_for_rank_local_optimizer(optimizer)
         if self.callbacks is not None:
             self.callbacks.on_load_checkpoint_start(model)
 
@@ -1301,6 +1304,14 @@ class DistributedCheckpointer(AbstractCheckpointer):
 
         log.info(f"Saved checkpoint to {os.path.join(self.save_dirname, checkpoint_file)}")
 
+    def _require_sync_for_rank_local_optimizer(self, optimizer: Any) -> None:
+        """Rank-local opaque optimizer payloads are not staged through the pinned-memory async path."""
+        if self.async_mode == AsyncMode.ASYNC_WITH_PINNED_MEM and getattr(optimizer, "rank_local_checkpoint", False):
+            raise ValueError(
+                "rank-local quantized optimizer checkpoints require synchronous DCP saves; "
+                "set checkpoint.dcp_async_mode_enabled=false"
+            )
+
     def save(
         self,
         model: ImaginaireModel,
@@ -1319,9 +1330,8 @@ class DistributedCheckpointer(AbstractCheckpointer):
             grad_scaler (torch.amp.GradScaler): The gradient scaler (for mixed precision training).
             iteration (int): Current iteration number.
         """
+        self._require_sync_for_rank_local_optimizer(optimizer)
         if self.async_mode == AsyncMode.ASYNC_WITH_PINNED_MEM:
-            if getattr(optimizer, "rank_local_checkpoint", False):
-                raise ValueError("rank-local quantized optimizer checkpoints require synchronous DCP saves")
             self._wait_for_previous_async_checkpoint()
 
         if self.callbacks is not None:

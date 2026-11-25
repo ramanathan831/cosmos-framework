@@ -17,8 +17,10 @@ from types import MethodType, SimpleNamespace
 
 import torch
 
+# The single torch-free definition lives with the posttrain optimizer config.
+from cosmos_framework.posttrain.config.rl import QUANTIZED_OPTIMIZER_NAMES as NAMES
+
 VERSION = "0.49.2"
-NAMES = ("adamw_bnb_8bit", "paged_adamw_8bit")
 
 
 def _owned_state_buffer(optimizer, parameter, dtype=torch.float32):
@@ -67,13 +69,23 @@ def _owned_state_buffer(optimizer, parameter, dtype=torch.float32):
     return buffer
 
 
-def require_backend(*, paged=False):
+def require_installed():
+    """Pure preflight: the pinned bitsandbytes distribution is installed. No import, no CUDA."""
     try:
         version = importlib.metadata.version("bitsandbytes")
     except importlib.metadata.PackageNotFoundError as exc:
         raise ImportError("Install cosmos-framework[quantized-optimizers] for bitsandbytes optimizers") from exc
     if version != VERSION:
         raise RuntimeError(f"bitsandbytes=={VERSION} required; found {version}")
+
+
+# (CUDA device index, paged) pairs whose kernel/allocation probe already passed in this process.
+_PROBED: set[tuple[int, bool]] = set()
+
+
+def require_backend(*, paged=False):
+    """Import bitsandbytes and probe its CUDA kernels on the current device, once per process."""
+    require_installed()
     if not torch.cuda.is_available():
         raise ValueError("bitsandbytes optimizers require CUDA")
     import bitsandbytes as bnb
@@ -81,6 +93,9 @@ def require_backend(*, paged=False):
 
     if not getattr(lib, "compiled_with_cuda", False):
         raise RuntimeError("bitsandbytes CUDA kernels are unavailable")
+    key = (torch.cuda.current_device(), bool(paged))
+    if key in _PROBED:
+        return bnb
     # Exercise the selected CUDA allocation/update path before model construction.
     # No RNG use and no model update: this scratch tensor is discarded immediately.
     probe = torch.nn.Parameter(torch.ones(131072 if paged else 4096, device="cuda"))
@@ -96,6 +111,7 @@ def require_backend(*, paged=False):
         raise RuntimeError("bitsandbytes CUDA optimizer kernel/allocation preflight failed") from exc
     finally:
         del optimizer.get_state_buffer  # avoid a bound-method/self cycle retaining the probe
+    _PROBED.add(key)
     return bnb
 
 

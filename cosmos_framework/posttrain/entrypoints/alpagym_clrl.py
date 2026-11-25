@@ -433,7 +433,11 @@ def _build_trainer(run_config: Any, updates_per_step: int, *, optimizer: Optimiz
     from alpagym_runtime.posttrain.model import AlpamayoTrainModel
     from alpagym_runtime.posttrain.objective import make_alpagym_objective
 
-    from cosmos_framework.posttrain.config.build import build_lr_scheduler, build_optimizer
+    from cosmos_framework.posttrain.config.build import (
+        build_lr_scheduler,
+        build_optimizer,
+        preflight_quantized_optimizer,
+    )
     from cosmos_framework.posttrain.roles.trainer import LLMTrainer
 
     grpo = run_config.cosmos.train.train_policy
@@ -445,15 +449,7 @@ def _build_trainer(run_config: Any, updates_per_step: int, *, optimizer: Optimiz
     # The TRAINING model, not the rollout's: `build_inference_engine` yields ExpertModelRL
     # (generation), while training needs the patched ExpertModelCosmos.
     optimizer_config = optimizer or alpagym_optimizer_config(run_config.cosmos.train)
-    if optimizer_config.name in ("adamw_bnb_8bit", "paged_adamw_8bit"):
-        if optimizer_config.update_policy != "fp32_master":
-            raise ValueError("native AlpaGym quantized optimizers require update_policy=fp32_master")
-        from cosmos_framework.posttrain.utils.dist import run_rank_converged
-        from cosmos_framework.utils.quantized_optimizer import require_backend
-
-        run_rank_converged(
-            lambda: require_backend(paged=optimizer_config.name == "paged_adamw_8bit"), "AlpaGym optimizer preflight"
-        )
+    preflight_quantized_optimizer(optimizer_config, "native AlpaGym optimizer preflight", require_fp32_master=True)
     model = AlpamayoTrainModel(str(run_config.policy.model.path), dtype=torch.bfloat16)
     # FSDP width comes from the RANK mesh, not the replica count. This policy is declared
     # (replicas=1, ranks=gpus): `replica_coords()` would report (0, 1) and silently skip the FSDP
@@ -830,14 +826,14 @@ def run(config: EntryConfig) -> dict:
 
 def main() -> None:
     """CLI. AlpaGym's host CLI invokes this in place of `cosmos_rl.launcher.launch_all`."""
-    from cosmos_framework.posttrain.config.rl import OPTIMIZER_IMPLS
+    from cosmos_framework.posttrain.config.rl import OPTIMIZER_IMPLS, QUANTIZED_OPTIMIZER_NAMES
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--resolved-config", required=True, help="AlpaGym's resolved_config.yaml")
     parser.add_argument("--gpus", type=int, required=True, help="GPUs for the cosmos half")
     parser.add_argument("--steps", type=int, required=True)
     parser.add_argument("--group-size", type=int, required=True)
-    parser.add_argument("--optimizer", choices=("adamw", "adamw_bnb_8bit", "paged_adamw_8bit"), default="adamw")
+    parser.add_argument("--optimizer", choices=("adamw", *QUANTIZED_OPTIMIZER_NAMES), default="adamw")
     parser.add_argument(
         "--optimizer-impl", choices=OPTIMIZER_IMPLS, default="", help="Explicit torch AdamW implementation."
     )
