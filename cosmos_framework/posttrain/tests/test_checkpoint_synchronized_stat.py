@@ -22,6 +22,51 @@ pytestmark = [
 ]
 
 
+@pytest.fixture(autouse=True)
+def _shared_fs_identity(request, monkeypatch):
+    """These checks qualify the opt-in shared-filesystem identity; defaults are tested separately."""
+    if "default_identity" not in request.node.name:
+        monkeypatch.setenv("COSMOS_CHECKPOINT_SHARED_FS_IDENTITY", "1")
+
+
+def test_default_identity_uses_plain_stat_and_the_upstream_publication_signature(tmp_path, monkeypatch):
+    import importlib
+
+    from cosmos_framework.posttrain.checkpoint import CheckpointManager
+
+    module = importlib.import_module("cosmos_framework.posttrain.checkpoint.synchronized_stat")
+    monkeypatch.delenv("COSMOS_CHECKPOINT_SHARED_FS_IDENTITY", raising=False)
+    monkeypatch.setattr(module, "_statx", lambda: pytest.fail("default runs must not force-sync statx"))
+    root = tmp_path / "iter_000001"
+    root.mkdir()
+    for name in ("model.pt", "optim.pt", "trainer.pt"):
+        (root / name).write_bytes(name.encode() * (1024 * 1024 if name == "model.pt" else 1))
+    identity = CheckpointManager().publication_identity(str(root))
+    # Upstream shape and value: the metadata + small-file signature, no content hashing/inventory.
+    assert set(identity) == {"destination", "checkpoint_generation"}
+    assert identity["checkpoint_generation"] == checkpoint_inventory_signature(str(root))
+
+
+def test_statx_unavailable_falls_back_to_plain_stat(tmp_path, monkeypatch):
+    import importlib
+
+    module = importlib.import_module("cosmos_framework.posttrain.checkpoint.synchronized_stat")
+    payload = tmp_path / "payload"
+    payload.write_bytes(b"value")
+
+    def missing():
+        raise RuntimeError("libc has no statx")
+
+    def enosys(*args):
+        ctypes.set_errno(errno.ENOSYS)
+        return -1
+
+    for statx in (missing, lambda: enosys):
+        monkeypatch.setattr(module, "_statx", statx)
+        attributes = synchronized_stat(payload)
+        assert (attributes.st_ino, attributes.st_size) == (os.stat(payload).st_ino, 5)
+
+
 def test_stale_client_timestamp_does_not_change_checkpoint_generation(tmp_path, monkeypatch):
     payload = tmp_path / "model.distcp"
     payload.write_bytes(b"a" * (5 * 1024 * 1024))

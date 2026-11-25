@@ -121,6 +121,12 @@ torchrun --standalone --nproc-per-node=1 \
 The GR00T recipes are `configs/gr00t_n1d7_libero_quantized_optimizer.py` and
 `configs/gr00t_n1d7_libero10_quantized_optimizer.py`.
 
+On a network filesystem where ranks can see different cached timestamps for one finished
+checkpoint (seen on Lustre in multi-GPU GR00T runs), set
+`COSMOS_CHECKPOINT_SHARED_FS_IDENTITY=1`. Checkpoint provenance then uses server-synchronized
+attributes, and validation publication identifies a checkpoint by its full content. Each byte is
+read once across the ranks. Keep the setting the same for the whole run, including resumes.
+
 ## GR00T PPO options
 
 These are off by default; at their defaults, native behaviour and checkpoint identity are

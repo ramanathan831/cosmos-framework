@@ -219,17 +219,23 @@ class PublicationJournal:
 
 
 def _distributed_content_digests(manager: "CheckpointManager", path: str) -> dict[str, tuple[int, str]] | None:
-    """Hash a local checkpoint's payloads once across the job: each rank reads a disjoint share.
+    """Under the shared-FS identity opt-in, hash payloads once across the job (disjoint shares).
 
-    Returns None outside a multi-rank job or for object stores (whose identity is not content
+    Returns None without the opt-in, outside a multi-rank job or for object stores (whose identity is not content
     hashed here); ``publication_identity`` then hashes locally. Each phase converges failures
     before the next collective, so one rank's error cannot strand its peers.
     """
     import torch.distributed as dist
 
+    from cosmos_framework.posttrain.checkpoint.synchronized_stat import shared_fs_identity
     from cosmos_framework.posttrain.utils.rank_state import gather_rank_states
 
-    if manager.store.is_object_store or not dist.is_initialized() or dist.get_world_size() == 1:
+    if (
+        not shared_fs_identity()  # default: upstream metadata identity, no content hashing at all
+        or manager.store.is_object_store
+        or not dist.is_initialized()
+        or dist.get_world_size() == 1
+    ):
         return None
     rank, world = dist.get_rank(), dist.get_world_size()
     shard = run_rank_converged(

@@ -2,6 +2,13 @@
 # SPDX-License-Identifier: OpenMDW-1.1
 """Read server-synchronized Linux attributes for immutable checkpoint identity.
 
+Opt-in: set ``COSMOS_CHECKPOINT_SHARED_FS_IDENTITY=1`` for multi-rank runs on a network
+filesystem (observed on Lustre) whose ranks see different client-cached timestamps for one
+finished checkpoint. It makes checkpoint provenance use forced-sync ``statx`` and validation
+publication bind full payload content. Without it, identity uses plain ``os.stat`` and the
+metadata + small-file signature, exactly as before, at no extra cost. Keep the setting
+constant for a run: it changes the publication identity recorded in checkpoints.
+
 Normal stat may return stale network-client mtime/ctime after a distributed
 writer finishes. statx(AT_STATX_FORCE_SYNC) asks the filesystem to synchronize
 attributes with its server. It does not weaken identity, retry disagreement or
@@ -14,6 +21,7 @@ Layout: the original basic-stat prefix of Linux UAPI include/uapi/linux/stat.h.
 from __future__ import annotations
 
 import ctypes
+import errno
 import os
 import struct
 import sys
@@ -26,6 +34,21 @@ _AT_STATX_FORCE_SYNC = 0x2000
 _AT_EMPTY_PATH = 0x1000
 _STATX_BASIC_STATS = 0x7FF
 _REQUIRED = 0x001 | 0x040 | 0x080 | 0x100 | 0x200  # type, ctime, mtime, inode, size
+
+
+SHARED_FS_IDENTITY_ENV = "COSMOS_CHECKPOINT_SHARED_FS_IDENTITY"
+
+
+def shared_fs_identity() -> bool:
+    """Whether the opt-in shared-filesystem checkpoint identity is enabled for this process."""
+    return os.environ.get(SHARED_FS_IDENTITY_ENV, "").strip().lower() in ("1", "true", "yes")
+
+
+def checkpoint_stat(path):
+    """``synchronized_stat`` under the shared-filesystem opt-in; otherwise the plain no-follow stat."""
+    if shared_fs_identity():
+        return synchronized_stat(path)
+    return os.fstat(path) if isinstance(path, int) else os.stat(path, follow_symlinks=False)
 
 
 @lru_cache(maxsize=1)
@@ -60,8 +83,16 @@ def synchronized_stat(path):
     buffer = ctypes.create_string_buffer(256)
     dirfd = path if descriptor else _AT_FDCWD
     flags = _AT_STATX_FORCE_SYNC | (_AT_EMPTY_PATH if descriptor else _AT_SYMLINK_NOFOLLOW)
-    if _statx()(dirfd, encoded, flags, _STATX_BASIC_STATS, buffer):
+    try:
+        statx = _statx()
+    except RuntimeError:
+        statx = None  # libc without statx: no synchronized attributes to ask for
+    if statx is None:
+        return os.fstat(path) if descriptor else os.stat(encoded, follow_symlinks=False)
+    if statx(dirfd, encoded, flags, _STATX_BASIC_STATS, buffer):
         error = ctypes.get_errno()
+        if error == errno.ENOSYS:  # kernel without statx: plain attributes are all there is
+            return os.fstat(path) if descriptor else os.stat(encoded, follow_symlinks=False)
         raise OSError(error, os.strerror(error), path if descriptor else os.fsdecode(path))
     mask = struct.unpack_from("=I", buffer, 0)[0]
     if mask & _REQUIRED != _REQUIRED:

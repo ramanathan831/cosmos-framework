@@ -17,7 +17,7 @@ from cosmos_framework.posttrain.checkpoint.io import (
     fsync_directory,
     is_complete_iter_dir,
 )
-from cosmos_framework.posttrain.checkpoint.synchronized_stat import synchronized_stat
+from cosmos_framework.posttrain.checkpoint.synchronized_stat import checkpoint_stat, synchronized_stat
 
 EXTERNAL_COPY_PROVENANCE_FILE = ".external_copy_provenance.json"
 CheckpointProvenance = dict[str, int | str]
@@ -178,7 +178,8 @@ def checkpoint_inventory_signature(
             if inventory is not None:
                 inventory.append({"record": record.replace("\0", "|"), "sha256": hexdigest})
             continue
-        attributes = synchronized_stat(path)
+        # Plain stat by default (upstream cost); forced-sync statx only under the shared-FS opt-in.
+        attributes = checkpoint_stat(path)
         kind = "symlink" if stat.S_ISLNK(attributes.st_mode) else "file"
         if kind == "file" and attributes.st_size <= 4 * 1024 * 1024:
             # Small files are content-bound below. Ignoring inode/timestamps makes an atomically

@@ -697,26 +697,35 @@ class CheckpointManager:
     ) -> dict[str, Any]:
         """Return the non-secret checkpoint generation and publication destination.
 
-        ``content_digests`` are the gathered ``publication_content_shard`` results of every
-        rank. With them, each payload byte is read once across the job; without them this
-        rank reads every payload once itself.
+        By default this is the metadata + small-file checkpoint signature. Under the opt-in
+        ``COSMOS_CHECKPOINT_SHARED_FS_IDENTITY`` (ranks of a network filesystem that disagree
+        about cached attributes) it binds full payload content instead; ``content_digests`` are
+        then the gathered ``publication_content_shard`` results, so each byte is read once in
+        total across the job.
         """
         if self.store.is_object_store:
             return dict(self.store.publication_identity(iter_dir))
-        from cosmos_framework.posttrain.checkpoint.provenance import checkpoint_provenance
+        from cosmos_framework.posttrain.checkpoint.synchronized_stat import shared_fs_identity
 
-        inventory: list[dict[str, Any]] = []
-        # Content, not client/server timestamps, identifies a completed publication boundary.
-        # Keep legacy load/external-copy provenance unchanged for existing artifacts.
-        provenance = checkpoint_provenance(
-            iter_dir, inventory=inventory, full_content=True, content_digests=content_digests
-        )
         if self.upload:
             from cosmos_framework.posttrain.utils.object_store import upload_destination_identity
 
             destination = upload_destination_identity(self.upload, os.path.basename(os.path.abspath(iter_dir)))
         else:
             destination = {"kind": "local"}
+        if not shared_fs_identity():
+            if content_digests is not None:
+                raise ValueError("publication content digests require the shared-filesystem identity opt-in")
+            return {
+                "destination": destination,
+                "checkpoint_generation": self.checkpoint_provenance(iter_dir)["signature"],
+            }
+        from cosmos_framework.posttrain.checkpoint.provenance import checkpoint_provenance
+
+        inventory: list[dict[str, Any]] = []
+        provenance = checkpoint_provenance(
+            iter_dir, inventory=inventory, full_content=True, content_digests=content_digests
+        )
         return {
             "destination": destination,
             "checkpoint_generation": provenance["signature"],
