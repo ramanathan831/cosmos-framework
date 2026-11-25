@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Complete-checkpoint construction is explicit and cannot accept missing frozen weights."""
 
 from dataclasses import asdict, replace

@@ -5,10 +5,10 @@ Post-training can keep AdamW moments in 8 bits with
 This cuts optimizer-state memory by about 75% for eligible tensors. Model weights are not
 quantized, and existing recipes are unchanged unless a config selects one of the names below.
 
-| Name | Moments | Memory |
-|---|---|---|
-| `adamw_bnb_8bit` | Blockwise uint8, FP32 block scales | Ordinary CUDA memory |
-| `paged_adamw_8bit` | Same | CUDA managed (paged) memory for tensors with at least 100,000 elements |
+| Name               | Moments                            | Memory                                                                 |
+| ------------------ | ---------------------------------- | ---------------------------------------------------------------------- |
+| `adamw_bnb_8bit`   | Blockwise uint8, FP32 block scales | Ordinary CUDA memory                                                   |
+| `paged_adamw_8bit` | Same                               | CUDA managed (paged) memory for tensors with at least 100,000 elements |
 
 `adamw_8bit` is rejected on purpose, so a checkpoint's optimizer name always identifies the
 backend that wrote it.
@@ -24,12 +24,12 @@ uv sync --extra quantized-optimizers
 
 ## Where it is supported
 
-| Workflow | How to select | Update policy |
-|---|---|---|
-| Native posttrain SFT | `rl.optimizer.name=adamw_bnb_8bit` | `parameter` (default) or `fp32_master` |
-| GR00T Joint PPO | `rl.optimizer.name=adamw_bnb_8bit rl.optimizer.update_policy=fp32_master` | `fp32_master` required |
-| Generator (VFM) SFT, e.g. action policy | `optimizer.optimizer_type=adamw_bnb_8bit` | `fp32_master` behaviour, always |
-| AlpaGym CLRL | `--optimizer adamw_bnb_8bit --optimizer-update-policy fp32_master` | `fp32_master` |
+| Workflow                                | How to select                                                             | Update policy                          |
+| --------------------------------------- | ------------------------------------------------------------------------- | -------------------------------------- |
+| Native posttrain SFT                    | `rl.optimizer.name=adamw_bnb_8bit`                                        | `parameter` (default) or `fp32_master` |
+| GR00T Joint PPO                         | `rl.optimizer.name=adamw_bnb_8bit rl.optimizer.update_policy=fp32_master` | `fp32_master` required                 |
+| Generator (VFM) SFT, e.g. action policy | `optimizer.optimizer_type=adamw_bnb_8bit`                                 | `fp32_master` behaviour, always        |
+| AlpaGym CLRL                            | `--optimizer adamw_bnb_8bit --optimizer-update-policy fp32_master`        | `fp32_master`                          |
 
 Other workflows reject both names at config validation, before a model is built.
 
@@ -52,13 +52,14 @@ Other workflows reject both names at config validation, before a model is built.
 
 ## Options
 
-| Option | Default | Meaning |
-|---|---|---|
-| `bnb_min_8bit_size` | `4096` | Tensors with fewer elements keep FP32 moments |
-| `bnb_fp32_state_names` | `[]` | Exact canonical parameter names that keep FP32 moments. Use the final name, including wrapper prefixes. Unknown, frozen, duplicate or tied-alias names fail. |
-| `update_policy` | `parameter` | See above |
+| Option                 | Default     | Meaning                                                                                                                                                      |
+| ---------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `bnb_min_8bit_size`    | `4096`      | Tensors with fewer elements keep FP32 moments                                                                                                                |
+| `bnb_fp32_state_names` | `[]`        | Exact canonical parameter names that keep FP32 moments. Use the final name, including wrapper prefixes. Unknown, frozen, duplicate or tied-alias names fail. |
+| `update_policy`        | `parameter` | See above                                                                                                                                                    |
 
 Both `bnb_*` options are only valid with the 8-bit names. Other restrictions:
+
 - `impl`, `fused`, `foreach`, `capturable` and `amsgrad` are rejected.
 - `force_finite_grads` must stay true.
 - Backend percentile clipping is disabled; clipping and gradient accumulation stay with Cosmos.
@@ -106,10 +107,10 @@ The GR00T recipes are `configs/gr00t_n1d7_libero_quantized_optimizer.py` and
 These are off by default; at their defaults, native behaviour and checkpoint identity are
 unchanged.
 
-| Option | Default | Meaning |
-|---|---|---|
-| `model.ppo_reference_kl_beta` | `0.0` | Adds `beta · KL(π_θ ‖ π_init)` to the actor loss, against a frozen copy of the initial action head |
-| `model.value_feature_gradient` | `true` | `false` detaches the shared features feeding the value head, so the value loss trains only the value head |
+| Option                         | Default | Meaning                                                                                                   |
+| ------------------------------ | ------- | --------------------------------------------------------------------------------------------------------- |
+| `model.ppo_reference_kl_beta`  | `0.0`   | Adds `beta · KL(π_θ ‖ π_init)` to the actor loss, against a frozen copy of the initial action head        |
+| `model.value_feature_gradient` | `true`  | `false` detaches the shared features feeding the value head, so the value loss trains only the value head |
 
 ## Measured results
 
@@ -118,12 +119,12 @@ on the
 [`feat/quantized-optimizers`](https://github.com/ramanathan831/cosmos-framework/tree/feat/quantized-optimizers/docs/posttrain/evidence)
 branch.
 
-| | GR00T-N1.7 LIBERO-10 PPO | Cosmos3-Nano LIBERO-10 SFT |
-|---|---|---|
-| Optimizer moments per rank | 13.00 → 3.30 GB (−74.6%) | 6.98 → 1.77 GB (−74.6%) |
-| Exact reload and resume, non-paged and paged | Pass | Pass |
-| Quality vs full precision (3 seeds) | Within a 2-point margin | 1.6 points lower at the final checkpoint; 95% CI [−3.3, 0.0] |
-| Step time | Unchanged | Unchanged (46.2 s/iter) |
+|                                              | GR00T-N1.7 LIBERO-10 PPO | Cosmos3-Nano LIBERO-10 SFT                                   |
+| -------------------------------------------- | ------------------------ | ------------------------------------------------------------ |
+| Optimizer moments per rank                   | 13.00 → 3.30 GB (−74.6%) | 6.98 → 1.77 GB (−74.6%)                                      |
+| Exact reload and resume, non-paged and paged | Pass                     | Pass                                                         |
+| Quality vs full precision (3 seeds)          | Within a 2-point margin  | 1.6 points lower at the final checkpoint; 95% CI [−3.3, 0.0] |
+| Step time                                    | Unchanged                | Unchanged (46.2 s/iter)                                      |
 
 Two caveats about what the savings buy:
 
