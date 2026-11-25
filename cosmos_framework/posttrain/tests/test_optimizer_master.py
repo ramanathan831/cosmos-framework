@@ -126,6 +126,163 @@ def test_fp32_storage_is_already_the_master_and_rejects_rebinding():
     assert opt.state_report()["master_bytes"] == 0
 
 
+def test_dcp_rank_payload_round_trip_and_rejects_damaged_or_unknown_payloads(tmp_path):
+    import torch.distributed.checkpoint as dcp
+
+    from cosmos_framework.posttrain.checkpoint import master_optimizer as checkpoint
+
+    net = model()
+    opt = make(net)
+    net.weight.grad = torch.ones_like(net.weight)
+    opt.step()
+    payload = checkpoint.optimizer_payload(opt)
+    assert payload["format"] == "cosmos_rank_master_v3"
+    assert payload["ranks"]["0"][2].dtype == torch.uint8
+    dcp.save(payload, checkpoint_id=tmp_path)
+    # A bytes placeholder must restore the tuple as one opaque DCP leaf.
+    target = {"format": "", "world_size": 0, "ranks": {"0": b""}}
+    dcp.load(target, checkpoint_id=tmp_path)
+    saved = checkpoint._deserialize_rank_state(target["ranks"]["0"], target["format"])
+    assert_equal(saved, opt.state_dict())
+    size, digest, tensor = target["ranks"]["0"]
+    assert set(dcp.FileSystemReader(tmp_path).read_metadata().state_dict_metadata) == {
+        "format",
+        "world_size",
+        "ranks.0",
+    }  # DCP never interprets internal scales or masters as model shards.
+    changed = tensor.clone()
+    changed[0] ^= 1
+    for broken in (tensor[:-1], tensor.float(), tensor.reshape(1, -1), changed):
+        with pytest.raises(ValueError, match="schema/length|checksum/length"):
+            checkpoint._deserialize_rank_state((size, digest, broken), "cosmos_rank_master_v3")
+    # Only the format this module writes is accepted.
+    for format in ("cosmos_rank_master_v1", "cosmos_rank_master_v2", ""):
+        with pytest.raises(ValueError, match="format mismatch"):
+            checkpoint._deserialize_rank_state(target["ranks"]["0"], format)
+    # The retained serialized byte tensor owns a stable independent snapshot.
+    net.weight.grad = torch.full_like(net.weight, -0.3)
+    opt.step()
+    assert_equal(checkpoint._deserialize_rank_state(target["ranks"]["0"], "cosmos_rank_master_v3"), saved)
+
+
+@pytest.mark.parametrize("format", ["dcp", "consolidated"])
+def test_native_trainer_save_restore_master_transaction(tmp_path, format, monkeypatch):
+    from cosmos_framework.posttrain.algorithm.primitives.objective import Objective, Reduction
+    from cosmos_framework.posttrain.checkpoint import CheckpointManager
+    from cosmos_framework.posttrain.roles.trainer import LLMTrainer
+
+    def trainer():
+        net = model()
+        objective = Objective(
+            lambda model, batch: (model.net(batch[0]).float().square().mean(), {}), reduction=Reduction.MEAN
+        )
+        from types import SimpleNamespace
+
+        policy = SimpleNamespace(net=net)
+        from cosmos_framework.posttrain.config.build import build_lr_scheduler
+
+        optimizer = make(net, warmup=4)
+        return LLMTrainer(
+            policy,
+            objective,
+            optimizer,
+            lr_scheduler=build_lr_scheduler(optimizer, optimizer.config),
+            checkpoint_manager=CheckpointManager(checkpoint_format=format, save_async=False),
+        )
+
+    original = trainer()
+    # Use the native trainer counter/finite/clipping path, not manual optimizer updates.
+    batch = [torch.ones(2, 4, dtype=torch.bfloat16)]
+    original.train(batch)
+    path = str(tmp_path / "iter_000001")
+    original.save(path, data_state={"cursor": 2})
+    restored = trainer()
+    restored.load(path)
+    assert_equal(original.opt.state_dict(), restored.opt.state_dict())
+    for _ in range(3):
+        original.train(batch)
+        restored.train(batch)
+        assert_equal(original.opt.state_dict(), restored.opt.state_dict())
+
+    before_opt = restored.opt.state_dict()
+    before_net = deepcopy(restored.model.net.state_dict())
+    before_control = restored._trainer_state()
+    # A rank-local metadata rejection must precede every model/control mutation.
+    from cosmos_framework.posttrain.checkpoint.master_optimizer import (
+        _deserialize_rank_state,
+        _serialize_tensor_rank_state,
+    )
+
+    reader = restored.checkpoint_manager.load_dcp_component
+
+    def corrupted(path, name, state, **kwargs):
+        found = reader(path, name, state, **kwargs)
+        if name == "optim":
+            saved = _deserialize_rank_state(state["ranks"]["0"], state["format"])
+            del saved["masters"]
+            state["ranks"]["0"] = _serialize_tensor_rank_state(saved)
+        return found
+
+    with monkeypatch.context() as context:
+        context.setattr(restored.checkpoint_manager, "load_dcp_component", corrupted)
+        with pytest.raises(Exception, match="identity"):
+            restored.load(path)
+    assert_equal(before_opt, restored.opt.state_dict())
+    assert_equal(before_net, restored.model.net.state_dict())
+    # Application failure after both model and optimizer have changed must restore
+    # the old values, scheduler and clocks, rather than leaving a mixed checkpoint.
+    commit = restored.opt.commit_state_dict
+    calls = 0
+    import gc
+    import weakref
+
+    staged_backends = []
+    create_backend = restored.opt._backend
+
+    def track_backend(masters):
+        backend = create_backend(masters)
+        staged_backends.append(weakref.ref(backend))
+        return backend
+
+    def fail_once(staged):
+        nonlocal calls
+        commit(staged)
+        calls += 1
+        if calls == 1:
+            raise RuntimeError("injected post-commit failure")
+
+    with monkeypatch.context() as context:
+        context.setattr(restored.opt, "commit_state_dict", fail_once)
+        context.setattr(restored.opt, "_backend", track_backend)
+        with pytest.raises(Exception, match="injected") as failure:
+            restored.load(path)
+    assert failure.value is not None  # Keeping the error must not keep staged CUDA allocations alive.
+    gc.collect()
+    assert staged_backends and all(reference() is None for reference in staged_backends)
+    assert_equal(before_opt, restored.opt.state_dict())
+    assert_equal(before_net, restored.model.net.state_dict())
+    assert_equal(before_control, restored._trainer_state())
+
+    # A valid-but-replaced generation during reads must be rejected before the
+    # staged model, optimizer and clocks become live, including direct load().
+    control_file = tmp_path / "iter_000001" / "trainer.pt"
+    original_control_bytes = control_file.read_bytes()
+
+    def mutated_generation(path, name, state, **kwargs):
+        found = reader(path, name, state, **kwargs)
+        if name == "optim":
+            control_file.write_bytes(original_control_bytes + b"changed generation")
+        return found
+
+    with monkeypatch.context() as context:
+        context.setattr(restored.checkpoint_manager, "load_dcp_component", mutated_generation)
+        with pytest.raises(Exception, match="changed while it was being loaded"):
+            restored.checkpoint_manager.load_checkpoint(path, lambda: restored.load(path))
+    assert_equal(before_opt, restored.opt.state_dict())
+    assert_equal(before_net, restored.model.net.state_dict())
+    assert_equal(before_control, restored._trainer_state())
+
+
 def test_fused_control_memory_counts_initialized_step_tensors():
     net = model()
     optimizer = make(net)
@@ -171,3 +328,19 @@ def test_model_only_load_under_initialized_moments_is_refused_without_mutation()
         opt.step()
     assert_equal(before, opt.state_dict())
     assert torch.equal(net.weight, torch.full_like(net.weight, 3))
+
+
+def test_rank_payload_decoding_refuses_arbitrary_objects_but_keeps_numpy_group_scalars():
+    from cosmos_framework.posttrain.checkpoint import master_optimizer as checkpoint
+
+    class Exploit:
+        def __reduce__(self):
+            return (print, ("arbitrary code ran on resume",))
+
+    numpy_groups = {"param_groups": [{"lr": np.float64(1e-4), "weight_decay": np.float32(0.05)}]}
+    size, digest, tensor = checkpoint._serialize_tensor_rank_state(numpy_groups)
+    restored = checkpoint._deserialize_rank_state((size, digest, tensor), "cosmos_rank_master_v3")
+    assert restored["param_groups"][0]["lr"] == np.float64(1e-4)
+    payload = checkpoint._serialize_tensor_rank_state({"value": Exploit()})
+    with pytest.raises(ValueError, match="refusing to load"):
+        checkpoint._deserialize_rank_state(payload, "cosmos_rank_master_v3")
