@@ -1195,7 +1195,7 @@ def build_native_value_model(config: Any, pdims: Any = None) -> tuple[Any, Any]:
     return _build_native_from_spec(config, pdims, builder_field="value_builder")
 
 
-def build_backbone(config: Any, world_size: int = 1, pdims: Any = None, *, hf_model_state: Any = None) -> Any:
+def build_backbone(config: Any, world_size: int = 1, pdims: Any = None) -> Any:
     """Backend dispatch to a legacy native model, generic native policy, or HF model.
 
     A legacy ``model_backend='native'`` config still instantiates ``config.model`` and moves it to CUDA.
@@ -1206,10 +1206,6 @@ def build_backbone(config: Any, world_size: int = 1, pdims: Any = None, *, hf_mo
     explicitly passed ``pdims`` must match it; otherwise the helper builds the configured mesh from
     the live world.
 
-    ``hf_model_state`` optionally supplies a verified complete ordinary HF model
-    checkpoint. This replaces pretrained weight loading, with strict schema
-    validation. It does not restore optimizer/control state or enable sharded loading.
-
     `world_size` is accepted for the entry's positional call signature but is NOT the source of
     truth for the FSDP mesh: the mesh MUST span the live process group, so a stale/default
     parameter (e.g. an entry calling `build_backbone(config)` in a 4-GPU torchrun run) can't be
@@ -1219,8 +1215,6 @@ def build_backbone(config: Any, world_size: int = 1, pdims: Any = None, *, hf_mo
     selection = select_policy_backend(config)
     backend = selection.backend
     if backend == NATIVE:
-        if hf_model_state is not None:
-            raise ValueError("hf_model_state requires the HF backend")
         if selection.native_spec is None:
             return instantiate(config.model).cuda()
         # Native construction owns its mesh resolution. Keeping that in one place avoids validating
@@ -1228,8 +1222,6 @@ def build_backbone(config: Any, world_size: int = 1, pdims: Any = None, *, hf_mo
         return build_native_policy(config, pdims)[0]
 
     policy_world = pdims.world_size if pdims is not None else world_size_or_1()
-    if hf_model_state is not None and (int(policy_world) != 1 or pdims is not None):
-        raise ValueError("hf_model_state requires an ordinary unsharded single-device model")
     parallelism = resolve_policy_parallelism(config, int(policy_world))
     if pdims is None:
         pdims = resolve_pdims(parallelism=parallelism)
@@ -1243,10 +1235,6 @@ def build_backbone(config: Any, world_size: int = 1, pdims: Any = None, *, hf_mo
 
     # `precision` splits STORAGE from COMPUTE; without it the one `model_hf.dtype` drives both
     # and fp32-master/bf16-compute -- what the reference GRPO recipe runs -- is inexpressible.
-    if hf_model_state is not None:
-        return build_hf_model(
-            instantiate(config.model_hf), pdims, precision=resolve_precision(config), initial_state=hf_model_state
-        )
     return build_hf_model(instantiate(config.model_hf), pdims, precision=resolve_precision(config))
 
 
