@@ -200,3 +200,35 @@ def test_hsdp_two_dimensional_mesh_is_rejected_before_state(tmp_path):
 
 def test_legacy_report_counts_local_dtensor_moments(tmp_path):
     torch.multiprocessing.spawn(_legacy_report_worker, args=((tmp_path / "r").as_uri(),), nprocs=2, join=True)
+
+
+def _logical_eligibility_worker(rank, rendezvous):
+    from cosmos_framework.utils.generator.optimizer import build_optimizer
+
+    _setup(rank, rendezvous)
+    try:
+        model = _model()
+        # llm2action.weight is 8192 elements, 4096 per rank. Against a 6000-element threshold the
+        # local shard alone would keep FP32 moments; the logical parameter is eligible for 8 bits.
+        container = build_optimizer(model, "adamw_bnb_8bit", **dict(KWARGS, bnb_min_8bit_size=6000))
+        optimizer = container.optimizers[0]
+        torch.manual_seed(7 + rank)
+        model.net(torch.randn(8, 256, device="cuda")).float().square().mean().backward()
+        container.step()
+        dtypes = {
+            name: optimizer.backend.state[master]["state1"].dtype
+            for name, master in zip(optimizer.names, optimizer.masters)
+            if master in optimizer.backend.state
+        }
+        assert dtypes["llm2action.weight"] == torch.uint8, dtypes
+        assert dtypes["gen.bias"] == torch.float32  # 512 logical elements: below threshold everywhere
+        assert optimizer.backend.identity["min_8bit_size_basis"] == "logical_parameter"
+        gathered = [None, None]
+        dist.all_gather_object(gathered, {k: str(v) for k, v in dtypes.items()})
+        assert gathered[0] == gathered[1]  # one moment precision per parameter on every rank
+    finally:
+        dist.destroy_process_group()
+
+
+def test_eight_bit_eligibility_uses_logical_parameter_size(tmp_path):
+    torch.multiprocessing.spawn(_logical_eligibility_worker, args=((tmp_path / "r").as_uri(),), nprocs=2, join=True)

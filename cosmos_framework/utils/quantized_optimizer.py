@@ -4,12 +4,20 @@
 
 Imported only by the selected factory branch. Quantization mathematics is upstream.
 No DTensor views, implicit parameter conversion, or global override registration.
+
+Under ``update_policy="fp32_master"`` the backend sees each rank's local FSDP2 shard.
+Eligibility for eight-bit moments (``bnb_min_8bit_size``) is decided from the logical
+parameter, so it is the same on every rank and at every world size. The blockwise
+quantization boundaries (256-element blocks and their scales), however, are laid over
+each LOCAL shard: exact eight-bit numerics are not world-size invariant. That matches
+the same-topology exact-resume rule; changing the world size is a weights-only restart.
 """
 
 from __future__ import annotations
 
 import importlib.metadata
 import logging
+import math
 from collections import defaultdict
 from copy import deepcopy
 from functools import cache
@@ -211,10 +219,21 @@ class _QuantizedOptimizerMethods:
         # another trial's index overrides cannot change this model's numerics.
         self.mng = SimpleNamespace(index2config={}, module_weight_config_triple=[])
         self.page_mng = SimpleNamespace(paged_tensors=[])
+        logical = (
+            {entry["name"]: math.prod(entry["shape"]) for entry in _local_owner["parameters"]}
+            if _local_owner is not None
+            else {}
+        )
         for gi, group in enumerate(self.param_groups):
             for pi, name in enumerate(group["param_names"]):
                 if name in exceptions:
                     self.mng.index2config[(gi, pi)] = {"optim_bits": 32}
+                elif name in logical:
+                    # bitsandbytes compares ``min_8bit_size`` with the tensor it sees, i.e. the
+                    # local FSDP shard. Decide from the LOGICAL parameter instead, so every rank
+                    # and every world size gives one parameter the same moment precision.
+                    eligible = logical[name] >= config.bnb_min_8bit_size
+                    self.mng.index2config[(gi, pi)] = {"min_8bit_size": 1} if eligible else {"optim_bits": 32}
         self.identity = {
             "format": "cosmos_bnb_v1",
             "backend": "bitsandbytes",
@@ -244,6 +263,11 @@ class _QuantizedOptimizerMethods:
         self._owner_checks_finite = _local_owner is not None
         if _local_owner is not None:
             self.identity["topology"] = deepcopy(_local_owner)
+            if any(entry["shape"] != entry["local_shape"] for entry in _local_owner["parameters"]):
+                # Sharded layouts decide 8-bit eligibility from logical sizes (see above). Checkpoints
+                # written before that rule may hold FP32 moments for small shards of large tensors;
+                # name the rule so such a checkpoint is refused by identity, never by a dtype error.
+                self.identity["min_8bit_size_basis"] = "logical_parameter"
 
     @torch.no_grad()
     def step(self, closure=None):

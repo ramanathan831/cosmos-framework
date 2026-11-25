@@ -63,6 +63,11 @@ model is built.
   - It supports a single process, or one-dimensional FSDP2 `Shard(0)` meshes over the full world.
   - FSDP1, HSDP, TP/EP, FP16 and optimizer offload are rejected.
   - With `name=adamw` it is the matched full-precision control.
+  - `bnb_min_8bit_size` is compared with the logical parameter size, not the local shard, so a
+    parameter gets the same moment precision on every rank and at every world size.
+  - The 8-bit quantization blocks (256 elements, each with its own scale) are laid over each
+    local shard. Exact 8-bit numerics therefore depend on the world size, which is why exact
+    resume requires the same topology.
 
 ## Options
 
