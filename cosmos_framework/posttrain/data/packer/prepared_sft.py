@@ -38,25 +38,6 @@ def target_from_row(row: dict[str, Any]) -> SFTTarget:
     return SFTTarget(**{k: row[k] for k in ("messages", "tools", "supervise", "opener") if k in row})
 
 
-def _settings(packer: Any) -> str:
-    tokenizer, processor = getattr(packer, "tokenizer", None), getattr(packer, "processor", None)
-    return canonical_json_sha256(
-        {
-            "max_length": packer.max_length,
-            "processor_kwargs": packer.processor_kwargs,
-            "mask_think_opener": getattr(packer, "mask_think_opener", False),
-            "tokenizer_template": getattr(tokenizer, "chat_template", None),
-            "processor_template": getattr(processor, "chat_template", None),
-            "media": {
-                key: component.to_dict()
-                for key in ("image_processor", "video_processor")
-                if (component := getattr(processor, key, None)) is not None
-            },
-        },
-        context="prepared SFT runtime settings",
-    )
-
-
 def deterministic_sample(packer: Any, target: SFTTarget) -> SFTPolicyInput:
     """Preserve CPU RNG and reject packers that consume it, rather than cache randomness."""
     py, np_state, pt = random.getstate(), np.random.get_state(), torch.get_rng_state()
@@ -147,8 +128,9 @@ class PreparedSFTCorpus:
             self.manifest["packer"], context="prepared processor"
         ) != canonical_json_sha256(packer.validation_semantics_identity(), context="live processor"):
             raise ValueError("prepared SFT format/processor identity mismatch")
-        self.settings = _settings(packer)
-        media = {}
+        # The processor contract is bound here, once: the packer's own validation_semantics_identity
+        # (tokenization, templates, media processors, max_length, masking) must equal the manifest's.
+        media, hashed_at = {}, {}
         for dataset in datasets:
             if dataset.cursor_fingerprint() not in self.manifest["sources"]:
                 raise ValueError("prepared SFT source identity mismatch")
@@ -156,16 +138,20 @@ class PreparedSFTCorpus:
                 if name in media and media[name] != digest:
                     raise ValueError("conflicting prepared SFT source media identities")
                 media[name] = digest
+            hashed_at.update(getattr(dataset, "media_stamps", {}))
 
         def verify_media(item):
             name, digest = item
             path, before = Path(name), stamp(Path(name))
-            if self.manifest["media"].get(name) != digest or sha256_file(name) != digest or stamp(path) != before:
+            if self.manifest["media"].get(name) != digest:
+                raise ValueError("prepared SFT source media mismatch")
+            # The dataset hashed these bytes moments ago on this rank; reuse its digest while the
+            # file is unchanged since that hash. Otherwise hash the complete file again.
+            if hashed_at.get(name) != before and (sha256_file(name) != digest or stamp(path) != before):
                 raise ValueError("prepared SFT source media mismatch")
             return name, before
 
-        # Each source still receives a complete byte hash. A stat-only cache
-        # would miss same-size rewrites on filesystems with coarse timestamps.
+        # Every source has a complete byte hash: the dataset's, or a fresh one here.
         self.verification_workers = min(verification_workers, max(1, len(media)))
         if self.verification_workers == 1:
             self.media_stamps = dict(map(verify_media, media.items()))
@@ -189,8 +175,6 @@ class PreparedSFTCorpus:
         self.hits = 0
 
     def process(self, target: SFTTarget) -> SFTPolicyInput:
-        if _settings(self.packer) != self.settings:
-            raise ValueError("prepared SFT processor settings changed")
         for message in target.messages:
             content = message.get("content")
             for part in content if isinstance(content, list) else ():

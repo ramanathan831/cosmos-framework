@@ -175,6 +175,9 @@ class JSONLSFTDataset:
         # below and the media side of ``row_identity``.
         self.media_hashes: dict[str, str] = {}
         media_hashes = self.media_hashes
+        # The stamp taken just before each file was hashed, so a later consumer (the prepared
+        # corpus) can reuse these digests while still detecting a change since hashing.
+        self.media_stamps: dict[str, tuple[int, ...]] = {}
         pending_media: dict[str, None] = {}
         with _open_jsonl(source, credentials) as stream:
             for line_number, line in enumerate(stream, 1):
@@ -195,6 +198,7 @@ class JSONLSFTDataset:
                         kind = part.get("type")
                         if kind in {"image", "video"} and part[kind] not in media_hashes:
                             if media_hash_workers == 1:
+                                self.media_stamps[part[kind]] = stamp(part[kind])
                                 media_hashes[part[kind]] = sha256_file(part[kind])
                             else:
                                 pending_media[part[kind]] = None
@@ -216,6 +220,7 @@ class JSONLSFTDataset:
                 media_hashes.update(zip(pending_media, pool.map(read, pending_media), strict=True))
             if any(stamp(name) != previous for name, previous in before.items()):
                 raise ValueError("SFT source media changed during parallel identity construction")
+            self.media_stamps.update(before)
         self._fingerprint: str = canonical_json_sha256(
             {"rows": self.rows, "media": media_hashes}, context="SFT JSONL source"
         )

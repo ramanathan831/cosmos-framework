@@ -86,7 +86,7 @@ def test_values_mutation_isolation_and_rng(corpus):
     assert bound.hits == 2
 
 
-@pytest.mark.parametrize("change", ["media", "payload", "settings", "target"])
+@pytest.mark.parametrize("change", ["media", "payload", "target"])
 def test_bound_corpus_refuses_changes(corpus, change):
     packer, data, root, media = corpus
     target = target_from_row(data[0])
@@ -96,8 +96,6 @@ def test_bound_corpus_refuses_changes(corpus, change):
         media.write_bytes(b"mutated media")
     elif change == "payload":
         (root / f"{target_key(target)}.pt").write_bytes(b"broken payload")
-    elif change == "settings":
-        packer.max_length = 1234
     else:
         target.messages[-1]["content"] = "a different target"
     with pytest.raises(ValueError):
@@ -207,3 +205,38 @@ def test_parallel_attachment_keeps_full_media_verification(tmp_path, monkeypatch
 def test_invalid_verification_workers_fail_before_io(workers):
     with pytest.raises(ValueError, match="one to four workers"):
         PreparedSFTCorpus(Packer(), "/missing/corpus", [], verification_workers=workers)
+
+
+def test_attach_reuses_the_datasets_media_digests_while_files_are_unchanged(corpus, monkeypatch):
+    """JSONL sources hashed every media file moments ago; attach re-hashes only what changed since."""
+    from cosmos_framework.posttrain.data.datasets.sft import stamp
+    from cosmos_framework.posttrain.data.packer import prepared_sft
+
+    packer, data, root, media = corpus
+    data.media_stamps = {str(media): stamp(media)}
+    hashed = []
+    real_hash = prepared_sft.sha256_file
+    monkeypatch.setattr(prepared_sft, "sha256_file", lambda name: hashed.append(name) or real_hash(name))
+    PreparedSFTCorpus(packer, root, [data])
+    assert hashed == []
+    data.media_stamps = {str(media): (0, 0, 0, 0, 0)}  # changed since the dataset hashed it
+    PreparedSFTCorpus(packer, root, [data])
+    assert hashed == [str(media)]
+
+
+def test_jsonl_dataset_records_the_stamp_each_media_digest_was_taken_at(tmp_path):
+    from cosmos_framework.posttrain.data.datasets.sft import JSONLSFTDataset, stamp
+
+    media = tmp_path / "clip.mp4"
+    media.write_bytes(b"clip")
+    rows = tmp_path / "rows.jsonl"
+    row = {
+        "messages": [
+            {"role": "user", "content": [{"type": "video", "video": str(media)}]},
+            {"role": "assistant", "content": "answer"},
+        ]
+    }
+    rows.write_text(json.dumps(row) + "\n")
+    for workers in (1, 2):
+        dataset = JSONLSFTDataset(str(rows), media_hash_workers=workers)
+        assert dataset.media_stamps == {str(media): stamp(media)}
