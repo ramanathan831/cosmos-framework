@@ -27,6 +27,9 @@ def test_legacy_identity_and_explicit_buffer_mode_are_distinct():
     payload = asdict(legacy)
     payload.pop("backbone_buffer_dtype")
     payload.pop("backbone_from_checkpoint")
+    # Opt-in PPO fields are omitted from the identity at their defaults.
+    payload.pop("value_feature_gradient")
+    payload.pop("ppo_reference_kl_beta")
     assert legacy.identity_hash() == canonical_json_sha256(payload, context="legacy config")
     restored = Gr00tN1d7ModelConfig(**payload)
     assert restored.identity() == legacy.identity()

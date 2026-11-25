@@ -20,6 +20,9 @@ def test_checkpoint_construction_changes_identity_without_changing_legacy():
     original = asdict(config)
     original.pop("backbone_buffer_dtype")
     original.pop("backbone_from_checkpoint")
+    # Opt-in PPO fields are omitted from the identity at their defaults.
+    original.pop("value_feature_gradient")
+    original.pop("ppo_reference_kl_beta")
     assert config.identity() == original
     assert replace(config, backbone_from_checkpoint=True).identity() != original
 
