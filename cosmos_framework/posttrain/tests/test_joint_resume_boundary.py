@@ -112,6 +112,9 @@ def test_pending_publication_mount_preflight_is_fail_closed_and_skips_same_run(t
         raise OSError(errno.ENOTSUP, "injected unsupported mount")
 
     monkeypatch.setattr(external_copy, "_rename_directory_noreplace", unsupported)
+    from cosmos_framework.posttrain.control.checkpointing import checkpoint_iteration_dir
+
+    assert checkpoint_iteration_dir(str(output), 4) == str(checkpoint)  # the coordinator's path rule
     manager = CheckpointManager()
     preflight_pending_publication(manager, str(checkpoint), str(output))
     assert calls == []

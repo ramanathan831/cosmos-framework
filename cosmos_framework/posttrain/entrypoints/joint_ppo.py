@@ -182,7 +182,10 @@ def preflight_pending_publication(manager, path, output):
     pending = (validation.get("progress") or {}).get("pending_step") is not None
     if not pending and validation.get("publication") is None:
         return
-    target = manager.iteration_location(str(Path(output) / "checkpoints" / f"iter_{control['optimizer_step']:06d}"))
+    from cosmos_framework.posttrain.control.checkpointing import checkpoint_iteration_dir
+
+    # The coordinator's own path rule, so a pending publication moves where it will be committed.
+    target = manager.iteration_location(checkpoint_iteration_dir(str(output), control["optimizer_step"]))
     if manager.store.is_object_store:
         if path != target:
             raise ValueError("cross-prefix object-store pending-validation resume is unsupported")

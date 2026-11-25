@@ -166,6 +166,13 @@ def _checkpoint_upload_spec(config: Any, rl: Any) -> dict[str, str] | None:
     }
 
 
+def checkpoint_iteration_dir(out_dir: str, model_step: int) -> str:
+    """The canonical ``<run out_dir>/checkpoints/iter_<step>`` directory of one committed model step."""
+    if isinstance(model_step, bool) or not isinstance(model_step, int) or model_step < 0:
+        raise ValueError(f"checkpoint model_step must be >= 0, got {model_step!r}")
+    return os.path.join(out_dir, "checkpoints", f"iter_{model_step:06d}")
+
+
 @dataclass(frozen=True)
 class CheckpointLifecycle:
     """Backend-neutral checkpoint assembly and resume lifecycle used by entrypoints.
@@ -402,9 +409,7 @@ class CheckpointCoordinator:
 
     def path(self, model_step: int) -> str:
         """Return the canonical checkpoint directory for a committed model step."""
-        if isinstance(model_step, bool) or not isinstance(model_step, int) or model_step < 0:
-            raise ValueError(f"checkpoint model_step must be >= 0, got {model_step!r}")
-        return os.path.join(self.out_dir, "checkpoints", f"iter_{model_step:06d}")
+        return checkpoint_iteration_dir(self.out_dir, model_step)
 
     def resolve_component_plan(
         self,
