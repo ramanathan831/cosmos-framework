@@ -722,7 +722,9 @@ def refuse_rounding_or_unavailable_optimizer(config: Any, opt_cfg: OptimizerConf
 
         require_installed()
     if (quantized or master) and getattr(config.rl, "colocated_offload", False):
-        raise ValueError(f"{opt_cfg.name} with update_policy={opt_cfg.update_policy} does not support optimizer offload")
+        raise ValueError(
+            f"{opt_cfg.name} with update_policy={opt_cfg.update_policy} does not support optimizer offload"
+        )
     if quantized and not master:
         # The default `parameter` policy updates ordinary single-device FP32 trainables and writes
         # the consolidated transaction. `fp32_master` owns local masters and its own rank-local

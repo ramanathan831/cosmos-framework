@@ -600,17 +600,18 @@ def test_sharded_master_decides_eight_bit_eligibility_from_logical_parameters(mo
 
     def owner(world):
         # Logical shapes 6144 (>= 4096), 1024 (< 4096) and 8192 (explicit FP32 exception).
-        shapes = [[1536 * world], [1024 * world // world], [2048 * world]]
+        shapes = [[1536 * world], [1024], [2048 * world]]
         return {
             "world_size": world,
             "parameters": [
-                {"name": n, "shape": shape, "local_shape": list(p.shape)}
-                for n, shape, p in zip(names, shapes, params)
+                {"name": n, "shape": shape, "local_shape": list(p.shape)} for n, shape, p in zip(names, shapes, params)
             ],
         }
 
     optimizer_type = backend._optimizer_type(Upstream)
-    sharded = optimizer_type(groups, params, {id(p): n for p, n in zip(params, names)}, config, {"explicit.weight"}, owner(4))
+    sharded = optimizer_type(
+        groups, params, {id(p): n for p, n in zip(params, names)}, config, {"explicit.weight"}, owner(4)
+    )
     # The 1536-element shard of a 6144-element bias is eight-bit on every rank and world size.
     assert sharded.mng.index2config == {
         (0, 0): {"min_8bit_size": 1},

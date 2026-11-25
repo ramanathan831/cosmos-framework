@@ -319,9 +319,7 @@ class OptimizerConfig:
             raise ValueError("bnb_fp32_state_names must contain exact nonempty parameter names")
         if len(set(self.bnb_fp32_state_names)) != len(self.bnb_fp32_state_names):
             raise ValueError("duplicate bnb_fp32_state_names")
-        if self.name not in QUANTIZED_OPTIMIZER_NAMES and (
-            self.bnb_min_8bit_size != 4096 or self.bnb_fp32_state_names
-        ):
+        if self.name not in QUANTIZED_OPTIMIZER_NAMES and (self.bnb_min_8bit_size != 4096 or self.bnb_fp32_state_names):
             raise ValueError("bnb state options require a bitsandbytes optimizer")
         if self.name in QUANTIZED_OPTIMIZER_NAMES and not self.force_finite_grads:
             raise ValueError("bitsandbytes optimizers require force_finite_grads=True")
