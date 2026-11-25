@@ -63,7 +63,7 @@ def validate_joint_recipe(model: Gr00tN1d7ModelConfig, environment: LiberoConfig
 
 
 def build_joint_policy(
-    config: Gr00tN1d7ModelConfig, *, output: str, parallel_dims: ParallelDims
+    config: Gr00tN1d7ModelConfig, *, output: str, parallel_dims: ParallelDims, verify_frozen_state: bool = False
 ) -> Gr00tN1d7TrainPolicy:
     import torch.distributed as dist
 
@@ -76,6 +76,7 @@ def build_joint_policy(
     model = Gr00tN1d7TrainPolicy(
         config, device="cuda", parallel_dims=parallel_dims, save_cfg_dir=directory, precision=BF16_PRECISION, ppo=True
     )
+    model.verify_frozen_state = verify_frozen_state
     if any(parameter.requires_grad for parameter in model.backbone.parameters()):
         raise ValueError("GR00T PPO backbone must remain frozen")
     return model

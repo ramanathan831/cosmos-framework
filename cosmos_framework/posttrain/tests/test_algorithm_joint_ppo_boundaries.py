@@ -178,10 +178,7 @@ def test_reference_shuffle_is_fixed_across_publications_and_checkpoint_resume(tm
         checkpoint = str(tmp_path / "checkpoint")
         assert any(parameter.grad is not None for parameter in learner.opt.param_groups[0]["params"])
         save_policy_checkpoint(learner, checkpoint, data=collector)
-        # FP32-master runs release the completed update's gradients before writing; default
-        # runs keep the upstream save path untouched.
-        released = all(parameter.grad is None for group in learner.opt.param_groups for parameter in group["params"])
-        assert released is (update_policy == "fp32_master")
+        assert all(parameter.grad is None for group in learner.opt.param_groups for parameter in group["params"])
         if update_policy == "fp32_master":
             assert all(parameter.grad is None for parameter in learner.opt.masters)
         assert learner.evaluation_state() == checkpoint_state

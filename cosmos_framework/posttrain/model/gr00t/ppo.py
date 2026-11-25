@@ -56,6 +56,23 @@ class Gr00tPPOTrace:
 class Gr00tPPOScores:
     logprobs: torch.Tensor  # [B]
     values: torch.Tensor  # [B]
+    # Selected-transition Gaussian parameters; only populated on the trace-scoring path.
+    mean: torch.Tensor | None = None  # [B,40,132]
+    std: torch.Tensor | None = None  # [B,40,132]
+
+
+def selected_transition_kl(
+    mean: torch.Tensor, reference_mean: torch.Tensor, std: torch.Tensor, *, score_horizon: int
+) -> torch.Tensor:  # [B,H,D] -> [B]
+    """Exact KL(pi_theta || pi_ref) of the scored transition over the executed 7-coordinate prefix.
+
+    Both Gaussians share the index-determined std, so each cell is (mu - mu_ref)^2 / (2 std^2);
+    deterministic cells (std == 0) carry no density and contribute zero, as in the logprob.
+    """
+    deterministic = std == 0
+    safe_std = torch.where(deterministic, torch.ones_like(std), std)
+    cells = torch.where(deterministic, torch.zeros_like(mean), 0.5 * torch.pow((mean - reference_mean) / safe_std, 2))
+    return cells[:, :score_horizon, :7].float().sum(dim=(1, 2))
 
 
 @dataclass(frozen=True)
@@ -142,11 +159,14 @@ class Gr00tPPOHeads(Gr00tHeads):
     The original head remains at ``action_head.*`` for checkpoint and weight publication.
     """
 
-    def __init__(self, action_head: nn.Module, *, score_horizon: int = 16) -> None:
+    def __init__(self, action_head: nn.Module, *, score_horizon: int = 16, value_feature_gradient: bool = True) -> None:
         super().__init__(action_head)
         if type(score_horizon) is not int or score_horizon not in (8, 16):
             raise ValueError("GR00T PPO score_horizon must be 8 or 16")
+        if type(value_feature_gradient) is not bool:
+            raise ValueError("GR00T PPO value_feature_gradient must be a boolean")
         self.score_horizon = score_horizon
+        self.value_feature_gradient = value_feature_gradient
         config = action_head.config
         if (config.action_horizon, config.max_action_dim, action_head.num_inference_timesteps) != (40, 132, 4):
             raise ValueError("GR00T PPO requires native horizon 40, latent width 132 and four denoising steps")
@@ -192,6 +212,9 @@ class Gr00tPPOHeads(Gr00tHeads):
         return head.action_decoder(output[:, -head.action_horizon :], condition.embodiment_id)
 
     def _values(self, vl: torch.Tensor, state: torch.Tensor) -> torch.Tensor:
+        if not getattr(self, "value_feature_gradient", True):
+            # Same forward values; value regression no longer moves the shared actor features.
+            vl, state = vl.detach(), state.detach()
         inputs = torch.cat((vl.mean(dim=1), state.reshape(state.shape[0], -1)), dim=1)
         return self.action_head.value_head(inputs)[:, 0].float()
 
@@ -216,7 +239,16 @@ class Gr00tPPOHeads(Gr00tHeads):
         trace: Gr00tPPOTrace | None = None,
         *,
         seed: int | None = None,
-    ) -> Gr00tPPOScores | Gr00tPPOSample:
+        transition_only: bool = False,
+    ) -> Gr00tPPOScores | Gr00tPPOSample | tuple[torch.Tensor, torch.Tensor]:
+        if transition_only:
+            # Frozen-reference path: the selected transition's Gaussian only, through this
+            # module's own FSDP forward (no value head, no logprob reduction).
+            if trace is None:
+                raise ValueError("GR00T PPO transition_only scoring requires a trace")
+            vl, state = self._features(condition)
+            velocity = self._velocity(condition, vl, state, trace.latent_before, trace.denoise_index)
+            return flow_sde_transition(trace.latent_before, velocity, trace.denoise_index, stochastic=True)
         if trace is not None:
 
             def check_trace() -> None:
@@ -231,7 +263,10 @@ class Gr00tPPOHeads(Gr00tHeads):
             velocity = self._velocity(condition, vl, state, trace.latent_before, trace.denoise_index)
             mean, std = flow_sde_transition(trace.latent_before, velocity, trace.denoise_index, stochastic=True)
             return Gr00tPPOScores(
-                selected_transition_logprobs(trace.latent_after, mean, std, score_horizon=self.score_horizon), values
+                selected_transition_logprobs(trace.latent_after, mean, std, score_horizon=self.score_horizon),
+                values,
+                mean,
+                std,
             )
         if seed is None:
             raise ValueError("GR00T PPO sampling requires an explicit request seed")

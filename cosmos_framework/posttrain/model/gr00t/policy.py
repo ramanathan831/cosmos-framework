@@ -78,6 +78,7 @@ def build_official_gr00t_model(
     precision: Precision = OFFICIAL_PRECISION,
     local_files_only: bool = False,
     ppo: bool = False,
+    backbone_config: str | None = None,
 ) -> Any:
     """Build the official finetune model; PPO separates local loading from rank-zero publication.
 
@@ -120,13 +121,15 @@ def build_official_gr00t_model(
     # inner model before its meta tensors have been materialized.
     with torch.device("cpu"):
         pipeline = Gr00tN1d7Pipeline(config, Path(save_cfg_dir))
-        model = _load_local_ppo_model(pipeline) if ppo else pipeline._create_model()
+        if backbone_config is not None and not ppo:
+            raise ValueError("checkpoint-owned backbone construction requires the strict PPO source loader")
+        model = _load_local_ppo_model(pipeline, backbone_config=backbone_config) if ppo else pipeline._create_model()
     if precision.master == "bfloat16":
         model.action_head.to(torch.bfloat16)  # `load_bf16` reaches the backbone only
     return model
 
 
-def _load_local_ppo_model(pipeline: Any) -> Any:
+def _load_local_ppo_model(pipeline: Any, *, backbone_config: str | None = None) -> Any:
     """The load/check portion of Isaac 51d4c89f's setup.py::_create_model.
 
     Isaac does not expose that portion separately from its rank-zero write/barrier.
@@ -135,12 +138,20 @@ def _load_local_ppo_model(pipeline: Any) -> Any:
     """
     from transformers import AutoModel
 
+    loader, construction = AutoModel, {}
+    if backbone_config is not None:
+        from cosmos_framework.posttrain.model.gr00t.materialize import checkpoint_model_class
+
+        loader = checkpoint_model_class()
+        construction = {"backbone_config": backbone_config, "use_flash_attention": False}
+
     config = pipeline.config.model
     checkpoint = pipeline.config.training.start_from_checkpoint
     model = None
     try:
-        model, loading_info = AutoModel.from_pretrained(
+        model, loading_info = loader.from_pretrained(
             checkpoint,
+            **construction,
             tune_llm=config.tune_llm,
             tune_visual=config.tune_visual,
             tune_projector=config.tune_projector,
@@ -212,7 +223,13 @@ class Gr00tN1d7TrainPolicy:
         save_cfg_dir: Any,
         precision: Precision | None = None,
         ppo: bool = False,
+        ppo_reference: bool = True,
     ) -> None:
+        """``ppo_reference=False`` skips the frozen KL-anchor copy (``ppo_reference_kl_beta > 0``).
+
+        Only the learner computes the PPO loss; rollout workers that rebuild this policy to
+        sample actions pass ``False`` so they do not hold a second action head on the GPU.
+        """
         self.config = config
         self._ppo_enabled = ppo
         self.precision = precision or (BF16_PRECISION if ppo else OFFICIAL_PRECISION)
@@ -238,6 +255,7 @@ class Gr00tN1d7TrainPolicy:
                         precision=self.precision,
                         local_files_only=True,
                         ppo=True,
+                        backbone_config=str(source.backbone) if config.backbone_from_checkpoint else None,
                     )
                     processor = load_processor(str(source.checkpoint), model_name=str(source.processor))
                     return model, processor
@@ -271,8 +289,22 @@ class Gr00tN1d7TrainPolicy:
             self.net = Gr00tPPOHeads(
                 self.gr00t.action_head,
                 score_horizon=config.execution_horizon,
+                value_feature_gradient=config.value_feature_gradient,
             )
             prepare_deterministic_ppo_update(self.net)
+            # Opt-in frozen initial policy for the KL anchor. Copied from the source weights here,
+            # before any trainer restore, and kept outside `self.net`, so it is never optimized,
+            # checkpointed, published to rollouts or part of the backbone frozen-state digest.
+            self.ppo_reference = None
+            if ppo_reference and config.ppo_reference_kl_beta > 0:
+                import copy
+
+                from cosmos_framework.posttrain.model.ppo import prepare_deterministic_ppo_forward
+
+                reference = Gr00tPPOHeads(copy.deepcopy(self.gr00t.action_head), score_horizon=config.execution_horizon)
+                reference.requires_grad_(False)
+                prepare_deterministic_ppo_forward(reference, enable_gradient_checkpointing=False)
+                self.ppo_reference = reference
             self.ppo_parameters = PPOParameterPartition(
                 actor=tuple(
                     name
@@ -293,6 +325,9 @@ class Gr00tN1d7TrainPolicy:
             # PPO enters the action/value container's public forward; all trainable transforms
             # and the newly bound value head belong to that FSDP root.
             parallelize(self.net, gr00t_shard_plan(self.precision), parallel_dims)
+            if self.ppo_reference is not None:
+                self.ppo_reference.to(device)
+                parallelize(self.ppo_reference, gr00t_shard_plan(self.precision), parallel_dims)
         else:
             # Wrap `action_head`, not the container: FSDP2 all-gathers in the wrapped module's
             # pre-forward hook, and the official flow-BC forward calls `action_head(...)` directly.
@@ -309,7 +344,7 @@ class Gr00tN1d7TrainPolicy:
         return {**self.config.identity(), "source": dict(self._ppo_source_identity)}
 
     def ppo_frozen_state(self) -> dict[str, str]:
-        if self.config.backbone_buffer_dtype is None:
+        if self.config.backbone_buffer_dtype is None and not getattr(self, "verify_frozen_state", False):
             return {}
         import hashlib
 
@@ -381,15 +416,27 @@ class Gr00tN1d7TrainPolicy:
         from cosmos_framework.posttrain.model.gr00t.ppo import CONDITION_KEY, TRACE_KEY, to_device
 
         device = next(self.net.parameters()).device
-        scores = self.ppo_score(
-            to_device(step.obs.representations[CONDITION_KEY], device),
-            to_device(step.policy_info[TRACE_KEY], device),
-        )
+        condition = to_device(step.obs.representations[CONDITION_KEY], device)
+        trace = to_device(step.policy_info[TRACE_KEY], device)
+        scores = self.ppo_score(condition, trace)
         row = step.policy_info["sample_index"]
+        reference_kl = None
+        reference = getattr(self, "ppo_reference", None)
+        if reference is not None:
+            from cosmos_framework.posttrain.model.gr00t.ppo import selected_transition_kl
+
+            # Every rank enters the reference's own FSDP forward for every scored decision.
+            with torch.no_grad(), self.compute_ctx:
+                reference_mean, _ = reference(condition, trace, transition_only=True)
+            reference_kl = selected_transition_kl(
+                scores.mean, reference_mean.detach(), scores.std, score_horizon=self.config.execution_horizon
+            )[row : row + 1]
         return PPODecisionScores(
             scores.logprobs[row : row + 1],
             scores.values[row : row + 1],
             (scores.logprobs.sum() + scores.values.sum()) * 0,
+            reference_kl,
+            self.config.ppo_reference_kl_beta,
         )
 
     def ppo_sample(self, condition: Gr00tPPOCondition, *, seed: int) -> Gr00tPPOSample:

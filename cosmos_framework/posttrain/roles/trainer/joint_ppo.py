@@ -12,7 +12,12 @@ from typing import Any
 import torch
 import torch.distributed as dist
 
-from cosmos_framework.posttrain.algorithm.joint_ppo.objective import WEIGHT_KEY, WEIGHTED, make_joint_objective
+from cosmos_framework.posttrain.algorithm.joint_ppo.objective import (
+    REFERENCE_KL,
+    WEIGHT_KEY,
+    WEIGHTED,
+    make_joint_objective,
+)
 from cosmos_framework.posttrain.algorithm.joint_ppo.records import (
     STATS_KEY,
     TARGET_KEY,
@@ -119,11 +124,8 @@ class JointPPOTrainer(PPOTrainableRole):
         components: Iterable[str] | CheckpointComponentPlan | None = None,
         data_state: dict[str, Any] | None = None,
     ) -> None:
-        if not getattr(self.opt, "cosmos_local_master_optimizer", False):
-            super().save(path, publish, update_latest, components, data_state)
-            return
-        # FP32-master runs: these gradients belong to a completed update and are not recovery
-        # state. Keeping both BF16 model gradients and FP32 master staging alive can strand
+        # These gradients belong to a completed update and are not recovery state.
+        # Keeping both BF16 model gradients and FP32 master staging alive can strand
         # multiple GiB per rank while DCP/NCCL needs temporary device allocations.
         # The existing boundary guard rejects partial accumulation before mutation.
         self.release_completed_gradients()
@@ -142,6 +144,41 @@ class JointPPOTrainer(PPOTrainableRole):
 
     def ppo_identity(self) -> dict:
         return self.model.ppo_identity()
+
+    def optimizer_memory(self) -> dict | None:
+        """Current allocations, including transient gradients excluded from resume state."""
+        if getattr(self.opt, "cosmos_local_master_optimizer", False):
+            import os
+            import time
+
+            from cosmos_framework.utils.optimizer_master import local_tensor
+
+            report = self.opt.state_report()
+            report["observation"] = {
+                "time_ns": time.time_ns(),
+                "pid": os.getpid(),
+                "cpu_affinity": sorted(os.sched_getaffinity(0)),
+            }
+            report["model_gradient_bytes"] = sum(
+                local_tensor(p.grad).numel() * p.grad.element_size() for p in self.opt.live if p.grad is not None
+            )
+            device = local_tensor(self.opt.live[0]).device
+            if device.type == "cuda":
+                report["cuda_allocator"] = {
+                    "scope": "learner_context_since_creation; excludes managed allocations and other processes",
+                    "allocated_bytes": torch.cuda.memory_allocated(device),
+                    "reserved_bytes": torch.cuda.memory_reserved(device),
+                    "peak_allocated_bytes": max(
+                        torch.cuda.max_memory_allocated(device),
+                        getattr(self, "_allocator_lifetime_peaks", {}).get("allocated_bytes.all.peak", 0),
+                    ),
+                    "peak_reserved_bytes": max(
+                        torch.cuda.max_memory_reserved(device),
+                        getattr(self, "_allocator_lifetime_peaks", {}).get("reserved_bytes.all.peak", 0),
+                    ),
+                }
+            return report
+        return None
 
     def evaluation_state(self) -> dict:
         """Small attestations of learner state around external rollout evaluation."""
@@ -392,7 +429,9 @@ class JointPPOTrainer(PPOTrainableRole):
                 role="policy",
                 requested_coefficients={},
                 bound_coefficients={},
-                weighted=WEIGHTED,
+                # The anchored-model KL is window-weighted like the other objective metrics.
+                weighted=WEIGHTED
+                | ({REFERENCE_KL} if getattr(self.model, "ppo_reference", None) is not None else set()),
                 weight_key=WEIGHT_KEY,
             )
             optimizer_metrics.append(dict(metrics))
@@ -402,6 +441,12 @@ class JointPPOTrainer(PPOTrainableRole):
         # runs neither reset the process-wide CUDA peak counters nor gather receipts across ranks.
         diagnostics = bool(getattr(self.opt, "cosmos_local_master_optimizer", False))
         pre_update_allocator = _cuda_allocator_window(self.model.net, reset=True) if diagnostics else None
+        if pre_update_allocator is not None:
+            # Peaks restart per update; keep the since-creation maxima optimizer_memory reports.
+            self._allocator_lifetime_peaks = {
+                key: max(pre_update_allocator[key], getattr(self, "_allocator_lifetime_peaks", {}).get(key, 0))
+                for key in ("allocated_bytes.all.peak", "reserved_bytes.all.peak")
+            }
         # The pre-update snapshot only proves both groups changed and reports their update norms.
         # The default path keeps the historical device clone. The opt-in FP32-master path already
         # holds masters and moments next to the model, and a device clone spanning forward/backward

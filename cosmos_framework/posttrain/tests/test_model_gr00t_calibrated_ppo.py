@@ -26,6 +26,10 @@ def test_legacy_identity_and_explicit_buffer_mode_are_distinct():
     legacy = make_model_config("test-checkpoint", 8)
     payload = asdict(legacy)
     payload.pop("backbone_buffer_dtype")
+    payload.pop("backbone_from_checkpoint")
+    # Opt-in PPO fields are omitted from the identity at their defaults.
+    payload.pop("value_feature_gradient")
+    payload.pop("ppo_reference_kl_beta")
     assert legacy.identity_hash() == canonical_json_sha256(payload, context="legacy config")
     restored = Gr00tN1d7ModelConfig(**payload)
     assert restored.identity() == legacy.identity()
@@ -135,15 +139,22 @@ def test_constant_targets_report_explained_variance_as_undefined():
     assert all(torch.isfinite(torch.tensor(value)) for value in metrics.values())
 
 
-def test_frozen_backbone_mutation_is_detected():
+@pytest.mark.parametrize("explicit_verification", [False, True])
+@pytest.mark.parametrize("mutate", ["weight", "buffer"])
+def test_frozen_backbone_mutation_is_detected(explicit_verification, mutate):
     model = GaussianPolicy()
-    model.config = replace(model.config, backbone_buffer_dtype="bfloat16")
+    if explicit_verification:
+        model.verify_frozen_state = True
+        assert model.config.backbone_buffer_dtype is None
+    else:
+        model.config = replace(model.config, backbone_buffer_dtype="bfloat16")
     with torch.random.fork_rng(devices=[]):
         torch.manual_seed(4)
         model.backbone = torch.nn.Linear(2, 2, dtype=torch.bfloat16).requires_grad_(False)
+        model.backbone.register_buffer("constant", torch.ones(2, dtype=torch.bfloat16))
     learner = JointPPOTrainer(model, JointPPOConfig())
     learner.evaluation_state()
     with torch.no_grad():
-        model.backbone.weight.add_(1)
+        (model.backbone.weight if mutate == "weight" else model.backbone.constant).add_(1)
     with pytest.raises(RuntimeError, match="frozen model"):
         learner.evaluation_state()

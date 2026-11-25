@@ -30,6 +30,7 @@ def build_window_gateway(
         sink="null",
         embodiment=spec.embodiment,
         sim_python=spec.python,
+        **({"sim_pythonpath": spec.pythonpath} if spec.pythonpath is not None else {}),
         sim_gpu=os.environ["CUDA_VISIBLE_DEVICES"],
         sim_options=spec.options,
         sim_ipc_dir=os.environ["B1K_SIM_IPC_DIR"],
@@ -76,6 +77,7 @@ class PPOWindowCollector:
         self._evaluation_version: int | None = None
         self._evaluation_before: dict | None = None
         self._closed = False
+        self._loaded_checkpoint_provenance: dict | None = None
 
     def bind_rollout(self, rollout: DecisionSamplingPolicy) -> None:
         if self._version is not None or self._evaluation_version is not None:
@@ -268,7 +270,18 @@ class PPOWindowCollector:
             "environment": self.environment.identity(),
         }
 
-    def load_state_dict(self, state: dict) -> None:
+    def validate_state_dict(self, state: dict) -> None:
+        """Validate a completed-window cursor without changing collection state."""
+        if self._version is not None or self._evaluation_version is not None:
+            raise ValueError("cannot restore an active PPO collector")
+        if (
+            not isinstance(state, dict)
+            or set(state) != {"next_window", "replica", "n_lanes", "reset_on_resume", "recipe", "environment"}
+            or type(state["next_window"]) is not int
+            or state["next_window"] < 0
+            or state["reset_on_resume"] is not True
+        ):
+            raise ValueError("invalid completed-window PPO collector checkpoint")
         if (
             state["recipe"] != self.recipe.identity()
             or state["environment"] != self.environment.identity()
@@ -276,7 +289,29 @@ class PPOWindowCollector:
             or state["n_lanes"] != self.n_lanes
         ):
             raise ValueError("PPO collector checkpoint identity differs")
+
+    def load_state_dict(self, state: dict) -> None:
+        self.validate_state_dict(state)
         self._next_window = state["next_window"]
+        self._loaded_checkpoint_provenance = None
+
+    def restore_checkpoint(self, manager, path: str) -> None:
+        """Bind the collector cursor to the same stable generation as the learner."""
+
+        def stage():
+            data = manager.load_component(path, "data")
+            if not isinstance(data, dict) or str(self.replica) not in data.get("collectors", {}):
+                raise ValueError("joint PPO checkpoint is missing collection progress")
+            state = data["collectors"][str(self.replica)]
+            self.validate_state_dict(state)
+            return state
+
+        state, provenance = manager.load_with_stable_provenance(path, stage)
+        self.load_state_dict(state)
+        self._loaded_checkpoint_provenance = dict(provenance)
+
+    def loaded_checkpoint_provenance(self) -> dict | None:
+        return None if self._loaded_checkpoint_provenance is None else dict(self._loaded_checkpoint_provenance)
 
     def close(self) -> None:
         if self._closed:

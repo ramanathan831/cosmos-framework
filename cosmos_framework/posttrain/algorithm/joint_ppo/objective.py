@@ -24,6 +24,8 @@ WEIGHT_KEY = "train/valid_decisions"
 WEIGHTED = frozenset(
     f"train/{name}" for name in ("policy_loss", "value_loss", "joint_loss", "clip_fraction", "ratio_mean")
 )
+# Reported only for models that carry a frozen reference policy (opt-in KL anchor).
+REFERENCE_KL = "train/reference_kl"
 
 
 def make_joint_objective(
@@ -39,7 +41,15 @@ def make_joint_objective(
     fixed_episode = loss_reduction == "fixed_episode_mean"
     names = {
         f"ppo_{key}": key
-        for key in ("policy_loss", "value_loss", "joint_loss", "clip_fraction", "ratio_mean", "valid_decisions")
+        for key in (
+            "policy_loss",
+            "value_loss",
+            "joint_loss",
+            "clip_fraction",
+            "ratio_mean",
+            "reference_kl",
+            "valid_decisions",
+        )
     }
     if fixed_episode:
         names["ppo_decisions"] = "decisions"
@@ -49,7 +59,7 @@ def make_joint_objective(
         phases=frozenset({"train"}),
         weighted_by={
             f"ppo_{key}": ("ppo_decisions" if fixed_episode and key.endswith("loss") else "ppo_valid_decisions")
-            for key in ("policy_loss", "value_loss", "joint_loss", "clip_fraction", "ratio_mean")
+            for key in ("policy_loss", "value_loss", "joint_loss", "clip_fraction", "ratio_mean", "reference_kl")
         },
     )
 
@@ -79,7 +89,8 @@ def make_joint_objective(
         # genuine cached sample as its padding template before opening the window.
         padding = model.ppo_padding
         loss = torch.zeros((), device=device)
-        totals = {key: torch.zeros((), device=device) for key in WEIGHTED}
+        anchored = getattr(model, "ppo_reference", None) is not None
+        totals = {key: torch.zeros((), device=device) for key in WEIGHTED | ({REFERENCE_KL} if anchored else set())}
 
         def terms(index: int, step: Transition, scores: PPODecisionScores) -> tuple[torch.Tensor, dict]:
             if index >= len(steps) or not step.algo_extra[TARGET_KEY].loss_mask:
@@ -100,12 +111,19 @@ def make_joint_objective(
             actor = actor * targets.loss_weight
             value = value * targets.loss_weight
             joint = actor + value
+            reference_kl = None
+            if scores.reference_kl is not None:
+                # Anchor to the frozen initial policy: beta * KL(pi_theta || pi_ref) of the scored
+                # transition, weighted like the surrogate; policy_loss stays the pure PPO term.
+                reference_kl = scores.reference_kl.sum()
+                joint = joint + scores.reference_kl_beta * reference_kl * targets.loss_weight
             return joint, {
                 "train/policy_loss": actor.detach(),
                 "train/value_loss": value.detach(),
                 "train/joint_loss": joint.detach(),
                 "train/clip_fraction": metrics["clip_fraction"],
                 "train/ratio_mean": metrics["ratio_mean"],
+                **({REFERENCE_KL: reference_kl.detach()} if reference_kl is not None else {}),
             }
 
         if batched:
@@ -116,13 +134,19 @@ def make_joint_objective(
                 batch_loss = scores.zero_loss
                 batch_totals = dict(totals)
                 for index, step in enumerate(steps):
+                    # Carry every per-decision field, including an optional KL anchor, so a
+                    # batched policy is scored by the same terms as the per-decision path.
                     selected = PPODecisionScores(
-                        scores.logprobs[index : index + 1], scores.values[index : index + 1], scores.zero_loss
+                        scores.logprobs[index : index + 1],
+                        scores.values[index : index + 1],
+                        scores.zero_loss,
+                        None if scores.reference_kl is None else scores.reference_kl[index : index + 1],
+                        scores.reference_kl_beta,
                     )
                     value, metrics = terms(index, step, selected)
                     batch_loss = batch_loss + value / mean_count
                     for key, value in metrics.items():
-                        batch_totals[key] = batch_totals[key] + value
+                        batch_totals[key] = batch_totals.get(key, scores.zero_loss.detach() * 0) + value
                 return batch_loss, batch_totals
 
             loss, totals = run_rank_converged(batch_terms, "joint PPO objective terms")
@@ -134,7 +158,7 @@ def make_joint_objective(
                 value, metrics = run_rank_converged(lambda: terms(index, step, scores), "joint PPO objective terms")
                 loss = loss + value / mean_count
                 for key, value in metrics.items():
-                    totals[key] = totals[key] + value
+                    totals[key] = totals.get(key, torch.zeros((), device=device)) + value
         return loss, {
             **{
                 f"ppo_{key.removeprefix('train/')}": value

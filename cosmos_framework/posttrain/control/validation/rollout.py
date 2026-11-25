@@ -666,6 +666,9 @@ class WindowEvaluator:
     replicas: int
     output: str
     simulator: WorkerGroup | None = None
+    # Fresh-process scoring binds its output to the generation restored by every
+    # learner rank. Training validation omits this: its journal advances in place.
+    checkpoint_guard: Callable[[], dict[str, Any]] | None = None
 
     def __call__(self, step: int, reasons: frozenset[ValidationTrigger]) -> ValidationReport:
         from pathlib import Path
@@ -675,6 +678,7 @@ class WindowEvaluator:
         from cosmos_framework.posttrain.utils.entry import resolve_identical
 
         started = time.monotonic()
+        source = self.checkpoint_guard() if self.checkpoint_guard is not None else None
         before = resolve_all(self.policy.evaluation_state())
         version = resolve_identical(self.policy.publication_version(), operation="evaluation publication")
         if self.simulator is None:
@@ -706,12 +710,17 @@ class WindowEvaluator:
             "manifest": fingerprint,
             "training_state_unchanged": True,
             "learner_state": before,
+            "optimizer_memory": resolve_all(self.policy.optimizer_memory()),
             "metrics": metrics,
             "episodes": [dict(row.details) for row in episodes],
             "reasons": sorted(reason.value for reason in reasons),
         }
         directory = Path(self.output) / "evaluation"
         directory.mkdir(parents=True, exist_ok=True)
+        if self.checkpoint_guard is not None:
+            if self.checkpoint_guard() != source:
+                raise RuntimeError("evaluation checkpoint generation changed before score publication")
+            result["checkpoint_provenance"] = source
         atomic_write_json(str(directory / f"step_{step:06d}.json"), result)
         return ValidationReport(step, len(episodes), metrics, fingerprint, reasons, time.monotonic() - started)
 

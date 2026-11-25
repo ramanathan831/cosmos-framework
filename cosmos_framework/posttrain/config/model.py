@@ -13,6 +13,7 @@ shape. ``tests/test_config_model_gr00t.py`` asserts this in a subprocess.
 
 from __future__ import annotations
 
+import math
 import os
 from dataclasses import asdict, dataclass, field
 from typing import Any
@@ -136,6 +137,9 @@ class HFModelConfig:
     trust_remote_code: bool = False
     auto_class: str = "AutoModelForCausalLM"
     grad_ckpt: bool = False  # drives HFModel.apply_gradient_checkpointing in setup()
+    # Empty keeps the HF default (all eligible modules). Exact names permit a
+    # measured partial-recomputation baseline on per-layer checkpointing models.
+    grad_ckpt_modules: list[str] = field(default_factory=list)
     parallelism: HFParallelismConfig = field(default_factory=HFParallelismConfig)
     # Gradient all-reduce dtype for FSDP2 mixed precision (params stay `dtype`); cosmos-rl
     # `fsdp_reduce_dtype`. fp32 reduction over bf16 params is the reference recipe.
@@ -234,6 +238,18 @@ class Gr00tN1d7ModelConfig:
 
     # None preserves the loader's buffer precision and historical policy identity.
     backbone_buffer_dtype: str | None = None
+    # Complete GR00T checkpoints own the nested backbone weights. Opt in to
+    # metadata-only SDPA construction, with strict full-checkpoint restoration.
+    backbone_from_checkpoint: bool = False
+    # PPO only. True (native) lets value-regression gradients reach the shared actor
+    # features (vlln, vl_self_attention, state_encoder) that feed the value head; False
+    # detaches those value inputs so only action_head.value_head learns from the value loss.
+    # Forward values are identical either way; only gradient routing changes.
+    value_feature_gradient: bool = True
+    # PPO only. > 0 adds beta * KL(pi_theta || pi_init) of the scored selected transition to the actor
+    # loss, against a frozen copy of the source action head built at construction (before any restore).
+    # 0 (native) builds no reference and keeps the historical identity.
+    ppo_reference_kl_beta: float = 0.0
 
     # Observation adaptation: GR00T MODALITY KEY -> env observation key. The left side is fixed by the
     # checkpoint's `processor_config.json` and is verified against the loaded checkpoint at startup;
@@ -247,6 +263,10 @@ class Gr00tN1d7ModelConfig:
     def __post_init__(self) -> None:
         if self.backbone_buffer_dtype not in (None, "bfloat16"):
             raise ValueError("gr00t.backbone_buffer_dtype must be None or bfloat16")
+        beta = self.ppo_reference_kl_beta
+        if isinstance(beta, bool) or not isinstance(beta, (int, float)) or not math.isfinite(beta) or beta < 0:
+            raise ValueError(f"gr00t.ppo_reference_kl_beta must be a finite number >= 0, got {beta!r}")
+        self.ppo_reference_kl_beta = float(beta)
         for name in ("model_action_horizon", "training_prefix", "execution_horizon", "denoising_steps"):
             if int(getattr(self, name)) < 1:
                 raise ValueError(f"gr00t.{name} must be >= 1, got {getattr(self, name)!r}")
@@ -305,6 +325,12 @@ class Gr00tN1d7ModelConfig:
         result = {k: (list(v) if isinstance(v, tuple) else v) for k, v in asdict(self).items()}
         if self.backbone_buffer_dtype is None:
             result.pop("backbone_buffer_dtype")
+        if not self.backbone_from_checkpoint:
+            result.pop("backbone_from_checkpoint")
+        if self.value_feature_gradient:
+            result.pop("value_feature_gradient")
+        if not self.ppo_reference_kl_beta:
+            result.pop("ppo_reference_kl_beta")
         return result
 
     def identity_hash(self) -> str:

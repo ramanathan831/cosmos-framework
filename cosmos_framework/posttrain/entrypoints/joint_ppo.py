@@ -119,10 +119,7 @@ def setup_experience(
                 lifecycle = CheckpointLifecycle.from_config(
                     config, recipe, run_out_dir=output, resume_checkpoint=resume
                 )
-                state = lifecycle.manager.load_component(resume, "data")
-                if state is None:
-                    raise ValueError("joint PPO checkpoint is missing collection progress")
-                collector.load_state_dict(state["collectors"][str(replica)])
+                collector.restore_checkpoint(lifecycle.manager, resume)
             bodies["collector"] = collector
         if "rm" in members:
             bodies["rm"] = RewardWorker([instantiate(config.reward)], training_group_size=1)
@@ -143,6 +140,87 @@ class CollectorCheckpointState:
 
         states = resolve_all(self.collector.state_dict())
         return {"collectors": {str(state["replica"]): state for state in states}}
+
+    def loaded_checkpoint_provenance(self):
+        # Preserve all replica receipts for the coordinator's resolve_identical.
+        return self.collector.loaded_checkpoint_provenance()
+
+
+def is_budget_boundary(recipe, step, version) -> bool:
+    """Whether (optimizer_step, publication_version) is a completed window inside the budget."""
+    return (
+        type(version) is int
+        and version >= 0
+        and type(step) is int
+        and step == version * (recipe.decisions // recipe.global_minibatch)
+        and step <= recipe.max_steps
+    )
+
+
+def validate_resume_boundary(manager, path, recipe, environment, width):
+    """Reject inconsistent RL cursors before workers allocate or restore models."""
+    from cosmos_framework.posttrain.roles.env.ppo_window import PPOWindowCollector
+
+    control = manager.load_component(path, "trainer")
+    data = manager.load_component(path, "data")
+    if not isinstance(control, dict) or not isinstance(data, dict):
+        raise ValueError("joint PPO resume requires trainer and collection state")
+    version, step = control.get("publication_version"), control.get("optimizer_step")
+    if not is_budget_boundary(recipe, step, version) or control.get("accum") != 0:
+        raise ValueError("joint PPO checkpoint is not a completed update/publication boundary")
+    states = data.get("collectors")
+    if not isinstance(states, dict) or set(states) != {str(rank) for rank in range(width)}:
+        raise ValueError("joint PPO checkpoint collector topology differs")
+    for replica in range(width):
+        collector = PPOWindowCollector(recipe, replica, recipe.num_envs // width, environment=environment)
+        state = states[str(replica)]
+        collector.validate_state_dict(state)
+        if state["next_window"] != version:
+            raise ValueError("joint PPO collector cursor differs from the committed policy version")
+
+
+def preflight_pending_publication(manager, path, output):
+    """Refuse an unavailable pending-validation move before model workers exist."""
+    control = manager.load_component(path, "trainer")
+    validation = control.get("validation") or {}
+    pending = (validation.get("progress") or {}).get("pending_step") is not None
+    if not pending and validation.get("publication") is None:
+        return
+    from cosmos_framework.posttrain.control.checkpointing import checkpoint_iteration_dir
+
+    # The coordinator's own path rule, so a pending publication moves where it will be committed.
+    target = manager.iteration_location(checkpoint_iteration_dir(str(output), control["optimizer_step"]))
+    if manager.store.is_object_store:
+        if path != target:
+            raise ValueError("cross-prefix object-store pending-validation resume is unsupported")
+    elif os.path.realpath(path) != os.path.realpath(target):
+        from cosmos_framework.posttrain.checkpoint.external_copy import require_atomic_directory_promotion
+
+        require_atomic_directory_promotion(os.path.dirname(target))
+
+
+def record_restored_boundary(manager, path, output, policy, collector):
+    """Attest the live restored learner/cursor before any rollout or optimizer update."""
+    from cosmos_framework.posttrain.checkpoint.io import atomic_write_json
+    from cosmos_framework.posttrain.utils.entry import resolve_all, resolve_identical
+
+    source = resolve_identical(policy.loaded_checkpoint_provenance(), operation="training resume provenance")
+    collector_source = resolve_identical(
+        collector.loaded_checkpoint_provenance(), operation="training collector resume provenance"
+    )
+    if not source or collector_source != source or manager.checkpoint_provenance(path) != source:
+        raise RuntimeError("training resume checkpoint generation differs from restored roles")
+    progress = resolve_identical(policy.progress(), operation="training resume progress")
+    receipt = {
+        "checkpoint_provenance": source,
+        "progress": progress,
+        "learner_state": resolve_all(policy.evaluation_state()),
+        "data": CollectorCheckpointState(collector).state_dict(),
+        "scope": "completed native update boundary; simulator state is reset, not restored",
+    }
+    if manager.checkpoint_provenance(path) != source:
+        raise RuntimeError("training resume checkpoint generation changed during attestation")
+    atomic_write_json(str(Path(output) / f"resume-state-step-{progress['optimizer_step']}.json"), receipt)
 
 
 def manifest(evaluation_enabled: bool = True):
@@ -238,7 +316,7 @@ def assemble(
     return {role.name: role for role in (*experience_roles, policy)}
 
 
-def run(config: Any, opts: list[str] | None = None) -> dict:
+def run(config: Any, opts: list[str] | None = None, *, evaluate_only: bool = False) -> dict:
     import ray
 
     from cosmos_framework.posttrain.control.checkpointing import CheckpointLifecycle
@@ -267,6 +345,7 @@ def run(config: Any, opts: list[str] | None = None) -> dict:
     )
     from cosmos_framework.utils.lazy_config import instantiate
 
+    run_started = time.monotonic()
     config = resolve_joint_config(config)
     nodes, gpus = detect_mesh()
     width = nodes * gpus
@@ -275,9 +354,30 @@ def run(config: Any, opts: list[str] | None = None) -> dict:
     recipe = instantiate(config.rl)
     output = Path(attempt.out_dir)
     output.mkdir(parents=True, exist_ok=True)
-    dump_resolved(config, str(output))
     resume = attempt.resume_checkpoint
+    if evaluate_only and (resume is None or not recipe.validation.enabled):
+        raise ValueError("checkpoint evaluation requires an explicit resumable checkpoint and enabled validation")
+    # A checkpoint evaluation writes its own artifacts (resolved config, setup timing, scores,
+    # summary) under a per-checkpoint directory, never over the training run's files.
+    artifacts = output
+    if evaluate_only:
+        artifacts = output / "checkpoint-evaluation" / Path(str(resume).rstrip("/")).name
+        if artifacts.exists():
+            raise FileExistsError(f"checkpoint evaluation artifacts already exist: {artifacts}; refusing to overwrite")
+        artifacts.mkdir(parents=True)
+    dump_resolved(config, str(artifacts))
     lifecycle = CheckpointLifecycle.from_config(config, recipe, run_out_dir=str(output), resume_checkpoint=resume)
+    if resume:
+
+        def preflight_resume():
+            validate_resume_boundary(lifecycle.manager, resume, recipe, instantiate(config.environment), width)
+            if not evaluate_only:
+                preflight_pending_publication(lifecycle.manager, resume, output)
+
+        lifecycle.manager.load_with_stable_provenance(
+            resume,
+            preflight_resume,
+        )
     with ExitStack() as cleanup:
         cleanup.callback(ray.shutdown)
         observers = build_controller_observers(
@@ -286,6 +386,15 @@ def run(config: Any, opts: list[str] | None = None) -> dict:
         cleanup.callback(observers.on_app_end)
         observers.on_app_start()
         units = assemble(config, recipe, output, resume, width)
+        setup_seconds = time.monotonic() - run_started
+        (artifacts / "native-setup.json").write_text(
+            json.dumps(
+                {
+                    "seconds": setup_seconds,
+                    "scope": "native run entry through assembled and restored roles; excludes launcher preflights and evaluation",
+                }
+            )
+        )
         collector, rollout, policy = units["collector"], units["rollout"], units["policy"]
         reward, replay = units["rm"], units["replay"]
         cleanup.callback(lambda: resolve_all(rollout.close()))
@@ -299,8 +408,52 @@ def run(config: Any, opts: list[str] | None = None) -> dict:
         progress = resolve_identical(policy.progress(), operation="Joint PPO restored counters")
         version, step = progress["publication_version"], progress["optimizer_step"]
         updates = recipe.decisions // recipe.global_minibatch
-        if step != version * updates or step > recipe.max_steps:
+        if not is_budget_boundary(recipe, step, version):
             raise ValueError("restored optimizer/publication counters differ from the configured training budget")
+        if evaluate_only:
+            from cosmos_framework.posttrain.checkpoint.io import atomic_write_json
+            from cosmos_framework.posttrain.control.validation.lifecycle import ValidationTrigger
+
+            # Use the same restored learner, policy publication, native simulator
+            # and fixed-case evaluator. No training/validation journal is advanced
+            # and no checkpoint is rewritten by this fresh-process evaluation.
+            source = resolve_identical(
+                policy.loaded_checkpoint_provenance(), operation="evaluation restored checkpoint generation"
+            )
+            if not source:
+                raise RuntimeError("checkpoint evaluation lacks restored checkpoint provenance")
+
+            def checkpoint_guard():
+                if lifecycle.manager.checkpoint_provenance(resume) != source:
+                    raise RuntimeError("evaluation checkpoint generation changed before score publication")
+                return source
+
+            checkpoint_guard()
+            weight_sync(rollout, policy, validation_step=version)
+            evaluator = WindowEvaluator(
+                policy,
+                collector,
+                instantiate(config.environment),
+                width,
+                str(artifacts),
+                units.get("eval_sim"),
+                checkpoint_guard=checkpoint_guard,
+            )
+            report = evaluator(step, frozenset({ValidationTrigger.FINAL}))
+            summary = {
+                "mode": "checkpoint_evaluation",
+                "windows": 0,
+                "restored_from": resume,
+                "optimizer_step": step,
+                "publication_version": version,
+                "output": str(artifacts),
+                "metrics": report.metrics,
+                "checkpoint_provenance": checkpoint_guard(),
+            }
+            atomic_write_json(str(artifacts / f"evaluation-summary-step-{step}.json"), summary)
+            return summary
+        if resume:
+            record_restored_boundary(lifecycle.manager, resume, output, policy, collector)
         observers.on_train_start(train_iterations_start=version, train_samples_start=version * recipe.decisions)
         cleanup.callback(observers.on_train_end)
         checkpoints = lifecycle.coordinator(
@@ -344,14 +497,17 @@ def run(config: Any, opts: list[str] | None = None) -> dict:
                 trajectories = collect_decision_window(
                     collector, units["sim"], version=version, decisions=recipe.window_decisions
                 )
+                collected = time.monotonic()
                 scored = reward.score_with_provider_report(trajectories)
                 resolve_all(replay.put_samples(scored))
                 batch = replay.get_exact_samples()
                 receipt = resolve_identical(policy.prepare_ppo_targets(batch), operation="joint PPO targets")
+                prepared = time.monotonic()
                 batch_id, success = receipt["batch_id"], False
                 try:
                     with observers.train_batch():
                         result = resolve_identical(policy.train_batch(batch_id), operation="Joint PPO joint update")
+                    updated = time.monotonic()
                     if result["optimizer_step"] != step + updates or receipt["decisions"] != recipe.decisions:
                         raise RuntimeError("Joint PPO window counters differ from the fixed recipe")
                     step, version = result["optimizer_step"], version + 1
@@ -362,7 +518,14 @@ def run(config: Any, opts: list[str] | None = None) -> dict:
                 finally:
                     if not success:
                         resolve_all(policy.abort_batch(batch_id))
-            seconds = time.monotonic() - started
+            finished = time.monotonic()
+            seconds = finished - started
+            phases = {
+                "collect_seconds": collected - started,
+                "targets_seconds": prepared - collected,
+                "update_seconds": updated - prepared,
+                "publication_and_clear_seconds": finished - updated,
+            }
             shards = resolve_all(collector.window_statistics())
             episodes = [episode for shard in shards for episode in shard["episodes"]]
             diagnostics = receipt["target_diagnostics"]
@@ -412,6 +575,7 @@ def run(config: Any, opts: list[str] | None = None) -> dict:
                 **result,
                 "publication_version": version,
                 "seconds": seconds,
+                "phase_seconds": phases,
                 "episodes": episodes,
             }
             with (output / "windows.jsonl").open("a") as stream:
@@ -441,18 +605,22 @@ def run(config: Any, opts: list[str] | None = None) -> dict:
 
 
 def main() -> None:
-    from cosmos_framework.posttrain.utils.entry import cli
+    from cosmos_framework.posttrain.utils.entry import cli_flags
     from cosmos_framework.posttrain.utils.mesh import detect_mesh
     from cosmos_framework.utils.config import load_config
 
-    path, opts, validate = cli(__doc__, "cosmos_framework/posttrain/config/config_joint_ppo.py")
+    path, opts, flags = cli_flags(
+        __doc__,
+        "cosmos_framework/posttrain/config/config_joint_ppo.py",
+        extra_flags={"--evaluate-only": "Restore rl.resume and evaluate native cases without training or resaving."},
+    )
     config = load_config(path, ["--", *opts])
-    if validate:
+    if flags["validate_manifest"]:
         nodes, gpus = detect_mesh()
         validate_config(config, nodes * gpus)
         print("Joint PPO configuration, sources and role manifest are valid", flush=True)
         return
-    run(config, opts)
+    run(config, opts, evaluate_only=flags["evaluate_only"])
 
 
 if __name__ == "__main__":

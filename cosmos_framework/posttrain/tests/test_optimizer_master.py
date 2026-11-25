@@ -128,9 +128,11 @@ def test_native_joint_evaluation_reports_actual_initialized_storage():
     assert state["optimizer_storage"]["master_bytes"] == 0  # FP32 fixture aliases live parameters.
     assert state == learner.evaluation_state()
     assert state["parameters"] != before["parameters"]
-    assert learner.opt.state_report()["fp32_gradient_alias_bytes"] > 0
+    assert learner.optimizer_memory()["fp32_gradient_alias_bytes"] > 0
+    assert learner.optimizer_memory()["model_gradient_bytes"] == learner.optimizer_memory()["fp32_gradient_alias_bytes"]
     learner.opt.zero_grad()
-    assert learner.opt.state_report()["fp32_gradient_alias_bytes"] == 0
+    assert learner.optimizer_memory()["fp32_gradient_alias_bytes"] == 0
+    assert learner.optimizer_memory()["model_gradient_bytes"] == 0
     assert learner.evaluation_state() == state  # Scratch gradients are not durable recovery state.
 
 
