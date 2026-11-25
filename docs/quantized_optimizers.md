@@ -139,10 +139,7 @@ unchanged.
 
 ## Measured results
 
-The tests used 8×A100-80GB, with protocols locked before each comparison. Full evidence is
-on the
-[`feat/quantized-optimizers`](https://github.com/ramanathan831/cosmos-framework/tree/feat/quantized-optimizers/docs/posttrain/evidence)
-branch.
+The tests used 8×A100-80GB, with protocols locked before each comparison.
 
 |                                              | GR00T-N1.7 LIBERO-10 PPO | Cosmos3-Nano LIBERO-10 SFT                                   |
 | -------------------------------------------- | ------------------------ | ------------------------------------------------------------ |
